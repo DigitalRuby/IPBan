@@ -1,6 +1,0 @@
-C:\Users\Jeff\Desktop\Personal\DigitalRuby\DEV\SVN\trunk\Utilities\IPBan\bin\Release\IPBan.exe.config
-C:\Users\Jeff\Desktop\Personal\DigitalRuby\DEV\SVN\trunk\Utilities\IPBan\bin\Release\IPBan.exe
-C:\Users\Jeff\Desktop\Personal\DigitalRuby\DEV\SVN\trunk\Utilities\IPBan\bin\Release\IPBan.pdb
-C:\Users\Jeff\Desktop\Personal\DigitalRuby\DEV\SVN\trunk\Utilities\IPBan\obj\x86\Release\ResolveAssemblyReference.cache
-C:\Users\Jeff\Desktop\Personal\DigitalRuby\DEV\SVN\trunk\Utilities\IPBan\obj\x86\Release\IPBan.exe
-C:\Users\Jeff\Desktop\Personal\DigitalRuby\DEV\SVN\trunk\Utilities\IPBan\obj\x86\Release\IPBan.pdb
