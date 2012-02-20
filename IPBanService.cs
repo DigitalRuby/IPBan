@@ -165,7 +165,6 @@ namespace IPBan
             run = false;
             query = null;
             watcher = null;
-            watcher = null;
         }
 
         public static void Main(string[] args)
@@ -182,7 +181,6 @@ namespace IPBan
 #else
 
             System.ServiceProcess.ServiceBase[] ServicesToRun;
-            // Change the following line to match.
             ServicesToRun = new System.ServiceProcess.ServiceBase[] { new IPBanService() };
             System.ServiceProcess.ServiceBase.Run(ServicesToRun);
 
