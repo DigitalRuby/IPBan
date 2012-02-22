@@ -50,6 +50,29 @@ namespace IPBan
             rulePrefix = value;
         }
 
+        private void ClearBannedIP()
+        {
+            if (File.Exists(banFile))
+            {
+                string[] ips = File.ReadAllLines(banFile);
+
+                foreach (string ip in ips)
+                {
+                    ProcessStartInfo info = new ProcessStartInfo
+                    {
+                        FileName = "netsh",
+                        Arguments = "advfirewall firewall delete rule \"name=" + rulePrefix + ip + "\"",
+                        CreateNoWindow = true,
+                        WindowStyle = ProcessWindowStyle.Hidden,
+                        UseShellExecute = true
+                    };
+                    Process.Start(info);
+                }
+
+                File.Delete(banFile);
+            }
+        }
+
         private void EventRecordWritten(object sender, EventRecordWrittenEventArgs e)
         {
             EventRecord rec = e.EventRecord;
@@ -61,24 +84,21 @@ namespace IPBan
             {
                 string ipToBlock = element.InnerText;
 
-                if (ipToBlock != "66.7.124.62")
+                int count;
+                lock (ipBlocker)
                 {
-                    int count;
-                    lock (ipBlocker)
+                    ipBlocker.TryGetValue(ipToBlock, out count);
+                    if (count < failedLoginAttemptsBeforeBan && ++count == failedLoginAttemptsBeforeBan)
                     {
-                        ipBlocker.TryGetValue(ipToBlock, out count);
-                        if (count < failedLoginAttemptsBeforeBan && ++count == failedLoginAttemptsBeforeBan)
-                        {
-                            Process.Start("netsh", "advfirewall firewall add rule \"name=" + rulePrefix + ipToBlock + "\" dir=in protocol=any action=block remoteip=" + ipToBlock);
-                            File.AppendAllText(banFile, ipToBlock + Environment.NewLine);
+                        Process.Start("netsh", "advfirewall firewall add rule \"name=" + rulePrefix + ipToBlock + "\" dir=in protocol=any action=block remoteip=" + ipToBlock);
+                        File.AppendAllText(banFile, ipToBlock + Environment.NewLine);
 
-                            lock (ipBlockerDate)
-                            {
-                                ipBlockerDate[ipToBlock] = DateTime.UtcNow;
-                            }
+                        lock (ipBlockerDate)
+                        {
+                            ipBlockerDate[ipToBlock] = DateTime.UtcNow;
                         }
-                        ipBlocker[ipToBlock] = count;
                     }
+                    ipBlocker[ipToBlock] = count;
                 }
             }
         }
@@ -86,6 +106,7 @@ namespace IPBan
         private void Initialize()
         {
             ReadAppSettings();
+            ClearBannedIP();
 
             if (File.Exists(banFile))
             {
@@ -124,7 +145,7 @@ namespace IPBan
 
                 if (elapsed.Days > 0)
                 {
-                    Process.Start("netsh", "advfirewall firewall delete rule \"name=Block IP Address " + keyValue.Key + "\"");
+                    Process.Start("netsh", "advfirewall firewall delete rule \"name=" + rulePrefix + keyValue.Key + "\"");
                     ipBlockerDate.Remove(keyValue.Key);
                 }
             }
