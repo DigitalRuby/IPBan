@@ -42,6 +42,11 @@ namespace IPBan
 
             value = ConfigurationManager.AppSettings["BanFile"];
             banFile = value;
+            if (!Path.IsPathRooted(banFile))
+            {
+                string exeFullPath = System.Reflection.Assembly.GetExecutingAssembly().Location;
+                banFile = Path.Combine(Path.GetDirectoryName(exeFullPath), banFile);
+            }
 
             value = ConfigurationManager.AppSettings["CycleTime"];
             cycleTime = TimeSpan.Parse(value);
