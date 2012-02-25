@@ -1,4 +1,4 @@
 Run in release mode for a windows service (example: sc create IPBAN type= own start= auto binPath= d:\system\ipban\ipban.exe DisplayName= IPBAN)
 Run in debug mode in visual studio (make sure to run visual studio as administrator)
-
+Make sure you are logging failed login attempts via local security policy
 Has been tested on Windows 7 x64 and Windows Server 2008 x64
