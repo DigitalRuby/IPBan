@@ -59,22 +59,25 @@ namespace IPBan
         {
             if (File.Exists(banFile))
             {
-                string[] ips = File.ReadAllLines(banFile);
-
-                foreach (string ip in ips)
+                lock (ipBlocker)
                 {
-                    ProcessStartInfo info = new ProcessStartInfo
-                    {
-                        FileName = "netsh",
-                        Arguments = "advfirewall firewall delete rule \"name=" + rulePrefix + ip + "\"",
-                        CreateNoWindow = true,
-                        WindowStyle = ProcessWindowStyle.Hidden,
-                        UseShellExecute = true
-                    };
-                    Process.Start(info);
-                }
+                    string[] ips = File.ReadAllLines(banFile);
 
-                File.Delete(banFile);
+                    foreach (string ip in ips)
+                    {
+                        ProcessStartInfo info = new ProcessStartInfo
+                        {
+                            FileName = "netsh",
+                            Arguments = "advfirewall firewall delete rule \"name=" + rulePrefix + ip + "\"",
+                            CreateNoWindow = true,
+                            WindowStyle = ProcessWindowStyle.Hidden,
+                            UseShellExecute = true
+                        };
+                        Process.Start(info);
+                    }
+
+                    File.Delete(banFile);
+                }
             }
         }
 
@@ -136,6 +139,7 @@ namespace IPBan
 
         private void CheckForExpiredIP()
         {
+            bool fileChanged = false;
             KeyValuePair<string, DateTime>[] blockList;
             lock (ipBlockerDate)
             {
@@ -151,7 +155,20 @@ namespace IPBan
                 if (elapsed.Days > 0)
                 {
                     Process.Start("netsh", "advfirewall firewall delete rule \"name=" + rulePrefix + keyValue.Key + "\"");
-                    ipBlockerDate.Remove(keyValue.Key);
+                    lock (ipBlockerDate)
+                    {
+                        ipBlockerDate.Remove(keyValue.Key);
+                        fileChanged = true;
+                    }
+                }
+            }
+
+            if (fileChanged)
+            {
+                lock (ipBlocker)
+                lock (ipBlockerDate)
+                {
+                    File.WriteAllLines(banFile, ipBlockerDate.Keys.ToArray());
                 }
             }
         }
