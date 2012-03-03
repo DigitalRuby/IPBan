@@ -13,6 +13,7 @@ using System.Security.AccessControl;
 using System.Security.Principal;
 using System.Web.Script.Serialization;
 using System.Xml;
+using System.Text.RegularExpressions;
 
 namespace IPBan
 {
@@ -84,7 +85,7 @@ namespace IPBan
         private void EventRecordWritten(object sender, EventRecordWrittenEventArgs e)
         {
             EventRecord rec = e.EventRecord;
-            string xml = rec.ToXml().Replace(" xmlns='http://schemas.microsoft.com/win/2004/08/events/event'", string.Empty);
+            string xml = Regex.Replace(rec.ToXml(), " xmlns=['\"].*?['\"]", string.Empty);
             XmlDocument doc = new XmlDocument();
             doc.LoadXml(xml);
             XmlNode element = doc.SelectSingleNode("//Data[@Name='IpAddress']");
