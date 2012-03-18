@@ -19,6 +19,7 @@ namespace IPBan
 {
     public class IPBanService : ServiceBase
     {
+        private static readonly string auditFailureKeyword = ((ulong)0x8010000000000000).ToString();
         private int failedLoginAttemptsBeforeBan = 5;
         private TimeSpan banTime = TimeSpan.FromDays(1.0d);
         private string banFile = "banlog.txt";
@@ -85,29 +86,34 @@ namespace IPBan
         private void EventRecordWritten(object sender, EventRecordWrittenEventArgs e)
         {
             EventRecord rec = e.EventRecord;
-            string xml = Regex.Replace(rec.ToXml(), " xmlns=['\"].*?['\"]", string.Empty);
-            XmlDocument doc = new XmlDocument();
-            doc.LoadXml(xml);
-            XmlNode element = doc.SelectSingleNode("//Data[@Name='IpAddress']");
-            if (element != null && element.InnerText != null && element.InnerText.Length != 0)
+            string xml = rec.ToXml();
+            string ipAddress = null;
+            XmlTextReader reader = new XmlTextReader(new StringReader(xml));
+            reader.Namespaces = false;
+            while (reader.ReadToFollowing("Data"))
             {
-                string ipToBlock = element.InnerText;
+                string dataName = reader.GetAttribute("Name");
 
+                if (dataName != null && dataName.Equals("IPAddress", StringComparison.OrdinalIgnoreCase))
+                {
+                    ipAddress = reader.ReadString();
+                    break;
+                }
+            }
+
+            if (!string.IsNullOrWhiteSpace(ipAddress))
+            {
                 int count;
                 lock (ipBlocker)
                 {
-                    ipBlocker.TryGetValue(ipToBlock, out count);
+                    ipBlocker.TryGetValue(ipAddress, out count);
                     if (count < failedLoginAttemptsBeforeBan && ++count == failedLoginAttemptsBeforeBan)
                     {
-                        Process.Start("netsh", "advfirewall firewall add rule \"name=" + rulePrefix + ipToBlock + "\" dir=in protocol=any action=block remoteip=" + ipToBlock);
-                        File.AppendAllText(banFile, ipToBlock + Environment.NewLine);
-
-                        lock (ipBlockerDate)
-                        {
-                            ipBlockerDate[ipToBlock] = DateTime.UtcNow;
-                        }
+                        Process.Start("netsh", "advfirewall firewall add rule \"name=" + rulePrefix + ipAddress + "\" dir=in protocol=any action=block remoteip=" + ipAddress);
+                        File.AppendAllText(banFile, ipAddress + Environment.NewLine);
+                        ipBlockerDate[ipAddress] = DateTime.UtcNow;
                     }
-                    ipBlocker[ipToBlock] = count;
+                    ipBlocker[ipAddress] = count;
                 }
             }
         }
@@ -128,11 +134,12 @@ namespace IPBan
             }
 
             // audit success: 9007199254740992
-            // audit failure: 4503599627370496
+            // audit failure: 4503599627370496 / 0x8010000000000000
             // (Level=1 or Level=2 or Level=3 or Level=4 or Level=0 or Level=5) and 
-            string queryString = @"<QueryList><Query Id=""0"" Path=""Security""><Select Path=""Security"">*[System[(band(Keywords,4503599627370496))]]</Select></Query></QueryList>";
+            string queryString = "<QueryList><Query Id='0' Path='Security'><Select Path='Security'>*[System[(band(Keywords," + auditFailureKeyword + "))]]</Select></Query></QueryList>";
             query = new EventLogQuery("Security", PathType.LogName, queryString);
             reader = new EventLogReader(query);
+            reader.BatchSize = 1;
             watcher = new EventLogWatcher(query);
             watcher.EventRecordWritten += new EventHandler<EventRecordWrittenEventArgs>(EventRecordWritten);
             watcher.Enabled = true;
@@ -142,7 +149,7 @@ namespace IPBan
         {
             bool fileChanged = false;
             KeyValuePair<string, DateTime>[] blockList;
-            lock (ipBlockerDate)
+            lock (ipBlocker)
             {
                 blockList = ipBlockerDate.ToArray();
             }
@@ -156,7 +163,7 @@ namespace IPBan
                 if (elapsed.Days > 0)
                 {
                     Process.Start("netsh", "advfirewall firewall delete rule \"name=" + rulePrefix + keyValue.Key + "\"");
-                    lock (ipBlockerDate)
+                    lock (ipBlocker)
                     {
                         ipBlockerDate.Remove(keyValue.Key);
                         fileChanged = true;
@@ -167,7 +174,6 @@ namespace IPBan
             if (fileChanged)
             {
                 lock (ipBlocker)
-                lock (ipBlockerDate)
                 {
                     File.WriteAllLines(banFile, ipBlockerDate.Keys.ToArray());
                 }
