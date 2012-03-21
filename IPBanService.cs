@@ -25,6 +25,7 @@ namespace IPBan
         private string banFile = "banlog.txt";
         private TimeSpan cycleTime = TimeSpan.FromMinutes(1.0d);
         private string rulePrefix = "BlockIPAddress";
+        private readonly HashSet<string> whiteList = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
         private Thread serviceThread;
         private bool run;
@@ -55,6 +56,16 @@ namespace IPBan
 
             value = ConfigurationManager.AppSettings["RulePrefix"];
             rulePrefix = value;
+
+            value = ConfigurationManager.AppSettings["Whitelist"];
+            whiteList.Clear();
+            if (!string.IsNullOrWhiteSpace(value))
+            {
+                foreach (string ip in value.Split(','))
+                {
+                    whiteList.Add(ip.Trim());
+                }
+            }
         }
 
         private void ClearBannedIP()
@@ -101,7 +112,7 @@ namespace IPBan
                 }
             }
 
-            if (!string.IsNullOrWhiteSpace(ipAddress))
+            if (!string.IsNullOrWhiteSpace(ipAddress) && !whiteList.Contains(ipAddress))
             {
                 int count;
                 lock (ipBlocker)
