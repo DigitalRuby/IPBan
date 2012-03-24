@@ -1,8 +1,11 @@
-﻿using System;
+﻿#region Imports
+
+using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Diagnostics;
 using System.Diagnostics.Eventing.Reader;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Security.Permissions;
@@ -15,11 +18,13 @@ using System.Web.Script.Serialization;
 using System.Xml;
 using System.Text.RegularExpressions;
 
+#endregion Imports
+
 namespace IPBan
 {
     public class IPBanService : ServiceBase
     {
-        private static readonly string auditFailureKeyword = ((ulong)0x8010000000000000).ToString();
+        private ExpressionsToBlock expressions;
         private int failedLoginAttemptsBeforeBan = 5;
         private TimeSpan banTime = TimeSpan.FromDays(1.0d);
         private string banFile = "banlog.txt";
@@ -66,6 +71,8 @@ namespace IPBan
                     whiteList.Add(ip.Trim());
                 }
             }
+
+            expressions = (ExpressionsToBlock)System.Configuration.ConfigurationManager.GetSection("ExpressionsToBlock");
         }
 
         private void ClearBannedIP()
@@ -99,18 +106,68 @@ namespace IPBan
             EventRecord rec = e.EventRecord;
             string xml = rec.ToXml();
             string ipAddress = null;
+            string keywords;
             XmlTextReader reader = new XmlTextReader(new StringReader(xml));
             reader.Namespaces = false;
-            while (reader.ReadToFollowing("Data"))
-            {
-                string dataName = reader.GetAttribute("Name");
+            XmlDocument doc = new XmlDocument();
+            doc.Load(reader);
+            XmlNode keywordsNode = doc.SelectSingleNode("//Keywords");
 
-                if (dataName != null && dataName.Equals("IPAddress", StringComparison.OrdinalIgnoreCase))
+            if (keywordsNode != null)
+            {
+                ulong keywordsNumber = ulong.Parse(keywordsNode.InnerText, NumberStyles.AllowHexSpecifier);
+                keywords = keywordsNumber.ToString();
+
+                // we must match on keywords
+                foreach (ExpressionsToBlockGroup group in expressions.Groups.Where(g => g.Keywords == keywords))
                 {
-                    ipAddress = reader.ReadString();
-                    break;
+                    foreach (ExpressionToBlock expression in group.Expressions)
+                    {
+                        // we must find a node for each xpath expression
+                        XmlNodeList nodes = doc.SelectNodes(expression.XPath);
+
+                        if (nodes.Count == 0)
+                        {
+                            ipAddress = null;
+                            break;
+                        }
+
+                        foreach (XmlNode node in nodes)
+                        {
+                            // if there is a regex, it must match
+                            if (expression.Regex.Length != 0)
+                            {
+                                Match m = expression.RegexObject.Match(node.InnerText);
+                                if (!m.Success)
+                                {
+                                    ipAddress = null;
+                                    break;
+                                }
+
+                                // check if the regex had an ipadddress group
+                                Group ipAddressGroup = m.Groups["ipaddress"];
+                                if (ipAddressGroup != null && ipAddressGroup.Success && !string.IsNullOrWhiteSpace(ipAddressGroup.Value))
+                                {
+                                    ipAddress = ipAddressGroup.Value.Trim();
+                                }
+                            }
+                        }
+
+                        if (ipAddress != null)
+                        {
+                            // found an ip, we are done
+                            break;
+                        }
+                    }
+
+                    if (ipAddress != null)
+                    {
+                        // found an ip, we are done
+                        break;
+                    }
                 }
             }
+
 
             if (!string.IsNullOrWhiteSpace(ipAddress) && !whiteList.Contains(ipAddress))
             {
@@ -129,31 +186,33 @@ namespace IPBan
             }
         }
 
+        private void SetupWatcher()
+        {
+            string queryString = "<QueryList><Query Id='0' Path='Security'>";
+            foreach (ExpressionsToBlockGroup group in expressions.Groups)
+            {
+                queryString += "<Select Path='Security'>*[System[(band(Keywords," + group.Keywords + "))]]</Select>";
+
+                foreach (ExpressionToBlock expression in group.Expressions)
+                {
+                    expression.Regex = (expression.Regex ?? string.Empty).Trim();
+                    expression.RegexObject = new Regex(expression.Regex, RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.Singleline);
+                }
+            }
+            queryString += "</Query></QueryList>";
+            query = new EventLogQuery("Security", PathType.LogName, queryString);
+            reader = new EventLogReader(query);
+            reader.BatchSize = 10;
+            watcher = new EventLogWatcher(query);
+            watcher.EventRecordWritten += new EventHandler<EventRecordWrittenEventArgs>(EventRecordWritten);
+            watcher.Enabled = true;
+        }
+
         private void Initialize()
         {
             ReadAppSettings();
             ClearBannedIP();
-
-            if (File.Exists(banFile))
-            {
-                foreach (string bannedIP in File.ReadAllLines(banFile))
-                {
-                    ipBlockerDate[bannedIP] = DateTime.Now.Subtract(banTime);
-                }
-
-                File.Delete(banFile);
-            }
-
-            // audit success: 9007199254740992
-            // audit failure: 4503599627370496 / 0x8010000000000000
-            // (Level=1 or Level=2 or Level=3 or Level=4 or Level=0 or Level=5) and 
-            string queryString = "<QueryList><Query Id='0' Path='Security'><Select Path='Security'>*[System[(band(Keywords," + auditFailureKeyword + "))]]</Select></Query></QueryList>";
-            query = new EventLogQuery("Security", PathType.LogName, queryString);
-            reader = new EventLogReader(query);
-            reader.BatchSize = 1;
-            watcher = new EventLogWatcher(query);
-            watcher.EventRecordWritten += new EventHandler<EventRecordWrittenEventArgs>(EventRecordWritten);
-            watcher.Enabled = true;
+            SetupWatcher();
         }
 
         private void CheckForExpiredIP()
