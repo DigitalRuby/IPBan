@@ -25,6 +25,7 @@ namespace IPBan
     public class ExpressionsToBlockGroup
     {
         public string Keywords;
+        public string Path;
 
         [XmlArray("Expressions")]
         [XmlArrayItem("Expression")]

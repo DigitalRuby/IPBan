@@ -132,10 +132,10 @@ namespace IPBan
                             break;
                         }
 
-                        foreach (XmlNode node in nodes)
+                        // if there is a regex, it must match
+                        if (expression.Regex.Length != 0)
                         {
-                            // if there is a regex, it must match
-                            if (expression.Regex.Length != 0)
+                            foreach (XmlNode node in nodes)
                             {
                                 Match m = expression.RegexObject.Match(node.InnerText);
                                 if (!m.Success)
@@ -148,7 +148,11 @@ namespace IPBan
                                 Group ipAddressGroup = m.Groups["ipaddress"];
                                 if (ipAddressGroup != null && ipAddressGroup.Success && !string.IsNullOrWhiteSpace(ipAddressGroup.Value))
                                 {
-                                    ipAddress = ipAddressGroup.Value.Trim();
+                                    if (ipAddress.IndexOf("local", StringComparison.OrdinalIgnoreCase) < 0 &&
+                                        ipAddress.IndexOf("127.0.0.1", StringComparison.OrdinalIgnoreCase) < 0)
+                                    {
+                                        ipAddress = ipAddressGroup.Value.Trim();
+                                    }
                                 }
                             }
                         }
@@ -188,10 +192,10 @@ namespace IPBan
 
         private void SetupWatcher()
         {
-            string queryString = "<QueryList><Query Id='0' Path='Security'>";
+            string queryString = "<QueryList><Query Id='0'>";
             foreach (ExpressionsToBlockGroup group in expressions.Groups)
             {
-                queryString += "<Select Path='Security'>*[System[(band(Keywords," + group.Keywords + "))]]</Select>";
+                queryString += "<Select Path='" + group.Path + "'>*[System[(band(Keywords," + group.Keywords + "))]]</Select>";
 
                 foreach (ExpressionToBlock expression in group.Expressions)
                 {
