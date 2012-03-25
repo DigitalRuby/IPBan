@@ -120,6 +120,7 @@ namespace IPBan
                     {
                         // we must find a node for each xpath expression
                         XmlNodeList nodes = doc.SelectNodes(expression.XPath);
+                        bool failure = false;
 
                         if (nodes.Count == 0)
                         {
@@ -136,6 +137,7 @@ namespace IPBan
                                 if (!m.Success)
                                 {
                                     ipAddress = null;
+                                    failure = true;
                                     break;
                                 }
 
@@ -149,6 +151,11 @@ namespace IPBan
                                         ipAddress = ipAddressGroup.Value.Trim();
                                     }
                                 }
+                            }
+
+                            if (failure)
+                            {
+                                break;
                             }
                         }
 
@@ -195,11 +202,12 @@ namespace IPBan
 
         private void SetupWatcher()
         {
-            string queryString = "<QueryList><Query Id='0'>";
+            int id = 0;
+            string queryString = "<QueryList>";
             foreach (ExpressionsToBlockGroup group in expressions.Groups)
             {
                 ulong keywordsDecimal = ulong.Parse(group.Keywords.Substring(2), NumberStyles.AllowHexSpecifier);
-                queryString += "<Select Path='" + group.Path + "'>*[System[(band(Keywords," + keywordsDecimal.ToString() + "))]]</Select>";
+                queryString += "<Query Id='" + (++id).ToString() + "' Path='" + group.Path + "'><Select Path='" + group.Path + "'>*[System[(band(Keywords," + keywordsDecimal.ToString() + "))]]</Select></Query>";
 
                 foreach (ExpressionToBlock expression in group.Expressions)
                 {
@@ -207,7 +215,7 @@ namespace IPBan
                     expression.RegexObject = new Regex(expression.Regex, RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.Singleline);
                 }
             }
-            queryString += "</Query></QueryList>";
+            queryString += "</QueryList>";
             query = new EventLogQuery("Security", PathType.LogName, queryString);
             reader = new EventLogReader(query);
             reader.BatchSize = 10;
