@@ -113,11 +113,8 @@ namespace IPBan
 
             if (keywordsNode != null)
             {
-                ulong keywordsNumber = ulong.Parse(keywordsNode.InnerText.Substring(2), NumberStyles.AllowHexSpecifier);
-                keywords = keywordsNumber.ToString();
-
                 // we must match on keywords
-                foreach (ExpressionsToBlockGroup group in expressions.Groups.Where(g => g.Keywords == keywords))
+                foreach (ExpressionsToBlockGroup group in expressions.Groups.Where(g => g.Keywords == keywordsNode.InnerText))
                 {
                     foreach (ExpressionToBlock expression in group.Expressions)
                     {
@@ -201,7 +198,8 @@ namespace IPBan
             string queryString = "<QueryList><Query Id='0'>";
             foreach (ExpressionsToBlockGroup group in expressions.Groups)
             {
-                queryString += "<Select Path='" + group.Path + "'>*[System[(band(Keywords," + group.Keywords + "))]]</Select>";
+                ulong keywordsDecimal = ulong.Parse(group.Keywords.Substring(2), NumberStyles.AllowHexSpecifier);
+                queryString += "<Select Path='" + group.Path + "'>*[System[(band(Keywords," + keywordsDecimal.ToString() + "))]]</Select>";
 
                 foreach (ExpressionToBlock expression in group.Expressions)
                 {
