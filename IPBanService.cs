@@ -295,6 +295,7 @@ namespace IPBan
 
                 if (elapsed.Days > 0)
                 {
+                    Console.WriteLine("Un-banning ip address {0}", keyValue.Key);
                     Process.Start("netsh", "advfirewall firewall delete rule \"name=" + rulePrefix + keyValue.Key + "\"");
                     lock (ipBlocker)
                     {
