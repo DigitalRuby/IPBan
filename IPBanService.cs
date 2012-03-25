@@ -120,7 +120,6 @@ namespace IPBan
                     {
                         // we must find a node for each xpath expression
                         XmlNodeList nodes = doc.SelectNodes(expression.XPath);
-                        bool failure = false;
 
                         if (nodes.Count == 0)
                         {
@@ -132,27 +131,30 @@ namespace IPBan
                         // if there is a regex, it must match
                         if (expression.Regex.Length != 0)
                         {
+                            bool foundMatch = false;
+
                             foreach (XmlNode node in nodes)
                             {
                                 Match m = expression.RegexObject.Match(node.InnerText);
-                                if (!m.Success)
+                                if (m.Success)
                                 {
-                                    Console.WriteLine("Regex {0} did not match", expression.Regex);
-                                    ipAddress = null;
-                                    failure = true;
-                                    break;
-                                }
+                                    foundMatch = true;
 
-                                // check if the regex had an ipadddress group
-                                Group ipAddressGroup = m.Groups["ipaddress"];
-                                if (ipAddressGroup != null && ipAddressGroup.Success && !string.IsNullOrWhiteSpace(ipAddressGroup.Value))
-                                {
-                                    ipAddress = ipAddressGroup.Value.Trim();
+                                    // check if the regex had an ipadddress group
+                                    Group ipAddressGroup = m.Groups["ipaddress"];
+                                    if (ipAddressGroup != null && ipAddressGroup.Success && !string.IsNullOrWhiteSpace(ipAddressGroup.Value))
+                                    {
+                                        ipAddress = ipAddressGroup.Value.Trim();
+                                    }
+
+                                    break;
                                 }
                             }
 
-                            if (failure)
+                            if (!foundMatch)
                             {
+                                Console.WriteLine("Regex {0} did not match any nodes with xpath {1}", expression.Regex, expression.XPath);
+                                ipAddress = null;
                                 break;
                             }
                         }
@@ -225,14 +227,10 @@ namespace IPBan
             watcher.Enabled = true;
         }
 
-        private void Initialize()
+        private void RunTests()
         {
-            ReadAppSettings();
-            ClearBannedIP();
-            SetupWatcher();
-
-            /*
-            string xml = @"<Event xmlns='http://schemas.microsoft.com/win/2004/08/events/event'>
+            string xml = @"
+<Event xmlns='http://schemas.microsoft.com/win/2004/08/events/event'>
   <System>
     <Provider Name='Microsoft-Windows-Security-Auditing' Guid='{54849625-5478-4994-A5BA-3E3B0328C30D}' />
     <EventID>4625</EventID>
@@ -274,8 +272,39 @@ namespace IPBan
   </EventData>
 </Event>";
 
+            string xml2 = @"
+<Event xmlns='http://schemas.microsoft.com/win/2004/08/events/event'>
+    <System>
+         <Provider Name='MSSQLSERVER' />
+         <EventID Qualifiers='49152'>18456</EventID>
+         <Level>0</Level>
+         <Task>4</Task>
+         <Keywords>0x90000000000000</Keywords>
+         <TimeCreated SystemTime='2012-03-22T19:14:11.000000000Z' />
+         <EventRecordID>18607</EventRecordID>
+         <Channel>Application</Channel>
+         <Computer>dallas</Computer>
+         <Security />
+    </System>
+    <EventData>
+         <Data>sa</Data>
+         <Data>Reason: Password did not match that for the login provided.</Data>
+         <Data>[CLIENT: 125.46.58.56]</Data>
+         <Binary>184800000E00000007000000440041004C004C00410053000000070000006D00610073007400650072000000</Binary>
+    </EventData>
+</Event>";
+
             ProcessXml(xml);
-            */
+            ProcessXml(xml2);
+        }
+
+        private void Initialize()
+        {
+            ReadAppSettings();
+            ClearBannedIP();
+            SetupWatcher();
+
+            //RunTests();            
         }
 
         private void CheckForExpiredIP()
