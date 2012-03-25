@@ -8,6 +8,7 @@ using System.Diagnostics.Eventing.Reader;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Security.Permissions;
 using System.ServiceProcess;
 using System.Text;
@@ -124,6 +125,7 @@ namespace IPBan
 
                         if (nodes.Count == 0)
                         {
+                            Console.WriteLine("No nodes found for xpath {0}", expression.XPath);
                             ipAddress = null;
                             break;
                         }
@@ -136,6 +138,7 @@ namespace IPBan
                                 Match m = expression.RegexObject.Match(node.InnerText);
                                 if (!m.Success)
                                 {
+                                    Console.WriteLine("Regex {0} did not match", expression.Regex);
                                     ipAddress = null;
                                     failure = true;
                                     break;
@@ -145,11 +148,7 @@ namespace IPBan
                                 Group ipAddressGroup = m.Groups["ipaddress"];
                                 if (ipAddressGroup != null && ipAddressGroup.Success && !string.IsNullOrWhiteSpace(ipAddressGroup.Value))
                                 {
-                                    if (ipAddressGroup.Value.IndexOf("local", StringComparison.OrdinalIgnoreCase) < 0 &&
-                                        ipAddressGroup.Value.IndexOf("127.0.0.1", StringComparison.OrdinalIgnoreCase) < 0)
-                                    {
-                                        ipAddress = ipAddressGroup.Value.Trim();
-                                    }
+                                    ipAddress = ipAddressGroup.Value.Trim();
                                 }
                             }
 
@@ -174,20 +173,24 @@ namespace IPBan
                 }
             }
 
-
-            if (!string.IsNullOrWhiteSpace(ipAddress) && !whiteList.Contains(ipAddress))
+            Console.WriteLine("Got event with ip address {0}", ipAddress);
+            IPAddress ip;
+            if (!string.IsNullOrWhiteSpace(ipAddress) && !whiteList.Contains(ipAddress) && IPAddress.TryParse(ipAddress, out ip) && ipAddress != "127.0.0.1")
             {
                 int count;
                 lock (ipBlocker)
                 {
                     ipBlocker.TryGetValue(ipAddress, out count);
-                    if (count < failedLoginAttemptsBeforeBan && ++count == failedLoginAttemptsBeforeBan)
+                    count++;
+                    ipBlocker[ipAddress] = count;
+                    Console.WriteLine("Got event with ip address {0}, count: {1}", ipAddress, count);
+                    if (count == failedLoginAttemptsBeforeBan)
                     {
+                        Console.WriteLine("Banning ip address {0}", ipAddress);
                         Process.Start("netsh", "advfirewall firewall add rule \"name=" + rulePrefix + ipAddress + "\" dir=in protocol=any action=block remoteip=" + ipAddress);
                         File.AppendAllText(banFile, ipAddress + Environment.NewLine);
                         ipBlockerDate[ipAddress] = DateTime.UtcNow;
                     }
-                    ipBlocker[ipAddress] = count;
                 }
             }
         }
@@ -230,7 +233,7 @@ namespace IPBan
             ClearBannedIP();
             SetupWatcher();
 
-            /*
+            
             string xml = @"<Event xmlns='http://schemas.microsoft.com/win/2004/08/events/event'>
   <System>
     <Provider Name='Microsoft-Windows-Security-Auditing' Guid='{54849625-5478-4994-A5BA-3E3B0328C30D}' />
@@ -240,10 +243,10 @@ namespace IPBan
     <Task>12544</Task>
     <Opcode>0</Opcode>
     <Keywords>0x8010000000000000</Keywords>
-    <TimeCreated SystemTime='2012-03-24T23:02:25.223093100Z' />
-    <EventRecordID>1653400</EventRecordID>
+    <TimeCreated SystemTime='2012-03-25T17:12:36.848116500Z' />
+    <EventRecordID>1657124</EventRecordID>
     <Correlation />
-    <Execution ProcessID='544' ThreadID='8864' />
+    <Execution ProcessID='544' ThreadID='6616' />
     <Channel>Security</Channel>
     <Computer>69-64-65-123</Computer>
     <Security />
@@ -254,7 +257,7 @@ namespace IPBan
     <Data Name='SubjectDomainName'>WORKGROUP</Data>
     <Data Name='SubjectLogonId'>0x3e7</Data>
     <Data Name='TargetUserSid'>S-1-0-0</Data>
-    <Data Name='TargetUserName'>fpos</Data>
+    <Data Name='TargetUserName'>forex</Data>
     <Data Name='TargetDomainName'>69-64-65-123</Data>
     <Data Name='Status'>0xc000006d</Data>
     <Data Name='FailureReason'>%%2313</Data>
@@ -266,15 +269,15 @@ namespace IPBan
     <Data Name='TransmittedServices'>-</Data>
     <Data Name='LmPackageName'>-</Data>
     <Data Name='KeyLength'>0</Data>
-    <Data Name='ProcessId'>0x1edc</Data>
+    <Data Name='ProcessId'>0x2e40</Data>
     <Data Name='ProcessName'>C:\Windows\System32\winlogon.exe</Data>
-    <Data Name='IpAddress'>68.115.45.190</Data>
-    <Data Name='IpPort'>59015</Data>
+    <Data Name='IpAddress'>85.17.84.74</Data>
+    <Data Name='IpPort'>52813</Data>
   </EventData>
 </Event>";
 
             ProcessXml(xml);
-            */
+            
         }
 
         private void CheckForExpiredIP()
@@ -349,22 +352,39 @@ namespace IPBan
             watcher = null;
         }
 
-        public static void Main(string[] args)
+        public static void RunService(string[] args)
         {
+            System.ServiceProcess.ServiceBase[] ServicesToRun;
+            ServicesToRun = new System.ServiceProcess.ServiceBase[] { new IPBanService() };
+            System.ServiceProcess.ServiceBase.Run(ServicesToRun);
+        }
 
-#if DEBUG
-
+        public static void RunConsole(string[] args)
+        {
             IPBanService svc = new IPBanService();
             svc.OnStart(args);
             Console.WriteLine("Press ENTER to quit");
             Console.ReadLine();
             svc.OnStop();
+        }
+
+        public static void Main(string[] args)
+        {
+
+#if DEBUG
+
+            RunConsole(args);
 
 #else
 
-            System.ServiceProcess.ServiceBase[] ServicesToRun;
-            ServicesToRun = new System.ServiceProcess.ServiceBase[] { new IPBanService() };
-            System.ServiceProcess.ServiceBase.Run(ServicesToRun);
+            if (args[0] == "debug")
+            {
+                RunConsole(args);
+            }
+            else
+            {
+                RunService(args);
+            }
 
 #endif
 
