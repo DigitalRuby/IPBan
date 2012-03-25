@@ -105,7 +105,6 @@ namespace IPBan
         private void ProcessXml(string xml)
         {
             string ipAddress = null;
-            string keywords;
             XmlTextReader reader = new XmlTextReader(new StringReader(xml));
             reader.Namespaces = false;
             XmlDocument doc = new XmlDocument();
@@ -173,7 +172,6 @@ namespace IPBan
                 }
             }
 
-            Console.WriteLine("Got event with ip address {0}", ipAddress);
             IPAddress ip;
             if (!string.IsNullOrWhiteSpace(ipAddress) && !whiteList.Contains(ipAddress) && IPAddress.TryParse(ipAddress, out ip) && ipAddress != "127.0.0.1")
             {
