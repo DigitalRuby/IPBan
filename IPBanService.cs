@@ -101,10 +101,8 @@ namespace IPBan
             }
         }
 
-        private void EventRecordWritten(object sender, EventRecordWrittenEventArgs e)
+        private void ProcessXml(string xml)
         {
-            EventRecord rec = e.EventRecord;
-            string xml = rec.ToXml();
             string ipAddress = null;
             string keywords;
             XmlTextReader reader = new XmlTextReader(new StringReader(xml));
@@ -115,7 +113,7 @@ namespace IPBan
 
             if (keywordsNode != null)
             {
-                ulong keywordsNumber = ulong.Parse(keywordsNode.InnerText, NumberStyles.AllowHexSpecifier);
+                ulong keywordsNumber = ulong.Parse(keywordsNode.InnerText.Substring(2), NumberStyles.AllowHexSpecifier);
                 keywords = keywordsNumber.ToString();
 
                 // we must match on keywords
@@ -148,8 +146,8 @@ namespace IPBan
                                 Group ipAddressGroup = m.Groups["ipaddress"];
                                 if (ipAddressGroup != null && ipAddressGroup.Success && !string.IsNullOrWhiteSpace(ipAddressGroup.Value))
                                 {
-                                    if (ipAddress.IndexOf("local", StringComparison.OrdinalIgnoreCase) < 0 &&
-                                        ipAddress.IndexOf("127.0.0.1", StringComparison.OrdinalIgnoreCase) < 0)
+                                    if (ipAddressGroup.Value.IndexOf("local", StringComparison.OrdinalIgnoreCase) < 0 &&
+                                        ipAddressGroup.Value.IndexOf("127.0.0.1", StringComparison.OrdinalIgnoreCase) < 0)
                                     {
                                         ipAddress = ipAddressGroup.Value.Trim();
                                     }
@@ -190,6 +188,14 @@ namespace IPBan
             }
         }
 
+        private void EventRecordWritten(object sender, EventRecordWrittenEventArgs e)
+        {
+            EventRecord rec = e.EventRecord;
+            string xml = rec.ToXml();
+
+            ProcessXml(xml);            
+        }
+
         private void SetupWatcher()
         {
             string queryString = "<QueryList><Query Id='0'>";
@@ -217,6 +223,52 @@ namespace IPBan
             ReadAppSettings();
             ClearBannedIP();
             SetupWatcher();
+
+            /*
+            string xml = @"<Event xmlns='http://schemas.microsoft.com/win/2004/08/events/event'>
+  <System>
+    <Provider Name='Microsoft-Windows-Security-Auditing' Guid='{54849625-5478-4994-A5BA-3E3B0328C30D}' />
+    <EventID>4625</EventID>
+    <Version>0</Version>
+    <Level>0</Level>
+    <Task>12544</Task>
+    <Opcode>0</Opcode>
+    <Keywords>0x8010000000000000</Keywords>
+    <TimeCreated SystemTime='2012-03-24T23:02:25.223093100Z' />
+    <EventRecordID>1653400</EventRecordID>
+    <Correlation />
+    <Execution ProcessID='544' ThreadID='8864' />
+    <Channel>Security</Channel>
+    <Computer>69-64-65-123</Computer>
+    <Security />
+  </System>
+  <EventData>
+    <Data Name='SubjectUserSid'>S-1-5-18</Data>
+    <Data Name='SubjectUserName'>69-64-65-123$</Data>
+    <Data Name='SubjectDomainName'>WORKGROUP</Data>
+    <Data Name='SubjectLogonId'>0x3e7</Data>
+    <Data Name='TargetUserSid'>S-1-0-0</Data>
+    <Data Name='TargetUserName'>fpos</Data>
+    <Data Name='TargetDomainName'>69-64-65-123</Data>
+    <Data Name='Status'>0xc000006d</Data>
+    <Data Name='FailureReason'>%%2313</Data>
+    <Data Name='SubStatus'>0xc0000064</Data>
+    <Data Name='LogonType'>10</Data>
+    <Data Name='LogonProcessName'>User32 </Data>
+    <Data Name='AuthenticationPackageName'>Negotiate</Data>
+    <Data Name='WorkstationName'>69-64-65-123</Data>
+    <Data Name='TransmittedServices'>-</Data>
+    <Data Name='LmPackageName'>-</Data>
+    <Data Name='KeyLength'>0</Data>
+    <Data Name='ProcessId'>0x1edc</Data>
+    <Data Name='ProcessName'>C:\Windows\System32\winlogon.exe</Data>
+    <Data Name='IpAddress'>68.115.45.190</Data>
+    <Data Name='IpPort'>59015</Data>
+  </EventData>
+</Event>";
+
+            ProcessXml(xml);
+            */
         }
 
         private void CheckForExpiredIP()
