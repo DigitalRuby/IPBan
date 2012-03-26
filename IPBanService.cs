@@ -398,14 +398,7 @@ namespace IPBan
 
         public static void Main(string[] args)
         {
-
-#if DEBUG
-
-            RunConsole(args);
-
-#else
-
-            if (args[0] == "debug")
+            if (args.Length != 0 && args[0] == "debug")
             {
                 RunConsole(args);
             }
@@ -413,9 +406,6 @@ namespace IPBan
             {
                 RunService(args);
             }
-
-#endif
-
         }
     }
 }

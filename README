@@ -1,10 +1,10 @@
-Run in release mode for a windows service (example: sc create IPBAN type= own start= auto binPath= d:\system\ipban\ipban.exe DisplayName= IPBAN)
-
-Run in debug mode in visual studio (make sure to run visual studio as administrator), or run in release mode and add debug on the command line (i.e. ipban debug)
+To run as a Windows service (example: sc create IPBAN type= own start= auto binPath= d:\system\ipban\ipban.exe DisplayName= IPBAN)
 
 Make sure you are logging failed login attempts via local security policy
 
 Make sure to read this stackoverflow thread about ip addresses not getting logged: http://stackoverflow.com/questions/1734635/event-logging-ipaddress-does-not-always-resolve
+
+Make sure to run visual studio as administrator and pass debug as the only command line argument
 
 Has been tested on Windows 7 x64 and Windows Server 2008 x64
 
