@@ -104,6 +104,8 @@ namespace IPBan
 
         private void ProcessXml(string xml)
         {
+            Console.WriteLine("Processing xml: {0}", xml);
+
             string ipAddress = null;
             XmlTextReader reader = new XmlTextReader(new StringReader(xml));
             reader.Namespaces = false;
@@ -129,7 +131,11 @@ namespace IPBan
                         }
 
                         // if there is a regex, it must match
-                        if (expression.Regex.Length != 0)
+                        if (expression.Regex.Length == 0)
+                        {
+                            Console.WriteLine("No regex, so counting as a match");
+                        }
+                        else
                         {
                             bool foundMatch = false;
 
@@ -175,22 +181,29 @@ namespace IPBan
             }
 
             IPAddress ip;
-            if (!string.IsNullOrWhiteSpace(ipAddress) && !whiteList.Contains(ipAddress) && IPAddress.TryParse(ipAddress, out ip) && ipAddress != "127.0.0.1")
+            if (!string.IsNullOrWhiteSpace(ipAddress))
             {
-                int count;
-                lock (ipBlocker)
+                if (!whiteList.Contains(ipAddress) && IPAddress.TryParse(ipAddress, out ip) && ipAddress != "127.0.0.1")
                 {
-                    ipBlocker.TryGetValue(ipAddress, out count);
-                    count++;
-                    ipBlocker[ipAddress] = count;
-                    Console.WriteLine("Got event with ip address {0}, count: {1}", ipAddress, count);
-                    if (count == failedLoginAttemptsBeforeBan)
+                    int count;
+                    lock (ipBlocker)
                     {
-                        Console.WriteLine("Banning ip address {0}", ipAddress);
-                        Process.Start("netsh", "advfirewall firewall add rule \"name=" + rulePrefix + ipAddress + "\" dir=in protocol=any action=block remoteip=" + ipAddress);
-                        File.AppendAllText(banFile, ipAddress + Environment.NewLine);
-                        ipBlockerDate[ipAddress] = DateTime.UtcNow;
+                        ipBlocker.TryGetValue(ipAddress, out count);
+                        count++;
+                        ipBlocker[ipAddress] = count;
+                        Console.WriteLine("Got event with ip address {0}, count: {1}", ipAddress, count);
+                        if (count == failedLoginAttemptsBeforeBan)
+                        {
+                            Console.WriteLine("Banning ip address {0}", ipAddress);
+                            Process.Start("netsh", "advfirewall firewall add rule \"name=" + rulePrefix + ipAddress + "\" dir=in protocol=any action=block remoteip=" + ipAddress);
+                            File.AppendAllText(banFile, ipAddress + Environment.NewLine);
+                            ipBlockerDate[ipAddress] = DateTime.UtcNow;
+                        }
                     }
+                }
+                else
+                {
+                    Console.WriteLine("Skipping ip address '{0}'", ipAddress);
                 }
             }
         }
