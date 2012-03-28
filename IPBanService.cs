@@ -104,7 +104,7 @@ namespace IPBan
 
         private void ProcessXml(string xml)
         {
-            Console.WriteLine("Processing xml: {0}", xml);
+            Log.Write(LogLevel.Info, "Processing xml: {0}", xml);
 
             string ipAddress = null;
             XmlTextReader reader = new XmlTextReader(new StringReader(xml));
@@ -125,7 +125,7 @@ namespace IPBan
 
                         if (nodes.Count == 0)
                         {
-                            Console.WriteLine("No nodes found for xpath {0}", expression.XPath);
+                            Log.Write(LogLevel.Warning, "No nodes found for xpath {0}", expression.XPath);
                             ipAddress = null;
                             break;
                         }
@@ -133,7 +133,7 @@ namespace IPBan
                         // if there is a regex, it must match
                         if (expression.Regex.Length == 0)
                         {
-                            Console.WriteLine("No regex, so counting as a match");
+                            Log.Write(LogLevel.Info, "No regex, so counting as a match");
                         }
                         else
                         {
@@ -159,7 +159,7 @@ namespace IPBan
 
                             if (!foundMatch)
                             {
-                                Console.WriteLine("Regex {0} did not match any nodes with xpath {1}", expression.Regex, expression.XPath);
+                                Log.Write(LogLevel.Warning, "Regex {0} did not match any nodes with xpath {1}", expression.Regex, expression.XPath);
                                 ipAddress = null;
                                 break;
                             }
@@ -191,10 +191,10 @@ namespace IPBan
                         ipBlocker.TryGetValue(ipAddress, out count);
                         count++;
                         ipBlocker[ipAddress] = count;
-                        Console.WriteLine("Got event with ip address {0}, count: {1}", ipAddress, count);
+                        Log.Write(LogLevel.Info, "Got event with ip address {0}, count: {1}", ipAddress, count);
                         if (count == failedLoginAttemptsBeforeBan)
                         {
-                            Console.WriteLine("Banning ip address {0}", ipAddress);
+                            Log.Write(LogLevel.Error, "Banning ip address {0}", ipAddress);
                             Process.Start("netsh", "advfirewall firewall add rule \"name=" + rulePrefix + ipAddress + "\" dir=in protocol=any action=block remoteip=" + ipAddress);
                             File.AppendAllText(banFile, ipAddress + Environment.NewLine);
                             ipBlockerDate[ipAddress] = DateTime.UtcNow;
@@ -203,7 +203,7 @@ namespace IPBan
                 }
                 else
                 {
-                    Console.WriteLine("Skipping ip address '{0}'", ipAddress);
+                    Log.Write(LogLevel.Info, "Skipping ip address '{0}'", ipAddress);
                 }
             }
         }
@@ -337,7 +337,7 @@ namespace IPBan
 
                 if (elapsed.Days > 0)
                 {
-                    Console.WriteLine("Un-banning ip address {0}", keyValue.Key);
+                    Log.Write(LogLevel.Error, "Un-banning ip address {0}", keyValue.Key);
                     Process.Start("netsh", "advfirewall firewall delete rule \"name=" + rulePrefix + keyValue.Key + "\"");
                     lock (ipBlocker)
                     {
@@ -379,6 +379,7 @@ namespace IPBan
         {
             base.OnStart(args);
 
+            Log.Write(LogLevel.Info, "Started IPBan service");
             run = true;
             serviceThread = new Thread(new ThreadStart(ServiceThread));
             serviceThread.Start();
@@ -391,6 +392,8 @@ namespace IPBan
             run = false;
             query = null;
             watcher = null;
+
+            Log.Write(LogLevel.Info, "Stopped IPBan service");
         }
 
         public static void RunService(string[] args)
@@ -411,6 +414,8 @@ namespace IPBan
 
         public static void Main(string[] args)
         {
+            Directory.SetCurrentDirectory(AppDomain.CurrentDomain.BaseDirectory);
+
             if (args.Length != 0 && args[0] == "debug")
             {
                 RunConsole(args);
