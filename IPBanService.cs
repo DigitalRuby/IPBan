@@ -25,12 +25,19 @@ namespace IPBan
 {
     public class IPBanService : ServiceBase
     {
+        private const string fileScript = @"
+pushd advfirewall firewall
+{0} rule name=""{1}""{2}remoteip=""{3}"" action=block protocol=any dir=in
+popd
+";
+
+        private bool addRule = true;
         private ExpressionsToBlock expressions;
         private int failedLoginAttemptsBeforeBan = 5;
         private TimeSpan banTime = TimeSpan.FromDays(1.0d);
         private string banFile = "banlog.txt";
         private TimeSpan cycleTime = TimeSpan.FromMinutes(1.0d);
-        private string rulePrefix = "BlockIPAddress";
+        private string ruleName = "BlockIPAddresses";
         private readonly HashSet<string> whiteList = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
         private Thread serviceThread;
@@ -40,6 +47,23 @@ namespace IPBan
         private EventLogReader reader;
         private Dictionary<string, int> ipBlocker = new Dictionary<string, int>();
         private Dictionary<string, DateTime> ipBlockerDate = new Dictionary<string, DateTime>();
+
+        private void ExecuteBanScript()
+        {
+            lock (ipBlocker)
+            {
+                string ipAddresses = string.Join(",", ipBlockerDate.Keys);
+                string ipAddresesFile = string.Join(Environment.NewLine, ipBlockerDate.Keys);
+                string verb = (addRule ? "add" : "set");
+                string isNew = (addRule ? " " : " new ");
+                string script = string.Format(fileScript, verb, ruleName, isNew, ipAddresses);
+                string scriptFileName = "banscript.txt";
+                File.WriteAllText(scriptFileName, script);
+                Process.Start("netsh", "exec " + scriptFileName).WaitForExit();
+                File.WriteAllText(banFile, ipAddresesFile);
+                addRule = false;
+            }
+        }
 
         private void ReadAppSettings()
         {
@@ -60,8 +84,8 @@ namespace IPBan
             value = ConfigurationManager.AppSettings["CycleTime"];
             cycleTime = TimeSpan.Parse(value);
 
-            value = ConfigurationManager.AppSettings["RulePrefix"];
-            rulePrefix = value;
+            value = ConfigurationManager.AppSettings["RuleName"];
+            ruleName = value;
 
             value = ConfigurationManager.AppSettings["Whitelist"];
             whiteList.Clear();
@@ -82,20 +106,15 @@ namespace IPBan
             {
                 lock (ipBlocker)
                 {
-                    string[] ips = File.ReadAllLines(banFile);
-
-                    foreach (string ip in ips)
+                    ProcessStartInfo info = new ProcessStartInfo
                     {
-                        ProcessStartInfo info = new ProcessStartInfo
-                        {
-                            FileName = "netsh",
-                            Arguments = "advfirewall firewall delete rule \"name=" + rulePrefix + ip + "\"",
-                            CreateNoWindow = true,
-                            WindowStyle = ProcessWindowStyle.Hidden,
-                            UseShellExecute = true
-                        };
-                        Process.Start(info);
-                    }
+                        FileName = "netsh",
+                        Arguments = "advfirewall firewall delete rule \"name=" + ruleName + "\"",
+                        CreateNoWindow = true,
+                        WindowStyle = ProcessWindowStyle.Hidden,
+                        UseShellExecute = true
+                    };
+                    Process.Start(info).WaitForExit();
 
                     File.Delete(banFile);
                 }
@@ -195,9 +214,8 @@ namespace IPBan
                         if (count == failedLoginAttemptsBeforeBan)
                         {
                             Log.Write(LogLevel.Error, "Banning ip address {0}", ipAddress);
-                            Process.Start("netsh", "advfirewall firewall add rule \"name=" + rulePrefix + ipAddress + "\" dir=in protocol=any action=block remoteip=" + ipAddress);
-                            File.AppendAllText(banFile, ipAddress + Environment.NewLine);
                             ipBlockerDate[ipAddress] = DateTime.UtcNow;
+                            ExecuteBanScript();
                         }
                     }
                 }
@@ -242,6 +260,10 @@ namespace IPBan
 
         private void RunTests()
         {
+            ipBlockerDate["99.99.99.99"] = DateTime.UtcNow;
+            ipBlockerDate["99.99.99.100"] = DateTime.UtcNow;
+            ExecuteBanScript();
+
             string xml = @"
 <Event xmlns='http://schemas.microsoft.com/win/2004/08/events/event'>
   <System>
@@ -338,7 +360,6 @@ namespace IPBan
                 if (elapsed.Days > 0)
                 {
                     Log.Write(LogLevel.Error, "Un-banning ip address {0}", keyValue.Key);
-                    Process.Start("netsh", "advfirewall firewall delete rule \"name=" + rulePrefix + keyValue.Key + "\"");
                     lock (ipBlocker)
                     {
                         ipBlockerDate.Remove(keyValue.Key);
@@ -349,10 +370,7 @@ namespace IPBan
 
             if (fileChanged)
             {
-                lock (ipBlocker)
-                {
-                    File.WriteAllLines(banFile, ipBlockerDate.Keys.ToArray());
-                }
+                ExecuteBanScript();
             }
         }
 
