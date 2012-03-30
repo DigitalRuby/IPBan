@@ -54,6 +54,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ExpressionsToBlockConfigSectionHandler.cs" />
+    <Compile Include="IPBanConfig.cs" />
     <Compile Include="IPBanService.cs">
       <SubType>Component</SubType>
     </Compile>

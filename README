@@ -1,14 +1,18 @@
+Extract files to a place on your computer. Right click on all the extracted files and select properties. Make sure to select "unblock" if the option is available.
+
 To run as a Windows service (example: sc create IPBAN type= own start= auto binPath= d:\system\ipban\ipban.exe DisplayName= IPBAN)
+
+To debug as a console app and troubleshoot, run "IPBAN.EXE debug".
 
 Make sure you are logging failed login attempts via local security policy
 
 Make sure to read this stackoverflow thread about ip addresses not getting logged: http://stackoverflow.com/questions/1734635/event-logging-ipaddress-does-not-always-resolve
 
-Make sure to run visual studio as administrator and pass debug as the only command line argument
+If you want to run in Visual Studio, make sure to run Visual Studio as administrator
 
 Has been tested on Windows 7 x64 and Windows Server 2008 x64
 
-Please visit http://www.digitalruby.com for more information about this and other products that we are making.
+Please visit http://www.digitalruby.com/securing-your-windows-dedicated-server/ for more information about this and other products that we are making.
 
 Enjoy!
 

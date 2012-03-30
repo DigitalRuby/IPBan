@@ -31,15 +31,8 @@ pushd advfirewall firewall
 popd
 ";
 
+        private IPBanConfig config;
         private bool addRule = true;
-        private ExpressionsToBlock expressions;
-        private int failedLoginAttemptsBeforeBan = 5;
-        private TimeSpan banTime = TimeSpan.FromDays(1.0d);
-        private string banFile = "banlog.txt";
-        private TimeSpan cycleTime = TimeSpan.FromMinutes(1.0d);
-        private string ruleName = "BlockIPAddresses";
-        private readonly HashSet<string> whiteList = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-
         private Thread serviceThread;
         private bool run;
         private EventLogQuery query;
@@ -56,67 +49,37 @@ popd
                 string ipAddresesFile = string.Join(Environment.NewLine, ipBlockerDate.Keys);
                 string verb = (addRule ? "add" : "set");
                 string isNew = (addRule ? " " : " new ");
-                string script = string.Format(fileScript, verb, ruleName, isNew, ipAddresses);
+                string script = string.Format(fileScript, verb, config.RuleName, isNew, ipAddresses);
                 string scriptFileName = "banscript.txt";
                 File.WriteAllText(scriptFileName, script);
                 Process.Start("netsh", "exec " + scriptFileName).WaitForExit();
-                File.WriteAllText(banFile, ipAddresesFile);
+                File.WriteAllText(config.BanFile, ipAddresesFile);
                 addRule = false;
             }
         }
 
         private void ReadAppSettings()
         {
-            string value = ConfigurationManager.AppSettings["FailedLoginAttemptsBeforeBan"];
-            failedLoginAttemptsBeforeBan = int.Parse(value);
-
-            value = ConfigurationManager.AppSettings["BanTime"];
-            banTime = TimeSpan.Parse(value);
-
-            value = ConfigurationManager.AppSettings["BanFile"];
-            banFile = value;
-            if (!Path.IsPathRooted(banFile))
-            {
-                string exeFullPath = System.Reflection.Assembly.GetExecutingAssembly().Location;
-                banFile = Path.Combine(Path.GetDirectoryName(exeFullPath), banFile);
-            }
-
-            value = ConfigurationManager.AppSettings["CycleTime"];
-            cycleTime = TimeSpan.Parse(value);
-
-            value = ConfigurationManager.AppSettings["RuleName"];
-            ruleName = value;
-
-            value = ConfigurationManager.AppSettings["Whitelist"];
-            whiteList.Clear();
-            if (!string.IsNullOrWhiteSpace(value))
-            {
-                foreach (string ip in value.Split(','))
-                {
-                    whiteList.Add(ip.Trim());
-                }
-            }
-
-            expressions = (ExpressionsToBlock)System.Configuration.ConfigurationManager.GetSection("ExpressionsToBlock");
+            config = new IPBanConfig();
         }
 
         private void ClearBannedIP()
         {
-            if (File.Exists(banFile))
+            if (File.Exists(config.BanFile))
             {
                 lock (ipBlocker)
                 {
                     ProcessStartInfo info = new ProcessStartInfo
                     {
                         FileName = "netsh",
-                        Arguments = "advfirewall firewall delete rule \"name=" + ruleName + "\"",
+                        Arguments = "advfirewall firewall delete rule \"name=" + config.RuleName + "\"",
                         CreateNoWindow = true,
                         WindowStyle = ProcessWindowStyle.Hidden,
                         UseShellExecute = true
                     };
                     Process.Start(info).WaitForExit();
 
-                    File.Delete(banFile);
+                    File.Delete(config.BanFile);
                 }
             }
         }
@@ -135,7 +98,7 @@ popd
             if (keywordsNode != null)
             {
                 // we must match on keywords
-                foreach (ExpressionsToBlockGroup group in expressions.Groups.Where(g => g.Keywords == keywordsNode.InnerText))
+                foreach (ExpressionsToBlockGroup group in config.Expressions.Groups.Where(g => g.Keywords == keywordsNode.InnerText))
                 {
                     foreach (ExpressionToBlock expression in group.Expressions)
                     {
@@ -202,7 +165,11 @@ popd
             IPAddress ip;
             if (!string.IsNullOrWhiteSpace(ipAddress))
             {
-                if (!whiteList.Contains(ipAddress) && IPAddress.TryParse(ipAddress, out ip) && ipAddress != "127.0.0.1")
+                if (config.IsWhiteListed(ipAddress))
+                {
+                    Log.Write(LogLevel.Info, "Skipping ip address '{0}'", ipAddress);
+                }
+                else
                 {
                     int count;
                     lock (ipBlocker)
@@ -211,17 +178,13 @@ popd
                         count++;
                         ipBlocker[ipAddress] = count;
                         Log.Write(LogLevel.Info, "Got event with ip address {0}, count: {1}", ipAddress, count);
-                        if (count == failedLoginAttemptsBeforeBan)
+                        if (count == config.FailedLoginAttemptsBeforeBan)
                         {
                             Log.Write(LogLevel.Error, "Banning ip address {0}", ipAddress);
                             ipBlockerDate[ipAddress] = DateTime.UtcNow;
                             ExecuteBanScript();
                         }
                     }
-                }
-                else
-                {
-                    Log.Write(LogLevel.Info, "Skipping ip address '{0}'", ipAddress);
                 }
             }
         }
@@ -238,7 +201,7 @@ popd
         {
             int id = 0;
             string queryString = "<QueryList>";
-            foreach (ExpressionsToBlockGroup group in expressions.Groups)
+            foreach (ExpressionsToBlockGroup group in config.Expressions.Groups)
             {
                 ulong keywordsDecimal = ulong.Parse(group.Keywords.Substring(2), NumberStyles.AllowHexSpecifier);
                 queryString += "<Query Id='" + (++id).ToString() + "' Path='" + group.Path + "'><Select Path='" + group.Path + "'>*[System[(band(Keywords," + keywordsDecimal.ToString() + "))]]</Select></Query>";
@@ -385,7 +348,7 @@ popd
             {
                 Thread.Sleep(sleepInterval);
                 DateTime now = DateTime.UtcNow;
-                if ((now - lastCycle) >= cycleTime)
+                if ((now - lastCycle) >= config.CycleTime)
                 {
                     lastCycle = now;
                     CheckForExpiredIP();
