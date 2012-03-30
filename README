@@ -2,6 +2,8 @@ Extract files to a place on your computer. Right click on all the extracted file
 
 To run as a Windows service (example: sc create IPBAN type= own start= auto binPath= d:\system\ipban\ipban.exe DisplayName= IPBAN)
 
+Make sure to look at the config file for configuration options
+
 To debug as a console app and troubleshoot, run "IPBAN.EXE debug".
 
 Make sure you are logging failed login attempts via local security policy
