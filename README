@@ -1,5 +1,7 @@
 Extract files to a place on your computer. Right click on all the extracted files and select properties. Make sure to select "unblock" if the option is available.
 
+Requires .NET 4.0
+
 To run as a Windows service (example: sc create IPBAN type= own start= auto binPath= d:\system\ipban\ipban.exe DisplayName= IPBAN)
 
 Make sure to look at the config file for configuration options
