@@ -171,12 +171,20 @@ popd
                         ipBlocker.TryGetValue(ipAddress, out count);
                         count++;
                         ipBlocker[ipAddress] = count;
-                        Log.Write(LogLevel.Info, "Got event with ip address {0}, count: {1}", ipAddress, count);
+                        
                         if (count == config.FailedLoginAttemptsBeforeBan)
                         {
                             Log.Write(LogLevel.Error, "Banning ip address {0}", ipAddress);
                             ipBlockerDate[ipAddress] = DateTime.UtcNow;
                             ExecuteBanScript();
+                        }
+                        else if (count > config.FailedLoginAttemptsBeforeBan)
+                        {
+                            Log.Write(LogLevel.Info, "Go event with ip address {0}, count {1}, ip is already banned");
+                        }
+                        else
+                        {
+                            Log.Write(LogLevel.Info, "Got event with ip address {0}, count: {1}", ipAddress, count);
                         }
                     }
                 }
