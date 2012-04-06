@@ -309,6 +309,7 @@ popd
                     lock (ipBlocker)
                     {
                         ipBlockerDate.Remove(keyValue.Key);
+                        ipBlocker.Remove(keyValue.Key);
                         fileChanged = true;
                     }
                 }
