@@ -141,22 +141,16 @@ popd
 
                             if (!foundMatch)
                             {
+                                // no match, move on to the next group to check
                                 Log.Write(LogLevel.Warning, "Regex {0} did not match any nodes with xpath {1}", expression.Regex, expression.XPath);
                                 ipAddress = null;
                                 break;
                             }
                         }
-
-                        if (ipAddress != null)
-                        {
-                            // found an ip, we are done
-                            break;
-                        }
                     }
                 }
             }
 
-            IPAddress ip;
             if (!string.IsNullOrWhiteSpace(ipAddress))
             {
                 if (config.IsWhiteListed(ipAddress))
