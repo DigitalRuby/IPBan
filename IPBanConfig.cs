@@ -80,7 +80,7 @@ namespace IPBan
             IPAddress ip;
 
             return (whiteList.Contains(ipAddress) || !IPAddress.TryParse(ipAddress, out ip) || ipAddress == "127.0.0.1" ||
-                (whiteListRegex != null && whiteListRegex.IsMatch(ipAddress)));
+                ipAddress == "0.0.0.0" || ipAddress == "::1" || (whiteListRegex != null && whiteListRegex.IsMatch(ipAddress)));
         }
 
         /// <summary>

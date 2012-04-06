@@ -153,12 +153,6 @@ popd
                             break;
                         }
                     }
-
-                    if (ipAddress != null)
-                    {
-                        // found an ip, we are done
-                        break;
-                    }
                 }
             }
 
@@ -265,32 +259,13 @@ popd
     <Data Name='KeyLength'>0</Data>
     <Data Name='ProcessId'>0x2e40</Data>
     <Data Name='ProcessName'>C:\Windows\System32\winlogon.exe</Data>
-    <Data Name='IpAddress'>85.17.84.74</Data>
+    <Data Name='IpAddress'>99.99.99.99</Data>
     <Data Name='IpPort'>52813</Data>
   </EventData>
 </Event>";
 
             string xml2 = @"
-<Event xmlns='http://schemas.microsoft.com/win/2004/08/events/event'>
-    <System>
-         <Provider Name='MSSQLSERVER' />
-         <EventID Qualifiers='49152'>18456</EventID>
-         <Level>0</Level>
-         <Task>4</Task>
-         <Keywords>0x90000000000000</Keywords>
-         <TimeCreated SystemTime='2012-03-22T19:14:11.000000000Z' />
-         <EventRecordID>18607</EventRecordID>
-         <Channel>Application</Channel>
-         <Computer>dallas</Computer>
-         <Security />
-    </System>
-    <EventData>
-         <Data>sa</Data>
-         <Data>Reason: Password did not match that for the login provided.</Data>
-         <Data>[CLIENT: 125.46.58.56]</Data>
-         <Binary>184800000E00000007000000440041004C004C00410053000000070000006D00610073007400650072000000</Binary>
-    </EventData>
-</Event>";
+<Event xmlns='http://schemas.microsoft.com/win/2004/08/events/event'><System><Provider Name='MSSQLSERVER'/><EventID Qualifiers='49152'>18456</EventID><Level>0</Level><Task>4</Task><Keywords>0x90000000000000</Keywords><TimeCreated SystemTime='2012-04-05T20:26:30.000000000Z'/><EventRecordID>408488</EventRecordID><Channel>Application</Channel><Computer>dallas</Computer><Security/></System><EventData><Data>sa1</Data><Data> Reason: Could not find a login matching the name provided.</Data><Data> [CLIENT: 99.99.99.100]</Data><Binary>184800000E00000007000000440041004C004C00410053000000070000006D00610073007400650072000000</Binary></EventData></Event>";
 
             ProcessXml(xml);
             ProcessXml(xml2);
