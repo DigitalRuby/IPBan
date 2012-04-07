@@ -155,7 +155,7 @@ popd
             {
                 if (config.IsWhiteListed(ipAddress))
                 {
-                    Log.Write(LogLevel.Info, "Skipping ip address '{0}'", ipAddress);
+                    Log.Write(LogLevel.Info, "Ignoring whitelisted ip address {0}", ipAddress);
                 }
                 else
                 {
@@ -219,58 +219,15 @@ popd
 
         private void RunTests()
         {
-            ipBlockerDate["99.99.99.99"] = DateTime.UtcNow;
-            ipBlockerDate["99.99.99.100"] = DateTime.UtcNow;
-            ExecuteBanScript();
-
-            string xml = @"
-<Event xmlns='http://schemas.microsoft.com/win/2004/08/events/event'>
-  <System>
-    <Provider Name='Microsoft-Windows-Security-Auditing' Guid='{54849625-5478-4994-A5BA-3E3B0328C30D}' />
-    <EventID>4625</EventID>
-    <Version>0</Version>
-    <Level>0</Level>
-    <Task>12544</Task>
-    <Opcode>0</Opcode>
-    <Keywords>0x8010000000000000</Keywords>
-    <TimeCreated SystemTime='2012-03-25T17:12:36.848116500Z' />
-    <EventRecordID>1657124</EventRecordID>
-    <Correlation />
-    <Execution ProcessID='544' ThreadID='6616' />
-    <Channel>Security</Channel>
-    <Computer>69-64-65-123</Computer>
-    <Security />
-  </System>
-  <EventData>
-    <Data Name='SubjectUserSid'>S-1-5-18</Data>
-    <Data Name='SubjectUserName'>69-64-65-123$</Data>
-    <Data Name='SubjectDomainName'>WORKGROUP</Data>
-    <Data Name='SubjectLogonId'>0x3e7</Data>
-    <Data Name='TargetUserSid'>S-1-0-0</Data>
-    <Data Name='TargetUserName'>forex</Data>
-    <Data Name='TargetDomainName'>69-64-65-123</Data>
-    <Data Name='Status'>0xc000006d</Data>
-    <Data Name='FailureReason'>%%2313</Data>
-    <Data Name='SubStatus'>0xc0000064</Data>
-    <Data Name='LogonType'>10</Data>
-    <Data Name='LogonProcessName'>User32 </Data>
-    <Data Name='AuthenticationPackageName'>Negotiate</Data>
-    <Data Name='WorkstationName'>69-64-65-123</Data>
-    <Data Name='TransmittedServices'>-</Data>
-    <Data Name='LmPackageName'>-</Data>
-    <Data Name='KeyLength'>0</Data>
-    <Data Name='ProcessId'>0x2e40</Data>
-    <Data Name='ProcessName'>C:\Windows\System32\winlogon.exe</Data>
-    <Data Name='IpAddress'>99.99.99.99</Data>
-    <Data Name='IpPort'>52813</Data>
-  </EventData>
-</Event>";
-
-            string xml2 = @"
-<Event xmlns='http://schemas.microsoft.com/win/2004/08/events/event'><System><Provider Name='MSSQLSERVER'/><EventID Qualifiers='49152'>18456</EventID><Level>0</Level><Task>4</Task><Keywords>0x90000000000000</Keywords><TimeCreated SystemTime='2012-04-05T20:26:30.000000000Z'/><EventRecordID>408488</EventRecordID><Channel>Application</Channel><Computer>dallas</Computer><Security/></System><EventData><Data>sa1</Data><Data> Reason: Could not find a login matching the name provided.</Data><Data> [CLIENT: 99.99.99.100]</Data><Binary>184800000E00000007000000440041004C004C00410053000000070000006D00610073007400650072000000</Binary></EventData></Event>";
-
-            ProcessXml(xml);
+            string xml1 = @"<Event xmlns='http://schemas.microsoft.com/win/2004/08/events/event'><System><Provider Name='Microsoft-Windows-Security-Auditing' Guid='{54849625-5478-4994-A5BA-3E3B0328C30D}' /><EventID>4625</EventID><Version>0</Version><Level>0</Level><Task>12544</Task><Opcode>0</Opcode><Keywords>0x8010000000000000</Keywords><TimeCreated SystemTime='2012-03-25T17:12:36.848116500Z' /><EventRecordID>1657124</EventRecordID><Correlation /><Execution ProcessID='544' ThreadID='6616' /><Channel>Security</Channel><Computer>69-64-65-123</Computer><Security /></System><EventData><Data Name='SubjectUserSid'>S-1-5-18</Data><Data Name='SubjectUserName'>69-64-65-123$</Data><Data Name='SubjectDomainName'>WORKGROUP</Data><Data Name='SubjectLogonId'>0x3e7</Data><Data Name='TargetUserSid'>S-1-0-0</Data><Data Name='TargetUserName'>forex</Data><Data Name='TargetDomainName'>69-64-65-123</Data><Data Name='Status'>0xc000006d</Data><Data Name='FailureReason'>%%2313</Data><Data Name='SubStatus'>0xc0000064</Data><Data Name='LogonType'>10</Data><Data Name='LogonProcessName'>User32 </Data><Data Name='AuthenticationPackageName'>Negotiate</Data><Data Name='WorkstationName'>69-64-65-123</Data><Data Name='TransmittedServices'>-</Data><Data Name='LmPackageName'>-</Data><Data Name='KeyLength'>0</Data><Data Name='ProcessId'>0x2e40</Data><Data Name='ProcessName'>C:\Windows\System32\winlogon.exe</Data><Data Name='IpAddress'>99.99.99.99</Data><Data Name='IpPort'>52813</Data></EventData></Event>";
+            string xml2 = @"<Event xmlns='http://schemas.microsoft.com/win/2004/08/events/event'><System><Provider Name='Microsoft-Windows-Security-Auditing' Guid='{54849625-5478-4994-A5BA-3E3B0328C30D}' /><EventID>4625</EventID><Version>0</Version><Level>0</Level><Task>12544</Task><Opcode>0</Opcode><Keywords>0x8010000000000000</Keywords><TimeCreated SystemTime='2012-03-25T17:12:36.848116500Z' /><EventRecordID>1657124</EventRecordID><Correlation /><Execution ProcessID='544' ThreadID='6616' /><Channel>Security</Channel><Computer>69-64-65-123</Computer><Security /></System><EventData><Data Name='SubjectUserSid'>S-1-5-18</Data><Data Name='SubjectUserName'>69-64-65-123$</Data><Data Name='SubjectDomainName'>WORKGROUP</Data><Data Name='SubjectLogonId'>0x3e7</Data><Data Name='TargetUserSid'>S-1-0-0</Data><Data Name='TargetUserName'>forex</Data><Data Name='TargetDomainName'>69-64-65-123</Data><Data Name='Status'>0xc000006d</Data><Data Name='FailureReason'>%%2313</Data><Data Name='SubStatus'>0xc0000064</Data><Data Name='LogonType'>10</Data><Data Name='LogonProcessName'>User32 </Data><Data Name='AuthenticationPackageName'>Negotiate</Data><Data Name='WorkstationName'>69-64-65-123</Data><Data Name='TransmittedServices'>-</Data><Data Name='LmPackageName'>-</Data><Data Name='KeyLength'>0</Data><Data Name='ProcessId'>0x2e40</Data><Data Name='ProcessName'>C:\Windows\System32\winlogon.exe</Data><Data Name='IpAddress'>127.0.0.1</Data><Data Name='IpPort'>52813</Data></EventData></Event>";
+            string xml3 = @"<Event xmlns='http://schemas.microsoft.com/win/2004/08/events/event'><System><Provider Name='MSSQLSERVER'/><EventID Qualifiers='49152'>18456</EventID><Level>0</Level><Task>4</Task><Keywords>0x90000000000000</Keywords><TimeCreated SystemTime='2012-04-05T20:26:30.000000000Z'/><EventRecordID>408488</EventRecordID><Channel>Application</Channel><Computer>dallas</Computer><Security/></System><EventData><Data>sa1</Data><Data> Reason: Could not find a login matching the name provided.</Data><Data> [CLIENT: 99.99.99.100]</Data><Binary>184800000E00000007000000440041004C004C00410053000000070000006D00610073007400650072000000</Binary></EventData></Event>";
+            string xml4 = @"<Event xmlns='http://schemas.microsoft.com/win/2004/08/events/event'><System><Provider Name='MSSQLSERVER'/><EventID Qualifiers='49152'>18456</EventID><Level>0</Level><Task>4</Task><Keywords>0x90000000000000</Keywords><TimeCreated SystemTime='2012-04-05T20:26:30.000000000Z'/><EventRecordID>408488</EventRecordID><Channel>Application</Channel><Computer>dallas</Computer><Security/></System><EventData><Data>sa1</Data><Data> Reason: Could not find a login matching the name provided.</Data><Data> [CLIENT: 0.0.0.0]</Data><Binary>184800000E00000007000000440041004C004C00410053000000070000006D00610073007400650072000000</Binary></EventData></Event>";
+            
+            ProcessXml(xml1);
             ProcessXml(xml2);
+            ProcessXml(xml3);
+            ProcessXml(xml4);
         }
 
         private void Initialize()
@@ -279,7 +236,12 @@ popd
             ClearBannedIP();
             SetupWatcher();
 
-            //RunTests();            
+#if DEBUG
+
+            RunTests();            
+
+#endif
+
         }
 
         private void CheckForExpiredIP()

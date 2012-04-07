@@ -61,7 +61,7 @@ namespace IPBan
                 }
             }
 
-            value = (ConfigurationManager.AppSettings["WhitelistRegex"] ?? string.Empty).Replace("*", "[0-255]");
+            value = (ConfigurationManager.AppSettings["WhitelistRegex"] ?? string.Empty).Replace("*", "[0-255]").Trim();
             if (value.Length != 0)
             {
                 whiteListRegex = new Regex(value, RegexOptions.IgnoreCase | RegexOptions.Compiled | RegexOptions.Singleline);
@@ -79,8 +79,7 @@ namespace IPBan
         {
             IPAddress ip;
 
-            return (whiteList.Contains(ipAddress) || !IPAddress.TryParse(ipAddress, out ip) || ipAddress == "127.0.0.1" ||
-                ipAddress == "0.0.0.0" || ipAddress == "::1" || (whiteListRegex != null && whiteListRegex.IsMatch(ipAddress)));
+            return (whiteList.Contains(ipAddress) || !IPAddress.TryParse(ipAddress, out ip) || (whiteListRegex != null && whiteListRegex.IsMatch(ipAddress)));
         }
 
         /// <summary>
