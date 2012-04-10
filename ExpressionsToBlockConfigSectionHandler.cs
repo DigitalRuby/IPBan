@@ -41,11 +41,11 @@ namespace IPBan
 
     public class ExpressionsToBlockConfigSectionHandler : IConfigurationSectionHandler
     {
-        private const string SectionName = "ExpressionsToBlock";
+        private const string sectionName = "ExpressionsToBlock";
 
         public object Create(object parent, object configContext, XmlNode section)
         {
-            string config = section.SelectSingleNode("//" + SectionName).OuterXml;
+            string config = section.SelectSingleNode("//" + sectionName).OuterXml;
 
             if (!string.IsNullOrWhiteSpace(config))
             {

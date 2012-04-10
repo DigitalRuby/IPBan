@@ -45,16 +45,18 @@ popd
         {
             lock (ipBlocker)
             {
-                string ipAddresses = string.Join(",", ipBlockerDate.Keys);
-                string ipAddresesFile = string.Join(Environment.NewLine, ipBlockerDate.Keys);
-                string verb = (addRule ? "add" : "set");
-                string isNew = (addRule ? " " : " new ");
-                string script = string.Format(fileScript, verb, config.RuleName, isNew, ipAddresses);
-                string scriptFileName = "banscript.txt";
-                File.WriteAllText(scriptFileName, script);
-                Process.Start("netsh", "exec " + scriptFileName).WaitForExit();
-                File.WriteAllText(config.BanFile, ipAddresesFile);
-                addRule = false;
+                string ipAddresesListForFile = string.Join(Environment.NewLine, ipBlockerDate.Keys);
+
+                if (ipBlockerDate.Count == 0)
+                {
+                    DeleteRule();
+                }
+                else
+                {
+                    CreateRule();
+                }
+
+                File.WriteAllText(config.BanFile, ipAddresesListForFile);
             }
         }
 
@@ -63,22 +65,39 @@ popd
             config = new IPBanConfig();
         }
 
+        private void DeleteRule()
+        {
+            ProcessStartInfo info = new ProcessStartInfo
+            {
+                FileName = "netsh",
+                Arguments = "advfirewall firewall delete rule \"name=" + config.RuleName + "\"",
+                CreateNoWindow = true,
+                WindowStyle = ProcessWindowStyle.Hidden,
+                UseShellExecute = true
+            };
+            Process.Start(info).WaitForExit();
+            addRule = true;
+        }
+
+        private void CreateRule()
+        {
+            string ipAddresses = string.Join(",", ipBlockerDate.Keys);
+            string verb = (addRule ? "add" : "set");
+            string isNew = (addRule ? " " : " new ");
+            string script = string.Format(fileScript, verb, config.RuleName, isNew, ipAddresses);
+            string scriptFileName = "banscript.txt";
+            File.WriteAllText(scriptFileName, script);
+            Process.Start("netsh", "exec " + scriptFileName).WaitForExit();
+            addRule = false;
+        }
+
         private void ClearBannedIP()
         {
             if (File.Exists(config.BanFile))
             {
                 lock (ipBlocker)
                 {
-                    ProcessStartInfo info = new ProcessStartInfo
-                    {
-                        FileName = "netsh",
-                        Arguments = "advfirewall firewall delete rule \"name=" + config.RuleName + "\"",
-                        CreateNoWindow = true,
-                        WindowStyle = ProcessWindowStyle.Hidden,
-                        UseShellExecute = true
-                    };
-                    Process.Start(info).WaitForExit();
-
+                    DeleteRule();
                     File.Delete(config.BanFile);
                 }
             }
