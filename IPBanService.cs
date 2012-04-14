@@ -278,7 +278,7 @@ popd
             {
                 TimeSpan elapsed = now - keyValue.Value;
 
-                if (elapsed.Days > 0)
+                if (elapsed > config.BanTime)
                 {
                     Log.Write(LogLevel.Error, "Un-banning ip address {0}", keyValue.Key);
                     lock (ipBlocker)
