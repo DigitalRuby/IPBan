@@ -38,7 +38,7 @@ popd
         private EventLogQuery query;
         private EventLogWatcher watcher;
         private EventLogReader reader;
-        private Dictionary<string, int> ipBlocker = new Dictionary<string, int>();
+        private Dictionary<string, IPBlockCount> ipBlocker = new Dictionary<string, IPBlockCount>();
         private Dictionary<string, DateTime> ipBlockerDate = new Dictionary<string, DateTime>();
 
         private void ExecuteBanScript()
@@ -178,26 +178,34 @@ popd
                 }
                 else
                 {
-                    int count;
+                    IPBlockCount ipBlockCount;
                     lock (ipBlocker)
                     {
-                        ipBlocker.TryGetValue(ipAddress, out count);
-                        count++;
-                        ipBlocker[ipAddress] = count;
-                        
-                        if (count == config.FailedLoginAttemptsBeforeBan)
+                        // Get the IPBlockCount, if one exists.
+                        ipBlocker.TryGetValue(ipAddress, out ipBlockCount);
+                        if (ipBlockCount == null)
+                        {
+                            // This is the first failed login attempt, so record a new IPBlockCount.
+                            ipBlockCount = new IPBlockCount();
+                            ipBlocker[ipAddress] = ipBlockCount;
+                        }
+
+                        // Increment the count.
+                        ipBlockCount.IncrementCount();
+
+                        if (ipBlockCount.Count == config.FailedLoginAttemptsBeforeBan)
                         {
                             Log.Write(LogLevel.Error, "Banning ip address {0}", ipAddress);
                             ipBlockerDate[ipAddress] = DateTime.UtcNow;
                             ExecuteBanScript();
                         }
-                        else if (count > config.FailedLoginAttemptsBeforeBan)
+                        else if (ipBlockCount.Count > config.FailedLoginAttemptsBeforeBan)
                         {
                             Log.Write(LogLevel.Info, "Go event with ip address {0}, count {1}, ip is already banned");
                         }
                         else
                         {
-                            Log.Write(LogLevel.Info, "Got event with ip address {0}, count: {1}", ipAddress, count);
+                            Log.Write(LogLevel.Info, "Got event with ip address {0}, count: {1}", ipAddress, ipBlockCount.Count);
                         }
                     }
                 }
@@ -242,11 +250,24 @@ popd
             string xml2 = @"<Event xmlns='http://schemas.microsoft.com/win/2004/08/events/event'><System><Provider Name='Microsoft-Windows-Security-Auditing' Guid='{54849625-5478-4994-A5BA-3E3B0328C30D}' /><EventID>4625</EventID><Version>0</Version><Level>0</Level><Task>12544</Task><Opcode>0</Opcode><Keywords>0x8010000000000000</Keywords><TimeCreated SystemTime='2012-03-25T17:12:36.848116500Z' /><EventRecordID>1657124</EventRecordID><Correlation /><Execution ProcessID='544' ThreadID='6616' /><Channel>Security</Channel><Computer>69-64-65-123</Computer><Security /></System><EventData><Data Name='SubjectUserSid'>S-1-5-18</Data><Data Name='SubjectUserName'>69-64-65-123$</Data><Data Name='SubjectDomainName'>WORKGROUP</Data><Data Name='SubjectLogonId'>0x3e7</Data><Data Name='TargetUserSid'>S-1-0-0</Data><Data Name='TargetUserName'>forex</Data><Data Name='TargetDomainName'>69-64-65-123</Data><Data Name='Status'>0xc000006d</Data><Data Name='FailureReason'>%%2313</Data><Data Name='SubStatus'>0xc0000064</Data><Data Name='LogonType'>10</Data><Data Name='LogonProcessName'>User32 </Data><Data Name='AuthenticationPackageName'>Negotiate</Data><Data Name='WorkstationName'>69-64-65-123</Data><Data Name='TransmittedServices'>-</Data><Data Name='LmPackageName'>-</Data><Data Name='KeyLength'>0</Data><Data Name='ProcessId'>0x2e40</Data><Data Name='ProcessName'>C:\Windows\System32\winlogon.exe</Data><Data Name='IpAddress'>127.0.0.1</Data><Data Name='IpPort'>52813</Data></EventData></Event>";
             string xml3 = @"<Event xmlns='http://schemas.microsoft.com/win/2004/08/events/event'><System><Provider Name='MSSQLSERVER'/><EventID Qualifiers='49152'>18456</EventID><Level>0</Level><Task>4</Task><Keywords>0x90000000000000</Keywords><TimeCreated SystemTime='2012-04-05T20:26:30.000000000Z'/><EventRecordID>408488</EventRecordID><Channel>Application</Channel><Computer>dallas</Computer><Security/></System><EventData><Data>sa1</Data><Data> Reason: Could not find a login matching the name provided.</Data><Data> [CLIENT: 99.99.99.100]</Data><Binary>184800000E00000007000000440041004C004C00410053000000070000006D00610073007400650072000000</Binary></EventData></Event>";
             string xml4 = @"<Event xmlns='http://schemas.microsoft.com/win/2004/08/events/event'><System><Provider Name='MSSQLSERVER'/><EventID Qualifiers='49152'>18456</EventID><Level>0</Level><Task>4</Task><Keywords>0x90000000000000</Keywords><TimeCreated SystemTime='2012-04-05T20:26:30.000000000Z'/><EventRecordID>408488</EventRecordID><Channel>Application</Channel><Computer>dallas</Computer><Security/></System><EventData><Data>sa1</Data><Data> Reason: Could not find a login matching the name provided.</Data><Data> [CLIENT: 0.0.0.0]</Data><Binary>184800000E00000007000000440041004C004C00410053000000070000006D00610073007400650072000000</Binary></EventData></Event>";
+            string xml5 = @"<Event xmlns='http://schemas.microsoft.com/win/2004/08/events/event'><System><Provider Name='Microsoft-Windows-Security-Auditing' Guid='{54849625-5478-4994-A5BA-3E3B0328C30D}' /><EventID>4625</EventID><Version>0</Version><Level>0</Level><Task>12544</Task><Opcode>0</Opcode><Keywords>0x8010000000000000</Keywords><TimeCreated SystemTime='2012-03-25T17:12:36.848116500Z' /><EventRecordID>1657124</EventRecordID><Correlation /><Execution ProcessID='544' ThreadID='6616' /><Channel>Security</Channel><Computer>69-64-65-123</Computer><Security /></System><EventData><Data Name='SubjectUserSid'>S-1-5-18</Data><Data Name='SubjectUserName'>69-64-65-123$</Data><Data Name='SubjectDomainName'>WORKGROUP</Data><Data Name='SubjectLogonId'>0x3e7</Data><Data Name='TargetUserSid'>S-1-0-0</Data><Data Name='TargetUserName'>forex</Data><Data Name='TargetDomainName'>69-64-65-123</Data><Data Name='Status'>0xc000006d</Data><Data Name='FailureReason'>%%2313</Data><Data Name='SubStatus'>0xc0000064</Data><Data Name='LogonType'>10</Data><Data Name='LogonProcessName'>User32 </Data><Data Name='AuthenticationPackageName'>Negotiate</Data><Data Name='WorkstationName'>69-64-65-123</Data><Data Name='TransmittedServices'>-</Data><Data Name='LmPackageName'>-</Data><Data Name='KeyLength'>0</Data><Data Name='ProcessId'>0x2e40</Data><Data Name='ProcessName'>C:\Windows\System32\winlogon.exe</Data><Data Name='IpAddress'>99.99.99.98</Data><Data Name='IpPort'>52813</Data></EventData></Event>";
             
+            ProcessXml(xml1);
+            ProcessXml(xml1);
             ProcessXml(xml1);
             ProcessXml(xml2);
             ProcessXml(xml3);
             ProcessXml(xml4);
+            ProcessXml(xml5);
+
+            // Fire this test event after a 15 second delay, to test ExpireTime duration.
+            ThreadPool.QueueUserWorkItem(new WaitCallback(DelayTest), xml5);
+        }
+
+        private void DelayTest(object stateInfo)
+        {
+            Thread.Sleep(15000);
+            ProcessXml((string)stateInfo);
         }
 
         private void Initialize()
@@ -265,15 +286,19 @@ popd
 
         private void CheckForExpiredIP()
         {
+            List<string> ipAddressesToForget = new List<string>();
             bool fileChanged = false;
             KeyValuePair<string, DateTime>[] blockList;
+            KeyValuePair<string, IPBlockCount>[] ipBlockCountList;
             lock (ipBlocker)
             {
                 blockList = ipBlockerDate.ToArray();
+                ipBlockCountList = ipBlocker.ToArray();
             }
 
             DateTime now = DateTime.UtcNow;
 
+            // Check the block list for expired IPs.
             foreach (KeyValuePair<string, DateTime> keyValue in blockList)
             {
                 TimeSpan elapsed = now - keyValue.Value;
@@ -286,6 +311,42 @@ popd
                         ipBlockerDate.Remove(keyValue.Key);
                         ipBlocker.Remove(keyValue.Key);
                         fileChanged = true;
+                    }
+                }
+            }
+
+            if (config.ExpireTime.TotalSeconds > 0)
+            {
+                // Check the list of failed login attempts, that are not yet blocked, for expired IPs.
+                foreach (KeyValuePair<string, IPBlockCount> keyValue in ipBlockCountList)
+                {
+                    // Find this IP address in the block list.
+                    var block = from b in blockList
+                                where b.Key == keyValue.Key
+                                select b;
+
+                    // If this IP is not yet blocked, and an invalid login attempt has not been made in the past timespan, see if we should forget it.
+                    if (block.Count() == 0)
+                    {
+                        TimeSpan elapsed = now - keyValue.Value.LastFailedLogin;
+
+                        if (elapsed > config.ExpireTime)
+                        {
+                            Log.Write(LogLevel.Info, "Forgetting ip address {0}", keyValue.Key);
+                            lock (ipAddressesToForget)
+                            {
+                                ipAddressesToForget.Add(keyValue.Key);
+                            }
+                        }
+                    }
+                }
+
+                // Remove the IPs that have expired.
+                lock (ipBlocker)
+                {
+                    foreach (string ip in ipAddressesToForget)
+                    {
+                        ipBlocker.Remove(ip);
                     }
                 }
             }

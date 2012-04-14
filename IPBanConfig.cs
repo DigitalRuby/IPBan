@@ -22,6 +22,7 @@ namespace IPBan
         private int failedLoginAttemptsBeforeBan = 5;
         private TimeSpan banTime = TimeSpan.FromDays(1.0d);
         private string banFile = "banlog.txt";
+        private TimeSpan expireTime = TimeSpan.FromDays(1.0d);
         private TimeSpan cycleTime = TimeSpan.FromMinutes(1.0d);
         private string ruleName = "BlockIPAddresses";
         private readonly HashSet<string> whiteList = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -45,6 +46,9 @@ namespace IPBan
                 banFile = Path.GetFullPath(banFile);
             }
 
+            value = ConfigurationManager.AppSettings["ExpireTime"];
+            expireTime = TimeSpan.Parse(value);
+            
             value = ConfigurationManager.AppSettings["CycleTime"];
             cycleTime = TimeSpan.Parse(value);
 
@@ -97,6 +101,11 @@ namespace IPBan
         /// </summary>
         public string BanFile { get { return banFile; } }
 
+        /// <summary>
+        /// The duration after the last failed login attempt that the count is reset back to 0.
+        /// </summary>
+        public TimeSpan ExpireTime { get { return expireTime; } }
+        
         /// <summary>
         /// Interval of time to do house-keeping chores like un-banning ip addresses
         /// </summary>
