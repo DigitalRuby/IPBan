@@ -58,6 +58,7 @@
     <Compile Include="IPBanService.cs">
       <SubType>Component</SubType>
     </Compile>
+    <Compile Include="IPBlockCount.cs" />
     <Compile Include="Logger.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
