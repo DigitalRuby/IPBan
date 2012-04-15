@@ -201,7 +201,7 @@ popd
                         }
                         else if (ipBlockCount.Count > config.FailedLoginAttemptsBeforeBan)
                         {
-                            Log.Write(LogLevel.Info, "Go event with ip address {0}, count {1}, ip is already banned");
+                            Log.Write(LogLevel.Info, "Got event with ip address {0}, count {1}, ip is already banned");
                         }
                         else
                         {
@@ -328,15 +328,12 @@ popd
                     // If this IP is not yet blocked, and an invalid login attempt has not been made in the past timespan, see if we should forget it.
                     if (block.Count() == 0)
                     {
-                        TimeSpan elapsed = now - keyValue.Value.LastFailedLogin;
+                        TimeSpan elapsed = (now - keyValue.Value.LastFailedLogin);
 
                         if (elapsed > config.ExpireTime)
                         {
                             Log.Write(LogLevel.Info, "Forgetting ip address {0}", keyValue.Key);
-                            lock (ipAddressesToForget)
-                            {
-                                ipAddressesToForget.Add(keyValue.Key);
-                            }
+                            ipAddressesToForget.Add(keyValue.Key);
                         }
                     }
                 }
