@@ -1,6 +1,8 @@
-Extract files to a place on your computer. Right click on all the extracted files and select properties. Make sure to select "unblock" if the option is available.
+*******************************************************************************
+***** Requires .NET 4.0 and Windows Vista or Windows Server 2008 or newer *****
+*******************************************************************************
 
-Requires .NET 4.0
+Extract files to a place on your computer. Right click on all the extracted files and select properties. Make sure to select "unblock" if the option is available.
 
 To run as a Windows service (example: sc create IPBAN type= own start= auto binPath= d:\system\ipban\ipban.exe DisplayName= IPBAN). The service writes a log file to the same directory as the service, so run as SYSTEM to ensure permissions.
 
@@ -19,8 +21,6 @@ In summary, change these local security options:
 - Prompt for credentials on the client computer -- Enabled
 
 If you want to run in Visual Studio, make sure to run Visual Studio as administrator
-
-Has been tested on Windows 7 x64 and Windows Server 2008 x64
 
 Please visit http://www.digitalruby.com/securing-your-windows-dedicated-server/ for more information about this and other products that we are making.
 
