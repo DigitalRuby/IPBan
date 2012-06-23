@@ -27,6 +27,52 @@ namespace IPBan
         private string ruleName = "BlockIPAddresses";
         private readonly HashSet<string> whiteList = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         private Regex whiteListRegex;
+        private readonly HashSet<string> blackList = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        private Regex blackListRegex;
+        private bool banFileClearOnRestart;
+
+        private void PopulateList(HashSet<string> set, ref Regex regex, string setValue, string regexValue)
+        {
+            setValue = (setValue ?? string.Empty).Trim();
+            regexValue = (regexValue ?? string.Empty).Replace("*", "[0-255]").Trim();
+            set.Clear();
+
+            if (!string.IsNullOrWhiteSpace(setValue))
+            {
+                IPAddress tmp;
+
+                foreach (string ip in setValue.Split(','))
+                {
+                    if (ip.Length <= 2 || IPAddress.TryParse(ip, out tmp))
+                    {
+                        set.Add(ip.Trim());
+                    }
+                    else
+                    {
+                        try
+                        {
+                            IPAddress[] addresses = Dns.GetHostEntry(ip).AddressList;
+                            if (addresses != null)
+                            {
+                                foreach (IPAddress adr in addresses)
+                                {
+                                    set.Add(adr.ToString());
+                                }
+                            }
+                        }
+                        catch (System.Net.Sockets.SocketException)
+                        {
+                            set.Add(ip.Trim());
+                        }
+                    }
+                }
+            }
+
+            if (regexValue.Length != 0)
+            {
+                regex = new Regex(regexValue, RegexOptions.IgnoreCase | RegexOptions.Compiled | RegexOptions.Singleline);
+            }
+        }
 
         /// <summary>
         /// Constructor
@@ -45,6 +91,11 @@ namespace IPBan
             {
                 banFile = Path.GetFullPath(banFile);
             }
+            value = ConfigurationManager.AppSettings["BanFileClearOnRestart"];
+            if (!bool.TryParse(value, out banFileClearOnRestart))
+            {
+                banFileClearOnRestart = true;
+            }
 
             value = ConfigurationManager.AppSettings["ExpireTime"];
             expireTime = TimeSpan.Parse(value);
@@ -55,22 +106,8 @@ namespace IPBan
             value = ConfigurationManager.AppSettings["RuleName"];
             ruleName = value;
 
-            value = ConfigurationManager.AppSettings["Whitelist"];
-            whiteList.Clear();
-            if (!string.IsNullOrWhiteSpace(value))
-            {
-                foreach (string ip in value.Split(','))
-                {
-                    whiteList.Add(ip.Trim());
-                }
-            }
-
-            value = (ConfigurationManager.AppSettings["WhitelistRegex"] ?? string.Empty).Replace("*", "[0-255]").Trim();
-            if (value.Length != 0)
-            {
-                whiteListRegex = new Regex(value, RegexOptions.IgnoreCase | RegexOptions.Compiled | RegexOptions.Singleline);
-            }
-
+            PopulateList(whiteList, ref whiteListRegex, ConfigurationManager.AppSettings["Whitelist"], ConfigurationManager.AppSettings["WhitelistRegex"]);
+            PopulateList(blackList, ref blackListRegex, ConfigurationManager.AppSettings["Blacklist"], ConfigurationManager.AppSettings["BlacklistRegex"]);
             expressions = (ExpressionsToBlock)System.Configuration.ConfigurationManager.GetSection("ExpressionsToBlock");
         }
 
@@ -78,12 +115,22 @@ namespace IPBan
         /// Check if an ip address is whitelisted
         /// </summary>
         /// <param name="ipAddress">IP Address</param>
-        /// <returns>True if white listed, false otherwise</returns>
+        /// <returns>True if whitelisted, false otherwise</returns>
         public bool IsWhiteListed(string ipAddress)
         {
             IPAddress ip;
 
             return (whiteList.Contains(ipAddress) || !IPAddress.TryParse(ipAddress, out ip) || (whiteListRegex != null && whiteListRegex.IsMatch(ipAddress)));
+        }
+
+        /// <summary>
+        /// Check if an ip address is blacklisted
+        /// </summary>
+        /// <param name="ipAddress">IP Address</param>
+        /// <returns>True if blacklisted, false otherwise</returns>
+        public bool IsBlackListed(string ipAddress)
+        {
+            return (whiteList.Contains(ipAddress) || (whiteListRegex != null && whiteListRegex.IsMatch(ipAddress)));
         }
 
         /// <summary>
@@ -120,5 +167,10 @@ namespace IPBan
         /// Expressions to block
         /// </summary>
         public ExpressionsToBlock Expressions { get { return expressions; } }
+
+        /// <summary>
+        /// True to clear and unband ip addresses in the ban file when the service restarts, false otherwise
+        /// </summary>
+        public bool BanFileClearOnRestart { get { return banFileClearOnRestart; } }
     }
 }

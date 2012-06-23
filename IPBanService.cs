@@ -91,14 +91,37 @@ popd
             addRule = false;
         }
 
-        private void ClearBannedIP()
+        private void ProcessBanFileOnStart()
         {
             if (File.Exists(config.BanFile))
             {
-                lock (ipBlocker)
+                if (config.BanFileClearOnRestart)
                 {
-                    DeleteRule();
-                    File.Delete(config.BanFile);
+                    lock (ipBlocker)
+                    {
+                        DeleteRule();
+                        File.Delete(config.BanFile);
+                    }
+                }
+                else
+                {
+                    lock (ipBlocker)
+                    {
+                        string[] lines = File.ReadAllLines(config.BanFile);
+                        IPAddress tmp;
+
+                        foreach (string ip in lines)
+                        {
+                            string ipTrimmed = ip.Trim();
+                            if (IPAddress.TryParse(ipTrimmed, out tmp))
+                            {
+                                IPBlockCount blockCount = new IPBlockCount();
+                                blockCount.IncrementCount();
+                                ipBlocker[ip] = blockCount;
+                                ipBlockerDate[ip] = DateTime.UtcNow;
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -273,7 +296,7 @@ popd
         private void Initialize()
         {
             ReadAppSettings();
-            ClearBannedIP();
+            ProcessBanFileOnStart();
             SetupWatcher();
 
 #if DEBUG
@@ -301,6 +324,10 @@ popd
             // Check the block list for expired IPs.
             foreach (KeyValuePair<string, DateTime> keyValue in blockList)
             {
+                if (config.IsBlackListed(keyValue.Key))
+                {
+                    continue;
+                }
                 TimeSpan elapsed = now - keyValue.Value;
 
                 if (elapsed > config.BanTime)
