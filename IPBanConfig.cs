@@ -130,7 +130,7 @@ namespace IPBan
         /// <returns>True if blacklisted, false otherwise</returns>
         public bool IsBlackListed(string ipAddress)
         {
-            return (whiteList.Contains(ipAddress) || (whiteListRegex != null && whiteListRegex.IsMatch(ipAddress)));
+            return (blackList.Contains(ipAddress) || (blackListRegex != null && blackListRegex.IsMatch(ipAddress)));
         }
 
         /// <summary>
