@@ -215,12 +215,16 @@ popd
 
                         // Increment the count.
                         ipBlockCount.IncrementCount();
+                        bool blackListed = config.IsBlackListed(ipAddress);
 
-                        if (ipBlockCount.Count == config.FailedLoginAttemptsBeforeBan)
+                        if (blackListed || ipBlockCount.Count == config.FailedLoginAttemptsBeforeBan)
                         {
-                            Log.Write(LogLevel.Error, "Banning ip address {0}", ipAddress);
-                            ipBlockerDate[ipAddress] = DateTime.UtcNow;
-                            ExecuteBanScript();
+                            if (!blackListed || ipBlockCount.Count == 1)
+                            {
+                                Log.Write(LogLevel.Error, "Banning ip address {0}", ipAddress);
+                                ipBlockerDate[ipAddress] = DateTime.UtcNow;
+                                ExecuteBanScript();
+                            }
                         }
                         else if (ipBlockCount.Count > config.FailedLoginAttemptsBeforeBan)
                         {
