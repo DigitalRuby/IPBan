@@ -411,6 +411,7 @@ popd
                 {
                     lastCycle = now;
                     CheckForExpiredIP();
+                    ReadAppSettings();
                 }
             }
         }

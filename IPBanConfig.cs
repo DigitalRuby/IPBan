@@ -70,7 +70,7 @@ namespace IPBan
 
             if (regexValue.Length != 0)
             {
-                regex = new Regex(regexValue, RegexOptions.IgnoreCase | RegexOptions.Compiled | RegexOptions.Singleline);
+                regex = new Regex(regexValue, RegexOptions.IgnoreCase | RegexOptions.Singleline);
             }
         }
 
@@ -79,6 +79,10 @@ namespace IPBan
         /// </summary>
         public IPBanConfig()
         {
+            ConfigurationManager.RefreshSection("appSettings");
+            ConfigurationManager.RefreshSection("nlog");
+            ConfigurationManager.RefreshSection("ExpressionsToBlock");
+
             string value = ConfigurationManager.AppSettings["FailedLoginAttemptsBeforeBan"];
             failedLoginAttemptsBeforeBan = int.Parse(value);
 
