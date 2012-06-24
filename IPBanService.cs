@@ -233,7 +233,7 @@ popd
                         }
                         else if (ipBlockCount.Count > config.FailedLoginAttemptsBeforeBan)
                         {
-                            Log.Write(LogLevel.Info, "Got event with ip address {0}, count {1}, ip is already banned");
+                            Log.Write(LogLevel.Info, "Got event with ip address {0}, count {1}, ip is already banned", ipAddress, ipBlockCount.Count);
                         }
                         else
                         {
