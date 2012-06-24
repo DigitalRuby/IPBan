@@ -93,19 +93,19 @@ popd
 
         private void ProcessBanFileOnStart()
         {
-            if (File.Exists(config.BanFile))
+            lock (ipBlocker)
             {
-                if (config.BanFileClearOnRestart)
+                DeleteRule();
+                ipBlocker.Clear();
+                ipBlockerDate.Clear();
+
+                if (File.Exists(config.BanFile))
                 {
-                    lock (ipBlocker)
+                    if (config.BanFileClearOnRestart)
                     {
-                        DeleteRule();
                         File.Delete(config.BanFile);
                     }
-                }
-                else
-                {
-                    lock (ipBlocker)
+                    else
                     {
                         string[] lines = File.ReadAllLines(config.BanFile);
                         IPAddress tmp;
@@ -120,6 +120,11 @@ popd
                                 ipBlocker[ip] = blockCount;
                                 ipBlockerDate[ip] = DateTime.UtcNow;
                             }
+                        }
+
+                        if (ipBlockerDate.Count != 0)
+                        {
+                            ExecuteBanScript();
                         }
                     }
                 }
@@ -317,6 +322,7 @@ popd
             bool fileChanged = false;
             KeyValuePair<string, DateTime>[] blockList;
             KeyValuePair<string, IPBlockCount>[] ipBlockCountList;
+
             lock (ipBlocker)
             {
                 blockList = ipBlockerDate.ToArray();
@@ -351,6 +357,11 @@ popd
                 // Check the list of failed login attempts, that are not yet blocked, for expired IPs.
                 foreach (KeyValuePair<string, IPBlockCount> keyValue in ipBlockCountList)
                 {
+                    if (config.IsBlackListed(keyValue.Key))
+                    {
+                        continue;
+                    }
+
                     // Find this IP address in the block list.
                     var block = from b in blockList
                                 where b.Key == keyValue.Key
