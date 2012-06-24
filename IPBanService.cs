@@ -383,7 +383,6 @@ popd
                         {
                             Log.Write(LogLevel.Info, "Forgetting ip address {0}", keyValue.Key);
                             ipAddressesToForget.Add(keyValue.Key);
-                            fileChanged = true;
                         }
                     }
                 }
