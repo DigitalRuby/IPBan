@@ -62,7 +62,14 @@ popd
 
         private void ReadAppSettings()
         {
-            config = new IPBanConfig();
+            try
+            {
+                config = new IPBanConfig();
+            }
+            catch (Exception ex)
+            {
+                Log.Write(LogLevel.Error, ex.ToString());
+            }
         }
 
         private void DeleteRule()
@@ -160,7 +167,7 @@ popd
                         }
 
                         // if there is a regex, it must match
-                        if (expression.Regex.Length == 0)
+                        if (string.IsNullOrWhiteSpace(expression.Regex))
                         {
                             Log.Write(LogLevel.Info, "No regex, so counting as a match");
                         }
@@ -246,10 +253,16 @@ popd
 
         private void EventRecordWritten(object sender, EventRecordWrittenEventArgs e)
         {
-            EventRecord rec = e.EventRecord;
-            string xml = rec.ToXml();
-
-            ProcessXml(xml);            
+            try
+            {
+                EventRecord rec = e.EventRecord;
+                string xml = rec.ToXml();
+                ProcessXml(xml);
+            }
+            catch (Exception ex)
+            {
+                Log.Write(LogLevel.Error, ex.ToString());
+            }
         }
 
         private void SetupWatcher()
@@ -260,12 +273,6 @@ popd
             {
                 ulong keywordsDecimal = ulong.Parse(group.Keywords.Substring(2), NumberStyles.AllowHexSpecifier);
                 queryString += "<Query Id='" + (++id).ToString() + "' Path='" + group.Path + "'><Select Path='" + group.Path + "'>*[System[(band(Keywords," + keywordsDecimal.ToString() + "))]]</Select></Query>";
-
-                foreach (ExpressionToBlock expression in group.Expressions)
-                {
-                    expression.Regex = (expression.Regex ?? string.Empty).Trim();
-                    expression.RegexObject = new Regex(expression.Regex, RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.Singleline);
-                }
             }
             queryString += "</QueryList>";
             query = new EventLogQuery("Security", PathType.LogName, queryString);
@@ -310,7 +317,7 @@ popd
 
 #if DEBUG
 
-            RunTests();            
+            RunTests();
 
 #endif
 
@@ -376,6 +383,7 @@ popd
                         {
                             Log.Write(LogLevel.Info, "Forgetting ip address {0}", keyValue.Key);
                             ipAddressesToForget.Add(keyValue.Key);
+                            fileChanged = true;
                         }
                     }
                 }
@@ -449,7 +457,15 @@ popd
             IPBanService svc = new IPBanService();
             svc.OnStart(args);
             Console.WriteLine("Press ENTER to quit");
-            Console.ReadLine();
+            string line;
+            while ((line = Console.ReadLine()).Length != 0)
+            {
+                if (line.Equals("t", StringComparison.OrdinalIgnoreCase))
+                {
+                    svc.ReadAppSettings();
+                    svc.RunTests();
+                }
+            }
             svc.OnStop();
         }
 

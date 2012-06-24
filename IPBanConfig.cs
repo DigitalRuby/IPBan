@@ -80,6 +80,7 @@ namespace IPBan
         public IPBanConfig()
         {
             ConfigurationManager.RefreshSection("appSettings");
+            ConfigurationManager.RefreshSection("configSections");
             ConfigurationManager.RefreshSection("nlog");
             ConfigurationManager.RefreshSection("ExpressionsToBlock");
 
@@ -113,6 +114,15 @@ namespace IPBan
             PopulateList(whiteList, ref whiteListRegex, ConfigurationManager.AppSettings["Whitelist"], ConfigurationManager.AppSettings["WhitelistRegex"]);
             PopulateList(blackList, ref blackListRegex, ConfigurationManager.AppSettings["Blacklist"], ConfigurationManager.AppSettings["BlacklistRegex"]);
             expressions = (ExpressionsToBlock)System.Configuration.ConfigurationManager.GetSection("ExpressionsToBlock");
+
+            foreach (ExpressionsToBlockGroup group in expressions.Groups)
+            {
+                foreach (ExpressionToBlock expression in group.Expressions)
+                {
+                    expression.Regex = (expression.Regex ?? string.Empty).Trim();
+                    expression.RegexObject = new Regex(expression.Regex, RegexOptions.IgnoreCase | RegexOptions.Singleline);
+                }
+            }
         }
 
         /// <summary>
