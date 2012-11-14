@@ -138,13 +138,13 @@ namespace IPBan
         }
 
         /// <summary>
-        /// Check if an ip address is blacklisted
+        /// Check if an ip address, dns name or user name is blacklisted
         /// </summary>
-        /// <param name="ipAddress">IP Address</param>
+        /// <param name="text">Text containing ip address, dns name or user name</param>
         /// <returns>True if blacklisted, false otherwise</returns>
-        public bool IsBlackListed(string ipAddress)
+        public bool IsBlackListed(string text)
         {
-            return (blackList.Contains(ipAddress) || (blackListRegex != null && blackListRegex.IsMatch(ipAddress)));
+            return !string.IsNullOrWhiteSpace(text) && ((blackList.Contains(text) || (blackListRegex != null && blackListRegex.IsMatch(text))));
         }
 
         /// <summary>

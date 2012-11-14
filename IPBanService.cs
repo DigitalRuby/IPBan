@@ -8,6 +8,7 @@ using System.Diagnostics.Eventing.Reader;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Management;
 using System.Net;
 using System.Security.Permissions;
 using System.ServiceProcess;
@@ -35,9 +36,11 @@ popd
         private bool addRule = true;
         private Thread serviceThread;
         private bool run;
+        private bool useLegacyWatcher;
         private EventLogQuery query;
         private EventLogWatcher watcher;
         private EventLogReader reader;
+        private ManagementEventWatcher legacyWatcher;
         private Dictionary<string, IPBlockCount> ipBlocker = new Dictionary<string, IPBlockCount>();
         private Dictionary<string, DateTime> ipBlockerDate = new Dictionary<string, DateTime>();
 
@@ -147,8 +150,8 @@ popd
             reader.Namespaces = false;
             XmlDocument doc = new XmlDocument();
             doc.Load(reader);
-            XmlNode keywordsNode = doc.SelectSingleNode("//Keywords");
 
+            XmlNode keywordsNode = doc.SelectSingleNode("//Keywords");
             if (keywordsNode != null)
             {
                 // we must match on keywords
@@ -227,7 +230,10 @@ popd
 
                         // Increment the count.
                         ipBlockCount.IncrementCount();
-                        bool blackListed = config.IsBlackListed(ipAddress);
+
+                        // check for the target user name for additional blacklisting checks
+                        XmlNode userNameNode = doc.SelectSingleNode("//Data[@Name='TargetUserName']");
+                        bool blackListed = config.IsBlackListed(ipAddress) || (userNameNode != null && config.IsBlackListed(userNameNode.InnerText));
 
                         if (blackListed || ipBlockCount.Count == config.FailedLoginAttemptsBeforeBan)
                         {
@@ -265,7 +271,49 @@ popd
             }
         }
 
-        private void SetupWatcher()
+        private void SetupLegacyWatcher()
+        {
+            string queryString = GetLegacyQueryString();
+            legacyWatcher = new ManagementEventWatcher(new EventQuery(queryString));
+            legacyWatcher.Start();
+            legacyWatcher.EventArrived += EventRecordWrittenLegacy;
+        }
+
+        private void EventRecordWrittenLegacy(object sender, EventArrivedEventArgs e)
+        {
+            try
+            {
+                string xml = e.NewEvent.GetText(TextFormat.WmiDtd20);
+
+                ProcessXml(xml);
+            }
+            catch (Exception ex)
+            {
+                Log.Write(LogLevel.Error, ex.ToString());
+            }
+        }
+
+        private string GetLegacyQueryString()
+        {
+            /*
+            string subQuery = string.Empty;
+
+            foreach (ExpressionsToBlockGroup group in config.Expressions.Groups)
+            {
+                ulong keywordsDecimal = ulong.Parse(group.Keywords.Substring(2), NumberStyles.AllowHexSpecifier);
+                if (subQuery.Length != 0)
+                {
+                    subQuery += " OR ";
+                }
+                subQuery += "(band(TargetInstance.Keywords," + keywordsDecimal.ToString() + "))";
+            }
+            */
+
+            string queryString = "Select * from __InstanceCreationEvent Where TargetInstance ISA 'Win32_NTLogEvent' AND TargetInstance.LogFile = 'Security' AND (TargetInstance.EventCode = 529 OR TargetInstance.EventCode = 675)";
+            return queryString;
+        }
+
+        private string GetQueryString()
         {
             int id = 0;
             string queryString = "<QueryList>";
@@ -275,11 +323,24 @@ popd
                 queryString += "<Query Id='" + (++id).ToString() + "' Path='" + group.Path + "'><Select Path='" + group.Path + "'>*[System[(band(Keywords," + keywordsDecimal.ToString() + "))]]</Select></Query>";
             }
             queryString += "</QueryList>";
+
+            return queryString;
+        }
+
+        private void SetupWatcher()
+        {
+            if (useLegacyWatcher)
+            {
+                SetupLegacyWatcher();
+                return;
+            }
+
+            string queryString = GetQueryString();
             query = new EventLogQuery("Security", PathType.LogName, queryString);
             reader = new EventLogReader(query);
             reader.BatchSize = 10;
             watcher = new EventLogWatcher(query);
-            watcher.EventRecordWritten += new EventHandler<EventRecordWrittenEventArgs>(EventRecordWritten);
+            watcher.EventRecordWritten += EventRecordWritten;
             watcher.Enabled = true;
         }
 
@@ -440,8 +501,18 @@ popd
             run = false;
             query = null;
             watcher = null;
+            legacyWatcher = null;
 
             Log.Write(LogLevel.Info, "Stopped IPBan service");
+        }
+
+        public IPBanService()
+        {
+            OperatingSystem os = Environment.OSVersion;
+            Version vs = os.Version;
+
+            // if less than Vista (i.e. XP or Server 2003) use legacy watcher
+            useLegacyWatcher = false; // (vs.Major < 6);
         }
 
         public static void RunService(string[] args)

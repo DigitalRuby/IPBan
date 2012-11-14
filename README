@@ -22,6 +22,9 @@ In summary, change these local security options:
 
 If you want to run in Visual Studio, make sure to run Visual Studio as administrator
 
+For reference, here is a regex that matches any 32 bit ip address:
+(?<ipaddress>^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$)
+
 Please visit http://www.digitalruby.com/securing-your-windows-dedicated-server/ for more information about this and other products that we are making.
 
 Enjoy!
