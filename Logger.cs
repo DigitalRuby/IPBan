@@ -19,7 +19,19 @@ namespace IPBan
     /// </summary>
     public static class Log
     {
-        private static readonly Logger logger = LogManager.GetLogger("FileLogger");
+        private static readonly Logger logger;
+
+        static Log()
+        {
+            try
+            {
+                logger = LogManager.GetLogger("FileLogger");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Failed to initialize logger: {0}", ex);
+            }
+        }
 
         public static void Write(LogLevel level, string text, params object[] args)
         {
