@@ -35,6 +35,11 @@ namespace IPBan
 
         public static void Write(LogLevel level, string text, params object[] args)
         {
+            if (logger == null)
+            {
+                return;
+            }
+
             switch (level)
             {
                 case LogLevel.Info:

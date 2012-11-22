@@ -34,7 +34,7 @@ namespace IPBan
         private void PopulateList(HashSet<string> set, ref Regex regex, string setValue, string regexValue)
         {
             setValue = (setValue ?? string.Empty).Trim();
-            regexValue = (regexValue ?? string.Empty).Replace("*", @"[0-9A-Fa-f]+").Trim();
+            regexValue = (regexValue ?? string.Empty).Replace("*", @"[0-9A-Fa-f]+?").Trim();
             set.Clear();
 
             if (!string.IsNullOrWhiteSpace(setValue))
