@@ -77,6 +77,11 @@ popd
 
         private void DeleteRule()
         {
+            if (string.IsNullOrWhiteSpace(config.RuleName))
+            {
+                throw new ApplicationException("Failed to find RuleName in config file, cannot delete firewall rule");
+            }
+
             ProcessStartInfo info = new ProcessStartInfo
             {
                 FileName = "netsh",
