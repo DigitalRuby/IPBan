@@ -72,6 +72,11 @@ popd
             catch (Exception ex)
             {
                 Log.Write(LogLevel.Error, ex.ToString());
+
+                if (config == null)
+                {
+                    throw new ApplicationException("Configuration failed to load, make sure to unblock all the files. Right click each file, select properties and then unblock.", ex);
+                }
             }
         }
 
