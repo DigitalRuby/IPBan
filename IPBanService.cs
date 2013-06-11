@@ -151,16 +151,19 @@ popd
             }
         }
 
-        private void ProcessXml(string xml)
+        private XmlDocument ParseXml(string xml)
         {
-            Log.Write(LogLevel.Info, "Processing xml: {0}", xml);
-
-            string ipAddress = null;
             XmlTextReader reader = new XmlTextReader(new StringReader(xml));
             reader.Namespaces = false;
             XmlDocument doc = new XmlDocument();
             doc.Load(reader);
 
+            return doc;
+        }
+
+        private string ExtractIPAddressFromXml(XmlDocument doc)
+        {
+            string ipAddress = null;
             XmlNode keywordsNode = doc.SelectSingleNode("//Keywords");
             if (keywordsNode != null)
             {
@@ -218,53 +221,68 @@ popd
                 }
             }
 
-            if (!string.IsNullOrWhiteSpace(ipAddress))
+            return ipAddress;
+        }
+
+        private void ProcessIPAddress(string ipAddress, XmlDocument doc)
+        {
+            if (string.IsNullOrWhiteSpace(ipAddress))
             {
-                if (config.IsWhiteListed(ipAddress))
+                return;
+            }
+            else if (config.IsWhiteListed(ipAddress))
+            {
+                Log.Write(LogLevel.Info, "Ignoring whitelisted ip address {0}", ipAddress);
+            }
+            else
+            {
+                IPBlockCount ipBlockCount;
+                lock (ipBlocker)
                 {
-                    Log.Write(LogLevel.Info, "Ignoring whitelisted ip address {0}", ipAddress);
-                }
-                else
-                {
-                    IPBlockCount ipBlockCount;
-                    lock (ipBlocker)
+                    // Get the IPBlockCount, if one exists.
+                    ipBlocker.TryGetValue(ipAddress, out ipBlockCount);
+                    if (ipBlockCount == null)
                     {
-                        // Get the IPBlockCount, if one exists.
-                        ipBlocker.TryGetValue(ipAddress, out ipBlockCount);
-                        if (ipBlockCount == null)
-                        {
-                            // This is the first failed login attempt, so record a new IPBlockCount.
-                            ipBlockCount = new IPBlockCount();
-                            ipBlocker[ipAddress] = ipBlockCount;
-                        }
+                        // This is the first failed login attempt, so record a new IPBlockCount.
+                        ipBlockCount = new IPBlockCount();
+                        ipBlocker[ipAddress] = ipBlockCount;
+                    }
 
-                        // Increment the count.
-                        ipBlockCount.IncrementCount();
+                    // Increment the count.
+                    ipBlockCount.IncrementCount();
 
-                        // check for the target user name for additional blacklisting checks
-                        XmlNode userNameNode = doc.SelectSingleNode("//Data[@Name='TargetUserName']");
-                        bool blackListed = config.IsBlackListed(ipAddress) || (userNameNode != null && config.IsBlackListed(userNameNode.InnerText));
+                    // check for the target user name for additional blacklisting checks
+                    XmlNode userNameNode = doc.SelectSingleNode("//Data[@Name='TargetUserName']");
+                    bool blackListed = config.IsBlackListed(ipAddress) || (userNameNode != null && config.IsBlackListed(userNameNode.InnerText));
 
-                        if (blackListed || ipBlockCount.Count == config.FailedLoginAttemptsBeforeBan)
+                    if (blackListed || ipBlockCount.Count == config.FailedLoginAttemptsBeforeBan)
+                    {
+                        if (!blackListed || ipBlockCount.Count == 1)
                         {
-                            if (!blackListed || ipBlockCount.Count == 1)
-                            {
-                                Log.Write(LogLevel.Error, "Banning ip address {0}", ipAddress);
-                                ipBlockerDate[ipAddress] = DateTime.UtcNow;
-                                ExecuteBanScript();
-                            }
+                            Log.Write(LogLevel.Error, "Banning ip address {0}", ipAddress);
+                            ipBlockerDate[ipAddress] = DateTime.UtcNow;
+                            ExecuteBanScript();
                         }
-                        else if (ipBlockCount.Count > config.FailedLoginAttemptsBeforeBan)
-                        {
-                            Log.Write(LogLevel.Info, "Got event with ip address {0}, count {1}, ip is already banned", ipAddress, ipBlockCount.Count);
-                        }
-                        else
-                        {
-                            Log.Write(LogLevel.Info, "Got event with ip address {0}, count: {1}", ipAddress, ipBlockCount.Count);
-                        }
+                    }
+                    else if (ipBlockCount.Count > config.FailedLoginAttemptsBeforeBan)
+                    {
+                        Log.Write(LogLevel.Info, "Got event with ip address {0}, count {1}, ip is already banned", ipAddress, ipBlockCount.Count);
+                    }
+                    else
+                    {
+                        Log.Write(LogLevel.Info, "Got event with ip address {0}, count: {1}", ipAddress, ipBlockCount.Count);
                     }
                 }
             }
+        }
+
+        private void ProcessXml(string xml)
+        {
+            Log.Write(LogLevel.Info, "Processing xml: {0}", xml);
+
+            XmlDocument doc = ParseXml(xml);
+            string ipAddress = ExtractIPAddressFromXml(doc);
+            ProcessIPAddress(ipAddress, doc);
         }
 
         private void EventRecordWritten(object sender, EventRecordWrittenEventArgs e)
@@ -354,6 +372,17 @@ popd
             watcher.Enabled = true;
         }
 
+        private void TestRemoteDesktopAttemptWithPAddress(string ipAddress, int count)
+        {
+            // 71.165.7.7
+            string xml = string.Format(@"<Event xmlns='http://schemas.microsoft.com/win/2004/08/events/event'><System><Provider Name='Microsoft-Windows-Security-Auditing' Guid='{{54849625-5478-4994-A5BA-3E3B0328C30D}}' /><EventID>4625</EventID><Version>0</Version><Level>0</Level><Task>12544</Task><Opcode>0</Opcode><Keywords>0x8010000000000000</Keywords><TimeCreated SystemTime='2012-03-25T17:12:36.848116500Z' /><EventRecordID>1657124</EventRecordID><Correlation /><Execution ProcessID='544' ThreadID='6616' /><Channel>Security</Channel><Computer>69-64-65-123</Computer><Security /></System><EventData><Data Name='SubjectUserSid'>S-1-5-18</Data><Data Name='SubjectUserName'>69-64-65-123$</Data><Data Name='SubjectDomainName'>WORKGROUP</Data><Data Name='SubjectLogonId'>0x3e7</Data><Data Name='TargetUserSid'>S-1-0-0</Data><Data Name='TargetUserName'>forex</Data><Data Name='TargetDomainName'>69-64-65-123</Data><Data Name='Status'>0xc000006d</Data><Data Name='FailureReason'>%%2313</Data><Data Name='SubStatus'>0xc0000064</Data><Data Name='LogonType'>10</Data><Data Name='LogonProcessName'>User32 </Data><Data Name='AuthenticationPackageName'>Negotiate</Data><Data Name='WorkstationName'>69-64-65-123</Data><Data Name='TransmittedServices'>-</Data><Data Name='LmPackageName'>-</Data><Data Name='KeyLength'>0</Data><Data Name='ProcessId'>0x2e40</Data><Data Name='ProcessName'>C:\Windows\System32\winlogon.exe</Data><Data Name='IpAddress'>{0}</Data><Data Name='IpPort'>52813</Data></EventData></Event>", ipAddress);
+
+            while (count-- > 0)
+            {
+                ProcessXml(xml);
+            }
+        }
+
         private void RunTests()
         {
             string xml1 = @"<Event xmlns='http://schemas.microsoft.com/win/2004/08/events/event'><System><Provider Name='Microsoft-Windows-Security-Auditing' Guid='{54849625-5478-4994-A5BA-3E3B0328C30D}' /><EventID>4625</EventID><Version>0</Version><Level>0</Level><Task>12544</Task><Opcode>0</Opcode><Keywords>0x8010000000000000</Keywords><TimeCreated SystemTime='2012-03-25T17:12:36.848116500Z' /><EventRecordID>1657124</EventRecordID><Correlation /><Execution ProcessID='544' ThreadID='6616' /><Channel>Security</Channel><Computer>69-64-65-123</Computer><Security /></System><EventData><Data Name='SubjectUserSid'>S-1-5-18</Data><Data Name='SubjectUserName'>69-64-65-123$</Data><Data Name='SubjectDomainName'>WORKGROUP</Data><Data Name='SubjectLogonId'>0x3e7</Data><Data Name='TargetUserSid'>S-1-0-0</Data><Data Name='TargetUserName'>forex</Data><Data Name='TargetDomainName'>69-64-65-123</Data><Data Name='Status'>0xc000006d</Data><Data Name='FailureReason'>%%2313</Data><Data Name='SubStatus'>0xc0000064</Data><Data Name='LogonType'>10</Data><Data Name='LogonProcessName'>User32 </Data><Data Name='AuthenticationPackageName'>Negotiate</Data><Data Name='WorkstationName'>69-64-65-123</Data><Data Name='TransmittedServices'>-</Data><Data Name='LmPackageName'>-</Data><Data Name='KeyLength'>0</Data><Data Name='ProcessId'>0x2e40</Data><Data Name='ProcessName'>C:\Windows\System32\winlogon.exe</Data><Data Name='IpAddress'>99.99.99.99</Data><Data Name='IpPort'>52813</Data></EventData></Event>";
@@ -369,6 +398,8 @@ popd
             ProcessXml(xml3);
             ProcessXml(xml4);
             ProcessXml(xml5);
+
+            TestRemoteDesktopAttemptWithPAddress("99.99.99.98", 10);
 
             // Fire this test event after a 15 second delay, to test ExpireTime duration.
             ThreadPool.QueueUserWorkItem(new WaitCallback(DelayTest), xml5);
