@@ -67,7 +67,8 @@ popd
         {
             try
             {
-                config = new IPBanConfig();
+                IPBanConfig newConfig = new IPBanConfig();
+                config = newConfig;
             }
             catch (Exception ex)
             {
@@ -78,6 +79,12 @@ popd
                     throw new ApplicationException("Configuration failed to load, make sure to unblock all the files. Right click each file, select properties and then unblock.", ex);
                 }
             }
+        }
+
+        private void LogInitialConfig()
+        {
+            Log.Write(LogLevel.Info, "Whitelist: {0}, Whitelist Regex: {1}", config.WhiteList, config.WhiteListRegex);
+            Log.Write(LogLevel.Info, "Blacklist: {0}, Blacklist Regex: {1}", config.BlackList, config.BlackListRegex);
         }
 
         private void DeleteRule()
@@ -416,6 +423,7 @@ popd
             ReadAppSettings();
             ProcessBanFileOnStart();
             SetupWatcher();
+            LogInitialConfig();
 
 #if DEBUG
 

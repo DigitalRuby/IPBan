@@ -186,5 +186,25 @@ namespace IPBan
         /// True to clear and unband ip addresses in the ban file when the service restarts, false otherwise
         /// </summary>
         public bool BanFileClearOnRestart { get { return banFileClearOnRestart; } }
+
+        /// <summary>
+        /// Black list of ips as a comma separated string
+        /// </summary>
+        public string BlackList { get { return string.Join(",", blackList); } }
+
+        /// <summary>
+        /// Black list regex
+        /// </summary>
+        public string BlackListRegex { get { return (blackListRegex == null ? string.Empty : blackListRegex.ToString()); } }
+
+        /// <summary>
+        /// White list of ips as a comma separated string
+        /// </summary>
+        public string WhiteList { get { return string.Join(",", whiteList); } }
+
+        /// <summary>
+        /// White list regex
+        /// </summary>
+        public string WhiteListRegex { get { return (whiteListRegex == null ? string.Empty : whiteListRegex.ToString()); } }
     }
 }
