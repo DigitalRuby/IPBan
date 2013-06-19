@@ -243,10 +243,10 @@ popd
             }
             else
             {
-                IPBlockCount ipBlockCount;
                 lock (ipBlocker)
                 {
                     // Get the IPBlockCount, if one exists.
+                    IPBlockCount ipBlockCount;
                     ipBlocker.TryGetValue(ipAddress, out ipBlockCount);
                     if (ipBlockCount == null)
                     {
@@ -258,26 +258,36 @@ popd
                     // Increment the count.
                     ipBlockCount.IncrementCount();
 
-                    // check for the target user name for additional blacklisting checks
+                    string userName = null;
                     XmlNode userNameNode = doc.SelectSingleNode("//Data[@Name='TargetUserName']");
-                    bool blackListed = config.IsBlackListed(ipAddress) || (userNameNode != null && config.IsBlackListed(userNameNode.InnerText));
+                    if (userNameNode != null)
+                    {
+                        userName = userNameNode.InnerText.Trim();
+                    }
 
+                    Log.Write(LogLevel.Info, "Incrementing count for ip {0} to {1}, user name: {2}", ipAddress, ipBlockCount.Count, userName);
+
+                    // check for the target user name for additional blacklisting checks                    
+                    bool blackListed = config.IsBlackListed(ipAddress) || (userName != null && config.IsBlackListed(userName));
+
+                    // if the ip is black listed or they have reached the maximum failed login attempts before ban, ban them
                     if (blackListed || ipBlockCount.Count == config.FailedLoginAttemptsBeforeBan)
                     {
+                        // if they are not black listed OR this is the first increment of a black listed ip address, perform the ban
                         if (!blackListed || ipBlockCount.Count == 1)
                         {
-                            Log.Write(LogLevel.Error, "Banning ip address {0}", ipAddress);
+                            Log.Write(LogLevel.Error, "Banning ip address: {0}, user name: {1}, black listed: {2}, count: {3}", ipAddress, userName, blackListed, ipBlockCount.Count);
                             ipBlockerDate[ipAddress] = DateTime.UtcNow;
                             ExecuteBanScript();
+                        }
+                        else
+                        {
+                            Log.Write(LogLevel.Info, "Ignoring previously banned black listed ip {0}, user name: {1}, ip should already be banned", ipAddress, userName);
                         }
                     }
                     else if (ipBlockCount.Count > config.FailedLoginAttemptsBeforeBan)
                     {
-                        Log.Write(LogLevel.Info, "Got event with ip address {0}, count {1}, ip is already banned", ipAddress, ipBlockCount.Count);
-                    }
-                    else
-                    {
-                        Log.Write(LogLevel.Info, "Got event with ip address {0}, count: {1}", ipAddress, ipBlockCount.Count);
+                        Log.Write(LogLevel.Info, "Got event with ip address {0}, count {1}, ip should already banned", ipAddress, ipBlockCount.Count);
                     }
                 }
             }
@@ -439,6 +449,7 @@ popd
             KeyValuePair<string, DateTime>[] blockList;
             KeyValuePair<string, IPBlockCount>[] ipBlockCountList;
 
+            // brief lock, we make copies of everything and work on the copies so we don't hold a lock too long
             lock (ipBlocker)
             {
                 blockList = ipBlockerDate.ToArray();
@@ -450,17 +461,19 @@ popd
             // Check the block list for expired IPs.
             foreach (KeyValuePair<string, DateTime> keyValue in blockList)
             {
+                // never un-ban a blacklisted entry
                 if (config.IsBlackListed(keyValue.Key))
                 {
                     continue;
                 }
-                TimeSpan elapsed = now - keyValue.Value;
 
+                TimeSpan elapsed = now - keyValue.Value;
                 if (elapsed > config.BanTime)
                 {
                     Log.Write(LogLevel.Error, "Un-banning ip address {0}", keyValue.Key);
                     lock (ipBlocker)
                     {
+                        // take the ip out of the lists and mark the file as changed so that the ban script re-runs without this ip
                         ipBlockerDate.Remove(keyValue.Key);
                         ipBlocker.Remove(keyValue.Key);
                         fileChanged = true;
@@ -468,6 +481,7 @@ popd
                 }
             }
 
+            // if we are allowing ip addresses failed login attempts to expire and get reset back to 0
             if (config.ExpireTime.TotalSeconds > 0)
             {
                 // Check the list of failed login attempts, that are not yet blocked, for expired IPs.
@@ -501,11 +515,13 @@ popd
                 {
                     foreach (string ip in ipAddressesToForget)
                     {
+                        // no need to mark the file as changed because this ip was not banned, it only had some number of failed login attempts
                         ipBlocker.Remove(ip);
                     }
                 }
             }
 
+            // if the file changed, re-run the ban script with the updated list of ip addresses
             if (fileChanged)
             {
                 ExecuteBanScript();
