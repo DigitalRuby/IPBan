@@ -1,4 +1,7 @@
-﻿2012-06-23 (Jeff Johnson)
+﻿2013-06-21 (Jeff Johnson)
+- Allow specifying a set of valid user names. All others are black listed.
+
+2012-06-23 (Jeff Johnson)
 - Allow blacklisting ip addresses by ip address or DNS name
 - Allow whitelisting ip addresses by dns name
 - Allow not clearing the ban file and unbanning ip addresses when the service restarts
