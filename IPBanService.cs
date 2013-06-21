@@ -85,6 +85,11 @@ popd
         {
             Log.Write(LogLevel.Info, "Whitelist: {0}, Whitelist Regex: {1}", config.WhiteList, config.WhiteListRegex);
             Log.Write(LogLevel.Info, "Blacklist: {0}, Blacklist Regex: {1}", config.BlackList, config.BlackListRegex);
+
+            if (!string.IsNullOrWhiteSpace(config.AllowedUserNames))
+            {
+                Log.Write(LogLevel.Info, "Allowed Users: {0}", config.AllowedUserNames);
+            }
         }
 
         private void DeleteRule()

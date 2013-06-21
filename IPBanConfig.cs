@@ -29,7 +29,18 @@ namespace IPBan
         private Regex whiteListRegex;
         private readonly HashSet<string> blackList = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         private Regex blackListRegex;
+        private readonly HashSet<string> allowedUserNames = new HashSet<string>();
         private bool banFileClearOnRestart;
+
+        /// <summary>
+        /// Checks whether a user name should be banned after a failed login attempt. Cases where this would happen would be if the config has specified an allowed list of user names.
+        /// </summary>
+        /// <param name="userName">User name to check for banning</param>
+        /// <returns>True if the user name should be banned, false otherwise</returns>
+        private bool ShouldBanUserNameAfterFailedLoginAttempt(string userName)
+        {
+            return (allowedUserNames.Count != 0 && !allowedUserNames.Contains(userName));
+        }
 
         private void PopulateList(HashSet<string> set, ref Regex regex, string setValue, string regexValue)
         {
@@ -41,17 +52,15 @@ namespace IPBan
             {
                 IPAddress tmp;
 
-                foreach (string ip in setValue.Split(','))
+                foreach (string v in setValue.Split(','))
                 {
-                    if (ip.Length <= 2 || IPAddress.TryParse(ip, out tmp))
-                    {
-                        set.Add(ip.Trim());
-                    }
-                    else
+                    set.Add(v.Trim());
+
+                    if (v != "0.0.0.0" && v != "::0" && IPAddress.TryParse(v, out tmp))
                     {
                         try
                         {
-                            IPAddress[] addresses = Dns.GetHostEntry(ip).AddressList;
+                            IPAddress[] addresses = Dns.GetHostEntry(v).AddressList;
                             if (addresses != null)
                             {
                                 foreach (IPAddress adr in addresses)
@@ -62,7 +71,7 @@ namespace IPBan
                         }
                         catch (System.Net.Sockets.SocketException)
                         {
-                            set.Add(ip.Trim());
+                            // ignore, dns lookup fails
                         }
                     }
                 }
@@ -113,6 +122,8 @@ namespace IPBan
 
             PopulateList(whiteList, ref whiteListRegex, ConfigurationManager.AppSettings["Whitelist"], ConfigurationManager.AppSettings["WhitelistRegex"]);
             PopulateList(blackList, ref blackListRegex, ConfigurationManager.AppSettings["Blacklist"], ConfigurationManager.AppSettings["BlacklistRegex"]);
+            Regex ignored = null;
+            PopulateList(allowedUserNames, ref ignored, ConfigurationManager.AppSettings["AllowedUserNames"], null);
             expressions = (ExpressionsToBlock)System.Configuration.ConfigurationManager.GetSection("ExpressionsToBlock");
 
             foreach (ExpressionsToBlockGroup group in expressions.Groups)
@@ -144,7 +155,7 @@ namespace IPBan
         /// <returns>True if blacklisted, false otherwise</returns>
         public bool IsBlackListed(string text)
         {
-            return !string.IsNullOrWhiteSpace(text) && ((blackList.Contains(text) || (blackListRegex != null && blackListRegex.IsMatch(text))));
+            return !string.IsNullOrWhiteSpace(text) && ((blackList.Contains(text) || (blackListRegex != null && blackListRegex.IsMatch(text))) || ShouldBanUserNameAfterFailedLoginAttempt(text));
         }
 
         /// <summary>
@@ -206,5 +217,10 @@ namespace IPBan
         /// White list regex
         /// </summary>
         public string WhiteListRegex { get { return (whiteListRegex == null ? string.Empty : whiteListRegex.ToString()); } }
+
+        /// <summary>
+        /// Allowed user names as a comma separated string
+        /// </summary>
+        public string AllowedUserNames { get { return string.Join(",", allowedUserNames); } }
     }
 }
