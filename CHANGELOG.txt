@@ -1,4 +1,10 @@
-﻿2013-06-21 (Jeff Johnson)
+﻿2013-07-15 (Jeff Johnson)
+- Only refresh config file if date changed
+
+2013-07-11 (Jeff Johnson)
+- Added MySQL banning to config file.
+
+2013-06-21 (Jeff Johnson)
 - Allow specifying a set of valid user names. All others are black listed.
 
 2012-06-23 (Jeff Johnson)

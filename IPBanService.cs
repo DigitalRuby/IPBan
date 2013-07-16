@@ -43,6 +43,7 @@ popd
         private ManagementEventWatcher legacyWatcher;
         private Dictionary<string, IPBlockCount> ipBlocker = new Dictionary<string, IPBlockCount>();
         private Dictionary<string, DateTime> ipBlockerDate = new Dictionary<string, DateTime>();
+        private DateTime lastConfigFileDateTime = DateTime.MinValue;
 
         private void ExecuteBanScript()
         {
@@ -67,8 +68,14 @@ popd
         {
             try
             {
-                IPBanConfig newConfig = new IPBanConfig();
-                config = newConfig;
+                string path = AppDomain.CurrentDomain.SetupInformation.ConfigurationFile;
+                DateTime lastDateTime = File.GetLastWriteTimeUtc(path);
+                if (lastDateTime > lastConfigFileDateTime)
+                {
+                    lastConfigFileDateTime = lastDateTime;
+                    IPBanConfig newConfig = new IPBanConfig();
+                    config = newConfig;
+                }
             }
             catch (Exception ex)
             {
@@ -242,9 +249,17 @@ popd
             {
                 return;
             }
-            else if (config.IsWhiteListed(ipAddress))
+
+            string userName = null;
+            XmlNode userNameNode = doc.SelectSingleNode("//Data[@Name='TargetUserName']");
+            if (userNameNode != null)
             {
-                Log.Write(LogLevel.Info, "Ignoring whitelisted ip address {0}", ipAddress);
+                userName = userNameNode.InnerText.Trim();
+            }
+
+            if (config.IsWhiteListed(ipAddress))
+            {
+                Log.Write(LogLevel.Info, "Ignoring whitelisted ip address {0}, user name: {1}", ipAddress, userName);
             }
             else
             {
@@ -262,13 +277,6 @@ popd
 
                     // Increment the count.
                     ipBlockCount.IncrementCount();
-
-                    string userName = null;
-                    XmlNode userNameNode = doc.SelectSingleNode("//Data[@Name='TargetUserName']");
-                    if (userNameNode != null)
-                    {
-                        userName = userNameNode.InnerText.Trim();
-                    }
 
                     Log.Write(LogLevel.Info, "Incrementing count for ip {0} to {1}, user name: {2}", ipAddress, ipBlockCount.Count, userName);
 
@@ -294,6 +302,8 @@ popd
                     {
                         Log.Write(LogLevel.Info, "Got event with ip address {0}, count {1}, ip should already banned", ipAddress, ipBlockCount.Count);
                     }
+
+                    LogInitialConfig();
                 }
             }
         }

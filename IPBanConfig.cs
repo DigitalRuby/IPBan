@@ -47,6 +47,7 @@ namespace IPBan
             setValue = (setValue ?? string.Empty).Trim();
             regexValue = (regexValue ?? string.Empty).Replace("*", @"[0-9A-Fa-f]+?").Trim();
             set.Clear();
+            regex = null;
 
             if (!string.IsNullOrWhiteSpace(setValue))
             {
