@@ -1,4 +1,8 @@
-﻿2013-07-15 (Jeff Johnson)
+﻿2013-7-24 (Jeff Johnson)
+- Bail once the first ip address is found in case multiple keywords overlap
+- Add example of firewall packet dropping banning (commented out in the config by default)
+
+2013-07-15 (Jeff Johnson)
 - Only refresh config file if date changed
 
 2013-07-11 (Jeff Johnson)

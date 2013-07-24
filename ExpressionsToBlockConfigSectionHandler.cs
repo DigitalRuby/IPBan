@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Configuration;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -18,25 +19,53 @@ namespace IPBan
     {
         internal Regex RegexObject;
 
-        public string XPath;
-        public string Regex;
+        public string XPath { get; set; }
+        public string Regex { get; set; }
     }
 
     public class ExpressionsToBlockGroup
     {
-        public string Keywords;
+        /// <summary>
+        /// Keywords as a ULONG
+        /// </summary>
+        public ulong KeywordsULONG { get; set; }
+
+        /// <summary>
+        /// Keywords backing variable, private
+        /// </summary>
+        private string keywords;
+
+        /// <summary>
+        /// Keywords as HEX string
+        /// </summary>
+        public string Keywords
+        {
+            get { return keywords; }
+            set
+            {
+                keywords = value;
+
+                // parse, removing any 0x prefix
+                if (value.StartsWith("0x"))
+                {
+                    value = value.Substring(2);
+                }                    
+                KeywordsULONG = ulong.Parse(value, NumberStyles.AllowHexSpecifier);
+            }
+        }
+
         public string Path;
 
         [XmlArray("Expressions")]
         [XmlArrayItem("Expression")]
-        public ExpressionToBlock[] Expressions;
+        public ExpressionToBlock[] Expressions { get; set; }
     }
 
     public class ExpressionsToBlock
     {
         [XmlArray("Groups")]
         [XmlArrayItem("Group")]
-        public ExpressionsToBlockGroup[] Groups;
+        public ExpressionsToBlockGroup[] Groups { get; set; }
     }
 
     public class ExpressionsToBlockConfigSectionHandler : IConfigurationSectionHandler
@@ -52,7 +81,8 @@ namespace IPBan
                 XmlSerializer serializer = new XmlSerializer(typeof(ExpressionsToBlock));
                 MemoryStream ms = new MemoryStream(Encoding.UTF8.GetBytes(config));
                 ms.Position = 0;
-                return (ExpressionsToBlock)serializer.Deserialize(ms);
+                ExpressionsToBlock expressions = serializer.Deserialize(ms) as ExpressionsToBlock;
+                return expressions;
             }
 
             return null;
