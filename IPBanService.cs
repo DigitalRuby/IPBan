@@ -194,7 +194,7 @@ popd
             if (keywordsNode != null)
             {
                 // we must match on keywords
-                foreach (ExpressionsToBlockGroup group in config.Expressions.Groups.Where(g => (g.KeywordsULONG & keywordsULONG) != 0))
+                foreach (ExpressionsToBlockGroup group in config.GetGroupsMatchingKeywords(keywordsULONG))
                 {
                     foreach (ExpressionToBlock expression in group.Expressions)
                     {

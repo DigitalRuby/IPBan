@@ -160,6 +160,16 @@ namespace IPBan
         }
 
         /// <summary>
+        /// Return all the groups that match the specified keywords
+        /// </summary>
+        /// <param name="keywords">Keywords</param>
+        /// <returns>Groups that match</returns>
+        public IEnumerable<ExpressionsToBlockGroup> GetGroupsMatchingKeywords(ulong keywords)
+        {
+            return Expressions.Groups.Where(g => (g.KeywordsULONG == keywords));
+        }
+
+        /// <summary>
         /// Number of failed login attempts before a ban is initiated
         /// </summary>
         public int FailedLoginAttemptsBeforeBan { get { return failedLoginAttemptsBeforeBan; } }
