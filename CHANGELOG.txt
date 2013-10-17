@@ -1,4 +1,7 @@
-﻿2013-7-24 (Jeff Johnson)
+﻿2013-10-16 (Jeff Johnson)
+- Switch back to equality compare for keywords
+
+2013-7-24 (Jeff Johnson)
 - Bail once the first ip address is found in case multiple keywords overlap
 - Add example of firewall packet dropping banning (commented out in the config by default)
 
