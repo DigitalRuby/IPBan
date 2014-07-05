@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Configuration;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -95,10 +96,10 @@ namespace IPBan
             ConfigurationManager.RefreshSection("ExpressionsToBlock");
 
             string value = ConfigurationManager.AppSettings["FailedLoginAttemptsBeforeBan"];
-            failedLoginAttemptsBeforeBan = int.Parse(value);
+            failedLoginAttemptsBeforeBan = int.Parse(value, CultureInfo.InvariantCulture);
 
             value = ConfigurationManager.AppSettings["BanTime"];
-            banTime = TimeSpan.Parse(value);
+            banTime = TimeSpan.Parse(value, CultureInfo.InvariantCulture);
 
             value = ConfigurationManager.AppSettings["BanFile"];
             banFile = value;
@@ -113,10 +114,10 @@ namespace IPBan
             }
 
             value = ConfigurationManager.AppSettings["ExpireTime"];
-            expireTime = TimeSpan.Parse(value);
+            expireTime = TimeSpan.Parse(value, CultureInfo.InvariantCulture);
             
             value = ConfigurationManager.AppSettings["CycleTime"];
-            cycleTime = TimeSpan.Parse(value);
+            cycleTime = TimeSpan.Parse(value, CultureInfo.InvariantCulture);
 
             value = ConfigurationManager.AppSettings["RuleName"];
             ruleName = value;
