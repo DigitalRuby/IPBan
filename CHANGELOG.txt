@@ -1,4 +1,7 @@
-﻿2013-10-16 (Jeff Johnson)
+﻿2014-07-11 (Jeff Johnson)
+- Don't do invalid char check in xml reader
+
+2013-10-16 (Jeff Johnson)
 - Switch back to equality compare for keywords
 
 2013-7-24 (Jeff Johnson)
