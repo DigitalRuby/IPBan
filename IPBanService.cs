@@ -297,10 +297,10 @@ popd
                     bool blackListed = config.IsBlackListed(ipAddress) || (userName != null && config.IsBlackListed(userName));
 
                     // if the ip is black listed or they have reached the maximum failed login attempts before ban, ban them
-                    if (blackListed || ipBlockCount.Count == config.FailedLoginAttemptsBeforeBan)
+                    if (blackListed || ipBlockCount.Count >= config.FailedLoginAttemptsBeforeBan)
                     {
                         // if they are not black listed OR this is the first increment of a black listed ip address, perform the ban
-                        if (!blackListed || ipBlockCount.Count == 1)
+                        if (!blackListed || ipBlockCount.Count >= 1)
                         {
                             Log.Write(LogLevel.Error, "Banning ip address: {0}, user name: {1}, black listed: {2}, count: {3}", ipAddress, userName, blackListed, ipBlockCount.Count);
                             ipBlockerDate[ipAddress] = DateTime.UtcNow;
@@ -313,10 +313,8 @@ popd
                     }
                     else if (ipBlockCount.Count > config.FailedLoginAttemptsBeforeBan)
                     {
-                        Log.Write(LogLevel.Info, "Got event with ip address {0}, count {1}, ip should already banned", ipAddress, ipBlockCount.Count);
+                        Log.Write(LogLevel.Warning, "Got event with ip address {0}, count {1}, ip should already be banned", ipAddress, ipBlockCount.Count);
                     }
-
-                    LogInitialConfig();
                 }
             }
         }
