@@ -302,9 +302,12 @@ popd
                         // if they are not black listed OR this is the first increment of a black listed ip address, perform the ban
                         if (!blackListed || ipBlockCount.Count >= 1)
                         {
-                            Log.Write(LogLevel.Error, "Banning ip address: {0}, user name: {1}, black listed: {2}, count: {3}", ipAddress, userName, blackListed, ipBlockCount.Count);
-                            ipBlockerDate[ipAddress] = DateTime.UtcNow;
-                            ExecuteBanScript();
+                            if (!ipBlockerDate.ContainsKey(ipAddress))
+                            {
+                                Log.Write(LogLevel.Error, "Banning ip address: {0}, user name: {1}, black listed: {2}, count: {3}", ipAddress, userName, blackListed, ipBlockCount.Count);
+                                ipBlockerDate[ipAddress] = DateTime.UtcNow;
+                                ExecuteBanScript();
+                            }
                         }
                         else
                         {
