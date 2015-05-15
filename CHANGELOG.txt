@@ -1,4 +1,7 @@
-﻿2014-08-25 (Jeff Johnson)
+﻿2015-05-15 (Jämes Ménétrey aka ZenLulz)
+- Refactor the service loop in order to only wake up the process when it has to perform house-keeping chores
+
+2014-08-25 (Jeff Johnson)
 - More invariant parsing for hex string parsing
 
 2014-07-11 (Jeff Johnson)

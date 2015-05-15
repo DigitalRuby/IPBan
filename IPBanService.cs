@@ -44,6 +44,7 @@ popd
         private Dictionary<string, IPBlockCount> ipBlocker = new Dictionary<string, IPBlockCount>();
         private Dictionary<string, DateTime> ipBlockerDate = new Dictionary<string, DateTime>();
         private DateTime lastConfigFileDateTime = DateTime.MinValue;
+        private readonly EventWaitHandle houseKeepingWaiter = new EventWaitHandle(false, EventResetMode.ManualReset);
 
         private void ExecuteBanScript()
         {
@@ -572,20 +573,13 @@ popd
         {
             Initialize();
 
-            DateTime lastCycle = DateTime.UtcNow;
-            TimeSpan sleepInterval = TimeSpan.FromSeconds(1.0d);
-
-            while (run)
+            do
             {
-                Thread.Sleep(sleepInterval);
-                DateTime now = DateTime.UtcNow;
-                if ((now - lastCycle) >= config.CycleTime)
-                {
-                    lastCycle = now;
-                    CheckForExpiredIP();
-                    ReadAppSettings();
-                }
-            }
+                CheckForExpiredIP();
+                ReadAppSettings();
+
+                houseKeepingWaiter.WaitOne(config.CycleTime);
+            } while (run);
         }
 
         protected override void OnStart(string[] args)
@@ -606,6 +600,8 @@ popd
             query = null;
             watcher = null;
             legacyWatcher = null;
+
+            houseKeepingWaiter.Set();
 
             Log.Write(LogLevel.Info, "Stopped IPBan service");
         }
