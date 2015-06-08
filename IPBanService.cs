@@ -236,6 +236,11 @@ popd
                                             break;
                                         }
                                     }
+                                    else
+                                    {
+                                        foundMatch = true;
+                                        break;
+                                    }
                                 }
                             }
 
