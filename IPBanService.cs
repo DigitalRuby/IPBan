@@ -44,6 +44,7 @@ popd
         private Dictionary<string, IPBlockCount> ipBlocker = new Dictionary<string, IPBlockCount>();
         private Dictionary<string, DateTime> ipBlockerDate = new Dictionary<string, DateTime>();
         private DateTime lastConfigFileDateTime = DateTime.MinValue;
+        private readonly ManualResetEvent cycleEvent = new ManualResetEvent(false);
 
         private void ExecuteBanScript()
         {
@@ -581,20 +582,11 @@ popd
         private void ServiceThread()
         {
             Initialize();
-
-            DateTime lastCycle = DateTime.UtcNow;
-            TimeSpan sleepInterval = TimeSpan.FromSeconds(1.0d);
-
             while (run)
             {
-                Thread.Sleep(sleepInterval);
-                DateTime now = DateTime.UtcNow;
-                if ((now - lastCycle) >= config.CycleTime)
-                {
-                    lastCycle = now;
-                    CheckForExpiredIP();
-                    ReadAppSettings();
-                }
+                CheckForExpiredIP();
+                ReadAppSettings();
+                cycleEvent.WaitOne(config.CycleTime);
             }
         }
 
@@ -651,6 +643,7 @@ popd
                 }
             }
             svc.OnStop();
+            svc.cycleEvent.Set();
         }
 
         public static void Main(string[] args)
