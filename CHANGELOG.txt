@@ -1,4 +1,7 @@
-﻿2015-06-08 (Jeff Johnson)
+﻿2015-12-10 (Jeff Johnson)
+- Added multiple rule files for blocking 500+ ip addresses
+
+2015-06-08 (Jeff Johnson)
 - Added MS Exchange blocking to default config file
 
 2014-08-25 (Jeff Johnson)
