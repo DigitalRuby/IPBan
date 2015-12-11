@@ -118,7 +118,7 @@ namespace IPBan
             string[] keys = ipBlockerDate.Keys.ToArray();
             string subRuleName;
 
-            using (StreamWriter writer = File.CreateText("banscript.txt"))
+            using (StreamWriter writer = File.CreateText(scriptFileName))
             {
                 writer.WriteLine(fileScriptHeader);
                 int i = 0;
@@ -142,7 +142,7 @@ namespace IPBan
             string[] keys = ipBlockerDate.Keys.ToArray();
             string subRuleName;
 
-            using (StreamWriter writer = File.CreateText("banscript.txt"))
+            using (StreamWriter writer = File.CreateText(scriptFileName))
             {
                 writer.WriteLine(fileScriptHeader);
                 int i = 0;
