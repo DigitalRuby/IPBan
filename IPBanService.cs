@@ -26,18 +26,19 @@ namespace IPBan
 {
     public class IPBanService : ServiceBase
     {
+        private const int blockSize = 500;
+        private const string scriptFileName = "banscript.txt";
         private const string fileScriptHeader = "pushd advfirewall firewall";
-        private const string fileScriptLine = @"add rule name=""{0}"" remoteip=""{1}"" action=block protocol=any dir=in";
+        private const string fileScriptAddLine = @"add rule name=""{0}"" remoteip=""{1}"" action=block protocol=any dir=in";
+        private const string fileScriptDeleteLine = "delete rule name=\"{0}\"";
         private const string fileScriptEnd = "popd";
 
         private IPBanConfig config;
         private Thread serviceThread;
         private bool run;
-        private bool useLegacyWatcher;
         private EventLogQuery query;
         private EventLogWatcher watcher;
         private EventLogReader reader;
-        private ManagementEventWatcher legacyWatcher;
         private Dictionary<string, IPBlockCount> ipBlocker = new Dictionary<string, IPBlockCount>();
         private Dictionary<string, DateTime> ipBlockerDate = new Dictionary<string, DateTime>();
         private DateTime lastConfigFileDateTime = DateTime.MinValue;
@@ -47,9 +48,8 @@ namespace IPBan
         {
             lock (ipBlocker)
             {
-                string ipAddresesListForFile = string.Join(Environment.NewLine, ipBlockerDate.Keys);
                 CreateRules();
-                File.WriteAllText(config.BanFile, ipAddresesListForFile);
+                File.WriteAllLines(config.BanFile, ipBlocker.Keys.ToArray());
             }
         }
 
@@ -88,39 +88,19 @@ namespace IPBan
             }
         }
 
-        private void CreateRules()
+        private string GetRuleName()
         {
-            const int blockSize = 500;
-            const string scriptFileName = "banscript.txt";
-
             string ruleName = (config.RuleName ?? string.Empty).Trim();
             if (ruleName.Length == 0)
             {
                 throw new ApplicationException("Failed to find RuleName in config file, cannot delete firewall rule");
             }
 
-            string[] keys = ipBlockerDate.Keys.ToArray();
-            string subRuleName;
+            return ruleName;
+        }
 
-            using (StreamWriter writer = File.CreateText("banscript.txt"))
-            {
-                writer.WriteLine(fileScriptHeader);
-                int i = 0;
-                for (; i < ipBlockerDate.Count; i += blockSize)
-                {
-                    subRuleName = ruleName + i.ToString(CultureInfo.InvariantCulture);
-                    writer.WriteLine("delete rule name = \"{0}\"", subRuleName);
-                    string ipAddresses = string.Join(",", keys.Skip(i).Take(blockSize));
-                    string line = string.Format(fileScriptLine, subRuleName, ipAddresses);
-                    writer.WriteLine(line);
-                }
-
-                // write out one last delete in case we dropped in ip address block count below a block size
-                subRuleName = ruleName + i.ToString(CultureInfo.InvariantCulture);
-                writer.WriteLine("delete rule name = \"{0}\"", subRuleName);
-                writer.WriteLine(fileScriptEnd);
-            }
-
+        private void RunScript()
+        {
             ProcessStartInfo info = new ProcessStartInfo
             {
                 FileName = "netsh",
@@ -132,6 +112,58 @@ namespace IPBan
             Process.Start(info).WaitForExit();
         }
 
+        private void DeleteRules(int ipAddressCount)
+        {
+            string ruleName = GetRuleName();
+            string[] keys = ipBlockerDate.Keys.ToArray();
+            string subRuleName;
+
+            using (StreamWriter writer = File.CreateText("banscript.txt"))
+            {
+                writer.WriteLine(fileScriptHeader);
+                int i = 0;
+                for (; i < ipAddressCount; i += blockSize)
+                {
+                    subRuleName = ruleName + i.ToString(CultureInfo.InvariantCulture);
+                    writer.WriteLine(fileScriptDeleteLine, subRuleName);
+                }
+                // write out one last delete in case we dropped in ip address block count below a block size
+                subRuleName = ruleName + i.ToString(CultureInfo.InvariantCulture);
+                writer.WriteLine(fileScriptDeleteLine, subRuleName);
+                writer.WriteLine(fileScriptEnd);
+            }
+
+            RunScript();
+        }
+
+        private void CreateRules()
+        {
+            string ruleName = GetRuleName();
+            string[] keys = ipBlockerDate.Keys.ToArray();
+            string subRuleName;
+
+            using (StreamWriter writer = File.CreateText("banscript.txt"))
+            {
+                writer.WriteLine(fileScriptHeader);
+                int i = 0;
+                for (; i < ipBlockerDate.Count; i += blockSize)
+                {
+                    subRuleName = ruleName + i.ToString(CultureInfo.InvariantCulture);
+                    writer.WriteLine(fileScriptDeleteLine, subRuleName);
+                    string ipAddresses = string.Join(",", keys.Skip(i).Take(blockSize));
+                    string line = string.Format(fileScriptAddLine, subRuleName, ipAddresses);
+                    writer.WriteLine(line);
+                }
+
+                // write out one last delete in case we dropped in ip address block count below a block size
+                subRuleName = ruleName + i.ToString(CultureInfo.InvariantCulture);
+                writer.WriteLine(fileScriptDeleteLine, subRuleName);
+                writer.WriteLine(fileScriptEnd);
+            }
+
+            RunScript();
+        }
+
         private void ProcessBanFileOnStart()
         {
             lock (ipBlocker)
@@ -141,13 +173,15 @@ namespace IPBan
 
                 if (File.Exists(config.BanFile))
                 {
+                    string[] lines = File.ReadAllLines(config.BanFile);
+
                     if (config.BanFileClearOnRestart)
                     {
+                        DeleteRules(lines.Length);
                         File.Delete(config.BanFile);
                     }
                     else
                     {
-                        string[] lines = File.ReadAllLines(config.BanFile);
                         IPAddress tmp;
 
                         foreach (string ip in lines)
@@ -350,48 +384,6 @@ namespace IPBan
             }
         }
 
-        private void SetupLegacyWatcher()
-        {
-            string queryString = GetLegacyQueryString();
-            legacyWatcher = new ManagementEventWatcher(new EventQuery(queryString));
-            legacyWatcher.Start();
-            legacyWatcher.EventArrived += EventRecordWrittenLegacy;
-        }
-
-        private void EventRecordWrittenLegacy(object sender, EventArrivedEventArgs e)
-        {
-            try
-            {
-                string xml = e.NewEvent.GetText(TextFormat.WmiDtd20);
-
-                ProcessXml(xml);
-            }
-            catch (Exception ex)
-            {
-                Log.Write(LogLevel.Error, ex.ToString());
-            }
-        }
-
-        private string GetLegacyQueryString()
-        {
-            /*
-            string subQuery = string.Empty;
-
-            foreach (ExpressionsToBlockGroup group in config.Expressions.Groups)
-            {
-                ulong keywordsDecimal = ulong.Parse(group.Keywords.Substring(2), NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture);
-                if (subQuery.Length != 0)
-                {
-                    subQuery += " OR ";
-                }
-                subQuery += "(band(TargetInstance.Keywords," + keywordsDecimal.ToString() + "))";
-            }
-            */
-
-            string queryString = "Select * from __InstanceCreationEvent Where TargetInstance ISA 'Win32_NTLogEvent' AND TargetInstance.LogFile = 'Security' AND (TargetInstance.EventCode = 529 OR TargetInstance.EventCode = 675)";
-            return queryString;
-        }
-
         private string GetQueryString()
         {
             int id = 0;
@@ -408,12 +400,6 @@ namespace IPBan
 
         private void SetupWatcher()
         {
-            if (useLegacyWatcher)
-            {
-                SetupLegacyWatcher();
-                return;
-            }
-
             string queryString = GetQueryString();
             query = new EventLogQuery(null, PathType.LogName, queryString);
             reader = new EventLogReader(query);
@@ -606,7 +592,6 @@ namespace IPBan
             run = false;
             query = null;
             watcher = null;
-            legacyWatcher = null;
 
             Log.Write(LogLevel.Info, "Stopped IPBan service");
         }
@@ -615,9 +600,6 @@ namespace IPBan
         {
             OperatingSystem os = Environment.OSVersion;
             Version vs = os.Version;
-
-            // if less than Vista (i.e. XP or Server 2003) use legacy watcher
-            useLegacyWatcher = false; // (vs.Major < 6);
         }
 
         public static void RunService(string[] args)
