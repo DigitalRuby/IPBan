@@ -374,9 +374,12 @@ namespace IPBan
         {
             try
             {
-                EventRecord rec = e.EventRecord;
-                string xml = rec.ToXml();
-                ProcessXml(xml);
+                if (e != null && e.EventRecord != null)
+                {
+                    EventRecord rec = e.EventRecord;
+                    string xml = rec.ToXml();
+                    ProcessXml(xml);
+                }
             }
             catch (Exception ex)
             {
