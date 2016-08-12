@@ -1,4 +1,7 @@
-2016-08-11 (Jeff Johnson)
+2016-08-12 (Bill McIlhargey)
+- modified phpMyAdmin regex to be more descriptive
+
+2016-08-11 (Bill McIlhargey)
 - Added phpMyAdmin support
 - Fixed some typos
 - Uncommented the Windows Firewall Service rule checking by default
