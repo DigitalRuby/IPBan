@@ -1,4 +1,12 @@
-﻿2015-12-10 (Jeff Johnson)
+2016-08-11 (Jeff Johnson)
+- Added phpMyAdmin support
+- Fixed some typos
+- Uncommented the Windows Firewall Service rule checking by default
+
+2016-05-08 (Jeff Johnson)
+- Added null record check
+
+2015-12-10 (Jeff Johnson)
 - Added multiple rule files for blocking 500+ ip addresses
 
 2015-06-08 (Jeff Johnson)
