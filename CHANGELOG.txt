@@ -1,4 +1,15 @@
-﻿2015-12-10 (Jeff Johnson)
+2016-08-12 (Bill McIlhargey)
+- modified phpMyAdmin regex to be more descriptive
+
+2016-08-11 (Bill McIlhargey)
+- Added phpMyAdmin support
+- Fixed some typos
+- Uncommented the Windows Firewall Service rule checking by default
+
+2016-05-08 (Jeff Johnson)
+- Added null record check
+
+2015-12-10 (Jeff Johnson)
 - Added multiple rule files for blocking 500+ ip addresses
 
 2015-06-08 (Jeff Johnson)
