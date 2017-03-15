@@ -87,8 +87,10 @@
     <None Include="app.config">
       <SubType>Designer</SubType>
     </None>
+    <None Include="Scripts\install.cmd" />
     <None Include="packages.config" />
     <None Include="README" />
+    <None Include="Scripts\uninstall.cmd" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="CHANGELOG.txt" />
@@ -96,6 +98,10 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
+  <PropertyGroup>
+    <PostBuildEvent>copy /y "$(ProjectDir)Scripts\install.cmd" "$(TargetDir)"
+copy /y "$(ProjectDir)Scripts\uninstall.cmd" "$(TargetDir)"</PostBuildEvent>
+  </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">
