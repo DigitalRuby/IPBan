@@ -1,4 +1,4 @@
-﻿#region Imports
+#region Imports
 
 using System;
 using System.Collections.Generic;
