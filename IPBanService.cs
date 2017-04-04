@@ -266,6 +266,14 @@ namespace IPBan
                                             foundMatch = true;
                                             break;
                                         }
+                                        // Check Host by name
+                                        IPHostEntry entry = Dns.GetHostEntry(tempIPAddress);
+                                        if (entry != null && entry.AddressList != null && entry.AddressList.Length > 0)
+                                        {
+                                            ipAddress = entry.AddressList.FirstOrDefault().ToString();
+                                            foundMatch = true;
+                                            break;
+                                        }
                                     }
                                     else
                                     {
