@@ -267,15 +267,19 @@ namespace IPBan
                                             break;
                                         }
                                         // Check Host by name
-                                        Log.Write(LogLevel.Info, "Parse as Ip fail, checking dns {0}", tempIPAddress);
-                                        IPHostEntry entry = Dns.GetHostEntry(tempIPAddress);
-                                        if (entry != null && entry.AddressList != null && entry.AddressList.Length > 0)
+                                        Log.Write(LogLevel.Info, "Parse as Ip fail, checking dns '{0}'", tempIPAddress);
+                                        try
                                         {
-                                            ipAddress = entry.AddressList.FirstOrDefault().ToString();
-                                            foundMatch = true;
-                                            Log.Write(LogLevel.Info, "Dns result {0} = {1}", tempIPAddress, ipAddress);
-                                            break;
+                                            IPHostEntry entry = Dns.GetHostEntry(tempIPAddress);
+                                            if (entry != null && entry.AddressList != null && entry.AddressList.Length > 0)
+                                            {
+                                                ipAddress = entry.AddressList.FirstOrDefault().ToString();
+                                                foundMatch = true;
+                                                Log.Write(LogLevel.Info, "Dns result '{0}' = '{1}'", tempIPAddress, ipAddress);
+                                                break;
+                                            }
                                         }
+                                        catch { }
                                     }
                                     else
                                     {
