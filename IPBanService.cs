@@ -267,7 +267,7 @@ namespace IPBan
                                             break;
                                         }
                                         // Check Host by name
-                                        Log.Write(LogLevel.Info, "Parse as Ip fail, checking dns '{0}'", tempIPAddress);
+                                        Log.Write(LogLevel.Info, "Parsing as IP failed, checking dns '{0}'", tempIPAddress);
                                         try
                                         {
                                             IPHostEntry entry = Dns.GetHostEntry(tempIPAddress);
@@ -279,7 +279,10 @@ namespace IPBan
                                                 break;
                                             }
                                         }
-                                        catch { }
+                                        catch 
+                                        { 
+                                            Log.Write(LogLevel.Info, "Parsing as dns failed '{0}'", tempIPAddress);
+                                        }
                                     }
                                     else
                                     {
