@@ -1,4 +1,4 @@
-﻿#region Imports
+#region Imports
 
 using System;
 using System.Collections.Generic;
@@ -265,6 +265,23 @@ namespace IPBan
                                             ipAddress = tempIPAddress;
                                             foundMatch = true;
                                             break;
+                                        }
+                                        // Check Host by name
+                                        Log.Write(LogLevel.Info, "Parsing as IP failed, checking dns '{0}'", tempIPAddress);
+                                        try
+                                        {
+                                            IPHostEntry entry = Dns.GetHostEntry(tempIPAddress);
+                                            if (entry != null && entry.AddressList != null && entry.AddressList.Length > 0)
+                                            {
+                                                ipAddress = entry.AddressList.FirstOrDefault().ToString();
+                                                foundMatch = true;
+                                                Log.Write(LogLevel.Info, "Dns result '{0}' = '{1}'", tempIPAddress, ipAddress);
+                                                break;
+                                            }
+                                        }
+                                        catch 
+                                        { 
+                                            Log.Write(LogLevel.Info, "Parsing as dns failed '{0}'", tempIPAddress);
                                         }
                                     }
                                     else
