@@ -1,4 +1,4 @@
-#region Imports
+﻿#region Imports
 
 using System;
 using System.Collections.Generic;
@@ -24,9 +24,8 @@ using System.Text.RegularExpressions;
 
 namespace IPBan
 {
-    public class IPBanService : ServiceBase
+    public class IPBanService
     {
-        private const int blockSize = 500;
         private const string scriptFileName = "banscript.txt";
         private const string fileScriptHeader = "pushd advfirewall firewall";
         private const string fileScriptAddLine = @"add rule name=""{0}"" remoteip=""{1}"" action=block protocol=any dir=in";
@@ -48,12 +47,12 @@ namespace IPBan
         {
             lock (ipBlocker)
             {
-                CreateRules();
+                IPBanWindowsFirewall.CreateRules(ipBlockerDate.Keys.ToArray());
                 File.WriteAllLines(config.BanFile, ipBlocker.Keys.ToArray());
             }
         }
 
-        private void ReadAppSettings()
+        internal void ReadAppSettings()
         {
             try
             {
@@ -88,82 +87,6 @@ namespace IPBan
             }
         }
 
-        private string GetRuleName()
-        {
-            string ruleName = (config.RuleName ?? string.Empty).Trim();
-            if (ruleName.Length == 0)
-            {
-                throw new ApplicationException("Failed to find RuleName in config file, cannot delete firewall rule");
-            }
-
-            return ruleName;
-        }
-
-        private void RunScript()
-        {
-            ProcessStartInfo info = new ProcessStartInfo
-            {
-                FileName = "netsh",
-                Arguments = "exec " + scriptFileName,
-                CreateNoWindow = true,
-                WindowStyle = ProcessWindowStyle.Hidden,
-                UseShellExecute = true
-            };
-            Process.Start(info).WaitForExit();
-        }
-
-        private void DeleteRules(int ipAddressCount)
-        {
-            string ruleName = GetRuleName();
-            string[] keys = ipBlockerDate.Keys.ToArray();
-            string subRuleName;
-
-            using (StreamWriter writer = File.CreateText(scriptFileName))
-            {
-                writer.WriteLine(fileScriptHeader);
-                int i = 0;
-                for (; i < ipAddressCount; i += blockSize)
-                {
-                    subRuleName = ruleName + i.ToString(CultureInfo.InvariantCulture);
-                    writer.WriteLine(fileScriptDeleteLine, subRuleName);
-                }
-                // write out one last delete in case we dropped in ip address block count below a block size
-                subRuleName = ruleName + i.ToString(CultureInfo.InvariantCulture);
-                writer.WriteLine(fileScriptDeleteLine, subRuleName);
-                writer.WriteLine(fileScriptEnd);
-            }
-
-            RunScript();
-        }
-
-        private void CreateRules()
-        {
-            string ruleName = GetRuleName();
-            string[] keys = ipBlockerDate.Keys.ToArray();
-            string subRuleName;
-
-            using (StreamWriter writer = File.CreateText(scriptFileName))
-            {
-                writer.WriteLine(fileScriptHeader);
-                int i = 0;
-                for (; i < ipBlockerDate.Count; i += blockSize)
-                {
-                    subRuleName = ruleName + i.ToString(CultureInfo.InvariantCulture);
-                    writer.WriteLine(fileScriptDeleteLine, subRuleName);
-                    string ipAddresses = string.Join(",", keys.Skip(i).Take(blockSize));
-                    string line = string.Format(fileScriptAddLine, subRuleName, ipAddresses);
-                    writer.WriteLine(line);
-                }
-
-                // write out one last delete in case we dropped in ip address block count below a block size
-                subRuleName = ruleName + i.ToString(CultureInfo.InvariantCulture);
-                writer.WriteLine(fileScriptDeleteLine, subRuleName);
-                writer.WriteLine(fileScriptEnd);
-            }
-
-            RunScript();
-        }
-
         private void ProcessBanFileOnStart()
         {
             lock (ipBlocker)
@@ -174,16 +97,13 @@ namespace IPBan
                 if (File.Exists(config.BanFile))
                 {
                     string[] lines = File.ReadAllLines(config.BanFile);
-
                     if (config.BanFileClearOnRestart)
                     {
-                        DeleteRules(lines.Length);
                         File.Delete(config.BanFile);
                     }
                     else
                     {
                         IPAddress tmp;
-
                         foreach (string ip in lines)
                         {
                             string ipTrimmed = ip.Trim();
@@ -198,6 +118,7 @@ namespace IPBan
                     }
                 }
             }
+            IPBanWindowsFirewall.DeleteRules();
             ExecuteBanScript();
         }
 
@@ -266,6 +187,7 @@ namespace IPBan
                                             foundMatch = true;
                                             break;
                                         }
+
                                         // Check Host by name
                                         Log.Write(LogLevel.Info, "Parsing as IP failed, checking dns '{0}'", tempIPAddress);
                                         try
@@ -279,8 +201,8 @@ namespace IPBan
                                                 break;
                                             }
                                         }
-                                        catch 
-                                        { 
+                                        catch
+                                        {
                                             Log.Write(LogLevel.Info, "Parsing as dns failed '{0}'", tempIPAddress);
                                         }
                                     }
@@ -467,7 +389,19 @@ namespace IPBan
                 ProcessXml(xml);
             }
 
-            TestRemoteDesktopAttemptWithPAddress("99.99.99.98", 10);
+            for (int i = 0; i < 255 && run; i++)
+            {
+                TestRemoteDesktopAttemptWithPAddress("99.99.1." + i.ToString(), 10);
+                TestRemoteDesktopAttemptWithPAddress("99.99.2." + i.ToString(), 10);
+                TestRemoteDesktopAttemptWithPAddress("99.99.3." + i.ToString(), 10);
+                TestRemoteDesktopAttemptWithPAddress("99.99.4." + i.ToString(), 10);
+                TestRemoteDesktopAttemptWithPAddress("99.99.5." + i.ToString(), 10);
+                TestRemoteDesktopAttemptWithPAddress("99.99.6." + i.ToString(), 10);
+                TestRemoteDesktopAttemptWithPAddress("99.99.7." + i.ToString(), 10);
+                TestRemoteDesktopAttemptWithPAddress("99.99.8." + i.ToString(), 10);
+                TestRemoteDesktopAttemptWithPAddress("99.99.9." + i.ToString(), 10);
+                TestRemoteDesktopAttemptWithPAddress("99.99.10." + i.ToString(), 10);
+            }
 
             foreach (string xml in xmlTestStringsDelay)
             {
@@ -485,17 +419,10 @@ namespace IPBan
         private void Initialize()
         {
             ReadAppSettings();
+            IPBanWindowsFirewall.Initialize(config.RuleName);
             ProcessBanFileOnStart();
-
-#if DEBUG
-
-            RunTests();
-
-#endif
-
             SetupWatcher();
             LogInitialConfig();
-
         }
 
         private void CheckForExpiredIP()
@@ -522,9 +449,8 @@ namespace IPBan
                 {
                     continue;
                 }
-
-                TimeSpan elapsed = now - keyValue.Value;
-                if (elapsed > config.BanTime)
+                // if ban duration has expired or ip is white listed, un-ban
+                else if ((config.BanTime.Ticks > 0 && (now - keyValue.Value) > config.BanTime) || config.IsWhiteListed(keyValue.Key))
                 {
                     Log.Write(LogLevel.Error, "Un-banning ip address {0}", keyValue.Key);
                     lock (ipBlocker)
@@ -587,6 +513,10 @@ namespace IPBan
         private void ServiceThread()
         {
             Initialize();
+            if (RunTestsOnStart)
+            {
+                RunTests();
+            }
             while (run)
             {
                 CheckForExpiredIP();
@@ -595,71 +525,28 @@ namespace IPBan
             }
         }
 
-        protected override void OnStart(string[] args)
+        public void Start()
         {
-            base.OnStart(args);
-
             Log.Write(LogLevel.Info, "Started IPBan service");
             run = true;
             serviceThread = new Thread(new ThreadStart(ServiceThread));
             serviceThread.Start();
         }
 
-        protected override void OnStop()
+        public void Stop()
         {
-            base.OnStop();
-
             run = false;
             query = null;
             watcher = null;
-
+            cycleEvent.Set();
+            serviceThread.Join();
             Log.Write(LogLevel.Info, "Stopped IPBan service");
         }
 
-        public IPBanService()
-        {
-            OperatingSystem os = Environment.OSVersion;
-            Version vs = os.Version;
-        }
-
-        public static void RunService(string[] args)
-        {
-            System.ServiceProcess.ServiceBase[] ServicesToRun;
-            ServicesToRun = new System.ServiceProcess.ServiceBase[] { new IPBanService() };
-            System.ServiceProcess.ServiceBase.Run(ServicesToRun);
-        }
-
-        public static void RunConsole(string[] args)
-        {
-            IPBanService svc = new IPBanService();
-            svc.OnStart(args);
-            Console.WriteLine("Press ENTER to quit");
-            string line;
-            while ((line = Console.ReadLine()).Length != 0)
-            {
-                if (line.Equals("t", StringComparison.OrdinalIgnoreCase))
-                {
-                    svc.ReadAppSettings();
-                    svc.RunTests();
-                }
-            }
-            svc.OnStop();
-            svc.cycleEvent.Set();
-        }
-
-        public static void Main(string[] args)
-        {
-            Directory.SetCurrentDirectory(AppDomain.CurrentDomain.BaseDirectory);
-
-            if (args.Length != 0 && args[0] == "debug")
-            {
-                RunConsole(args);
-            }
-            else
-            {
-                RunService(args);
-            }
-        }
+        /// <summary>
+        /// Whether to run unit tests on start. Default is false.
+        /// </summary>
+        public bool RunTestsOnStart { get; set; }
     }
 }
 
@@ -671,5 +558,81 @@ namespace IPBan
   en System.Web.UI.Page.DecryptString(String s)
 </Data></EventData></Event>
 <Event xmlns='http://schemas.microsoft.com/win/2004/08/events/event'><System><Provider Name='Microsoft-Windows-Security-Auditing' Guid='{54849625-5478-4994-A5BA-3E3B0328C30D}'/><EventID>4625</EventID><Version>0</Version><Level>0</Level><Task>12544</Task><Opcode>0</Opcode><Keywords>0x8010000000000000</Keywords><TimeCreated SystemTime='2012-02-19T05:10:05.080038000Z'/><EventRecordID>1633642</EventRecordID><Correlation/><Execution ProcessID='544' ThreadID='4472'/><Channel>Security</Channel><Computer>69-64-65-123</Computer><Security/></System><EventData><Data Name='SubjectUserSid'>S-1-5-18</Data><Data Name='SubjectUserName'>69-64-65-123$</Data><Data Name='SubjectDomainName'>WORKGROUP</Data><Data Name='SubjectLogonId'>0x3e7</Data><Data Name='TargetUserSid'>S-1-0-0</Data><Data Name='TargetUserName'>user</Data><Data Name='TargetDomainName'>69-64-65-123</Data><Data Name='Status'>0xc000006d</Data><Data Name='FailureReason'>%%2313</Data><Data Name='SubStatus'>0xc0000064</Data><Data Name='LogonType'>10</Data><Data Name='LogonProcessName'>User32 </Data><Data Name='AuthenticationPackageName'>Negotiate</Data><Data Name='WorkstationName'>69-64-65-123</Data><Data Name='TransmittedServices'>-</Data><Data Name='LmPackageName'>-</Data><Data Name='KeyLength'>0</Data><Data Name='ProcessId'>0x1959c</Data><Data Name='ProcessName'>C:\Windows\System32\winlogon.exe</Data><Data Name='IpAddress'>183.62.15.154</Data><Data Name='IpPort'>22272</Data></EventData></Event>
+
+private string GetRuleName()
+{
+    string ruleName = (config.RuleName ?? string.Empty).Trim();
+    if (ruleName.Length == 0)
+    {
+        throw new ApplicationException("Failed to find RuleName in config file, cannot delete firewall rule");
+    }
+
+    return ruleName;
+}
+
+private void RunScript()
+{
+    ProcessStartInfo info = new ProcessStartInfo
+    {
+        FileName = "netsh",
+        Arguments = "exec " + scriptFileName,
+        CreateNoWindow = true,
+        WindowStyle = ProcessWindowStyle.Hidden,
+        UseShellExecute = true
+    };
+    Process.Start(info).WaitForExit();
+}
+
+private void DeleteRules(int ipAddressCount)
+{
+    string ruleName = GetRuleName();
+    string[] keys = ipBlockerDate.Keys.ToArray();
+    string subRuleName;
+
+    using (StreamWriter writer = File.CreateText(scriptFileName))
+    {
+        writer.WriteLine(fileScriptHeader);
+        int i = 0;
+        for (; i < ipAddressCount; i += blockSize)
+        {
+            subRuleName = ruleName + i.ToString(CultureInfo.InvariantCulture);
+            writer.WriteLine(fileScriptDeleteLine, subRuleName);
+        }
+        // write out one last delete in case we dropped in ip address block count below a block size
+        subRuleName = ruleName + i.ToString(CultureInfo.InvariantCulture);
+        writer.WriteLine(fileScriptDeleteLine, subRuleName);
+        writer.WriteLine(fileScriptEnd);
+    }
+
+    RunScript();
+}
+
+private void CreateRules()
+{
+    string ruleName = GetRuleName();
+    string[] keys = ipBlockerDate.Keys.ToArray();
+    string subRuleName;
+
+    using (StreamWriter writer = File.CreateText(scriptFileName))
+    {
+        writer.WriteLine(fileScriptHeader);
+        int i = 0;
+        for (; i < ipBlockerDate.Count; i += blockSize)
+        {
+            subRuleName = ruleName + i.ToString(CultureInfo.InvariantCulture);
+            writer.WriteLine(fileScriptDeleteLine, subRuleName);
+            string ipAddresses = string.Join(",", keys.Skip(i).Take(blockSize));
+            string line = string.Format(fileScriptAddLine, subRuleName, ipAddresses);
+            writer.WriteLine(line);
+        }
+
+        // write out one last delete in case we dropped in ip address block count below a block size
+        subRuleName = ruleName + i.ToString(CultureInfo.InvariantCulture);
+        writer.WriteLine(fileScriptDeleteLine, subRuleName);
+        writer.WriteLine(fileScriptEnd);
+    }
+
+    RunScript();
+}
 
 */

@@ -1,3 +1,7 @@
+2017-06-26 (Jeff Johnson)
+- Use com interface for Windows firewall to avoid spawning a process to change rules
+- Refactored code. Pass debug test as command line to run unit test.
+
 2016-08-12 (Bill McIlhargey)
 - modified phpMyAdmin regex to be more descriptive
 
