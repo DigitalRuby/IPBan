@@ -26,11 +26,12 @@ namespace IPBan
 {
     public class IPBanService
     {
-        private const string scriptFileName = "banscript.txt";
-        private const string fileScriptHeader = "pushd advfirewall firewall";
-        private const string fileScriptAddLine = @"add rule name=""{0}"" remoteip=""{1}"" action=block protocol=any dir=in";
-        private const string fileScriptDeleteLine = "delete rule name=\"{0}\"";
-        private const string fileScriptEnd = "popd";
+        private class PendingIPAddress
+        {
+            public string IPAddress { get; set; }
+            public string UserName { get; set; }
+            public DateTime DateTime { get; set; }
+        }
 
         private IPBanConfig config;
         private Thread serviceThread;
@@ -42,6 +43,10 @@ namespace IPBan
         private Dictionary<string, DateTime> ipBlockerDate = new Dictionary<string, DateTime>();
         private DateTime lastConfigFileDateTime = DateTime.MinValue;
         private readonly ManualResetEvent cycleEvent = new ManualResetEvent(false);
+
+        // the windows event viewer calls back on a background thread, this allows pushing the ip addresses to a list that will be accessed
+        //  in the main loop
+        private readonly List<PendingIPAddress> pendingIPAddresses = new List<PendingIPAddress>();
 
         private void ExecuteBanScript()
         {
@@ -234,6 +239,74 @@ namespace IPBan
             return ipAddress;
         }
 
+        private void ProcessPendingIPAddresses()
+        {
+            List<PendingIPAddress> ipAddresses;
+            lock (pendingIPAddresses)
+            {
+                ipAddresses = new List<PendingIPAddress>(pendingIPAddresses);
+                pendingIPAddresses.Clear();
+            }
+
+            foreach (PendingIPAddress p in ipAddresses)
+            {
+                string ipAddress = p.IPAddress;
+                string userName = p.UserName;
+                DateTime dateTime = p.DateTime;
+
+                if (config.IsWhiteListed(ipAddress))
+                {
+                    Log.Write(LogLevel.Info, "Ignoring whitelisted ip address {0}, user name: {1}", ipAddress, userName);
+                }
+                else
+                {
+                    lock (ipBlocker)
+                    {
+                        // Get the IPBlockCount, if one exists.
+                        IPBlockCount ipBlockCount;
+                        ipBlocker.TryGetValue(ipAddress, out ipBlockCount);
+                        if (ipBlockCount == null)
+                        {
+                            // This is the first failed login attempt, so record a new IPBlockCount.
+                            ipBlockCount = new IPBlockCount();
+                            ipBlocker[ipAddress] = ipBlockCount;
+                        }
+
+                        // Increment the count.
+                        ipBlockCount.IncrementCount();
+
+                        Log.Write(LogLevel.Info, "Incrementing count for ip {0} to {1}, user name: {2}", ipAddress, ipBlockCount.Count, userName);
+
+                        // check for the target user name for additional blacklisting checks                    
+                        bool blackListed = config.IsBlackListed(ipAddress) || (userName != null && config.IsBlackListed(userName));
+
+                        // if the ip is black listed or they have reached the maximum failed login attempts before ban, ban them
+                        if (blackListed || ipBlockCount.Count >= config.FailedLoginAttemptsBeforeBan)
+                        {
+                            // if they are not black listed OR this is the first increment of a black listed ip address, perform the ban
+                            if (!blackListed || ipBlockCount.Count >= 1)
+                            {
+                                if (!ipBlockerDate.ContainsKey(ipAddress))
+                                {
+                                    Log.Write(LogLevel.Error, "Banning ip address: {0}, user name: {1}, black listed: {2}, count: {3}", ipAddress, userName, blackListed, ipBlockCount.Count);
+                                    ipBlockerDate[ipAddress] = dateTime;
+                                    ExecuteBanScript();
+                                }
+                            }
+                            else
+                            {
+                                Log.Write(LogLevel.Info, "Ignoring previously banned black listed ip {0}, user name: {1}, ip should already be banned", ipAddress, userName);
+                            }
+                        }
+                        else if (ipBlockCount.Count > config.FailedLoginAttemptsBeforeBan)
+                        {
+                            Log.Write(LogLevel.Warning, "Got event with ip address {0}, count {1}, ip should already be banned", ipAddress, ipBlockCount.Count);
+                        }
+                    }
+                }
+            }
+        }
+
         private void ProcessIPAddress(string ipAddress, XmlDocument doc)
         {
             if (string.IsNullOrWhiteSpace(ipAddress))
@@ -248,55 +321,9 @@ namespace IPBan
                 userName = userNameNode.InnerText.Trim();
             }
 
-            if (config.IsWhiteListed(ipAddress))
+            lock (pendingIPAddresses)
             {
-                Log.Write(LogLevel.Info, "Ignoring whitelisted ip address {0}, user name: {1}", ipAddress, userName);
-            }
-            else
-            {
-                lock (ipBlocker)
-                {
-                    // Get the IPBlockCount, if one exists.
-                    IPBlockCount ipBlockCount;
-                    ipBlocker.TryGetValue(ipAddress, out ipBlockCount);
-                    if (ipBlockCount == null)
-                    {
-                        // This is the first failed login attempt, so record a new IPBlockCount.
-                        ipBlockCount = new IPBlockCount();
-                        ipBlocker[ipAddress] = ipBlockCount;
-                    }
-
-                    // Increment the count.
-                    ipBlockCount.IncrementCount();
-
-                    Log.Write(LogLevel.Info, "Incrementing count for ip {0} to {1}, user name: {2}", ipAddress, ipBlockCount.Count, userName);
-
-                    // check for the target user name for additional blacklisting checks                    
-                    bool blackListed = config.IsBlackListed(ipAddress) || (userName != null && config.IsBlackListed(userName));
-
-                    // if the ip is black listed or they have reached the maximum failed login attempts before ban, ban them
-                    if (blackListed || ipBlockCount.Count >= config.FailedLoginAttemptsBeforeBan)
-                    {
-                        // if they are not black listed OR this is the first increment of a black listed ip address, perform the ban
-                        if (!blackListed || ipBlockCount.Count >= 1)
-                        {
-                            if (!ipBlockerDate.ContainsKey(ipAddress))
-                            {
-                                Log.Write(LogLevel.Error, "Banning ip address: {0}, user name: {1}, black listed: {2}, count: {3}", ipAddress, userName, blackListed, ipBlockCount.Count);
-                                ipBlockerDate[ipAddress] = DateTime.UtcNow;
-                                ExecuteBanScript();
-                            }
-                        }
-                        else
-                        {
-                            Log.Write(LogLevel.Info, "Ignoring previously banned black listed ip {0}, user name: {1}, ip should already be banned", ipAddress, userName);
-                        }
-                    }
-                    else if (ipBlockCount.Count > config.FailedLoginAttemptsBeforeBan)
-                    {
-                        Log.Write(LogLevel.Warning, "Got event with ip address {0}, count {1}, ip should already be banned", ipAddress, ipBlockCount.Count);
-                    }
-                }
+                pendingIPAddresses.Add(new PendingIPAddress { IPAddress = ipAddress, UserName = userName, DateTime = DateTime.UtcNow });
             }
         }
 
@@ -519,8 +546,9 @@ namespace IPBan
             }
             while (run)
             {
-                CheckForExpiredIP();
                 ReadAppSettings();
+                CheckForExpiredIP();
+                ProcessPendingIPAddresses();
                 cycleEvent.WaitOne(config.CycleTime);
             }
         }
@@ -558,6 +586,12 @@ namespace IPBan
   en System.Web.UI.Page.DecryptString(String s)
 </Data></EventData></Event>
 <Event xmlns='http://schemas.microsoft.com/win/2004/08/events/event'><System><Provider Name='Microsoft-Windows-Security-Auditing' Guid='{54849625-5478-4994-A5BA-3E3B0328C30D}'/><EventID>4625</EventID><Version>0</Version><Level>0</Level><Task>12544</Task><Opcode>0</Opcode><Keywords>0x8010000000000000</Keywords><TimeCreated SystemTime='2012-02-19T05:10:05.080038000Z'/><EventRecordID>1633642</EventRecordID><Correlation/><Execution ProcessID='544' ThreadID='4472'/><Channel>Security</Channel><Computer>69-64-65-123</Computer><Security/></System><EventData><Data Name='SubjectUserSid'>S-1-5-18</Data><Data Name='SubjectUserName'>69-64-65-123$</Data><Data Name='SubjectDomainName'>WORKGROUP</Data><Data Name='SubjectLogonId'>0x3e7</Data><Data Name='TargetUserSid'>S-1-0-0</Data><Data Name='TargetUserName'>user</Data><Data Name='TargetDomainName'>69-64-65-123</Data><Data Name='Status'>0xc000006d</Data><Data Name='FailureReason'>%%2313</Data><Data Name='SubStatus'>0xc0000064</Data><Data Name='LogonType'>10</Data><Data Name='LogonProcessName'>User32 </Data><Data Name='AuthenticationPackageName'>Negotiate</Data><Data Name='WorkstationName'>69-64-65-123</Data><Data Name='TransmittedServices'>-</Data><Data Name='LmPackageName'>-</Data><Data Name='KeyLength'>0</Data><Data Name='ProcessId'>0x1959c</Data><Data Name='ProcessName'>C:\Windows\System32\winlogon.exe</Data><Data Name='IpAddress'>183.62.15.154</Data><Data Name='IpPort'>22272</Data></EventData></Event>
+
+private const string scriptFileName = "banscript.txt";
+private const string fileScriptHeader = "pushd advfirewall firewall";
+private const string fileScriptAddLine = @"add rule name=""{0}"" remoteip=""{1}"" action=block protocol=any dir=in";
+private const string fileScriptDeleteLine = "delete rule name=\"{0}\"";
+private const string fileScriptEnd = "popd";
 
 private string GetRuleName()
 {

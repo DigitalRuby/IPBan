@@ -1,3 +1,6 @@
+2017-06-30 (Jeff Johnson)
+- Code cleanup and refactor.
+
 2017-06-26 (Jeff Johnson)
 - Use com interface for Windows firewall to avoid spawning a process to change rules
 - Refactored code. Pass debug test as command line to run unit test.
