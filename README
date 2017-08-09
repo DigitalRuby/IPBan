@@ -10,23 +10,30 @@ Make sure to look at the config file for configuration options
 
 To debug as a console app and troubleshoot, run "IPBAN.EXE debug"
 
-Make sure you are logging failed login attempts via local security policy
+Make sure you are logging failed login attempts via local security policy / audit policy.
 
-Make sure to read this stackoverflow thread about ip addresses not getting logged: http://stackoverflow.com/questions/1734635/event-logging-ipaddress-does-not-always-resolve
-In summary, change these local security options:
+You *MUST* make this change to the local security policy to ensure ip addresses show up: 
+Change Local Security Policy -> Local Policies -> Audit Policy and turn failure logging on for "audit account logon events" and "audit logon events".
+
+If you still don't see ip addresses being logged, do the following:
+
+- Make sure to read this stackoverflow thread about ip addresses not getting logged: http://stackoverflow.com/questions/1734635/event-logging-ipaddress-does-not-always-resolve
 - Network security: LAN Manager authentication level -- Send NTLMv2 response only. Refuse LM & NTLM
 - Network security: Restrict NTLM: Audit Incoming NTLM Traffic -- Enable auditing for all accounts
 - Network security: Restrict NTLM: Incoming NTLM traffic -- Deny all accounts
 - Do not allow for passwords to be saved -- Enabled
 - Prompt for credentials on the client computer -- Enabled
 
-If you want to run in Visual Studio, make sure to run Visual Studio as administrator
+If you want to run in Visual Studio, make sure to run Visual Studio as administrator.
 
 For reference, here is a regex that matches any 32 bit ip address:
 (?<ipaddress>^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$)
 
-Please visit http://www.digitalruby.com/securing-your-windows-dedicated-server/ for more information about this and other products that we are making.
+Please visit http://www.digitalruby.com/securing-your-windows-dedicated-server/ for more information about this program.
+
+I do consulting and contracting if you need extra customizations for this software.
 
 Enjoy!
 
 -Jeff Johnson, CTO Digital Ruby, LLC
+email: support@digitalruby.com

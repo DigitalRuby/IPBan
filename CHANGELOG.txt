@@ -1,3 +1,7 @@
+2017-08-09 (Jeff Johnson)
+- Add additional instructions about audit policy.
+- Add another XML test.
+
 2017-06-30 (Jeff Johnson)
 - Code cleanup and refactor.
 
