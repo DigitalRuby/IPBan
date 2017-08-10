@@ -14,6 +14,7 @@ Make sure you are logging failed login attempts via local security policy / audi
 
 You *MUST* make this change to the local security policy to ensure ip addresses show up: 
 Change Local Security Policy -> Local Policies -> Audit Policy and turn failure logging on for "audit account logon events" and "audit logon events".
+From an admin command prompt: auditpol /set /category:"Logon/Logoff" /success:enable /failure:enable
 
 If you still don't see ip addresses being logged, do the following:
 
