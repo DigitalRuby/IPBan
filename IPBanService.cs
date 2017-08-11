@@ -38,7 +38,6 @@ namespace IPBan
         private bool run;
         private EventLogQuery query;
         private EventLogWatcher watcher;
-        private EventLogReader reader;
         private Dictionary<string, IPBlockCount> ipBlocker = new Dictionary<string, IPBlockCount>();
         private Dictionary<string, DateTime> ipBlockerDate = new Dictionary<string, DateTime>();
         private DateTime lastConfigFileDateTime = DateTime.MinValue;
@@ -314,7 +313,7 @@ namespace IPBan
                 return;
             }
 
-            string userName = null;
+            string userName = string.Empty;
             XmlNode userNameNode = doc.SelectSingleNode("//Data[@Name='TargetUserName']");
             if (userNameNode != null)
             {
@@ -353,7 +352,7 @@ namespace IPBan
             }
         }
 
-        private string GetQueryString()
+        private string GetEventLogQueryString()
         {
             int id = 0;
             string queryString = "<QueryList>";
@@ -367,18 +366,16 @@ namespace IPBan
             return queryString;
         }
 
-        private void SetupWatcher()
+        private void SetupEventLogWatcher()
         {
-            string queryString = GetQueryString();
+            string queryString = GetEventLogQueryString();
             query = new EventLogQuery(null, PathType.LogName, queryString);
-            reader = new EventLogReader(query);
-            reader.BatchSize = 10;
             watcher = new EventLogWatcher(query);
             watcher.EventRecordWritten += EventRecordWritten;
             watcher.Enabled = true;
         }
 
-        private void TestRemoteDesktopAttemptWithPAddress(string ipAddress, int count)
+        private void TestRemoteDesktopAttemptWithIPAddress(string ipAddress, int count)
         {
             string xml = string.Format(@"<Event xmlns='http://schemas.microsoft.com/win/2004/08/events/event'><System><Provider Name='Microsoft-Windows-Security-Auditing' Guid='{{54849625-5478-4994-A5BA-3E3B0328C30D}}' /><EventID>4625</EventID><Version>0</Version><Level>0</Level><Task>12544</Task><Opcode>0</Opcode><Keywords>0x8010000000000000</Keywords><TimeCreated SystemTime='2012-03-25T17:12:36.848116500Z' /><EventRecordID>1657124</EventRecordID><Correlation /><Execution ProcessID='544' ThreadID='6616' /><Channel>Security</Channel><Computer>69-64-65-123</Computer><Security /></System><EventData><Data Name='SubjectUserSid'>S-1-5-18</Data><Data Name='SubjectUserName'>69-64-65-123$</Data><Data Name='SubjectDomainName'>WORKGROUP</Data><Data Name='SubjectLogonId'>0x3e7</Data><Data Name='TargetUserSid'>S-1-0-0</Data><Data Name='TargetUserName'>forex</Data><Data Name='TargetDomainName'>69-64-65-123</Data><Data Name='Status'>0xc000006d</Data><Data Name='FailureReason'>%%2313</Data><Data Name='SubStatus'>0xc0000064</Data><Data Name='LogonType'>10</Data><Data Name='LogonProcessName'>User32 </Data><Data Name='AuthenticationPackageName'>Negotiate</Data><Data Name='WorkstationName'>69-64-65-123</Data><Data Name='TransmittedServices'>-</Data><Data Name='LmPackageName'>-</Data><Data Name='KeyLength'>0</Data><Data Name='ProcessId'>0x2e40</Data><Data Name='ProcessName'>C:\Windows\System32\winlogon.exe</Data><Data Name='IpAddress'>{0}</Data><Data Name='IpPort'>52813</Data></EventData></Event>", ipAddress);
 
@@ -404,7 +401,8 @@ namespace IPBan
                 @"<Event xmlns='http://schemas.microsoft.com/win/2004/08/events/event'><System><Provider Name='MSSQLSERVER'/><EventID Qualifiers='49152'>18456</EventID><Level>0</Level><Task>4</Task><Keywords>0x90000000000000</Keywords><TimeCreated SystemTime='2014-08-25T09:11:06.000000000Z'/><EventRecordID>116411121</EventRecordID><Channel>Application</Channel><Computer>s16240956</Computer><Security/></System><EventData><Data>sa</Data><Data> Raison : impossible de trouver une connexion correspondant au nom fourni.</Data><Data> [CLIENT : 218.10.17.192]</Data><Binary>184800000E0000000A0000005300310036003200340030003900350036000000070000006D00610073007400650072000000</Binary></EventData></Event>",
                 @"<Event xmlns='http://schemas.microsoft.com/win/2004/08/events/event'><System><Provider Name='MSExchangeTransport' /><EventID Qualifiers='32772'>1035</EventID><Level>3</Level><Task>1</Task><Keywords>0x80000000000000</Keywords><TimeCreated SystemTime='2015-06-08T08:13:12.000000000Z' /><EventRecordID>667364</EventRecordID><Channel>Application</Channel><Computer>DC.sicoir.local</Computer><Security /></System><EventData><Data>LogonDenied</Data><Data>Default DC</Data><Data>Ntlm</Data><Data>212.48.88.133</Data></EventData></Event>",
                 @"<Event xmlns='http://schemas.microsoft.com/win/2004/08/events/event'><System><Provider Name='MSSQLSERVER' /><EventID Qualifiers='49152'>18456</EventID><Level>0</Level><Task>4</Task><Keywords>0x90000000000000</Keywords><TimeCreated SystemTime='2015-09-10T14:20:42.000000000Z' /><EventRecordID>4439286</EventRecordID><Channel>Application</Channel><Computer>DSVR018379</Computer><Security /></System><EventData><Data>sa</Data><Data>Reason: Password did not match that for the login provided.</Data><Data>[CLIENT: 222.186.61.16]</Data><Binary>184800000E0000000B00000044005300560052003000310038003300370039000000070000006D00610073007400650072000000</Binary></EventData></Event>",
-                @"<Event xmlns='http://schemas.microsoft.com/win/2004/08/events/event'><System><Provider Name='Microsoft-Windows-Security-Auditing' Guid='{54849625-5478-4994-A5BA-3E3B0328C30D}' /><EventID>4625</EventID><Version>0</Version><Level>0</Level><Task>12544</Task><Opcode>0</Opcode><Keywords>0x8010000000000000</Keywords><TimeCreated SystemTime='2017-08-09T11:06:11.486303500Z' /><EventRecordID>17925</EventRecordID><Correlation ActivityID='{A7FB7D60-01E0-0000-877D-FBA7E001D301}' /><Execution ProcessID='648' ThreadID='972' /><Channel>Security</Channel><Computer>DESKTOP-N8QJFLU</Computer><Security /></System><EventData><Data Name='SubjectUserSid'>S-1-0-0</Data><Data Name='SubjectUserName'>-</Data><Data Name='SubjectDomainName'>-</Data><Data Name='SubjectLogonId'>0x0</Data><Data Name='TargetUserSid'>S-1-0-0</Data><Data Name='TargetUserName'>steven.powell</Data><Data Name='TargetDomainName'>VENOM</Data><Data Name='Status'>0xc000006d</Data><Data Name='FailureReason'>%%2313</Data><Data Name='SubStatus'>0xc0000064</Data><Data Name='LogonType'>3</Data><Data Name='LogonProcessName'>NtLmSsp</Data><Data Name='AuthenticationPackageName'>NTLM</Data><Data Name='WorkstationName'>SP-W7-PC</Data><Data Name='TransmittedServices'>-</Data><Data Name='LmPackageName'>-</Data><Data Name='KeyLength'>0</Data><Data Name='ProcessId'>0x0</Data><Data Name='ProcessName'>-</Data><Data Name='IpAddress'>37.191.115.2</Data><Data Name='IpPort'>0</Data></EventData></Event>"
+                @"<Event xmlns='http://schemas.microsoft.com/win/2004/08/events/event'><System><Provider Name='Microsoft-Windows-Security-Auditing' Guid='{54849625-5478-4994-A5BA-3E3B0328C30D}' /><EventID>4625</EventID><Version>0</Version><Level>0</Level><Task>12544</Task><Opcode>0</Opcode><Keywords>0x8010000000000000</Keywords><TimeCreated SystemTime='2017-08-09T11:06:11.486303500Z' /><EventRecordID>17925</EventRecordID><Correlation ActivityID='{A7FB7D60-01E0-0000-877D-FBA7E001D301}' /><Execution ProcessID='648' ThreadID='972' /><Channel>Security</Channel><Computer>DESKTOP-N8QJFLU</Computer><Security /></System><EventData><Data Name='SubjectUserSid'>S-1-0-0</Data><Data Name='SubjectUserName'>-</Data><Data Name='SubjectDomainName'>-</Data><Data Name='SubjectLogonId'>0x0</Data><Data Name='TargetUserSid'>S-1-0-0</Data><Data Name='TargetUserName'>steven.powell</Data><Data Name='TargetDomainName'>VENOM</Data><Data Name='Status'>0xc000006d</Data><Data Name='FailureReason'>%%2313</Data><Data Name='SubStatus'>0xc0000064</Data><Data Name='LogonType'>3</Data><Data Name='LogonProcessName'>NtLmSsp</Data><Data Name='AuthenticationPackageName'>NTLM</Data><Data Name='WorkstationName'>SP-W7-PC</Data><Data Name='TransmittedServices'>-</Data><Data Name='LmPackageName'>-</Data><Data Name='KeyLength'>0</Data><Data Name='ProcessId'>0x0</Data><Data Name='ProcessName'>-</Data><Data Name='IpAddress'>37.191.115.2</Data><Data Name='IpPort'>0</Data></EventData></Event>",
+                @"<Event xmlns='http://schemas.microsoft.com/win/2004/08/events/event'><System><Provider Name='Microsoft-Windows-RemoteDesktopServices-RdpCoreTS' Guid='{1139C61B-B549-4251-8ED3-27250A1EDEC8}' /><EventID>140</EventID><Version>0</Version><Level>3</Level><Task>4</Task><Opcode>14</Opcode><Keywords>0x4000000000000000</Keywords><TimeCreated SystemTime='2016-11-13T11:52:25.314996400Z' /><EventRecordID>1683867</EventRecordID><Correlation ActivityID='{F4204608-FB58-4924-A3D9-B8A1B0870000}' /><Execution ProcessID='2920' ThreadID='4104' /><Channel>Microsoft-Windows-RemoteDesktopServices-RdpCoreTS/Operational</Channel><Computer>SERVER</Computer><Security UserID='S-1-5-20' /></System><EventData><Data Name='IPString'>1.2.3.4</Data></EventData></Event>"
             };
 
             string[] xmlTestStringsDelay = new string[]
@@ -419,16 +417,16 @@ namespace IPBan
 
             for (int i = 0; i < 255 && run; i++)
             {
-                TestRemoteDesktopAttemptWithPAddress("99.99.1." + i.ToString(), 10);
-                TestRemoteDesktopAttemptWithPAddress("99.99.2." + i.ToString(), 10);
-                TestRemoteDesktopAttemptWithPAddress("99.99.3." + i.ToString(), 10);
-                TestRemoteDesktopAttemptWithPAddress("99.99.4." + i.ToString(), 10);
-                TestRemoteDesktopAttemptWithPAddress("99.99.5." + i.ToString(), 10);
-                TestRemoteDesktopAttemptWithPAddress("99.99.6." + i.ToString(), 10);
-                TestRemoteDesktopAttemptWithPAddress("99.99.7." + i.ToString(), 10);
-                TestRemoteDesktopAttemptWithPAddress("99.99.8." + i.ToString(), 10);
-                TestRemoteDesktopAttemptWithPAddress("99.99.9." + i.ToString(), 10);
-                TestRemoteDesktopAttemptWithPAddress("99.99.10." + i.ToString(), 10);
+                TestRemoteDesktopAttemptWithIPAddress("99.99.1." + i.ToString(), 10);
+                TestRemoteDesktopAttemptWithIPAddress("99.99.2." + i.ToString(), 10);
+                TestRemoteDesktopAttemptWithIPAddress("99.99.3." + i.ToString(), 10);
+                TestRemoteDesktopAttemptWithIPAddress("99.99.4." + i.ToString(), 10);
+                TestRemoteDesktopAttemptWithIPAddress("99.99.5." + i.ToString(), 10);
+                TestRemoteDesktopAttemptWithIPAddress("99.99.6." + i.ToString(), 10);
+                TestRemoteDesktopAttemptWithIPAddress("99.99.7." + i.ToString(), 10);
+                TestRemoteDesktopAttemptWithIPAddress("99.99.8." + i.ToString(), 10);
+                TestRemoteDesktopAttemptWithIPAddress("99.99.9." + i.ToString(), 10);
+                TestRemoteDesktopAttemptWithIPAddress("99.99.10." + i.ToString(), 10);
             }
 
             foreach (string xml in xmlTestStringsDelay)
@@ -449,7 +447,7 @@ namespace IPBan
             ReadAppSettings();
             IPBanWindowsFirewall.Initialize(config.RuleName);
             ProcessBanFileOnStart();
-            SetupWatcher();
+            SetupEventLogWatcher();
             LogInitialConfig();
         }
 
@@ -566,7 +564,11 @@ namespace IPBan
         {
             run = false;
             query = null;
-            watcher = null;
+            if (watcher != null)
+            {
+                watcher.Dispose();
+                watcher = null;
+            }
             cycleEvent.Set();
             serviceThread.Join();
             Log.Write(LogLevel.Info, "Stopped IPBan service");
