@@ -206,7 +206,7 @@ namespace IPBan
         public ExpressionsToBlock Expressions { get { return expressions; } }
 
         /// <summary>
-        /// True to clear and unband ip addresses in the ban file when the service restarts, false otherwise
+        /// True to clear and unban ip addresses in the ban file when the service restarts, false otherwise
         /// </summary>
         public bool BanFileClearOnRestart { get { return banFileClearOnRestart; } }
 
