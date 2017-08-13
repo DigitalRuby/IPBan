@@ -368,11 +368,18 @@ namespace IPBan
 
         private void SetupEventLogWatcher()
         {
-            string queryString = GetEventLogQueryString();
-            query = new EventLogQuery(null, PathType.LogName, queryString);
-            watcher = new EventLogWatcher(query);
-            watcher.EventRecordWritten += EventRecordWritten;
-            watcher.Enabled = true;
+            try
+            {
+                string queryString = GetEventLogQueryString();
+                query = new EventLogQuery(null, PathType.LogName, queryString);
+                watcher = new EventLogWatcher(query);
+                watcher.EventRecordWritten += EventRecordWritten;
+                watcher.Enabled = true;
+            }
+            catch (Exception ex)
+            {
+                Log.Write(LogLevel.Error, "Failed to create event viewer watcher: {0}", ex);
+            }
         }
 
         private void TestRemoteDesktopAttemptWithIPAddress(string ipAddress, int count)
