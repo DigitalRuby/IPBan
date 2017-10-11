@@ -52,13 +52,12 @@ namespace IPBan
 
             if (!string.IsNullOrWhiteSpace(setValue))
             {
-                IPAddress tmp;
 
                 foreach (string v in setValue.Split(','))
                 {
                     set.Add(v.Trim());
 
-                    if (v != "0.0.0.0" && v != "::0" && IPAddress.TryParse(v, out tmp))
+                    if (v != "0.0.0.0" && v != "::0" && IPAddress.TryParse(v, out IPAddress tmp))
                     {
                         try
                         {
@@ -145,9 +144,8 @@ namespace IPBan
         /// <returns>True if whitelisted, false otherwise</returns>
         public bool IsWhiteListed(string ipAddress)
         {
-            IPAddress ip;
 
-            return (whiteList.Contains(ipAddress) || !IPAddress.TryParse(ipAddress, out ip) || (whiteListRegex != null && whiteListRegex.IsMatch(ipAddress)));
+            return (whiteList.Contains(ipAddress) || !IPAddress.TryParse(ipAddress, out IPAddress ip) || (whiteListRegex != null && whiteListRegex.IsMatch(ipAddress)));
         }
 
         /// <summary>

@@ -2,6 +2,8 @@
 ***** Requires .NET 4.0 and Windows Vista or Windows Server 2008 or newer *****
 *******************************************************************************
 
+Bitcoin donations accepted at 15i8jW7jHJLJjAsCD2zYVaqyf3it4kusLr - any amount is appreciated, I don't get paid to do this project.
+
 Extract files to a place on your computer. Right click on all the extracted files and select properties. Make sure to select "unblock" if the option is available.
 
 To run as a Windows service (example: sc create IPBAN type= own start= auto binPath= d:\system\ipban\ipban.exe DisplayName= IPBAN). The service writes a log file to the same directory as the service, so run as SYSTEM to ensure permissions.
@@ -38,5 +40,9 @@ If you found the product useful and you are feeling kind and generous, I do take
 
 Enjoy!
 
--Jeff Johnson, CTO Digital Ruby, LLC
+Bitcoin donations accepted at 15i8jW7jHJLJjAsCD2zYVaqyf3it4kusLr - any amount is appreciated, I don't get paid to do this project.
+
+-Jeff Johnson, CEO/CTO Digital Ruby, LLC
+http://www.digitalruby.com
 email: support@digitalruby.com
+

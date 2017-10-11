@@ -79,8 +79,10 @@ namespace IPBan
             if (!string.IsNullOrWhiteSpace(config))
             {
                 XmlSerializer serializer = new XmlSerializer(typeof(ExpressionsToBlock));
-                MemoryStream ms = new MemoryStream(Encoding.UTF8.GetBytes(config));
-                ms.Position = 0;
+                MemoryStream ms = new MemoryStream(Encoding.UTF8.GetBytes(config))
+                {
+                    Position = 0
+                };
                 ExpressionsToBlock expressions = serializer.Deserialize(ms) as ExpressionsToBlock;
                 return expressions;
             }

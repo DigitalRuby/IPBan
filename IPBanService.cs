@@ -24,7 +24,7 @@ using System.Text.RegularExpressions;
 
 namespace IPBan
 {
-    public class IPBanService
+    public class IPBanService : IDisposable
     {
         private class PendingIPAddress
         {
@@ -118,7 +118,6 @@ namespace IPBan
                     }
                     else
                     {
-                        IPAddress tmp;
                         string[] lines = File.ReadAllLines(config.BanFile);
                         foreach (string ip in lines)
                         {
@@ -126,7 +125,7 @@ namespace IPBan
                             if (pieces.Length > 0)
                             {
                                 string ipTrimmed = pieces[0].Trim();
-                                if (IPAddress.TryParse(ipTrimmed, out tmp))
+                                if (IPAddress.TryParse(ipTrimmed, out IPAddress tmp))
                                 {
                                     // setup a ban entry for the ip address
                                     IPBlockCount blockCount = new IPBlockCount(config.FailedLoginAttemptsBeforeBan);
@@ -160,8 +159,10 @@ namespace IPBan
 
         private XmlDocument ParseXml(string xml)
         {
-            XmlTextReader reader = new XmlTextReader(new StringReader(xml));
-            reader.Namespaces = false;
+            XmlTextReader reader = new XmlTextReader(new StringReader(xml))
+            {
+                Namespaces = false
+            };
             XmlReader outerReader = XmlReader.Create(reader, new XmlReaderSettings { CheckCharacters = false });
             XmlDocument doc = new XmlDocument();
             doc.Load(outerReader);
@@ -216,8 +217,7 @@ namespace IPBan
                                     if (ipAddressGroup != null && ipAddressGroup.Success && !string.IsNullOrWhiteSpace(ipAddressGroup.Value))
                                     {
                                         string tempIPAddress = ipAddressGroup.Value.Trim();
-                                        IPAddress tmp;
-                                        if (IPAddress.TryParse(tempIPAddress, out tmp))
+                                        if (IPAddress.TryParse(tempIPAddress, out IPAddress tmp))
                                         {
                                             ipAddress = tempIPAddress;
                                             foundMatch = true;
@@ -294,9 +294,7 @@ namespace IPBan
                     lock (ipAddressesAndBlockCounts)
                     {
                         // Get the IPBlockCount, if one exists.
-                        IPBlockCount ipBlockCount;
-                        ipAddressesAndBlockCounts.TryGetValue(ipAddress, out ipBlockCount);
-                        if (ipBlockCount == null)
+                        if (!ipAddressesAndBlockCounts.TryGetValue(ipAddress, out IPBlockCount ipBlockCount))
                         {
                             // This is the first failed login attempt, so record a new IPBlockCount.
                             ipBlockCount = new IPBlockCount();
@@ -483,6 +481,7 @@ namespace IPBan
 
         private void Initialize()
         {
+            run = true;
             ReadAppSettings();
             IPBanWindowsFirewall.Initialize(config.RuleName);
             ProcessBanFileOnStart();
@@ -577,11 +576,6 @@ namespace IPBan
 
         private void ServiceThread()
         {
-            Initialize();
-            if (RunTestsOnStart)
-            {
-                RunTests();
-            }
             while (run)
             {
                 ReadAppSettings();
@@ -591,26 +585,50 @@ namespace IPBan
             }
         }
 
-        public void Start()
+        /// <summary>
+        /// Stop the service, dispose of all resources
+        /// </summary>
+        public void Dispose()
         {
-            Log.Write(LogLevel.Info, "Started IPBan service");
-            run = true;
-            serviceThread = new Thread(new ThreadStart(ServiceThread));
-            serviceThread.Start();
-        }
+            if (!run)
+            {
+                return;
+            }
 
-        public void Stop()
-        {
             run = false;
+            cycleEvent.Set();
+            serviceThread.Join();
+            cycleEvent.Dispose();
             query = null;
             if (watcher != null)
             {
                 watcher.Dispose();
                 watcher = null;
             }
-            cycleEvent.Set();
-            serviceThread.Join();
             Log.Write(LogLevel.Info, "Stopped IPBan service");
+        }
+
+        /// <summary>
+        /// Initialize and start the service
+        /// </summary>
+        public void Start()
+        {
+            Log.Write(LogLevel.Info, "Started IPBan service");
+            Initialize();
+            if (RunTestsOnStart)
+            {
+                RunTests();
+            }
+            serviceThread = new Thread(new ThreadStart(ServiceThread));
+            serviceThread.Start();
+        }
+
+        /// <summary>
+        /// Calls Dispose
+        /// </summary>
+        public void Stop()
+        {
+            Dispose();
         }
 
         /// <summary>
@@ -619,96 +637,3 @@ namespace IPBan
         public bool RunTestsOnStart { get; set; }
     }
 }
-
-
-/*
-<Event xmlns='http://schemas.microsoft.com/win/2004/08/events/event'><System><Provider Name='ASP.NET 2.0.50727.0'/><EventID Qualifiers='32768'>1309</EventID><Level>3</Level><Task>3</Task><Keywords>0x80000000000000</Keywords><TimeCreated SystemTime='2014-07-10T23:37:57.000Z'/><EventRecordID>196334166</EventRecordID><Channel>Application</Channel><Computer>SERVIDOR</Computer><Security/></System><EventData><Data>3005</Data><Data>Excepci?n no controlada.</Data><Data>11/07/2014 1:37:57</Data><Data>10/07/2014 23:37:57</Data><Data>2b4bdc4736fe40f9af42fce697b8acc7</Data><Data>9</Data><Data>7</Data><Data>0</Data><Data>/LM/W3SVC/44/ROOT-1-130495088933270000</Data><Data>Full</Data><Data>/</Data><Data>C:\Inetpub\vhosts\cbhermosilla.es\httpdocs\</Data><Data>SERVIDOR</Data><Data></Data><Data>116380</Data><Data>w3wp.exe</Data><Data>SERVIDOR\IWPD_36(cbhermosill)</Data><Data>HttpException</Data><Data>No se pueden validar datos.</Data><Data>http://cbhermosilla.es/ScriptResource.axd?d=sdUSoDA_p4m7C8RvW7GhwLy4-JvXN1IcbzfRDWczGaZK4pT_avDiah8wSHZqBBjyvhhqa0cQYI_FWQYwCqlPsA8BsjFn19zRsw08qPt-rkQyZ6ODPVJ_Dp7CuLQKGPn6lQd-SOyyiu0VTTAgMiLVZqD6__M1&amp;t=635057131997880000</Data><Data>/ScriptResource.axd</Data><Data>66.249.76.207</Data><Data></Data><Data>False</Data><Data></Data><Data>SERVIDOR\IWPD_36(cbhermosill)</Data><Data>7</Data><Data>SERVIDOR\IWPD_36(cbhermosill)</Data><Data>False</Data><Data>   en System.Web.Configuration.MachineKeySection.EncryptOrDecryptData(Boolean fEncrypt, Byte[] buf, Byte[] modifier, Int32 start, Int32 length, IVType ivType, Boolean useValidationSymAlgo, Boolean signData)
-  en System.Web.Configuration.MachineKeySection.EncryptOrDecryptData(Boolean fEncrypt, Byte[] buf, Byte[] modifier, Int32 start, Int32 length, IVType ivType, Boolean useValidationSymAlgo)
-  en System.Web.UI.Page.DecryptStringWithIV(String s, IVType ivType)
-  en System.Web.UI.Page.DecryptString(String s)
-</Data></EventData></Event>
-<Event xmlns='http://schemas.microsoft.com/win/2004/08/events/event'><System><Provider Name='Microsoft-Windows-Security-Auditing' Guid='{54849625-5478-4994-A5BA-3E3B0328C30D}'/><EventID>4625</EventID><Version>0</Version><Level>0</Level><Task>12544</Task><Opcode>0</Opcode><Keywords>0x8010000000000000</Keywords><TimeCreated SystemTime='2012-02-19T05:10:05.080038000Z'/><EventRecordID>1633642</EventRecordID><Correlation/><Execution ProcessID='544' ThreadID='4472'/><Channel>Security</Channel><Computer>69-64-65-123</Computer><Security/></System><EventData><Data Name='SubjectUserSid'>S-1-5-18</Data><Data Name='SubjectUserName'>69-64-65-123$</Data><Data Name='SubjectDomainName'>WORKGROUP</Data><Data Name='SubjectLogonId'>0x3e7</Data><Data Name='TargetUserSid'>S-1-0-0</Data><Data Name='TargetUserName'>user</Data><Data Name='TargetDomainName'>69-64-65-123</Data><Data Name='Status'>0xc000006d</Data><Data Name='FailureReason'>%%2313</Data><Data Name='SubStatus'>0xc0000064</Data><Data Name='LogonType'>10</Data><Data Name='LogonProcessName'>User32 </Data><Data Name='AuthenticationPackageName'>Negotiate</Data><Data Name='WorkstationName'>69-64-65-123</Data><Data Name='TransmittedServices'>-</Data><Data Name='LmPackageName'>-</Data><Data Name='KeyLength'>0</Data><Data Name='ProcessId'>0x1959c</Data><Data Name='ProcessName'>C:\Windows\System32\winlogon.exe</Data><Data Name='IpAddress'>183.62.15.154</Data><Data Name='IpPort'>22272</Data></EventData></Event>
-
-private const string scriptFileName = "banscript.txt";
-private const string fileScriptHeader = "pushd advfirewall firewall";
-private const string fileScriptAddLine = @"add rule name=""{0}"" remoteip=""{1}"" action=block protocol=any dir=in";
-private const string fileScriptDeleteLine = "delete rule name=\"{0}\"";
-private const string fileScriptEnd = "popd";
-
-private string GetRuleName()
-{
-    string ruleName = (config.RuleName ?? string.Empty).Trim();
-    if (ruleName.Length == 0)
-    {
-        throw new ApplicationException("Failed to find RuleName in config file, cannot delete firewall rule");
-    }
-
-    return ruleName;
-}
-
-private void RunScript()
-{
-    ProcessStartInfo info = new ProcessStartInfo
-    {
-        FileName = "netsh",
-        Arguments = "exec " + scriptFileName,
-        CreateNoWindow = true,
-        WindowStyle = ProcessWindowStyle.Hidden,
-        UseShellExecute = true
-    };
-    Process.Start(info).WaitForExit();
-}
-
-private void DeleteRules(int ipAddressCount)
-{
-    string ruleName = GetRuleName();
-    string[] keys = ipBlockerDate.Keys.ToArray();
-    string subRuleName;
-
-    using (StreamWriter writer = File.CreateText(scriptFileName))
-    {
-        writer.WriteLine(fileScriptHeader);
-        int i = 0;
-        for (; i < ipAddressCount; i += blockSize)
-        {
-            subRuleName = ruleName + i.ToString(CultureInfo.InvariantCulture);
-            writer.WriteLine(fileScriptDeleteLine, subRuleName);
-        }
-        // write out one last delete in case we dropped in ip address block count below a block size
-        subRuleName = ruleName + i.ToString(CultureInfo.InvariantCulture);
-        writer.WriteLine(fileScriptDeleteLine, subRuleName);
-        writer.WriteLine(fileScriptEnd);
-    }
-
-    RunScript();
-}
-
-private void CreateRules()
-{
-    string ruleName = GetRuleName();
-    string[] keys = ipBlockerDate.Keys.ToArray();
-    string subRuleName;
-
-    using (StreamWriter writer = File.CreateText(scriptFileName))
-    {
-        writer.WriteLine(fileScriptHeader);
-        int i = 0;
-        for (; i < ipBlockerDate.Count; i += blockSize)
-        {
-            subRuleName = ruleName + i.ToString(CultureInfo.InvariantCulture);
-            writer.WriteLine(fileScriptDeleteLine, subRuleName);
-            string ipAddresses = string.Join(",", keys.Skip(i).Take(blockSize));
-            string line = string.Format(fileScriptAddLine, subRuleName, ipAddresses);
-            writer.WriteLine(line);
-        }
-
-        // write out one last delete in case we dropped in ip address block count below a block size
-        subRuleName = ruleName + i.ToString(CultureInfo.InvariantCulture);
-        writer.WriteLine(fileScriptDeleteLine, subRuleName);
-        writer.WriteLine(fileScriptEnd);
-    }
-
-    RunScript();
-}
-
-*/
