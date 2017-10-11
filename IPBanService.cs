@@ -38,8 +38,11 @@ namespace IPBan
         private bool run;
         private EventLogQuery query;
         private EventLogWatcher watcher;
-        private Dictionary<string, IPBlockCount> ipBlocker = new Dictionary<string, IPBlockCount>();
-        private Dictionary<string, DateTime> ipBlockerDate = new Dictionary<string, DateTime>();
+
+        // note that an ip that has a block count may not yet be in the ipAddressesAndBanDate dictionary
+        private Dictionary<string, IPBlockCount> ipAddressesAndBlockCounts = new Dictionary<string, IPBlockCount>();
+        private Dictionary<string, DateTime> ipAddressesAndBanDate = new Dictionary<string, DateTime>();
+
         private DateTime lastConfigFileDateTime = DateTime.MinValue;
         private readonly ManualResetEvent cycleEvent = new ManualResetEvent(false);
 
@@ -49,10 +52,19 @@ namespace IPBan
 
         private void ExecuteBanScript()
         {
-            lock (ipBlocker)
+            lock (ipAddressesAndBlockCounts)
             {
-                IPBanWindowsFirewall.CreateRules(ipBlockerDate.Keys.ToArray());
-                File.WriteAllLines(config.BanFile, ipBlocker.Keys.ToArray());
+                // create rules for all banned ip addresses
+                IPBanWindowsFirewall.CreateRules(ipAddressesAndBanDate.Keys.ToArray());
+
+                // write all banned ip addresses
+                using (StreamWriter writer = File.CreateText(config.BanFile))
+                {
+                    foreach (KeyValuePair<string, DateTime> ipAndBanDate in ipAddressesAndBanDate)
+                    {
+                        writer.WriteLine("{0}\t{1}", ipAndBanDate.Key, ipAndBanDate.Value.ToString("o"));
+                    }
+                }
             }
         }
 
@@ -93,36 +105,56 @@ namespace IPBan
 
         private void ProcessBanFileOnStart()
         {
-            lock (ipBlocker)
+            lock (ipAddressesAndBlockCounts)
             {
-                ipBlocker.Clear();
-                ipBlockerDate.Clear();
-
+                ipAddressesAndBlockCounts.Clear();
+                ipAddressesAndBanDate.Clear();
                 if (File.Exists(config.BanFile))
                 {
-                    string[] lines = File.ReadAllLines(config.BanFile);
                     if (config.BanFileClearOnRestart)
                     {
+                        // don't re-ban any ip addresses, per config option
                         File.Delete(config.BanFile);
                     }
                     else
                     {
                         IPAddress tmp;
+                        string[] lines = File.ReadAllLines(config.BanFile);
                         foreach (string ip in lines)
                         {
-                            string ipTrimmed = ip.Trim();
-                            if (IPAddress.TryParse(ipTrimmed, out tmp))
+                            string[] pieces = ip.Split('\t');
+                            if (pieces.Length > 0)
                             {
-                                IPBlockCount blockCount = new IPBlockCount();
-                                blockCount.IncrementCount();
-                                ipBlocker[ip] = blockCount;
-                                ipBlockerDate[ip] = DateTime.UtcNow;
+                                string ipTrimmed = pieces[0].Trim();
+                                if (IPAddress.TryParse(ipTrimmed, out tmp))
+                                {
+                                    // setup a ban entry for the ip address
+                                    IPBlockCount blockCount = new IPBlockCount(config.FailedLoginAttemptsBeforeBan);
+                                    ipAddressesAndBlockCounts[ipTrimmed] = blockCount;
+                                    if (pieces.Length > 1)
+                                    {
+                                        try
+                                        {
+                                            // use the date/time if we have it
+                                            ipAddressesAndBanDate[ipTrimmed] = DateTime.Parse(pieces[1]).ToUniversalTime();
+                                        }
+                                        catch
+                                        {
+                                            // corrupt date/time in the file, fallback to current date/time
+                                            ipAddressesAndBanDate[ipTrimmed] = DateTime.UtcNow;
+                                        }
+                                    }
+                                    else
+                                    {
+                                        // otherwise fall back to current date/time
+                                        ipAddressesAndBanDate[ipTrimmed] = DateTime.UtcNow;
+                                    }
+                                }
                             }
                         }
                     }
                 }
             }
-            IPBanWindowsFirewall.DeleteRules();
             ExecuteBanScript();
         }
 
@@ -259,16 +291,16 @@ namespace IPBan
                 }
                 else
                 {
-                    lock (ipBlocker)
+                    lock (ipAddressesAndBlockCounts)
                     {
                         // Get the IPBlockCount, if one exists.
                         IPBlockCount ipBlockCount;
-                        ipBlocker.TryGetValue(ipAddress, out ipBlockCount);
+                        ipAddressesAndBlockCounts.TryGetValue(ipAddress, out ipBlockCount);
                         if (ipBlockCount == null)
                         {
                             // This is the first failed login attempt, so record a new IPBlockCount.
                             ipBlockCount = new IPBlockCount();
-                            ipBlocker[ipAddress] = ipBlockCount;
+                            ipAddressesAndBlockCounts[ipAddress] = ipBlockCount;
                         }
 
                         // Increment the count.
@@ -285,10 +317,10 @@ namespace IPBan
                             // if they are not black listed OR this is the first increment of a black listed ip address, perform the ban
                             if (!blackListed || ipBlockCount.Count >= 1)
                             {
-                                if (!ipBlockerDate.ContainsKey(ipAddress))
+                                if (!ipAddressesAndBanDate.ContainsKey(ipAddress))
                                 {
                                     Log.Write(LogLevel.Error, "Banning ip address: {0}, user name: {1}, black listed: {2}, count: {3}", ipAddress, userName, blackListed, ipBlockCount.Count);
-                                    ipBlockerDate[ipAddress] = dateTime;
+                                    ipAddressesAndBanDate[ipAddress] = dateTime;
                                     ExecuteBanScript();
                                 }
                             }
@@ -466,10 +498,10 @@ namespace IPBan
             KeyValuePair<string, IPBlockCount>[] ipBlockCountList;
 
             // brief lock, we make copies of everything and work on the copies so we don't hold a lock too long
-            lock (ipBlocker)
+            lock (ipAddressesAndBlockCounts)
             {
-                blockList = ipBlockerDate.ToArray();
-                ipBlockCountList = ipBlocker.ToArray();
+                blockList = ipAddressesAndBanDate.ToArray();
+                ipBlockCountList = ipAddressesAndBlockCounts.ToArray();
             }
 
             DateTime now = DateTime.UtcNow;
@@ -486,11 +518,11 @@ namespace IPBan
                 else if ((config.BanTime.Ticks > 0 && (now - keyValue.Value) > config.BanTime) || config.IsWhiteListed(keyValue.Key))
                 {
                     Log.Write(LogLevel.Error, "Un-banning ip address {0}", keyValue.Key);
-                    lock (ipBlocker)
+                    lock (ipAddressesAndBlockCounts)
                     {
                         // take the ip out of the lists and mark the file as changed so that the ban script re-runs without this ip
-                        ipBlockerDate.Remove(keyValue.Key);
-                        ipBlocker.Remove(keyValue.Key);
+                        ipAddressesAndBanDate.Remove(keyValue.Key);
+                        ipAddressesAndBlockCounts.Remove(keyValue.Key);
                         fileChanged = true;
                     }
                 }
@@ -526,12 +558,12 @@ namespace IPBan
                 }
 
                 // Remove the IPs that have expired.
-                lock (ipBlocker)
+                lock (ipAddressesAndBlockCounts)
                 {
                     foreach (string ip in ipAddressesToForget)
                     {
                         // no need to mark the file as changed because this ip was not banned, it only had some number of failed login attempts
-                        ipBlocker.Remove(ip);
+                        ipAddressesAndBlockCounts.Remove(ip);
                     }
                 }
             }

@@ -19,16 +19,20 @@ namespace IPBan
     {
         private const string clsidFwPolicy2 = "{E2B3C97F-6AE1-41AC-817A-F6F92166D7DD}";
         private const string clsidFwRule = "{2C5BC43E-3369-4C33-AB0C-BE9469677AF4}";
-        private const int maxIpAddressesPerRule = 1000;
-
+        private const int maxIpAddressesPerRule = 1000; // do not change!
         private static INetFwPolicy2 policy;
-        private static string rulePrefix;
 
+        public static string RulePrefix { get; private set; }
+
+        /// <summary>
+        /// Initialize - call this from the main thread to avoid COM issues
+        /// </summary>
+        /// <param name="rulePrefix">Rule prefix</param>
         public static void Initialize(string rulePrefix)
         {
             Type objectType = Type.GetTypeFromCLSID(new Guid(clsidFwPolicy2));
             policy = Activator.CreateInstance(objectType) as INetFwPolicy2;
-            IPBanWindowsFirewall.rulePrefix = (string.IsNullOrWhiteSpace(rulePrefix) ? "IPBan_BlockIPAddresses_" : rulePrefix);
+            RulePrefix = (string.IsNullOrWhiteSpace(rulePrefix) ? "IPBan_BlockIPAddresses_" : rulePrefix);
         }
 
         private static string CreateRuleStringForIPAddresses(string[] ipAddresses, int index, int count)
@@ -55,7 +59,7 @@ namespace IPBan
         private static void CreateRule(string[] ipAddresses, int index, int count)
         {
             Type type = Type.GetTypeFromCLSID(new Guid(clsidFwRule));
-            string ruleName = rulePrefix + index;
+            string ruleName = RulePrefix + index;
             string remoteIpString = CreateRuleStringForIPAddresses(ipAddresses, index, count);
             INetFwRule rule = null;
             try
@@ -75,6 +79,7 @@ namespace IPBan
                 rule.Description = "Automatically created by IPBan";
                 rule.Direction = NET_FW_RULE_DIRECTION_.NET_FW_RULE_DIR_IN;
                 rule.EdgeTraversal = false;
+                rule.Grouping = "IPBan";
                 rule.LocalAddresses = "*";
                 rule.Profiles = int.MaxValue; // all
                 rule.Protocol = (int)NET_FW_IP_PROTOCOL_.NET_FW_IP_PROTOCOL_ANY;
@@ -84,7 +89,7 @@ namespace IPBan
         }
 
         /// <summary>
-        /// Calls DeleteRules then creates rules to block all the ip addresses. Exceptions are logged.
+        /// Creates new rules to block all the ip addresses, and removes any left-over rules. Exceptions are logged.
         /// </summary>
         /// <param name="ipAddresses">IP Addresses</param>
         /// <returns>True if success, false if error</returns>
@@ -97,10 +102,7 @@ namespace IPBan
                 {
                     CreateRule(ipAddresses, i, maxIpAddressesPerRule);
                 }
-                if (i != 0)
-                {
-                    policy.Rules.Remove(rulePrefix + i);
-                }
+                DeleteRules(i);
                 return true;
             }
             catch (Exception ex)
@@ -113,18 +115,23 @@ namespace IPBan
         /// <summary>
         /// Delete all rules with a name beginning with the rule prefix. Exceptions are logged.
         /// </summary>
+        /// <param name="startIndex">The start index to begin deleting rules at. The index is appended to the rule prefix.</param>
         /// <returns>True if success, false if error</returns>
-        public static bool DeleteRules()
+        public static bool DeleteRules(int startIndex = 0)
         {
             try
             {
                 List<INetFwRule> toDelete = new List<INetFwRule>();
                 foreach (INetFwRule rule in policy.Rules)
                 {
-                    if (rule.Name.StartsWith(rulePrefix))
+                    if (rule.Name.StartsWith(RulePrefix))
                     {
-                        rule.Enabled = false;
-                        toDelete.Add(rule);
+                        int index = int.Parse(rule.Name.Substring(RulePrefix.Length));
+                        if (index >= startIndex)
+                        {
+                            rule.Enabled = false;
+                            toDelete.Add(rule);
+                        }
                     }
                 }
                 foreach (INetFwRule rule in toDelete)

@@ -51,7 +51,7 @@ namespace IPBan
 
         public int RunConsole(string[] args)
         {
-            if (args.Length > 1 && args[1].Equals("test", StringComparison.OrdinalIgnoreCase))
+            if (args.Contains("test", StringComparer.OrdinalIgnoreCase))
             {
                 service.RunTestsOnStart = true;
             }
