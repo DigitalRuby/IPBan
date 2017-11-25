@@ -80,7 +80,7 @@ namespace IPBan
 
             if (regexValue.Length != 0)
             {
-                regex = new Regex(regexValue, RegexOptions.IgnoreCase | RegexOptions.Singleline);
+                regex = new Regex(regexValue, RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.CultureInvariant | RegexOptions.Compiled);
             }
         }
 
@@ -132,7 +132,7 @@ namespace IPBan
                 foreach (ExpressionToBlock expression in group.Expressions)
                 {
                     expression.Regex = (expression.Regex ?? string.Empty).Trim();
-                    expression.RegexObject = new Regex(expression.Regex, RegexOptions.IgnoreCase | RegexOptions.Singleline);
+                    expression.RegexObject = new Regex(expression.Regex, RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.CultureInvariant | RegexOptions.Compiled);
                 }
             }
         }
