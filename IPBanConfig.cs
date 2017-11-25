@@ -52,7 +52,6 @@ namespace IPBan
 
             if (!string.IsNullOrWhiteSpace(setValue))
             {
-
                 foreach (string v in setValue.Split(','))
                 {
                     set.Add(v.Trim());
@@ -132,6 +131,17 @@ namespace IPBan
                 foreach (ExpressionToBlock expression in group.Expressions)
                 {
                     expression.Regex = (expression.Regex ?? string.Empty).Trim();
+                    if (expression.Regex.Length != 0)
+                    {
+                        if (expression.Regex[0] == '^')
+                        {
+                            expression.Regex = "^\\s*?" + expression.Regex.Substring(1) + "\\s*?";
+                        }
+                        else
+                        {
+                            expression.Regex = "\\s*?" + expression.Regex + "\\s*?";
+                        }
+                    }
                     expression.RegexObject = new Regex(expression.Regex, RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.CultureInvariant | RegexOptions.Compiled);
                 }
             }
@@ -144,7 +154,6 @@ namespace IPBan
         /// <returns>True if whitelisted, false otherwise</returns>
         public bool IsWhiteListed(string ipAddress)
         {
-
             return (whiteList.Contains(ipAddress) || !IPAddress.TryParse(ipAddress, out IPAddress ip) || (whiteListRegex != null && whiteListRegex.IsMatch(ipAddress)));
         }
 
