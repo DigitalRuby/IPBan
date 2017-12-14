@@ -2,14 +2,6 @@
 ***** Requires .NET 4.0 and Windows Vista or Windows Server 2008 or newer *****
 *******************************************************************************
 
-Donations are accepted, any amount is appreciated, I work on this project for free to benefit the world.
-
-Donate via...
-Paypal: jjxtra@gmail.com (send to friends and family)
-Bitcoin: 15i8jW7jHJLJjAsCD2zYVaqyf3it4kusLr
-Ethereum: 0x77d3D990859a8c3e3486b5Ad63Da223f7F3778dc
-Litecoin: LYrut92FnkBgd5Mmnt7RcyFpuTWn8vKFQq
-
 Extract files to a place on your computer. Right click on all the extracted files and select properties. Make sure to select "unblock" if the option is available.
 
 To run as a Windows service (example: sc create IPBAN type= own start= auto binPath= d:\system\ipban\ipban.exe DisplayName= IPBAN). The service writes a log file to the same directory as the service, so run as SYSTEM to ensure permissions.
@@ -46,11 +38,17 @@ Enjoy!
 
 Donations are accepted, any amount is appreciated, I work on this project for free to benefit the world.
 
-Donate via...
-Paypal: jjxtra@gmail.com (send to friends and family)
-Bitcoin: 15i8jW7jHJLJjAsCD2zYVaqyf3it4kusLr
-Ethereum: 0x77d3D990859a8c3e3486b5Ad63Da223f7F3778dc
-Litecoin: LYrut92FnkBgd5Mmnt7RcyFpuTWn8vKFQq
+Donation addresses...
+
+Paypal: jjxtra@gmail.com (pick the send to friends and family with bank account option to avoid fees)
+
+Bitcoin: 1GBz8ithHvTqeRZxkmpHx5kQ9wBXuSH8AG
+
+Ethereum: 0x0d9Fc4ef1F1fBF8696D276678ef9fA2B6c1a3433
+
+Litecoin: LWxRMaVFeXLmaq5munDJxADYYLv2szYi9i
+
+Vertcoin: Vcu6Fqh8MGiLEyyifNSCgoCuQShTijzwFx
 
 -Jeff Johnson, CEO/CTO Digital Ruby, LLC
 http://www.digitalruby.com
