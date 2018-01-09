@@ -39,6 +39,7 @@ namespace IPBan
         private EventLogQuery query;
         private EventLogWatcher watcher;
 
+
         // note that an ip that has a block count may not yet be in the ipAddressesAndBanDate dictionary
         private Dictionary<string, IPBlockCount> ipAddressesAndBlockCounts = new Dictionary<string, IPBlockCount>();
         private Dictionary<string, DateTime> ipAddressesAndBanDate = new Dictionary<string, DateTime>();
@@ -319,6 +320,20 @@ namespace IPBan
                                 {
                                     Log.Write(LogLevel.Error, "Banning ip address: {0}, user name: {1}, black listed: {2}, count: {3}", ipAddress, userName, blackListed, ipBlockCount.Count);
                                     ipAddressesAndBanDate[ipAddress] = dateTime;
+
+                                    // Run a process if one is in config
+                                    if (!string.IsNullOrWhiteSpace(config.ProcessToRunOnBan()))
+                                    {
+                                        try
+                                        {
+                                            Process.Start(config.ProcessToRunOnBan(ipAddress));
+                                        }
+                                        catch (Exception e)
+                                        {
+                                            Log.Write(LogLevel.Error, "Failed to execute process on ban: {0}", e);
+                                        }
+                                    }
+
                                     ExecuteBanScript();
                                 }
                             }
