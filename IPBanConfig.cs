@@ -147,7 +147,7 @@ namespace IPBan
                 }
             }
 
-            _processToRunOnBan = ConfigurationManager.AppSettings["ProcessToRun"];
+            _processToRunOnBan = ConfigurationManager.AppSettings["ProcessToRunOnBan"];
         }
 
         /// <summary>
@@ -247,7 +247,7 @@ namespace IPBan
 
         public string ProcessToRunOnBan(string ipAddress = "")
         {
-            return string.IsNullOrEmpty(ipAddress) ? _processToRunOnBan : _processToRunOnBan.Replace("###IPADDRESS###", ipAddress);
+            return string.IsNullOrWhiteSpace(_processToRunOnBan) ? _processToRunOnBan : _processToRunOnBan.Replace("###IPADDRESS###", ipAddress);
         }
     }
 }
