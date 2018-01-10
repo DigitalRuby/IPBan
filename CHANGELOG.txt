@@ -1,3 +1,6 @@
+2018-01-09 (Chad Cooper)
+- Added ability to run an external program on IP ban.
+
 2017-08-09 (Jeff Johnson)
 - Add additional instructions about audit policy.
 - Add another XML test.
