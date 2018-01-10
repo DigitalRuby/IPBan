@@ -330,7 +330,7 @@ namespace IPBan
                                             var firstSpaceIndex = programToRunConfigString.IndexOf(" ", StringComparison.Ordinal);
                                             var program = programToRunConfigString.Substring(0, firstSpaceIndex);
                                             var arguments = programToRunConfigString.Remove(0, firstSpaceIndex + 1);
-                                            Log.Write(LogLevel.Error, "Running program {0}; with arguments {1}: ", program, arguments);
+                                            Log.Write(LogLevel.Error, "Running program: {0} with arguments: {1}", program, arguments);
                                             Process.Start(program, arguments);
                                         }
                                         catch (Exception e)
