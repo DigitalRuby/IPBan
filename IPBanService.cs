@@ -39,6 +39,7 @@ namespace IPBan
         private EventLogQuery query;
         private EventLogWatcher watcher;
 
+
         // note that an ip that has a block count may not yet be in the ipAddressesAndBanDate dictionary
         private Dictionary<string, IPBlockCount> ipAddressesAndBlockCounts = new Dictionary<string, IPBlockCount>();
         private Dictionary<string, DateTime> ipAddressesAndBanDate = new Dictionary<string, DateTime>();
@@ -319,6 +320,25 @@ namespace IPBan
                                 {
                                     Log.Write(LogLevel.Error, "Banning ip address: {0}, user name: {1}, black listed: {2}, count: {3}", ipAddress, userName, blackListed, ipBlockCount.Count);
                                     ipAddressesAndBanDate[ipAddress] = dateTime;
+
+                                    // Run a process if one is in config
+                                    var programToRunConfigString = config.ProcessToRunOnBan(ipAddress);
+                                    if (!string.IsNullOrWhiteSpace(programToRunConfigString))
+                                    {
+                                        try
+                                        {
+                                            var firstSpaceIndex = programToRunConfigString.IndexOf(" ", StringComparison.Ordinal);
+                                            var program = programToRunConfigString.Substring(0, firstSpaceIndex);
+                                            var arguments = programToRunConfigString.Remove(0, firstSpaceIndex + 1);
+                                            Log.Write(LogLevel.Error, "Running program: {0} with arguments: {1}", program, arguments);
+                                            Process.Start(program, arguments);
+                                        }
+                                        catch (Exception e)
+                                        {
+                                            Log.Write(LogLevel.Error, "Failed to execute process on ban: {0}", e);
+                                        }
+                                    }
+
                                     ExecuteBanScript();
                                 }
                             }

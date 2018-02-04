@@ -32,6 +32,7 @@ namespace IPBan
         private Regex blackListRegex;
         private readonly HashSet<string> allowedUserNames = new HashSet<string>();
         private bool banFileClearOnRestart;
+        private readonly string _processToRunOnBan;
 
         /// <summary>
         /// Checks whether a user name should be banned after a failed login attempt. Cases where this would happen would be if the config has specified an allowed list of user names.
@@ -145,6 +146,8 @@ namespace IPBan
                     expression.RegexObject = new Regex(expression.Regex, RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.CultureInvariant | RegexOptions.Compiled);
                 }
             }
+
+            _processToRunOnBan = ConfigurationManager.AppSettings["ProcessToRunOnBan"];
         }
 
         /// <summary>
@@ -241,5 +244,10 @@ namespace IPBan
         /// Allowed user names as a comma separated string
         /// </summary>
         public string AllowedUserNames { get { return string.Join(",", allowedUserNames); } }
+
+        public string ProcessToRunOnBan(string ipAddress = "")
+        {
+            return string.IsNullOrWhiteSpace(_processToRunOnBan) ? _processToRunOnBan : _processToRunOnBan.Replace("###IPADDRESS###", ipAddress);
+        }
     }
 }
