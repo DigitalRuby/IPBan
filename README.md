@@ -1,6 +1,6 @@
-*******************************************************************************
-***** Requires .NET 4.0 and Windows Vista or Windows Server 2008 or newer *****
-*******************************************************************************
+Windows IPBan Service
+-----
+[![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=7EJ3K33SRLU9E)
 
 Extract files to a place on your computer. Right click on all the extracted files and select properties. Make sure to select "unblock" if the option is available.
 
@@ -38,17 +38,7 @@ Enjoy!
 
 Donations are accepted, any amount is appreciated, I work on this project for free to benefit the world.
 
-Donation addresses...
-
-Paypal: jjxtra@gmail.com (pick the send to friends and family with bank account option to avoid fees)
-
-Bitcoin: 1GBz8ithHvTqeRZxkmpHx5kQ9wBXuSH8AG
-
-Ethereum: 0x0d9Fc4ef1F1fBF8696D276678ef9fA2B6c1a3433
-
-Litecoin: LWxRMaVFeXLmaq5munDJxADYYLv2szYi9i
-
-Vertcoin: Vcu6Fqh8MGiLEyyifNSCgoCuQShTijzwFx
+[![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=7EJ3K33SRLU9E)
 
 -Jeff Johnson, CEO/CTO Digital Ruby, LLC
 http://www.digitalruby.com
