@@ -24,7 +24,7 @@ using System.Text.RegularExpressions;
 
 namespace IPBan
 {
-    public class IPBanService : IDisposable
+    public class IPBanService : IIPBanService
     {
         private class PendingIPAddress
         {
@@ -33,19 +33,20 @@ namespace IPBan
             public DateTime DateTime { get; set; }
         }
 
-        private IPBanConfig config;
         private Thread serviceThread;
         private bool run;
         private EventLogQuery query;
         private EventLogWatcher watcher;
-
+        private bool needsBanScript;
 
         // note that an ip that has a block count may not yet be in the ipAddressesAndBanDate dictionary
+        // for locking, always use ipAddressesAndBlockCounts
         private Dictionary<string, IPBlockCount> ipAddressesAndBlockCounts = new Dictionary<string, IPBlockCount>();
         private Dictionary<string, DateTime> ipAddressesAndBanDate = new Dictionary<string, DateTime>();
 
         private DateTime lastConfigFileDateTime = DateTime.MinValue;
         private readonly ManualResetEvent cycleEvent = new ManualResetEvent(false);
+        private readonly object configLock = new object();
 
         // the windows event viewer calls back on a background thread, this allows pushing the ip addresses to a list that will be accessed
         //  in the main loop
@@ -53,18 +54,27 @@ namespace IPBan
 
         private void ExecuteBanScript()
         {
+            string[] ipAddresses;
+            KeyValuePair<string, DateTime>[] ipAndBanDateArray;
+
+            // quickly copy out data in the lock
             lock (ipAddressesAndBlockCounts)
             {
-                // create rules for all banned ip addresses
-                IPBanWindowsFirewall.CreateRules(ipAddressesAndBanDate.Keys.ToArray());
+                ipAddresses = ipAddressesAndBanDate.Keys.ToArray();
+                ipAndBanDateArray = ipAddressesAndBanDate.ToArray();
+            }
 
-                // write all banned ip addresses
-                using (StreamWriter writer = File.CreateText(config.BanFile))
+            // now that we are out of the lock, do more expensive operations
+
+            // create rules for all banned ip addresses
+            IPBanWindowsFirewall.CreateRules(ipAddresses);
+
+            // write all banned ip addresses
+            using (StreamWriter writer = File.CreateText(Config.BanFile))
+            {
+                foreach (KeyValuePair<string, DateTime> ipAndBanDate in ipAndBanDateArray)
                 {
-                    foreach (KeyValuePair<string, DateTime> ipAndBanDate in ipAddressesAndBanDate)
-                    {
-                        writer.WriteLine("{0}\t{1}", ipAndBanDate.Key, ipAndBanDate.Value.ToString("o"));
-                    }
+                    writer.WriteLine("{0}\t{1}", ipAndBanDate.Key, ipAndBanDate.Value.ToString("o"));
                 }
             }
         }
@@ -78,15 +88,18 @@ namespace IPBan
                 if (lastDateTime > lastConfigFileDateTime)
                 {
                     lastConfigFileDateTime = lastDateTime;
-                    IPBanConfig newConfig = new IPBanConfig();
-                    config = newConfig;
+                    lock (configLock)
+                    {
+                        IPBanConfig newConfig = new IPBanConfig { ExternalConfig = IPBanDelegate };
+                        Config = newConfig;
+                    }
                 }
             }
             catch (Exception ex)
             {
                 Log.Write(LogLevel.Error, ex.ToString());
 
-                if (config == null)
+                if (Config == null)
                 {
                     throw new ApplicationException("Configuration failed to load, make sure to unblock all the files. Right click each file, select properties and then unblock.", ex);
                 }
@@ -95,12 +108,12 @@ namespace IPBan
 
         private void LogInitialConfig()
         {
-            Log.Write(LogLevel.Info, "Whitelist: {0}, Whitelist Regex: {1}", config.WhiteList, config.WhiteListRegex);
-            Log.Write(LogLevel.Info, "Blacklist: {0}, Blacklist Regex: {1}", config.BlackList, config.BlackListRegex);
+            Log.Write(LogLevel.Info, "Whitelist: {0}, Whitelist Regex: {1}", Config.WhiteList, Config.WhiteListRegex);
+            Log.Write(LogLevel.Info, "Blacklist: {0}, Blacklist Regex: {1}", Config.BlackList, Config.BlackListRegex);
 
-            if (!string.IsNullOrWhiteSpace(config.AllowedUserNames))
+            if (!string.IsNullOrWhiteSpace(Config.AllowedUserNames))
             {
-                Log.Write(LogLevel.Info, "Allowed Users: {0}", config.AllowedUserNames);
+                Log.Write(LogLevel.Info, "Allowed Users: {0}", Config.AllowedUserNames);
             }
         }
 
@@ -110,16 +123,16 @@ namespace IPBan
             {
                 ipAddressesAndBlockCounts.Clear();
                 ipAddressesAndBanDate.Clear();
-                if (File.Exists(config.BanFile))
+                if (File.Exists(Config.BanFile))
                 {
-                    if (config.BanFileClearOnRestart)
+                    if (Config.BanFileClearOnRestart)
                     {
                         // don't re-ban any ip addresses, per config option
-                        File.Delete(config.BanFile);
+                        File.Delete(Config.BanFile);
                     }
                     else
                     {
-                        string[] lines = File.ReadAllLines(config.BanFile);
+                        string[] lines = File.ReadAllLines(Config.BanFile);
                         foreach (string ip in lines)
                         {
                             string[] pieces = ip.Split('\t');
@@ -129,7 +142,7 @@ namespace IPBan
                                 if (IPAddress.TryParse(ipTrimmed, out IPAddress tmp))
                                 {
                                     // setup a ban entry for the ip address
-                                    IPBlockCount blockCount = new IPBlockCount(config.FailedLoginAttemptsBeforeBan);
+                                    IPBlockCount blockCount = new IPBlockCount(Config.FailedLoginAttemptsBeforeBan);
                                     ipAddressesAndBlockCounts[ipTrimmed] = blockCount;
                                     if (pieces.Length > 1)
                                     {
@@ -185,7 +198,7 @@ namespace IPBan
             if (keywordsNode != null)
             {
                 // we must match on keywords
-                foreach (ExpressionsToBlockGroup group in config.GetGroupsMatchingKeywords(keywordsULONG))
+                foreach (ExpressionsToBlockGroup group in Config.GetGroupsMatchingKeywords(keywordsULONG))
                 {
                     foreach (ExpressionToBlock expression in group.Expressions)
                     {
@@ -276,9 +289,15 @@ namespace IPBan
             List<PendingIPAddress> ipAddresses;
             lock (pendingIPAddresses)
             {
+                if (pendingIPAddresses.Count == 0)
+                {
+                    return;
+                }
                 ipAddresses = new List<PendingIPAddress>(pendingIPAddresses);
                 pendingIPAddresses.Clear();
             }
+
+            List<string> bannedIpAddresses = new List<string>();
 
             foreach (PendingIPAddress p in ipAddresses)
             {
@@ -286,12 +305,15 @@ namespace IPBan
                 string userName = p.UserName;
                 DateTime dateTime = p.DateTime;
 
-                if (config.IsWhiteListed(ipAddress))
+                if (Config.IsWhiteListed(ipAddress))
                 {
                     Log.Write(LogLevel.Info, "Ignoring whitelisted ip address {0}, user name: {1}", ipAddress, userName);
                 }
                 else
                 {
+                    // check for the target user name for additional blacklisting checks                    
+                    bool blackListed = Config.IsBlackListed(ipAddress) || (userName != null && Config.IsBlackListed(userName));
+
                     lock (ipAddressesAndBlockCounts)
                     {
                         // Get the IPBlockCount, if one exists.
@@ -307,39 +329,18 @@ namespace IPBan
 
                         Log.Write(LogLevel.Info, "Incrementing count for ip {0} to {1}, user name: {2}", ipAddress, ipBlockCount.Count, userName);
 
-                        // check for the target user name for additional blacklisting checks                    
-                        bool blackListed = config.IsBlackListed(ipAddress) || (userName != null && config.IsBlackListed(userName));
-
                         // if the ip is black listed or they have reached the maximum failed login attempts before ban, ban them
-                        if (blackListed || ipBlockCount.Count >= config.FailedLoginAttemptsBeforeBan)
+                        if (blackListed || ipBlockCount.Count >= Config.FailedLoginAttemptsBeforeBan)
                         {
                             // if they are not black listed OR this is the first increment of a black listed ip address, perform the ban
                             if (!blackListed || ipBlockCount.Count >= 1)
                             {
                                 if (!ipAddressesAndBanDate.ContainsKey(ipAddress))
                                 {
+                                    bannedIpAddresses.Add(ipAddress);
                                     Log.Write(LogLevel.Error, "Banning ip address: {0}, user name: {1}, black listed: {2}, count: {3}", ipAddress, userName, blackListed, ipBlockCount.Count);
                                     ipAddressesAndBanDate[ipAddress] = dateTime;
-
-                                    // Run a process if one is in config
-                                    var programToRunConfigString = config.ProcessToRunOnBan(ipAddress);
-                                    if (!string.IsNullOrWhiteSpace(programToRunConfigString))
-                                    {
-                                        try
-                                        {
-                                            var firstSpaceIndex = programToRunConfigString.IndexOf(" ", StringComparison.Ordinal);
-                                            var program = programToRunConfigString.Substring(0, firstSpaceIndex);
-                                            var arguments = programToRunConfigString.Remove(0, firstSpaceIndex + 1);
-                                            Log.Write(LogLevel.Error, "Running program: {0} with arguments: {1}", program, arguments);
-                                            Process.Start(program, arguments);
-                                        }
-                                        catch (Exception e)
-                                        {
-                                            Log.Write(LogLevel.Error, "Failed to execute process on ban: {0}", e);
-                                        }
-                                    }
-
-                                    ExecuteBanScript();
+                                    needsBanScript = true;
                                 }
                             }
                             else
@@ -347,12 +348,57 @@ namespace IPBan
                                 Log.Write(LogLevel.Info, "Ignoring previously banned black listed ip {0}, user name: {1}, ip should already be banned", ipAddress, userName);
                             }
                         }
-                        else if (ipBlockCount.Count > config.FailedLoginAttemptsBeforeBan)
+                        else if (ipBlockCount.Count > Config.FailedLoginAttemptsBeforeBan)
                         {
                             Log.Write(LogLevel.Warning, "Got event with ip address {0}, count {1}, ip should already be banned", ipAddress, ipBlockCount.Count);
                         }
                     }
                 }
+            }
+
+            if (bannedIpAddresses.Count != 0)
+            {
+                // kick off external process and delegate notification in another thread
+                string programToRunConfigString = Config.ProcessToRunOnBan;
+                System.Threading.Tasks.Task.Factory.StartNew(() =>
+                {
+                    foreach (string bannedIp in bannedIpAddresses)
+                    {
+                        // Run a process if one is in config
+                        if (!string.IsNullOrWhiteSpace(programToRunConfigString))
+                        {
+                            try
+                            {
+                                string[] pieces = programToRunConfigString.Split('|');
+                                if (pieces.Length == 2)
+                                {
+                                    string program = pieces[0];
+                                    string arguments = pieces[1];
+                                    Process.Start(program, arguments.Replace("###IPADDRESS###", bannedIp));
+                                }
+                                else
+                                {
+                                    throw new ArgumentException("Invalid config option for process to run on ban: " + programToRunConfigString);
+                                }
+                            }
+                            catch (Exception e)
+                            {
+                                Log.Write(LogLevel.Error, "Failed to execute process on ban: {0}", e);
+                            }
+                        }
+                        if (IPBanDelegate != null)
+                        {
+                            try
+                            {
+                                IPBanDelegate.IPAddressBanned(bannedIp, true);
+                            }
+                            catch (Exception ex)
+                            {
+                                Log.Write(LogLevel.Error, "Error in delegate IPAddressBanned: {0}", ex);
+                            }
+                        }
+                    }
+                });
             }
         }
 
@@ -416,7 +462,7 @@ namespace IPBan
         {
             int id = 0;
             string queryString = "<QueryList>";
-            foreach (ExpressionsToBlockGroup group in config.Expressions.Groups)
+            foreach (ExpressionsToBlockGroup group in Config.Expressions.Groups)
             {
                 ulong keywordsDecimal = ulong.Parse(group.Keywords.Substring(2), NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture);
                 queryString += "<Query Id='" + (++id).ToString() + "' Path='" + group.Path + "'><Select Path='" + group.Path + "'>*[System[(band(Keywords," + keywordsDecimal.ToString() + "))]]</Select></Query>";
@@ -514,10 +560,14 @@ namespace IPBan
         {
             run = true;
             ReadAppSettings();
-            IPBanWindowsFirewall.Initialize(config.RuleName);
+            IPBanWindowsFirewall.Initialize(Config.RuleName);
             ProcessBanFileOnStart();
             SetupEventLogWatcher();
             LogInitialConfig();
+            if (IPBanDelegate != null)
+            {
+                IPBanDelegate.Start(this);
+            }
         }
 
         private void CheckForExpiredIP()
@@ -540,12 +590,12 @@ namespace IPBan
             foreach (KeyValuePair<string, DateTime> keyValue in blockList)
             {
                 // never un-ban a blacklisted entry
-                if (config.IsBlackListed(keyValue.Key))
+                if (Config.IsBlackListed(keyValue.Key))
                 {
                     continue;
                 }
                 // if ban duration has expired or ip is white listed, un-ban
-                else if ((config.BanTime.Ticks > 0 && (now - keyValue.Value) > config.BanTime) || config.IsWhiteListed(keyValue.Key))
+                else if ((Config.BanTime.Ticks > 0 && (now - keyValue.Value) > Config.BanTime) || Config.IsWhiteListed(keyValue.Key))
                 {
                     Log.Write(LogLevel.Error, "Un-banning ip address {0}", keyValue.Key);
                     lock (ipAddressesAndBlockCounts)
@@ -559,12 +609,12 @@ namespace IPBan
             }
 
             // if we are allowing ip addresses failed login attempts to expire and get reset back to 0
-            if (config.ExpireTime.TotalSeconds > 0)
+            if (Config.ExpireTime.TotalSeconds > 0)
             {
                 // Check the list of failed login attempts, that are not yet blocked, for expired IPs.
                 foreach (KeyValuePair<string, IPBlockCount> keyValue in ipBlockCountList)
                 {
-                    if (config.IsBlackListed(keyValue.Key))
+                    if (Config.IsBlackListed(keyValue.Key))
                     {
                         continue;
                     }
@@ -579,7 +629,7 @@ namespace IPBan
                     {
                         TimeSpan elapsed = (now - keyValue.Value.LastFailedLogin);
 
-                        if (elapsed > config.ExpireTime)
+                        if (elapsed > Config.ExpireTime)
                         {
                             Log.Write(LogLevel.Info, "Forgetting ip address {0}", keyValue.Key);
                             ipAddressesToForget.Add(keyValue.Key);
@@ -596,12 +646,119 @@ namespace IPBan
                         ipAddressesAndBlockCounts.Remove(ip);
                     }
                 }
+
+                // notify delegate outside of lock
+                if (IPBanDelegate != null)
+                {
+                    // notify delegate of ban in background thread
+                    System.Threading.Tasks.Task.Factory.StartNew(() =>
+                    {
+                        foreach (string ip in ipAddressesToForget)
+                        {
+                            try
+                            {
+                                IPBanDelegate.IPAddressBanned(ip, false);
+                            }
+                            catch (Exception ex)
+                            {
+                                Log.Write(LogLevel.Error, "Error in delegate IPAddressBanned: {0}", ex);
+                            }
+                        }
+                    });
+                }
             }
 
             // if the file changed, re-run the ban script with the updated list of ip addresses
-            if (fileChanged)
+            needsBanScript = fileChanged;
+        }
+
+        private static bool IpAddressIsInRange(string ipAddress, string cidrMask)
+        {
+            try
             {
-                ExecuteBanScript();
+                string[] parts = cidrMask.Split('/');
+                int IP_addr = BitConverter.ToInt32(IPAddress.Parse(parts[0]).GetAddressBytes(), 0);
+                int CIDR_addr = BitConverter.ToInt32(IPAddress.Parse(ipAddress).GetAddressBytes(), 0);
+                int CIDR_mask = IPAddress.HostToNetworkOrder(-1 << (32 - int.Parse(parts[1])));
+                return ((IP_addr & CIDR_mask) == (CIDR_addr & CIDR_mask));
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        private void UpdateDelegate()
+        {
+            if (IPBanDelegate == null)
+            {
+                return;
+            }
+
+            try
+            {
+                // we don't do the delegate update in a background thread because if it changes state, we need that done on the main loop thread
+                if (IPBanDelegate.Update())
+                {
+                    bool changed = false;
+
+                    // sync up the blacklist and whitelist from the delegate
+                    lock (ipAddressesAndBlockCounts)
+                    {
+                        foreach (string ip in IPBanDelegate.EnumerateBlackList())
+                        {
+                            // ban all blacklisted ip addresses
+                            if (!ipAddressesAndBanDate.ContainsKey(ip))
+                            {
+                                changed = true;
+                                ipAddressesAndBanDate[ip] = DateTime.UtcNow;
+                                ipAddressesAndBlockCounts[ip] = new IPBlockCount { Count = Config.FailedLoginAttemptsBeforeBan, LastFailedLogin = DateTime.UtcNow };
+                            }
+                        }
+                        List<string> unban = new List<string>();
+                        foreach (KeyValuePair<string, DateTime> kv in ipAddressesAndBanDate)
+                        {
+                            if (!IPBanDelegate.IsBlacklisted(kv.Key))
+                            {
+                                changed = true;
+                                unban.Add(kv.Key);
+                            }
+                        }
+                        foreach (string ip in unban)
+                        {
+                            ipAddressesAndBanDate.Remove(ip);
+                            ipAddressesAndBlockCounts.Remove(ip);
+                        }
+                        foreach (string ip in IPBanDelegate.EnumerateWhiteList())
+                        {
+                            // un-ban all whitelisted ip addresses
+                            if (ipAddressesAndBanDate.ContainsKey(ip))
+                            {
+                                ipAddressesAndBanDate.Remove(ip);
+                                ipAddressesAndBlockCounts.Remove(ip);
+                                changed = true;
+                            }
+                            // check for subnet matches, unban any ip from the local subnet
+                            else if (ip.Contains('/'))
+                            {
+                                foreach (string key in ipAddressesAndBanDate.Keys.ToArray())
+                                {
+                                    if (IpAddressIsInRange(key, ip))
+                                    {
+                                        ipAddressesAndBanDate.Remove(ip);
+                                        ipAddressesAndBlockCounts.Remove(ip);
+                                        changed = true;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    needsBanScript = changed;
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Write(LogLevel.Error, "Error in delegate Update: {0}", ex);
             }
         }
 
@@ -610,9 +767,69 @@ namespace IPBan
             while (run)
             {
                 ReadAppSettings();
+                UpdateDelegate();
                 CheckForExpiredIP();
                 ProcessPendingIPAddresses();
-                cycleEvent.WaitOne(config.CycleTime);
+                if (needsBanScript)
+                {
+                    needsBanScript = false;
+                    ExecuteBanScript();
+                }
+                cycleEvent.WaitOne(Config.CycleTime);
+            }
+        }
+
+        /// <summary>
+        /// Ban/unban an ip address
+        /// </summary>
+        /// <param name="ip">IP address to ban or unban</param>
+        /// <param name="ban">True to ban, false to unban</param>
+        public void BanIpAddress(string ip, bool ban)
+        {
+            ip = ip?.Trim();
+            if (string.IsNullOrWhiteSpace(ip))
+            {
+                return;
+            }
+            else if (ban)
+            {
+                if (!Config.IsWhiteListed(ip))
+                {
+                    lock (ipAddressesAndBlockCounts)
+                    {
+                        ipAddressesAndBanDate[ip] = DateTime.UtcNow;
+                        ipAddressesAndBlockCounts[ip] = new IPBlockCount(Config.FailedLoginAttemptsBeforeBan); ;
+                    }
+                }
+            }
+            else
+            {
+                lock (ipAddressesAndBlockCounts)
+                {
+                    ipAddressesAndBanDate.Remove(ip);
+                    ipAddressesAndBlockCounts.Remove(ip);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Write a new config file
+        /// </summary>
+        /// <param name="xml">Xml of the new config file</param>
+        public void UpdateConfig(string xml)
+        {
+            try
+            {
+                // Ensure valid xml before writing the file
+                XmlDocument doc = new XmlDocument();
+                doc.LoadXml(xml);
+                lock (configLock)
+                {
+                    File.WriteAllText(AppDomain.CurrentDomain.SetupInformation.ConfigurationFile, xml);
+                }
+            }
+            catch
+            {
             }
         }
 
@@ -631,6 +848,18 @@ namespace IPBan
             serviceThread.Join();
             cycleEvent.Dispose();
             query = null;
+            if (IPBanDelegate != null)
+            {
+                try
+                {
+                    IPBanDelegate.Stop();
+                    IPBanDelegate.Dispose();
+                }
+                catch
+                {
+                }
+                IPBanDelegate = null;
+            }
             if (watcher != null)
             {
                 watcher.Dispose();
@@ -666,5 +895,15 @@ namespace IPBan
         /// Whether to run unit tests on start. Default is false.
         /// </summary>
         public bool RunTestsOnStart { get; set; }
+
+        /// <summary>
+        /// Configuration
+        /// </summary>
+        public IPBanConfig Config { get; private set; }
+
+        /// <summary>
+        /// External delegate to allow external config, whitelist, blacklist, etc.
+        /// </summary>
+        public IIPBanDelegate IPBanDelegate { get; set; }
     }
 }

@@ -4,11 +4,11 @@ Windows IPBan Service
 
 Extract files to a place on your computer. Right click on all the extracted files and select properties. Make sure to select "unblock" if the option is available.
 
-To run as a Windows service (example: sc create IPBAN type= own start= auto binPath= d:\system\ipban\ipban.exe DisplayName= IPBAN). The service writes a log file to the same directory as the service, so run as SYSTEM to ensure permissions.
+To run as a Windows service run "sc create IPBAN type= own start= auto binPath= c:\path\to\service\ipban.exe DisplayName= IPBAN". The service writes a log file to the same directory as the service, so run as SYSTEM to ensure permissions.
 
-Make sure to look at the config file for configuration options
+Make sure to look at the config file for configuration options.
 
-To debug as a console app and troubleshoot, run "IPBAN.EXE debug"
+To debug as a console app, simply run IPBAN.EXE and watch console output.
 
 Make sure you are logging failed login attempts via local security policy / audit policy.
 

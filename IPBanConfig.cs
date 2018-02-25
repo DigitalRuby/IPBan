@@ -157,17 +157,25 @@ namespace IPBan
         /// <returns>True if whitelisted, false otherwise</returns>
         public bool IsWhiteListed(string ipAddress)
         {
-            return (whiteList.Contains(ipAddress) || !IPAddress.TryParse(ipAddress, out IPAddress ip) || (whiteListRegex != null && whiteListRegex.IsMatch(ipAddress)));
+            return !string.IsNullOrWhiteSpace(ipAddress) &&
+                (whiteList.Contains(ipAddress) ||
+                !IPAddress.TryParse(ipAddress, out IPAddress ip) ||
+                (whiteListRegex != null && whiteListRegex.IsMatch(ipAddress)) ||
+                (ExternalConfig != null && ExternalConfig.IsWhitelisted(ipAddress)));
         }
 
         /// <summary>
         /// Check if an ip address, dns name or user name is blacklisted
         /// </summary>
-        /// <param name="text">Text containing ip address, dns name or user name</param>
+        /// <param name="ipAddress">IP address, dns name or user name</param>
         /// <returns>True if blacklisted, false otherwise</returns>
-        public bool IsBlackListed(string text)
+        public bool IsBlackListed(string ipAddress)
         {
-            return !string.IsNullOrWhiteSpace(text) && ((blackList.Contains(text) || (blackListRegex != null && blackListRegex.IsMatch(text))) || ShouldBanUserNameAfterFailedLoginAttempt(text));
+            return !string.IsNullOrWhiteSpace(ipAddress) &&
+                ((blackList.Contains(ipAddress) ||
+                (blackListRegex != null && blackListRegex.IsMatch(ipAddress))) ||
+                ShouldBanUserNameAfterFailedLoginAttempt(ipAddress) ||
+                (ExternalConfig != null && ExternalConfig.IsBlacklisted(ipAddress)));
         }
 
         /// <summary>
@@ -245,9 +253,14 @@ namespace IPBan
         /// </summary>
         public string AllowedUserNames { get { return string.Join(",", allowedUserNames); } }
 
-        public string ProcessToRunOnBan(string ipAddress = "")
-        {
-            return string.IsNullOrWhiteSpace(processToRunOnBan) ? processToRunOnBan : processToRunOnBan.Replace("###IPADDRESS###", ipAddress);
-        }
+        /// <summary>
+        /// Process to run on ban - replace ###IPADDRESS### with the banned ip address
+        /// </summary>
+        public string ProcessToRunOnBan { get { return processToRunOnBan; } }
+
+        /// <summary>
+        /// External configuration
+        /// </summary>
+        public IIPBanExternalConfig ExternalConfig { get; set; }
     }
 }

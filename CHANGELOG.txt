@@ -1,3 +1,7 @@
+2018-02-25 (Jeff Johnson)
+- Changed external process on ban in config to split the process and command line arguments by a pipe (|) character.
+- Code refactor, external interface option.
+
 2018-01-09 (Chad Cooper)
 - Added ability to run an external program on IP ban.
 

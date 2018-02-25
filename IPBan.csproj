@@ -78,6 +78,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ExpressionsToBlockConfigSectionHandler.cs" />
+    <Compile Include="IIPBanService.cs" />
     <Compile Include="IPBanConfig.cs" />
     <Compile Include="IPBanService.cs" />
     <Compile Include="IPBanServiceRunner.cs">

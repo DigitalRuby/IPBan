@@ -10,6 +10,7 @@ using System.IO;
 using System.Linq;
 using System.Management;
 using System.Net;
+using System.Reflection;
 using System.Security.Permissions;
 using System.ServiceProcess;
 using System.Text;
@@ -26,31 +27,72 @@ namespace IPBan
 {
     public class IPBanServiceRunner : ServiceBase
     {
-        private static IPBanServiceRunner runner = new IPBanServiceRunner();
-        private static IPBanService service = new IPBanService();
+        private static IPBanService service;
 
         protected override void OnStart(string[] args)
         {
             base.OnStart(args);
+            service = new IPBanService();
             service.Start();
         }
 
         protected override void OnStop()
         {
-            base.OnStop();
             service.Stop();
+            base.OnStop();
         }
 
-        public int RunService(string[] args)
+        protected override void OnSessionChange(SessionChangeDescription changeDescription)
+        {
+            base.OnSessionChange(changeDescription);
+        }
+
+        protected override bool OnPowerEvent(PowerBroadcastStatus powerStatus)
+        {
+            return base.OnPowerEvent(powerStatus);
+        }
+
+        protected virtual void Preshutdown()
+        {
+        }
+
+        protected override void OnCustomCommand(int command)
+        {
+            // command is SERVICE_CONTROL_PRESHUTDOWN
+            if (command == 0x0000000F)
+            {
+                Preshutdown();
+            }
+            else
+            {
+                base.OnCustomCommand(command);
+            }
+        }
+
+        public IPBanServiceRunner()
+        {
+            CanShutdown = false;
+            CanStop = CanHandleSessionChangeEvent = CanHandlePowerEvent = true;
+            var acceptedCommandsField = typeof(ServiceBase).GetField("acceptedCommands", BindingFlags.Instance | BindingFlags.NonPublic);
+            if (acceptedCommandsField != null)
+            {
+                int acceptedCommands = (int)acceptedCommandsField.GetValue(this);
+                acceptedCommands |= 0x00000100; // SERVICE_ACCEPT_PRESHUTDOWN;
+                acceptedCommandsField.SetValue(this, acceptedCommands);
+            }
+        }
+
+        public static int RunService(string[] args)
         {
             System.ServiceProcess.ServiceBase[] ServicesToRun;
-            ServicesToRun = new System.ServiceProcess.ServiceBase[] { this };
+            ServicesToRun = new System.ServiceProcess.ServiceBase[] { new IPBanServiceRunner() };
             System.ServiceProcess.ServiceBase.Run(ServicesToRun);
             return 0;
         }
 
-        public int RunConsole(string[] args)
+        public static int RunConsole(string[] args)
         {
+            IPBanService service = new IPBanService();
             if (args.Contains("test", StringComparer.OrdinalIgnoreCase))
             {
                 service.RunTestsOnStart = true;
@@ -65,14 +107,13 @@ namespace IPBan
         public static int Main(string[] args)
         {
             Directory.SetCurrentDirectory(AppDomain.CurrentDomain.BaseDirectory);
-            runner = new IPBanServiceRunner();
-            if (args.Length != 0 && args[0] == "debug")
+            if (Environment.UserInteractive)
             {
-                return runner.RunConsole(args);
+                return IPBanServiceRunner.RunConsole(args);
             }
             else
             {
-                return runner.RunService(args);
+                return IPBanServiceRunner.RunService(args);
             }
         }
     }
