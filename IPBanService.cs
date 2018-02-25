@@ -764,8 +764,11 @@ namespace IPBan
 
         private void ServiceThread()
         {
+            System.Diagnostics.Stopwatch timer = new Stopwatch();
+
             while (run)
             {
+                timer.Restart();
                 ReadAppSettings();
                 UpdateDelegate();
                 CheckForExpiredIP();
@@ -775,7 +778,14 @@ namespace IPBan
                     needsBanScript = false;
                     ExecuteBanScript();
                 }
-                cycleEvent.WaitOne(Config.CycleTime);
+                {
+                    TimeSpan nextWait = Config.CycleTime - timer.Elapsed;
+                    if (nextWait.TotalMilliseconds < 1.0)
+                    {
+                        nextWait = TimeSpan.FromMilliseconds(1.0);
+                    }
+                    cycleEvent.WaitOne(nextWait);
+                }
             }
         }
 
