@@ -832,7 +832,10 @@ namespace IPBan
             {
                 // Ensure valid xml before writing the file
                 XmlDocument doc = new XmlDocument();
-                doc.LoadXml(xml);
+                using (XmlReader xmlReader = XmlReader.Create(new StringReader(xml), new XmlReaderSettings { CheckCharacters = false }))
+                {
+                    doc.Load(xmlReader);
+                }
                 lock (configLock)
                 {
                     File.WriteAllText(AppDomain.CurrentDomain.SetupInformation.ConfigurationFile, xml);
