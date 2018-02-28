@@ -27,18 +27,19 @@ namespace IPBan
 {
     public class IPBanServiceRunner : ServiceBase
     {
-        private static IPBanService service;
+        private IPBanService service;
 
         protected override void OnStart(string[] args)
         {
             base.OnStart(args);
-            service = new IPBanService();
+            service = CreateService();
             service.Start();
         }
 
         protected override void OnStop()
         {
             service.Stop();
+            service = null;
             base.OnStop();
         }
 
@@ -82,6 +83,21 @@ namespace IPBan
             }
         }
 
+        public static IPBanService CreateService()
+        {
+            System.Type[] types = System.Reflection.Assembly.GetEntryAssembly().GetTypes();
+            Type instanceType = typeof(IPBanService);
+            foreach (Type type in types)
+            {
+                if (type.IsSubclassOf(instanceType))
+                {
+                    instanceType = type;
+                    break;
+                }
+            }
+            return (IPBanService)Activator.CreateInstance(instanceType);
+        }
+
         public static int RunService(string[] args)
         {
             System.ServiceProcess.ServiceBase[] ServicesToRun;
@@ -92,7 +108,7 @@ namespace IPBan
 
         public static int RunConsole(string[] args)
         {
-            IPBanService service = new IPBanService();
+            IPBanService service = CreateService();
             if (args.Contains("test", StringComparer.OrdinalIgnoreCase))
             {
                 service.RunTestsOnStart = true;
