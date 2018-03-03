@@ -158,7 +158,7 @@ namespace IPBan
             {
                 try
                 {
-                    RemoteIPAddressString = new WebClient().DownloadString(@"http://icanhazip.com").Trim();
+                    RemoteIPAddressString = new WebClient().DownloadString(Config.ExternalIPAddressUrl).Trim();
                 }
                 catch
                 {

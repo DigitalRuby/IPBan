@@ -36,6 +36,7 @@ namespace IPBan
         private readonly string getUrlUpdate;
         private readonly string getUrlStart;
         private readonly string getUrlStop;
+        private readonly string externalIPAddressUrl;
 
         /// <summary>
         /// Checks whether a user name should be banned after a failed login attempt. Cases where this would happen would be if the config has specified an allowed list of user names.
@@ -154,6 +155,7 @@ namespace IPBan
             getUrlUpdate = ConfigurationManager.AppSettings["GetUrlUpdate"];
             getUrlStart = ConfigurationManager.AppSettings["GetUrlStart"];
             getUrlStop = ConfigurationManager.AppSettings["GetUrlStop"];
+            externalIPAddressUrl = ConfigurationManager.AppSettings["ExternalIPAddressUrl"];
         }
 
         /// <summary>
@@ -278,6 +280,11 @@ namespace IPBan
         /// A url to get when the service stops, empty for none. ###IPADDRESS### will be replaced with the local ip. ###MACHINENAME### will be replaced with the fully qualified domain name of the machine.
         /// </summary>
         public string GetUrlStop { get { return getUrlStop; } }
+
+        /// <summary>
+        /// Url to query to get the external ip address, the url should return a string which is the external ip address.
+        /// </summary>
+        public string ExternalIPAddressUrl { get { return externalIPAddressUrl; } }
 
         /// <summary>
         /// External configuration
