@@ -38,6 +38,7 @@ namespace IPBan
         private EventLogQuery query;
         private EventLogWatcher watcher;
         private bool needsBanScript;
+        private bool gotStartUrl;
 
         // note that an ip that has a block count may not yet be in the ipAddressesAndBanDate dictionary
         // for locking, always use ipAddressesAndBlockCounts
@@ -104,6 +105,70 @@ namespace IPBan
                     throw new ApplicationException("Configuration failed to load, make sure to unblock all the files. Right click each file, select properties and then unblock.", ex);
                 }
             }
+        }
+
+        private void SetNetworkInfo()
+        {
+            if (string.IsNullOrWhiteSpace(FQDN))
+            {
+                string serverName = System.Environment.MachineName;
+                try
+                {
+                    FQDN = System.Net.Dns.GetHostEntry(serverName).HostName;
+                }
+                catch
+                {
+                    FQDN = serverName;
+                }
+            }
+
+            if (string.IsNullOrWhiteSpace(LocalIPAddressString))
+            {
+                try
+                {
+                    // append ipv4 first, then the ipv6 then the remote ip
+                    IPAddress[] ips = Dns.GetHostAddresses(Dns.GetHostName());
+                    foreach (IPAddress ip in ips)
+                    {
+                        if (ip.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
+                        {
+                            LocalIPAddressString = ip.ToString();
+                            break;
+                        }
+                    }
+                    if (string.IsNullOrWhiteSpace(LocalIPAddressString))
+                    {
+                        foreach (IPAddress ip in ips)
+                        {
+                            if (ip.AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6)
+                            {
+                                LocalIPAddressString = ip.ToString();
+                                break;
+                            }
+                        }
+                    }
+                }
+                catch
+                {
+
+                }
+            }
+
+            if (string.IsNullOrWhiteSpace(RemoteIPAddressString))
+            {
+                try
+                {
+                    RemoteIPAddressString = new WebClient().DownloadString(@"http://icanhazip.com").Trim();
+                }
+                catch
+                {
+
+                }
+            }
+
+            // hit start url if first time
+            GetUrl(true);
+            GetUrl(null);
         }
 
         private void LogInitialConfig()
@@ -762,31 +827,72 @@ namespace IPBan
             }
         }
 
+        private void GetUrl(bool? start)
+        {
+            if ((start != null && start.Value && gotStartUrl) || string.IsNullOrWhiteSpace(LocalIPAddressString) || string.IsNullOrWhiteSpace(FQDN))
+            {
+                return;
+            }
+            else if (start != null && !start.Value)
+            {
+                gotStartUrl = false;
+            }
+            string url = (start == null ? Config.GetUrlUpdate : (start.Value ? Config.GetUrlStart : Config.GetUrlStop));
+            if (!string.IsNullOrWhiteSpace(url))
+            {
+                url = url.Replace("###IPADDRESS###", LocalIPAddressString).Replace("###MACHINENAME###", FQDN);
+                System.Threading.Tasks.Task.Factory.StartNew(() =>
+                {
+                    try
+                    {
+                        using (WebClient client = new WebClient())
+                        {
+                            client.Headers["User-Agent"] = "IPBan";
+                            client.DownloadData(url);
+                        }
+                        gotStartUrl = true;
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Write(LogLevel.Error, "Error notifying of start/stop, start = {0}, error: {1}", start, ex);
+                    }
+                });
+            }
+        }
+
         private void ServiceThread()
         {
             System.Diagnostics.Stopwatch timer = new Stopwatch();
-
-            while (run)
+            try
             {
-                timer.Restart();
-                ReadAppSettings();
-                UpdateDelegate();
-                CheckForExpiredIP();
-                ProcessPendingIPAddresses();
-                if (needsBanScript)
+                while (run)
                 {
-                    needsBanScript = false;
-                    ExecuteBanScript();
-                }
-                {
-                    TimeSpan nextWait = Config.CycleTime - timer.Elapsed;
-                    if (nextWait.TotalMilliseconds < 1.0)
+                    timer.Restart();
+                    ReadAppSettings();
+                    SetNetworkInfo();
+                    UpdateDelegate();
+                    CheckForExpiredIP();
+                    ProcessPendingIPAddresses();
+                    if (needsBanScript)
                     {
-                        nextWait = TimeSpan.FromMilliseconds(1.0);
+                        needsBanScript = false;
+                        ExecuteBanScript();
                     }
-                    cycleEvent.WaitOne(nextWait);
+                    {
+                        TimeSpan nextWait = Config.CycleTime - timer.Elapsed;
+                        if (nextWait.TotalMilliseconds < 1.0)
+                        {
+                            nextWait = TimeSpan.FromMilliseconds(1.0);
+                        }
+                        cycleEvent.WaitOne(nextWait);
+                    }
                 }
             }
+            catch (Exception ex)
+            {
+                Log.Write(LogLevel.Error, "Unhandled exception: " + ex);
+            }
+            GetUrl(false);
         }
 
         /// <summary>
@@ -913,6 +1019,21 @@ namespace IPBan
         /// Configuration
         /// </summary>
         public IPBanConfig Config { get; private set; }
+
+        /// <summary>
+        /// Local ip address
+        /// </summary>
+        public string LocalIPAddressString { get; private set; }
+
+        /// <summary>
+        /// Remote ip address
+        /// </summary>
+        public string RemoteIPAddressString { get; private set; }
+
+        /// <summary>
+        /// Fully qualified domain name
+        /// </summary>
+        public string FQDN { get; private set; }
 
         /// <summary>
         /// External delegate to allow external config, whitelist, blacklist, etc.

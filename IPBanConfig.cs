@@ -33,6 +33,9 @@ namespace IPBan
         private readonly HashSet<string> allowedUserNames = new HashSet<string>();
         private bool banFileClearOnRestart;
         private readonly string processToRunOnBan;
+        private readonly string getUrlUpdate;
+        private readonly string getUrlStart;
+        private readonly string getUrlStop;
 
         /// <summary>
         /// Checks whether a user name should be banned after a failed login attempt. Cases where this would happen would be if the config has specified an allowed list of user names.
@@ -148,6 +151,9 @@ namespace IPBan
             }
 
             processToRunOnBan = ConfigurationManager.AppSettings["ProcessToRunOnBan"];
+            getUrlUpdate = ConfigurationManager.AppSettings["GetUrlUpdate"];
+            getUrlStart = ConfigurationManager.AppSettings["GetUrlStart"];
+            getUrlStop = ConfigurationManager.AppSettings["GetUrlStop"];
         }
 
         /// <summary>
@@ -257,6 +263,21 @@ namespace IPBan
         /// Process to run on ban - replace ###IPADDRESS### with the banned ip address
         /// </summary>
         public string ProcessToRunOnBan { get { return processToRunOnBan; } }
+
+        /// <summary>
+        /// A url to get when the service updates, empty for none. ###IPADDRESS### will be replaced with the local ip. ###MACHINENAME### will be replaced with the fully qualified domain name of the machine.
+        /// </summary>
+        public string GetUrlUpdate { get { return getUrlUpdate; } }
+
+        /// <summary>
+        /// A url to get when the service starts, empty for none. ###IPADDRESS### will be replaced with the local ip. ###MACHINENAME### will be replaced with the fully qualified domain name of the machine.
+        /// </summary>
+        public string GetUrlStart { get { return getUrlStart; } }
+
+        /// <summary>
+        /// A url to get when the service stops, empty for none. ###IPADDRESS### will be replaced with the local ip. ###MACHINENAME### will be replaced with the fully qualified domain name of the machine.
+        /// </summary>
+        public string GetUrlStop { get { return getUrlStop; } }
 
         /// <summary>
         /// External configuration
