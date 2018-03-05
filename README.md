@@ -21,7 +21,7 @@ If you still don't see ip addresses being logged, do the following:
 - Make sure to read this stackoverflow thread about ip addresses not getting logged: http://stackoverflow.com/questions/1734635/event-logging-ipaddress-does-not-always-resolve
 - Network security: LAN Manager authentication level -- Send NTLMv2 response only. Refuse LM & NTLM
 - Network security: Restrict NTLM: Audit Incoming NTLM Traffic -- Enable auditing for all accounts
-- Network security: Restrict NTLM: Incoming NTLM traffic -- Deny all accounts
+- Network security: Restrict NTLM: Incoming NTLM traffic -- Allow all accounts
 - Do not allow for passwords to be saved -- Enabled
 - Prompt for credentials on the client computer -- Enabled
 
