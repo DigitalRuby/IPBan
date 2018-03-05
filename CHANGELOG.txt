@@ -1,3 +1,6 @@
+2018-03-05 (Jeff Johnson)
+- Added notification urls and delegate interface.
+
 2018-02-25 (Jeff Johnson)
 - Changed external process on ban in config to split the process and command line arguments by a pipe (|) character.
 - Code refactor, external interface option.
