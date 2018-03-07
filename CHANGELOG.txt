@@ -1,3 +1,6 @@
+2018-03-07 (Jeff Johnson)
+- Force strip bad xml chars.
+
 2018-03-05 (Jeff Johnson)
 - Added notification urls and delegate interface.
 
