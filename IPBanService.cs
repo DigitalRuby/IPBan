@@ -842,7 +842,8 @@ namespace IPBan
             string url = (start == null ? Config.GetUrlUpdate : (start.Value ? Config.GetUrlStart : Config.GetUrlStop));
             if (!string.IsNullOrWhiteSpace(url))
             {
-                url = url.Replace("###IPADDRESS###", LocalIPAddressString).Replace("###MACHINENAME###", FQDN);
+                url = url.Replace("###IPADDRESS###", WebUtility.UrlEncode(LocalIPAddressString)).Replace("###MACHINENAME###", WebUtility.UrlEncode(FQDN))
+                    .Replace("###VERSION###", WebUtility.UrlEncode(System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString()));
                 System.Threading.Tasks.Task.Factory.StartNew(() =>
                 {
                     try

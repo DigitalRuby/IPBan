@@ -2,45 +2,34 @@ Windows IPBan Service
 -----
 [![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=7EJ3K33SRLU9E)
 
-Extract files to a place on your computer. Right click on all the extracted files and select properties. Make sure to select "unblock" if the option is available.
+**Instructions**
 
-To run as a Windows service run "sc create IPBAN type= own start= auto binPath= c:\path\to\service\ipban.exe DisplayName= IPBAN". The service writes a log file to the same directory as the service, so run as SYSTEM to ensure permissions.
-
-Make sure to look at the config file for configuration options.
-
-To debug as a console app, simply run IPBAN.EXE and watch console output.
-
-Make sure you are logging failed login attempts via local security policy / audit policy.
-
-You *MUST* make this change to the local security policy to ensure ip addresses show up: 
+- Ensure .NET framework 4.5 or newer is installed. Then extract the .zip file download to a place on your computer. Right click on all the extracted files and select properties. Make sure to select "unblock" if the option is available.
+- You *MUST* make this change to the local security policy to ensure ip addresses show up: 
 Change Local Security Policy -> Local Policies -> Audit Policy and turn failure logging on for "audit account logon events" and "audit logon events".
 From an admin command prompt: auditpol /set /category:"Logon/Logoff" /success:enable /failure:enable
-
-If you still don't see ip addresses being logged, do the following:
-
-- Make sure to read this stackoverflow thread about ip addresses not getting logged: http://stackoverflow.com/questions/1734635/event-logging-ipaddress-does-not-always-resolve
-- Network security: LAN Manager authentication level -- Send NTLMv2 response only. Refuse LM & NTLM
-- Network security: Restrict NTLM: Audit Incoming NTLM Traffic -- Enable auditing for all accounts
-- Network security: Restrict NTLM: Incoming NTLM traffic -- Deny all accounts
-- Do not allow for passwords to be saved -- Enabled
-- Prompt for credentials on the client computer -- Enabled
-
-If you want to run in Visual Studio, make sure to run Visual Studio as administrator.
-
-For reference, here is a regex that matches any 32 bit ip address:
+- To run as a Windows service run "sc create IPBAN type= own start= auto binPath= c:\path\to\service\ipban.exe DisplayName= IPBAN". The service needs file system, event viewer and firewall access, so please run as SYSTEM to ensure permissions.
+- Make sure to look at the config file for configuration options.
+- To run as a console app, simply run IPBAN.EXE and watch console output.
+- If you want to run and debug code in Visual Studio, make sure to run Visual Studio as administrator.
+- Here is a regex that matches any 32 bit ip address, useful if you need to add a new block option in the config file: 
 (?<ipaddress>^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$)
+
+**About Me**
+
+I'm Jeff Johnson and I created IPBan to block hackers out because Windows does a horrible job of this by default and performance suffers as hackers try to breach your remote desktop. IPBan gets them in the block rule of the firewall where they belong.
 
 Please visit http://www.digitalruby.com/securing-your-windows-dedicated-server/ for more information about this program.
 
 I do consulting and contracting if you need extra customizations for this software.
 
-Enjoy!
-
 Donations are accepted, any amount is appreciated, I work on this project for free to benefit the world.
 
 [![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=7EJ3K33SRLU9E)
 
--Jeff Johnson, CEO/CTO Digital Ruby, LLC
-http://www.digitalruby.com
-email: support@digitalruby.com
+Jeff Johnson, CEO/CTO  
+Digital Ruby, LLC  
+http://www.digitalruby.com  
+support@digitalruby.com
+
 
