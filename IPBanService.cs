@@ -531,8 +531,12 @@ namespace IPBan
             string queryString = "<QueryList>";
             foreach (ExpressionsToBlockGroup group in Config.Expressions.Groups)
             {
-                ulong keywordsDecimal = ulong.Parse(group.Keywords.Substring(2), NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture);
-                queryString += "<Query Id='" + (++id).ToString() + "' Path='" + group.Path + "'><Select Path='" + group.Path + "'>*[System[(band(Keywords," + keywordsDecimal.ToString() + "))]]</Select></Query>";
+                if (group.MinimumWindowsMajorVersion > Environment.OSVersion.Version.Major ||
+                    (group.MinimumWindowsMajorVersion >= Environment.OSVersion.Version.Major && group.MinimumWindowsMinorVersion >= Environment.OSVersion.Version.Minor))
+                {
+                    ulong keywordsDecimal = ulong.Parse(group.Keywords.Substring(2), NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture);
+                    queryString += "<Query Id='" + (++id).ToString() + "' Path='" + group.Path + "'><Select Path='" + group.Path + "'>*[System[(band(Keywords," + keywordsDecimal.ToString() + "))]]</Select></Query>";
+                }
             }
             queryString += "</QueryList>";
 

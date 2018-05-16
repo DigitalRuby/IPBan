@@ -31,6 +31,16 @@ namespace IPBan
         public ulong KeywordsULONG { get; set; }
 
         /// <summary>
+        /// Minimum Windows major version - see https://msdn.microsoft.com/en-us/library/windows/desktop/ms724832%28v=vs.85%29.aspx?f=255&MSPPError=-2147217396
+        /// </summary>
+        public int MinimumWindowsMajorVersion { get; set; } = 6;
+
+        /// <summary>
+        /// Minimum Windows minor version - see https://msdn.microsoft.com/en-us/library/windows/desktop/ms724832%28v=vs.85%29.aspx?f=255&MSPPError=-2147217396
+        /// </summary>
+        public int MinimumWindowsMinorVersion { get; set; } = 0;
+
+        /// <summary>
         /// Keywords backing variable, private
         /// </summary>
         private string keywords;
