@@ -1,3 +1,7 @@
+2018-05-23
+- Handle udp in terminal services log.
+- Fixes for Windows 2008, add Windows version detection and manifest file.
+
 2018-03-07 (Jeff Johnson)
 - Force strip bad xml chars.
 
