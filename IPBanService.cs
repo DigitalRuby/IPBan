@@ -26,6 +26,14 @@ namespace IPBan
 {
     public class IPBanService : IIPBanService
     {
+        private enum UrlType
+        {
+            Start,
+            Update,
+            Stop,
+            Config
+        }
+
         private class PendingIPAddress
         {
             public string IPAddress { get; set; }
@@ -167,9 +175,14 @@ namespace IPBan
                 }
             }
 
-            // hit start url if first time
-            GetUrl(true);
-            GetUrl(null);
+            // hit start url if first time, if not first time will be ignored
+            GetUrl(UrlType.Start);
+
+            // send update
+            GetUrl(UrlType.Update);
+
+            // request new config file
+            GetUrl(UrlType.Config);
         }
 
         private void LogInitialConfig()
@@ -834,17 +847,26 @@ namespace IPBan
             }
         }
 
-        private void GetUrl(bool? start)
+        private void GetUrl(UrlType urlType)
         {
-            if ((start != null && start.Value && gotStartUrl) || string.IsNullOrWhiteSpace(LocalIPAddressString) || string.IsNullOrWhiteSpace(FQDN))
+            if ((urlType == UrlType.Start && gotStartUrl) || string.IsNullOrWhiteSpace(LocalIPAddressString) || string.IsNullOrWhiteSpace(FQDN))
             {
                 return;
             }
-            else if (start != null && !start.Value)
+            else if (urlType == UrlType.Stop)
             {
                 gotStartUrl = false;
             }
-            string url = (start == null ? Config.GetUrlUpdate : (start.Value ? Config.GetUrlStart : Config.GetUrlStop));
+            string url;
+            switch (urlType)
+            {
+                case UrlType.Start: url = Config.GetUrlStart; break;
+                case UrlType.Stop: url = Config.GetUrlStop; break;
+                case UrlType.Update: url = Config.GetUrlUpdate; break;
+                case UrlType.Config: url = Config.GetUrlConfig; break;
+                default: return;
+            }
+
             if (!string.IsNullOrWhiteSpace(url))
             {
                 url = url.Replace("###IPADDRESS###", WebUtility.UrlEncode(LocalIPAddressString)).Replace("###MACHINENAME###", WebUtility.UrlEncode(FQDN))
@@ -855,14 +877,21 @@ namespace IPBan
                     {
                         using (WebClient client = new WebClient())
                         {
-                            client.Headers["User-Agent"] = "IPBan";
-                            client.DownloadData(url);
+                            client.Headers["User-Agent"] = System.Reflection.Assembly.GetEntryAssembly().GetName().Name;
+                            byte[] bytes = client.DownloadData(url);
+                            if (urlType == UrlType.Start)
+                            {
+                                gotStartUrl = true;
+                            }
+                            else if (urlType == UrlType.Config && bytes != null && bytes.Length != 0)
+                            {
+                                UpdateConfig(Encoding.UTF8.GetString(bytes));
+                            }
                         }
-                        gotStartUrl = true;
                     }
                     catch (Exception ex)
                     {
-                        Log.Write(LogLevel.Error, "Error notifying of start/stop, start = {0}, error: {1}", start, ex);
+                        Log.Write(LogLevel.Error, "Error getting url of type {0} at {1}, error: {2}", urlType, url, ex);
                     }
                 });
             }
@@ -900,7 +929,7 @@ namespace IPBan
             {
                 Log.Write(LogLevel.Error, "Unhandled exception: " + ex);
             }
-            GetUrl(false);
+            GetUrl(UrlType.Stop);
         }
 
         /// <summary>
@@ -950,9 +979,16 @@ namespace IPBan
                 {
                     doc.Load(xmlReader);
                 }
-                lock (configLock)
+                string configFile = AppDomain.CurrentDomain.SetupInformation.ConfigurationFile;
+                string text = File.ReadAllText(configFile);
+
+                // if the file changed, update it
+                if (text != xml)
                 {
-                    File.WriteAllText(AppDomain.CurrentDomain.SetupInformation.ConfigurationFile, xml);
+                    lock (configLock)
+                    {
+                        File.WriteAllText(configFile, xml);
+                    }
                 }
             }
             catch

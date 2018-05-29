@@ -36,6 +36,7 @@ namespace IPBan
         private readonly string getUrlUpdate;
         private readonly string getUrlStart;
         private readonly string getUrlStop;
+        private readonly string getUrlConfig;
         private readonly string externalIPAddressUrl;
 
         /// <summary>
@@ -155,6 +156,7 @@ namespace IPBan
             getUrlUpdate = ConfigurationManager.AppSettings["GetUrlUpdate"];
             getUrlStart = ConfigurationManager.AppSettings["GetUrlStart"];
             getUrlStop = ConfigurationManager.AppSettings["GetUrlStop"];
+            getUrlConfig = ConfigurationManager.AppSettings["GetUrlConfig"];
             externalIPAddressUrl = ConfigurationManager.AppSettings["ExternalIPAddressUrl"];
         }
 
@@ -280,6 +282,11 @@ namespace IPBan
         /// A url to get when the service stops, empty for none. ###IPADDRESS### will be replaced with the local ip. ###MACHINENAME### will be replaced with the fully qualified domain name of the machine.
         /// </summary>
         public string GetUrlStop { get { return getUrlStop; } }
+
+        /// <summary>
+        /// A url to get for a config file update, empty for none. ###IPADDRESS### will be replaced with the local ip. ###MACHINENAME### will be replaced with the fully qualified domain name of the machine.
+        /// </summary>
+        public string GetUrlConfig { get { return getUrlConfig; } }
 
         /// <summary>
         /// Url to query to get the external ip address, the url should return a string which is the external ip address.
