@@ -869,8 +869,10 @@ namespace IPBan
 
             if (!string.IsNullOrWhiteSpace(url))
             {
-                url = url.Replace("###IPADDRESS###", WebUtility.UrlEncode(LocalIPAddressString)).Replace("###MACHINENAME###", WebUtility.UrlEncode(FQDN))
-                    .Replace("###VERSION###", WebUtility.UrlEncode(System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString()));
+                url = url.Replace("###IPADDRESS###", WebUtility.UrlEncode(LocalIPAddressString))
+                    .Replace("###MACHINENAME###", WebUtility.UrlEncode(FQDN))
+                    .Replace("###VERSION###", WebUtility.UrlEncode(System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString()))
+                    .Replace("###GUID###", WebUtility.UrlEncode(MachineGuid));
                 System.Threading.Tasks.Task.Factory.StartNew(() =>
                 {
                     try
@@ -1078,6 +1080,11 @@ namespace IPBan
         /// Fully qualified domain name
         /// </summary>
         public string FQDN { get; private set; }
+
+        /// <summary>
+        /// Machine guid, null/empty for none
+        /// </summary>
+        public string MachineGuid { get; set; }
 
         /// <summary>
         /// External delegate to allow external config, whitelist, blacklist, etc.
