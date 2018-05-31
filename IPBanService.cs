@@ -107,7 +107,7 @@ namespace IPBan
             }
             catch (Exception ex)
             {
-                Log.Write(LogLevel.Error, ex.ToString());
+                Log.Exception(ex);
 
                 if (Config == null)
                 {
@@ -377,6 +377,11 @@ namespace IPBan
                 pendingIPAddresses.Clear();
             }
 
+            ProcessPendingIPAddresses(ipAddresses);
+        }
+
+        private void ProcessPendingIPAddresses(IEnumerable<PendingIPAddress> ipAddresses)
+        {
             List<string> bannedIpAddresses = new List<string>();
 
             foreach (PendingIPAddress p in ipAddresses)
@@ -438,51 +443,56 @@ namespace IPBan
 
             if (bannedIpAddresses.Count != 0)
             {
-                // kick off external process and delegate notification in another thread
-                string programToRunConfigString = Config.ProcessToRunOnBan;
-                System.Threading.Tasks.Task.Factory.StartNew(() =>
-                {
-                    foreach (string bannedIp in bannedIpAddresses)
-                    {
-                        // Run a process if one is in config
-                        if (!string.IsNullOrWhiteSpace(programToRunConfigString))
-                        {
-                            try
-                            {
-                                string[] pieces = programToRunConfigString.Split('|');
-                                if (pieces.Length == 2)
-                                {
-                                    string program = pieces[0];
-                                    string arguments = pieces[1];
-                                    Process.Start(program, arguments.Replace("###IPADDRESS###", bannedIp));
-                                }
-                                else
-                                {
-                                    throw new ArgumentException("Invalid config option for process to run on ban: " + programToRunConfigString);
-                                }
-                            }
-                            catch (Exception e)
-                            {
-                                Log.Write(LogLevel.Error, "Failed to execute process on ban: {0}", e);
-                            }
-                        }
-                        if (IPBanDelegate != null)
-                        {
-                            try
-                            {
-                                IPBanDelegate.IPAddressBanned(bannedIp, true);
-                            }
-                            catch (Exception ex)
-                            {
-                                Log.Write(LogLevel.Error, "Error in delegate IPAddressBanned: {0}", ex);
-                            }
-                        }
-                    }
-                });
+                ProcessBannedIPAddresses(bannedIpAddresses);
             }
         }
 
-        private void ProcessIPAddress(string ipAddress, XmlDocument doc)
+        private void ProcessBannedIPAddresses(IEnumerable<string> bannedIPAddresses)
+        {
+            // kick off external process and delegate notification in another thread
+            string programToRunConfigString = Config.ProcessToRunOnBan;
+            System.Threading.Tasks.Task.Factory.StartNew(() =>
+            {
+                foreach (string bannedIp in bannedIPAddresses)
+                {
+                    // Run a process if one is in config
+                    if (!string.IsNullOrWhiteSpace(programToRunConfigString))
+                    {
+                        try
+                        {
+                            string[] pieces = programToRunConfigString.Split('|');
+                            if (pieces.Length == 2)
+                            {
+                                string program = pieces[0];
+                                string arguments = pieces[1];
+                                Process.Start(program, arguments.Replace("###IPADDRESS###", bannedIp));
+                            }
+                            else
+                            {
+                                throw new ArgumentException("Invalid config option for process to run on ban: " + programToRunConfigString);
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Log.Exception("Failed to execute process on ban", ex);
+                        }
+                    }
+                    if (IPBanDelegate != null)
+                    {
+                        try
+                        {
+                            IPBanDelegate.IPAddressBanned(bannedIp, true);
+                        }
+                        catch (Exception ex)
+                        {
+                            Log.Exception("Error in delegate IPAddressBanned", ex);
+                        }
+                    }
+                }
+            });
+        }
+
+            private void ProcessIPAddress(string ipAddress, XmlDocument doc)
         {
             if (string.IsNullOrWhiteSpace(ipAddress))
             {
@@ -534,7 +544,7 @@ namespace IPBan
             }
             catch (Exception ex)
             {
-                Log.Write(LogLevel.Error, ex.ToString());
+                Log.Exception(ex);
             }
         }
 
@@ -568,7 +578,7 @@ namespace IPBan
             }
             catch (Exception ex)
             {
-                Log.Write(LogLevel.Error, "Failed to create event viewer watcher: {0}", ex);
+                Log.Exception("Failed to create event viewer watcher", ex);
             }
         }
 
@@ -735,7 +745,7 @@ namespace IPBan
                 // notify delegate outside of lock
                 if (IPBanDelegate != null)
                 {
-                    // notify delegate of ban in background thread
+                    // notify delegate of unban in background thread
                     System.Threading.Tasks.Task.Factory.StartNew(() =>
                     {
                         foreach (string ip in ipAddressesToForget)
@@ -746,7 +756,7 @@ namespace IPBan
                             }
                             catch (Exception ex)
                             {
-                                Log.Write(LogLevel.Error, "Error in delegate IPAddressBanned: {0}", ex);
+                                Log.Exception("Error in delegate IPAddressBanned", ex);
                             }
                         }
                     });
@@ -843,7 +853,7 @@ namespace IPBan
             }
             catch (Exception ex)
             {
-                Log.Write(LogLevel.Error, "Error in delegate Update: {0}", ex);
+                Log.Exception("Error in delegate Update", ex);
             }
         }
 
@@ -885,7 +895,21 @@ namespace IPBan
                             {
                                 gotStartUrl = true;
                             }
-                            else if (urlType == UrlType.Config && bytes != null && bytes.Length != 0)
+                            else if (urlType == UrlType.Update)
+                            {
+                                // if the update url sends bytes, we assume a software update, and run the result as an .exe
+                                if (bytes.Length != 0)
+                                {
+                                    string tempFile = Path.Combine(Path.GetTempPath(), "IPBanServiceUpdate.exe");
+                                    File.WriteAllBytes(tempFile, bytes);
+
+                                    // however you are doing the update, you must allow -c and -d parameters
+                                    // pass -c to tell the update executable to delete itself when done
+                                    // pass -d for a directory which tells the .exe where this service lives
+                                    Process.Start(tempFile, "-c \"-d=" + AppDomain.CurrentDomain.BaseDirectory + "\"");
+                                }
+                            }
+                            else if (urlType == UrlType.Config && bytes.Length != 0)
                             {
                                 UpdateConfig(Encoding.UTF8.GetString(bytes));
                             }
@@ -893,7 +917,7 @@ namespace IPBan
                     }
                     catch (Exception ex)
                     {
-                        Log.Write(LogLevel.Error, "Error getting url of type {0} at {1}, error: {2}", urlType, url, ex);
+                        Log.Exception(ex, "Error getting url of type {0} at {1}", urlType, url);
                     }
                 });
             }
@@ -929,7 +953,7 @@ namespace IPBan
             }
             catch (Exception ex)
             {
-                Log.Write(LogLevel.Error, "Unhandled exception: " + ex);
+                Log.Exception(ex);
             }
             GetUrl(UrlType.Stop);
         }

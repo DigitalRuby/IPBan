@@ -33,8 +33,24 @@ namespace IPBan
             }
             catch (Exception ex)
             {
+                // only place we don't log the exception because if the logger fails to initialize... what's the point?
                 Console.WriteLine("Failed to initialize logger: {0}", ex);
             }
+        }
+
+        public static void Exception(Exception ex)
+        {
+            Write(LogLevel.Error, "Exception: " + ex.ToString());
+        }
+
+        public static void Exception(string details, Exception ex)
+        {
+            Write(LogLevel.Error, details + ": " + ex.ToString());
+        }
+
+        public static void Exception(Exception ex, string format, params object[] args)
+        {
+            Write(LogLevel.Error, string.Format(format, args) + ": " + ex.ToString());
         }
 
         public static void Write(LogLevel level, string text, params object[] args)

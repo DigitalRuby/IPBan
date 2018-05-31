@@ -107,7 +107,7 @@ namespace IPBan
             }
             catch (Exception ex)
             {
-                Log.Write(LogLevel.Error, ex.ToString());
+                Log.Exception(ex);
                 return false;
             }
         }
@@ -142,7 +142,7 @@ namespace IPBan
             }
             catch (Exception ex)
             {
-                Log.Write(LogLevel.Error, ex.ToString());
+                Log.Exception(ex);
                 return false;
             }
         }

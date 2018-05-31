@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace IPBan
 {
@@ -19,6 +20,21 @@ namespace IPBan
         /// </summary>
         /// <param name="xml">New config file xml</param>
         void UpdateConfig(string xml);
+
+        /// <summary>
+        /// Local ip address string
+        /// </summary>
+        string LocalIPAddressString { get; }
+
+        /// <summary>
+        /// Fully qualified domain name
+        /// </summary>
+        string FQDN { get; }
+
+        /// <summary>
+        /// A unique id for this service
+        /// </summary>
+        string MachineGuid { get; }
     }
 
     /// <summary>
@@ -68,7 +84,7 @@ namespace IPBan
         /// </summary>
         /// <param name="ip">IP address</param>
         /// <param name="banned">True if banned, false if unbanned</param>
-        void IPAddressBanned(string ip, bool banned);
+        Task IPAddressBanned(string ip, bool banned);
 
         /// <summary>
         /// Enumerate external blacklist
