@@ -264,9 +264,8 @@ namespace IPBan
             return doc;
         }
 
-        private string ExtractIPAddressFromXml(XmlDocument doc)
+        private void ExtractIPAddressAndUserNameFromXml(XmlDocument doc, out string ipAddress, out string userName)
         {
-            string ipAddress = null;
             XmlNode keywordsNode = doc.SelectSingleNode("//Keywords");
             string keywordsText = keywordsNode.InnerText;
             if (keywordsText.StartsWith("0x"))
@@ -274,6 +273,7 @@ namespace IPBan
                 keywordsText = keywordsText.Substring(2);
             }
             ulong keywordsULONG = ulong.Parse(keywordsText, NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture);
+            ipAddress = userName = null;
 
             if (keywordsNode != null)
             {
@@ -282,12 +282,12 @@ namespace IPBan
                 {
                     foreach (ExpressionToBlock expression in group.Expressions)
                     {
-                        // we must find a node for each xpath expression
+                        // find all the nodes, try and get an ip from any of them
                         XmlNodeList nodes = doc.SelectNodes(expression.XPath);
 
                         if (nodes.Count == 0)
                         {
-                            Log.Write(LogLevel.Warning, "No nodes found for xpath {0}", expression.XPath);
+                            Log.Write(LogLevel.Info, "No nodes found for xpath {0}", expression.XPath);
                             ipAddress = null;
                             break;
                         }
@@ -295,60 +295,26 @@ namespace IPBan
                         // if there is a regex, it must match
                         if (string.IsNullOrWhiteSpace(expression.Regex))
                         {
+                            // count as a match, do not modify the ip address if it was already set
                             Log.Write(LogLevel.Info, "No regex, so counting as a match");
                         }
                         else
                         {
                             bool foundMatch = false;
 
+                            // try and find an ip from any of the nodes
                             foreach (XmlNode node in nodes)
                             {
-                                Match m = expression.RegexObject.Match(node.InnerText);
-                                if (m.Success)
+                                // if we get a match, stop checking nodes
+                                if ((foundMatch = GetIPAddressAndUserNameFromRegex(expression.RegexObject, node.InnerText, ref ipAddress, ref userName)))
                                 {
-                                    // check if the regex had an ipadddress group
-                                    Group ipAddressGroup = m.Groups["ipaddress"];
-                                    if (ipAddressGroup != null && ipAddressGroup.Success && !string.IsNullOrWhiteSpace(ipAddressGroup.Value))
-                                    {
-                                        string tempIPAddress = ipAddressGroup.Value.Trim();
-                                        if (IPAddress.TryParse(tempIPAddress, out IPAddress tmp))
-                                        {
-                                            ipAddress = tempIPAddress;
-                                            foundMatch = true;
-                                            break;
-                                        }
-
-                                        // Check Host by name
-                                        Log.Write(LogLevel.Info, "Parsing as IP failed, checking dns '{0}'", tempIPAddress);
-                                        try
-                                        {
-                                            IPHostEntry entry = Dns.GetHostEntry(tempIPAddress);
-                                            if (entry != null && entry.AddressList != null && entry.AddressList.Length > 0)
-                                            {
-                                                ipAddress = entry.AddressList.FirstOrDefault().ToString();
-                                                foundMatch = true;
-                                                Log.Write(LogLevel.Info, "Dns result '{0}' = '{1}'", tempIPAddress, ipAddress);
-                                                break;
-                                            }
-                                        }
-                                        catch
-                                        {
-                                            Log.Write(LogLevel.Info, "Parsing as dns failed '{0}'", tempIPAddress);
-                                        }
-                                    }
-                                    else
-                                    {
-                                        foundMatch = true;
-                                        break;
-                                    }
+                                    break;
                                 }
                             }
 
                             if (!foundMatch)
                             {
-                                // no match, move on to the next group to check
-                                Log.Write(LogLevel.Warning, "Regex {0} did not match any nodes with xpath {1}", expression.Regex, expression.XPath);
-                                ipAddress = null;
+                                Log.Write(LogLevel.Info, "Regex {0} did not match any nodes with xpath {1}", expression.Regex, expression.XPath);
                                 break;
                             }
                         }
@@ -360,8 +326,6 @@ namespace IPBan
                     }
                 }
             }
-
-            return ipAddress;
         }
 
         private void ProcessPendingIPAddresses()
@@ -492,24 +456,19 @@ namespace IPBan
             });
         }
 
-            private void ProcessIPAddress(string ipAddress, XmlDocument doc)
+        private void ProcessIPAddressAndUserName(string ipAddress, string userName, XmlDocument doc)
         {
             if (string.IsNullOrWhiteSpace(ipAddress))
             {
                 return;
             }
 
-            string userName = string.Empty;
             XmlNode userNameNode = doc.SelectSingleNode("//Data[@Name='TargetUserName']");
             if (userNameNode != null)
             {
-                userName = userNameNode.InnerText.Trim();
+                userName = (string.IsNullOrWhiteSpace(userName) ? userNameNode.InnerText.Trim() : userName);
             }
-
-            lock (pendingIPAddresses)
-            {
-                pendingIPAddresses.Add(new PendingIPAddress { IPAddress = ipAddress, UserName = userName, DateTime = DateTime.UtcNow });
-            }
+            AddPendingIPAddressAndUserName(ipAddress, userName);
         }
 
         private void ProcessXml(string xml)
@@ -517,8 +476,8 @@ namespace IPBan
             Log.Write(LogLevel.Info, "Processing xml: {0}", xml);
 
             XmlDocument doc = ParseXml(xml);
-            string ipAddress = ExtractIPAddressFromXml(doc);
-            ProcessIPAddress(ipAddress, doc);
+            ExtractIPAddressAndUserNameFromXml(doc, out string ipAddress, out string userName);
+            ProcessIPAddressAndUserName(ipAddress, userName, doc);
         }
 
         private void EventRecordWritten(object sender, EventRecordWrittenEventArgs e)
@@ -956,6 +915,91 @@ namespace IPBan
                 Log.Exception(ex);
             }
             GetUrl(UrlType.Stop);
+        }
+
+        /// <summary>
+        /// Add an ip address to be checked for banning later
+        /// </summary>
+        /// <param name="ipAddress">IP Address, required</param>
+        /// <param name="userName">User Name, optional</param>
+        public void AddPendingIPAddressAndUserName(string ipAddress, string userName = null)
+        {
+            lock (pendingIPAddresses)
+            {
+                pendingIPAddresses.Add(new PendingIPAddress { IPAddress = ipAddress, UserName = userName, DateTime = DateTime.UtcNow });
+            }
+
+        }
+
+        /// <summary>
+        /// Get an ip address and user name out of text using regex
+        /// </summary>
+        /// <param name="regex">Regex</param>
+        /// <param name="text">Text</param>
+        /// <param name="ipAddress">Found ip address or null if none</param>
+        /// <param name="userName">Found user name or null if none</param>
+        /// <returns>True if a regex match was found, false otherwise</returns>
+        public static bool GetIPAddressAndUserNameFromRegex(Regex regex, string text, ref string ipAddress, ref string userName)
+        {
+            bool foundMatch = false;
+
+            foreach (Match m in regex.Matches(text))
+            {
+                if (!m.Success)
+                {
+                    continue;
+                }
+
+                // check for a user name
+                Group userNameGroup = m.Groups["username"];
+                if (userNameGroup != null && userNameGroup.Success)
+                {
+                    userName = (userName ?? userNameGroup.Value.Trim());
+                }
+
+                // check if the regex had an ipadddress group
+                Group ipAddressGroup = m.Groups["ipaddress"];
+                if (ipAddressGroup != null && ipAddressGroup.Success && !string.IsNullOrWhiteSpace(ipAddressGroup.Value))
+                {
+                    string tempIPAddress = ipAddressGroup.Value.Trim();
+                    if (IPAddress.TryParse(tempIPAddress, out IPAddress tmp))
+                    {
+                        ipAddress = tempIPAddress;
+                        foundMatch = true;
+                        break;
+                    }
+
+                    // Check Host by name
+                    Log.Write(LogLevel.Info, "Parsing as IP failed, checking dns '{0}'", tempIPAddress);
+                    try
+                    {
+                        IPHostEntry entry = Dns.GetHostEntry(tempIPAddress);
+                        if (entry != null && entry.AddressList != null && entry.AddressList.Length > 0)
+                        {
+                            ipAddress = entry.AddressList.FirstOrDefault().ToString();
+                            Log.Write(LogLevel.Info, "Dns result '{0}' = '{1}'", tempIPAddress, ipAddress);
+                            foundMatch = true;
+                            break;
+                        }
+                    }
+                    catch
+                    {
+                        Log.Write(LogLevel.Info, "Parsing as dns failed '{0}'", tempIPAddress);
+                    }
+                }
+                else
+                {
+                    // found a match but no ip address, that is OK.
+                    foundMatch = true;
+                }
+            }
+
+            if (!foundMatch)
+            {
+                ipAddress = null;
+            }
+
+            return foundMatch;
         }
 
         /// <summary>

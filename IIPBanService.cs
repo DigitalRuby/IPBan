@@ -2,11 +2,25 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace IPBan
 {
-    public interface IIPBanService : IDisposable
+    /// <summary>
+    /// Handler for ip addresses
+    /// </summary>
+    public interface IIPBanIPAddressHandler
+    {
+        /// <summary>
+        /// Add an ip address and user name to be checked later
+        /// </summary>
+        /// <param name="ipAddress">IP Address, required</param>
+        /// <param name="userName">User Name, optional</param>
+        void AddPendingIPAddressAndUserName(string ipAddress, string userName = null);
+    }
+
+    public interface IIPBanService : IIPBanIPAddressHandler, IDisposable
     {
         /// <summary>
         /// Ban/unban an ip address
