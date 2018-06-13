@@ -20,19 +20,14 @@ namespace IPBan
         private const string clsidFwPolicy2 = "{E2B3C97F-6AE1-41AC-817A-F6F92166D7DD}";
         private const string clsidFwRule = "{2C5BC43E-3369-4C33-AB0C-BE9469677AF4}";
         private const int maxIpAddressesPerRule = 1000; // do not change!
-        private static INetFwPolicy2 policy;
+        private static readonly INetFwPolicy2 policy = Activator.CreateInstance(Type.GetTypeFromCLSID(new Guid(clsidFwPolicy2))) as INetFwPolicy2;
+        private static readonly Type ruleType = Type.GetTypeFromCLSID(new Guid(clsidFwRule));
 
-        public static string RulePrefix { get; private set; }
-
-        /// <summary>
-        /// Initialize - call this from the main thread to avoid COM issues
-        /// </summary>
-        /// <param name="rulePrefix">Rule prefix</param>
-        public static void Initialize(string rulePrefix)
+        private static string rulePrefix = "IPBan_BlockIPAddresses_";
+        public static string RulePrefix
         {
-            Type objectType = Type.GetTypeFromCLSID(new Guid(clsidFwPolicy2));
-            policy = Activator.CreateInstance(objectType) as INetFwPolicy2;
-            RulePrefix = (string.IsNullOrWhiteSpace(rulePrefix) ? "IPBan_BlockIPAddresses_" : rulePrefix);
+            get { return rulePrefix; }
+            set { rulePrefix = (string.IsNullOrWhiteSpace(value) ? rulePrefix : value); }
         }
 
         private static string CreateRuleStringForIPAddresses(string[] ipAddresses, int index, int count)
@@ -58,34 +53,36 @@ namespace IPBan
 
         private static void CreateRule(string[] ipAddresses, int index, int count)
         {
-            Type type = Type.GetTypeFromCLSID(new Guid(clsidFwRule));
-            string ruleName = RulePrefix + index;
-            string remoteIpString = CreateRuleStringForIPAddresses(ipAddresses, index, count);
-            INetFwRule rule = null;
-            try
+            lock (policy)
             {
-                rule = policy.Rules.Item(ruleName);
+                string ruleName = RulePrefix + index;
+                string remoteIpString = CreateRuleStringForIPAddresses(ipAddresses, index, count);
+                INetFwRule rule = null;
+                try
+                {
+                    rule = policy.Rules.Item(ruleName);
+                }
+                catch
+                {
+                    // ignore exception, assume does not exist
+                }
+                if (rule == null)
+                {
+                    rule = Activator.CreateInstance(ruleType) as INetFwRule;
+                    rule.Name = ruleName;
+                    rule.Enabled = true;
+                    rule.Action = NET_FW_ACTION_.NET_FW_ACTION_BLOCK;
+                    rule.Description = "Automatically created by IPBan";
+                    rule.Direction = NET_FW_RULE_DIRECTION_.NET_FW_RULE_DIR_IN;
+                    rule.EdgeTraversal = false;
+                    rule.Grouping = "IPBan";
+                    rule.LocalAddresses = "*";
+                    rule.Profiles = int.MaxValue; // all
+                    rule.Protocol = (int)NET_FW_IP_PROTOCOL_.NET_FW_IP_PROTOCOL_ANY;
+                    policy.Rules.Add(rule);
+                }
+                rule.RemoteAddresses = remoteIpString;
             }
-            catch
-            {
-                // ignore exception, assume does not exist
-            }
-            if (rule == null)
-            {
-                rule = Activator.CreateInstance(type) as INetFwRule;
-                rule.Name = ruleName;
-                rule.Enabled = true;
-                rule.Action = NET_FW_ACTION_.NET_FW_ACTION_BLOCK;
-                rule.Description = "Automatically created by IPBan";
-                rule.Direction = NET_FW_RULE_DIRECTION_.NET_FW_RULE_DIR_IN;
-                rule.EdgeTraversal = false;
-                rule.Grouping = "IPBan";
-                rule.LocalAddresses = "*";
-                rule.Profiles = int.MaxValue; // all
-                rule.Protocol = (int)NET_FW_IP_PROTOCOL_.NET_FW_IP_PROTOCOL_ANY;
-                policy.Rules.Add(rule);
-            }
-            rule.RemoteAddresses = remoteIpString;
         }
 
         /// <summary>
@@ -121,22 +118,25 @@ namespace IPBan
         {
             try
             {
-                List<INetFwRule> toDelete = new List<INetFwRule>();
-                foreach (INetFwRule rule in policy.Rules)
+                lock (policy)
                 {
-                    if (rule.Name.StartsWith(RulePrefix))
+                    List<INetFwRule> toDelete = new List<INetFwRule>();
+                    foreach (INetFwRule rule in policy.Rules)
                     {
-                        int index = int.Parse(rule.Name.Substring(RulePrefix.Length));
-                        if (index >= startIndex)
+                        if (rule.Name.StartsWith(RulePrefix))
                         {
-                            rule.Enabled = false;
-                            toDelete.Add(rule);
+                            int index = int.Parse(rule.Name.Substring(RulePrefix.Length));
+                            if (index >= startIndex)
+                            {
+                                rule.Enabled = false;
+                                toDelete.Add(rule);
+                            }
                         }
                     }
-                }
-                foreach (INetFwRule rule in toDelete)
-                {
-                    policy.Rules.Remove(rule.Name);
+                    foreach (INetFwRule rule in toDelete)
+                    {
+                        policy.Rules.Remove(rule.Name);
+                    }
                 }
                 return true;
             }
@@ -156,11 +156,14 @@ namespace IPBan
         {
             try
             {
-                foreach (INetFwRule rule in policy.Rules)
+                lock (policy)
                 {
-                    if (rule.Name.StartsWith(RulePrefix) && rule.RemoteAddresses.Contains(ipAddress))
+                    foreach (INetFwRule rule in policy.Rules)
                     {
-                        return true;
+                        if (rule.Name.StartsWith(RulePrefix) && rule.RemoteAddresses.Contains(ipAddress))
+                        {
+                            return true;
+                        }
                     }
                 }
             }

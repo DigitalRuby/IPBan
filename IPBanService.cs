@@ -621,7 +621,7 @@ namespace IPBan
         {
             run = true;
             ReadAppSettings();
-            IPBanWindowsFirewall.Initialize(Config.RuleName);
+            IPBanWindowsFirewall.RulePrefix = Config.RuleName;
             ProcessBanFileOnStart();
             SetupEventLogWatcher();
             LogInitialConfig();
