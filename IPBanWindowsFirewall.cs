@@ -146,5 +146,30 @@ namespace IPBan
                 return false;
             }
         }
+
+        /// <summary>
+        /// Checks if an ip address is blocked in the firewall
+        /// </summary>
+        /// <param name="ipAddress">IPAddress</param>
+        /// <returns>True if the ip address is blocked in the firewall, false otherwise</returns>
+        public static bool IsIPAddressBlockedInFirewall(string ipAddress)
+        {
+            try
+            {
+                foreach (INetFwRule rule in policy.Rules)
+                {
+                    if (rule.Name.StartsWith(RulePrefix) && rule.RemoteAddresses.Contains(ipAddress))
+                    {
+                        return true;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Exception(ex);
+                return false;
+            }
+            return false;
+        }
     }
 }

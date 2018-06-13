@@ -18,17 +18,16 @@ namespace IPBan
         {
         }
 
-        public IPBlockCount(int count)
-            : this()
+        public IPBlockCount(DateTime lastFailedLogin, int count) : this()
         {
             Count = count;
-            LastFailedLogin = DateTime.UtcNow;
+            LastFailedLogin = lastFailedLogin;
         }
 
-        public void IncrementCount(int amount = 1)
+        public void IncrementCount(DateTime lastFailedLogin, int amount = 1)
         {
             Count += amount;
-            LastFailedLogin = DateTime.UtcNow;
+            LastFailedLogin = lastFailedLogin;
         }
     }
 }

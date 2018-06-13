@@ -14,6 +14,7 @@ using System.Security.Permissions;
 using System.ServiceProcess;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Security.AccessControl;
 using System.Security.Principal;
 using System.Web.Script.Serialization;
@@ -43,7 +44,7 @@ namespace IPBan
         }
 
         private string configFilePath;
-        private Thread serviceThread;
+        private Task cycleTask;
         private bool run;
         private EventLogQuery query;
         private EventLogWatcher watcher;
@@ -225,6 +226,7 @@ namespace IPBan
                     else
                     {
                         string[] lines = File.ReadAllLines(Config.BanFile);
+                        DateTime now = CurrentDateTime;
                         foreach (string ip in lines)
                         {
                             string[] pieces = ip.Split('\t');
@@ -234,7 +236,7 @@ namespace IPBan
                                 if (IPAddress.TryParse(ipTrimmed, out IPAddress tmp))
                                 {
                                     // setup a ban entry for the ip address
-                                    IPBlockCount blockCount = new IPBlockCount(Config.FailedLoginAttemptsBeforeBan);
+                                    IPBlockCount blockCount = new IPBlockCount(now, Config.FailedLoginAttemptsBeforeBan);
                                     ipAddressesAndBlockCounts[ipTrimmed] = blockCount;
                                     if (pieces.Length > 1)
                                     {
@@ -246,13 +248,13 @@ namespace IPBan
                                         catch
                                         {
                                             // corrupt date/time in the file, fallback to current date/time
-                                            ipAddressesAndBanDate[ipTrimmed] = DateTime.UtcNow;
+                                            ipAddressesAndBanDate[ipTrimmed] = CurrentDateTime;
                                         }
                                     }
                                     else
                                     {
                                         // otherwise fall back to current date/time
-                                        ipAddressesAndBanDate[ipTrimmed] = DateTime.UtcNow;
+                                        ipAddressesAndBanDate[ipTrimmed] = CurrentDateTime;
                                     }
                                 }
                             }
@@ -341,6 +343,22 @@ namespace IPBan
             }
         }
 
+        private void ProcessPendingIPAddresses()
+        {
+            List<PendingIPAddress> ipAddresses;
+            lock (pendingIPAddresses)
+            {
+                if (pendingIPAddresses.Count == 0)
+                {
+                    return;
+                }
+                ipAddresses = new List<PendingIPAddress>(pendingIPAddresses);
+                pendingIPAddresses.Clear();
+            }
+
+            ProcessPendingIPAddresses(ipAddresses);
+        }
+
         private void ProcessPendingIPAddresses(IEnumerable<PendingIPAddress> ipAddresses)
         {
             List<string> bannedIpAddresses = new List<string>();
@@ -372,7 +390,7 @@ namespace IPBan
                         }
 
                         // Increment the count.
-                        ipBlockCount.IncrementCount(counter);
+                        ipBlockCount.IncrementCount(CurrentDateTime, counter);
 
                         Log.Write(LogLevel.Info, "Incrementing count for ip {0} to {1}, user name: {2}", ipAddress, ipBlockCount.Count, userName);
 
@@ -627,7 +645,7 @@ namespace IPBan
                 ipBlockCountList = ipAddressesAndBlockCounts.ToArray();
             }
 
-            DateTime now = DateTime.UtcNow;
+            DateTime now = CurrentDateTime;
 
             // Check the block list for expired IPs.
             foreach (KeyValuePair<string, DateTime> keyValue in blockList)
@@ -744,6 +762,7 @@ namespace IPBan
                 if (IPBanDelegate.Update())
                 {
                     bool changed = false;
+                    DateTime now = CurrentDateTime;
 
                     // sync up the blacklist and whitelist from the delegate
                     lock (ipAddressesAndBlockCounts)
@@ -754,8 +773,8 @@ namespace IPBan
                             if (!ipAddressesAndBanDate.ContainsKey(ip))
                             {
                                 changed = true;
-                                ipAddressesAndBanDate[ip] = DateTime.UtcNow;
-                                ipAddressesAndBlockCounts[ip] = new IPBlockCount { Count = Config.FailedLoginAttemptsBeforeBan, LastFailedLogin = DateTime.UtcNow };
+                                ipAddressesAndBanDate[ip] = now;
+                                ipAddressesAndBlockCounts[ip] = new IPBlockCount { Count = Config.FailedLoginAttemptsBeforeBan, LastFailedLogin = now };
                             }
                         }
                         List<string> unban = new List<string>();
@@ -871,7 +890,7 @@ namespace IPBan
             }
         }
 
-        private void ServiceThread()
+        private void CycleTask()
         {
             System.Diagnostics.Stopwatch timer = new Stopwatch();
             try
@@ -879,50 +898,36 @@ namespace IPBan
                 while (run)
                 {
                     timer.Restart();
-                    ReadAppSettings();
-                    SetNetworkInfo();
-                    UpdateDelegate();
-                    CheckForExpiredIP();
-                    ProcessPendingIPAddresses();
-                    if (needsBanScript)
+                    RunCycle();
+                    TimeSpan nextWait = Config.CycleTime - timer.Elapsed;
+                    if (nextWait.TotalMilliseconds < 1.0)
                     {
-                        needsBanScript = false;
-                        ExecuteBanScript();
+                        nextWait = TimeSpan.FromMilliseconds(1.0);
                     }
-                    {
-                        TimeSpan nextWait = Config.CycleTime - timer.Elapsed;
-                        if (nextWait.TotalMilliseconds < 1.0)
-                        {
-                            nextWait = TimeSpan.FromMilliseconds(1.0);
-                        }
-                        cycleEvent.WaitOne(nextWait);
-                    }
+                    cycleEvent.WaitOne(nextWait);
                 }
             }
             catch (Exception ex)
             {
                 Log.Exception(ex);
             }
-            GetUrl(UrlType.Stop);
         }
 
         /// <summary>
-        /// Force pending ip addresses to be processed immediately. They are processed at every cycle loop (see config file) automatically.
+        /// Manually run one cycle. This is called automatically, unless ManualCycle is true.
         /// </summary>
-        public void ProcessPendingIPAddresses()
+        public void RunCycle()
         {
-            List<PendingIPAddress> ipAddresses;
-            lock (pendingIPAddresses)
+            ReadAppSettings();
+            SetNetworkInfo();
+            UpdateDelegate();
+            CheckForExpiredIP();
+            ProcessPendingIPAddresses();
+            if (needsBanScript)
             {
-                if (pendingIPAddresses.Count == 0)
-                {
-                    return;
-                }
-                ipAddresses = new List<PendingIPAddress>(pendingIPAddresses);
-                pendingIPAddresses.Clear();
+                needsBanScript = false;
+                ExecuteBanScript();
             }
-
-            ProcessPendingIPAddresses(ipAddresses);
         }
 
         /// <summary>
@@ -950,7 +955,7 @@ namespace IPBan
                 PendingIPAddress existing = pendingIPAddresses.FirstOrDefault(p => p.IPAddress == ipAddress && p.UserName == userName);
                 if (existing == null)
                 {
-                    existing = new PendingIPAddress { IPAddress = ipAddress, UserName = userName, DateTime = DateTime.UtcNow };
+                    existing = new PendingIPAddress { IPAddress = ipAddress, UserName = userName, DateTime = CurrentDateTime };
                     pendingIPAddresses.Add(existing);
                 }
                 existing.Counter++;
@@ -1046,8 +1051,8 @@ namespace IPBan
                 {
                     lock (ipAddressesAndBlockCounts)
                     {
-                        ipAddressesAndBanDate[ip] = DateTime.UtcNow;
-                        ipAddressesAndBlockCounts[ip] = new IPBlockCount(Config.FailedLoginAttemptsBeforeBan); ;
+                        ipAddressesAndBanDate[ip] = CurrentDateTime;
+                        ipAddressesAndBlockCounts[ip] = new IPBlockCount(CurrentDateTime, Config.FailedLoginAttemptsBeforeBan);
                     }
                 }
             }
@@ -1104,8 +1109,9 @@ namespace IPBan
 
             run = false;
             cycleEvent.Set();
-            serviceThread.Join();
+            cycleTask?.Wait();
             cycleEvent.Dispose();
+            GetUrl(UrlType.Stop);
             query = null;
             if (IPBanDelegate != null)
             {
@@ -1138,8 +1144,10 @@ namespace IPBan
             {
                 RunTests();
             }
-            serviceThread = new Thread(new ThreadStart(ServiceThread));
-            serviceThread.Start();
+            if (!ManualCycle)
+            {
+                cycleTask = Task.Run((Action)CycleTask);
+            }
         }
 
         /// <summary>
@@ -1198,5 +1206,20 @@ namespace IPBan
         /// Whether delegate callbacks and other tasks are multithreaded. Default is true. Set to false if unit or integration testing.
         /// </summary>
         public bool MultiThreaded { get; set; } = true;
+
+        /// <summary>
+        /// True if the cycle is manual, in which case RunCycle must be called periodically, otherwise if false RunCycle is called automatically.
+        /// </summary>
+        public bool ManualCycle { get; set; }
+
+        private DateTime currentDateTime;
+        /// <summary>
+        /// Allows changing the current date time to facilitate testing of behavior over elapsed times
+        /// </summary>
+        public DateTime CurrentDateTime
+        {
+            get { return currentDateTime == default(DateTime) ? DateTime.UtcNow : currentDateTime; }
+            set { currentDateTime = value; }
+        }
     }
 }
