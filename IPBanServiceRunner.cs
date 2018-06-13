@@ -95,7 +95,7 @@ namespace IPBan
                     break;
                 }
             }
-            return (IPBanService)Activator.CreateInstance(instanceType);
+            return (IPBanService)Activator.CreateInstance(instanceType, string.Empty);
         }
 
         public static int RunService(string[] args)

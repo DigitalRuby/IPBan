@@ -25,9 +25,9 @@ namespace IPBan
             LastFailedLogin = DateTime.UtcNow;
         }
 
-        public void IncrementCount()
+        public void IncrementCount(int amount = 1)
         {
-            Count++;
+            Count += amount;
             LastFailedLogin = DateTime.UtcNow;
         }
     }

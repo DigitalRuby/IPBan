@@ -39,8 +39,10 @@ namespace IPBan
             public string IPAddress { get; set; }
             public string UserName { get; set; }
             public DateTime DateTime { get; set; }
+            public int Counter { get; set; }
         }
 
+        private string configFilePath;
         private Thread serviceThread;
         private bool run;
         private EventLogQuery query;
@@ -61,6 +63,18 @@ namespace IPBan
         // the windows event viewer calls back on a background thread, this allows pushing the ip addresses to a list that will be accessed
         //  in the main loop
         private readonly List<PendingIPAddress> pendingIPAddresses = new List<PendingIPAddress>();
+
+        private void RunTask(Action action)
+        {
+            if (MultiThreaded)
+            {
+                System.Threading.Tasks.Task.Run(action);
+            }
+            else
+            {
+                action.Invoke();
+            }
+        }
 
         private void ExecuteBanScript()
         {
@@ -93,14 +107,13 @@ namespace IPBan
         {
             try
             {
-                string path = AppDomain.CurrentDomain.SetupInformation.ConfigurationFile;
-                DateTime lastDateTime = File.GetLastWriteTimeUtc(path);
+                DateTime lastDateTime = File.GetLastWriteTimeUtc(configFilePath);
                 if (lastDateTime > lastConfigFileDateTime)
                 {
                     lastConfigFileDateTime = lastDateTime;
                     lock (configLock)
                     {
-                        IPBanConfig newConfig = new IPBanConfig { ExternalConfig = IPBanDelegate };
+                        IPBanConfig newConfig = new IPBanConfig(configFilePath) { ExternalConfig = IPBanDelegate };
                         Config = newConfig;
                     }
                 }
@@ -328,22 +341,6 @@ namespace IPBan
             }
         }
 
-        private void ProcessPendingIPAddresses()
-        {
-            List<PendingIPAddress> ipAddresses;
-            lock (pendingIPAddresses)
-            {
-                if (pendingIPAddresses.Count == 0)
-                {
-                    return;
-                }
-                ipAddresses = new List<PendingIPAddress>(pendingIPAddresses);
-                pendingIPAddresses.Clear();
-            }
-
-            ProcessPendingIPAddresses(ipAddresses);
-        }
-
         private void ProcessPendingIPAddresses(IEnumerable<PendingIPAddress> ipAddresses)
         {
             List<string> bannedIpAddresses = new List<string>();
@@ -353,6 +350,7 @@ namespace IPBan
                 string ipAddress = p.IPAddress;
                 string userName = p.UserName;
                 DateTime dateTime = p.DateTime;
+                int counter = p.Counter;
 
                 if (Config.IsWhiteListed(ipAddress))
                 {
@@ -374,7 +372,7 @@ namespace IPBan
                         }
 
                         // Increment the count.
-                        ipBlockCount.IncrementCount();
+                        ipBlockCount.IncrementCount(counter);
 
                         Log.Write(LogLevel.Info, "Incrementing count for ip {0} to {1}, user name: {2}", ipAddress, ipBlockCount.Count, userName);
 
@@ -415,7 +413,7 @@ namespace IPBan
         {
             // kick off external process and delegate notification in another thread
             string programToRunConfigString = Config.ProcessToRunOnBan;
-            System.Threading.Tasks.Task.Factory.StartNew(() =>
+            RunTask(() =>
             {
                 foreach (string bannedIp in bannedIPAddresses)
                 {
@@ -471,15 +469,6 @@ namespace IPBan
             AddPendingIPAddressAndUserName(ipAddress, userName);
         }
 
-        private void ProcessXml(string xml)
-        {
-            Log.Write(LogLevel.Info, "Processing xml: {0}", xml);
-
-            XmlDocument doc = ParseXml(xml);
-            ExtractIPAddressAndUserNameFromXml(doc, out string ipAddress, out string userName);
-            ProcessIPAddressAndUserName(ipAddress, userName, doc);
-        }
-
         private void EventRecordWritten(object sender, EventRecordWrittenEventArgs e)
         {
             try
@@ -497,7 +486,7 @@ namespace IPBan
                     }
                     if (xml != null)
                     {
-                        ProcessXml(xml);
+                        ProcessEventViewerXml(xml);
                     }
                 }
             }
@@ -547,7 +536,7 @@ namespace IPBan
 
             while (count-- > 0)
             {
-                ProcessXml(xml);
+                ProcessEventViewerXml(xml);
             }
         }
 
@@ -580,7 +569,7 @@ namespace IPBan
 
             foreach (string xml in xmlTestStrings)
             {
-                ProcessXml(xml);
+                ProcessEventViewerXml(xml);
             }
 
             for (int i = 0; i < 255 && run; i++)
@@ -607,7 +596,7 @@ namespace IPBan
         private void DelayTest(object stateInfo)
         {
             Thread.Sleep(15000);
-            ProcessXml((string)stateInfo);
+            ProcessEventViewerXml((string)stateInfo);
         }
 
         private void Initialize()
@@ -705,7 +694,7 @@ namespace IPBan
                 if (IPBanDelegate != null)
                 {
                     // notify delegate of unban in background thread
-                    System.Threading.Tasks.Task.Factory.StartNew(() =>
+                    RunTask(() =>
                     {
                         foreach (string ip in ipAddressesToForget)
                         {
@@ -842,7 +831,7 @@ namespace IPBan
                     .Replace("###MACHINENAME###", WebUtility.UrlEncode(FQDN))
                     .Replace("###VERSION###", WebUtility.UrlEncode(System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString()))
                     .Replace("###GUID###", WebUtility.UrlEncode(MachineGuid));
-                System.Threading.Tasks.Task.Factory.StartNew(() =>
+                RunTask(() =>
                 {
                     try
                     {
@@ -918,6 +907,38 @@ namespace IPBan
         }
 
         /// <summary>
+        /// Force pending ip addresses to be processed immediately. They are processed at every cycle loop (see config file) automatically.
+        /// </summary>
+        public void ProcessPendingIPAddresses()
+        {
+            List<PendingIPAddress> ipAddresses;
+            lock (pendingIPAddresses)
+            {
+                if (pendingIPAddresses.Count == 0)
+                {
+                    return;
+                }
+                ipAddresses = new List<PendingIPAddress>(pendingIPAddresses);
+                pendingIPAddresses.Clear();
+            }
+
+            ProcessPendingIPAddresses(ipAddresses);
+        }
+
+        /// <summary>
+        /// Process xml from event viewer
+        /// </summary>
+        /// <param name="xml"></param>
+        public void ProcessEventViewerXml(string xml)
+        {
+            Log.Write(LogLevel.Info, "Processing xml: {0}", xml);
+
+            XmlDocument doc = ParseXml(xml);
+            ExtractIPAddressAndUserNameFromXml(doc, out string ipAddress, out string userName);
+            ProcessIPAddressAndUserName(ipAddress, userName, doc);
+        }
+
+        /// <summary>
         /// Add an ip address to be checked for banning later
         /// </summary>
         /// <param name="ipAddress">IP Address, required</param>
@@ -926,9 +947,14 @@ namespace IPBan
         {
             lock (pendingIPAddresses)
             {
-                pendingIPAddresses.Add(new PendingIPAddress { IPAddress = ipAddress, UserName = userName, DateTime = DateTime.UtcNow });
+                PendingIPAddress existing = pendingIPAddresses.FirstOrDefault(p => p.IPAddress == ipAddress && p.UserName == userName);
+                if (existing == null)
+                {
+                    existing = new PendingIPAddress { IPAddress = ipAddress, UserName = userName, DateTime = DateTime.UtcNow };
+                    pendingIPAddresses.Add(existing);
+                }
+                existing.Counter++;
             }
-
         }
 
         /// <summary>
@@ -1117,6 +1143,15 @@ namespace IPBan
         }
 
         /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="configFilePath">Config file path or null for default</param>
+        public IPBanService(string configFilePath = null)
+        {
+            this.configFilePath = (string.IsNullOrWhiteSpace(configFilePath) ? AppDomain.CurrentDomain.SetupInformation.ConfigurationFile : configFilePath);
+        }
+
+        /// <summary>
         /// Calls Dispose
         /// </summary>
         public void Stop()
@@ -1158,5 +1193,10 @@ namespace IPBan
         /// External delegate to allow external config, whitelist, blacklist, etc.
         /// </summary>
         public IIPBanDelegate IPBanDelegate { get; set; }
+
+        /// <summary>
+        /// Whether delegate callbacks and other tasks are multithreaded. Default is true. Set to false if unit or integration testing.
+        /// </summary>
+        public bool MultiThreaded { get; set; } = true;
     }
 }

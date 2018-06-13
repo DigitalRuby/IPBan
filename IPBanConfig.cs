@@ -92,8 +92,14 @@ namespace IPBan
         /// <summary>
         /// Constructor
         /// </summary>
-        public IPBanConfig()
+        /// <param name="configFilePath">Config file path</param>
+        public IPBanConfig(string configFilePath)
         {
+            if (configFilePath != AppDomain.CurrentDomain.SetupInformation.ConfigurationFile)
+            {
+                File.Copy(configFilePath, AppDomain.CurrentDomain.SetupInformation.ConfigurationFile, true);
+            }
+
             ConfigurationManager.RefreshSection("appSettings");
             ConfigurationManager.RefreshSection("configSections");
             ConfigurationManager.RefreshSection("nlog");
