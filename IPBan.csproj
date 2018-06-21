@@ -110,7 +110,6 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="banfile_test.txt" />
-    <Content Include="CHANGELOG.txt" />
     <Content Include="LICENSE.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
