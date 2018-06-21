@@ -49,6 +49,11 @@ namespace IPBan
         /// A unique id for this service
         /// </summary>
         string MachineGuid { get; }
+
+        /// <summary>
+        /// Http request maker
+        /// </summary>
+        IHttpRequestMaker RequestMaker { get; }
     }
 
     /// <summary>
@@ -97,8 +102,18 @@ namespace IPBan
         /// Notify when an ip is banned
         /// </summary>
         /// <param name="ip">IP address</param>
+        /// <param name="userName">User name</param>
         /// <param name="banned">True if banned, false if unbanned</param>
-        Task IPAddressBanned(string ip, bool banned);
+        /// <returns>Task</returns>
+        Task IPAddressBanned(string ip, string userName, bool banned);
+
+        /// <summary>
+        /// Notify when a login attempt fails
+        /// </summary>
+        /// <param name="ip">Origin IP Address of the login attempt</param>
+        /// <param name="userName">User name</param>
+        /// <returns>Task</returns>
+        Task LoginAttemptFailed(string ip, string userName);
 
         /// <summary>
         /// Enumerate external blacklist

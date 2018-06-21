@@ -25,7 +25,7 @@ using System.Text.RegularExpressions;
 
 namespace IPBan
 {
-    public class IPBanService : IIPBanService
+    public class IPBanService : IIPBanService, IHttpRequestMaker
     {
         private enum UrlType
         {
@@ -181,7 +181,8 @@ namespace IPBan
             {
                 try
                 {
-                    RemoteIPAddressString = new WebClient().DownloadString(Config.ExternalIPAddressUrl).Trim();
+                    byte[] bytes = RequestMaker.DownloadDataAsync(Config.ExternalIPAddressUrl).ConfigureAwait(false).GetAwaiter().GetResult();
+                    RemoteIPAddressString = Encoding.UTF8.GetString(bytes).Trim();
                 }
                 catch
                 {
@@ -361,7 +362,7 @@ namespace IPBan
 
         private void ProcessPendingIPAddresses(IEnumerable<PendingIPAddress> ipAddresses)
         {
-            List<string> bannedIpAddresses = new List<string>();
+            List<KeyValuePair<string, string>> bannedIpAddresses = new List<KeyValuePair<string, string>>();
 
             foreach (PendingIPAddress p in ipAddresses)
             {
@@ -402,7 +403,7 @@ namespace IPBan
                             {
                                 if (!ipAddressesAndBanDate.ContainsKey(ipAddress))
                                 {
-                                    bannedIpAddresses.Add(ipAddress);
+                                    bannedIpAddresses.Add(new KeyValuePair<string, string>(ipAddress, userName));
                                     Log.Write(LogLevel.Error, "Banning ip address: {0}, user name: {1}, black listed: {2}, count: {3}", ipAddress, userName, blackListed, ipBlockCount.Count);
                                     ipAddressesAndBanDate[ipAddress] = dateTime;
                                     needsBanScript = true;
@@ -427,13 +428,13 @@ namespace IPBan
             }
         }
 
-        private void ProcessBannedIPAddresses(IEnumerable<string> bannedIPAddresses)
+        private void ProcessBannedIPAddresses(IEnumerable<KeyValuePair<string, string>> bannedIPAddresses)
         {
             // kick off external process and delegate notification in another thread
             string programToRunConfigString = Config.ProcessToRunOnBan;
             RunTask(() =>
             {
-                foreach (string bannedIp in bannedIPAddresses)
+                foreach (var bannedIp in bannedIPAddresses)
                 {
                     // Run a process if one is in config
                     if (!string.IsNullOrWhiteSpace(programToRunConfigString))
@@ -445,7 +446,7 @@ namespace IPBan
                             {
                                 string program = pieces[0];
                                 string arguments = pieces[1];
-                                Process.Start(program, arguments.Replace("###IPADDRESS###", bannedIp));
+                                Process.Start(program, arguments.Replace("###IPADDRESS###", bannedIp.Key).Replace("###USERNAME###", bannedIp.Value));
                             }
                             else
                             {
@@ -461,7 +462,7 @@ namespace IPBan
                     {
                         try
                         {
-                            IPBanDelegate.IPAddressBanned(bannedIp, true);
+                            IPBanDelegate.IPAddressBanned(bannedIp.Key, bannedIp.Value, true);
                         }
                         catch (Exception ex)
                         {
@@ -718,7 +719,7 @@ namespace IPBan
                         {
                             try
                             {
-                                IPBanDelegate.IPAddressBanned(ip, false);
+                                IPBanDelegate.IPAddressBanned(ip, null, false);
                             }
                             catch (Exception ex)
                             {
@@ -854,32 +855,28 @@ namespace IPBan
                 {
                     try
                     {
-                        using (WebClient client = new WebClient())
+                        byte[] bytes = RequestMaker.DownloadDataAsync(url).ConfigureAwait(false).GetAwaiter().GetResult();
+                        if (urlType == UrlType.Start)
                         {
-                            client.Headers["User-Agent"] = System.Reflection.Assembly.GetEntryAssembly().GetName().Name;
-                            byte[] bytes = client.DownloadData(url);
-                            if (urlType == UrlType.Start)
+                            gotStartUrl = true;
+                        }
+                        else if (urlType == UrlType.Update)
+                        {
+                            // if the update url sends bytes, we assume a software update, and run the result as an .exe
+                            if (bytes.Length != 0)
                             {
-                                gotStartUrl = true;
-                            }
-                            else if (urlType == UrlType.Update)
-                            {
-                                // if the update url sends bytes, we assume a software update, and run the result as an .exe
-                                if (bytes.Length != 0)
-                                {
-                                    string tempFile = Path.Combine(Path.GetTempPath(), "IPBanServiceUpdate.exe");
-                                    File.WriteAllBytes(tempFile, bytes);
+                                string tempFile = Path.Combine(Path.GetTempPath(), "IPBanServiceUpdate.exe");
+                                File.WriteAllBytes(tempFile, bytes);
 
-                                    // however you are doing the update, you must allow -c and -d parameters
-                                    // pass -c to tell the update executable to delete itself when done
-                                    // pass -d for a directory which tells the .exe where this service lives
-                                    Process.Start(tempFile, "-c \"-d=" + AppDomain.CurrentDomain.BaseDirectory + "\"");
-                                }
+                                // however you are doing the update, you must allow -c and -d parameters
+                                // pass -c to tell the update executable to delete itself when done
+                                // pass -d for a directory which tells the .exe where this service lives
+                                Process.Start(tempFile, "-c \"-d=" + AppDomain.CurrentDomain.BaseDirectory + "\"");
                             }
-                            else if (urlType == UrlType.Config && bytes.Length != 0)
-                            {
-                                UpdateConfig(Encoding.UTF8.GetString(bytes));
-                            }
+                        }
+                        else if (urlType == UrlType.Config && bytes.Length != 0)
+                        {
+                            UpdateConfig(Encoding.UTF8.GetString(bytes));
                         }
                     }
                     catch (Exception ex)
@@ -911,6 +908,11 @@ namespace IPBan
             {
                 Log.Exception(ex);
             }
+        }
+
+        public IPBanService()
+        {
+            RequestMaker = this;
         }
 
         /// <summary>
@@ -1168,6 +1170,26 @@ namespace IPBan
         }
 
         /// <summary>
+        /// Implementation of IHttpRequestMaker
+        /// </summary>
+        /// <param name="url">Url</param>
+        /// <returns>Task of bytes</returns>
+        async Task<byte[]> IHttpRequestMaker.DownloadDataAsync(string url)
+        {
+            using (WebClient client = new WebClient())
+            {
+                client.UseDefaultCredentials = true;
+                client.Headers["User-Agent"] = System.Reflection.Assembly.GetEntryAssembly().GetName().Name;
+                return await client.DownloadDataTaskAsync(url);
+            }
+        }
+
+        /// <summary>
+        /// Http request maker, defaults to this
+        /// </summary>
+        public IHttpRequestMaker RequestMaker { get; set; }
+
+        /// <summary>
         /// Whether to run unit tests on start. Default is false.
         /// </summary>
         public bool RunTestsOnStart { get; set; }
@@ -1211,7 +1233,7 @@ namespace IPBan
         /// True if the cycle is manual, in which case RunCycle must be called periodically, otherwise if false RunCycle is called automatically.
         /// </summary>
         public bool ManualCycle { get; set; }
-
+        
         private DateTime currentDateTime;
         /// <summary>
         /// Allows changing the current date time to facilitate testing of behavior over elapsed times
