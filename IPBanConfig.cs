@@ -58,7 +58,7 @@ namespace IPBan
 
             if (!string.IsNullOrWhiteSpace(setValue))
             {
-                foreach (string v in setValue.Split(','))
+                foreach (string v in setValue.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
                 {
                     set.Add(v.Trim());
 

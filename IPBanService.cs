@@ -849,7 +849,7 @@ namespace IPBan
             {
                 url = url.Replace("###IPADDRESS###", WebUtility.UrlEncode(LocalIPAddressString))
                     .Replace("###MACHINENAME###", WebUtility.UrlEncode(FQDN))
-                    .Replace("###VERSION###", WebUtility.UrlEncode(System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString()))
+                    .Replace("###VERSION###", WebUtility.UrlEncode(System.Reflection.Assembly.GetEntryAssembly().GetName().Version.ToString()))
                     .Replace("###GUID###", WebUtility.UrlEncode(MachineGuid));
                 RunTask(() =>
                 {
@@ -908,11 +908,6 @@ namespace IPBan
             {
                 Log.Exception(ex);
             }
-        }
-
-        public IPBanService()
-        {
-            RequestMaker = this;
         }
 
         /// <summary>
@@ -1159,6 +1154,7 @@ namespace IPBan
         public IPBanService(string configFilePath = null)
         {
             this.configFilePath = (string.IsNullOrWhiteSpace(configFilePath) ? AppDomain.CurrentDomain.SetupInformation.ConfigurationFile : configFilePath);
+            RequestMaker = this;
         }
 
         /// <summary>
