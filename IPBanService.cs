@@ -20,6 +20,7 @@ using System.Security.Principal;
 using System.Web.Script.Serialization;
 using System.Xml;
 using System.Text.RegularExpressions;
+using System.Reflection;
 
 #endregion Imports
 
@@ -847,9 +848,10 @@ namespace IPBan
 
             if (!string.IsNullOrWhiteSpace(url))
             {
+                Assembly a = IPBanService.GetIPBanAssembly();
                 url = url.Replace("###IPADDRESS###", WebUtility.UrlEncode(LocalIPAddressString))
                     .Replace("###MACHINENAME###", WebUtility.UrlEncode(FQDN))
-                    .Replace("###VERSION###", WebUtility.UrlEncode(System.Reflection.Assembly.GetEntryAssembly().GetName().Version.ToString()))
+                    .Replace("###VERSION###", WebUtility.UrlEncode(a.GetName().Version.ToString()))
                     .Replace("###GUID###", WebUtility.UrlEncode(MachineGuid));
                 RunTask(() =>
                 {
@@ -871,7 +873,8 @@ namespace IPBan
                                 // however you are doing the update, you must allow -c and -d parameters
                                 // pass -c to tell the update executable to delete itself when done
                                 // pass -d for a directory which tells the .exe where this service lives
-                                Process.Start(tempFile, "-c \"-d=" + AppDomain.CurrentDomain.BaseDirectory + "\"");
+                                string args = "-c \"-d=" + AppDomain.CurrentDomain.BaseDirectory + "\"";
+                                Process.Start(tempFile, args);
                             }
                         }
                         else if (urlType == UrlType.Config && bytes.Length != 0)
@@ -1158,6 +1161,15 @@ namespace IPBan
         }
 
         /// <summary>
+        /// Get the IPBan assembly
+        /// </summary>
+        /// <returns>IPBan assembly</returns>
+        public static Assembly GetIPBanAssembly()
+        {
+            return typeof(IPBanService).Assembly;
+        }
+
+        /// <summary>
         /// Calls Dispose
         /// </summary>
         public void Stop()
@@ -1174,8 +1186,9 @@ namespace IPBan
         {
             using (WebClient client = new WebClient())
             {
+                Assembly a = (Assembly.GetEntryAssembly() ?? IPBanService.GetIPBanAssembly());
                 client.UseDefaultCredentials = true;
-                client.Headers["User-Agent"] = System.Reflection.Assembly.GetEntryAssembly().GetName().Name;
+                client.Headers["User-Agent"] = a.GetName().Name;
                 return await client.DownloadDataTaskAsync(url);
             }
         }

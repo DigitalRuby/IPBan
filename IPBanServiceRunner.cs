@@ -83,32 +83,49 @@ namespace IPBan
             }
         }
 
-        public static IPBanService CreateService()
+        private static IPBanService CreateService(Type instanceType = null)
         {
-            System.Type[] types = System.Reflection.Assembly.GetEntryAssembly().GetTypes();
-            Type instanceType = typeof(IPBanService);
-            foreach (Type type in types)
+            Type ipBanServiceRootType = typeof(IPBanService);
+            if (instanceType == null)
             {
-                if (type.IsSubclassOf(instanceType))
+                foreach (Assembly a in AppDomain.CurrentDomain.GetAssemblies())
                 {
-                    instanceType = type;
-                    break;
+                    System.Type[] types = a.GetTypes();
+                    foreach (Type aType in types)
+                    {
+                        if ((instanceType != null && aType.IsSubclassOf(instanceType)) ||
+                            (instanceType == null && aType == ipBanServiceRootType) ||
+                            aType.IsSubclassOf(ipBanServiceRootType))
+                        {
+                            instanceType = aType;
+                            break;
+                        }
+                    }
                 }
+                if (instanceType == null)
+                {
+                    throw new ArgumentException("Unable to find a subclass of " + ipBanServiceRootType.FullName);
+                }
+            }
+            else if (!instanceType.IsSubclassOf(ipBanServiceRootType))
+            {
+                throw new ArgumentException("Instance type must be a subclass of " + ipBanServiceRootType.FullName);
             }
             return (IPBanService)Activator.CreateInstance(instanceType, string.Empty);
         }
 
-        public static int RunService(string[] args)
+        public static int RunService(string[] args, Type instanceType = null)
         {
+            Directory.SetCurrentDirectory(AppDomain.CurrentDomain.BaseDirectory);
             System.ServiceProcess.ServiceBase[] ServicesToRun;
             ServicesToRun = new System.ServiceProcess.ServiceBase[] { new IPBanServiceRunner() };
             System.ServiceProcess.ServiceBase.Run(ServicesToRun);
             return 0;
         }
 
-        public static int RunConsole(string[] args)
+        public static int RunConsole(string[] args, Type instanceType = null)
         {
-            IPBanService service = CreateService();
+            IPBanService service = CreateService(instanceType);
             if (args.Contains("test", StringComparer.OrdinalIgnoreCase))
             {
                 service.RunTestsOnStart = true;
@@ -120,17 +137,21 @@ namespace IPBan
             return 0;
         }
 
-        public static int Main(string[] args)
+        public static int ServiceEntryPoint(string[] args, Type instanceType = null)
         {
-            Directory.SetCurrentDirectory(AppDomain.CurrentDomain.BaseDirectory);
             if (Environment.UserInteractive)
             {
-                return IPBanServiceRunner.RunConsole(args);
+                return IPBanServiceRunner.RunConsole(args, instanceType);
             }
             else
             {
-                return IPBanServiceRunner.RunService(args);
+                return IPBanServiceRunner.RunService(args, instanceType);
             }
+        }
+
+        public static int Main(string[] args)
+        {
+            return ServiceEntryPoint(args);
         }
     }
 }
