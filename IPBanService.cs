@@ -395,7 +395,6 @@ namespace IPBan
                         ipBlockCount.IncrementCount(CurrentDateTime, counter);
 
                         Log.Write(LogLevel.Info, "Incrementing count for ip {0} to {1}, user name: {2}", ipAddress, ipBlockCount.Count, userName);
-                        IPBanDelegate?.LoginAttemptFailed(ipAddress, userName);
 
                         // if the ip is black listed or they have reached the maximum failed login attempts before ban, ban them
                         if (blackListed || ipBlockCount.Count >= Config.FailedLoginAttemptsBeforeBan)
@@ -405,10 +404,12 @@ namespace IPBan
                             {
                                 if (!ipAddressesAndBanDate.ContainsKey(ipAddress))
                                 {
+                                    IPBanDelegate?.LoginAttemptFailed(ipAddress, userName);
                                     bannedIpAddresses.Add(new KeyValuePair<string, string>(ipAddress, userName));
                                     Log.Write(LogLevel.Error, "Banning ip address: {0}, user name: {1}, black listed: {2}, count: {3}", ipAddress, userName, blackListed, ipBlockCount.Count);
                                     ipAddressesAndBanDate[ipAddress] = dateTime;
                                     needsBanScript = true;
+
                                 }
                             }
                             else
@@ -419,6 +420,10 @@ namespace IPBan
                         else if (ipBlockCount.Count > Config.FailedLoginAttemptsBeforeBan)
                         {
                             Log.Write(LogLevel.Warning, "Got event with ip address {0}, count {1}, ip should already be banned", ipAddress, ipBlockCount.Count);
+                        }
+                        else
+                        {
+                            IPBanDelegate?.LoginAttemptFailed(ipAddress, userName);
                         }
                     }
                 }
