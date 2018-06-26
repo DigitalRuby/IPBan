@@ -395,6 +395,7 @@ namespace IPBan
                         ipBlockCount.IncrementCount(CurrentDateTime, counter);
 
                         Log.Write(LogLevel.Info, "Incrementing count for ip {0} to {1}, user name: {2}", ipAddress, ipBlockCount.Count, userName);
+                        IPBanDelegate?.LoginAttemptFailed(ipAddress, userName);
 
                         // if the ip is black listed or they have reached the maximum failed login attempts before ban, ban them
                         if (blackListed || ipBlockCount.Count >= Config.FailedLoginAttemptsBeforeBan)
@@ -459,16 +460,13 @@ namespace IPBan
                             Log.Exception("Failed to execute process on ban", ex);
                         }
                     }
-                    if (IPBanDelegate != null)
+                    try
                     {
-                        try
-                        {
-                            IPBanDelegate.IPAddressBanned(bannedIp.Key, bannedIp.Value, true);
-                        }
-                        catch (Exception ex)
-                        {
-                            Log.Exception("Error in delegate IPAddressBanned", ex);
-                        }
+                        IPBanDelegate?.IPAddressBanned(bannedIp.Key, bannedIp.Value, true);
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Exception("Error in delegate IPAddressBanned", ex);
                     }
                 }
             });
@@ -628,10 +626,7 @@ namespace IPBan
             ProcessBanFileOnStart();
             SetupEventLogWatcher();
             LogInitialConfig();
-            if (IPBanDelegate != null)
-            {
-                IPBanDelegate.Start(this);
-            }
+            IPBanDelegate?.Start(this);
         }
 
         private void CheckForExpiredIP()
@@ -1126,18 +1121,15 @@ namespace IPBan
             cycleEvent.Dispose();
             GetUrl(UrlType.Stop);
             query = null;
-            if (IPBanDelegate != null)
+            try
             {
-                try
-                {
-                    IPBanDelegate.Stop();
-                    IPBanDelegate.Dispose();
-                }
-                catch
-                {
-                }
-                IPBanDelegate = null;
+                IPBanDelegate?.Stop();
+                IPBanDelegate?.Dispose();
             }
+            catch
+            {
+            }
+            IPBanDelegate = null;
             if (watcher != null)
             {
                 watcher.Dispose();
