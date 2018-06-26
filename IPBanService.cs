@@ -489,6 +489,8 @@ namespace IPBan
             {
                 userName = (string.IsNullOrWhiteSpace(userName) ? userNameNode.InnerText.Trim() : userName);
             }
+
+            Log.Write(LogLevel.Info, "*LOGIN FAIL* IP: {0}, USER: {1}", ipAddress, userName);
             AddPendingIPAddressAndUserName(ipAddress, userName);
         }
 
