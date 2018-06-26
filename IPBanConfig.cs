@@ -25,6 +25,7 @@ namespace IPBan
         private string banFile = "banlog.txt";
         private TimeSpan expireTime = TimeSpan.FromDays(1.0d);
         private TimeSpan cycleTime = TimeSpan.FromMinutes(1.0d);
+        private TimeSpan minimumTimeBetweenFailedLoginAttempts = TimeSpan.FromSeconds(5.0);
         private string ruleName = "BlockIPAddresses";
         private readonly HashSet<string> whiteList = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         private Regex whiteListRegex;
@@ -129,6 +130,9 @@ namespace IPBan
             value = ConfigurationManager.AppSettings["CycleTime"];
             cycleTime = TimeSpan.Parse(value, CultureInfo.InvariantCulture);
 
+            value = ConfigurationManager.AppSettings["MinimumTimeBetweenFailedLoginAttempts"];
+            minimumTimeBetweenFailedLoginAttempts = TimeSpan.Parse(value, CultureInfo.InvariantCulture);
+
             value = ConfigurationManager.AppSettings["RuleName"];
             ruleName = value;
 
@@ -228,6 +232,11 @@ namespace IPBan
         /// Interval of time to do house-keeping chores like un-banning ip addresses
         /// </summary>
         public TimeSpan CycleTime { get { return cycleTime; } }
+
+        /// <summary>
+        /// The minimum time between failed login attempts to increment the ban counter
+        /// </summary>
+        public TimeSpan MinimumTimeBetweenFailedLoginAttempts { get { return minimumTimeBetweenFailedLoginAttempts; } }
 
         /// <summary>
         /// Rule name for Windows Firewall

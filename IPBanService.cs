@@ -963,12 +963,12 @@ namespace IPBan
                 {
                     existing.UserName = (existing.UserName ?? userName);
 
-                    // if more than 5 seconds has passed, increment the counter
+                    // if more than n seconds has passed, increment the counter
                     // we don't want to count multiple event logs that all map to the same ip address from one failed
                     // attempt to count multiple times
-                    if ((DateTime.UtcNow - existing.DateTime).TotalSeconds >= 5.0)
+                    if ((CurrentDateTime - existing.DateTime) >= Config.MinimumTimeBetweenFailedLoginAttempts)
                     {
-                        existing.DateTime = DateTime.UtcNow;
+                        existing.DateTime = CurrentDateTime;
                         existing.Counter++;
                     }
                 }
