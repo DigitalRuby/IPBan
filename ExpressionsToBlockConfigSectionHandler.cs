@@ -60,7 +60,7 @@ namespace IPBan
                 {
                     value = value.Substring(2);
                 }                    
-                KeywordsULONG = ulong.Parse(value, NumberStyles.AllowHexSpecifier);
+                KeywordsULONG = ulong.Parse(value, NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture);
             }
         }
 

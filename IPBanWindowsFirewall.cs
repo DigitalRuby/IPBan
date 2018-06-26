@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Text;
@@ -125,7 +126,7 @@ namespace IPBan
                     {
                         if (rule.Name.StartsWith(RulePrefix))
                         {
-                            int index = int.Parse(rule.Name.Substring(RulePrefix.Length));
+                            int index = int.Parse(rule.Name.Substring(RulePrefix.Length), CultureInfo.InvariantCulture);
                             if (index >= startIndex)
                             {
                                 rule.Enabled = false;

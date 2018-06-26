@@ -94,15 +94,6 @@ namespace IPBan
 
             // create rules for all banned ip addresses
             IPBanWindowsFirewall.CreateRules(ipAddresses);
-
-            // write all banned ip addresses
-            using (StreamWriter writer = File.CreateText(Config.BanFile))
-            {
-                foreach (KeyValuePair<string, DateTime> ipAndBanDate in ipAndBanDateArray)
-                {
-                    writer.WriteLine("{0}\t{1}", ipAndBanDate.Key, ipAndBanDate.Value.ToString("o"));
-                }
-            }
         }
 
         internal void ReadAppSettings()
@@ -210,61 +201,6 @@ namespace IPBan
             {
                 Log.Write(LogLevel.Info, "Allowed Users: {0}", Config.AllowedUserNames);
             }
-        }
-
-        private void ProcessBanFileOnStart()
-        {
-            lock (ipAddressesAndBlockCounts)
-            {
-                ipAddressesAndBlockCounts.Clear();
-                ipAddressesAndBanDate.Clear();
-                if (File.Exists(Config.BanFile))
-                {
-                    if (Config.BanFileClearOnRestart)
-                    {
-                        // don't re-ban any ip addresses, per config option
-                        File.Delete(Config.BanFile);
-                    }
-                    else
-                    {
-                        string[] lines = File.ReadAllLines(Config.BanFile);
-                        DateTime now = CurrentDateTime;
-                        foreach (string ip in lines)
-                        {
-                            string[] pieces = ip.Split('\t');
-                            if (pieces.Length > 0)
-                            {
-                                string ipTrimmed = pieces[0].Trim();
-                                if (IPAddress.TryParse(ipTrimmed, out IPAddress tmp))
-                                {
-                                    // setup a ban entry for the ip address
-                                    IPBlockCount blockCount = new IPBlockCount(now, Config.FailedLoginAttemptsBeforeBan);
-                                    ipAddressesAndBlockCounts[ipTrimmed] = blockCount;
-                                    if (pieces.Length > 1)
-                                    {
-                                        try
-                                        {
-                                            // use the date/time if we have it
-                                            ipAddressesAndBanDate[ipTrimmed] = DateTime.Parse(pieces[1]).ToUniversalTime();
-                                        }
-                                        catch
-                                        {
-                                            // corrupt date/time in the file, fallback to current date/time
-                                            ipAddressesAndBanDate[ipTrimmed] = CurrentDateTime;
-                                        }
-                                    }
-                                    else
-                                    {
-                                        // otherwise fall back to current date/time
-                                        ipAddressesAndBanDate[ipTrimmed] = CurrentDateTime;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            ExecuteBanScript();
         }
 
         private XmlDocument ParseXml(string xml)
@@ -630,12 +566,16 @@ namespace IPBan
             ProcessEventViewerXml((string)stateInfo);
         }
 
+
         private void Initialize()
         {
             run = true;
             ReadAppSettings();
             IPBanWindowsFirewall.RulePrefix = Config.RuleName;
-            ProcessBanFileOnStart();
+            if (Config.ClearBannedIPAddressesOnRestart)
+            {
+                IPBanWindowsFirewall.DeleteRules();
+            }
             SetupEventLogWatcher();
             LogInitialConfig();
             IPBanDelegate?.Start(this);
@@ -1013,9 +953,14 @@ namespace IPBan
                 if (ipAddressGroup != null && ipAddressGroup.Success && !string.IsNullOrWhiteSpace(ipAddressGroup.Value))
                 {
                     string tempIPAddress = ipAddressGroup.Value.Trim();
-                    if (IPAddress.TryParse(tempIPAddress, out IPAddress tmp))
+
+                    // in case of IP:PORT format, try a second time, stripping off the :PORT, saves having to do this in all
+                    //  the different ip regex.
+                    int lastColon = tempIPAddress.LastIndexOf(':');
+                    if (IPAddress.TryParse(tempIPAddress, out IPAddress tmp) ||
+                        (lastColon >= 0 && IPAddress.TryParse(tempIPAddress.Substring(0, lastColon), out tmp)))
                     {
-                        ipAddress = tempIPAddress;
+                        ipAddress = tmp.ToString();
                         foundMatch = true;
                         break;
                     }

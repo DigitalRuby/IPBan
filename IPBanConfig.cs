@@ -22,7 +22,6 @@ namespace IPBan
         private ExpressionsToBlock expressions;
         private int failedLoginAttemptsBeforeBan = 5;
         private TimeSpan banTime = TimeSpan.FromDays(1.0d);
-        private string banFile = "banlog.txt";
         private TimeSpan expireTime = TimeSpan.FromDays(1.0d);
         private TimeSpan cycleTime = TimeSpan.FromMinutes(1.0d);
         private TimeSpan minimumTimeBetweenFailedLoginAttempts = TimeSpan.FromSeconds(5.0);
@@ -32,7 +31,7 @@ namespace IPBan
         private readonly HashSet<string> blackList = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         private Regex blackListRegex;
         private readonly HashSet<string> allowedUserNames = new HashSet<string>();
-        private bool banFileClearOnRestart;
+        private readonly bool clearBannedIPAddressesOnRestart;
         private readonly string processToRunOnBan;
         private readonly string getUrlUpdate;
         private readonly string getUrlStart;
@@ -112,17 +111,8 @@ namespace IPBan
             value = ConfigurationManager.AppSettings["BanTime"];
             banTime = TimeSpan.Parse(value, CultureInfo.InvariantCulture);
 
-            value = ConfigurationManager.AppSettings["BanFile"];
-            banFile = value;
-            if (!Path.IsPathRooted(banFile))
-            {
-                banFile = Path.GetFullPath(banFile);
-            }
-            value = ConfigurationManager.AppSettings["BanFileClearOnRestart"];
-            if (!bool.TryParse(value, out banFileClearOnRestart))
-            {
-                banFileClearOnRestart = true;
-            }
+            value = ConfigurationManager.AppSettings["ClearBannedIPAddressesOnRestart"];
+            bool.TryParse(value, out clearBannedIPAddressesOnRestart);
 
             value = ConfigurationManager.AppSettings["ExpireTime"];
             expireTime = TimeSpan.Parse(value, CultureInfo.InvariantCulture);
@@ -219,11 +209,6 @@ namespace IPBan
         public TimeSpan BanTime { get { return banTime; } }
 
         /// <summary>
-        /// Ban file
-        /// </summary>
-        public string BanFile { get { return banFile; } }
-
-        /// <summary>
         /// The duration after the last failed login attempt that the count is reset back to 0.
         /// </summary>
         public TimeSpan ExpireTime { get { return expireTime; } }
@@ -249,9 +234,9 @@ namespace IPBan
         public ExpressionsToBlock Expressions { get { return expressions; } }
 
         /// <summary>
-        /// True to clear and unban ip addresses in the ban file when the service restarts, false otherwise
+        /// True to clear and unban ip addresses upon restart, false otherwise
         /// </summary>
-        public bool BanFileClearOnRestart { get { return banFileClearOnRestart; } }
+        public bool ClearBannedIPAddressesOnRestart { get { return clearBannedIPAddressesOnRestart; } }
 
         /// <summary>
         /// Black list of ips as a comma separated string
