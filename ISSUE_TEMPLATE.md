@@ -4,4 +4,4 @@ I've spent many hundreds of hours providing this code free for the benefit of al
 
 Thank you.
 
-- Jeff
+Jeff Johnson
