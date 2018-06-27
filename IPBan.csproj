@@ -57,6 +57,7 @@
     <Compile Include="ExpressionsToBlockConfigSectionHandler.cs" />
     <Compile Include="IHttpRequestMaker.cs" />
     <Compile Include="IIPBanService.cs" />
+    <Compile Include="IPAddressRange.cs" />
     <Compile Include="IPBanConfig.cs" />
     <Compile Include="IPBanService.cs" />
     <Compile Include="IPBanServiceRunner.cs">
