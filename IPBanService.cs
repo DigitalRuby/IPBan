@@ -93,7 +93,7 @@ namespace IPBan
             // now that we are out of the lock, do more expensive operations
 
             // create rules for all banned ip addresses
-            IPBanWindowsFirewall.CreateRules(ipAddresses);
+            IPBanFirewall.CreateRules(ipAddresses);
         }
 
         internal void ReadAppSettings()
@@ -564,16 +564,33 @@ namespace IPBan
             ProcessEventViewerXml((string)stateInfo);
         }
 
+        private void UpdateBannedIPAddressesOnStart()
+        {
+            ipAddressesAndBlockCounts.Clear();
+            ipAddressesAndBanDate.Clear();
+            if (Config.ClearBannedIPAddressesOnRestart)
+            {
+                Log.Write(NLog.LogLevel.Warn, "Clearing all banned ip addresses on start because ClearBannedIPAddressesOnRestart is set");
+                IPBanFirewall.DeleteRules();
+            }
+            else
+            {
+                // create an in memory ban list from every ip address in the firewall
+                DateTime now = CurrentDateTime;
+                foreach (string ipAddress in IPBanFirewall.EnumerateBannedIPAddresses())
+                {
+                    ipAddressesAndBanDate[ipAddress] = now;
+                }
+                Log.Write(NLog.LogLevel.Warn, "Loaded {0} banned ip addresses", ipAddressesAndBanDate.Count);
+            }
+        }
 
         private void Initialize()
         {
             run = true;
             ReadAppSettings();
-            IPBanWindowsFirewall.RulePrefix = Config.RuleName;
-            if (Config.ClearBannedIPAddressesOnRestart)
-            {
-                IPBanWindowsFirewall.DeleteRules();
-            }
+            IPBanFirewall.RulePrefix = Config.RuleName;
+            UpdateBannedIPAddressesOnStart();
             SetupEventLogWatcher();
             LogInitialConfig();
             IPBanDelegate?.Start(this);
@@ -606,7 +623,7 @@ namespace IPBan
                 // if ban duration has expired or ip is white listed, un-ban
                 else if ((Config.BanTime.Ticks > 0 && (now - keyValue.Value) > Config.BanTime) || Config.IsWhiteListed(keyValue.Key))
                 {
-                    Log.Write(NLog.LogLevel.Error, "Un-banning ip address {0}", keyValue.Key);
+                    Log.Write(NLog.LogLevel.Warn, "Un-banning ip address {0}", keyValue.Key);
                     lock (ipAddressesAndBlockCounts)
                     {
                         // take the ip out of the lists and mark the file as changed so that the ban script re-runs without this ip

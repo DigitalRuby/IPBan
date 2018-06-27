@@ -14,9 +14,9 @@ using NetFwTypeLib;
 namespace IPBan
 {
     /// <summary>
-    /// Helper class for Windows Firewall (NetFwTypeLib). Must call Initialize first!
+    /// Helper class for firewall and banning ip addresses.
     /// </summary>
-    public static class IPBanWindowsFirewall
+    public static class IPBanFirewall
     {
         private const string clsidFwPolicy2 = "{E2B3C97F-6AE1-41AC-817A-F6F92166D7DD}";
         private const string clsidFwRule = "{2C5BC43E-3369-4C33-AB0C-BE9469677AF4}";
@@ -56,7 +56,7 @@ namespace IPBan
         {
             lock (policy)
             {
-                string ruleName = RulePrefix + index;
+                string ruleName = RulePrefix + index.ToString(CultureInfo.InvariantCulture);
                 string remoteIpString = CreateRuleStringForIPAddresses(ipAddresses, index, count);
                 INetFwRule rule = null;
                 try
@@ -174,6 +174,38 @@ namespace IPBan
                 return false;
             }
             return false;
+        }
+
+        public static IEnumerable<string> EnumerateBannedIPAddresses()
+        {
+            int i = 0;
+            while (true)
+            {
+                string ruleName = RulePrefix + i.ToString(CultureInfo.InvariantCulture);
+                INetFwRule rule = null;
+                try
+                {
+                    rule = policy.Rules.Item(ruleName);
+                }
+                catch
+                {
+                    // does not exist
+                    break;
+                }
+                foreach (string ip in rule.RemoteAddresses.Split(','))
+                {
+                    int pos = ip.IndexOf('/');
+                    if (pos < 0)
+                    {
+                        yield return ip;
+                    }
+                    else
+                    {
+                        yield return ip.Substring(0, pos);
+                    }
+                }
+                i++;
+            }
         }
     }
 }

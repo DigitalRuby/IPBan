@@ -20,16 +20,17 @@ namespace IPBan
     public class IPBanConfig
     {
         private ExpressionsToBlock expressions;
-        private int failedLoginAttemptsBeforeBan = 5;
         private TimeSpan banTime = TimeSpan.FromDays(1.0d);
         private TimeSpan expireTime = TimeSpan.FromDays(1.0d);
         private TimeSpan cycleTime = TimeSpan.FromMinutes(1.0d);
         private TimeSpan minimumTimeBetweenFailedLoginAttempts = TimeSpan.FromSeconds(5.0);
-        private string ruleName = "BlockIPAddresses";
-        private readonly HashSet<string> whiteList = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         private Regex whiteListRegex;
-        private readonly HashSet<string> blackList = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         private Regex blackListRegex;
+
+        private readonly int failedLoginAttemptsBeforeBan = 5;
+        private readonly string ruleName = "BlockIPAddresses";
+        private readonly HashSet<string> blackList = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        private readonly HashSet<string> whiteList = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         private readonly HashSet<string> allowedUserNames = new HashSet<string>();
         private readonly bool clearBannedIPAddressesOnRestart;
         private readonly string processToRunOnBan;
