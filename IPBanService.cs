@@ -194,12 +194,12 @@ namespace IPBan
 
         private void LogInitialConfig()
         {
-            Log.Write(LogLevel.Info, "Whitelist: {0}, Whitelist Regex: {1}", Config.WhiteList, Config.WhiteListRegex);
-            Log.Write(LogLevel.Info, "Blacklist: {0}, Blacklist Regex: {1}", Config.BlackList, Config.BlackListRegex);
+            Log.Write(NLog.LogLevel.Info, "Whitelist: {0}, Whitelist Regex: {1}", Config.WhiteList, Config.WhiteListRegex);
+            Log.Write(NLog.LogLevel.Info, "Blacklist: {0}, Blacklist Regex: {1}", Config.BlackList, Config.BlackListRegex);
 
             if (!string.IsNullOrWhiteSpace(Config.AllowedUserNames))
             {
-                Log.Write(LogLevel.Info, "Allowed Users: {0}", Config.AllowedUserNames);
+                Log.Write(NLog.LogLevel.Info, "Allowed Users: {0}", Config.AllowedUserNames);
             }
         }
 
@@ -240,7 +240,7 @@ namespace IPBan
 
                         if (nodes.Count == 0)
                         {
-                            Log.Write(LogLevel.Info, "No nodes found for xpath {0}", expression.XPath);
+                            Log.Write(NLog.LogLevel.Info, "No nodes found for xpath {0}", expression.XPath);
                             ipAddress = null;
                             break;
                         }
@@ -249,7 +249,7 @@ namespace IPBan
                         if (string.IsNullOrWhiteSpace(expression.Regex))
                         {
                             // count as a match, do not modify the ip address if it was already set
-                            Log.Write(LogLevel.Info, "No regex, so counting as a match");
+                            Log.Write(NLog.LogLevel.Info, "No regex, so counting as a match");
                         }
                         else
                         {
@@ -268,7 +268,7 @@ namespace IPBan
                             if (!foundMatch)
                             {
                                 // match fail, null out ip, we have to match ALL the nodes or we get null ip and do not ban
-                                Log.Write(LogLevel.Info, "Regex {0} did not match any nodes with xpath {1}", expression.Regex, expression.XPath);
+                                Log.Write(NLog.LogLevel.Info, "Regex {0} did not match any nodes with xpath {1}", expression.Regex, expression.XPath);
                                 ipAddress = null;
                                 break;
                             }
@@ -313,12 +313,12 @@ namespace IPBan
 
                 if (Config.IsWhiteListed(ipAddress))
                 {
-                    Log.Write(LogLevel.Info, "Ignoring whitelisted ip address {0}, user name: {1}", ipAddress, userName);
+                    Log.Write(NLog.LogLevel.Warn, "Ignoring whitelisted ip address {0}, user name: {1}", ipAddress, userName);
                 }
                 else
                 {
                     // check for the target user name for additional blacklisting checks                    
-                    bool blackListed = Config.IsBlackListed(ipAddress) || (userName != null && Config.IsBlackListed(userName));
+                    bool configBlacklisted = Config.IsBlackListed(ipAddress) || (userName != null && Config.IsBlackListed(userName));
 
                     lock (ipAddressesAndBlockCounts)
                     {
@@ -333,36 +333,34 @@ namespace IPBan
                         // Increment the count.
                         ipBlockCount.IncrementCount(CurrentDateTime, counter);
 
-                        Log.Write(LogLevel.Info, "Incrementing count for ip {0} to {1}, user name: {2}", ipAddress, ipBlockCount.Count, userName);
+                        Log.Write(NLog.LogLevel.Info, "Incrementing count for ip {0} to {1}, user name: {2}", ipAddress, ipBlockCount.Count, userName);
 
                         // if the ip is black listed or they have reached the maximum failed login attempts before ban, ban them
-                        if (blackListed || ipBlockCount.Count >= Config.FailedLoginAttemptsBeforeBan)
+                        if (configBlacklisted || ipBlockCount.Count >= Config.FailedLoginAttemptsBeforeBan)
                         {
-                            // if they are not black listed OR this is the first increment of a black listed ip address, perform the ban
-                            if (!blackListed || ipBlockCount.Count >= 1)
+                            // if the ip address is not already in the ban list, add it and mark it as needing to be banned
+                            if (!ipAddressesAndBanDate.ContainsKey(ipAddress))
                             {
-                                if (!ipAddressesAndBanDate.ContainsKey(ipAddress))
-                                {
-                                    IPBanDelegate?.LoginAttemptFailed(ipAddress, userName);
-                                    bannedIpAddresses.Add(new KeyValuePair<string, string>(ipAddress, userName));
-                                    Log.Write(LogLevel.Error, "Banning ip address: {0}, user name: {1}, black listed: {2}, count: {3}", ipAddress, userName, blackListed, ipBlockCount.Count);
-                                    ipAddressesAndBanDate[ipAddress] = dateTime;
-                                    needsBanScript = true;
+                                IPBanDelegate?.LoginAttemptFailed(ipAddress, userName);
+                                bannedIpAddresses.Add(new KeyValuePair<string, string>(ipAddress, userName));
+                                Log.Write(NLog.LogLevel.Warn, "Banning ip address: {0}, user name: {1}, config black listed: {2}, count: {3}", ipAddress, userName, configBlacklisted, ipBlockCount.Count);
+                                ipAddressesAndBanDate[ipAddress] = dateTime;
+                                needsBanScript = true;
 
-                                }
                             }
                             else
                             {
-                                Log.Write(LogLevel.Info, "Ignoring previously banned black listed ip {0}, user name: {1}, ip should already be banned", ipAddress, userName);
+                                Log.Write(NLog.LogLevel.Info, "Ignoring previously banned black listed ip {0}, user name: {1}, ip should already be banned", ipAddress, userName);
                             }
                         }
                         else if (ipBlockCount.Count > Config.FailedLoginAttemptsBeforeBan)
                         {
-                            Log.Write(LogLevel.Warning, "Got event with ip address {0}, count {1}, ip should already be banned", ipAddress, ipBlockCount.Count);
+                            Log.Write(NLog.LogLevel.Info, "Got event with ip address {0}, count {1}, ip should already be banned", ipAddress, ipBlockCount.Count);
                         }
                         else
                         {
                             IPBanDelegate?.LoginAttemptFailed(ipAddress, userName);
+                            Log.Write(NLog.LogLevel.Warn, "Login attempt faled, ip: {0}, user name: {1}, count: {2}", ipAddress, userName, ipBlockCount.Count);
                         }
                     }
                 }
@@ -429,7 +427,7 @@ namespace IPBan
                 userName = (string.IsNullOrWhiteSpace(userName) ? userNameNode.InnerText.Trim() : userName);
             }
 
-            Log.Write(LogLevel.Info, "*LOGIN FAIL* IP: {0}, USER: {1}", ipAddress, userName);
+            Log.Write(NLog.LogLevel.Info, "*LOGIN FAIL* IP: {0}, USER: {1}", ipAddress, userName);
             AddPendingIPAddressAndUserName(ipAddress, userName);
         }
 
@@ -608,7 +606,7 @@ namespace IPBan
                 // if ban duration has expired or ip is white listed, un-ban
                 else if ((Config.BanTime.Ticks > 0 && (now - keyValue.Value) > Config.BanTime) || Config.IsWhiteListed(keyValue.Key))
                 {
-                    Log.Write(LogLevel.Error, "Un-banning ip address {0}", keyValue.Key);
+                    Log.Write(NLog.LogLevel.Error, "Un-banning ip address {0}", keyValue.Key);
                     lock (ipAddressesAndBlockCounts)
                     {
                         // take the ip out of the lists and mark the file as changed so that the ban script re-runs without this ip
@@ -642,7 +640,7 @@ namespace IPBan
 
                         if (elapsed > Config.ExpireTime)
                         {
-                            Log.Write(LogLevel.Info, "Forgetting ip address {0}", keyValue.Key);
+                            Log.Write(NLog.LogLevel.Info, "Forgetting ip address {0}", keyValue.Key);
                             ipAddressesToForget.Add(keyValue.Key);
                         }
                     }
@@ -884,7 +882,7 @@ namespace IPBan
         /// <param name="xml"></param>
         public void ProcessEventViewerXml(string xml)
         {
-            Log.Write(LogLevel.Info, "Processing xml: {0}", xml);
+            Log.Write(NLog.LogLevel.Info, "Processing xml: {0}", xml);
 
             XmlDocument doc = ParseXml(xml);
             ExtractIPAddressAndUserNameFromXml(doc, out string ipAddress, out string userName);
@@ -966,21 +964,21 @@ namespace IPBan
                     }
 
                     // Check Host by name
-                    Log.Write(LogLevel.Info, "Parsing as IP failed, checking dns '{0}'", tempIPAddress);
+                    Log.Write(NLog.LogLevel.Info, "Parsing as IP failed, checking dns '{0}'", tempIPAddress);
                     try
                     {
                         IPHostEntry entry = Dns.GetHostEntry(tempIPAddress);
                         if (entry != null && entry.AddressList != null && entry.AddressList.Length > 0)
                         {
                             ipAddress = entry.AddressList.FirstOrDefault().ToString();
-                            Log.Write(LogLevel.Info, "Dns result '{0}' = '{1}'", tempIPAddress, ipAddress);
+                            Log.Write(NLog.LogLevel.Info, "Dns result '{0}' = '{1}'", tempIPAddress, ipAddress);
                             foundMatch = true;
                             break;
                         }
                     }
                     catch
                     {
-                        Log.Write(LogLevel.Info, "Parsing as dns failed '{0}'", tempIPAddress);
+                        Log.Write(NLog.LogLevel.Info, "Parsing as dns failed '{0}'", tempIPAddress);
                     }
                 }
                 else
@@ -1092,7 +1090,7 @@ namespace IPBan
                 watcher.Dispose();
                 watcher = null;
             }
-            Log.Write(LogLevel.Info, "Stopped IPBan service");
+            Log.Write(NLog.LogLevel.Warn, "Stopped IPBan service");
         }
 
         /// <summary>
@@ -1100,7 +1098,7 @@ namespace IPBan
         /// </summary>
         public void Start()
         {
-            Log.Write(LogLevel.Info, "Started IPBan service");
+            Log.Write(NLog.LogLevel.Warn, "Started IPBan service");
             Initialize();
             if (RunTestsOnStart)
             {

@@ -11,13 +11,6 @@ using NLog;
 
 namespace IPBan
 {
-    public enum LogLevel
-    {
-        Info,
-        Warning,
-        Error
-    }
-
     /// <summary>
     /// Logger
     /// </summary>
@@ -29,7 +22,7 @@ namespace IPBan
         {
             try
             {
-                logger = LogManager.GetLogger("FileLogger");
+                logger = LogManager.GetCurrentClassLogger();
             }
             catch (Exception ex)
             {
@@ -55,25 +48,7 @@ namespace IPBan
 
         public static void Write(LogLevel level, string text, params object[] args)
         {
-            if (logger == null)
-            {
-                return;
-            }
-
-            switch (level)
-            {
-                case LogLevel.Info:
-                    logger.Info(text, args);
-                    break;
-
-                case LogLevel.Warning:
-                    logger.Warn(text, args);
-                    break;
-
-                case LogLevel.Error:
-                    logger.Error(text, args);
-                    break;
-            }
+            logger?.Log(level, text, args);
         }
     }
 }
