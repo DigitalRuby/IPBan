@@ -169,10 +169,12 @@ namespace IPBan
         /// <returns>True if blacklisted, false otherwise</returns>
         public bool IsBlackListed(string ipAddressDnsOrUserName)
         {
+            // don't query the external config here, it may return a list of every banned ip address
+            // meaning that no ip addresses would ever get un-banned, resulting in a potential huge
+            // amount of ip addresses banned
             return !string.IsNullOrWhiteSpace(ipAddressDnsOrUserName) &&
                 ((blackList.Contains(ipAddressDnsOrUserName) ||
-                (blackListRegex != null && blackListRegex.IsMatch(ipAddressDnsOrUserName))) ||
-                (ExternalConfig != null && ExternalConfig.IsBlacklisted(ipAddressDnsOrUserName)));
+                (blackListRegex != null && blackListRegex.IsMatch(ipAddressDnsOrUserName))));
         }
 
         /// <summary>

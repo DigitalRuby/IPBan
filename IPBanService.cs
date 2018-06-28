@@ -51,7 +51,6 @@ namespace IPBan
         private EventLogWatcher watcher;
         private bool needsFirewallUpdate;
         private bool gotStartUrl;
-        private bool processingPendingIPAddresses;
 
         // note that an ip that has a block count may not yet be in the ipAddressesAndBanDate dictionary
         // for locking, always use ipAddressesAndBlockCounts
@@ -276,38 +275,23 @@ namespace IPBan
             }
         }
 
-        private Task ProcessPendingIPAddresses()
+        private void ProcessPendingIPAddresses()
         {
-            // don't do a second run on the pending ip addresses if we already have a run in progress, wait for the next cycle
-            if (processingPendingIPAddresses)
+            // make a quick copy of pending ip addresses so we don't lock it for very long
+            List<PendingIPAddress> ipAddresses;
+            lock (pendingIPAddresses)
             {
-                return Task.FromResult<int>(0);
-            }
-            processingPendingIPAddresses = true;
-
-            try
-            {
-                // make a quick copy of pending ip addresses so we don't lock it for very long
-                List<PendingIPAddress> ipAddresses;
-                lock (pendingIPAddresses)
+                if (pendingIPAddresses.Count == 0)
                 {
-                    if (pendingIPAddresses.Count == 0)
-                    {
-                        return Task.FromResult<int>(0);
-                    }
-                    ipAddresses = new List<PendingIPAddress>(pendingIPAddresses);
-                    pendingIPAddresses.Clear();
+                    return;
                 }
-
-                return ProcessPendingIPAddressesInternal(ipAddresses);
+                ipAddresses = new List<PendingIPAddress>(pendingIPAddresses);
+                pendingIPAddresses.Clear();
             }
-            finally
-            {
-                processingPendingIPAddresses = false;
-            }
+            ProcessPendingIPAddressesInternal(ipAddresses);
         }
 
-        private async Task ProcessPendingIPAddressesInternal(IEnumerable<PendingIPAddress> ipAddresses)
+        private void ProcessPendingIPAddressesInternal(IEnumerable<PendingIPAddress> ipAddresses)
         {
             List<KeyValuePair<string, string>> bannedIpAddresses = new List<KeyValuePair<string, string>>();
             foreach (PendingIPAddress p in ipAddresses)
@@ -362,7 +346,7 @@ namespace IPBan
                             {
                                 if (IPBanDelegate != null)
                                 {
-                                    await IPBanDelegate.LoginAttemptFailed(ipAddress, userName);
+                                    IPBanDelegate.LoginAttemptFailed(ipAddress, userName).ConfigureAwait(false).GetAwaiter().GetResult();
                                 }
                                 AddPendingBannedIPAddress(ipAddress, userName, bannedIpAddresses, now, configBlacklisted, ipBlockCount.Count, string.Empty);
                             }
@@ -375,7 +359,7 @@ namespace IPBan
                         {
                             if (IPBanDelegate != null)
                             {
-                                LoginFailedResult result = await IPBanDelegate.LoginAttemptFailed(ipAddress, userName);
+                                LoginFailedResult result = IPBanDelegate.LoginAttemptFailed(ipAddress, userName).ConfigureAwait(false).GetAwaiter().GetResult();
                                 if (result.HasFlag(LoginFailedResult.Blacklisted))
                                 {
                                     AddPendingBannedIPAddress(ipAddress, userName, bannedIpAddresses, now, configBlacklisted, ipBlockCount.Count, "Delegate banned ip: " + result);
@@ -390,13 +374,6 @@ namespace IPBan
                 {
                     Log.Exception(ex);
                 }
-            }
-
-            // update firewall if needed
-            if (needsFirewallUpdate)
-            {
-                needsFirewallUpdate = false;
-                UpdateFirewallWithBannedIPAddresses();
             }
 
             // finish processing of pending banned ip addresses
@@ -646,7 +623,6 @@ namespace IPBan
         private void CheckForExpiredIP()
         {
             List<string> ipAddressesToForget = new List<string>();
-            bool fileChanged = false;
             KeyValuePair<string, DateTime>[] blockList;
             KeyValuePair<string, IPBlockCount>[] ipBlockCountList;
 
@@ -654,7 +630,6 @@ namespace IPBan
             lock (ipAddressesAndBlockCounts)
             {
                 blockList = ipAddressesAndBanDate.ToArray();
-                ipBlockCountList = ipAddressesAndBlockCounts.ToArray();
             }
 
             DateTime now = CurrentDateTime;
@@ -676,9 +651,14 @@ namespace IPBan
                         // take the ip out of the lists and mark the file as changed so that the ban script re-runs without this ip
                         ipAddressesAndBanDate.Remove(keyValue.Key);
                         ipAddressesAndBlockCounts.Remove(keyValue.Key);
-                        fileChanged = true;
+                        needsFirewallUpdate = true;
                     }
                 }
+            }
+
+            lock (ipAddressesAndBlockCounts)
+            {
+                ipBlockCountList = ipAddressesAndBlockCounts.ToArray();
             }
 
             // if we are allowing ip addresses failed login attempts to expire and get reset back to 0
@@ -706,6 +686,8 @@ namespace IPBan
                         {
                             Log.Write(NLog.LogLevel.Info, "Forgetting ip address {0}", keyValue.Key);
                             ipAddressesToForget.Add(keyValue.Key);
+
+                            // no need to set firewall update here, it is just resetting failed login attempts before a ban
                         }
                     }
                 }
@@ -740,9 +722,6 @@ namespace IPBan
                     });
                 }
             }
-
-            // if the file changed, re-run the ban script with the updated list of ip addresses
-            needsFirewallUpdate = fileChanged;
         }
 
         private static bool IpAddressIsInRange(string ipAddress, string ipRange)
@@ -905,6 +884,16 @@ namespace IPBan
             }
         }
 
+        private void UpdateFirewall()
+        {
+            // update firewall if needed
+            if (needsFirewallUpdate)
+            {
+                needsFirewallUpdate = false;
+                UpdateFirewallWithBannedIPAddresses();
+            }
+        }
+
         private void CycleTask()
         {
             System.Diagnostics.Stopwatch timer = new Stopwatch();
@@ -938,6 +927,7 @@ namespace IPBan
             UpdateDelegate();
             CheckForExpiredIP();
             ProcessPendingIPAddresses();
+            UpdateFirewall();
         }
 
         /// <summary>
