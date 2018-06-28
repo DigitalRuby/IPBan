@@ -118,7 +118,6 @@ namespace IPBan
 
             PopulateList(whiteList, ref whiteListRegex, ConfigurationManager.AppSettings["Whitelist"], ConfigurationManager.AppSettings["WhitelistRegex"]);
             PopulateList(blackList, ref blackListRegex, ConfigurationManager.AppSettings["Blacklist"], ConfigurationManager.AppSettings["BlacklistRegex"]);
-            Regex ignored = null;
             expressions = (ExpressionsToBlock)System.Configuration.ConfigurationManager.GetSection("ExpressionsToBlock");
 
             foreach (ExpressionsToBlockGroup group in expressions.Groups)
@@ -173,7 +172,6 @@ namespace IPBan
             return !string.IsNullOrWhiteSpace(ipAddress) &&
                 ((blackList.Contains(ipAddress) ||
                 (blackListRegex != null && blackListRegex.IsMatch(ipAddress))) ||
-                ShouldBanUserNameAfterFailedLoginAttempt(ipAddress) ||
                 (ExternalConfig != null && ExternalConfig.IsBlacklisted(ipAddress)));
         }
 
