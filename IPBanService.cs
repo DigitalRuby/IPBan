@@ -196,11 +196,6 @@ namespace IPBan
         {
             Log.Write(NLog.LogLevel.Info, "Whitelist: {0}, Whitelist Regex: {1}", Config.WhiteList, Config.WhiteListRegex);
             Log.Write(NLog.LogLevel.Info, "Blacklist: {0}, Blacklist Regex: {1}", Config.BlackList, Config.BlackListRegex);
-
-            if (!string.IsNullOrWhiteSpace(Config.AllowedUserNames))
-            {
-                Log.Write(NLog.LogLevel.Info, "Allowed Users: {0}", Config.AllowedUserNames);
-            }
         }
 
         private XmlDocument ParseXml(string xml)

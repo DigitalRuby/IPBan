@@ -31,7 +31,6 @@ namespace IPBan
         private readonly string ruleName = "BlockIPAddresses";
         private readonly HashSet<string> blackList = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         private readonly HashSet<string> whiteList = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        private readonly HashSet<string> allowedUserNames = new HashSet<string>();
         private readonly bool clearBannedIPAddressesOnRestart;
         private readonly string processToRunOnBan;
         private readonly string getUrlUpdate;
@@ -39,16 +38,6 @@ namespace IPBan
         private readonly string getUrlStop;
         private readonly string getUrlConfig;
         private readonly string externalIPAddressUrl;
-
-        /// <summary>
-        /// Checks whether a user name should be banned after a failed login attempt. Cases where this would happen would be if the config has specified an allowed list of user names.
-        /// </summary>
-        /// <param name="userName">User name to check for banning</param>
-        /// <returns>True if the user name should be banned, false otherwise</returns>
-        private bool ShouldBanUserNameAfterFailedLoginAttempt(string userName)
-        {
-            return (allowedUserNames.Count != 0 && !allowedUserNames.Contains(userName));
-        }
 
         private void PopulateList(HashSet<string> set, ref Regex regex, string setValue, string regexValue)
         {
@@ -130,7 +119,6 @@ namespace IPBan
             PopulateList(whiteList, ref whiteListRegex, ConfigurationManager.AppSettings["Whitelist"], ConfigurationManager.AppSettings["WhitelistRegex"]);
             PopulateList(blackList, ref blackListRegex, ConfigurationManager.AppSettings["Blacklist"], ConfigurationManager.AppSettings["BlacklistRegex"]);
             Regex ignored = null;
-            PopulateList(allowedUserNames, ref ignored, ConfigurationManager.AppSettings["AllowedUserNames"], null);
             expressions = (ExpressionsToBlock)System.Configuration.ConfigurationManager.GetSection("ExpressionsToBlock");
 
             foreach (ExpressionsToBlockGroup group in expressions.Groups)
@@ -258,11 +246,6 @@ namespace IPBan
         /// White list regex
         /// </summary>
         public string WhiteListRegex { get { return (whiteListRegex == null ? string.Empty : whiteListRegex.ToString()); } }
-
-        /// <summary>
-        /// Allowed user names as a comma separated string
-        /// </summary>
-        public string AllowedUserNames { get { return string.Join(",", allowedUserNames); } }
 
         /// <summary>
         /// Process to run on ban - replace ###IPADDRESS### with the banned ip address
