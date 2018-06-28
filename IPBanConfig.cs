@@ -165,14 +165,14 @@ namespace IPBan
         /// <summary>
         /// Check if an ip address, dns name or user name is blacklisted
         /// </summary>
-        /// <param name="ipAddress">IP address, dns name or user name</param>
+        /// <param name="ipAddressDnsOrUserName">IP address, dns name or user name</param>
         /// <returns>True if blacklisted, false otherwise</returns>
-        public bool IsBlackListed(string ipAddress)
+        public bool IsBlackListed(string ipAddressDnsOrUserName)
         {
-            return !string.IsNullOrWhiteSpace(ipAddress) &&
-                ((blackList.Contains(ipAddress) ||
-                (blackListRegex != null && blackListRegex.IsMatch(ipAddress))) ||
-                (ExternalConfig != null && ExternalConfig.IsBlacklisted(ipAddress)));
+            return !string.IsNullOrWhiteSpace(ipAddressDnsOrUserName) &&
+                ((blackList.Contains(ipAddressDnsOrUserName) ||
+                (blackListRegex != null && blackListRegex.IsMatch(ipAddressDnsOrUserName))) ||
+                (ExternalConfig != null && ExternalConfig.IsBlacklisted(ipAddressDnsOrUserName)));
         }
 
         /// <summary>

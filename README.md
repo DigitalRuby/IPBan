@@ -11,7 +11,7 @@ From an admin command prompt: auditpol /set /category:"Logon/Logoff" /success:en
 - To run as a Windows service run "sc create IPBAN type= own start= auto binPath= c:\path\to\service\ipban.exe DisplayName= IPBAN". The service needs file system, event viewer and firewall access, so please run as SYSTEM to ensure permissions.
 - Make sure to look at the config file for configuration options.
 - To run as a console app, simply run IPBAN.EXE and watch console output.
-- If you want to run and debug code in Visual Studio, make sure to run Visual Studio as administrator.
+- If you want to run and debug code in Visual Studio, make sure to run Visual Studio as administrator. Visual Studio 2017 or newer is required. Community edition is free.
 - Here is a regex that matches any 32 bit ip address, useful if you need to add a new block option in the config file: 
 (?<ipaddress>^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$)
 

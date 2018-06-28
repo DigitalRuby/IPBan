@@ -359,6 +359,11 @@ namespace IPBan
         }
 #endif
 
+        /// <summary>
+        /// Check if this ip address range contains an ip address
+        /// </summary>
+        /// <param name="ipaddress">The ip address to check for</param>
+        /// <returns>True if ipaddress is in this range, false otherwise</returns>
         public bool Contains(IPAddress ipaddress)
         {
             if (ipaddress == null)

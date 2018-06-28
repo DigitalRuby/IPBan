@@ -112,8 +112,8 @@ namespace IPBan
         /// </summary>
         /// <param name="ip">Origin IP Address of the login attempt</param>
         /// <param name="userName">User name</param>
-        /// <returns>Task</returns>
-        Task LoginAttemptFailed(string ip, string userName);
+        /// <returns>Task of bool. True if the ip sould be immediately banned, false otherwise</returns>
+        Task<LoginFailedResult> LoginAttemptFailed(string ip, string userName);
 
         /// <summary>
         /// Enumerate external blacklist
@@ -126,5 +126,42 @@ namespace IPBan
         /// </summary>
         /// <returns>Whitelist</returns>
         IEnumerable<string> EnumerateWhiteList();
+    }
+
+    /// <summary>
+    /// Login failure results
+    /// </summary>
+    [Flags]
+    public enum LoginFailedResult
+    {
+        /// <summary>
+        /// No result, use default behavior
+        /// </summary>
+        None = 0,
+
+        /// <summary>
+        /// The ip address country is whitelisted
+        /// </summary>
+        CountryIsWhitelisted = 1,
+
+        /// <summary>
+        /// The ip address country is blacklisted
+        /// </summary>
+        CountryIsBlacklisted = 2,
+
+        /// <summary>
+        /// The ip address country is not whitelisted and the whitelist has countries in it
+        /// </summary>
+        CountryIsNotWhitelisted = 4,
+
+        /// <summary>
+        /// Whitelisted bitmask
+        /// </summary>
+        Whitelisted = CountryIsWhitelisted,
+
+        /// <summary>
+        /// Blacklisted bitmask
+        /// </summary>
+        Blacklisted = CountryIsBlacklisted | CountryIsNotWhitelisted
     }
 }
