@@ -53,9 +53,9 @@ namespace IPBan
         private bool gotStartUrl;
 
         // note that an ip that has a block count may not yet be in the ipAddressesAndBanDate dictionary
-        // for locking, always use ipAddressesAndBlockCounts
-        private Dictionary<string, IPBlockCount> ipAddressesAndBlockCounts = new Dictionary<string, IPBlockCount>();
+        // for locking, always use ipAddressesAndBanDate
         private Dictionary<string, DateTime> ipAddressesAndBanDate = new Dictionary<string, DateTime>();
+        private Dictionary<string, IPBlockCount> ipAddressesAndBlockCounts = new Dictionary<string, IPBlockCount>();
 
         private DateTime lastConfigFileDateTime = DateTime.MinValue;
         private readonly ManualResetEvent cycleEvent = new ManualResetEvent(false);
@@ -83,7 +83,7 @@ namespace IPBan
             string[] ipAddresses;
 
             // quickly copy out data in a lock
-            lock (ipAddressesAndBlockCounts)
+            lock (ipAddressesAndBanDate)
             {
                 ipAddresses = ipAddressesAndBanDate.Keys.ToArray();
             }
@@ -102,7 +102,7 @@ namespace IPBan
                     lastConfigFileDateTime = lastDateTime;
                     lock (configLock)
                     {
-                        IPBanConfig newConfig = new IPBanConfig(configFilePath) { ExternalConfig = IPBanDelegate };
+                        IPBanConfig newConfig = new IPBanConfig(configFilePath);
                         Config = newConfig;
                     }
                 }
@@ -313,7 +313,7 @@ namespace IPBan
                         IPBlockCount ipBlockCount;
                         bool configBlacklisted = Config.IsBlackListed(ipAddress) || Config.IsBlackListed(userName);
 
-                        lock (ipAddressesAndBlockCounts)
+                        lock (ipAddressesAndBanDate)
                         {
                             // Get the IPBlockCount, if one exists.
                             if (!ipAddressesAndBlockCounts.TryGetValue(ipAddress, out ipBlockCount))
@@ -332,7 +332,7 @@ namespace IPBan
                         if (configBlacklisted || ipBlockCount.Count >= Config.FailedLoginAttemptsBeforeBan)
                         {
                             bool alreadyBanned;
-                            lock (ipAddressesAndBlockCounts)
+                            lock (ipAddressesAndBanDate)
                             {
                                 alreadyBanned = ipAddressesAndBanDate.ContainsKey(ipAddress);
                             }
@@ -387,7 +387,7 @@ namespace IPBan
             DateTime dateTime, bool configBlacklisted, int counter, string extraInfo)
         {
             bannedIpAddresses.Add(new KeyValuePair<string, string>(ipAddress, userName));
-            lock (ipAddressesAndBlockCounts)
+            lock (ipAddressesAndBanDate)
             {
                 ipAddressesAndBanDate[ipAddress] = dateTime;
             }
@@ -627,7 +627,7 @@ namespace IPBan
             KeyValuePair<string, IPBlockCount>[] ipBlockCountList;
 
             // brief lock, we make copies of everything and work on the copies so we don't hold a lock too long
-            lock (ipAddressesAndBlockCounts)
+            lock (ipAddressesAndBanDate)
             {
                 blockList = ipAddressesAndBanDate.ToArray();
             }
@@ -646,7 +646,7 @@ namespace IPBan
                 else if ((Config.BanTime.Ticks > 0 && (now - keyValue.Value) > Config.BanTime) || Config.IsWhiteListed(keyValue.Key))
                 {
                     Log.Write(NLog.LogLevel.Warn, "Un-banning ip address {0}", keyValue.Key);
-                    lock (ipAddressesAndBlockCounts)
+                    lock (ipAddressesAndBanDate)
                     {
                         // take the ip out of the lists and mark the file as changed so that the ban script re-runs without this ip
                         ipAddressesAndBanDate.Remove(keyValue.Key);
@@ -656,7 +656,7 @@ namespace IPBan
                 }
             }
 
-            lock (ipAddressesAndBlockCounts)
+            lock (ipAddressesAndBanDate)
             {
                 ipBlockCountList = ipAddressesAndBlockCounts.ToArray();
             }
@@ -693,7 +693,7 @@ namespace IPBan
                 }
 
                 // Remove the IPs that have expired.
-                lock (ipAddressesAndBlockCounts)
+                lock (ipAddressesAndBanDate)
                 {
                     foreach (string ip in ipAddressesToForget)
                     {
@@ -761,31 +761,18 @@ namespace IPBan
                     DateTime now = CurrentDateTime;
 
                     // sync up the blacklist and whitelist from the delegate
-                    lock (ipAddressesAndBlockCounts)
+                    lock (ipAddressesAndBanDate)
                     {
                         foreach (string ip in IPBanDelegate.EnumerateBlackList())
                         {
-                            // ban all blacklisted ip addresses
+                            // ban all blacklisted ip addresses from the delegate
+                            // this can be used to sync bans from other machines
                             if (!ipAddressesAndBanDate.ContainsKey(ip))
                             {
-                                changed = true;
                                 ipAddressesAndBanDate[ip] = now;
-                                ipAddressesAndBlockCounts[ip] = new IPBlockCount { Count = Config.FailedLoginAttemptsBeforeBan, LastFailedLogin = now };
-                            }
-                        }
-                        List<string> unban = new List<string>();
-                        foreach (KeyValuePair<string, DateTime> kv in ipAddressesAndBanDate)
-                        {
-                            if (!IPBanDelegate.IsBlacklisted(kv.Key))
-                            {
+                                ipAddressesAndBlockCounts.Remove(ip);
                                 changed = true;
-                                unban.Add(kv.Key);
                             }
-                        }
-                        foreach (string ip in unban)
-                        {
-                            ipAddressesAndBanDate.Remove(ip);
-                            ipAddressesAndBlockCounts.Remove(ip);
                         }
                         foreach (string ip in IPBanDelegate.EnumerateWhiteList())
                         {
@@ -1048,39 +1035,6 @@ namespace IPBan
             }
 
             return foundMatch;
-        }
-
-        /// <summary>
-        /// Ban/unban an ip address
-        /// </summary>
-        /// <param name="ip">IP address to ban or unban</param>
-        /// <param name="ban">True to ban, false to unban</param>
-        public void BanIpAddress(string ip, bool ban)
-        {
-            ip = ip?.Trim();
-            if (string.IsNullOrWhiteSpace(ip))
-            {
-                return;
-            }
-            else if (ban)
-            {
-                if (!Config.IsWhiteListed(ip))
-                {
-                    lock (ipAddressesAndBlockCounts)
-                    {
-                        ipAddressesAndBanDate[ip] = CurrentDateTime;
-                        ipAddressesAndBlockCounts[ip] = new IPBlockCount(CurrentDateTime, Config.FailedLoginAttemptsBeforeBan);
-                    }
-                }
-            }
-            else
-            {
-                lock (ipAddressesAndBlockCounts)
-                {
-                    ipAddressesAndBanDate.Remove(ip);
-                    ipAddressesAndBlockCounts.Remove(ip);
-                }
-            }
         }
 
         /// <summary>

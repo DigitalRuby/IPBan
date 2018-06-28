@@ -158,8 +158,7 @@ namespace IPBan
             return !string.IsNullOrWhiteSpace(ipAddress) &&
                 (whiteList.Contains(ipAddress) ||
                 !IPAddress.TryParse(ipAddress, out IPAddress ip) ||
-                (whiteListRegex != null && whiteListRegex.IsMatch(ipAddress)) ||
-                (ExternalConfig != null && ExternalConfig.IsWhitelisted(ipAddress)));
+                (whiteListRegex != null && whiteListRegex.IsMatch(ipAddress)));
         }
 
         /// <summary>
@@ -169,9 +168,6 @@ namespace IPBan
         /// <returns>True if blacklisted, false otherwise</returns>
         public bool IsBlackListed(string ipAddressDnsOrUserName)
         {
-            // don't query the external config here, it may return a list of every banned ip address
-            // meaning that no ip addresses would ever get un-banned, resulting in a potential huge
-            // amount of ip addresses banned
             return !string.IsNullOrWhiteSpace(ipAddressDnsOrUserName) &&
                 ((blackList.Contains(ipAddressDnsOrUserName) ||
                 (blackListRegex != null && blackListRegex.IsMatch(ipAddressDnsOrUserName))));
@@ -276,10 +272,5 @@ namespace IPBan
         /// Url to query to get the external ip address, the url should return a string which is the external ip address.
         /// </summary>
         public string ExternalIPAddressUrl { get { return externalIPAddressUrl; } }
-
-        /// <summary>
-        /// External configuration
-        /// </summary>
-        public IIPBanExternalConfig ExternalConfig { get; set; }
     }
 }

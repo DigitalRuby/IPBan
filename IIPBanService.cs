@@ -23,13 +23,6 @@ namespace IPBan
     public interface IIPBanService : IIPBanIPAddressHandler, IDisposable
     {
         /// <summary>
-        /// Ban/unban an ip address
-        /// </summary>
-        /// <param name="ip">IP address</param>
-        /// <param name="ban">True to ban, false to unban</param>
-        void BanIpAddress(string ip, bool ban);
-
-        /// <summary>
         /// Update config file with new xml
         /// </summary>
         /// <param name="xml">New config file xml</param>
@@ -57,29 +50,9 @@ namespace IPBan
     }
 
     /// <summary>
-    /// External configuration interface
-    /// </summary>
-    public interface IIPBanExternalConfig
-    {
-        /// <summary>
-        /// Check if an ip is whitelisted
-        /// </summary>
-        /// <param name="ip">IP address</param>
-        /// <returns>True if whitelisted, false otherwise</returns>
-        bool IsWhitelisted(string ip);
-
-        /// <summary>
-        /// Check if an ip is blacklisted
-        /// </summary>
-        /// <param name="ip">IP address</param>
-        /// <returns>True if blacklisted, false otherwise</returns>
-        bool IsBlacklisted(string ip);
-    }
-
-    /// <summary>
     /// Interface for external communication of ip address ban, unband, config, etc.
     /// </summary>
-    public interface IIPBanDelegate : IIPBanExternalConfig, IDisposable
+    public interface IIPBanDelegate : IDisposable
     {
         /// <summary>
         /// Start
