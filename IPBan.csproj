@@ -80,6 +80,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="banfile_test.txt" />
+    <None Include="Interop.NetFwTypeLib.dll" />
     <Content Include="LICENSE.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

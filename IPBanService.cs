@@ -833,7 +833,9 @@ namespace IPBan
                 url = url.Replace("###IPADDRESS###", WebUtility.UrlEncode(LocalIPAddressString))
                     .Replace("###MACHINENAME###", WebUtility.UrlEncode(FQDN))
                     .Replace("###VERSION###", WebUtility.UrlEncode(a.GetName().Version.ToString()))
-                    .Replace("###GUID###", WebUtility.UrlEncode(MachineGuid));
+                    .Replace("###GUID###", WebUtility.UrlEncode(MachineGuid))
+                    .Replace("###OSNAME###", WebUtility.UrlEncode(Environment.OSVersion.Platform.ToString()))
+                    .Replace("###OSVERSION###", WebUtility.UrlEncode(Environment.OSVersion.VersionString));
                 RunTask(() =>
                 {
                     try
