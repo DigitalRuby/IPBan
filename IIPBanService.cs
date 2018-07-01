@@ -47,6 +47,16 @@ namespace IPBan
         /// Http request maker
         /// </summary>
         IHttpRequestMaker RequestMaker { get; }
+
+        /// <summary>
+        /// Operating system name
+        /// </summary>
+        string OSName { get; }
+
+        /// <summary>
+        /// Operating system version
+        /// </summary>
+        string OSVersion { get; }
     }
 
     /// <summary>

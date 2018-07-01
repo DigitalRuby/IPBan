@@ -612,6 +612,8 @@ namespace IPBan
         private void Initialize()
         {
             run = true;
+            OSName = (OSName ?? Environment.OSVersion.Platform.ToString());
+            OSVersion = (OSVersion ?? Environment.OSVersion.VersionString);
             ReadAppSettings();
             IPBanFirewall.RulePrefix = Config.RuleName;
             UpdateBannedIPAddressesOnStart();
@@ -834,8 +836,8 @@ namespace IPBan
                     .Replace("###MACHINENAME###", WebUtility.UrlEncode(FQDN))
                     .Replace("###VERSION###", WebUtility.UrlEncode(a.GetName().Version.ToString()))
                     .Replace("###GUID###", WebUtility.UrlEncode(MachineGuid))
-                    .Replace("###OSNAME###", WebUtility.UrlEncode(Environment.OSVersion.Platform.ToString()))
-                    .Replace("###OSVERSION###", WebUtility.UrlEncode(Environment.OSVersion.VersionString));
+                    .Replace("###OSNAME###", OSName)
+                    .Replace("###OSVERSION###", OSVersion);
                 RunTask(() =>
                 {
                     try
@@ -1212,6 +1214,16 @@ namespace IPBan
         /// True if the cycle is manual, in which case RunCycle must be called periodically, otherwise if false RunCycle is called automatically.
         /// </summary>
         public bool ManualCycle { get; set; }
+
+        /// <summary>
+        /// The operating system name. If null, it is auto-detected.
+        /// </summary>
+        public string OSName { get; set; }
+
+        /// <summary>
+        /// The operating system version. If null, it is auto-detected.
+        /// </summary>
+        public string OSVersion { get; set; }
         
         private DateTime currentDateTime;
         /// <summary>
