@@ -789,7 +789,7 @@ namespace IPBan
         /// <param name="ipAddress">Found ip address or null if none</param>
         /// <param name="userName">Found user name or null if none</param>
         /// <returns>True if a regex match was found, false otherwise</returns>
-        public bool GetIPAddressAndUserNameFromRegex(Regex regex, string text, ref string ipAddress, ref string userName)
+        public static bool GetIPAddressAndUserNameFromRegex(Regex regex, string text, ref string ipAddress, ref string userName)
         {
             bool foundMatch = false;
 

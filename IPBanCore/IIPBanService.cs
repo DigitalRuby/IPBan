@@ -28,16 +28,6 @@ namespace IPBan
         void ProcessPendingIPAddresses();
 
         /// <summary>
-        /// Get an ip address and user name out of text using regex
-        /// </summary>
-        /// <param name="regex">Regex</param>
-        /// <param name="text">Text</param>
-        /// <param name="ipAddress">Found ip address or null if none</param>
-        /// <param name="userName">Found user name or null if none</param>
-        /// <returns>True if a regex match was found, false otherwise</returns>
-        bool GetIPAddressAndUserNameFromRegex(Regex regex, string text, ref string ipAddress, ref string userName);
-
-        /// <summary>
         /// Add an updater for each cycle
         /// </summary>
         /// <param name="updater">Updater</param>

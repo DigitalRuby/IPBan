@@ -102,7 +102,7 @@ namespace IPBan
                             foreach (XmlNode node in nodes)
                             {
                                 // if we get a match, stop checking nodes
-                                if ((foundMatch = service.GetIPAddressAndUserNameFromRegex(expression.RegexObject, node.InnerText, ref ipAddress, ref userName)))
+                                if ((foundMatch = IPBanService.GetIPAddressAndUserNameFromRegex(expression.RegexObject, node.InnerText, ref ipAddress, ref userName)))
                                 {
                                     break;
                                 }
