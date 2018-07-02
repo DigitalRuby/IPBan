@@ -22,6 +22,10 @@ From an admin command prompt: auditpol /set /category:"Logon/Logoff" /success:en
 
 **Linux**
 
+- Install .net core runtime 2.1.1 or newer. See https://www.microsoft.com/net/download/linux-package-manager/ubuntu18-04/runtime-current.
+- Install iptables:  sudo apt-get install iptables.
+- Install ipset: sudo apt-get install ipset.
+- 
 Linux support is coming, but is not ready yet.
 
 **About Me**
