@@ -7,26 +7,20 @@ using System.Threading.Tasks;
 
 namespace IPBan
 {
-    /// <summary>
-    /// Handler for ip addresses
-    /// </summary>
-    public interface IIPBanIPAddressHandler
-    {
-        /// <summary>
-        /// Add an ip address and user name to be checked later
-        /// </summary>
-        /// <param name="ipAddress">IP Address, required</param>
-        /// <param name="userName">User Name, optional</param>
-        void AddPendingIPAddressAndUserName(string ipAddress, string userName = null);
-    }
-
-    public interface IIPBanService : IIPBanIPAddressHandler, IDisposable
+    public interface IIPBanService : IDisposable
     {
         /// <summary>
         /// Update config file with new xml
         /// </summary>
         /// <param name="xml">New config file xml</param>
         void UpdateConfig(string xml);
+
+        /// <summary>
+        /// Add an ip address and user name to be checked later
+        /// </summary>
+        /// <param name="ipAddress">IP Address, required</param>
+        /// <param name="userName">User Name, optional</param>
+        void AddPendingIPAddressAndUserName(string ipAddress, string userName = null);
 
         /// <summary>
         /// Manually process all pending ip addresses immediately
@@ -49,6 +43,14 @@ namespace IPBan
         /// <param name="updater">Updater</param>
         /// <returns>True if added, false if null or already in the list</returns>
         bool AddUpdater(IUpdater updater);
+
+        /// <summary>
+        /// Attempt to get an updater of a specific type
+        /// </summary>
+        /// <typeparam name="T">Type</typeparam>
+        /// <param name="result">Updater or default(T) if not found</param>
+        /// <returns>True if found, false if not</returns>
+        bool TryGetUpdater<T>(out T result);
 
         /// <summary>
         /// Remove an updater

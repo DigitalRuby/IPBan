@@ -184,22 +184,6 @@ namespace IPBan
             Log.Write(NLog.LogLevel.Info, "Blacklist: {0}, Blacklist Regex: {1}", Config.BlackList, Config.BlackListRegex);
         }
 
-        public void ProcessPendingIPAddresses()
-        {
-            // make a quick copy of pending ip addresses so we don't lock it for very long
-            List<PendingIPAddress> ipAddresses;
-            lock (pendingIPAddresses)
-            {
-                if (pendingIPAddresses.Count == 0)
-                {
-                    return;
-                }
-                ipAddresses = new List<PendingIPAddress>(pendingIPAddresses);
-                pendingIPAddresses.Clear();
-            }
-            ProcessPendingIPAddressesInternal(ipAddresses);
-        }
-
         private void ProcessPendingIPAddressesInternal(IEnumerable<PendingIPAddress> ipAddresses)
         {
             List<KeyValuePair<string, string>> bannedIpAddresses = new List<KeyValuePair<string, string>>();
@@ -748,6 +732,25 @@ namespace IPBan
         }
 
         /// <summary>
+        /// Manually process all pending ip addresses. This is usually called automatically.
+        /// </summary>
+        public void ProcessPendingIPAddresses()
+        {
+            // make a quick copy of pending ip addresses so we don't lock it for very long
+            List<PendingIPAddress> ipAddresses;
+            lock (pendingIPAddresses)
+            {
+                if (pendingIPAddresses.Count == 0)
+                {
+                    return;
+                }
+                ipAddresses = new List<PendingIPAddress>(pendingIPAddresses);
+                pendingIPAddresses.Clear();
+            }
+            ProcessPendingIPAddressesInternal(ipAddresses);
+        }
+
+        /// <summary>
         /// Add an ip address to be checked for banning later
         /// </summary>
         /// <param name="ipAddress">IP Address, required</param>
@@ -979,9 +982,32 @@ namespace IPBan
         }
 
         /// <summary>
+        /// Attempt to get an updater of a specific type
+        /// </summary>
+        /// <typeparam name="T">Type</typeparam>
+        /// <param name="result">Updater or default(T) if not found</param>
+        /// <returns>True if found, false if not</returns>
+        public bool TryGetUpdater<T>(out T result)
+        {
+            lock (updaters)
+            {
+                foreach (IUpdater updater in updaters)
+                {
+                    if (updater is T result2)
+                    {
+                        result = result2;
+                        return true;
+                    }
+                }
+            }
+            result = default(T);
+            return false;
+        }
+
+        /// <summary>
         /// Remove an updater
         /// </summary>
-        /// <param name="updater">Updater</param>
+        /// <param name="result">Updater</param>
         /// <returns>True if removed, false otherwise</returns>
         public bool RemoveUpdater(IUpdater updater)
         {

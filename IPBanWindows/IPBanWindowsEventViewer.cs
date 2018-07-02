@@ -141,15 +141,6 @@ namespace IPBan
             return doc;
         }
 
-        private void ProcessEventViewerXml(string xml)
-        {
-            Log.Write(NLog.LogLevel.Info, "Processing xml: {0}", xml);
-
-            XmlDocument doc = ParseXml(xml);
-            ExtractIPAddressAndUserNameFromXml(doc, out string ipAddress, out string userName);
-            ProcessIPAddressAndUserName(ipAddress, userName, doc);
-        }
-
         private void EventRecordWritten(object sender, EventRecordWrittenEventArgs e)
         {
             try
@@ -226,6 +217,22 @@ namespace IPBan
             }
         }
 
+        /// <summary>
+        /// Process event viewer XML
+        /// </summary>
+        /// <param name="xml">XML</param>
+        public void ProcessEventViewerXml(string xml)
+        {
+            Log.Write(NLog.LogLevel.Info, "Processing xml: {0}", xml);
+
+            XmlDocument doc = ParseXml(xml);
+            ExtractIPAddressAndUserNameFromXml(doc, out string ipAddress, out string userName);
+            ProcessIPAddressAndUserName(ipAddress, userName, doc);
+        }
+
+        /// <summary>
+        /// Run tests
+        /// </summary>
         public void RunTests()
         {
             string[] xmlTestStrings = new string[]
