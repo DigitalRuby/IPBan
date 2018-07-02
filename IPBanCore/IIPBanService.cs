@@ -29,6 +29,45 @@ namespace IPBan
         void UpdateConfig(string xml);
 
         /// <summary>
+        /// Manually process all pending ip addresses immediately
+        /// </summary>
+        void ProcessPendingIPAddresses();
+
+        /// <summary>
+        /// Get an ip address and user name out of text using regex
+        /// </summary>
+        /// <param name="regex">Regex</param>
+        /// <param name="text">Text</param>
+        /// <param name="ipAddress">Found ip address or null if none</param>
+        /// <param name="userName">Found user name or null if none</param>
+        /// <returns>True if a regex match was found, false otherwise</returns>
+        bool GetIPAddressAndUserNameFromRegex(Regex regex, string text, ref string ipAddress, ref string userName);
+
+        /// <summary>
+        /// Add an updater for each cycle
+        /// </summary>
+        /// <param name="updater">Updater</param>
+        /// <returns>True if added, false if null or already in the list</returns>
+        bool AddUpdater(IUpdater updater);
+
+        /// <summary>
+        /// Remove an updater
+        /// </summary>
+        /// <param name="updater">Updater</param>
+        /// <returns>True if removed, false otherwise</returns>
+        bool RemoveUpdater(IUpdater updater);
+
+        /// <summary>
+        /// Whether the service is running
+        /// </summary>
+        bool IsRunning { get; }
+
+        /// <summary>
+        /// Current configuration
+        /// </summary>
+        IPBanConfig Config { get; }
+
+        /// <summary>
         /// Local ip address string
         /// </summary>
         string LocalIPAddressString { get; }

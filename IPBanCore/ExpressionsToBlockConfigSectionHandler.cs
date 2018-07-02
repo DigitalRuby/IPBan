@@ -17,8 +17,7 @@ namespace IPBan
 {
     public class ExpressionToBlock
     {
-        internal Regex RegexObject;
-
+        public Regex RegexObject { get; set; }
         public string XPath { get; set; }
         public string Regex { get; set; }
     }

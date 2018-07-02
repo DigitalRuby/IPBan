@@ -17,7 +17,6 @@ using System.Text;
 using System.Threading;
 using System.Security.AccessControl;
 using System.Security.Principal;
-using System.Web.Script.Serialization;
 using System.Xml;
 using System.Text.RegularExpressions;
 
@@ -25,15 +24,17 @@ using System.Text.RegularExpressions;
 
 namespace IPBan
 {
-    public class IPBanServiceRunner : ServiceBase
+    public class IPBanWindowsApp : ServiceBase
     {
-        private IPBanService service;
+        private static IPBanService service;
+        private static IPBanWindowsEventViewer eventViewer;
 
         protected override void OnStart(string[] args)
         {
             base.OnStart(args);
-            service = CreateService();
+            service = IPBanService.CreateService();
             service.Start();
+            eventViewer = new IPBanWindowsEventViewer(service);
         }
 
         protected override void OnStop()
@@ -70,7 +71,7 @@ namespace IPBan
             }
         }
 
-        public IPBanServiceRunner()
+        public IPBanWindowsApp()
         {
             CanShutdown = false;
             CanStop = CanHandleSessionChangeEvent = CanHandlePowerEvent = true;
@@ -83,55 +84,25 @@ namespace IPBan
             }
         }
 
-        private static IPBanService CreateService(Type instanceType = null)
-        {
-            Type ipBanServiceRootType = typeof(IPBanService);
-            if (instanceType == null)
-            {
-                foreach (Assembly a in AppDomain.CurrentDomain.GetAssemblies())
-                {
-                    System.Type[] types = a.GetTypes();
-                    foreach (Type aType in types)
-                    {
-                        if ((instanceType != null && aType.IsSubclassOf(instanceType)) ||
-                            (instanceType == null && aType == ipBanServiceRootType) ||
-                            aType.IsSubclassOf(ipBanServiceRootType))
-                        {
-                            instanceType = aType;
-                            break;
-                        }
-                    }
-                }
-                if (instanceType == null)
-                {
-                    throw new ArgumentException("Unable to find a subclass of " + ipBanServiceRootType.FullName);
-                }
-            }
-            else if (!instanceType.IsSubclassOf(ipBanServiceRootType))
-            {
-                throw new ArgumentException("Instance type must be a subclass of " + ipBanServiceRootType.FullName);
-            }
-            return (IPBanService)Activator.CreateInstance(instanceType, string.Empty);
-        }
-
         public static int RunService(string[] args, Type instanceType = null)
         {
             Directory.SetCurrentDirectory(AppDomain.CurrentDomain.BaseDirectory);
             System.ServiceProcess.ServiceBase[] ServicesToRun;
-            ServicesToRun = new System.ServiceProcess.ServiceBase[] { new IPBanServiceRunner() };
+            ServicesToRun = new System.ServiceProcess.ServiceBase[] { new IPBanWindowsApp() };
             System.ServiceProcess.ServiceBase.Run(ServicesToRun);
             return 0;
         }
 
         public static int RunConsole(string[] args, Type instanceType = null)
         {
-            IPBanService service = CreateService(instanceType);
+            service = IPBanService.CreateService(instanceType);
+            service.Start();
+            eventViewer = new IPBanWindowsEventViewer(service);
+            Console.WriteLine("Press ENTER to quit");
             if (args.Contains("test", StringComparer.OrdinalIgnoreCase))
             {
-                service.RunTestsOnStart = true;
+                eventViewer.RunTests();
             }
-            service.Start();
-            Console.WriteLine("Press ENTER to quit");
             Console.ReadLine();
             service.Stop();
             return 0;
@@ -141,11 +112,11 @@ namespace IPBan
         {
             if (Environment.UserInteractive)
             {
-                return IPBanServiceRunner.RunConsole(args, instanceType);
+                return IPBanWindowsApp.RunConsole(args, instanceType);
             }
             else
             {
-                return IPBanServiceRunner.RunService(args, instanceType);
+                return IPBanWindowsApp.RunService(args, instanceType);
             }
         }
 

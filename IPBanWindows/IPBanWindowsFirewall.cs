@@ -14,9 +14,9 @@ using NetFwTypeLib;
 namespace IPBan
 {
     /// <summary>
-    /// Helper class for firewall and banning ip addresses.
+    /// Helper class for Windows firewall and banning ip addresses.
     /// </summary>
-    public static class IPBanFirewall
+    public class IPBanWindowsFirewall : IIPBanFirewall
     {
         private const string clsidFwPolicy2 = "{E2B3C97F-6AE1-41AC-817A-F6F92166D7DD}";
         private const string clsidFwRule = "{2C5BC43E-3369-4C33-AB0C-BE9469677AF4}";
@@ -24,14 +24,14 @@ namespace IPBan
         private static readonly INetFwPolicy2 policy = Activator.CreateInstance(Type.GetTypeFromCLSID(new Guid(clsidFwPolicy2))) as INetFwPolicy2;
         private static readonly Type ruleType = Type.GetTypeFromCLSID(new Guid(clsidFwRule));
 
-        private static string rulePrefix = "IPBan_BlockIPAddresses_";
-        public static string RulePrefix
+        private string rulePrefix = "IPBan_BlockIPAddresses_";
+        public string RulePrefix
         {
             get { return rulePrefix; }
             set { rulePrefix = (string.IsNullOrWhiteSpace(value) ? rulePrefix : value); }
         }
 
-        private static string CreateRuleStringForIPAddresses(string[] ipAddresses, int index, int count)
+        private string CreateRuleStringForIPAddresses(string[] ipAddresses, int index, int count)
         {
             if (count == 0 || index >= ipAddresses.Length)
             {
@@ -52,7 +52,7 @@ namespace IPBan
             return b.ToString();
         }
 
-        private static void CreateRule(string[] ipAddresses, int index, int count)
+        private void CreateRule(string[] ipAddresses, int index, int count)
         {
             lock (policy)
             {
@@ -91,7 +91,7 @@ namespace IPBan
         /// </summary>
         /// <param name="ipAddresses">IP Addresses</param>
         /// <returns>True if success, false if error</returns>
-        public static bool CreateRules(string[] ipAddresses)
+        public bool CreateRules(string[] ipAddresses)
         {
             try
             {
@@ -115,7 +115,7 @@ namespace IPBan
         /// </summary>
         /// <param name="startIndex">The start index to begin deleting rules at. The index is appended to the rule prefix.</param>
         /// <returns>True if success, false if error</returns>
-        public static bool DeleteRules(int startIndex = 0)
+        public bool DeleteRules(int startIndex = 0)
         {
             try
             {
@@ -153,7 +153,7 @@ namespace IPBan
         /// </summary>
         /// <param name="ipAddress">IPAddress</param>
         /// <returns>True if the ip address is blocked in the firewall, false otherwise</returns>
-        public static bool IsIPAddressBlockedInFirewall(string ipAddress)
+        public bool IsIPAddressBlocked(string ipAddress)
         {
             try
             {
@@ -176,7 +176,11 @@ namespace IPBan
             return false;
         }
 
-        public static IEnumerable<string> EnumerateBannedIPAddresses()
+        /// <summary>
+        /// Loop through all banned ip addresses
+        /// </summary>
+        /// <returns>IEnumerable of all ip addresses</returns>
+        public IEnumerable<string> EnumerateBannedIPAddresses()
         {
             int i = 0;
             while (true)

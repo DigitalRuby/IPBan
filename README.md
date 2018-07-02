@@ -4,20 +4,29 @@ Windows IPBan Service
 
 **Instructions**
 
-- Ensure .NET framework 4.5 or newer is installed. Then extract the .zip file download to a place on your computer. Right click on all the extracted files and select properties. Make sure to select "unblock" if the option is available.
-- You *MUST* make this change to the local security policy to ensure ip addresses show up: 
-Change Local Security Policy -> Local Policies -> Audit Policy and turn failure logging on for "audit account logon events" and "audit logon events".
-From an admin command prompt: auditpol /set /category:"Logon/Logoff" /success:enable /failure:enable
-- To run as a Windows service run "sc create IPBAN type= own start= auto binPath= c:\path\to\service\ipban.exe DisplayName= IPBAN". The service needs file system, event viewer and firewall access, so please run as SYSTEM to ensure permissions.
+- Official download link is http://www.digitalruby.com/download/ipban-software-download/
 - Make sure to look at the config file for configuration options.
-- To run as a console app, simply run IPBAN.EXE and watch console output.
-- If you want to run and debug code in Visual Studio, make sure to run Visual Studio as administrator. Visual Studio 2017 or newer is required. Community edition is free.
 - Here is a regex that matches any 32 bit ip address, useful if you need to add a new block option in the config file: 
 (?<ipaddress>^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$)
 
+**Windows**
+- IPBan is only supported on Windows Server 2008 or equivelant or newer. Windows XP and Server 2003 are NOT supported.
+- Ensure .NET framework 4.6.1 or newer is installed. Then extract the IPBan.zip file to a place on your computer. Right click on all the extracted files and select properties. Make sure to select "unblock" if the option is available.
+- You *MUST* make this change to the local security policy to ensure ip addresses show up: 
+Change Local Security Policy -> Local Policies -> Audit Policy and turn failure logging on for "audit account logon events" and "audit logon events".
+From an admin command prompt: auditpol /set /category:"Logon/Logoff" /success:enable /failure:enable
+- For Windows Server 2008 or equivelant, you should disable NTLM logins and only allow NTLM2 logins. On Windows Server 2008, there is no way to get the ip address of NTLM logins. Use secpol -> local policies -> security options -> network security restrict ntlm incoming ntlm traffic -> deny all accounts.
+- To run as a Windows service run "sc create IPBAN type= own start= auto binPath= c:\path\to\service\ipban.exe DisplayName= IPBAN". The service needs file system, event viewer and firewall access, so please run as SYSTEM to ensure permissions.
+- To run as a console app, simply run IPBAN.EXE and watch console output.
+- If you want to run and debug code in Visual Studio, make sure to run Visual Studio as administrator. Visual Studio 2017 or newer is required. Community edition is free.
+
+**Linux**
+
+Linux support is coming, but is not ready yet.
+
 **About Me**
 
-I'm Jeff Johnson and I created IPBan to block hackers out because Windows does a horrible job of this by default and performance suffers as hackers try to breach your remote desktop. IPBan gets them in the block rule of the firewall where they belong.
+I'm Jeff Johnson and I created IPBan to block hackers out because Windows (and Linux quite frankly) does a horrible job of this by default and performance suffers as hackers try to breach your remote desktop or SSH. IPBan gets them in the block rule of the firewall where they belong.
 
 Please visit http://www.digitalruby.com/securing-your-windows-dedicated-server/ for more information about this program.
 
