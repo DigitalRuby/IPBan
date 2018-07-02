@@ -362,7 +362,7 @@ namespace IPBan
                 Type firewallType = typeof(IIPBanFirewall);
                 var q =
                     from a in AppDomain.CurrentDomain.GetAssemblies().SelectMany(a => a.GetTypes())
-                    where firewallType.IsAssignableFrom(a)
+                    where a != firewallType && firewallType.IsAssignableFrom(a)
                     select a;
                 foreach (Type t in q)
                 {
