@@ -31,15 +31,15 @@ namespace IPBan
             set { rulePrefix = (string.IsNullOrWhiteSpace(value) ? rulePrefix : value); }
         }
 
-        private string CreateRuleStringForIPAddresses(string[] ipAddresses, int index, int count)
+        private string CreateRuleStringForIPAddresses(IReadOnlyList<string> ipAddresses, int index, int count)
         {
-            if (count == 0 || index >= ipAddresses.Length)
+            if (count == 0 || index >= ipAddresses.Count)
             {
                 return string.Empty;
             }
 
             // don't overrun array
-            count = Math.Min(count, ipAddresses.Length - index);
+            count = Math.Min(count, ipAddresses.Count - index);
 
             StringBuilder b = new StringBuilder(count * 16);
             b.Append(ipAddresses[index]);
@@ -52,7 +52,7 @@ namespace IPBan
             return b.ToString();
         }
 
-        private void CreateRule(string[] ipAddresses, int index, int count)
+        private void CreateRule(IReadOnlyList<string> ipAddresses, int index, int count)
         {
             lock (policy)
             {
@@ -91,12 +91,12 @@ namespace IPBan
         /// </summary>
         /// <param name="ipAddresses">IP Addresses</param>
         /// <returns>True if success, false if error</returns>
-        public bool CreateRules(string[] ipAddresses)
+        public bool CreateRules(IReadOnlyList<string> ipAddresses)
         {
             try
             {
                 int i;
-                for (i = 0; i < ipAddresses.Length; i += maxIpAddressesPerRule)
+                for (i = 0; i < ipAddresses.Count; i += maxIpAddressesPerRule)
                 {
                     CreateRule(ipAddresses, i, maxIpAddressesPerRule);
                 }

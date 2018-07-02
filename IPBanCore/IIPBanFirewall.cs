@@ -16,12 +16,12 @@ namespace IPBan
         /// </summary>
         /// <param name="ipAddresses">IP Addresses</param>
         /// <returns>True if success, false if error</returns>
-        bool CreateRules(string[] ipAddresses);
+        bool CreateRules(IReadOnlyList<string> ipAddresses);
 
         /// <summary>
         /// Delete all rules with a name beginning with the rule prefix. Exceptions are logged.
         /// </summary>
-        /// <param name="startIndex">The start index to begin deleting rules at. The index is appended to the rule prefix.</param>
+        /// <param name="startIndex">The start index to begin deleting rules at. The index is appended to the rule prefix. Not all platforms use the index.</param>
         /// <returns>True if success, false if error</returns>
         bool DeleteRules(int startIndex = 0);
 
