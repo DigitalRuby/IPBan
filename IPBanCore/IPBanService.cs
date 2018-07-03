@@ -14,6 +14,7 @@ using System.Xml;
 using System.Text.RegularExpressions;
 using System.Reflection;
 using System.Configuration;
+using System.Runtime.InteropServices;
 
 #endregion Imports
 
@@ -44,8 +45,8 @@ namespace IPBan
 
         // note that an ip that has a block count may not yet be in the ipAddressesAndBanDate dictionary
         // for locking, always use ipAddressesAndBanDate
-        private Dictionary<string, DateTime> ipAddressesAndBanDate = new Dictionary<string, DateTime>();
-        private Dictionary<string, IPBlockCount> ipAddressesAndBlockCounts = new Dictionary<string, IPBlockCount>();
+        private readonly Dictionary<string, DateTime> ipAddressesAndBanDate = new Dictionary<string, DateTime>();
+        private readonly Dictionary<string, IPBlockCount> ipAddressesAndBlockCounts = new Dictionary<string, IPBlockCount>();
 
         private DateTime lastConfigFileDateTime = DateTime.MinValue;
         private readonly ManualResetEvent cycleEvent = new ManualResetEvent(false);
@@ -99,7 +100,7 @@ namespace IPBan
                 // if we don't have this log file and the platform matches, add it
                 if (logFilesToParse.FirstOrDefault(f => f.PathAndMask == newFile.PathAndMask) == null &&
                     !string.IsNullOrWhiteSpace(newFile.PlatformRegex) &&
-                    Regex.IsMatch(System.Environment.OSVersion.VersionString, newFile.PlatformRegex.Trim(), RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))
+                    Regex.IsMatch(RuntimeInformation.OSDescription, newFile.PlatformRegex.Trim(), RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))
                 {
                     // log files use a timer internally and do not need to be updated regularly
                     logFilesToParse.Add(new IPBanLogFileScanner(this, newFile.PathAndMask, newFile.Regex, newFile.MaxFileSize, newFile.PingInterval));

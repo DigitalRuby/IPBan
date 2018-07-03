@@ -48,7 +48,13 @@ namespace IPBan
 
         public static void Write(LogLevel level, string text, params object[] args)
         {
-            logger?.Log(level, text, args);
+            try
+            {
+                logger?.Log(level, text, args);
+            }
+            catch
+            {
+            }
         }
     }
 }

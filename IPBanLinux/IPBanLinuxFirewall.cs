@@ -67,12 +67,12 @@ namespace IPBan
 
         public IEnumerable<string> EnumerateBannedIPAddresses()
         {
-            return bannedIPAddresses;
+            return ((IEnumerable<string>)bannedIPAddresses ?? new string[0]);
         }
 
         public bool IsIPAddressBlocked(string ipAddress)
         {
-            return bannedIPAddresses.Contains(ipAddress);
+            return (bannedIPAddresses == null ? false : bannedIPAddresses.Contains(ipAddress));
         }
     }
 }
