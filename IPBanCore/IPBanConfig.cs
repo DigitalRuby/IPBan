@@ -7,6 +7,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -20,6 +21,7 @@ namespace IPBan
     public class IPBanConfig
     {
         private ExpressionsToBlock expressions;
+        private LogFileToParse[] logFiles;
         private TimeSpan banTime = TimeSpan.FromDays(1.0d);
         private TimeSpan expireTime = TimeSpan.FromDays(1.0d);
         private TimeSpan cycleTime = TimeSpan.FromMinutes(1.0d);
@@ -118,28 +120,37 @@ namespace IPBan
 
             PopulateList(whiteList, ref whiteListRegex, ConfigurationManager.AppSettings["Whitelist"], ConfigurationManager.AppSettings["WhitelistRegex"]);
             PopulateList(blackList, ref blackListRegex, ConfigurationManager.AppSettings["Blacklist"], ConfigurationManager.AppSettings["BlacklistRegex"]);
-            expressions = (ExpressionsToBlock)System.Configuration.ConfigurationManager.GetSection("ExpressionsToBlock");
-
-            foreach (ExpressionsToBlockGroup group in expressions.Groups)
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                foreach (ExpressionToBlock expression in group.Expressions)
+                expressions = (ExpressionsToBlock)System.Configuration.ConfigurationManager.GetSection("ExpressionsToBlock");
+                if (expressions != null)
                 {
-                    expression.Regex = (expression.Regex ?? string.Empty).Trim();
-                    if (expression.Regex.Length != 0)
+                    foreach (ExpressionsToBlockGroup group in expressions.Groups)
                     {
-                        if (expression.Regex[0] == '^')
+                        foreach (ExpressionToBlock expression in group.Expressions)
                         {
-                            expression.Regex = "^\\s*?" + expression.Regex.Substring(1) + "\\s*?";
-                        }
-                        else
-                        {
-                            expression.Regex = "\\s*?" + expression.Regex + "\\s*?";
+                            expression.Regex = (expression.Regex ?? string.Empty).Trim();
+                            if (expression.Regex.Length != 0)
+                            {
+                                if (expression.Regex[0] == '^')
+                                {
+                                    expression.Regex = "^\\s*?" + expression.Regex.Substring(1) + "\\s*?";
+                                }
+                                else
+                                {
+                                    expression.Regex = "\\s*?" + expression.Regex + "\\s*?";
+                                }
+                            }
+                            expression.RegexObject = new Regex(expression.Regex, RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.CultureInvariant | RegexOptions.Compiled);
                         }
                     }
-                    expression.RegexObject = new Regex(expression.Regex, RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.CultureInvariant | RegexOptions.Compiled);
                 }
             }
-
+            else
+            {
+                expressions = new ExpressionsToBlock { Groups = new ExpressionsToBlockGroup[0] };
+            }
+            logFiles = ((LogFilesToParse)System.Configuration.ConfigurationManager.GetSection("LogFilesToParse"))?.LogFiles ?? new LogFileToParse[0];
             processToRunOnBan = ConfigurationManager.AppSettings["ProcessToRunOnBan"];
             getUrlUpdate = ConfigurationManager.AppSettings["GetUrlUpdate"];
             getUrlStart = ConfigurationManager.AppSettings["GetUrlStart"];
@@ -180,7 +191,7 @@ namespace IPBan
         /// <returns>Groups that match</returns>
         public IEnumerable<ExpressionsToBlockGroup> GetGroupsMatchingKeywords(ulong keywords)
         {
-            return Expressions.Groups.Where(g => (g.KeywordsULONG == keywords));
+            return WindowsEventViewerExpressionsToBlock.Groups.Where(g => (g.KeywordsULONG == keywords));
         }
 
         /// <summary>
@@ -214,9 +225,14 @@ namespace IPBan
         public string RuleName { get { return ruleName; } }
 
         /// <summary>
-        /// Expressions to block
+        /// Event viewer expressions to block (Windows only)
         /// </summary>
-        public ExpressionsToBlock Expressions { get { return expressions; } }
+        public ExpressionsToBlock WindowsEventViewerExpressionsToBlock { get { return expressions; } }
+
+        /// <summary>
+        /// Log files to parse
+        /// </summary>
+        public IReadOnlyCollection<LogFileToParse> LogFilesToParse { get { return logFiles; } }
 
         /// <summary>
         /// True to clear and unban ip addresses upon restart, false otherwise

@@ -172,7 +172,7 @@ namespace IPBan
         {
             int id = 0;
             string queryString = "<QueryList>";
-            foreach (ExpressionsToBlockGroup group in service.Config.Expressions.Groups)
+            foreach (ExpressionsToBlockGroup group in service.Config.WindowsEventViewerExpressionsToBlock.Groups)
             {
                 if (Environment.OSVersion.Version.Major > group.MinimumWindowsMajorVersion ||
                     (Environment.OSVersion.Version.Major >= group.MinimumWindowsMajorVersion && Environment.OSVersion.Version.Minor >= group.MinimumWindowsMinorVersion))

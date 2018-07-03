@@ -16,9 +16,9 @@ namespace IPBan
         {
             if (bannedIPAddresses == null)
             {
+                bannedIPAddresses = new HashSet<string>();
                 Process.Start("ipset", "create \"" + ruleName + "\" iphash maxelem 1048576").WaitForExit();
                 Process.Start("ipset", "save \"" + ruleName + "\" > \"" + tempFile + "\"").WaitForExit();
-                bannedIPAddresses = new HashSet<string>();
                 foreach (string line in File.ReadLines(tempFile).Skip(1))
                 {
                     string[] pieces = line.Split(' ');
@@ -30,12 +30,7 @@ namespace IPBan
             }
         }
 
-        public IPBanLinuxFirewall()
-        {
-
-        }
-
-        public string RulePrefix { get; set; } = "IPBan_BlockIPAddresses_";
+        public string RulePrefix { get; set; } = "IPBan_BlockIPAddresses_0";
 
         public bool CreateRules(IReadOnlyList<string> ipAddresses)
         {
@@ -44,7 +39,7 @@ namespace IPBan
             string tempFile = Path.GetTempFileName();
             HashSet<string> newBannedIPAddresses = new HashSet<string>(ipAddresses);
             LoadIPAddressesFromIPSet(ruleName, tempFile);
-            IEnumerable<string> removedIPAddresses = newBannedIPAddresses.Intersect(bannedIPAddresses);
+            IEnumerable<string> removedIPAddresses = newBannedIPAddresses.Except(bannedIPAddresses);
 
             // add and remove the appropriate ip addresses
             StringBuilder script = new StringBuilder();

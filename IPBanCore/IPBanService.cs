@@ -51,6 +51,7 @@ namespace IPBan
         private readonly ManualResetEvent cycleEvent = new ManualResetEvent(false);
         private readonly object configLock = new object();
         private readonly HashSet<IUpdater> updaters = new HashSet<IUpdater>();
+        private readonly HashSet<IPBanLogFileScanner> logFilesToParse = new HashSet<IPBanLogFileScanner>();
 
         // the windows event viewer calls back on a background thread, this allows pushing the ip addresses to a list that will be accessed
         //  in the main loop
@@ -82,6 +83,30 @@ namespace IPBan
             Firewall.CreateRules(ipAddresses);
         }
 
+        private void UpdateLogFiles(IPBanConfig newConfig)
+        {
+            // remove existing log files that are no longer in config
+            foreach (IPBanLogFileScanner file in logFilesToParse.ToArray())
+            {
+                if (newConfig.LogFilesToParse.FirstOrDefault(f => f.PathAndMask == file.PathAndMask) == null)
+                {
+                    file.Dispose();
+                    logFilesToParse.Remove(file);
+                }
+            }
+            foreach (LogFileToParse newFile in newConfig.LogFilesToParse)
+            {
+                // if we don't have this log file and the platform matches, add it
+                if (logFilesToParse.FirstOrDefault(f => f.PathAndMask == newFile.PathAndMask) == null &&
+                    !string.IsNullOrWhiteSpace(newFile.PlatformRegex) &&
+                    Regex.IsMatch(System.Environment.OSVersion.VersionString, newFile.PlatformRegex.Trim(), RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))
+                {
+                    // log files use a timer internally and do not need to be updated regularly
+                    logFilesToParse.Add(new IPBanLogFileScanner(this, newFile.PathAndMask, newFile.Regex, newFile.MaxFileSize, newFile.PingInterval));
+                }
+            }
+        }
+
         internal void ReadAppSettings()
         {
             try
@@ -93,6 +118,7 @@ namespace IPBan
                     lock (configLock)
                     {
                         IPBanConfig newConfig = new IPBanConfig(configFilePath);
+                        UpdateLogFiles(newConfig);
                         Config = newConfig;
                     }
                 }
@@ -649,9 +675,9 @@ namespace IPBan
         private void CycleTask()
         {
             System.Diagnostics.Stopwatch timer = new Stopwatch();
-            try
+            while (IsRunning)
             {
-                while (IsRunning)
+                try
                 {
                     timer.Restart();
                     RunCycle();
@@ -662,10 +688,12 @@ namespace IPBan
                     }
                     cycleEvent.WaitOne(nextWait);
                 }
-            }
-            catch (Exception ex)
-            {
-                Log.Exception(ex);
+                catch (Exception ex)
+                {
+                    // should not get here, but if we do log it and sleep a bit in case of repeating error
+                    Log.Exception(ex);
+                    Thread.Sleep(5000);
+                }
             }
         }
 
@@ -919,6 +947,11 @@ namespace IPBan
                 }
                 updaters.Clear();
             }
+            foreach (IPBanLogFileScanner file in logFilesToParse)
+            {
+                file.Dispose();
+            }
+            logFilesToParse.Clear();
             Log.Write(NLog.LogLevel.Warn, "Stopped IPBan service");
         }
 
