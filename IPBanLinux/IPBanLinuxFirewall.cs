@@ -12,13 +12,27 @@ namespace IPBan
     {
         private HashSet<string> bannedIPAddresses;
 
+        private bool RunProcess(string program, bool requireExitCode, string commandLine, params object[] args)
+        {
+            commandLine = string.Format(commandLine, args);
+            Log.Write(NLog.LogLevel.Debug, "Running firewall process {0} {1}", program, commandLine);
+            Process p = Process.Start("/bin/bash", "-c " + commandLine.Replace("\"", "\\\""));
+            p.WaitForExit();
+            if (requireExitCode && p.ExitCode != 0)
+            {
+                Log.Write(NLog.LogLevel.Error, "Process {0} {1} had exit code {2}", program, commandLine, p.ExitCode);
+                return false;
+            }
+            return true;
+        }
+
         private void LoadIPAddressesFromIPSet(string ruleName, string tempFile)
         {
             if (bannedIPAddresses == null)
             {
                 bannedIPAddresses = new HashSet<string>();
-                Process.Start("ipset", "create \"" + ruleName + "\" iphash maxelem 1048576").WaitForExit();
-                Process.Start("ipset", "save \"" + ruleName + "\" > \"" + tempFile + "\"").WaitForExit();
+                RunProcess("ipset", false, "create {0} iphash maxelem 1048576", ruleName);
+                RunProcess("ipset", true, "save {0} > \"{1}\"", ruleName, tempFile);
                 foreach (string line in File.ReadLines(tempFile).Skip(1))
                 {
                     string[] pieces = line.Split(' ');
@@ -45,18 +59,17 @@ namespace IPBan
             StringBuilder script = new StringBuilder();
             foreach (string ipAddress in removedIPAddresses)
             {
-                script.AppendLine("del \"" + ruleName + "\" \"" + ipAddress + "\" -exist");
+                script.AppendLine("del " + ruleName + " " + ipAddress + " -exist");
             }
             foreach (string ipAddress in newBannedIPAddresses)
             {
-                script.AppendLine("add \"" + ruleName + "\" \"" + ipAddress + "\" -exist");
+                script.AppendLine("add " + ruleName + " " + ipAddress + " -exist");
             }
 
             // write out the file and run the command to restore the set
             bannedIPAddresses = newBannedIPAddresses;
             File.WriteAllText(tempFile, script.ToString());
-            Process p = Process.Start("ipset", "restore \"" + ruleName + "\" < \"" + tempFile + "\"");
-            return (p.ExitCode == 0);
+            return RunProcess("ipset", true, "restore {0} < \"{1}\"", ruleName, tempFile);
         }
 
         public bool DeleteRules(int startIndex = 0)
