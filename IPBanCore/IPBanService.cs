@@ -105,6 +105,10 @@ namespace IPBan
                     // log files use a timer internally and do not need to be updated regularly
                     logFilesToParse.Add(new IPBanLogFileScanner(this, newFile.PathAndMask, newFile.Regex, newFile.MaxFileSize, newFile.PingInterval));
                 }
+                else
+                {
+                    Log.Write(NLog.LogLevel.Debug, "Ignoring log file {0}", newFile);
+                }
             }
         }
 

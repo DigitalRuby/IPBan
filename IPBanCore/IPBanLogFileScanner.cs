@@ -154,6 +154,7 @@ namespace IPBan
                 {
                     if (!watchedFilesCopy.Contains(existing))
                     {
+                        Log.Write(NLog.LogLevel.Debug, "Removing parsed log file {0}", existing.FileName);
                         watchedFiles.Remove(existing);
                     }
                 }
@@ -162,7 +163,10 @@ namespace IPBan
                 foreach (WatchedFile newFile in watchedFilesCopy)
                 {
                     // add the file, will fail if it already exists
-                    watchedFiles.Add(newFile);
+                    if (watchedFiles.Add(newFile))
+                    {
+                        Log.Write(NLog.LogLevel.Debug, "Adding parsed log file {0}", newFile.FileName);
+                    }
                 }
 
                 // make a copy so we can enumerate outside a lock
@@ -255,11 +259,17 @@ namespace IPBan
                 // find ip and user name from all lines
                 foreach (string line in lines)
                 {
+                    Log.Write(NLog.LogLevel.Debug, "Parsing log file line {0}...", line);
                     bool foundMatch = IPBanService.GetIPAddressAndUserNameFromRegex(Regex, line.Trim(), ref ipAddress, ref userName);
                     if (foundMatch)
                     {
+                        Log.Write(NLog.LogLevel.Debug, "Found match!");
                         service.AddPendingIPAddressAndUserName(ipAddress, userName);
                         foundOne = true;
+                    }
+                    else
+                    {
+                        Log.Write(NLog.LogLevel.Debug, "No match!");
                     }
                 }
 
