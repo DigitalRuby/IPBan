@@ -15,6 +15,11 @@ namespace IPBan
         public string PlatformRegex { get; set; }
         public int PingInterval { get; set; } = 10000;
         public int MaxFileSize { get; set; }
+
+        public override string ToString()
+        {
+            return string.Format("Path/mask: {0}, platform: {1}", PathAndMask, PlatformRegex);
+        }
     }
 
     public class LogFilesToParse

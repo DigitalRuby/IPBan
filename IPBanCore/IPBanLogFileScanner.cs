@@ -138,7 +138,7 @@ namespace IPBan
                 {
                     foreach (string file in Directory.EnumerateFiles(directoryToWatch, fileMask, SearchOption.TopDirectoryOnly))
                     {
-                        watchedFilesCopy.Add(new WatchedFile(file));
+                        watchedFilesCopy.Add(new WatchedFile(file, new FileInfo(file).Length));
                     }
                 }
             }
@@ -240,12 +240,12 @@ namespace IPBan
                 }
             }
 
-            // set file position ready for the next read right after the newline
-            fs.Position = file.LastPosition;
-            bytes = new BinaryReader(fs).ReadBytes((int)(lastNewlinePos - fs.Position));
-
-            if (lastNewlinePos >= 0)
+            if (lastNewlinePos > -1)
             {
+                // set file position ready for the next read right after the newline
+                fs.Position = file.LastPosition;
+                bytes = new BinaryReader(fs).ReadBytes((int)(lastNewlinePos - fs.Position));
+
                 // set position for next ping
                 file.LastPosition = lastNewlinePos + 1;
 
@@ -263,7 +263,7 @@ namespace IPBan
                     bool foundMatch = IPBanService.GetIPAddressAndUserNameFromRegex(Regex, line.Trim(), ref ipAddress, ref userName);
                     if (foundMatch)
                     {
-                        Log.Write(NLog.LogLevel.Debug, "Found match!");
+                        Log.Write(NLog.LogLevel.Debug, "Found match, ip: {0}, user: {1}", ipAddress, userName);
                         service.AddPendingIPAddressAndUserName(ipAddress, userName);
                         foundOne = true;
                     }
