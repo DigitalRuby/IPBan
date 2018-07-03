@@ -33,10 +33,10 @@ namespace IPBan
                 bannedIPAddresses = new HashSet<string>();
                 RunProcess("ipset", false, "create {0} iphash maxelem 1048576", ruleName);
                 // iptables -A INPUT -m set --set myset src -j DROP
-                int result = RunProcess("iptables", false, "-C INPUT -m set --set \"{0}\" src -j DROP", ruleName);
+                int result = RunProcess("iptables", false, "-C INPUT -m set --match-set \"{0}\" src -j DROP", ruleName);
                 if (result != 0)
                 {
-                    RunProcess("iptables", true, "-A INPUT -m set --set \"{0}\" src -j DROP", ruleName);
+                    RunProcess("iptables", true, "-A INPUT -m set --match-set \"{0}\" src -j DROP", ruleName);
                 }
                 RunProcess("ipset", true, "save {0} > \"{1}\"", ruleName, tempFile);
                 foreach (string line in File.ReadLines(tempFile).Skip(1))
