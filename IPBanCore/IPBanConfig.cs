@@ -21,14 +21,14 @@ namespace IPBan
     public class IPBanConfig
     {
         private ExpressionsToBlock expressions;
-        private LogFileToParse[] logFiles;
-        private TimeSpan banTime = TimeSpan.FromDays(1.0d);
-        private TimeSpan expireTime = TimeSpan.FromDays(1.0d);
-        private TimeSpan cycleTime = TimeSpan.FromMinutes(1.0d);
-        private TimeSpan minimumTimeBetweenFailedLoginAttempts = TimeSpan.FromSeconds(5.0);
         private Regex whiteListRegex;
         private Regex blackListRegex;
 
+        private readonly LogFileToParse[] logFiles;
+        private readonly TimeSpan banTime = TimeSpan.FromDays(1.0d);
+        private readonly TimeSpan expireTime = TimeSpan.FromDays(1.0d);
+        private readonly TimeSpan cycleTime = TimeSpan.FromMinutes(1.0d);
+        private readonly TimeSpan minimumTimeBetweenFailedLoginAttempts = TimeSpan.FromSeconds(5.0);
         private readonly int failedLoginAttemptsBeforeBan = 5;
         private readonly string ruleName = "BlockIPAddresses";
         private readonly HashSet<string> blackList = new HashSet<string>(StringComparer.OrdinalIgnoreCase);

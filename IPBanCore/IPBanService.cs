@@ -89,7 +89,7 @@ namespace IPBan
             // remove existing log files that are no longer in config
             foreach (IPBanLogFileScanner file in logFilesToParse.ToArray())
             {
-                if (newConfig.LogFilesToParse.FirstOrDefault(f => f.PathAndMask == file.PathAndMask) == null)
+                if (newConfig.LogFilesToParse.FirstOrDefault(f => f.PathAndMask.Split('\n').Contains(file.PathAndMask)) == null)
                 {
                     file.Dispose();
                     logFilesToParse.Remove(file);
@@ -97,17 +97,25 @@ namespace IPBan
             }
             foreach (LogFileToParse newFile in newConfig.LogFilesToParse)
             {
-                // if we don't have this log file and the platform matches, add it
-                if (logFilesToParse.FirstOrDefault(f => f.PathAndMask == newFile.PathAndMask) == null &&
-                    !string.IsNullOrWhiteSpace(newFile.PlatformRegex) &&
-                    Regex.IsMatch(RuntimeInformation.OSDescription, newFile.PlatformRegex.Trim(), RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))
+                string[] pathsAndMasks = newFile.PathAndMask.Split('\n');
+                for (int i = 0; i < pathsAndMasks.Length; i++)
                 {
-                    // log files use a timer internally and do not need to be updated regularly
-                    logFilesToParse.Add(new IPBanLogFileScanner(this, newFile.PathAndMask, newFile.Regex, newFile.MaxFileSize, newFile.PingInterval));
-                }
-                else
-                {
-                    Log.Write(NLog.LogLevel.Debug, "Ignoring log file {0}", newFile);
+                    string pathAndMask = pathsAndMasks[i].Trim();
+                    if (pathAndMask.Length != 0)
+                    {
+                        // if we don't have this log file and the platform matches, add it
+                        if (logFilesToParse.FirstOrDefault(f => f.PathAndMask == pathAndMask) == null &&
+                            !string.IsNullOrWhiteSpace(newFile.PlatformRegex) &&
+                            Regex.IsMatch(RuntimeInformation.OSDescription, newFile.PlatformRegex.Trim(), RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))
+                        {
+                            // log files use a timer internally and do not need to be updated regularly
+                            logFilesToParse.Add(new IPBanLogFileScanner(this, pathAndMask, newFile.Regex, newFile.MaxFileSize, newFile.PingInterval));
+                        }
+                        else
+                        {
+                            Log.Write(NLog.LogLevel.Debug, "Ignoring log file {0}", newFile);
+                        }
+                    }
                 }
             }
         }
