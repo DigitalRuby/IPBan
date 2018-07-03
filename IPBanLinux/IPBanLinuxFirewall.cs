@@ -14,9 +14,10 @@ namespace IPBan
 
         private bool RunProcess(string program, bool requireExitCode, string commandLine, params object[] args)
         {
-            commandLine = string.Format(commandLine, args);
-            Log.Write(NLog.LogLevel.Debug, "Running firewall process {0} {1}", program, commandLine);
-            Process p = Process.Start("/bin/bash", "-c " + commandLine.Replace("\"", "\\\""));
+            commandLine = program + " " + string.Format(commandLine, args);
+            commandLine = "-c \"" + commandLine.Replace("\"", "\\\"") + "\"";
+            Log.Write(NLog.LogLevel.Debug, "Running firewall process: /bin/bash {0}", commandLine);
+            Process p = Process.Start("/bin/bash", commandLine);
             p.WaitForExit();
             if (requireExitCode && p.ExitCode != 0)
             {
@@ -32,6 +33,7 @@ namespace IPBan
             {
                 bannedIPAddresses = new HashSet<string>();
                 RunProcess("ipset", false, "create {0} iphash maxelem 1048576", ruleName);
+                RunProcess("iptables", false, "-A INPUT -m set --match-set \"{0}\" dst -j DROP", ruleName);
                 RunProcess("ipset", true, "save {0} > \"{1}\"", ruleName, tempFile);
                 foreach (string line in File.ReadLines(tempFile).Skip(1))
                 {
@@ -44,12 +46,12 @@ namespace IPBan
             }
         }
 
-        public string RulePrefix { get; set; } = "IPBan_BlockIPAddresses_0";
+        public string RulePrefix { get; set; } = "IPBan_BlockIPAddresses_";
 
         public bool CreateRules(IReadOnlyList<string> ipAddresses)
         {
             // ensure an ip set is created
-            string ruleName = RulePrefix + "_0";
+            string ruleName = RulePrefix + "0";
             string tempFile = Path.GetTempFileName();
             HashSet<string> newBannedIPAddresses = new HashSet<string>(ipAddresses);
             LoadIPAddressesFromIPSet(ruleName, tempFile);
@@ -57,6 +59,7 @@ namespace IPBan
 
             // add and remove the appropriate ip addresses
             StringBuilder script = new StringBuilder();
+            script.AppendLine("create " + ruleName + " hash:ip family inet hashsize 1024 maxelem 1048576 -exist");
             foreach (string ipAddress in removedIPAddresses)
             {
                 script.AppendLine("del " + ruleName + " " + ipAddress + " -exist");
@@ -69,7 +72,7 @@ namespace IPBan
             // write out the file and run the command to restore the set
             bannedIPAddresses = newBannedIPAddresses;
             File.WriteAllText(tempFile, script.ToString());
-            return RunProcess("ipset", true, "restore {0} < \"{1}\"", ruleName, tempFile);
+            return RunProcess("ipset", true, "restore < \"{0}\"", tempFile);
         }
 
         public bool DeleteRules(int startIndex = 0)
