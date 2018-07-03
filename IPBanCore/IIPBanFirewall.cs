@@ -7,9 +7,9 @@ namespace IPBan
     public interface IIPBanFirewall
     {
         /// <summary>
-        /// Rule prefix
+        /// Ensure the firewall is initialized
         /// </summary>
-        string RulePrefix { get; set; }
+        void Initialize(string rulePrefix);
 
         /// <summary>
         /// Creates new rules to block all the ip addresses, and removes any left-over rules. Exceptions are logged.

@@ -408,7 +408,7 @@ namespace IPBan
             OSName = (OSName ?? Environment.OSVersion.Platform.ToString());
             OSVersion = (OSVersion ?? Environment.OSVersion.VersionString);
             ReadAppSettings();
-            Firewall.RulePrefix = Config.RuleName;
+            Firewall.Initialize(string.IsNullOrWhiteSpace(Config.RuleName) ? "IPBan_BlockIPAddresses_" : Config.RuleName);
             UpdateBannedIPAddressesOnStart();
             LogInitialConfig();
             IPBanDelegate?.Start(this);

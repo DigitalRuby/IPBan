@@ -24,13 +24,6 @@ namespace IPBan
         private static readonly INetFwPolicy2 policy = Activator.CreateInstance(Type.GetTypeFromCLSID(new Guid(clsidFwPolicy2))) as INetFwPolicy2;
         private static readonly Type ruleType = Type.GetTypeFromCLSID(new Guid(clsidFwRule));
 
-        private string rulePrefix = "IPBan_BlockIPAddresses_";
-        public string RulePrefix
-        {
-            get { return rulePrefix; }
-            set { rulePrefix = (string.IsNullOrWhiteSpace(value) ? rulePrefix : value); }
-        }
-
         private string CreateRuleStringForIPAddresses(IReadOnlyList<string> ipAddresses, int index, int count)
         {
             if (count == 0 || index >= ipAddresses.Count)
@@ -84,6 +77,17 @@ namespace IPBan
                 }
                 rule.RemoteAddresses = remoteIpString;
             }
+        }
+
+        public string RulePrefix { get; private set; } = "IPBan_BlockIPAddresses_";
+
+        /// <summary>
+        /// Initialize
+        /// </summary>
+        /// <param name="rulePrefix">Rule prefix</param>
+        public void Initialize(string rulePrefix)
+        {
+            RulePrefix = rulePrefix;
         }
 
         /// <summary>

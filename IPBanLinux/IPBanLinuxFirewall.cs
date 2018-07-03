@@ -50,7 +50,31 @@ namespace IPBan
             }
         }
 
-        public string RulePrefix { get; set; } = "IPBan_BlockIPAddresses_";
+        private void DeleteFile(string fileName)
+        {
+            try
+            {
+                File.Delete(fileName);
+            }
+            catch
+            {
+            }
+        }
+
+        public string RulePrefix { get; private set; } = "IPBan_BlockIPAddresses_";
+
+        /// <summary>
+        /// Initialize
+        /// </summary>
+        /// <param name="rulePrefix">Rule prefix</param>
+        public void Initialize(string rulePrefix)
+        {
+            RulePrefix = rulePrefix;
+            string ruleName = RulePrefix + "0";
+            string tempFile = Path.GetTempFileName();
+            LoadIPAddressesFromIPSet(ruleName, tempFile);
+            DeleteFile(tempFile);
+        }
 
         public bool CreateRules(IReadOnlyList<string> ipAddresses)
         {
@@ -77,13 +101,7 @@ namespace IPBan
             bannedIPAddresses = newBannedIPAddresses;
             File.WriteAllText(tempFile, script.ToString());
             bool result = (RunProcess("ipset", true, "restore < \"{0}\"", tempFile) == 0);
-            try
-            {
-                File.Delete(tempFile);
-            }
-            catch
-            {
-            }
+            DeleteFile(tempFile);
             return result;
         }
 
@@ -95,12 +113,12 @@ namespace IPBan
 
         public IEnumerable<string> EnumerateBannedIPAddresses()
         {
-            return ((IEnumerable<string>)bannedIPAddresses ?? new string[0]);
+            return bannedIPAddresses;
         }
 
         public bool IsIPAddressBlocked(string ipAddress)
         {
-            return (bannedIPAddresses == null ? false : bannedIPAddresses.Contains(ipAddress));
+            return bannedIPAddresses.Contains(ipAddress);
         }
     }
 }
