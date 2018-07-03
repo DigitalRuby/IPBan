@@ -61,7 +61,7 @@ namespace IPBan
             this.maxFileSize = maxFileSize;
             service.AddUpdater(this);
             PathAndMask = pathAndMask;
-            Regex = new Regex(regex, RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+            Regex = new Regex(regex, RegexOptions.IgnoreCase | RegexOptions.CultureInvariant | RegexOptions.IgnorePatternWhitespace);
             directoryToWatch = Path.GetDirectoryName(pathAndMask);
             fileMask = Path.GetFileName(pathAndMask);
             pingTimer = new System.Timers.Timer(pingIntervalMilliseconds);

@@ -39,7 +39,7 @@ namespace IPBan
             string tempFile = Path.GetTempFileName();
             HashSet<string> newBannedIPAddresses = new HashSet<string>(ipAddresses);
             LoadIPAddressesFromIPSet(ruleName, tempFile);
-            IEnumerable<string> removedIPAddresses = newBannedIPAddresses.Except(bannedIPAddresses);
+            IEnumerable<string> removedIPAddresses = bannedIPAddresses.Except(newBannedIPAddresses);
 
             // add and remove the appropriate ip addresses
             StringBuilder script = new StringBuilder();
