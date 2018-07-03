@@ -72,7 +72,15 @@ namespace IPBan
             // write out the file and run the command to restore the set
             bannedIPAddresses = newBannedIPAddresses;
             File.WriteAllText(tempFile, script.ToString());
-            return RunProcess("ipset", true, "restore < \"{0}\"", tempFile);
+            bool result = RunProcess("ipset", true, "restore < \"{0}\"", tempFile);
+            try
+            {
+                File.Delete(tempFile);
+            }
+            catch
+            {
+            }
+            return result;
         }
 
         public bool DeleteRules(int startIndex = 0)
