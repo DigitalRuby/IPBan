@@ -12,7 +12,7 @@ namespace IPBan
     {
         private HashSet<string> bannedIPAddresses;
 
-        private bool RunProcess(string program, bool requireExitCode, string commandLine, params object[] args)
+        private int RunProcess(string program, bool requireExitCode, string commandLine, params object[] args)
         {
             commandLine = program + " " + string.Format(commandLine, args);
             commandLine = "-c \"" + commandLine.Replace("\"", "\\\"") + "\"";
@@ -22,9 +22,8 @@ namespace IPBan
             if (requireExitCode && p.ExitCode != 0)
             {
                 Log.Write(NLog.LogLevel.Error, "Process {0} {1} had exit code {2}", program, commandLine, p.ExitCode);
-                return false;
             }
-            return true;
+            return p.ExitCode;
         }
 
         private void LoadIPAddressesFromIPSet(string ruleName, string tempFile)
@@ -33,7 +32,12 @@ namespace IPBan
             {
                 bannedIPAddresses = new HashSet<string>();
                 RunProcess("ipset", false, "create {0} iphash maxelem 1048576", ruleName);
-                RunProcess("iptables", false, "-A INPUT -m set --match-set \"{0}\" dst -j DROP", ruleName);
+                // iptables -A INPUT -m set --set myset src -j DROP
+                int result = RunProcess("iptables", false, "-C INPUT -m set --set \"{0}\" src -j DROP", ruleName);
+                if (result != 0)
+                {
+                    RunProcess("iptables", true, "-A INPUT -m set --set \"{0}\" src -j DROP", ruleName);
+                }
                 RunProcess("ipset", true, "save {0} > \"{1}\"", ruleName, tempFile);
                 foreach (string line in File.ReadLines(tempFile).Skip(1))
                 {
@@ -72,7 +76,7 @@ namespace IPBan
             // write out the file and run the command to restore the set
             bannedIPAddresses = newBannedIPAddresses;
             File.WriteAllText(tempFile, script.ToString());
-            bool result = RunProcess("ipset", true, "restore < \"{0}\"", tempFile);
+            bool result = (RunProcess("ipset", true, "restore < \"{0}\"", tempFile) == 0);
             try
             {
                 File.Delete(tempFile);

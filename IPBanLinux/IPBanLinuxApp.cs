@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
+using System.Threading;
 
 namespace IPBan
 {
@@ -10,8 +11,9 @@ namespace IPBan
         {
             IPBanService service = IPBanService.CreateService();
             service.Start();
-            Log.Write(NLog.LogLevel.Warn, "IPBan Linux Service Running, Press Ctrl-C or ENTER to quit.");
-            Console.ReadLine();
+            Log.Write(NLog.LogLevel.Warn, "IPBan Linux Service Running, Press Ctrl-C to quit.");
+            ManualResetEvent wait = new ManualResetEvent(false);
+            wait.WaitOne();
         }
     }
 }
