@@ -3,7 +3,6 @@ bin/
 obj/
 packages/
 *.suo
-*.csproj
 *.cachefile
 *.user
 *.pubxml
