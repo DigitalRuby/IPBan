@@ -10,51 +10,18 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{6822D4
 		.nuget\NuGet.targets = .nuget\NuGet.targets
 	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IPBan", "IPBanCore\IPBan.csproj", "{4201065B-FF1A-4AE3-B8E5-C871004BFD31}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IPBanLinux", "IPBanLinux\IPBanLinux.csproj", "{A134A218-983C-4C46-9C4B-FA75328ADB68}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionItems", "SolutionItems", "{5E22239D-EE00-4F05-95C2-CEDDB94AA23D}"
-	ProjectSection(SolutionItems) = preProject
-		.gitignore = .gitignore
-		ISSUE_TEMPLATE.md = ISSUE_TEMPLATE.md
-		README.md = README.md
-	EndProjectSection
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IPBanWindows", "IPBanWindows\IPBanWindows.csproj", "{73CF06BB-F7D2-464E-BE9A-F94E2F4DC5D0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IPBan", "IPBan.csproj", "{BF7A13A4-7DE6-49DE-89AC-6EA15AB6CD07}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
-		Debug|x86 = Debug|x86
 		Release|Any CPU = Release|Any CPU
-		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{4201065B-FF1A-4AE3-B8E5-C871004BFD31}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{4201065B-FF1A-4AE3-B8E5-C871004BFD31}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{4201065B-FF1A-4AE3-B8E5-C871004BFD31}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{4201065B-FF1A-4AE3-B8E5-C871004BFD31}.Debug|x86.Build.0 = Debug|Any CPU
-		{4201065B-FF1A-4AE3-B8E5-C871004BFD31}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{4201065B-FF1A-4AE3-B8E5-C871004BFD31}.Release|Any CPU.Build.0 = Release|Any CPU
-		{4201065B-FF1A-4AE3-B8E5-C871004BFD31}.Release|x86.ActiveCfg = Release|Any CPU
-		{4201065B-FF1A-4AE3-B8E5-C871004BFD31}.Release|x86.Build.0 = Release|Any CPU
-		{A134A218-983C-4C46-9C4B-FA75328ADB68}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{A134A218-983C-4C46-9C4B-FA75328ADB68}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{A134A218-983C-4C46-9C4B-FA75328ADB68}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{A134A218-983C-4C46-9C4B-FA75328ADB68}.Debug|x86.Build.0 = Debug|Any CPU
-		{A134A218-983C-4C46-9C4B-FA75328ADB68}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{A134A218-983C-4C46-9C4B-FA75328ADB68}.Release|Any CPU.Build.0 = Release|Any CPU
-		{A134A218-983C-4C46-9C4B-FA75328ADB68}.Release|x86.ActiveCfg = Release|Any CPU
-		{A134A218-983C-4C46-9C4B-FA75328ADB68}.Release|x86.Build.0 = Release|Any CPU
-		{73CF06BB-F7D2-464E-BE9A-F94E2F4DC5D0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{73CF06BB-F7D2-464E-BE9A-F94E2F4DC5D0}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{73CF06BB-F7D2-464E-BE9A-F94E2F4DC5D0}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{73CF06BB-F7D2-464E-BE9A-F94E2F4DC5D0}.Debug|x86.Build.0 = Debug|Any CPU
-		{73CF06BB-F7D2-464E-BE9A-F94E2F4DC5D0}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{73CF06BB-F7D2-464E-BE9A-F94E2F4DC5D0}.Release|Any CPU.Build.0 = Release|Any CPU
-		{73CF06BB-F7D2-464E-BE9A-F94E2F4DC5D0}.Release|x86.ActiveCfg = Release|Any CPU
-		{73CF06BB-F7D2-464E-BE9A-F94E2F4DC5D0}.Release|x86.Build.0 = Release|Any CPU
+		{BF7A13A4-7DE6-49DE-89AC-6EA15AB6CD07}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BF7A13A4-7DE6-49DE-89AC-6EA15AB6CD07}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BF7A13A4-7DE6-49DE-89AC-6EA15AB6CD07}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BF7A13A4-7DE6-49DE-89AC-6EA15AB6CD07}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

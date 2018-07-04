@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Net;
+using System.Runtime.InteropServices;
 using System.Text;
 
 using NetFwTypeLib;
@@ -16,6 +17,7 @@ namespace IPBan
     /// <summary>
     /// Helper class for Windows firewall and banning ip addresses.
     /// </summary>
+    [RequiredOperatingSystem(IPBanOperatingSystem.Windows)]
     public class IPBanWindowsFirewall : IIPBanFirewall
     {
         private const string clsidFwPolicy2 = "{E2B3C97F-6AE1-41AC-817A-F6F92166D7DD}";

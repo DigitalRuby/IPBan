@@ -5,11 +5,11 @@ using System.Threading;
 
 namespace IPBan
 {
-    public class IPBanLinuxApp
+    public static class IPBanLinuxApp
     {
-        public static void Main(string[] args)
+        public static void LinuxMain(string[] args, Type instanceType = null)
         {
-            IPBanService service = IPBanService.CreateService();
+            IPBanService service = IPBanService.CreateService(instanceType);
             service.Start();
             Log.Write(NLog.LogLevel.Warn, "IPBan Linux Service Running, Press Ctrl-C to quit.");
             ManualResetEvent wait = new ManualResetEvent(false);

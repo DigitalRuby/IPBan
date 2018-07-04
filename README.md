@@ -11,20 +11,19 @@ IPBan Service
 
 **Windows**
 - For Windows, IPBan is supported on Windows Server 2008 or equivelant or newer. Windows XP and Server 2003 are NOT supported.
-- Ensure .NET framework 4.6.1 or newer is installed. Then extract the IPBan.zip (inside is IPBanWindows.zip) file to a place on your computer. Right click on all the extracted files and select properties. Make sure to select "unblock" if the option is available.
+- Extract the IPBan.zip (inside is IPBanWindows.zip) file to a place on your computer. Right click on all the extracted files and select properties. Make sure to select "unblock" if the option is available.
 - You *MUST* make this change to the local security policy to ensure ip addresses show up: 
 Change Local Security Policy -> Local Policies -> Audit Policy and turn failure logging on for "audit account logon events" and "audit logon events".
 From an admin command prompt: auditpol /set /category:"Logon/Logoff" /success:enable /failure:enable
 - For Windows Server 2008 or equivelant, you should disable NTLM logins and only allow NTLM2 logins. On Windows Server 2008, there is no way to get the ip address of NTLM logins. Use secpol -> local policies -> security options -> network security restrict ntlm incoming ntlm traffic -> deny all accounts.
-- To run as a Windows service run "sc create IPBAN type= own start= auto binPath= c:\path\to\service\IPBanWindows.exe DisplayName= IPBAN". The service needs file system, event viewer and firewall access, so please run as SYSTEM to ensure permissions.
-- To run as a console app, simply run IPBanWindows.EXE and watch console output.
+- To run as a Windows service run "sc create IPBAN type= own start= auto binPath= c:\path\to\service\IPBan.exe DisplayName= IPBAN". The service needs file system, event viewer and firewall access, so please run as SYSTEM to ensure permissions.
+- To run as a console app, simply run IPBan.exe and watch console output.
 - If you want to run and debug code in Visual Studio, make sure to run Visual Studio as administrator. Visual Studio 2017 or newer is required. Community edition is free.
 
 **Linux**
 
 - IPBan is currently supported on ubuntu 16.X - 18.X. For other Linux or MAC, you may need to adjust some of the instructions and add config file entries for the appropriate log files to parse.
 - SSH into your server as root. If using another admin account name, substitute all root user instances with your account name.
-- Install .net core runtime 2.1. See https://www.microsoft.com/net/download/linux-package-manager/ubuntu18-04/runtime-current.
 - Install dependencies:
 ```
 sudo apt-get install iptables
@@ -33,7 +32,7 @@ sudo apt-get install vsftpd
 sudo apt-get update
 ```
 - mkdir /root/IPBan
-- Extract the IPBanLinux.zip folder and use ftp to copy files to /root/IPBan
+- Extract the IPBan.zip file (inside is IPBanLinux.zip) folder and use ftp to copy files to /root/IPBan
 - Create service:
 ```
 sudo nano /lib/systemd/system/IPBan.service
@@ -45,7 +44,7 @@ Description=IPBan Service
 After=network.target
 
 [Service]
-ExecStart=/usr/bin/dotnet /root/IPBan/IPBanLinux.dll
+ExecStart=/root/IPBan/IPBan
 Restart=on-failure
 
 [Install]

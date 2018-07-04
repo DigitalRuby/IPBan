@@ -28,13 +28,23 @@ namespace IPBan
     {
         private static IPBanService service;
         private static IPBanWindowsEventViewer eventViewer;
+        private static Type instanceType;
+
+        private static void CreateService()
+        {
+            if (service != null)
+            {
+                service.Dispose();
+            }
+            service = IPBanService.CreateService(instanceType);
+            service.Start();
+            eventViewer = new IPBanWindowsEventViewer(service);
+        }
 
         protected override void OnStart(string[] args)
         {
             base.OnStart(args);
-            service = IPBanService.CreateService();
-            service.Start();
-            eventViewer = new IPBanWindowsEventViewer(service);
+            CreateService();
         }
 
         protected override void OnStop()
@@ -84,7 +94,7 @@ namespace IPBan
             }
         }
 
-        public static int RunService(string[] args, Type instanceType = null)
+        public static int RunService(string[] args)
         {
             Directory.SetCurrentDirectory(AppDomain.CurrentDomain.BaseDirectory);
             System.ServiceProcess.ServiceBase[] ServicesToRun;
@@ -93,11 +103,9 @@ namespace IPBan
             return 0;
         }
 
-        public static int RunConsole(string[] args, Type instanceType = null)
+        public static int RunConsole(string[] args)
         {
-            service = IPBanService.CreateService(instanceType);
-            service.Start();
-            eventViewer = new IPBanWindowsEventViewer(service);
+            CreateService();
             Console.WriteLine("Press ENTER to quit");
             if (args.Contains("test", StringComparer.OrdinalIgnoreCase))
             {
@@ -108,20 +116,21 @@ namespace IPBan
             return 0;
         }
 
-        public static int ServiceEntryPoint(string[] args, Type instanceType = null)
+        public static int ServiceEntryPoint(string[] args)
         {
             if (Environment.UserInteractive)
             {
-                return IPBanWindowsApp.RunConsole(args, instanceType);
+                return IPBanWindowsApp.RunConsole(args);
             }
             else
             {
-                return IPBanWindowsApp.RunService(args, instanceType);
+                return IPBanWindowsApp.RunService(args);
             }
         }
 
-        public static int Main(string[] args)
+        public static int WindowsMain(string[] args, Type instanceType)
         {
+            IPBanWindowsApp.instanceType = instanceType;
             return ServiceEntryPoint(args);
         }
     }
