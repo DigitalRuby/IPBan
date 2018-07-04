@@ -22,11 +22,43 @@ From an admin command prompt: auditpol /set /category:"Logon/Logoff" /success:en
 
 **Linux**
 
-- Install .net core runtime 2.1.1 or newer. See https://www.microsoft.com/net/download/linux-package-manager/ubuntu18-04/runtime-current.
-- Install iptables: sudo apt-get install iptables.
-- Install ipset: sudo apt-get install ipset.
-- 
-Linux support is coming, but is not ready yet.
+- IPBan is currently supported on ubuntu 16.X - 18.X. For other Linux or MAC, you may need to adjust some of the instructions add config file entries for the appropriate log files to parse.
+- SSH into your server as root. If using another admin account name, substitute all root user instances with your account name.
+- Install .net core runtime 2.1. See https://www.microsoft.com/net/download/linux-package-manager/ubuntu18-04/runtime-current.
+- Install dependencies:
+```
+sudo apt-get install iptables
+sudo apt-get install ipset
+sudo apt-get install vsftpd
+sudo apt-get update
+```
+- mkdir /root/IPBan
+- Extract the IPBanLinux.zip folder and use ftp to copy files to /root/IPBan
+- Create service:
+```
+sudo nano /lib/systemd/system/IPBan.service
+```
+- Paste in these contents:
+```
+[Unit]
+Description=IPBan Service
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/dotnet /root/IPBan/IPBanLinux.dll
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+```
+- Save service file (Ctrl-X)
+- Start the service:
+```
+sudo systemctl daemon-reload 
+sudo systemctl enable IPBan
+sudo systemctl start IPBan
+systemctl status IPBan
+```
 
 **About Me**
 

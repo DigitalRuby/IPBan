@@ -16,6 +16,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IPBanLinux", "IPBanLinux\IP
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionItems", "SolutionItems", "{5E22239D-EE00-4F05-95C2-CEDDB94AA23D}"
 	ProjectSection(SolutionItems) = preProject
+		.gitignore = .gitignore
 		ISSUE_TEMPLATE.md = ISSUE_TEMPLATE.md
 		README.md = README.md
 	EndProjectSection
