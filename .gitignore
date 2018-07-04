@@ -5,4 +5,4 @@ packages/
 *.suo
 *.cachefile
 *.user
-*.pubxml
+PublishProfiles/
