@@ -16,13 +16,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="IPBanCore\**" />
-    <Compile Remove="packages\**" />
-    <Compile Remove="Properties\PublishProfiles\**" />
-    <EmbeddedResource Remove="IPBanCore\**" />
-    <EmbeddedResource Remove="packages\**" />
-    <EmbeddedResource Remove="Properties\PublishProfiles\**" />
-    <None Remove="IPBanCore\**" />
     <None Remove="packages\**" />
     <None Remove="Properties\PublishProfiles\**" />
   </ItemGroup>
