@@ -420,6 +420,7 @@ namespace IPBan
             UpdateBannedIPAddressesOnStart();
             LogInitialConfig();
             IPBanDelegate?.Start(this);
+            Log.Write(NLog.LogLevel.Warn, "IPBan service started and initialized. OSDescription: {0}", RuntimeInformation.OSDescription);
         }
 
         private void CheckForExpiredIP()
@@ -973,7 +974,6 @@ namespace IPBan
         /// </summary>
         public void Start()
         {
-            Log.Write(NLog.LogLevel.Warn, "Started IPBan service");
             Initialize();
             if (!ManualCycle)
             {
