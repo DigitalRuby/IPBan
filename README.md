@@ -22,7 +22,7 @@ From an admin command prompt: auditpol /set /category:"Logon/Logoff" /success:en
 
 **Linux**
 
-- IPBan is currently supported on ubuntu 16.X - 18.X. For other Linux or MAC, you may need to adjust some of the instructions add config file entries for the appropriate log files to parse.
+- IPBan is currently supported on ubuntu 16.X - 18.X. For other Linux or MAC, you may need to adjust some of the instructions and add config file entries for the appropriate log files to parse.
 - SSH into your server as root. If using another admin account name, substitute all root user instances with your account name.
 - Install .net core runtime 2.1. See https://www.microsoft.com/net/download/linux-package-manager/ubuntu18-04/runtime-current.
 - Install dependencies:
