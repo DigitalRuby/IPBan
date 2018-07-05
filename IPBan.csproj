@@ -13,6 +13,7 @@
     <OutputType>Exe</OutputType>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <StartupObject>IPBan.IPBanMain</StartupObject>
+    <RuntimeFrameworkVersion>2.1.1</RuntimeFrameworkVersion>
   </PropertyGroup>
 
   <ItemGroup>
