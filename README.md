@@ -18,7 +18,7 @@ From an admin command prompt: auditpol /set /category:"Logon/Logoff" /success:en
 - For Windows Server 2008 or equivelant, you should disable NTLM logins and only allow NTLM2 logins. On Windows Server 2008, there is no way to get the ip address of NTLM logins. Use secpol -> local policies -> security options -> network security restrict ntlm incoming ntlm traffic -> deny all accounts.
 - To run as a Windows service run "sc create IPBAN type= own start= auto binPath= c:\path\to\service\IPBan.exe DisplayName= IPBAN". The service needs file system, event viewer and firewall access, so please run as SYSTEM to ensure permissions.
 - To run as a console app, simply run IPBan.exe and watch console output.
-- If you want to run and debug code in Visual Studio, make sure to run Visual Studio as administrator. Visual Studio 2017 or newer is required. Community edition is free.
+- If you want to run and debug code in Visual Studio, make sure to run Visual Studio as administrator. Visual Studio 2017 or newer is required, along with .net core 2.1.1. Community edition is free.
 
 **Linux**
 
