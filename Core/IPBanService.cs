@@ -741,7 +741,7 @@ namespace IPBan
                     throw new ArgumentException("Unable to find a subclass of " + ipBanServiceRootType.FullName);
                 }
             }
-            else if (!instanceType.IsSubclassOf(ipBanServiceRootType))
+            else if (instanceType != ipBanServiceRootType && !instanceType.IsSubclassOf(ipBanServiceRootType))
             {
                 throw new ArgumentException("Instance type must be a subclass of " + ipBanServiceRootType.FullName);
             }
