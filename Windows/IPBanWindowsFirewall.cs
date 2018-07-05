@@ -128,22 +128,22 @@ namespace IPBan
             {
                 lock (policy)
                 {
-                    List<INetFwRule> toDelete = new List<INetFwRule>();
-                    foreach (INetFwRule rule in policy.Rules)
+                    for (int i = startIndex; ; i += maxIpAddressesPerRule)
                     {
-                        if (rule.Name.StartsWith(RulePrefix))
+                        string ruleName = RulePrefix + i.ToString(CultureInfo.InvariantCulture);
+                        try
                         {
-                            int index = int.Parse(rule.Name.Substring(RulePrefix.Length), CultureInfo.InvariantCulture);
-                            if (index >= startIndex)
+                            INetFwRule rule = policy.Rules.Item(ruleName);
+                            if (rule == null)
                             {
-                                rule.Enabled = false;
-                                toDelete.Add(rule);
+                                break;
                             }
+                            policy.Rules.Remove(ruleName);
                         }
-                    }
-                    foreach (INetFwRule rule in toDelete)
-                    {
-                        policy.Rules.Remove(rule.Name);
+                        catch
+                        {
+                            break;
+                        }
                     }
                 }
                 return true;
@@ -166,19 +166,32 @@ namespace IPBan
             {
                 lock (policy)
                 {
-                    foreach (INetFwRule rule in policy.Rules)
+                    for (int i = 0; ; i += maxIpAddressesPerRule)
                     {
-                        if (rule.Name.StartsWith(RulePrefix) && rule.RemoteAddresses.Contains(ipAddress))
+                        string ruleName = RulePrefix + i.ToString(CultureInfo.InvariantCulture);
+                        try
                         {
-                            return true;
+                            INetFwRule rule = policy.Rules.Item(ruleName);
+                            if (rule == null)
+                            {
+                                break;
+                            }
+                            if (rule.RemoteAddresses.Contains(ipAddress))
+                            {
+                                return true;
+                            }
+                        }
+                        catch
+                        {
+                            break;
                         }
                     }
                 }
+                return false;
             }
             catch (Exception ex)
             {
                 Log.Exception(ex);
-                return false;
             }
             return false;
         }
