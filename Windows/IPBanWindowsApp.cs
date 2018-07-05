@@ -118,13 +118,13 @@ namespace IPBan
 
         public static int ServiceEntryPoint(string[] args)
         {
-            if (Environment.UserInteractive)
+            if (Console.IsInputRedirected)
             {
-                return IPBanWindowsApp.RunConsole(args);
+                return IPBanWindowsApp.RunService(args);
             }
             else
             {
-                return IPBanWindowsApp.RunService(args);
+                return IPBanWindowsApp.RunConsole(args);
             }
         }
 
