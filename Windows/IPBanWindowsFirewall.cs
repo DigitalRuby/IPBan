@@ -5,9 +5,10 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Net;
+using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using System.Text;
-
+using System.Text.RegularExpressions;
 using NetFwTypeLib;
 
 #endregion Imports
@@ -215,6 +216,64 @@ namespace IPBan
                     }
                 }
                 i++;
+            }
+        }
+
+        public string GetLocalIPAddress()
+        {
+            try
+            {
+                IPHostEntry host = Dns.GetHostEntry(Dns.GetHostName());
+                foreach (IPAddress ip in host.AddressList)
+                {
+                    if (ip.AddressFamily == AddressFamily.InterNetwork)
+                    {
+                        return ip.MapToIPv4().ToString();
+                    }
+                }
+            }
+            catch
+            {
+
+            }
+            return null;
+        }
+
+        public void EnableLocalSubnetTrafficViaFirewall()
+        {
+            string ruleName = "IPBanPro_AllowLocalTraffic";
+            INetFwRule rule = null;
+            try
+            {
+                rule = policy.Rules.Item(ruleName);
+            }
+            catch
+            {
+                // ignore exception, assume does not exist
+            }
+            if (rule == null)
+            {
+                rule = Activator.CreateInstance(ruleType) as INetFwRule;
+                rule.Name = ruleName;
+                rule.Enabled = true;
+                rule.Action = NET_FW_ACTION_.NET_FW_ACTION_ALLOW;
+                rule.Description = "Automatically created by IPBanPro";
+                rule.Direction = NET_FW_RULE_DIRECTION_.NET_FW_RULE_DIR_IN;
+                rule.EdgeTraversal = false;
+                rule.LocalAddresses = "*";
+                rule.Profiles = int.MaxValue; // all
+                rule.Protocol = (int)NET_FW_IP_PROTOCOL_.NET_FW_IP_PROTOCOL_ANY;
+                policy.Rules.Add(rule);
+            }
+
+            string localIP = GetLocalIPAddress();
+            if (localIP != null)
+            {
+                Match m = Regex.Match(localIP, "\\.[0-9]+$");
+                if (m.Success)
+                {
+                    rule.RemoteAddresses = localIP.Substring(0, m.Index) + ".0/24";
+                }
             }
         }
     }

@@ -98,7 +98,7 @@ namespace IPBan
         /// Wait for ip addresses to be found, usually only needed for testing
         /// </summary>
         /// <param name="timeoutMilliseconds">Timeout in milliseconds</param>
-        public void WaitForIPAddresses(int timeoutMilliseconds = 100000)
+        public void WaitForIPAddresses(int timeoutMilliseconds = 1000)
         {
             ipEvent.WaitOne(timeoutMilliseconds);
         }
@@ -182,7 +182,13 @@ namespace IPBan
 
         private void PingFiles()
         {
-            pingTimer.Enabled = false;
+            try
+            {
+                pingTimer.Enabled = false;
+            }
+            catch
+            {
+            }
 
             // re-open files and read one byte to flush disk cache
             foreach (WatchedFile file in UpdateWatchedFiles())
@@ -191,13 +197,14 @@ namespace IPBan
                 {
                     // if file length has changed, ping the file
                     bool delete = false;
+                    long len;
 
                     // use file info for length compare to avoid doing a full file open
-                    if (new FileInfo(file.FileName).Length != file.LastLength)
+                    if ((len = new FileInfo(file.FileName).Length) != file.LastLength)
                     {
                         using (FileStream fs = new FileStream(file.FileName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
                         {
-                            file.LastLength = fs.Length;
+                            file.LastLength = len;
                             delete = PingFile(file, fs);
                         }
                     }
@@ -219,7 +226,13 @@ namespace IPBan
                 }
             }
 
-            pingTimer.Enabled = true;
+            try
+            {
+                pingTimer.Enabled = true;
+            }
+            catch
+            {
+            }
         }
 
         private bool PingFile(WatchedFile file, FileStream fs)
@@ -227,7 +240,7 @@ namespace IPBan
             int b;
             long lastNewlinePos = -1;
             byte[] bytes;
-            long end = fs.Length;
+            long end = Math.Min(file.LastLength, fs.Length);
             fs.Position = file.LastPosition;
 
             while (fs.Position < end)
