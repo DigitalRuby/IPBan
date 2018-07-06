@@ -391,6 +391,23 @@ namespace IPBan
             }
         }
 
+        private string GetOSName()
+        {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                return "Windows";
+            }
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            {
+                return "Linux";
+            }
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            {
+                return "OSX";
+            }
+            return "Other";
+        }
+
         private void Initialize()
         {
             IsRunning = true;
@@ -414,8 +431,8 @@ namespace IPBan
             {
                 throw new ArgumentException("Firewall is null, at least one type should implement IIPBanFirewall");
             }
-            OSName = (OSName ?? Environment.OSVersion.Platform.ToString());
-            OSVersion = (OSVersion ?? Environment.OSVersion.VersionString);
+            OSName = (OSName ?? GetOSName());
+            OSVersion = (OSVersion ?? RuntimeInformation.OSDescription);
             ReadAppSettings();
             Firewall.Initialize(string.IsNullOrWhiteSpace(Config.RuleName) ? "IPBan_BlockIPAddresses_" : Config.RuleName);
             UpdateBannedIPAddressesOnStart();
