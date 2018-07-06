@@ -12,8 +12,9 @@
     <ApplicationIcon />
     <OutputType>Exe</OutputType>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <StartupObject>IPBan.IPBanMain</StartupObject>
+    <StartupObject></StartupObject>
     <RuntimeFrameworkVersion>2.1.1</RuntimeFrameworkVersion>
+    <TrimUnusedDependencies>true</TrimUnusedDependencies>
   </PropertyGroup>
 
   <ItemGroup>
@@ -22,15 +23,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.Packaging.Tools.Trimming" Version="1.1.0-preview1-26619-01" />
     <PackageReference Include="Microsoft.Windows.Compatibility" Version="2.0.0" />
     <PackageReference Include="NLog" Version="4.5.6" />
     <PackageReference Include="System.Configuration.ConfigurationManager" Version="4.5.0" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Reference Include="Interop.NetFwTypeLib">
-      <HintPath>..\Interop.NetFwTypeLib.dll</HintPath>
-    </Reference>
   </ItemGroup>
 
 </Project>
