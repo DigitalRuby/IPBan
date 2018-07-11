@@ -132,6 +132,15 @@ namespace IPBan
         Task<LoginFailedResult> LoginAttemptFailed(string ip, string source, string userName);
 
         /// <summary>
+        /// Notify when a login attempt succeeds
+        /// </summary>
+        /// <param name="ip">Origin IP Address of the login attempt</param>
+        /// <param name="source">The source of the failed login</param>
+        /// <param name="userName">User name</param>
+        /// <returns>Task</returns>
+        Task LoginAttemptSucceeded(string ip, string source, string userName);
+
+        /// <summary>
         /// Enumerate external blacklist
         /// </summary>
         /// <returns>Blacklist</returns>
