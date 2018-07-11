@@ -280,9 +280,9 @@ namespace IPBan
                             {
                                 if (IPBanDelegate != null)
                                 {
-                                    IPBanDelegate.LoginAttemptFailed(ipAddress, userName, source).ConfigureAwait(false).GetAwaiter().GetResult();
+                                    IPBanDelegate.LoginAttemptFailed(ipAddress, source, userName).ConfigureAwait(false).GetAwaiter().GetResult();
                                 }
-                                AddBannedIPAddress(ipAddress, userName, source, bannedIpAddresses, now, configBlacklisted, ipBlockCount.Count, string.Empty);
+                                AddBannedIPAddress(ipAddress, source, userName, bannedIpAddresses, now, configBlacklisted, ipBlockCount.Count, string.Empty);
                             }
                         }
                         else if (ipBlockCount.Count > Config.FailedLoginAttemptsBeforeBan)
@@ -293,7 +293,7 @@ namespace IPBan
                         {
                             if (IPBanDelegate != null)
                             {
-                                LoginFailedResult result = IPBanDelegate.LoginAttemptFailed(ipAddress, userName, source).ConfigureAwait(false).GetAwaiter().GetResult();
+                                LoginFailedResult result = IPBanDelegate.LoginAttemptFailed(ipAddress, source, userName).ConfigureAwait(false).GetAwaiter().GetResult();
                                 if (result.HasFlag(LoginFailedResult.Blacklisted))
                                 {
                                     AddBannedIPAddress(ipAddress, userName, source, bannedIpAddresses, now, configBlacklisted, ipBlockCount.Count, "Delegate banned ip: " + result);
@@ -317,7 +317,7 @@ namespace IPBan
             }
         }
 
-        private void AddBannedIPAddress(string ipAddress, string userName, string source, List<KeyValuePair<string, string>> bannedIpAddresses,
+        private void AddBannedIPAddress(string ipAddress, string source, string userName, List<KeyValuePair<string, string>> bannedIpAddresses,
             DateTime dateTime, bool configBlacklisted, int counter, string extraInfo)
         {
             bannedIpAddresses.Add(new KeyValuePair<string, string>(ipAddress, userName));

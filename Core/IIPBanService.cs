@@ -126,10 +126,10 @@ namespace IPBan
         /// Notify when a login attempt fails
         /// </summary>
         /// <param name="ip">Origin IP Address of the login attempt</param>
-        /// <param name="userName">User name</param>
         /// <param name="source">The source of the failed login</param>
+        /// <param name="userName">User name</param>
         /// <returns>Task of bool. True if the ip sould be immediately banned, false otherwise</returns>
-        Task<LoginFailedResult> LoginAttemptFailed(string ip, string userName, string source);
+        Task<LoginFailedResult> LoginAttemptFailed(string ip, string source, string userName);
 
         /// <summary>
         /// Enumerate external blacklist
