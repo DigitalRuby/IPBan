@@ -825,7 +825,7 @@ namespace IPBan
                 FailedLoginsToProcess existing = pendingFailedLogins.FirstOrDefault(p => p.IPAddress == ipAddress && (p.UserName == null || p.UserName == userName));
                 if (existing == null)
                 {
-                    existing = new FailedLoginsToProcess { IPAddress = ipAddress, UserName = userName, DateTime = CurrentDateTime, Counter = 1 };
+                    existing = new FailedLoginsToProcess { IPAddress = ipAddress, Source = source, UserName = userName, DateTime = CurrentDateTime, Counter = 1 };
                     pendingFailedLogins.Add(existing);
                 }
                 else
