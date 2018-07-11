@@ -58,7 +58,7 @@ namespace IPBan
             }
 
             Log.Write(NLog.LogLevel.Info, "*LOGIN FAIL* IP: {0}, USER: {1}", ipAddress, userName);
-            service.AddPendingIPAddressAndUserName(ipAddress, userName);
+            service.AddFailedLogin(ipAddress, userName);
         }
 
         private void ExtractIPAddressAndUserNameFromXml(XmlDocument doc, out string ipAddress, out string userName)
@@ -267,7 +267,7 @@ namespace IPBan
             {
                 ProcessEventViewerXml(xml);
             }
-            service.ProcessPendingIPAddresses();
+            service.ProcessPendingFailedLogins();
 
             for (int i = 0; i < 255 && service.IsRunning; i++)
             {

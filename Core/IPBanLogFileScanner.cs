@@ -51,12 +51,14 @@ namespace IPBan
         /// Create a log file scanner
         /// </summary>
         /// <param name="service">IPBan service</param>
+        /// <param name="source">The source, i.e. SSH or SMTP, etc.</param>
         /// <param name="pathAndMask">File path and mask (i.e. /var/log/auth*.log)</param>
         /// <param name="regex">Regex to parse file lines to pull out ipaddress and username</param>
         /// <param name="maxFileSize">Max size of file before it is deleted or 0 for unlimited</param>
         /// <param name="pingIntervalMilliseconds"></param>
-        public IPBanLogFileScanner(IIPBanService service, string pathAndMask, string regex, long maxFileSize = 0, int pingIntervalMilliseconds = 10000)
+        public IPBanLogFileScanner(IIPBanService service, string source, string pathAndMask, string regex, long maxFileSize = 0, int pingIntervalMilliseconds = 10000)
         {
+            Source = source;
             this.service = service;
             this.maxFileSize = maxFileSize;
             service.AddUpdater(this);
@@ -103,7 +105,19 @@ namespace IPBan
             ipEvent.WaitOne(timeoutMilliseconds);
         }
 
+        /// <summary>
+        /// The source of the failed login
+        /// </summary>
+        public string Source { get; set; }
+
+        /// <summary>
+        /// The path and mask to scan
+        /// </summary>
         public string PathAndMask { get; private set; }
+
+        /// <summary>
+        /// The regex to find the ip address and user name from the file
+        /// </summary>
         public Regex Regex { get; private set; }
 
         private void PingTimerElapsed(object sender, System.Timers.ElapsedEventArgs e)
@@ -277,7 +291,7 @@ namespace IPBan
                     if (foundMatch)
                     {
                         Log.Write(NLog.LogLevel.Debug, "Found match, ip: {0}, user: {1}", ipAddress, userName);
-                        service.AddPendingIPAddressAndUserName(ipAddress, userName);
+                        service.AddFailedLogin(ipAddress, Source, userName);
                         foundOne = true;
                     }
                     else

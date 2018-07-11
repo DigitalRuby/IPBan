@@ -16,16 +16,17 @@ namespace IPBan
         void UpdateConfig(string xml);
 
         /// <summary>
-        /// Add an ip address and user name to be checked later
+        /// Add an ip address to be checked for banning later
         /// </summary>
         /// <param name="ipAddress">IP Address, required</param>
+        /// <param name="source">Source, required</param>
         /// <param name="userName">User Name, optional</param>
-        void AddPendingIPAddressAndUserName(string ipAddress, string userName = null);
+        void AddFailedLogin(string ipAddress, string source, string userName = null);
 
         /// <summary>
         /// Manually process all pending ip addresses immediately
         /// </summary>
-        void ProcessPendingIPAddresses();
+        void ProcessPendingFailedLogins();
 
         /// <summary>
         /// Add an updater for each cycle
@@ -126,8 +127,9 @@ namespace IPBan
         /// </summary>
         /// <param name="ip">Origin IP Address of the login attempt</param>
         /// <param name="userName">User name</param>
+        /// <param name="source">The source of the failed login</param>
         /// <returns>Task of bool. True if the ip sould be immediately banned, false otherwise</returns>
-        Task<LoginFailedResult> LoginAttemptFailed(string ip, string userName);
+        Task<LoginFailedResult> LoginAttemptFailed(string ip, string userName, string source);
 
         /// <summary>
         /// Enumerate external blacklist

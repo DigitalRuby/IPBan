@@ -77,7 +77,7 @@ namespace IPBan
 
             if (regexValue.Length != 0)
             {
-                regex = new Regex(regexValue, RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.CultureInvariant | RegexOptions.Compiled);
+                regex = new Regex(regexValue, RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.CultureInvariant);
             }
         }
 
@@ -141,7 +141,6 @@ namespace IPBan
                                     expression.Regex = "\\s*?" + expression.Regex + "\\s*?";
                                 }
                             }
-                            expression.RegexObject = new Regex(expression.Regex, RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.CultureInvariant | RegexOptions.Compiled);
                         }
                     }
                 }

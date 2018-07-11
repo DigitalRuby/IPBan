@@ -30,12 +30,13 @@ namespace IPBan
             Config
         }
 
-        private class PendingIPAddress
+        private class FailedLoginsToProcess
         {
             public string IPAddress { get; set; }
             public string UserName { get; set; }
             public DateTime DateTime { get; set; }
             public int Counter { get; set; }
+            public string Source { get; set; }
         }
 
         private readonly string configFilePath;
@@ -56,7 +57,7 @@ namespace IPBan
 
         // the windows event viewer calls back on a background thread, this allows pushing the ip addresses to a list that will be accessed
         //  in the main loop
-        private readonly List<PendingIPAddress> pendingIPAddresses = new List<PendingIPAddress>();
+        private readonly List<FailedLoginsToProcess> pendingFailedLogins = new List<FailedLoginsToProcess>();
 
         private void RunTask(Action action)
         {
@@ -109,7 +110,7 @@ namespace IPBan
                             Regex.IsMatch(RuntimeInformation.OSDescription, newFile.PlatformRegex.Trim(), RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))
                         {
                             // log files use a timer internally and do not need to be updated regularly
-                            logFilesToParse.Add(new IPBanLogFileScanner(this, pathAndMask, newFile.Regex, newFile.MaxFileSize, newFile.PingInterval));
+                            logFilesToParse.Add(new IPBanLogFileScanner(this, newFile.Source, pathAndMask, newFile.Regex, newFile.MaxFileSize, newFile.PingInterval));
                         }
                         else
                         {
@@ -223,24 +224,25 @@ namespace IPBan
             Log.Write(NLog.LogLevel.Info, "Blacklist: {0}, Blacklist Regex: {1}", Config.BlackList, Config.BlackListRegex);
         }
 
-        private void ProcessPendingIPAddressesInternal(IEnumerable<PendingIPAddress> ipAddresses)
+        private void ProcessPendingFailedLogins(IEnumerable<FailedLoginsToProcess> ipAddresses)
         {
             List<KeyValuePair<string, string>> bannedIpAddresses = new List<KeyValuePair<string, string>>();
-            foreach (PendingIPAddress p in ipAddresses)
+            foreach (FailedLoginsToProcess p in ipAddresses)
             {
                 try
                 {
                     string ipAddress = p.IPAddress;
                     string userName = p.UserName;
-                    int counter = p.Counter;
-                    DateTime now = p.DateTime;
-
                     if (Config.IsWhiteListed(ipAddress))
                     {
                         Log.Write(NLog.LogLevel.Warn, "Ignoring whitelisted ip address {0}, user name: {1}", ipAddress, userName);
                     }
                     else
                     {
+                        string source = p.Source;
+                        int counter = p.Counter;
+                        DateTime now = p.DateTime;
+
                         // check for the target user name for additional blacklisting checks                    
                         IPBlockCount ipBlockCount;
                         bool configBlacklisted = Config.IsBlackListed(ipAddress) || Config.IsBlackListed(userName);
@@ -278,9 +280,9 @@ namespace IPBan
                             {
                                 if (IPBanDelegate != null)
                                 {
-                                    IPBanDelegate.LoginAttemptFailed(ipAddress, userName).ConfigureAwait(false).GetAwaiter().GetResult();
+                                    IPBanDelegate.LoginAttemptFailed(ipAddress, userName, source).ConfigureAwait(false).GetAwaiter().GetResult();
                                 }
-                                AddPendingBannedIPAddress(ipAddress, userName, bannedIpAddresses, now, configBlacklisted, ipBlockCount.Count, string.Empty);
+                                AddBannedIPAddress(ipAddress, userName, source, bannedIpAddresses, now, configBlacklisted, ipBlockCount.Count, string.Empty);
                             }
                         }
                         else if (ipBlockCount.Count > Config.FailedLoginAttemptsBeforeBan)
@@ -291,10 +293,10 @@ namespace IPBan
                         {
                             if (IPBanDelegate != null)
                             {
-                                LoginFailedResult result = IPBanDelegate.LoginAttemptFailed(ipAddress, userName).ConfigureAwait(false).GetAwaiter().GetResult();
+                                LoginFailedResult result = IPBanDelegate.LoginAttemptFailed(ipAddress, userName, source).ConfigureAwait(false).GetAwaiter().GetResult();
                                 if (result.HasFlag(LoginFailedResult.Blacklisted))
                                 {
-                                    AddPendingBannedIPAddress(ipAddress, userName, bannedIpAddresses, now, configBlacklisted, ipBlockCount.Count, "Delegate banned ip: " + result);
+                                    AddBannedIPAddress(ipAddress, userName, source, bannedIpAddresses, now, configBlacklisted, ipBlockCount.Count, "Delegate banned ip: " + result);
                                     continue;
                                 }
                             }
@@ -315,7 +317,7 @@ namespace IPBan
             }
         }
 
-        private void AddPendingBannedIPAddress(string ipAddress, string userName, List<KeyValuePair<string, string>> bannedIpAddresses,
+        private void AddBannedIPAddress(string ipAddress, string userName, string source, List<KeyValuePair<string, string>> bannedIpAddresses,
             DateTime dateTime, bool configBlacklisted, int counter, string extraInfo)
         {
             bannedIpAddresses.Add(new KeyValuePair<string, string>(ipAddress, userName));
@@ -774,7 +776,7 @@ namespace IPBan
             SetNetworkInfo();
             UpdateDelegate();
             CheckForExpiredIP();
-            ProcessPendingIPAddresses();
+            ProcessPendingFailedLogins();
             UpdateFirewall();
             List<IUpdater> updatersTemp;
 
@@ -794,36 +796,37 @@ namespace IPBan
         /// <summary>
         /// Manually process all pending ip addresses. This is usually called automatically.
         /// </summary>
-        public void ProcessPendingIPAddresses()
+        public void ProcessPendingFailedLogins()
         {
             // make a quick copy of pending ip addresses so we don't lock it for very long
-            List<PendingIPAddress> ipAddresses;
-            lock (pendingIPAddresses)
+            List<FailedLoginsToProcess> ipAddresses;
+            lock (pendingFailedLogins)
             {
-                if (pendingIPAddresses.Count == 0)
+                if (pendingFailedLogins.Count == 0)
                 {
                     return;
                 }
-                ipAddresses = new List<PendingIPAddress>(pendingIPAddresses);
-                pendingIPAddresses.Clear();
+                ipAddresses = new List<FailedLoginsToProcess>(pendingFailedLogins);
+                pendingFailedLogins.Clear();
             }
-            ProcessPendingIPAddressesInternal(ipAddresses);
+            ProcessPendingFailedLogins(ipAddresses);
         }
 
         /// <summary>
         /// Add an ip address to be checked for banning later
         /// </summary>
         /// <param name="ipAddress">IP Address, required</param>
+        /// <param name="source">Source, required</param>
         /// <param name="userName">User Name, optional</param>
-        public void AddPendingIPAddressAndUserName(string ipAddress, string userName = null)
+        public void AddFailedLogin(string ipAddress, string source, string userName = null)
         {
-            lock (pendingIPAddresses)
+            lock (pendingFailedLogins)
             {
-                PendingIPAddress existing = pendingIPAddresses.FirstOrDefault(p => p.IPAddress == ipAddress && (p.UserName == null || p.UserName == userName));
+                FailedLoginsToProcess existing = pendingFailedLogins.FirstOrDefault(p => p.IPAddress == ipAddress && (p.UserName == null || p.UserName == userName));
                 if (existing == null)
                 {
-                    existing = new PendingIPAddress { IPAddress = ipAddress, UserName = userName, DateTime = CurrentDateTime, Counter = 1 };
-                    pendingIPAddresses.Add(existing);
+                    existing = new FailedLoginsToProcess { IPAddress = ipAddress, UserName = userName, DateTime = CurrentDateTime, Counter = 1 };
+                    pendingFailedLogins.Add(existing);
                 }
                 else
                 {

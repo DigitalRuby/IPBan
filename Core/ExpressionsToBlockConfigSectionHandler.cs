@@ -15,19 +15,51 @@ using System.Xml.Serialization;
 
 namespace IPBan
 {
+    /// <summary>
+    /// Info about a single Windows event viewer lookup
+    /// </summary>
     public class ExpressionToBlock
     {
-        public Regex RegexObject { get; set; }
+        /// <summary>
+        /// The regex, created from Regex property
+        /// </summary>
+        [XmlIgnore]
+        public Regex RegexObject { get; private set; }
+
+        /// <summary>
+        /// Xpath to find
+        /// </summary>
         public string XPath { get; set; }
-        public string Regex { get; set; }
+
+        private string regex;
+        /// <summary>
+        /// Regex string
+        /// </summary>
+        public string Regex
+        {
+            get { return regex; }
+            set
+            {
+                RegexObject = new Regex((regex = value), RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.CultureInvariant);
+            }
+        }
     }
 
+    /// <summary>
+    /// A single Windows event viewer group
+    /// </summary>
     public class ExpressionsToBlockGroup
     {
         /// <summary>
+        /// The event viewer source
+        /// </summary>
+        public string Source { get; set; }
+
+        /// <summary>
         /// Keywords as a ULONG
         /// </summary>
-        public ulong KeywordsULONG { get; set; }
+        [XmlIgnore]
+        public ulong KeywordsULONG { get; private set; }
 
         /// <summary>
         /// Minimum Windows major version - see https://msdn.microsoft.com/en-us/library/windows/desktop/ms724832%28v=vs.85%29.aspx?f=255&MSPPError=-2147217396
@@ -70,6 +102,9 @@ namespace IPBan
         public ExpressionToBlock[] Expressions { get; set; }
     }
 
+    /// <summary>
+    /// List of Windows event viewer groups
+    /// </summary>
     public class ExpressionsToBlock
     {
         [XmlArray("Groups")]

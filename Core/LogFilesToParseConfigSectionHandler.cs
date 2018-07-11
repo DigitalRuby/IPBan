@@ -10,6 +10,7 @@ namespace IPBan
 {
     public class LogFileToParse
     {
+        public string Source { get; set; }
         public string PathAndMask { get; set; }
         public string Regex { get; set; }
         public string PlatformRegex { get; set; }
