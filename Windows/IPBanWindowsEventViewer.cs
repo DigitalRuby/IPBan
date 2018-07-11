@@ -44,24 +44,35 @@ namespace IPBan
             }
         }
 
-        private void ProcessIPAddressAndUserName(string ipAddress, string userName, XmlDocument doc)
+        private void AddFailedLoginForEventViewerXml(string ipAddress, string source, string userName, XmlDocument doc)
         {
             if (string.IsNullOrWhiteSpace(ipAddress))
             {
                 return;
             }
 
-            XmlNode userNameNode = doc.SelectSingleNode("//Data[@Name='TargetUserName']");
-            if (userNameNode != null)
+            if (string.IsNullOrWhiteSpace(source))
             {
-                userName = (string.IsNullOrWhiteSpace(userName) ? userNameNode.InnerText.Trim() : userName);
+                XmlNode sourceNode = doc.SelectSingleNode("//Source");
+                if (sourceNode != null)
+                {
+                    source = sourceNode.InnerText.Trim();
+                }
+            }
+            if (string.IsNullOrWhiteSpace(userName))
+            {
+                XmlNode userNameNode = doc.SelectSingleNode("//Data[@Name='TargetUserName']");
+                if (userNameNode != null)
+                {
+                    userName = userNameNode.InnerText.Trim();
+                }
             }
 
             Log.Write(NLog.LogLevel.Info, "*LOGIN FAIL* IP: {0}, USER: {1}", ipAddress, userName);
-            service.AddFailedLogin(ipAddress, userName);
+            service.AddFailedLogin(ipAddress, source, userName);
         }
 
-        private void ExtractIPAddressAndUserNameFromXml(XmlDocument doc, out string ipAddress, out string userName)
+        private void ExtractEventViewerXml(XmlDocument doc, out string ipAddress, out string source, out string userName)
         {
             XmlNode keywordsNode = doc.SelectSingleNode("//Keywords");
             string keywordsText = keywordsNode.InnerText;
@@ -70,7 +81,7 @@ namespace IPBan
                 keywordsText = keywordsText.Substring(2);
             }
             ulong keywordsULONG = ulong.Parse(keywordsText, NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture);
-            ipAddress = userName = null;
+            ipAddress = source = userName = null;
 
             if (keywordsNode != null)
             {
@@ -121,9 +132,10 @@ namespace IPBan
 
                     if (ipAddress != null)
                     {
+                        source = group.Source;
                         break;
                     }
-                    ipAddress = userName = null; // set null for the next node attempt
+                    ipAddress = source = userName = null; // set null for the next node attempt
                 }
             }
         }
@@ -227,8 +239,8 @@ namespace IPBan
             Log.Write(NLog.LogLevel.Info, "Processing xml: {0}", xml);
 
             XmlDocument doc = ParseXml(xml);
-            ExtractIPAddressAndUserNameFromXml(doc, out string ipAddress, out string userName);
-            ProcessIPAddressAndUserName(ipAddress, userName, doc);
+            ExtractEventViewerXml(doc, out string ipAddress, out string source, out string userName);
+            AddFailedLoginForEventViewerXml(ipAddress, source, userName, doc);
         }
 
         /// <summary>

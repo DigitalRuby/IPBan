@@ -815,10 +815,10 @@ namespace IPBan
         /// <summary>
         /// Add an ip address to be checked for banning later
         /// </summary>
-        /// <param name="ipAddress">IP Address, required</param>
-        /// <param name="source">Source, required</param>
-        /// <param name="userName">User Name, optional</param>
-        public void AddFailedLogin(string ipAddress, string source, string userName = null)
+        /// <param name="ipAddress">IP Address</param>
+        /// <param name="source">Source</param>
+        /// <param name="userName">User Name</param>
+        public void AddFailedLogin(string ipAddress, string source, string userName)
         {
             lock (pendingFailedLogins)
             {
