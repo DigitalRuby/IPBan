@@ -30,12 +30,12 @@ namespace IPBan
             Config
         }
 
-        private class FailedLoginsToProcess
+        private class FailedLogin
         {
             public string IPAddress { get; set; }
             public string UserName { get; set; }
             public DateTime DateTime { get; set; }
-            public int Counter { get; set; }
+            public int Count { get; set; }
             public string Source { get; set; }
         }
 
@@ -57,7 +57,7 @@ namespace IPBan
 
         // the windows event viewer calls back on a background thread, this allows pushing the ip addresses to a list that will be accessed
         //  in the main loop
-        private readonly List<FailedLoginsToProcess> pendingFailedLogins = new List<FailedLoginsToProcess>();
+        private readonly List<FailedLogin> pendingFailedLogins = new List<FailedLogin>();
 
         private void RunTask(Action action)
         {
@@ -224,10 +224,10 @@ namespace IPBan
             Log.Write(NLog.LogLevel.Info, "Blacklist: {0}, Blacklist Regex: {1}", Config.BlackList, Config.BlackListRegex);
         }
 
-        private void ProcessPendingFailedLogins(IEnumerable<FailedLoginsToProcess> ipAddresses)
+        private void ProcessPendingFailedLogins(IEnumerable<FailedLogin> ipAddresses)
         {
             List<KeyValuePair<string, string>> bannedIpAddresses = new List<KeyValuePair<string, string>>();
-            foreach (FailedLoginsToProcess p in ipAddresses)
+            foreach (FailedLogin p in ipAddresses)
             {
                 try
                 {
@@ -240,7 +240,7 @@ namespace IPBan
                     else
                     {
                         string source = p.Source;
-                        int counter = p.Counter;
+                        int counter = p.Count;
                         DateTime now = p.DateTime;
 
                         // check for the target user name for additional blacklisting checks                    
@@ -799,14 +799,14 @@ namespace IPBan
         public void ProcessPendingFailedLogins()
         {
             // make a quick copy of pending ip addresses so we don't lock it for very long
-            List<FailedLoginsToProcess> ipAddresses;
+            List<FailedLogin> ipAddresses;
             lock (pendingFailedLogins)
             {
                 if (pendingFailedLogins.Count == 0)
                 {
                     return;
                 }
-                ipAddresses = new List<FailedLoginsToProcess>(pendingFailedLogins);
+                ipAddresses = new List<FailedLogin>(pendingFailedLogins);
                 pendingFailedLogins.Clear();
             }
             ProcessPendingFailedLogins(ipAddresses);
@@ -822,10 +822,10 @@ namespace IPBan
         {
             lock (pendingFailedLogins)
             {
-                FailedLoginsToProcess existing = pendingFailedLogins.FirstOrDefault(p => p.IPAddress == ipAddress && (p.UserName == null || p.UserName == userName));
+                FailedLogin existing = pendingFailedLogins.FirstOrDefault(p => p.IPAddress == ipAddress && (p.UserName == null || p.UserName == userName));
                 if (existing == null)
                 {
-                    existing = new FailedLoginsToProcess { IPAddress = ipAddress, Source = source, UserName = userName, DateTime = CurrentDateTime, Counter = 1 };
+                    existing = new FailedLogin { IPAddress = ipAddress, Source = source, UserName = userName, DateTime = CurrentDateTime, Count = 1 };
                     pendingFailedLogins.Add(existing);
                 }
                 else
@@ -838,7 +838,7 @@ namespace IPBan
                     if ((CurrentDateTime - existing.DateTime) >= Config.MinimumTimeBetweenFailedLoginAttempts)
                     {
                         existing.DateTime = CurrentDateTime;
-                        existing.Counter++;
+                        existing.Count++;
                     }
                 }
             }

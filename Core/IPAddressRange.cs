@@ -528,7 +528,6 @@ namespace IPBan
         public int GetPrefixLength()
         {
             byte[] byteBegin = Begin.GetAddressBytes();
-            byte[] byteEnd = End.GetAddressBytes();
 
             // Handle single IP
             if (Begin.Equals(End))
