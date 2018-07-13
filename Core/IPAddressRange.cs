@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Text.RegularExpressions;
 using System.ComponentModel;
+using System.Globalization;
 
 #if NET45
 using System.Runtime.Serialization;
@@ -61,7 +62,7 @@ namespace IPBan
     [Serializable]
     public class IPAddressRange : ISerializable, IEnumerable<IPAddress>, IReadOnlyDictionary<string, string>
 #else
-    public class IPAddressRange : IEnumerable<IPAddress>, IReadOnlyDictionary<string, string>
+    public class IPAddressRange : IEnumerable<IPAddress>, IReadOnlyDictionary<string, string>, IComparable<IPAddressRange>
 #endif
     {
         public static class Bits
@@ -556,7 +557,7 @@ namespace IPBan
         /// </summary>
         public string ToCidrString()
         {
-            return string.Format("{0}/{1}", Begin, GetPrefixLength());
+            return Begin.ToString() + "/" + GetPrefixLength().ToString(CultureInfo.InvariantCulture);
         }
 
         #region JSON.NET Support by implement IReadOnlyDictionary<string, string>
@@ -604,6 +605,28 @@ namespace IPBan
         bool IReadOnlyDictionary<string, string>.TryGetValue(string key, out string value) => TryGetValue(key, out value);
 
         IEnumerator<KeyValuePair<string, string>> IEnumerable<KeyValuePair<string, string>>.GetEnumerator() => GetDictionaryItems().GetEnumerator();
+
+        public int CompareTo(IPAddressRange other)
+        {
+            for (int beginEndIndex = 0; beginEndIndex < 2; beginEndIndex++)
+            {
+                byte[] bytes1 = (beginEndIndex == 0 ? Begin : End).GetAddressBytes();
+                byte[] bytes2 = (beginEndIndex == 0 ? other.Begin : other.End).GetAddressBytes();
+                if (bytes1.Length != bytes2.Length)
+                {
+                    return (bytes1.Length > bytes2.Length ? 1 : -1);
+                }
+                for (int byteIndex = bytes1.Length - 1; byteIndex >= 0; byteIndex--)
+                {
+                    int result = bytes1[byteIndex].CompareTo(bytes2[byteIndex]);
+                    if (result != 0)
+                    {
+                        return result;
+                    }
+                }
+            }
+            return 0; // equal
+        }
 
         #endregion
     }

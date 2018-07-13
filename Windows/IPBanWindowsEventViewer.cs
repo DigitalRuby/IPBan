@@ -187,8 +187,9 @@ namespace IPBan
             string queryString = "<QueryList>";
             foreach (ExpressionsToBlockGroup group in service.Config.WindowsEventViewerExpressionsToBlock.Groups)
             {
-                if (Environment.OSVersion.Version.Major > group.MinimumWindowsMajorVersion ||
-                    (Environment.OSVersion.Version.Major >= group.MinimumWindowsMajorVersion && Environment.OSVersion.Version.Minor >= group.MinimumWindowsMinorVersion))
+                if (EventLog.Exists(group.Path) &&
+                    (Environment.OSVersion.Version.Major > group.MinimumWindowsMajorVersion ||
+                    (Environment.OSVersion.Version.Major >= group.MinimumWindowsMajorVersion && Environment.OSVersion.Version.Minor >= group.MinimumWindowsMinorVersion)))
                 {
                     ulong keywordsDecimal = ulong.Parse(group.Keywords.Substring(2), NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture);
                     queryString += "<Query Id='" + (++id).ToString() + "' Path='" + group.Path + "'><Select Path='" + group.Path + "'>*[System[(band(Keywords," + keywordsDecimal.ToString() + "))]]</Select></Query>";
