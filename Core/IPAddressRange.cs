@@ -616,7 +616,7 @@ namespace IPBan
                 {
                     return (bytes1.Length > bytes2.Length ? 1 : -1);
                 }
-                for (int byteIndex = bytes1.Length - 1; byteIndex >= 0; byteIndex--)
+                for (int byteIndex = 0; byteIndex < bytes1.Length; byteIndex++)
                 {
                     int result = bytes1[byteIndex].CompareTo(bytes2[byteIndex]);
                     if (result != 0)
