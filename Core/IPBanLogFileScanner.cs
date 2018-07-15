@@ -251,20 +251,28 @@ namespace IPBan
 
         private bool PingFile(WatchedFile file, FileStream fs)
         {
+            const int maxCountBeforeNewline = 1024;
             int b;
             long lastNewlinePos = -1;
             byte[] bytes;
             long end = Math.Min(file.LastLength, fs.Length);
+            int countBeforeNewline = 0;
             fs.Position = file.LastPosition;
 
-            while (fs.Position < end)
+            while (fs.Position < end && countBeforeNewline++ != maxCountBeforeNewline)
             {
                 // read until last \n is found
                 b = fs.ReadByte();
                 if (b == '\n')
                 {
                     lastNewlinePos = fs.Position - 1;
+                    countBeforeNewline = 0;
                 }
+            }
+
+            if (countBeforeNewline == maxCountBeforeNewline)
+            {
+                throw new InvalidOperationException("Log file " + this.fileMask + " may not be a plain text new line delimited file");
             }
 
             if (lastNewlinePos > -1)
