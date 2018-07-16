@@ -13,6 +13,7 @@ namespace IPBan
     public class IPBanLinuxFirewall : IIPBanFirewall
     {
         private HashSet<string> bannedIPAddresses;
+        private HashSet<string> allowedIPAddresses;
 
         private int RunProcess(string program, bool requireExitCode, string commandLine, params object[] args)
         {
@@ -28,11 +29,11 @@ namespace IPBan
             return p.ExitCode;
         }
 
-        private void LoadIPAddressesFromIPSet(string ruleName, string tempFile)
+        private void LoadIPAddresses(string ruleName, string tempFile, ref HashSet<string> ipAddresses)
         {
-            if (bannedIPAddresses == null)
+            if (ipAddresses == null)
             {
-                bannedIPAddresses = new HashSet<string>();
+                ipAddresses = new HashSet<string>();
                 RunProcess("ipset", false, "create {0} iphash maxelem 1048576", ruleName);
                 // iptables -A INPUT -m set --set myset src -j DROP
                 int result = RunProcess("iptables", false, "-C INPUT -m set --match-set \"{0}\" src -j DROP", ruleName);
@@ -46,7 +47,7 @@ namespace IPBan
                     string[] pieces = line.Split(' ');
                     if (pieces.Length > 2 && IPAddress.TryParse(pieces[2], out _))
                     {
-                        bannedIPAddresses.Add(pieces[2]);
+                        ipAddresses.Add(pieces[2]);
                     }
                 }
             }
@@ -63,29 +64,13 @@ namespace IPBan
             }
         }
 
-        public string RulePrefix { get; private set; } = "IPBan_BlockIPAddresses_";
-
-        /// <summary>
-        /// Initialize
-        /// </summary>
-        /// <param name="rulePrefix">Rule prefix</param>
-        public void Initialize(string rulePrefix)
-        {
-            RulePrefix = rulePrefix;
-            string ruleName = RulePrefix + "0";
-            string tempFile = Path.GetTempFileName();
-            LoadIPAddressesFromIPSet(ruleName, tempFile);
-            DeleteFile(tempFile);
-        }
-
-        public bool CreateRules(IReadOnlyList<string> ipAddresses)
+        private bool UpdateRule(IReadOnlyList<string> ipAddresses, ref HashSet<string> existingIPAddresses)
         {
             // ensure an ip set is created
-            string ruleName = RulePrefix + "0";
+            string ruleName = RulePrefix + (existingIPAddresses == bannedIPAddresses ? "0" : "AllowIPAddresses");
             string tempFile = Path.GetTempFileName();
-            HashSet<string> newBannedIPAddresses = new HashSet<string>(ipAddresses);
-            LoadIPAddressesFromIPSet(ruleName, tempFile);
-            IEnumerable<string> removedIPAddresses = bannedIPAddresses.Except(newBannedIPAddresses);
+            HashSet<string> newIPAddresses = new HashSet<string>(ipAddresses);
+            IEnumerable<string> removedIPAddresses = existingIPAddresses.Except(newIPAddresses);
 
             // add and remove the appropriate ip addresses
             StringBuilder script = new StringBuilder();
@@ -94,23 +79,38 @@ namespace IPBan
             {
                 script.AppendLine("del " + ruleName + " " + ipAddress + " -exist");
             }
-            foreach (string ipAddress in newBannedIPAddresses)
+            foreach (string ipAddress in newIPAddresses)
             {
                 script.AppendLine("add " + ruleName + " " + ipAddress + " -exist");
             }
 
             // write out the file and run the command to restore the set
-            bannedIPAddresses = newBannedIPAddresses;
+            existingIPAddresses = newIPAddresses;
             File.WriteAllText(tempFile, script.ToString());
             bool result = (RunProcess("ipset", true, "restore < \"{0}\"", tempFile) == 0);
             DeleteFile(tempFile);
             return result;
         }
 
-        public bool DeleteRules(int startIndex = 0)
+        public string RulePrefix { get; private set; } = "IPBan_BlockIPAddresses_";
+
+        public void Initialize(string rulePrefix)
         {
-            // never delete rules, this is all handled in CreateRules
-            return false;
+            RulePrefix = rulePrefix;
+            string tempFile = Path.GetTempFileName();
+            LoadIPAddresses(RulePrefix + "0", tempFile, ref bannedIPAddresses);
+            LoadIPAddresses(RulePrefix + "AllowIPAddresses", tempFile, ref allowedIPAddresses);
+            DeleteFile(tempFile);
+        }
+
+        public bool BlockIPAddresses(IReadOnlyList<string> ipAddresses)
+        {
+            return UpdateRule(ipAddresses, ref bannedIPAddresses);
+        }
+
+        public bool AllowIPAddresses(IReadOnlyList<string> ipAddresses)
+        {
+            return UpdateRule(ipAddresses, ref allowedIPAddresses);
         }
 
         public IEnumerable<string> EnumerateBannedIPAddresses()
@@ -118,9 +118,19 @@ namespace IPBan
             return bannedIPAddresses;
         }
 
+        public IEnumerable<string> EnumerateAllowedIPAddresses()
+        {
+            return allowedIPAddresses;
+        }
+
         public bool IsIPAddressBlocked(string ipAddress)
         {
             return bannedIPAddresses.Contains(ipAddress);
+        }
+
+        public bool IsIPAddressAllowed(string ipAddress)
+        {
+            return allowedIPAddresses.Contains(ipAddress);
         }
     }
 }

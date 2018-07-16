@@ -5,12 +5,30 @@ using System.Text;
 
 namespace IPBan
 {
+    /// <summary>
+    /// Supported ipban operating systems
+    /// </summary>
     public enum IPBanOperatingSystem
     {
+        /// <summary>
+        /// Windows
+        /// </summary>
         Windows,
-        Linux
+
+        /// <summary>
+        /// Linux
+        /// </summary>
+        Linux,
+
+        /// <summary>
+        /// Macintosh / OS 10
+        /// </summary>
+        OSX
     }
 
+    /// <summary>
+    /// Mark a class as requiring a specific operating system
+    /// </summary>
     [AttributeUsage(AttributeTargets.Class)]
     public class RequiredOperatingSystemAttribute : Attribute
     {

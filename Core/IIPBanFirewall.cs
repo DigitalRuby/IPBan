@@ -13,29 +13,43 @@ namespace IPBan
 
         /// <summary>
         /// Creates new rules to block all the ip addresses, and removes any left-over rules. Exceptions are logged.
+        /// Pass an empty list to remove all blocked ip addresses.
         /// </summary>
         /// <param name="ipAddresses">IP Addresses</param>
         /// <returns>True if success, false if error</returns>
-        bool CreateRules(IReadOnlyList<string> ipAddresses);
+        bool BlockIPAddresses(IReadOnlyList<string> ipAddresses);
 
         /// <summary>
-        /// Delete all rules with a name beginning with the rule prefix. Exceptions are logged.
+        /// Creates new rules to allow all the ip addresses on all ports, and removes any left-over rules. Exceptions are logged.
         /// </summary>
-        /// <param name="startIndex">The start index to begin deleting rules at. The index is appended to the rule prefix. Not all platforms use the index.</param>
+        /// <param name="ipAddresses">IP Addresses</param>
         /// <returns>True if success, false if error</returns>
-        bool DeleteRules(int startIndex = 0);
+        bool AllowIPAddresses(IReadOnlyList<string> ipAddresses);
 
         /// <summary>
         /// Checks if an ip address is blocked in the firewall
         /// </summary>
-        /// <param name="ipAddress">IPAddress</param>
+        /// <param name="ipAddress">IP Address</param>
         /// <returns>True if the ip address is blocked in the firewall, false otherwise</returns>
         bool IsIPAddressBlocked(string ipAddress);
+
+        /// <summary>
+        /// Checks if an ip address is explicitly allowed in the firewall
+        /// </summary>
+        /// <param name="ipAddress">IP Address</param>
+        /// <returns>True if explicitly allowed, false if not</returns>
+        bool IsIPAddressAllowed(string ipAddress);
 
         /// <summary>
         /// Gets all banned ip addresses
         /// </summary>
         /// <returns>IEnumerable of all ip addresses</returns>
         IEnumerable<string> EnumerateBannedIPAddresses();
+
+        /// <summary>
+        /// Gets all explicitly allowed ip addresses
+        /// </summary>
+        /// <returns>IEnumerable of all ip addresses</returns>
+        IEnumerable<string> EnumerateAllowedIPAddresses();
     }
 }

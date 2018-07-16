@@ -41,19 +41,21 @@ namespace IPBan
 
         private readonly string configFilePath;
         private Task cycleTask;
-        private bool needsFirewallUpdate;
+        private bool firewallNeedsBlockedIPAddressesUpdate;
         private bool gotStartUrl;
 
         // note that an ip that has a block count may not yet be in the ipAddressesAndBanDate dictionary
         // for locking, always use ipAddressesAndBanDate
         private readonly Dictionary<string, DateTime> ipAddressesAndBanDate = new Dictionary<string, DateTime>();
         private readonly Dictionary<string, IPBlockCount> ipAddressesAndBlockCounts = new Dictionary<string, IPBlockCount>();
-
-        private DateTime lastConfigFileDateTime = DateTime.MinValue;
         private readonly ManualResetEvent cycleEvent = new ManualResetEvent(false);
         private readonly object configLock = new object();
         private readonly HashSet<IUpdater> updaters = new HashSet<IUpdater>();
         private readonly HashSet<IPBanLogFileScanner> logFilesToParse = new HashSet<IPBanLogFileScanner>();
+
+        private HashSet<string> ipAddressesToAllowInFirewall = new HashSet<string>();
+        private bool ipAddressesToAllowInFirewallNeedsUpdate;
+        private DateTime lastConfigFileDateTime = DateTime.MinValue;
 
         // the windows event viewer calls back on a background thread, this allows pushing the ip addresses to a list that will be accessed
         //  in the main loop
@@ -69,20 +71,6 @@ namespace IPBan
             {
                 action.Invoke();
             }
-        }
-
-        private void UpdateFirewallWithBannedIPAddresses()
-        {
-            string[] ipAddresses;
-
-            // quickly copy out data in a lock
-            lock (ipAddressesAndBanDate)
-            {
-                ipAddresses = ipAddressesAndBanDate.Keys.ToArray();
-            }
-
-            // re-create rules for all banned ip addresses
-            Firewall.CreateRules(ipAddresses);
         }
 
         private void UpdateLogFiles(IPBanConfig newConfig)
@@ -325,7 +313,7 @@ namespace IPBan
             {
                 ipAddressesAndBanDate[ipAddress] = dateTime;
             }
-            needsFirewallUpdate = true;
+            firewallNeedsBlockedIPAddressesUpdate = true;
             Log.Write(NLog.LogLevel.Warn, "Banning ip address: {0}, user name: {1}, config black listed: {2}, count: {3}, extra info: {4}",
                 ipAddress, userName, configBlacklisted, counter, extraInfo);
         }
@@ -379,7 +367,7 @@ namespace IPBan
             if (Config.ClearBannedIPAddressesOnRestart)
             {
                 Log.Write(NLog.LogLevel.Warn, "Clearing all banned ip addresses on start because ClearBannedIPAddressesOnRestart is set");
-                Firewall.DeleteRules();
+                Firewall.BlockIPAddresses(new string[0]);
             }
             else
             {
@@ -474,7 +462,7 @@ namespace IPBan
                         // take the ip out of the lists and mark the file as changed so that the ban script re-runs without this ip
                         ipAddressesAndBanDate.Remove(keyValue.Key);
                         ipAddressesAndBlockCounts.Remove(keyValue.Key);
-                        needsFirewallUpdate = true;
+                        firewallNeedsBlockedIPAddressesUpdate = true;
                     }
                 }
             }
@@ -504,7 +492,6 @@ namespace IPBan
                     if (block.Count() == 0)
                     {
                         TimeSpan elapsed = (now - keyValue.Value.LastFailedLogin);
-
                         if (elapsed > Config.ExpireTime)
                         {
                             Log.Write(NLog.LogLevel.Info, "Forgetting ip address {0}", keyValue.Key);
@@ -520,7 +507,7 @@ namespace IPBan
                 {
                     foreach (string ip in ipAddressesToForget)
                     {
-                        // no need to mark the file as changed because this ip was not banned, it only had some number of failed login attempts
+                        // no need to mark the firewall as changed because this ip was not banned, it only had some number of failed login attempts
                         ipAddressesAndBlockCounts.Remove(ip);
                     }
                 }
@@ -580,7 +567,6 @@ namespace IPBan
                 // we don't do the delegate update in a background thread because if it changes state, we need that done on the main loop thread
                 if (IPBanDelegate.Update())
                 {
-                    bool changed = false;
                     DateTime now = CurrentDateTime;
 
                     // sync up the blacklist and whitelist from the delegate
@@ -594,17 +580,20 @@ namespace IPBan
                             {
                                 ipAddressesAndBanDate[ip] = now;
                                 ipAddressesAndBlockCounts.Remove(ip);
-                                changed = true;
+                                firewallNeedsBlockedIPAddressesUpdate = true;
                             }
                         }
-                        foreach (string ip in IPBanDelegate.EnumerateWhiteList())
+
+                        // get white list and remove any blacklisted ip that is now whitelisted
+                        HashSet<string> allowIPAddresses = new HashSet<string>(IPBanDelegate.EnumerateWhiteList());
+                        foreach (string ip in allowIPAddresses)
                         {
                             // un-ban all whitelisted ip addresses
                             if (ipAddressesAndBanDate.ContainsKey(ip))
                             {
                                 ipAddressesAndBanDate.Remove(ip);
                                 ipAddressesAndBlockCounts.Remove(ip);
-                                changed = true;
+                                firewallNeedsBlockedIPAddressesUpdate = true; // next loop will update the firewall
                             }
                             // check for subnet matches, unban any ip from the local subnet
                             else if (ip.Contains('/'))
@@ -615,13 +604,20 @@ namespace IPBan
                                     {
                                         ipAddressesAndBanDate.Remove(ip);
                                         ipAddressesAndBlockCounts.Remove(ip);
-                                        changed = true;
+                                        firewallNeedsBlockedIPAddressesUpdate = true; // next loop will update the firewall
                                     }
                                 }
                             }
                         }
+
+                        if (!ipAddressesToAllowInFirewall.SetEquals(allowIPAddresses))
+                        {
+                            // ensure that white list is explicitly allowed in the firewall
+                            // in case of mass blocking of ip ranges, certain ip can still be allowed
+                            ipAddressesToAllowInFirewall = allowIPAddresses;
+                            ipAddressesToAllowInFirewallNeedsUpdate = true;
+                        }
                     }
-                    needsFirewallUpdate = changed;
                 }
             }
             catch (Exception ex)
@@ -696,13 +692,55 @@ namespace IPBan
             }
         }
 
+        private void UpdateUpdaters()
+        {
+            List<IUpdater> updatersTemp;
+
+            // lock only long enough to copy the updaters
+            lock (updaters)
+            {
+                updatersTemp = new List<IUpdater>(updaters);
+            }
+
+            // loop through temp list so we don't lock for very long
+            foreach (IUpdater updater in updatersTemp)
+            {
+                updater.Update();
+            }
+        }
+
         private void UpdateFirewall()
         {
-            // update firewall if needed
-            if (needsFirewallUpdate)
+            if (firewallNeedsBlockedIPAddressesUpdate)
             {
-                needsFirewallUpdate = false;
-                UpdateFirewallWithBannedIPAddresses();
+                firewallNeedsBlockedIPAddressesUpdate = false;
+
+                string[] ipAddresses;
+
+                // quickly copy out data in a lock
+                lock (ipAddressesAndBanDate)
+                {
+                    ipAddresses = ipAddressesAndBanDate.Keys.ToArray();
+                }
+
+                // re-create rules for all banned ip addresses
+                Firewall.BlockIPAddresses(ipAddresses);
+            }
+
+            // update firewall if needed
+            if (ipAddressesToAllowInFirewallNeedsUpdate)
+            {
+                ipAddressesToAllowInFirewallNeedsUpdate = false;
+
+                // quickly copy out data in a lock
+                string[] ipAddresses;
+                lock (ipAddressesAndBanDate)
+                {
+                    ipAddresses = ipAddressesToAllowInFirewall.ToArray();
+                }
+
+                // re-create rules for all allowed ip addresses
+                Firewall.AllowIPAddresses(ipAddresses);
             }
         }
 
@@ -777,20 +815,8 @@ namespace IPBan
             UpdateDelegate();
             CheckForExpiredIP();
             ProcessPendingFailedLogins();
+            UpdateUpdaters();
             UpdateFirewall();
-            List<IUpdater> updatersTemp;
-
-            // lock only long enough to copy the updaters
-            lock (updaters)
-            {
-                updatersTemp = new List<IUpdater>(updaters);
-            }
-
-            // loop through temp list so we don't lock for very long
-            foreach (IUpdater updater in updatersTemp)
-            {
-                updater.Update();
-            }
         }
 
         /// <summary>

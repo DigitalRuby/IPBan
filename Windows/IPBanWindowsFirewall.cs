@@ -48,12 +48,10 @@ namespace IPBan
             return b.ToString();
         }
 
-        private void CreateRule(IReadOnlyList<string> ipAddresses, int index, int count)
+        private INetFwRule GetOrCreateRule(string ruleName, string remoteIPAddresses, NET_FW_ACTION_ action)
         {
             lock (policy)
             {
-                string ruleName = RulePrefix + index.ToString(CultureInfo.InvariantCulture);
-                string remoteIpString = CreateRuleStringForIPAddresses(ipAddresses, index, count);
                 INetFwRule rule = null;
                 try
                 {
@@ -68,7 +66,7 @@ namespace IPBan
                     rule = Activator.CreateInstance(ruleType) as INetFwRule;
                     rule.Name = ruleName;
                     rule.Enabled = true;
-                    rule.Action = NET_FW_ACTION_.NET_FW_ACTION_BLOCK;
+                    rule.Action = action;
                     rule.Description = "Automatically created by IPBan";
                     rule.Direction = NET_FW_RULE_DIRECTION_.NET_FW_RULE_DIR_IN;
                     rule.EdgeTraversal = false;
@@ -78,34 +76,33 @@ namespace IPBan
                     rule.Protocol = (int)NET_FW_IP_PROTOCOL_.NET_FW_IP_PROTOCOL_ANY;
                     policy.Rules.Add(rule);
                 }
-                rule.RemoteAddresses = remoteIpString;
+                rule.RemoteAddresses = remoteIPAddresses;
+                return rule;
             }
+        }
+
+        private void CreateBlockRule(IReadOnlyList<string> ipAddresses, int index, int count)
+        {
+            string ruleName = RulePrefix + index.ToString(CultureInfo.InvariantCulture);
+            string remoteIpString = CreateRuleStringForIPAddresses(ipAddresses, index, count);
+            GetOrCreateRule(ruleName, remoteIpString, NET_FW_ACTION_.NET_FW_ACTION_BLOCK);
         }
 
         public string RulePrefix { get; private set; } = "IPBan_BlockIPAddresses_";
 
-        /// <summary>
-        /// Initialize
-        /// </summary>
-        /// <param name="rulePrefix">Rule prefix</param>
         public void Initialize(string rulePrefix)
         {
             RulePrefix = rulePrefix;
         }
 
-        /// <summary>
-        /// Creates new rules to block all the ip addresses, and removes any left-over rules. Exceptions are logged.
-        /// </summary>
-        /// <param name="ipAddresses">IP Addresses</param>
-        /// <returns>True if success, false if error</returns>
-        public bool CreateRules(IReadOnlyList<string> ipAddresses)
+        public bool BlockIPAddresses(IReadOnlyList<string> ipAddresses)
         {
             try
             {
                 int i;
                 for (i = 0; i < ipAddresses.Count; i += maxIpAddressesPerRule)
                 {
-                    CreateRule(ipAddresses, i, maxIpAddressesPerRule);
+                    CreateBlockRule(ipAddresses, i, maxIpAddressesPerRule);
                 }
                 DeleteRules(i);
                 return true;
@@ -117,11 +114,13 @@ namespace IPBan
             }
         }
 
-        /// <summary>
-        /// Delete all rules with a name beginning with the rule prefix. Exceptions are logged.
-        /// </summary>
-        /// <param name="startIndex">The start index to begin deleting rules at. The index is appended to the rule prefix.</param>
-        /// <returns>True if success, false if error</returns>
+        public bool AllowIPAddresses(IReadOnlyList<string> ipAddresses)
+        {
+            string remoteIP = CreateRuleStringForIPAddresses(ipAddresses, 0, ipAddresses.Count);
+            INetFwRule rule = GetOrCreateRule(RulePrefix + "AllowIPAddresses", remoteIP, NET_FW_ACTION_.NET_FW_ACTION_ALLOW);
+            return (rule != null);
+        }
+
         public bool DeleteRules(int startIndex = 0)
         {
             try
@@ -155,11 +154,6 @@ namespace IPBan
             }
         }
 
-        /// <summary>
-        /// Checks if an ip address is blocked in the firewall
-        /// </summary>
-        /// <param name="ipAddress">IPAddress</param>
-        /// <returns>True if the ip address is blocked in the firewall, false otherwise</returns>
         public bool IsIPAddressBlocked(string ipAddress)
         {
             try
@@ -174,20 +168,21 @@ namespace IPBan
                             INetFwRule rule = policy.Rules.Item(ruleName);
                             if (rule == null)
                             {
+                                // no more rules to check
                                 break;
                             }
-                            if (rule.RemoteAddresses.Contains(ipAddress))
+                            else if (rule.RemoteAddresses.Contains(ipAddress))
                             {
                                 return true;
                             }
                         }
                         catch
                         {
+                            // no more rules to check
                             break;
                         }
                     }
                 }
-                return false;
             }
             catch (Exception ex)
             {
@@ -196,10 +191,31 @@ namespace IPBan
             return false;
         }
 
-        /// <summary>
-        /// Loop through all banned ip addresses
-        /// </summary>
-        /// <returns>IEnumerable of all ip addresses</returns>
+        public bool IsIPAddressAllowed(string ipAddress)
+        {
+            try
+            {
+                lock (policy)
+                {
+                    string ruleName = RulePrefix + "AllowIPAddresses";
+                    try
+                    {
+                        INetFwRule rule = policy.Rules.Item(ruleName);
+                        return (rule != null && rule.RemoteAddresses.Contains(ipAddress));
+                    }
+                    catch
+                    {
+                        // OK, rule does not exist
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Exception(ex);
+            }
+            return false;
+        }
+
         public IEnumerable<string> EnumerateBannedIPAddresses()
         {
             int i = 0;
@@ -232,6 +248,34 @@ namespace IPBan
             }
         }
 
+        public IEnumerable<string> EnumerateAllowedIPAddresses()
+        {
+            string ruleName = RulePrefix + "AllowIPAddresses";
+            INetFwRule rule;
+            try
+            {
+                rule = policy.Rules.Item(ruleName);
+            }
+            catch
+            {
+                // OK, rule does not exist
+                yield break;
+            }
+
+            foreach (string ip in rule.RemoteAddresses.Split(','))
+            {
+                int pos = ip.IndexOf('/');
+                if (pos < 0)
+                {
+                    yield return ip;
+                }
+                else
+                {
+                    yield return ip.Substring(0, pos);
+                }
+            }
+        }
+
         public string GetLocalIPAddress()
         {
             try
@@ -254,38 +298,15 @@ namespace IPBan
 
         public void EnableLocalSubnetTrafficViaFirewall()
         {
-            string ruleName = "IPBanPro_AllowLocalTraffic";
-            INetFwRule rule = null;
-            try
-            {
-                rule = policy.Rules.Item(ruleName);
-            }
-            catch
-            {
-                // ignore exception, assume does not exist
-            }
-            if (rule == null)
-            {
-                rule = Activator.CreateInstance(ruleType) as INetFwRule;
-                rule.Name = ruleName;
-                rule.Enabled = true;
-                rule.Action = NET_FW_ACTION_.NET_FW_ACTION_ALLOW;
-                rule.Description = "Automatically created by IPBanPro";
-                rule.Direction = NET_FW_RULE_DIRECTION_.NET_FW_RULE_DIR_IN;
-                rule.EdgeTraversal = false;
-                rule.LocalAddresses = "*";
-                rule.Profiles = int.MaxValue; // all
-                rule.Protocol = (int)NET_FW_IP_PROTOCOL_.NET_FW_IP_PROTOCOL_ANY;
-                policy.Rules.Add(rule);
-            }
-
+            string ruleName = RulePrefix + "AllowLocalTraffic";
             string localIP = GetLocalIPAddress();
             if (localIP != null)
             {
                 Match m = Regex.Match(localIP, "\\.[0-9]+$");
                 if (m.Success)
                 {
-                    rule.RemoteAddresses = localIP.Substring(0, m.Index) + ".0/24";
+                    string remoteIPAddresses = localIP.Substring(0, m.Index) + ".0/24";
+                    INetFwRule rule = GetOrCreateRule(ruleName, remoteIPAddresses, NET_FW_ACTION_.NET_FW_ACTION_ALLOW);
                 }
             }
         }
