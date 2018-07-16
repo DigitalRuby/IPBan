@@ -584,8 +584,22 @@ namespace IPBan
                             }
                         }
 
-                        // get white list and remove any blacklisted ip that is now whitelisted
+                        // get white list from delegate and remove any blacklisted ip that is now whitelisted
                         HashSet<string> allowIPAddresses = new HashSet<string>(IPBanDelegate.EnumerateWhiteList());
+
+                        // add whitelist ip from config
+                        if (!string.IsNullOrWhiteSpace(Config.WhiteList))
+                        {
+                            foreach (string ip in Config.WhiteList.Split(','))
+                            {
+                                string trimmedIP = ip.Trim();
+                                if (trimmedIP.Length != 0)
+                                {
+                                    allowIPAddresses.Add(trimmedIP);
+                                }
+                            }
+                        }
+
                         foreach (string ip in allowIPAddresses)
                         {
                             // un-ban all whitelisted ip addresses
