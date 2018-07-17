@@ -4,7 +4,7 @@ IPBan Service
 
 **Instructions**
 
-- Official download link is http://www.digitalruby.com/download/ipban-software-download/
+- Official download link is http://www.digitalruby.com/download/ipban-software-download/ or https://github.com/jjxtra/IPBan/releases.
 - Make sure to look at the config file for configuration options.
 - Here is a regex that matches any 32 bit ip address, useful if you need to add a new block option in the config file: 
 (?<ipaddress>^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$)
