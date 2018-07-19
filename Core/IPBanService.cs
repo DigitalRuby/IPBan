@@ -927,22 +927,25 @@ namespace IPBan
                         break;
                     }
 
-                    // Check Host by name
-                    Log.Write(NLog.LogLevel.Info, "Parsing as IP failed, checking dns '{0}'", tempIPAddress);
-                    try
+                    if (tempIPAddress != Environment.MachineName)
                     {
-                        IPHostEntry entry = Dns.GetHostEntry(tempIPAddress);
-                        if (entry != null && entry.AddressList != null && entry.AddressList.Length > 0)
+                        // Check Host by name
+                        Log.Write(NLog.LogLevel.Info, "Parsing as IP failed, checking dns '{0}'", tempIPAddress);
+                        try
                         {
-                            ipAddress = entry.AddressList.FirstOrDefault().ToString();
-                            Log.Write(NLog.LogLevel.Info, "Dns result '{0}' = '{1}'", tempIPAddress, ipAddress);
-                            foundMatch = true;
-                            break;
+                            IPHostEntry entry = Dns.GetHostEntry(tempIPAddress);
+                            if (entry != null && entry.AddressList != null && entry.AddressList.Length > 0)
+                            {
+                                ipAddress = entry.AddressList.FirstOrDefault().ToString();
+                                Log.Write(NLog.LogLevel.Info, "Dns result '{0}' = '{1}'", tempIPAddress, ipAddress);
+                                foundMatch = true;
+                                break;
+                            }
                         }
-                    }
-                    catch
-                    {
-                        Log.Write(NLog.LogLevel.Info, "Parsing as dns failed '{0}'", tempIPAddress);
+                        catch
+                        {
+                            Log.Write(NLog.LogLevel.Info, "Parsing as dns failed '{0}'", tempIPAddress);
+                        }
                     }
                 }
                 else
