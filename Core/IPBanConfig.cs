@@ -34,6 +34,8 @@ namespace IPBan
         private readonly HashSet<string> blackList = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         private readonly HashSet<string> whiteList = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         private readonly bool clearBannedIPAddressesOnRestart;
+        private readonly HashSet<string> userNameWhitelist = new HashSet<string>(StringComparer.Ordinal);
+        private readonly int userNameWhitelistMaximumEditDistance = 2;
         private readonly string processToRunOnBan;
         private readonly string getUrlUpdate;
         private readonly string getUrlStart;
@@ -157,6 +159,15 @@ namespace IPBan
             }
             logFiles = ((LogFilesToParse)System.Configuration.ConfigurationManager.GetSection("LogFilesToParse"))?.LogFiles ?? new LogFileToParse[0];
             processToRunOnBan = ConfigurationManager.AppSettings["ProcessToRunOnBan"];
+            foreach (string userName in ConfigurationManager.AppSettings["UserNameWhitelist"].Split(','))
+            {
+                string userNameTrimmed = userName.Normalize().Trim();
+                if (userNameTrimmed.Length > 0)
+                {
+                    userNameWhitelist.Add(userNameTrimmed);
+                }
+            }
+            userNameWhitelistMaximumEditDistance = int.Parse(ConfigurationManager.AppSettings["UserNameWhiteListMinimumEditDistance"]);
             getUrlUpdate = ConfigurationManager.AppSettings["GetUrlUpdate"];
             getUrlStart = ConfigurationManager.AppSettings["GetUrlStart"];
             getUrlStop = ConfigurationManager.AppSettings["GetUrlStop"];
@@ -187,6 +198,47 @@ namespace IPBan
             return !string.IsNullOrWhiteSpace(ipAddressDnsOrUserName) &&
                 ((blackList.Contains(ipAddressDnsOrUserName) ||
                 (blackListRegex != null && blackListRegex.IsMatch(ipAddressDnsOrUserName))));
+        }
+
+        /// <summary>
+        /// Check if a user name is whitelisted
+        /// </summary>
+        /// <param name="userName">User name</param>
+        /// <returns>True if whitelisted, false otherwise</returns>
+        public bool IsUserNameWhitelisted(string userName)
+        {
+            if (string.IsNullOrEmpty(userName))
+            {
+                return false;
+            }
+            userName = userName.ToUpperInvariant().Normalize();
+            return userNameWhitelist.Contains(userName);
+        }
+
+        /// <summary>
+        /// Checks if a user name is within the maximum edit distance for the user name whitelist.
+        /// If userName is null or empty this method returns true.
+        /// If the user name whitelist is empty, this method returns true.
+        /// </summary>
+        /// <param name="userName">User name</param>
+        /// <returns>True if within max edit distance of any whitelisted user name, false otherwise.</returns>
+        public bool IsUserNameWithinMaximumEditDistanceOfUserNameWhitelist(string userName)
+        {
+            if (userNameWhitelist.Count == 0 || string.IsNullOrEmpty(userName))
+            {
+                return true;
+            }
+
+            userName = userName.ToUpperInvariant().Normalize();
+            foreach (string userNameInWhitelist in userNameWhitelist)
+            {
+                int distance = LevenshteinUnsafe.Distance(userName, userNameInWhitelist);
+                if (distance <= userNameWhitelistMaximumEditDistance)
+                {
+                    return true;
+                }
+            }
+            return false;
         }
 
         /// <summary>
@@ -263,6 +315,11 @@ namespace IPBan
         /// White list regex
         /// </summary>
         public string WhiteListRegex { get { return (whiteListRegex == null ? string.Empty : whiteListRegex.ToString()); } }
+
+        /// <summary>
+        /// White list user names. Any user name found not in the list is banned.
+        /// </summary>
+        public IReadOnlyCollection<string> UserNameWhitelist { get { return userNameWhitelist; } }
 
         /// <summary>
         /// Process to run on ban - replace ###IPADDRESS### with the banned ip address

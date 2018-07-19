@@ -225,6 +225,10 @@ namespace IPBan
                     {
                         Log.Write(NLog.LogLevel.Warn, "Ignoring whitelisted ip address {0}, user name: {1}", ipAddress, userName);
                     }
+                    else if (Config.IsUserNameWhitelisted(userName))
+                    {
+                        Log.Write(NLog.LogLevel.Warn, "Ignoring whitelisted user name: {1}, ip address {0}", ipAddress, userName);
+                    }
                     else
                     {
                         string source = p.Source;
@@ -233,7 +237,7 @@ namespace IPBan
 
                         // check for the target user name for additional blacklisting checks                    
                         IPBlockCount ipBlockCount;
-                        bool configBlacklisted = Config.IsBlackListed(ipAddress) || Config.IsBlackListed(userName);
+                        bool configBlacklisted = Config.IsBlackListed(ipAddress) || Config.IsBlackListed(userName) || !Config.IsUserNameWithinMaximumEditDistanceOfUserNameWhitelist(userName);
 
                         lock (ipAddressesAndBanDate)
                         {
