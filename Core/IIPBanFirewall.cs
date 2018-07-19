@@ -52,4 +52,29 @@ namespace IPBan
         /// <returns>IEnumerable of all ip addresses</returns>
         IEnumerable<string> EnumerateAllowedIPAddresses();
     }
+
+    public static class IPBanFirewallUtility
+    {
+        /// <summary>
+        /// Get a firewall ip address, clean and normalize
+        /// </summary>
+        /// <param name="ipAddress">IP Address</param>
+        /// <param name="normalizedIP">The normalized ip ready to go in the firewall or null if invalid ip address</param>
+        /// <returns>True if ip address can go in the firewall, false otherwise</returns>
+        public static bool TryGetFirewallIPAddress(this string ipAddress, out string normalizedIP)
+        {
+            normalizedIP = ipAddress?.Trim();
+            if (string.IsNullOrWhiteSpace(normalizedIP) ||
+                normalizedIP == "0.0.0.0" ||
+                normalizedIP == "127.0.0.1" ||
+                normalizedIP == "::0" ||
+                normalizedIP == "::1" ||
+                !IPAddressRange.TryParse(normalizedIP, out _))
+            {
+                normalizedIP = null;
+                return false;
+            }
+            return true;
+        }
+    }
 }

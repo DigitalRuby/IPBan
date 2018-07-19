@@ -52,18 +52,24 @@ namespace IPBan
             {
                 foreach (string v in setValue.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
                 {
-                    set.Add(v.Trim());
-
-                    if (v != "0.0.0.0" && v != "::0" && IPAddress.TryParse(v, out IPAddress tmp))
+                    string ipOrDns = v.Trim();
+                    if (ipOrDns != "0.0.0.0" && ipOrDns != "::0" && ipOrDns != "127.0.0.1" && ipOrDns != "::1")
                     {
                         try
                         {
-                            IPAddress[] addresses = Dns.GetHostEntry(v).AddressList;
-                            if (addresses != null)
+                            if (IPAddressRange.TryParse(ipOrDns, out _))
                             {
-                                foreach (IPAddress adr in addresses)
+                                set.Add(ipOrDns);
+                            }
+                            else
+                            {
+                                IPAddress[] addresses = Dns.GetHostEntry(ipOrDns).AddressList;
+                                if (addresses != null)
                                 {
-                                    set.Add(adr.ToString());
+                                    foreach (IPAddress adr in addresses)
+                                    {
+                                        set.Add(adr.ToString());
+                                    }
                                 }
                             }
                         }

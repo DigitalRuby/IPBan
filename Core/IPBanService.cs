@@ -593,7 +593,7 @@ namespace IPBan
                             foreach (string ip in Config.WhiteList.Split(','))
                             {
                                 string trimmedIP = ip.Trim();
-                                if (trimmedIP.Length != 0)
+                                if (IPAddressRange.TryParse(trimmedIP, out _))
                                 {
                                     allowIPAddresses.Add(trimmedIP);
                                 }

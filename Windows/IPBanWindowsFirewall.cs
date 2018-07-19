@@ -38,11 +38,18 @@ namespace IPBan
             count = Math.Min(count, ipAddresses.Count - index);
 
             StringBuilder b = new StringBuilder(count * 16);
-            b.Append(ipAddresses[index]);
-            for (int i = index + 1; i < index + count; i++)
+            foreach (string ipAddress in ipAddresses)
             {
-                b.Append(',');
-                b.Append(ipAddresses[i]);
+                if (ipAddress.TryGetFirewallIPAddress(out string firewallIPAddress))
+                {
+                    b.Append(firewallIPAddress);
+                    b.Append(',');
+                }
+            }
+            if (b.Length != 0)
+            {
+                // remove ending comma
+                b.Length--;
             }
 
             return b.ToString();
@@ -76,7 +83,18 @@ namespace IPBan
                     rule.Protocol = (int)NET_FW_IP_PROTOCOL_.NET_FW_IP_PROTOCOL_ANY;
                     policy.Rules.Add(rule);
                 }
-                rule.RemoteAddresses = remoteIPAddresses;
+                try
+                {
+                    rule.RemoteAddresses = remoteIPAddresses;
+                }
+                catch
+                {
+                    if (action == NET_FW_ACTION_.NET_FW_ACTION_ALLOW)
+                    {
+                        // if fail and we are allowing, remove the rule, else this rule will allow all ip
+                        policy.Rules.Remove(ruleName);
+                    }
+                }
                 return rule;
             }
         }

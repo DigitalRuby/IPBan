@@ -29,17 +29,17 @@ namespace IPBan
             return p.ExitCode;
         }
 
-        private void LoadIPAddresses(string ruleName, string tempFile, ref HashSet<string> ipAddresses)
+        private void LoadIPAddresses(string ruleName, string action, string tempFile, ref HashSet<string> ipAddresses)
         {
             if (ipAddresses == null)
             {
                 ipAddresses = new HashSet<string>();
                 RunProcess("ipset", false, "create {0} iphash maxelem 1048576", ruleName);
                 // iptables -A INPUT -m set --set myset src -j DROP
-                int result = RunProcess("iptables", false, "-C INPUT -m set --match-set \"{0}\" src -j DROP", ruleName);
+                int result = RunProcess("iptables", false, "-C INPUT -m set --match-set \"{0}\" src -j {1}", ruleName, action);
                 if (result != 0)
                 {
-                    RunProcess("iptables", true, "-A INPUT -m set --match-set \"{0}\" src -j DROP", ruleName);
+                    RunProcess("iptables", true, "-A INPUT -m set --match-set \"{0}\" src -j {1}", ruleName, action);
                 }
                 RunProcess("ipset", true, "save {0} > \"{1}\"", ruleName, tempFile);
                 foreach (string line in File.ReadLines(tempFile).Skip(1))
@@ -81,7 +81,10 @@ namespace IPBan
             }
             foreach (string ipAddress in newIPAddresses)
             {
-                script.AppendLine("add " + ruleName + " " + ipAddress + " -exist");
+                if (ipAddress.TryGetFirewallIPAddress(out string firewallIPAddress))
+                {
+                    script.AppendLine("add " + ruleName + " " + firewallIPAddress + " -exist");
+                }
             }
 
             // write out the file and run the command to restore the set
@@ -98,8 +101,8 @@ namespace IPBan
         {
             RulePrefix = rulePrefix;
             string tempFile = Path.GetTempFileName();
-            LoadIPAddresses(RulePrefix + "0", tempFile, ref bannedIPAddresses);
-            LoadIPAddresses(RulePrefix + "AllowIPAddresses", tempFile, ref allowedIPAddresses);
+            LoadIPAddresses(RulePrefix + "0", "DROP", tempFile, ref bannedIPAddresses);
+            LoadIPAddresses(RulePrefix + "AllowIPAddresses", "ACCEPT", tempFile, ref allowedIPAddresses);
             DeleteFile(tempFile);
         }
 
