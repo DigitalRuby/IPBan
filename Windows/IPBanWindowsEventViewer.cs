@@ -181,15 +181,20 @@ namespace IPBan
             }
         }
 
-        private string GetEventLogQueryString()
+        private string GetEventLogQueryString(List<string> ignored)
         {
             int id = 0;
             string queryString = "<QueryList>";
+            HashSet<string> logNames = new HashSet<string>(System.Diagnostics.Eventing.Reader.EventLogSession.GlobalSession.GetLogNames());
             foreach (ExpressionsToBlockGroup group in service.Config.WindowsEventViewerExpressionsToBlock.Groups)
             {
-                if (EventLog.Exists(group.Path) &&
-                    (Environment.OSVersion.Version.Major > group.MinimumWindowsMajorVersion ||
-                    (Environment.OSVersion.Version.Major >= group.MinimumWindowsMajorVersion && Environment.OSVersion.Version.Minor >= group.MinimumWindowsMinorVersion)))
+                if (!logNames.Contains(group.Path) ||
+                    (Environment.OSVersion.Version.Major < group.MinimumWindowsMajorVersion ||
+                    (Environment.OSVersion.Version.Major == group.MinimumWindowsMajorVersion && Environment.OSVersion.Version.Minor < group.MinimumWindowsMinorVersion)))
+                {
+                    ignored.Add(group.Path);
+                }
+                else
                 {
                     ulong keywordsDecimal = ulong.Parse(group.Keywords.Substring(2), NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture);
                     queryString += "<Query Id='" + (++id).ToString() + "' Path='" + group.Path + "'><Select Path='" + group.Path + "'>*[System[(band(Keywords," + keywordsDecimal.ToString() + "))]]</Select></Query>";
@@ -204,9 +209,15 @@ namespace IPBan
         {
             try
             {
-                string queryString = GetEventLogQueryString();
+                List<string> ignored = new List<string>();
+                string queryString = GetEventLogQueryString(ignored);
                 if (queryString != previousQueryString)
                 {
+                    foreach (string path in ignored)
+                    {
+                        Log.Write(NLog.LogLevel.Error, "Ignoring event viewer path {0}", path);
+                    }
+
                     watcher?.Dispose();
                     query = new EventLogQuery(null, PathType.LogName, queryString);
                     watcher = new EventLogWatcher(query);
