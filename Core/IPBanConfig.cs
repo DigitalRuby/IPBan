@@ -36,6 +36,7 @@ namespace IPBan
         private readonly bool clearBannedIPAddressesOnRestart;
         private readonly HashSet<string> userNameWhitelist = new HashSet<string>(StringComparer.Ordinal);
         private readonly int userNameWhitelistMaximumEditDistance = 2;
+        private readonly int failedLoginAttemptsBeforeBanUserNameWhitelist = 20;
         private readonly string processToRunOnBan;
         private readonly string getUrlUpdate;
         private readonly string getUrlStart;
@@ -168,6 +169,7 @@ namespace IPBan
                 }
             }
             userNameWhitelistMaximumEditDistance = int.Parse(ConfigurationManager.AppSettings["UserNameWhiteListMinimumEditDistance"]);
+            failedLoginAttemptsBeforeBanUserNameWhitelist = int.Parse(ConfigurationManager.AppSettings["FailedLoginAttemptsBeforeBanUserNameWhitelist"]);
             getUrlUpdate = ConfigurationManager.AppSettings["GetUrlUpdate"];
             getUrlStart = ConfigurationManager.AppSettings["GetUrlStart"];
             getUrlStop = ConfigurationManager.AppSettings["GetUrlStop"];
@@ -320,6 +322,11 @@ namespace IPBan
         /// White list user names. Any user name found not in the list is banned.
         /// </summary>
         public IReadOnlyCollection<string> UserNameWhitelist { get { return userNameWhitelist; } }
+
+        /// <summary>
+        /// Number of failed logins before banning a user name in the user name whitelist
+        /// </summary>
+        public int FailedLoginAttemptsBeforeBanUserNameWhitelist { get { return failedLoginAttemptsBeforeBanUserNameWhitelist; } }
 
         /// <summary>
         /// Process to run on ban - replace ###IPADDRESS### with the banned ip address

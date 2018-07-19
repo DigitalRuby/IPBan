@@ -225,12 +225,18 @@ namespace IPBan
                     {
                         Log.Write(NLog.LogLevel.Warn, "Ignoring whitelisted ip address {0}, user name: {1}", ipAddress, userName);
                     }
-                    else if (Config.IsUserNameWhitelisted(userName))
-                    {
-                        Log.Write(NLog.LogLevel.Warn, "Ignoring whitelisted user name: {1}, ip address {0}", ipAddress, userName);
-                    }
                     else
                     {
+                        int maxFailedLoginAttempts;
+                        if (Config.IsUserNameWhitelisted(userName))
+                        {
+                            maxFailedLoginAttempts = Config.FailedLoginAttemptsBeforeBanUserNameWhitelist;
+                        }
+                        else
+                        {
+                            maxFailedLoginAttempts = Config.FailedLoginAttemptsBeforeBan;
+                        }
+
                         string source = p.Source;
                         int counter = p.Count;
                         DateTime now = p.DateTime;
@@ -255,7 +261,7 @@ namespace IPBan
                         }
 
                         // if the ip address is black listed or the ip address has reached the maximum failed login attempts before ban, ban the ip address
-                        if (configBlacklisted || ipBlockCount.Count >= Config.FailedLoginAttemptsBeforeBan)
+                        if (configBlacklisted || ipBlockCount.Count >= maxFailedLoginAttempts)
                         {
                             bool alreadyBanned;
                             lock (ipAddressesAndBanDate)
@@ -277,7 +283,7 @@ namespace IPBan
                                 AddBannedIPAddress(ipAddress, source, userName, bannedIpAddresses, now, configBlacklisted, ipBlockCount.Count, string.Empty);
                             }
                         }
-                        else if (ipBlockCount.Count > Config.FailedLoginAttemptsBeforeBan)
+                        else if (ipBlockCount.Count > maxFailedLoginAttempts)
                         {
                             Log.Write(NLog.LogLevel.Info, "Got event with ip address {0}, count {1}, ip should already be banned", ipAddress, ipBlockCount.Count);
                         }
