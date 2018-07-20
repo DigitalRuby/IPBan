@@ -9,7 +9,7 @@ using System.Text;
 
 namespace IPBan
 {
-    [RequiredOperatingSystem(IPBanOperatingSystem.Linux)]
+    [RequiredOperatingSystem(IPBanOS.Linux)]
     public class IPBanLinuxFirewall : IIPBanFirewall
     {
         private HashSet<string> bannedIPAddresses;
@@ -34,10 +34,8 @@ namespace IPBan
             if (ipAddresses == null)
             {
                 ipAddresses = new HashSet<string>();
-                RunProcess("ipset", false, "create {0} iphash maxelem 1048576", ruleName);
-                // iptables -A INPUT -m set --set myset src -j DROP
-                int result = RunProcess("iptables", false, "-C INPUT -m set --match-set \"{0}\" src -j {1}", ruleName, action);
-                if (result != 0)
+                RunProcess("ipset", false, "create {0} iphash maxelem 1048576 -exist", ruleName);
+                if (RunProcess("iptables", false, "-C INPUT -m set --match-set \"{0}\" src -j {1}", ruleName, action) != 0)
                 {
                     RunProcess("iptables", true, "-A INPUT -m set --match-set \"{0}\" src -j {1}", ruleName, action);
                 }
@@ -102,7 +100,7 @@ namespace IPBan
             RulePrefix = rulePrefix;
             string tempFile = Path.GetTempFileName();
             LoadIPAddresses(RulePrefix + "0", "DROP", tempFile, ref bannedIPAddresses);
-            LoadIPAddresses(RulePrefix + "AllowIPAddresses", "ACCEPT", tempFile, ref allowedIPAddresses);
+            LoadIPAddresses(RulePrefix + "1", "ACCEPT", tempFile, ref allowedIPAddresses);
             DeleteFile(tempFile);
         }
 

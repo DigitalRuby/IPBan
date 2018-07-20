@@ -18,7 +18,7 @@ namespace IPBan
     /// <summary>
     /// Helper class for Windows firewall and banning ip addresses.
     /// </summary>
-    [RequiredOperatingSystem(IPBanOperatingSystem.Windows)]
+    [RequiredOperatingSystem(IPBanOS.Windows)]
     public class IPBanWindowsFirewall : IIPBanFirewall
     {
         private const string clsidFwPolicy2 = "{E2B3C97F-6AE1-41AC-817A-F6F92166D7DD}";

@@ -391,23 +391,6 @@ namespace IPBan
             }
         }
 
-        private string GetOSName()
-        {
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                return "Windows";
-            }
-            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-            {
-                return "Linux";
-            }
-            else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-            {
-                return "OSX";
-            }
-            return "Other";
-        }
-
         private void Initialize()
         {
             IsRunning = true;
@@ -431,14 +414,14 @@ namespace IPBan
             {
                 throw new ArgumentException("Firewall is null, at least one type should implement IIPBanFirewall");
             }
-            OSName = (OSName ?? GetOSName());
-            OSVersion = (OSVersion ?? RuntimeInformation.OSDescription);
+            OSName = IPBanOS.Name + " (" + IPBanOS.FriendlyName + ")";
+            OSVersion = IPBanOS.Version;
             ReadAppSettings();
             Firewall.Initialize(string.IsNullOrWhiteSpace(Config.RuleName) ? "IPBan_BlockIPAddresses_" : Config.RuleName);
             UpdateBannedIPAddressesOnStart();
             LogInitialConfig();
             IPBanDelegate?.Start(this);
-            Log.Write(NLog.LogLevel.Warn, "IPBan service started and initialized. OSDescription: {0}", RuntimeInformation.OSDescription);
+            Log.Write(NLog.LogLevel.Warn, "IPBan service started and initialized. Operating System: {0}", IPBanOS.OSString());
         }
 
         private void CheckForExpiredIP()
