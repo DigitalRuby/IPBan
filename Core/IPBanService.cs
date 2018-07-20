@@ -15,6 +15,9 @@ using System.Text.RegularExpressions;
 using System.Reflection;
 using System.Configuration;
 using System.Runtime.InteropServices;
+using System.Net.Http;
+using System.Security.Cryptography;
+using System.Web;
 
 #endregion Imports
 
@@ -315,6 +318,11 @@ namespace IPBan
             }
         }
 
+        private string UrlEncode(string text)
+        {
+            return HttpUtility.UrlEncode(text);
+        }
+
         private void AddBannedIPAddress(string ipAddress, string source, string userName, List<KeyValuePair<string, string>> bannedIpAddresses,
             DateTime dateTime, bool configBlacklisted, int counter, string extraInfo)
         {
@@ -326,6 +334,24 @@ namespace IPBan
             firewallNeedsBlockedIPAddressesUpdate = true;
             Log.Write(NLog.LogLevel.Warn, "Banning ip address: {0}, user name: {1}, config black listed: {2}, count: {3}, extra info: {4}",
                 ipAddress, userName, configBlacklisted, counter, extraInfo);
+
+            if (!IsTesting)
+            {
+                // submit url to ipban public database so that everyone can benefit from an aggregated list of banned ip addresses
+                string timestamp = DateTime.UtcNow.ToString("o");
+                string url = $"/IPSubmitBanned?ip={UrlEncode(ipAddress)}&source={UrlEncode(source)}&timestamp={UrlEncode(timestamp)}&userName={UrlEncode(userName)}";
+                string hash = Convert.ToBase64String(new SHA256Managed().ComputeHash(Encoding.UTF8.GetBytes(url + Resources.IPBanKey1)));
+                url += "&hash=" + UrlEncode(hash);
+
+                try
+                {
+                    RequestMaker.DownloadDataAsync("https://api.ipban.com" + url);
+                }
+                catch
+                {
+                    // don't care, this is not fatal
+                }
+            }
         }
 
         private void ProcessBannedIPAddresses(IEnumerable<KeyValuePair<string, string>> bannedIPAddresses)
@@ -853,6 +879,8 @@ namespace IPBan
         /// <param name="userName">User Name</param>
         public void AddFailedLogin(string ipAddress, string source, string userName)
         {
+            source = (source ?? "?");
+            userName = (userName ?? string.Empty);
             lock (pendingFailedLogins)
             {
                 FailedLogin existing = pendingFailedLogins.FirstOrDefault(p => p.IPAddress == ipAddress && (p.UserName == null || p.UserName == userName));
@@ -1210,6 +1238,11 @@ namespace IPBan
         /// Whether the service is currently running
         /// </summary>
         public bool IsRunning { get; set; }
+
+        /// <summary>
+        /// Whether the service is being tested with mock data
+        /// </summary>
+        public bool IsTesting { get; set; }
     }
 
     /// <summary>

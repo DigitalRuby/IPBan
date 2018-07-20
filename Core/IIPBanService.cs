@@ -7,6 +7,9 @@ using System.Threading.Tasks;
 
 namespace IPBan
 {
+    /// <summary>
+    /// IPBan service interface
+    /// </summary>
     public interface IIPBanService : IDisposable
     {
         /// <summary>
@@ -89,6 +92,11 @@ namespace IPBan
         /// Operating system version
         /// </summary>
         string OSVersion { get; }
+
+        /// <summary>
+        /// Whether the service is being tested with mock data
+        /// </summary>
+        bool IsTesting { get; set; }
     }
 
     /// <summary>

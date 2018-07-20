@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Configuration;
 using System.Globalization;
 using System.IO;
@@ -84,9 +85,47 @@ namespace IPBan
                 }
             }
 
-            if (regexValue.Length != 0)
+            if (!string.IsNullOrWhiteSpace(regexValue))
             {
                 regex = new Regex(regexValue, RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.CultureInvariant);
+            }
+        }
+
+        /// <summary>
+        /// Get a value from configuration manager app settings
+        /// </summary>
+        /// <typeparam name="T">Type of value to get</typeparam>
+        /// <param name="key">Key</param>
+        /// <param name="defaultValue">Default value if null or not found</param>
+        /// <returns>Value</returns>
+        public static T GetConfig<T>(string key, T defaultValue = default)
+        {
+            try
+            {
+                var converter = TypeDescriptor.GetConverter(typeof(T));
+                return (T)converter.ConvertFromInvariantString(ConfigurationManager.AppSettings[key]);
+            }
+            catch
+            {
+                return defaultValue;
+            }
+        }
+
+        /// <summary>
+        /// Set a field / variable from configuration manager app settings. If null or not found, nothing is changed.
+        /// </summary>
+        /// <typeparam name="T">Type of value to set</typeparam>
+        /// <param name="key">Key</param>
+        /// <param name="value">Value</param>
+        public static void SetConfig<T>(string key, ref T value)
+        {
+            try
+            {
+                var converter = TypeDescriptor.GetConverter(typeof(T));
+                value = (T)converter.ConvertFromInvariantString(ConfigurationManager.AppSettings[key]);
+            }
+            catch
+            {
             }
         }
 
@@ -96,6 +135,7 @@ namespace IPBan
         /// <param name="configFilePath">Config file path</param>
         public IPBanConfig(string configFilePath)
         {
+            configFilePath = (configFilePath ?? ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None).FilePath);
             if (configFilePath != ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None).FilePath)
             {
                 File.Copy(configFilePath, ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None).FilePath, true);
@@ -105,30 +145,22 @@ namespace IPBan
             ConfigurationManager.RefreshSection("configSections");
             ConfigurationManager.RefreshSection("nlog");
             ConfigurationManager.RefreshSection("ExpressionsToBlock");
+            ConfigurationManager.RefreshSection("LogFilesToParse");
 
-            string value = ConfigurationManager.AppSettings["FailedLoginAttemptsBeforeBan"];
-            failedLoginAttemptsBeforeBan = int.Parse(value, CultureInfo.InvariantCulture);
+            SetConfig<int>("FailedLoginAttemptsBeforeBan", ref failedLoginAttemptsBeforeBan);
+            SetConfig<TimeSpan>("BanTime", ref banTime);
+            SetConfig<bool>("ClearBannedIPAddressesOnRestart", ref clearBannedIPAddressesOnRestart);
+            SetConfig<TimeSpan>("ExpireTime", ref expireTime);
+            SetConfig<TimeSpan>("CycleTime", ref cycleTime);
+            SetConfig<TimeSpan>("MinimumTimeBetweenFailedLoginAttempts", ref minimumTimeBetweenFailedLoginAttempts);
+            SetConfig<string>("RuleName", ref ruleName);
 
-            value = ConfigurationManager.AppSettings["BanTime"];
-            banTime = TimeSpan.Parse(value, CultureInfo.InvariantCulture);
-
-            value = ConfigurationManager.AppSettings["ClearBannedIPAddressesOnRestart"];
-            bool.TryParse(value, out clearBannedIPAddressesOnRestart);
-
-            value = ConfigurationManager.AppSettings["ExpireTime"];
-            expireTime = TimeSpan.Parse(value, CultureInfo.InvariantCulture);
-            
-            value = ConfigurationManager.AppSettings["CycleTime"];
-            cycleTime = TimeSpan.Parse(value, CultureInfo.InvariantCulture);
-
-            value = ConfigurationManager.AppSettings["MinimumTimeBetweenFailedLoginAttempts"];
-            minimumTimeBetweenFailedLoginAttempts = TimeSpan.Parse(value, CultureInfo.InvariantCulture);
-
-            value = ConfigurationManager.AppSettings["RuleName"];
-            ruleName = value;
-
-            PopulateList(whiteList, ref whiteListRegex, ConfigurationManager.AppSettings["Whitelist"], ConfigurationManager.AppSettings["WhitelistRegex"]);
-            PopulateList(blackList, ref blackListRegex, ConfigurationManager.AppSettings["Blacklist"], ConfigurationManager.AppSettings["BlacklistRegex"]);
+            string whiteListString = GetConfig<string>("Whitelist", string.Empty);
+            string whiteListRegexString = GetConfig<string>("WhitelistRegex", string.Empty);
+            string blacklistString = GetConfig<string>("Blacklist", string.Empty);
+            string blacklistRegexString = GetConfig<string>("BlacklistRegex", string.Empty);
+            PopulateList(whiteList, ref whiteListRegex, whiteListString, whiteListRegexString);
+            PopulateList(blackList, ref blackListRegex, blacklistString, blacklistRegexString);
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 expressions = (ExpressionsToBlock)System.Configuration.ConfigurationManager.GetSection("ExpressionsToBlock");
@@ -159,8 +191,9 @@ namespace IPBan
                 expressions = new ExpressionsToBlock { Groups = new ExpressionsToBlockGroup[0] };
             }
             logFiles = ((LogFilesToParse)System.Configuration.ConfigurationManager.GetSection("LogFilesToParse"))?.LogFiles ?? new LogFileToParse[0];
-            processToRunOnBan = ConfigurationManager.AppSettings["ProcessToRunOnBan"];
-            foreach (string userName in ConfigurationManager.AppSettings["UserNameWhitelist"].Split(','))
+            SetConfig<string>("ProcessToRunOnBan", ref processToRunOnBan);
+            string userNameWhiteListString = GetConfig<string>("UserNameWhiteList", string.Empty);
+            foreach (string userName in userNameWhiteListString.Split(','))
             {
                 string userNameTrimmed = userName.Normalize().Trim();
                 if (userNameTrimmed.Length > 0)
@@ -168,13 +201,13 @@ namespace IPBan
                     userNameWhitelist.Add(userNameTrimmed);
                 }
             }
-            userNameWhitelistMaximumEditDistance = int.Parse(ConfigurationManager.AppSettings["UserNameWhiteListMinimumEditDistance"]);
-            failedLoginAttemptsBeforeBanUserNameWhitelist = int.Parse(ConfigurationManager.AppSettings["FailedLoginAttemptsBeforeBanUserNameWhitelist"]);
-            getUrlUpdate = ConfigurationManager.AppSettings["GetUrlUpdate"];
-            getUrlStart = ConfigurationManager.AppSettings["GetUrlStart"];
-            getUrlStop = ConfigurationManager.AppSettings["GetUrlStop"];
-            getUrlConfig = ConfigurationManager.AppSettings["GetUrlConfig"];
-            externalIPAddressUrl = ConfigurationManager.AppSettings["ExternalIPAddressUrl"];
+            SetConfig<int>("UserNameWhiteListMinimumEditDistance", ref userNameWhitelistMaximumEditDistance);
+            SetConfig<int>("FailedLoginAttemptsBeforeBanUserNameWhitelist", ref failedLoginAttemptsBeforeBanUserNameWhitelist);
+            SetConfig<string>("GetUrlUpdate", ref getUrlUpdate);
+            SetConfig<string>("GetUrlStart", ref getUrlStart);
+            SetConfig<string>("GetUrlStop", ref getUrlStop);
+            SetConfig<string>("GetUrlConfig", ref getUrlConfig);
+            SetConfig<string>("ExternalIPAddressUrl", ref externalIPAddressUrl);
         }
 
         /// <summary>

@@ -260,6 +260,7 @@ namespace IPBan
         /// </summary>
         public void RunTests()
         {
+            service.IsTesting = true;
             string[] xmlTestStrings = new string[]
             {
                 @"<Event xmlns='http://schemas.microsoft.com/win/2004/08/events/event'><System><Provider Name='Microsoft-Windows-RemoteDesktopServices-RdpCoreTS' Guid='{1139C61B-B549-4251-8ED3-27250A1EDEC8}'/><EventID>139</EventID><Version>0</Version><Level>3</Level><Task>4</Task><Opcode>14</Opcode><Keywords>0x4000000000000000</Keywords><TimeCreated SystemTime='2018-06-26T01:37:02.869748200Z'/><EventRecordID>42406434</EventRecordID><Correlation ActivityID='{F420C8AD-71D8-43BE-86ED-D02442380000}'/><Execution ProcessID='3660' ThreadID='243736'/><Channel>Microsoft-Windows-RemoteDesktopServices-RdpCoreTS/Operational</Channel><Computer>cpu0</Computer><Security UserID='S-1-5-20'/></System><EventData><Data Name='ResultCode'>0x80090302</Data><Data Name='IPString'>185.209.0.22</Data></EventData></Event>",
