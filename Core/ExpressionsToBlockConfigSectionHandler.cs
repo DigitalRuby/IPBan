@@ -95,6 +95,12 @@ namespace IPBan
             }
         }
 
+        public string GetQueryString(int id = 1)
+        {
+            ulong keywordsDecimal = ulong.Parse(Keywords.Substring(2), NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture);
+            return "<Query Id='" + id.ToString(CultureInfo.InvariantCulture) + "' Path='" + Path + "'><Select Path='" + Path + "'>*[System[(band(Keywords," + keywordsDecimal.ToString() + "))]]</Select></Query>";
+        }
+
         public string Path;
 
         [XmlArray("Expressions")]

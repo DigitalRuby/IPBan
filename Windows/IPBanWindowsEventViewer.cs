@@ -197,8 +197,7 @@ namespace IPBan
                 }
                 else
                 {
-                    ulong keywordsDecimal = ulong.Parse(group.Keywords.Substring(2), NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture);
-                    queryString += "<Query Id='" + (++id).ToString() + "' Path='" + group.Path + "'><Select Path='" + group.Path + "'>*[System[(band(Keywords," + keywordsDecimal.ToString() + "))]]</Select></Query>";
+                    queryString += group.GetQueryString(++id);
                 }
             }
             queryString += "</QueryList>";
@@ -336,26 +335,25 @@ namespace IPBan
                 try
                 {
                     Console.WriteLine("Testing group {0} ({1})...", group.Keywords, group.Source);
-                    string queryString = "<QueryList>";
-                    ulong keywordsDecimal = ulong.Parse(group.Keywords.Substring(2), NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture);
-                    queryString += "<Query Id='1' Path='" + group.Path + "'><Select Path='" + group.Path + "'>*[System[(band(Keywords," + keywordsDecimal.ToString() + "))]]</Select></Query>";
-                    queryString += "</QueryList>";
+                    string queryString = "<QueryList>" + group.GetQueryString(1) + "</QueryList>";
                     EventLogQuery query = new EventLogQuery(null, PathType.LogName, queryString);
                     query.Session = new EventLogSession("localhost");
                     EventLogReader reader = new EventLogReader(query);
-                    EventRecord record = reader.ReadEvent(timeout);
-                    if (record == null)
+                    EventRecord record;
+                    while ((record = reader.ReadEvent(timeout)) != null)
                     {
-                        break;
+                        if (++count % 100 == 0)
+                        {
+                            Console.Write("Count: {0}    \r", count);
+                        }
+                        ProcessEventViewerXml(record.ToXml(), true);
                     }
-                    count++;
-                    ProcessEventViewerXml(record.ToXml(), true);
                 }
                 catch (Exception ex)
                 {
                     Console.WriteLine("Error: {0}", ex.Message);
                 }
-                Console.WriteLine("Tested {0} entrie", count);
+                Console.WriteLine("Tested {0} entries        ", count);
             }
 
             Console.WriteLine("Tests complete.");
