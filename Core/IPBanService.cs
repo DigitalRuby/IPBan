@@ -224,7 +224,8 @@ namespace IPBan
                 {
                     string ipAddress = p.IPAddress;
                     string userName = p.UserName;
-                    if (Config.IsWhiteListed(ipAddress))
+                    if (Config.IsIPAddressWhitelisted(ipAddress) ||
+                        (IPBanDelegate != null && IPBanDelegate.IsIPAddressWhitelisted(ipAddress)))
                     {
                         Log.Write(NLog.LogLevel.Warn, "Ignoring whitelisted ip address {0}, user name: {1}", ipAddress, userName);
                     }
@@ -246,7 +247,10 @@ namespace IPBan
 
                         // check for the target user name for additional blacklisting checks                    
                         IPBlockCount ipBlockCount;
-                        bool configBlacklisted = Config.IsBlackListed(ipAddress) || Config.IsBlackListed(userName) || !Config.IsUserNameWithinMaximumEditDistanceOfUserNameWhitelist(userName);
+                        bool configBlacklisted = Config.IsBlackListed(ipAddress) ||
+                            Config.IsBlackListed(userName) ||
+                            !Config.IsUserNameWithinMaximumEditDistanceOfUserNameWhitelist(userName) ||
+                            (IPBanDelegate != null && IPBanDelegate.IsIPAddressBlacklisted(ipAddress));
 
                         lock (ipAddressesAndBanDate)
                         {
@@ -473,7 +477,7 @@ namespace IPBan
                     continue;
                 }
                 // if ban duration has expired or ip is white listed, un-ban
-                else if ((Config.BanTime.Ticks > 0 && (now - keyValue.Value) > Config.BanTime) || Config.IsWhiteListed(keyValue.Key))
+                else if ((Config.BanTime.Ticks > 0 && (now - keyValue.Value) > Config.BanTime) || Config.IsIPAddressWhitelisted(keyValue.Key))
                 {
                     Log.Write(NLog.LogLevel.Warn, "Un-banning ip address {0}", keyValue.Key);
                     lock (ipAddressesAndBanDate)

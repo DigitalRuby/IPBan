@@ -159,6 +159,20 @@ namespace IPBan
         /// </summary>
         /// <returns>Whitelist</returns>
         IEnumerable<string> EnumerateWhiteList();
+
+        /// <summary>
+        /// Check if an ip address is whitelisted
+        /// </summary>
+        /// <param name="ipAddress">IP Address</param>
+        /// <returns>True if whitelisted, false otherwise</returns>
+        bool IsIPAddressWhitelisted(string ipAddress);
+
+        /// <summary>
+        /// Check if an ip address is blacklisted
+        /// </summary>
+        /// <param name="ipAddress">IP Address</param>
+        /// <returns>True if blacklisted, false otherwise</returns>
+        bool IsIPAddressBlacklisted(string ipAddress);
     }
 
     /// <summary>

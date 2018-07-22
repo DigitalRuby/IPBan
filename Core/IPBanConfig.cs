@@ -215,7 +215,7 @@ namespace IPBan
         /// </summary>
         /// <param name="ipAddress">IP Address</param>
         /// <returns>True if whitelisted, false otherwise</returns>
-        public bool IsWhiteListed(string ipAddress)
+        public bool IsIPAddressWhitelisted(string ipAddress)
         {
             return !string.IsNullOrWhiteSpace(ipAddress) &&
                 (whiteList.Contains(ipAddress) ||
