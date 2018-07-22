@@ -224,10 +224,11 @@ namespace IPBan
                 {
                     string ipAddress = p.IPAddress;
                     string userName = p.UserName;
+                    string source = p.Source;
                     if (Config.IsIPAddressWhitelisted(ipAddress) ||
                         (IPBanDelegate != null && IPBanDelegate.IsIPAddressWhitelisted(ipAddress)))
                     {
-                        Log.Write(NLog.LogLevel.Warn, "Ignoring whitelisted ip address {0}, user name: {1}", ipAddress, userName);
+                        Log.Write(NLog.LogLevel.Warn, "Ignoring whitelisted ip address {0}, {1}, {2}", ipAddress, userName, source);
                     }
                     else
                     {
@@ -241,7 +242,6 @@ namespace IPBan
                             maxFailedLoginAttempts = Config.FailedLoginAttemptsBeforeBan;
                         }
 
-                        string source = p.Source;
                         int counter = p.Count;
                         DateTime now = p.DateTime;
 
@@ -262,9 +262,9 @@ namespace IPBan
                             }
 
                             // Increment the count.
-                            ipBlockCount.IncrementCount(CurrentDateTime, counter);
+                            counter = ipBlockCount.IncrementCount(CurrentDateTime, counter);
 
-                            Log.Write(NLog.LogLevel.Info, "Incremented count for ip {0} to {1}, user name: {2}", ipAddress, ipBlockCount.Count, userName);
+                            Log.Write(NLog.LogLevel.Info, "Incremented count for ip {0} to {1}, user name: {2}", ipAddress, counter, userName);
                         }
 
                         // if the ip address is black listed or the ip address has reached the maximum failed login attempts before ban, ban the ip address
@@ -279,7 +279,7 @@ namespace IPBan
                             // if the ip address is not already in the ban list, add it and mark it as needing to be banned
                             if (alreadyBanned)
                             {
-                                Log.Write(NLog.LogLevel.Info, "Ignoring previously banned black listed ip {0}, user name: {1}, ip should already be banned", ipAddress, userName);
+                                Log.Write(NLog.LogLevel.Info, "IP {0}, {1}, {2} should already be banned, alreadyBanned == true.", ipAddress, userName, source);
                             }
                             else
                             {
@@ -287,12 +287,12 @@ namespace IPBan
                                 {
                                     IPBanDelegate.LoginAttemptFailed(ipAddress, source, userName).ConfigureAwait(false).GetAwaiter().GetResult();
                                 }
-                                AddBannedIPAddress(ipAddress, source, userName, bannedIpAddresses, now, configBlacklisted, ipBlockCount.Count, string.Empty);
+                                AddBannedIPAddress(ipAddress, source, userName, bannedIpAddresses, now, configBlacklisted, counter, string.Empty);
                             }
                         }
                         else if (ipBlockCount.Count > maxFailedLoginAttempts)
                         {
-                            Log.Write(NLog.LogLevel.Info, "Got event with ip address {0}, count {1}, ip should already be banned", ipAddress, ipBlockCount.Count);
+                            Log.Write(NLog.LogLevel.Info, "IP {0}, {1}, {2} should already be banned.", ipAddress, counter, source);
                         }
                         else
                         {
@@ -305,7 +305,7 @@ namespace IPBan
                                     continue;
                                 }
                             }
-                            Log.Write(NLog.LogLevel.Warn, "Login attempt failed, ip: {0}, user name: {1}, source: {2}, count: {3}", ipAddress, userName, source, ipBlockCount.Count);
+                            Log.Write(NLog.LogLevel.Warn, "Login attempt failed: {0}, {1}, {2}, {3}", ipAddress, userName, source, counter);
                         }
                     }
                 }
