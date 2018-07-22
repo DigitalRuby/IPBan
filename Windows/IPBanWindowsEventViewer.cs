@@ -193,7 +193,7 @@ namespace IPBan
                     (Environment.OSVersion.Version.Major < group.MinimumWindowsMajorVersion ||
                     (Environment.OSVersion.Version.Major == group.MinimumWindowsMajorVersion && Environment.OSVersion.Version.Minor < group.MinimumWindowsMinorVersion)))
                 {
-                    ignored.Add(group.Path);
+                    ignored?.Add(group.Path);
                 }
                 else
                 {
@@ -328,35 +328,29 @@ namespace IPBan
         /// </summary>
         public void TestAllEntries()
         {
-            TimeSpan timeout = TimeSpan.FromMilliseconds(20.0);
-            foreach (ExpressionsToBlockGroup group in service.Config.WindowsEventViewerExpressionsToBlock.Groups)
+            int count = 0;
+            try
             {
-                int count = 0;
-                try
+                TimeSpan timeout = TimeSpan.FromMilliseconds(20.0);
+                string queryString = GetEventLogQueryString(null);
+                EventLogQuery query = new EventLogQuery(null, PathType.LogName, queryString);
+                query.Session = new EventLogSession("localhost");
+                EventLogReader reader = new EventLogReader(query);
+                EventRecord record;
+                while ((record = reader.ReadEvent(timeout)) != null)
                 {
-                    Console.WriteLine("Testing group {0} ({1})...", group.Keywords, group.Source);
-                    string queryString = "<QueryList>" + group.GetQueryString(1) + "</QueryList>";
-                    EventLogQuery query = new EventLogQuery(null, PathType.LogName, queryString);
-                    query.Session = new EventLogSession("localhost");
-                    EventLogReader reader = new EventLogReader(query);
-                    EventRecord record;
-                    while ((record = reader.ReadEvent(timeout)) != null)
+                    if (++count % 100 == 0)
                     {
-                        if (++count % 100 == 0)
-                        {
-                            Console.Write("Count: {0}    \r", count);
-                        }
-                        ProcessEventViewerXml(record.ToXml(), true);
+                        Console.Write("Count: {0}    \r", count);
                     }
+                    ProcessEventViewerXml(record.ToXml(), true);
                 }
-                catch (Exception ex)
-                {
-                    Console.WriteLine("Error: {0}", ex.Message);
-                }
-                Console.WriteLine("Tested {0} entries        ", count);
             }
-
-            Console.WriteLine("Tests complete.");
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error: {0}", ex.Message);
+            }
+            Console.WriteLine("Tested {0} entries        ", count);
         }
     }
 }

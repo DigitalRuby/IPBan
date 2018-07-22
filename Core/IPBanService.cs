@@ -943,7 +943,7 @@ namespace IPBan
                 Group userNameGroup = m.Groups["username"];
                 if (userNameGroup != null && userNameGroup.Success)
                 {
-                    userName = (userName ?? userNameGroup.Value.Trim());
+                    userName = (userName ?? userNameGroup.Value.Trim('\'', '\"', '(', ')', '[', ']', '{', '}', ' ', '\r', '\n'));
                 }
 
                 // check if the regex had an ipadddress group
