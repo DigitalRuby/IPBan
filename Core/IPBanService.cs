@@ -879,6 +879,11 @@ namespace IPBan
         /// <param name="userName">User Name</param>
         public void AddFailedLogin(string ipAddress, string source, string userName)
         {
+            if (ipAddress == "::1" || ipAddress == "127.0.0.1")
+            {
+                return;
+            }
+
             source = (source ?? "?");
             userName = (userName ?? string.Empty);
             lock (pendingFailedLogins)
