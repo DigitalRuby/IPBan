@@ -305,7 +305,7 @@ namespace IPBan
                                     continue;
                                 }
                             }
-                            Log.Write(NLog.LogLevel.Warn, "Login attempt failed, ip: {0}, user name: {1}, count: {2}", ipAddress, userName, ipBlockCount.Count);
+                            Log.Write(NLog.LogLevel.Warn, "Login attempt failed, ip: {0}, user name: {1}, source: {2}, count: {3}", ipAddress, userName, source, ipBlockCount.Count);
                         }
                     }
                 }
@@ -760,8 +760,11 @@ namespace IPBan
                     ipAddresses = ipAddressesAndBanDate.Keys.ToArray();
                 }
 
-                // re-create rules for all banned ip addresses
-                Firewall.BlockIPAddresses(ipAddresses);
+                if (!IsTesting)
+                {
+                    // re-create rules for all banned ip addresses
+                    Firewall.BlockIPAddresses(ipAddresses);
+                }
             }
 
             // update firewall if needed
@@ -776,8 +779,11 @@ namespace IPBan
                     ipAddresses = ipAddressesToAllowInFirewall.ToArray();
                 }
 
-                // re-create rules for all allowed ip addresses
-                Firewall.AllowIPAddresses(ipAddresses);
+                if (!IsTesting)
+                {
+                    // re-create rules for all allowed ip addresses
+                    Firewall.AllowIPAddresses(ipAddresses);
+                }
             }
         }
 

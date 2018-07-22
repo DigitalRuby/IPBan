@@ -44,14 +44,13 @@ namespace IPBan
             }
         }
 
-        private void AddFailedLoginForEventViewerXml(string ipAddress, string source, string userName, XmlDocument doc)
+        private bool AddFailedLoginForEventViewerXml(string ipAddress, string source, string userName, XmlDocument doc)
         {
             if (string.IsNullOrWhiteSpace(ipAddress))
             {
-                return;
+                return false;
             }
-
-            if (string.IsNullOrWhiteSpace(source))
+            else if (string.IsNullOrWhiteSpace(source))
             {
                 XmlNode sourceNode = doc.SelectSingleNode("//Source");
                 if (sourceNode != null)
@@ -70,6 +69,8 @@ namespace IPBan
 
             Log.Write(NLog.LogLevel.Info, "*LOGIN FAIL* IP: {0}, USER: {1}", ipAddress, userName);
             service.AddFailedLogin(ipAddress, source, userName);
+
+            return true;
         }
 
         private void ExtractEventViewerXml(XmlDocument doc, out string ipAddress, out string source, out string userName)
@@ -246,13 +247,17 @@ namespace IPBan
         /// Process event viewer XML
         /// </summary>
         /// <param name="xml">XML</param>
-        public void ProcessEventViewerXml(string xml)
+        /// <param name="testing">True if testing, false otherwise</param>
+        public void ProcessEventViewerXml(string xml, bool testing = false)
         {
             Log.Write(NLog.LogLevel.Info, "Processing xml: {0}", xml);
 
             XmlDocument doc = ParseXml(xml);
             ExtractEventViewerXml(doc, out string ipAddress, out string source, out string userName);
-            AddFailedLoginForEventViewerXml(ipAddress, source, userName, doc);
+            if (AddFailedLoginForEventViewerXml(ipAddress, source, userName, doc) && testing)
+            {
+                Console.WriteLine("Found {0}, {1}, {2}", ipAddress, source, userName);
+            }
         }
 
         /// <summary>
@@ -317,6 +322,43 @@ namespace IPBan
                     ProcessEventViewerXml(xml);
                 });
             }
+        }
+
+        /// <summary>
+        /// Test all entries in the event viewer that match config
+        /// </summary>
+        public void TestAllEntries()
+        {
+            TimeSpan timeout = TimeSpan.FromMilliseconds(20.0);
+            foreach (ExpressionsToBlockGroup group in service.Config.WindowsEventViewerExpressionsToBlock.Groups)
+            {
+                int count = 0;
+                try
+                {
+                    Console.WriteLine("Testing group {0} ({1})...", group.Keywords, group.Source);
+                    string queryString = "<QueryList>";
+                    ulong keywordsDecimal = ulong.Parse(group.Keywords.Substring(2), NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture);
+                    queryString += "<Query Id='1' Path='" + group.Path + "'><Select Path='" + group.Path + "'>*[System[(band(Keywords," + keywordsDecimal.ToString() + "))]]</Select></Query>";
+                    queryString += "</QueryList>";
+                    EventLogQuery query = new EventLogQuery(null, PathType.LogName, queryString);
+                    query.Session = new EventLogSession("localhost");
+                    EventLogReader reader = new EventLogReader(query);
+                    EventRecord record = reader.ReadEvent(timeout);
+                    if (record == null)
+                    {
+                        break;
+                    }
+                    count++;
+                    ProcessEventViewerXml(record.ToXml(), true);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("Error: {0}", ex.Message);
+                }
+                Console.WriteLine("Tested {0} entrie", count);
+            }
+
+            Console.WriteLine("Tests complete.");
         }
     }
 }

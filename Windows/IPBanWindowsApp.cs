@@ -106,12 +106,20 @@ namespace IPBan
         public static int RunConsole(string[] args)
         {
             CreateService();
-            Console.WriteLine("Press ENTER to quit");
             if (args.Contains("test", StringComparer.OrdinalIgnoreCase))
             {
                 eventViewer.RunTests();
             }
-            Console.ReadLine();
+            else if (args.Contains("test-eventViewer", StringComparer.OrdinalIgnoreCase))
+            {
+                service.IsTesting = true;
+                eventViewer.TestAllEntries();
+            }
+            else
+            {
+                Console.WriteLine("Press ENTER to quit");
+                Console.ReadLine();
+            }
             service.Stop();
             return 0;
         }
