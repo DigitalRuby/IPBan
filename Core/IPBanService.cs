@@ -322,7 +322,7 @@ namespace IPBan
             }
         }
 
-        private string UrlEncode(string text)
+        public static string UrlEncode(string text)
         {
             return HttpUtility.UrlEncode(text);
         }
@@ -686,12 +686,12 @@ namespace IPBan
             if (!string.IsNullOrWhiteSpace(url))
             {
                 Assembly a = IPBanService.GetIPBanAssembly();
-                url = url.Replace("###IPADDRESS###", WebUtility.UrlEncode(LocalIPAddressString))
-                    .Replace("###MACHINENAME###", WebUtility.UrlEncode(FQDN))
-                    .Replace("###VERSION###", WebUtility.UrlEncode(a.GetName().Version.ToString()))
-                    .Replace("###GUID###", WebUtility.UrlEncode(MachineGuid))
-                    .Replace("###OSNAME###", OSName)
-                    .Replace("###OSVERSION###", OSVersion);
+                url = url.Replace("###IPADDRESS###", IPBanService.UrlEncode(LocalIPAddressString))
+                    .Replace("###MACHINENAME###", IPBanService.UrlEncode(FQDN))
+                    .Replace("###VERSION###", IPBanService.UrlEncode(a.GetName().Version.ToString()))
+                    .Replace("###GUID###", IPBanService.UrlEncode(MachineGuid))
+                    .Replace("###OSNAME###", IPBanService.UrlEncode(OSName))
+                    .Replace("###OSVERSION###", IPBanService.UrlEncode(OSVersion));
                 RunTask(() =>
                 {
                     try
@@ -1232,12 +1232,12 @@ namespace IPBan
         /// <summary>
         /// The operating system name. If null, it is auto-detected.
         /// </summary>
-        public string OSName { get; set; }
+        public string OSName { get; private set; }
 
         /// <summary>
         /// The operating system version. If null, it is auto-detected.
         /// </summary>
-        public string OSVersion { get; set; }
+        public string OSVersion { get; private set; }
         
         private DateTime currentDateTime;
         /// <summary>

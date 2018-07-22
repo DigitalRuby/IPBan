@@ -213,9 +213,10 @@ namespace IPBan
                 string queryString = GetEventLogQueryString(ignored);
                 if (queryString != previousQueryString)
                 {
+                    Log.Write(NLog.LogLevel.Warn, "Event viewer query string: {0}", queryString);
                     foreach (string path in ignored)
                     {
-                        Log.Write(NLog.LogLevel.Error, "Ignoring event viewer path {0}", path);
+                        Log.Write(NLog.LogLevel.Warn, "Ignoring event viewer path {0}", path);
                     }
 
                     watcher?.Dispose();
