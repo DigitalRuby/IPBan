@@ -327,6 +327,26 @@ namespace IPBan
             return HttpUtility.UrlEncode(text);
         }
 
+        internal Task SubmitIPAddress(string ipAddress, string source, string userName)
+        {
+            // submit url to ipban public database so that everyone can benefit from an aggregated list of banned ip addresses
+            string timestamp = DateTime.UtcNow.ToString("o");
+            string url = $"/IPSubmitBanned?ip={UrlEncode(ipAddress)}&source={UrlEncode(source)}&timestamp={UrlEncode(timestamp)}&userName={UrlEncode(userName)}";
+            string hash = Convert.ToBase64String(new SHA256Managed().ComputeHash(Encoding.UTF8.GetBytes(url + Resources.IPBanKey1)));
+            url += "&hash=" + UrlEncode(hash);
+            url = "https://api.ipban.com" + url;
+
+            try
+            {
+                return RequestMaker.DownloadDataAsync(url);
+            }
+            catch
+            {
+                // don't care, this is not fatal
+                return Task.FromResult<int>(0);
+            }
+        }
+
         private void AddBannedIPAddress(string ipAddress, string source, string userName, List<KeyValuePair<string, string>> bannedIpAddresses,
             DateTime dateTime, bool configBlacklisted, int counter, string extraInfo)
         {
@@ -341,20 +361,7 @@ namespace IPBan
 
             if (!IsTesting)
             {
-                // submit url to ipban public database so that everyone can benefit from an aggregated list of banned ip addresses
-                string timestamp = DateTime.UtcNow.ToString("o");
-                string url = $"/IPSubmitBanned?ip={UrlEncode(ipAddress)}&source={UrlEncode(source)}&timestamp={UrlEncode(timestamp)}&userName={UrlEncode(userName)}";
-                string hash = Convert.ToBase64String(new SHA256Managed().ComputeHash(Encoding.UTF8.GetBytes(url + Resources.IPBanKey1)));
-                url += "&hash=" + UrlEncode(hash);
-
-                try
-                {
-                    RequestMaker.DownloadDataAsync("https://api.ipban.com" + url);
-                }
-                catch
-                {
-                    // don't care, this is not fatal
-                }
+                SubmitIPAddress(ipAddress, source, userName);
             }
         }
 
