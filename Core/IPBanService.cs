@@ -963,7 +963,7 @@ namespace IPBan
                         break;
                     }
 
-                    if (tempIPAddress != Environment.MachineName)
+                    if (tempIPAddress != Environment.MachineName && tempIPAddress != "-")
                     {
                         // Check Host by name
                         Log.Write(NLog.LogLevel.Info, "Parsing as IP failed, checking dns '{0}'", tempIPAddress);
