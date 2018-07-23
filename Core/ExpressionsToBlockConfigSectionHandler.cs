@@ -40,7 +40,7 @@ namespace IPBan
             get { return regex; }
             set
             {
-                RegexObject = new Regex((regex = value), RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.CultureInvariant);
+                RegexObject = IPBanConfig.ParseRegex(regex = value);
             }
         }
     }

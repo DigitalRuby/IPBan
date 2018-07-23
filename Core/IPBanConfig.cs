@@ -87,8 +87,29 @@ namespace IPBan
 
             if (!string.IsNullOrWhiteSpace(regexValue))
             {
-                regex = new Regex(regexValue, RegexOptions.IgnoreCase | RegexOptions.Singleline | RegexOptions.CultureInvariant);
+                regex = ParseRegex(regexValue);
             }
+        }
+
+        /// <summary>
+        /// Get a regex from text - this handles multi-line regex using \n, combining it into a single line
+        /// To find newlines in the text, use the escape code for \n using \u0010
+        /// </summary>
+        /// <param name="text">Text</param>
+        /// <returns>Regex</returns>
+        public static Regex ParseRegex(string text)
+        {
+            string[] lines = text.Split('\n');
+            StringBuilder sb = new StringBuilder();
+            foreach (string line in lines)
+            {
+                string trimmedLine = line.Trim();
+                if (trimmedLine.Length != 0)
+                {
+                    sb.Append(trimmedLine);
+                }
+            }
+            return new Regex(sb.ToString(), RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
         }
 
         /// <summary>
