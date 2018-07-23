@@ -112,7 +112,6 @@ namespace IPBan
             }
             else if (args.Contains("test-eventViewer", StringComparer.OrdinalIgnoreCase))
             {
-                service.IsTesting = true;
                 eventViewer.TestAllEntries();
             }
             else

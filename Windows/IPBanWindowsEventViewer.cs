@@ -329,6 +329,7 @@ namespace IPBan
         /// </summary>
         public void TestAllEntries()
         {
+            service.IsTesting = true;
             int count = 0;
             try
             {
