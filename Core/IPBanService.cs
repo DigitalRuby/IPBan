@@ -331,7 +331,7 @@ namespace IPBan
         {
             // submit url to ipban public database so that everyone can benefit from an aggregated list of banned ip addresses
             string timestamp = DateTime.UtcNow.ToString("o");
-            string url = $"/IPSubmitBanned?ip={UrlEncode(ipAddress)}&source={UrlEncode(source)}&timestamp={UrlEncode(timestamp)}&userName={UrlEncode(userName)}";
+            string url = $"/IPSubmitBanned?ip={UrlEncode(ipAddress)}&osname={UrlEncode(OSName)}&osversion={UrlEncode(OSVersion)}&source={UrlEncode(source)}&timestamp={UrlEncode(timestamp)}&userName={UrlEncode(userName)}";
             string hash = Convert.ToBase64String(new SHA256Managed().ComputeHash(Encoding.UTF8.GetBytes(url + Resources.IPBanKey1)));
             url += "&hash=" + UrlEncode(hash);
             url = "https://api.ipban.com" + url;
