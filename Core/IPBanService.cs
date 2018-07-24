@@ -343,7 +343,7 @@ namespace IPBan
             catch
             {
                 // don't care, this is not fatal
-                return Task.FromResult<int>(0);
+                return Task.CompletedTask;
             }
         }
 
