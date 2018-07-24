@@ -1,6 +1,7 @@
 .vs/
 bin/
 obj/
+package/
 packages/
 *.suo
 *.cachefile
