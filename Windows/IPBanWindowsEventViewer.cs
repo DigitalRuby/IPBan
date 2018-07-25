@@ -61,6 +61,10 @@ namespace IPBan
             if (string.IsNullOrWhiteSpace(userName))
             {
                 XmlNode userNameNode = doc.SelectSingleNode("//Data[@Name='TargetUserName']");
+                if (userNameNode == null)
+                {
+                    userNameNode = doc.SelectSingleNode("//TargetUserName");
+                }
                 if (userNameNode != null)
                 {
                     userName = userNameNode.InnerText.Trim();
