@@ -42,7 +42,6 @@ namespace IPBan
             public string Source { get; set; }
         }
 
-        private readonly string configFilePath;
         private Task cycleTask;
         private bool firewallNeedsBlockedIPAddressesUpdate;
         private bool gotStartUrl;
@@ -116,13 +115,14 @@ namespace IPBan
         {
             try
             {
-                DateTime lastDateTime = File.GetLastWriteTimeUtc(configFilePath);
+                ConfigFilePath = (string.IsNullOrWhiteSpace(ConfigFilePath) ? ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None).FilePath : ConfigFilePath);
+                DateTime lastDateTime = File.GetLastWriteTimeUtc(ConfigFilePath);
                 if (lastDateTime > lastConfigFileDateTime)
                 {
                     lastConfigFileDateTime = lastDateTime;
                     lock (configLock)
                     {
-                        IPBanConfig newConfig = new IPBanConfig(configFilePath);
+                        IPBanConfig newConfig = new IPBanConfig(ConfigFilePath);
                         UpdateLogFiles(newConfig);
                         Config = newConfig;
                     }
@@ -467,7 +467,6 @@ namespace IPBan
         private void Initialize()
         {
             IsRunning = true;
-
             OSName = IPBanOS.Name + " (" + IPBanOS.FriendlyName + ")";
             OSVersion = IPBanOS.Version;
             ReadAppSettings();
@@ -831,39 +830,38 @@ namespace IPBan
         }
 
         /// <summary>
+        /// Constructor
+        /// </summary>
+        protected IPBanService()
+        {
+            RequestMaker = this;
+        }
+
+        /// <summary>
         /// Create an IPBanService by searching all types in all assemblies
         /// </summary>
-        /// <param name="instanceType">The type of service to create</param>
-        /// <returns></returns>
-        public static IPBanService CreateService(Type instanceType = null)
+        /// <param name="testing">True if testing, false otherwise. Testing mode disables certain features that are not needed in test mode.
+        /// In test mode manual cycle is true and multi-threaded is false.</param>
+        /// <returns>IPBanService (if not found an exception is thrown)</returns>
+        public static IPBanService CreateService(bool testing = false)
         {
-            Type ipBanServiceRootType = typeof(IPBanService);
-            if (instanceType == null)
+            // if any derived class of IPBanService, use that
+            var q =
+                from a in AppDomain.CurrentDomain.GetAssemblies().SelectMany(a => a.GetTypes())
+                where a.IsSubclassOf(typeof(IPBanService))
+                select a;
+            Type instanceType = (q.FirstOrDefault() ?? typeof(IPBanService));
+            IPBanService service = (IPBanService)Activator.CreateInstance(instanceType, BindingFlags.NonPublic | BindingFlags.Instance, null, null, null);
+            if (!testing)
             {
-                foreach (Assembly a in AppDomain.CurrentDomain.GetAssemblies())
-                {
-                    System.Type[] types = a.GetTypes();
-                    foreach (Type aType in types)
-                    {
-                        if ((instanceType != null && aType.IsSubclassOf(instanceType)) ||
-                            (instanceType == null && aType == ipBanServiceRootType) ||
-                            aType.IsSubclassOf(ipBanServiceRootType))
-                        {
-                            instanceType = aType;
-                            break;
-                        }
-                    }
-                }
-                if (instanceType == null)
-                {
-                    throw new ArgumentException("Unable to find a subclass of " + ipBanServiceRootType.FullName);
-                }
+                service.SubmitIPAddresses = true;
             }
-            else if (instanceType != ipBanServiceRootType && !instanceType.IsSubclassOf(ipBanServiceRootType))
+            else
             {
-                throw new ArgumentException("Instance type must be a subclass of " + ipBanServiceRootType.FullName);
+                service.MultiThreaded = false;
+                service.ManualCycle = true;
             }
-            return (IPBanService)Activator.CreateInstance(instanceType, string.Empty);
+            return service;
         }
 
         /// <summary>
@@ -1031,14 +1029,14 @@ namespace IPBan
                 {
                     doc.Load(xmlReader);
                 }
-                string text = File.ReadAllText(configFilePath);
+                string text = File.ReadAllText(ConfigFilePath);
 
                 // if the file changed, update it
                 if (text != xml)
                 {
                     lock (configLock)
                     {
-                        File.WriteAllText(configFilePath, xml);
+                        File.WriteAllText(ConfigFilePath, xml);
                     }
                 }
             }
@@ -1105,18 +1103,6 @@ namespace IPBan
         public void Stop()
         {
             Dispose();
-        }
-
-        /// <summary>
-        /// Constructor
-        /// </summary>
-        /// <param name="configFilePath">Config file path or null for default</param>
-        public IPBanService(string configFilePath = null)
-        {
-            this.configFilePath = (string.IsNullOrWhiteSpace(configFilePath) ?
-                ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None).FilePath :
-                configFilePath);
-            RequestMaker = this;
         }
 
         /// <summary>
@@ -1198,6 +1184,11 @@ namespace IPBan
         }
 
         /// <summary>
+        /// Config file path
+        /// </summary>
+        public string ConfigFilePath { get; set; }
+
+        /// <summary>
         /// Http request maker, defaults to this
         /// </summary>
         public IHttpRequestMaker RequestMaker { get; set; }
@@ -1240,12 +1231,12 @@ namespace IPBan
         /// <summary>
         /// Whether delegate callbacks and other tasks are multithreaded. Default is true. Set to false if unit or integration testing.
         /// </summary>
-        public bool MultiThreaded { get; set; } = true;
+        public bool MultiThreaded { get; private set; } = true;
 
         /// <summary>
         /// True if the cycle is manual, in which case RunCycle must be called periodically, otherwise if false RunCycle is called automatically.
         /// </summary>
-        public bool ManualCycle { get; set; }
+        public bool ManualCycle { get; private set; }
 
         /// <summary>
         /// The operating system name. If null, it is auto-detected.

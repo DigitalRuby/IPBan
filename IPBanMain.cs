@@ -11,23 +11,13 @@ namespace IPBan
     {
         public static int Main(string[] args)
         {
-            // default to IPBanService
-            Type instanceType = typeof(IPBanService);
-
-            // if any derived class of IPBanService, use that
-            var q =
-                from a in AppDomain.CurrentDomain.GetAssemblies().SelectMany(a => a.GetTypes())
-                where a.IsSubclassOf(instanceType)
-                select a;
-            instanceType = (q.FirstOrDefault() ?? instanceType);
-
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                IPBanWindowsApp.WindowsMain(args, instanceType);
+                IPBanWindowsApp.WindowsMain(args);
             }
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             {
-                IPBanLinuxApp.LinuxMain(args, instanceType);
+                IPBanLinuxApp.LinuxMain(args);
             }
             else
             {

@@ -13,6 +13,11 @@ namespace IPBan
     public interface IIPBanService : IDisposable
     {
         /// <summary>
+        /// Manually run regular processing - useful if testing
+        /// </summary>
+        void RunCycle();
+
+        /// <summary>
         /// Update config file with new xml
         /// </summary>
         /// <param name="xml">New config file xml</param>

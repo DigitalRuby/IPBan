@@ -28,15 +28,14 @@ namespace IPBan
     {
         private static IPBanService service;
         private static IPBanWindowsEventViewer eventViewer;
-        private static Type instanceType;
 
-        private static void CreateService()
+        private static void CreateService(bool testing)
         {
             if (service != null)
             {
                 service.Dispose();
             }
-            service = IPBanService.CreateService(instanceType);
+            service = IPBanService.CreateService(testing);
             service.Start();
             eventViewer = new IPBanWindowsEventViewer(service);
         }
@@ -44,7 +43,7 @@ namespace IPBan
         protected override void OnStart(string[] args)
         {
             base.OnStart(args);
-            CreateService();
+            CreateService(false);
         }
 
         protected override void OnStop()
@@ -105,12 +104,14 @@ namespace IPBan
 
         public static int RunConsole(string[] args)
         {
-            CreateService();
-            if (args.Contains("test", StringComparer.OrdinalIgnoreCase))
+            bool test = args.Contains("test", StringComparer.OrdinalIgnoreCase);
+            bool test2 = args.Contains("test-eventViewer", StringComparer.OrdinalIgnoreCase);
+            CreateService(test || test2);
+            if (test)
             {
                 eventViewer.RunTests();
             }
-            else if (args.Contains("test-eventViewer", StringComparer.OrdinalIgnoreCase))
+            else if (test2)
             {
                 eventViewer.TestAllEntries();
             }
@@ -135,9 +136,8 @@ namespace IPBan
             }
         }
 
-        public static int WindowsMain(string[] args, Type instanceType)
+        public static int WindowsMain(string[] args)
         {
-            IPBanWindowsApp.instanceType = instanceType;
             return ServiceEntryPoint(args);
         }
     }

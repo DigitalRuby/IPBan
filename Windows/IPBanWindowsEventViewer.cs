@@ -269,7 +269,6 @@ namespace IPBan
         /// </summary>
         public void RunTests()
         {
-            service.SubmitIPAddresses = false;
             string[] xmlTestStrings = new string[]
             {
                 @"<Event xmlns='http://schemas.microsoft.com/win/2004/08/events/event'><System><Provider Name='OpenSSH' Guid='{C4B57D35-0636-4BC3-A262-370F249F9802}' /><EventID>4</EventID><Version>0</Version><Level>4</Level><Task>0</Task><Opcode>0</Opcode><Keywords>0x4000000000000000</Keywords><TimeCreated SystemTime='2018-07-23T09:21:59.867239200Z' /><EventRecordID>1369</EventRecordID><Correlation /><Execution ProcessID='7964' ThreadID='696' /><Channel>OpenSSH/Operational</Channel><Computer>ns524406</Computer><Security UserID='S-1-5-18' /></System><EventData><Data Name='process'>sshd</Data><Data Name='payload'>Connection closed by 185.222.211.58 port 49448 [preauth]</Data></EventData></Event>",
@@ -303,6 +302,7 @@ namespace IPBan
             {
                 ProcessEventViewerXml(xml);
             }
+            service.RunCycle();
             service.ProcessPendingFailedLogins();
 
             for (int i = 0; i < 255 && service.IsRunning; i++)
@@ -317,6 +317,7 @@ namespace IPBan
                 TestRemoteDesktopAttemptWithIPAddress("99.99.8." + i.ToString(), 10);
                 TestRemoteDesktopAttemptWithIPAddress("99.99.9." + i.ToString(), 10);
                 TestRemoteDesktopAttemptWithIPAddress("99.99.10." + i.ToString(), 10);
+                service.RunCycle();
             }
 
             foreach (string xml in xmlTestStringsDelay)
@@ -326,6 +327,7 @@ namespace IPBan
                 {
                     Task.Delay(15000).Wait();
                     ProcessEventViewerXml(xml);
+                    service.RunCycle();
                 });
             }
         }
@@ -335,14 +337,15 @@ namespace IPBan
         /// </summary>
         public void TestAllEntries()
         {
-            service.SubmitIPAddresses = false;
             int count = 0;
             try
             {
                 TimeSpan timeout = TimeSpan.FromMilliseconds(20.0);
                 string queryString = GetEventLogQueryString(null);
-                EventLogQuery query = new EventLogQuery(null, PathType.LogName, queryString);
-                query.Session = new EventLogSession("localhost");
+                EventLogQuery query = new EventLogQuery(null, PathType.LogName, queryString)
+                {
+                    Session = new EventLogSession("localhost")
+                };
                 EventLogReader reader = new EventLogReader(query);
                 EventRecord record;
                 while ((record = reader.ReadEvent(timeout)) != null)
@@ -353,6 +356,7 @@ namespace IPBan
                     }
                     ProcessEventViewerXml(record.ToXml(), true);
                 }
+                service.RunCycle();
             }
             catch (Exception ex)
             {
