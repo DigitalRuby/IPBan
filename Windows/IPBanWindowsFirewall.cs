@@ -89,9 +89,9 @@ namespace IPBan
                 }
                 catch
                 {
-                    if (action == NET_FW_ACTION_.NET_FW_ACTION_ALLOW)
+                    if (string.IsNullOrWhiteSpace(rule.RemoteAddresses))
                     {
-                        // if fail and we are allowing, remove the rule, else this rule will allow all ip
+                        // if no ip addresses, remove the rule as it will allow or block everything
                         policy.Rules.Remove(ruleName);
                     }
                 }

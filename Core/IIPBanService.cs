@@ -94,9 +94,9 @@ namespace IPBan
         string OSVersion { get; }
 
         /// <summary>
-        /// Whether the service is being tested with mock data
+        /// Whether to submit ip addresses for global ban list
         /// </summary>
-        bool IsTesting { get; set; }
+        bool SubmitIPAddresses { get; set; }
     }
 
     /// <summary>

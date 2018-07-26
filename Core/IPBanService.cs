@@ -360,7 +360,7 @@ namespace IPBan
             Log.Write(NLog.LogLevel.Warn, "Banning ip address: {0}, user name: {1}, config black listed: {2}, count: {3}, extra info: {4}",
                 ipAddress, userName, configBlacklisted, counter, extraInfo);
 
-            if (!IsTesting)
+            if (SubmitIPAddresses)
             {
                 SubmitIPAddress(ipAddress, source, userName);
             }
@@ -784,11 +784,8 @@ namespace IPBan
                     ipAddresses = ipAddressesAndBanDate.Keys.ToArray();
                 }
 
-                if (!IsTesting)
-                {
-                    // re-create rules for all banned ip addresses
-                    Firewall.BlockIPAddresses(ipAddresses);
-                }
+                // re-create rules for all banned ip addresses
+                Firewall.BlockIPAddresses(ipAddresses);
             }
 
             // update firewall if needed
@@ -803,11 +800,8 @@ namespace IPBan
                     ipAddresses = ipAddressesToAllowInFirewall.ToArray();
                 }
 
-                if (!IsTesting)
-                {
-                    // re-create rules for all allowed ip addresses
-                    Firewall.AllowIPAddresses(ipAddresses);
-                }
+                // re-create rules for all allowed ip addresses
+                Firewall.AllowIPAddresses(ipAddresses);
             }
         }
 
@@ -1279,9 +1273,9 @@ namespace IPBan
         public bool IsRunning { get; set; }
 
         /// <summary>
-        /// Whether the service is being tested with mock data
+        /// Whether to submit ip addresses for global ban list
         /// </summary>
-        public bool IsTesting { get; set; }
+        public bool SubmitIPAddresses { get; set; } = true;
     }
 
     /// <summary>
