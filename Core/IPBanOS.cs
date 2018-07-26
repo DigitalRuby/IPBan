@@ -122,6 +122,37 @@ namespace IPBan
         {
             return $"Name: {Name}, Version: {Version}, Friendly Name: {FriendlyName}, Description: {Description}";
         }
+
+        /// <summary>
+        /// Easy way to execute processes. Timeout to complete is 30 seconds.
+        /// </summary>
+        /// <param name="program">Program to run</param>
+        /// <param name="args">Arguments</param>
+        /// <param name="allowedExitCode">Allowed exit codes, if empty not checked, otherwise a mismatch will throw an exception.</param>
+        public static void StartProcessAndWait(string program, string args, params int[] allowedExitCode)
+        {
+            Log.Write(NLog.LogLevel.Info, $"Executing process {program} {args}...");
+
+            var p = new Process
+            {
+                StartInfo = new ProcessStartInfo(program, args)
+                {
+                    CreateNoWindow = true,
+                    UseShellExecute = false,
+                    WindowStyle = ProcessWindowStyle.Hidden,
+                    Verb = "runas"
+                }
+            };
+            p.Start();
+            if (!p.WaitForExit(30000))
+            {
+                p.Kill();
+            }
+            if (allowedExitCode.Length != 0 && Array.IndexOf(allowedExitCode, p.ExitCode) < 0)
+            {
+                throw new ApplicationException($"Program {program} {args}: failed with exit code {p.ExitCode}");
+            }
+        }
     }
 
     /// <summary>
