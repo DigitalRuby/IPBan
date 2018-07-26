@@ -71,7 +71,7 @@ namespace IPBan
                 }
             }
 
-            Log.Write(NLog.LogLevel.Info, "*LOGIN FAIL* IP: {0}, USER: {1}", ipAddress, userName);
+            IPBanLog.Write(LogLevel.Information, "*LOGIN FAIL* IP: {0}, USER: {1}", ipAddress, userName);
             service.AddFailedLogin(ipAddress, source, userName);
 
             return true;
@@ -100,7 +100,7 @@ namespace IPBan
 
                         if (nodes.Count == 0)
                         {
-                            Log.Write(NLog.LogLevel.Info, "No nodes found for xpath {0}", expression.XPath);
+                            IPBanLog.Write(LogLevel.Information, "No nodes found for xpath {0}", expression.XPath);
                             ipAddress = null;
                             break;
                         }
@@ -109,7 +109,7 @@ namespace IPBan
                         if (string.IsNullOrWhiteSpace(expression.Regex))
                         {
                             // count as a match, do not modify the ip address if it was already set
-                            Log.Write(NLog.LogLevel.Info, "No regex, so counting as a match");
+                            IPBanLog.Write(LogLevel.Information, "No regex, so counting as a match");
                         }
                         else
                         {
@@ -128,7 +128,7 @@ namespace IPBan
                             if (!foundMatch)
                             {
                                 // match fail, null out ip, we have to match ALL the nodes or we get null ip and do not ban
-                                Log.Write(NLog.LogLevel.Info, "Regex {0} did not match any nodes with xpath {1}", expression.Regex, expression.XPath);
+                                IPBanLog.Write(LogLevel.Information, "Regex {0} did not match any nodes with xpath {1}", expression.Regex, expression.XPath);
                                 ipAddress = null;
                                 break;
                             }
@@ -182,7 +182,7 @@ namespace IPBan
             }
             catch (Exception ex)
             {
-                Log.Exception(ex);
+                IPBanLog.Error(ex);
             }
         }
 
@@ -217,10 +217,10 @@ namespace IPBan
                 string queryString = GetEventLogQueryString(ignored);
                 if (queryString != previousQueryString)
                 {
-                    Log.Write(NLog.LogLevel.Warn, "Event viewer query string: {0}", queryString);
+                    IPBanLog.Write(LogLevel.Warning, "Event viewer query string: {0}", queryString);
                     foreach (string path in ignored)
                     {
-                        Log.Write(NLog.LogLevel.Warn, "Ignoring event viewer path {0}", path);
+                        IPBanLog.Write(LogLevel.Warning, "Ignoring event viewer path {0}", path);
                     }
 
                     watcher?.Dispose();
@@ -233,7 +233,7 @@ namespace IPBan
             }
             catch (Exception ex)
             {
-                Log.Exception("Failed to create event viewer watcher", ex);
+                IPBanLog.Error("Failed to create event viewer watcher", ex);
             }
         }
 
@@ -254,7 +254,7 @@ namespace IPBan
         /// <param name="testing">True if testing, false otherwise</param>
         public void ProcessEventViewerXml(string xml, bool testing = false)
         {
-            Log.Write(NLog.LogLevel.Info, "Processing xml: {0}", xml);
+            IPBanLog.Write(LogLevel.Information, "Processing xml: {0}", xml);
 
             XmlDocument doc = ParseXml(xml);
             ExtractEventViewerXml(doc, out string ipAddress, out string source, out string userName);

@@ -127,7 +127,7 @@ namespace IPBan
             }
             catch (Exception ex)
             {
-                Log.Exception(ex);
+                IPBanLog.Error(ex);
                 return false;
             }
         }
@@ -167,7 +167,7 @@ namespace IPBan
             }
             catch (Exception ex)
             {
-                Log.Exception(ex);
+                IPBanLog.Error(ex);
                 return false;
             }
         }
@@ -204,7 +204,7 @@ namespace IPBan
             }
             catch (Exception ex)
             {
-                Log.Exception(ex);
+                IPBanLog.Error(ex);
             }
             return false;
         }
@@ -229,7 +229,7 @@ namespace IPBan
             }
             catch (Exception ex)
             {
-                Log.Exception(ex);
+                IPBanLog.Error(ex);
             }
             return false;
         }

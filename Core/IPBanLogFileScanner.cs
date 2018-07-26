@@ -168,7 +168,7 @@ namespace IPBan
                 {
                     if (!watchedFilesCopy.Contains(existing))
                     {
-                        Log.Write(NLog.LogLevel.Debug, "Removing parsed log file {0}", existing.FileName);
+                        IPBanLog.Write(LogLevel.Debug, "Removing parsed log file {0}", existing.FileName);
                         watchedFiles.Remove(existing);
                     }
                 }
@@ -179,7 +179,7 @@ namespace IPBan
                     // add the file, will fail if it already exists
                     if (watchedFiles.Add(newFile))
                     {
-                        Log.Write(NLog.LogLevel.Debug, "Adding parsed log file {0}", newFile.FileName);
+                        IPBanLog.Write(LogLevel.Debug, "Adding parsed log file {0}", newFile.FileName);
                     }
                 }
 
@@ -236,7 +236,7 @@ namespace IPBan
                 }
                 catch (Exception ex)
                 {
-                    Log.Exception(ex);
+                    IPBanLog.Error(ex);
                 }
             }
 
@@ -294,17 +294,17 @@ namespace IPBan
                 // find ip and user name from all lines
                 foreach (string line in lines)
                 {
-                    Log.Write(NLog.LogLevel.Debug, "Parsing log file line {0}...", line);
+                    IPBanLog.Write(LogLevel.Debug, "Parsing log file line {0}...", line);
                     bool foundMatch = IPBanService.GetIPAddressAndUserNameFromRegex(Regex, line.Trim(), ref ipAddress, ref userName);
                     if (foundMatch)
                     {
-                        Log.Write(NLog.LogLevel.Debug, "Found match, ip: {0}, user: {1}", ipAddress, userName);
+                        IPBanLog.Write(LogLevel.Debug, "Found match, ip: {0}, user: {1}", ipAddress, userName);
                         service.AddFailedLogin(ipAddress, Source, userName);
                         foundOne = true;
                     }
                     else
                     {
-                        Log.Write(NLog.LogLevel.Debug, "No match!");
+                        IPBanLog.Write(LogLevel.Debug, "No match!");
                     }
                 }
 
