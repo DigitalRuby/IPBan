@@ -28,8 +28,11 @@
 
   <ItemGroup>
     <Compile Remove="packages\**" />
+    <Compile Remove="package\**" />
     <EmbeddedResource Remove="packages\**" />
+    <EmbeddedResource Remove="package\**" />
     <None Remove="packages\**" />
+    <None Remove="package\**" />
   </ItemGroup>
 
   <ItemGroup>
