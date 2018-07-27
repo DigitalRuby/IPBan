@@ -1132,7 +1132,7 @@ namespace IPBan
                     }
                 }
             }
-            result = default(T);
+            result = default;
             return false;
         }
 
@@ -1236,7 +1236,7 @@ namespace IPBan
         /// </summary>
         public DateTime CurrentDateTime
         {
-            get { return currentDateTime == default(DateTime) ? DateTime.UtcNow : currentDateTime; }
+            get { return currentDateTime == default ? DateTime.UtcNow : currentDateTime; }
             set { currentDateTime = value; }
         }
 
