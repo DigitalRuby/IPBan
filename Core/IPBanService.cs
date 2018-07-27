@@ -431,37 +431,7 @@ namespace IPBan
 
         private void LoadFirewall()
         {
-            // find the first firewall implementation if the firewall is null
-            string firewallTypeParameter = IPBanConfig.GetConfig<string>("FirewallType");
-            bool foundFirewallType = false;
-            Type firewallType = typeof(IIPBanFirewall);
-            var q =
-                from a in AppDomain.CurrentDomain.GetAssemblies().SelectMany(a => a.GetTypes())
-                where a != firewallType &&
-                    firewallType.IsAssignableFrom(a) &&
-                    a.GetCustomAttribute<RequiredOperatingSystemAttribute>() != null &&
-                    a.GetCustomAttribute<RequiredOperatingSystemAttribute>().IsValid
-                select a;
-            foreach (Type t in q)
-            {
-                Firewall = Activator.CreateInstance(t) as IIPBanFirewall;
-
-                // if we found the right firewall type from config, stop
-                if (t.Name == firewallTypeParameter)
-                {
-                    foundFirewallType = true;
-                    break;
-                }
-            }
-            if (Firewall == null)
-            {
-                throw new ArgumentException("Firewall is null, at least one type should implement IIPBanFirewall");
-            }
-            else if (!string.IsNullOrWhiteSpace(firewallTypeParameter) && !foundFirewallType)
-            {
-                throw new ArgumentException("Unable to find firewall of type '" + firewallTypeParameter + "'");
-            }
-            Firewall.Initialize(string.IsNullOrWhiteSpace(Config.RuleName) ? "IPBan_BlockIPAddresses_" : Config.RuleName);
+            Firewall = IPBanFirewallUtility.CreateFirewall(Config.FirewallOSAndType, Config.FirewallRulePrefix);
         }
 
         private void Initialize()

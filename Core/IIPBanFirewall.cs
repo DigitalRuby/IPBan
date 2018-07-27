@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 using System.Text;
 
 namespace IPBan
@@ -75,6 +77,47 @@ namespace IPBan
                 return false;
             }
             return true;
+        }
+
+        /// <summary>
+        /// Create a firewall
+        /// </summary>
+        /// <param name="osAndFirewall">Dictionary of string operating system name (Windows, Linux, OSX) and firewall class</param>
+        /// <param name="rulePrefix">Rule prefix or null for default</param>
+        /// <returns>Firewall</returns>
+        public static IIPBanFirewall CreateFirewall(IReadOnlyDictionary<string, string> osAndFirewall, string rulePrefix)
+        {
+            bool foundFirewallType = false;
+            Type firewallType = typeof(IIPBanFirewall);
+            var q =
+                from a in AppDomain.CurrentDomain.GetAssemblies().SelectMany(a => a.GetTypes())
+                where a != firewallType &&
+                    firewallType.IsAssignableFrom(a) &&
+                    a.GetCustomAttribute<RequiredOperatingSystemAttribute>() != null &&
+                    a.GetCustomAttribute<RequiredOperatingSystemAttribute>().IsValid
+                select a;
+            foreach (Type t in q)
+            {
+                firewallType = t;
+                if (osAndFirewall.TryGetValue(IPBanOS.Name, out string firewallToUse) &&
+                    t.Name == firewallToUse)
+                {
+                    foundFirewallType = true;
+                    break;
+                }
+            }
+            if (firewallType == null)
+            {
+                throw new ArgumentException("Firewall is null, at least one type should implement IIPBanFirewall");
+            }
+            else if (osAndFirewall.Count != 0 && !foundFirewallType)
+            {
+                string typeString = string.Join(',', osAndFirewall.Select(kv => kv.Key + ":" + kv.Value));
+                throw new ArgumentException("Unable to find firewalls of types: " + typeString + ", osname: " + IPBanOS.Name);
+            }
+            IIPBanFirewall firewall = Activator.CreateInstance(firewallType) as IIPBanFirewall;
+            firewall.Initialize(string.IsNullOrWhiteSpace(rulePrefix) ? "IPBan_" : rulePrefix);
+            return firewall;
         }
     }
 }

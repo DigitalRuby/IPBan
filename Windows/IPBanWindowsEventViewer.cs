@@ -91,7 +91,7 @@ namespace IPBan
             if (keywordsNode != null)
             {
                 // we must match on keywords
-                foreach (ExpressionsToBlockGroup group in service.Config.GetGroupsMatchingKeywords(keywordsULONG))
+                foreach (ExpressionsToBlockGroup group in service.Config.WindowsEventViewerGetGroupsMatchingKeywords(keywordsULONG))
                 {
                     foreach (ExpressionToBlock expression in group.Expressions)
                     {

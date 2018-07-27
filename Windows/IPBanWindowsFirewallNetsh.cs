@@ -62,7 +62,7 @@ namespace IPBan
             }
         }
 
-        public string RulePrefix { get; private set; } = "IPBan_BlockIPAddresses_";
+        public string RulePrefix { get; private set; } = "IPBan_";
 
         public bool CreateRules(IReadOnlyList<string> ipAddresses)
         {

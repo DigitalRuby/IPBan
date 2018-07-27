@@ -31,13 +31,14 @@ namespace IPBan
         private readonly TimeSpan cycleTime = TimeSpan.FromMinutes(1.0d);
         private readonly TimeSpan minimumTimeBetweenFailedLoginAttempts = TimeSpan.FromSeconds(5.0);
         private readonly int failedLoginAttemptsBeforeBan = 5;
-        private readonly string ruleName = "BlockIPAddresses";
+        private readonly string firewallRulePrefix = "BlockIPAddresses";
         private readonly HashSet<string> blackList = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         private readonly HashSet<string> whiteList = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         private readonly bool clearBannedIPAddressesOnRestart;
         private readonly HashSet<string> userNameWhitelist = new HashSet<string>(StringComparer.Ordinal);
         private readonly int userNameWhitelistMaximumEditDistance = 2;
         private readonly int failedLoginAttemptsBeforeBanUserNameWhitelist = 20;
+        private readonly Dictionary<string, string> osAndFirewallType = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         private readonly string processToRunOnBan;
         private readonly string getUrlUpdate;
         private readonly string getUrlStart;
@@ -138,7 +139,7 @@ namespace IPBan
         /// <typeparam name="T">Type of value to set</typeparam>
         /// <param name="key">Key</param>
         /// <param name="value">Value</param>
-        public static void SetConfig<T>(string key, ref T value)
+        public static void GetConfig<T>(string key, ref T value)
         {
             try
             {
@@ -168,13 +169,13 @@ namespace IPBan
             ConfigurationManager.RefreshSection("ExpressionsToBlock");
             ConfigurationManager.RefreshSection("LogFilesToParse");
 
-            SetConfig<int>("FailedLoginAttemptsBeforeBan", ref failedLoginAttemptsBeforeBan);
-            SetConfig<TimeSpan>("BanTime", ref banTime);
-            SetConfig<bool>("ClearBannedIPAddressesOnRestart", ref clearBannedIPAddressesOnRestart);
-            SetConfig<TimeSpan>("ExpireTime", ref expireTime);
-            SetConfig<TimeSpan>("CycleTime", ref cycleTime);
-            SetConfig<TimeSpan>("MinimumTimeBetweenFailedLoginAttempts", ref minimumTimeBetweenFailedLoginAttempts);
-            SetConfig<string>("RuleName", ref ruleName);
+            GetConfig<int>("FailedLoginAttemptsBeforeBan", ref failedLoginAttemptsBeforeBan);
+            GetConfig<TimeSpan>("BanTime", ref banTime);
+            GetConfig<bool>("ClearBannedIPAddressesOnRestart", ref clearBannedIPAddressesOnRestart);
+            GetConfig<TimeSpan>("ExpireTime", ref expireTime);
+            GetConfig<TimeSpan>("CycleTime", ref cycleTime);
+            GetConfig<TimeSpan>("MinimumTimeBetweenFailedLoginAttempts", ref minimumTimeBetweenFailedLoginAttempts);
+            GetConfig<string>("FirewallRulePrefix", ref firewallRulePrefix);
 
             string whiteListString = GetConfig<string>("Whitelist", string.Empty);
             string whiteListRegexString = GetConfig<string>("WhitelistRegex", string.Empty);
@@ -212,7 +213,19 @@ namespace IPBan
                 expressions = new ExpressionsToBlock { Groups = new ExpressionsToBlockGroup[0] };
             }
             logFiles = ((LogFilesToParse)System.Configuration.ConfigurationManager.GetSection("LogFilesToParse"))?.LogFiles ?? new LogFileToParse[0];
-            SetConfig<string>("ProcessToRunOnBan", ref processToRunOnBan);
+            GetConfig<string>("ProcessToRunOnBan", ref processToRunOnBan);
+
+            // retrieve firewall configuration
+            string[] firewallTypes = GetConfig<string>("FirewallType", string.Empty).Split(',', StringSplitOptions.RemoveEmptyEntries);
+            foreach (string firewallOSAndType in firewallTypes)
+            {
+                string[] pieces = firewallOSAndType.Split(':');
+                if (pieces.Length == 2)
+                {
+                    osAndFirewallType[pieces[0]] = pieces[1];
+                }
+            }
+
             string userNameWhiteListString = GetConfig<string>("UserNameWhiteList", string.Empty);
             foreach (string userName in userNameWhiteListString.Split(','))
             {
@@ -222,13 +235,13 @@ namespace IPBan
                     userNameWhitelist.Add(userNameTrimmed);
                 }
             }
-            SetConfig<int>("UserNameWhiteListMinimumEditDistance", ref userNameWhitelistMaximumEditDistance);
-            SetConfig<int>("FailedLoginAttemptsBeforeBanUserNameWhitelist", ref failedLoginAttemptsBeforeBanUserNameWhitelist);
-            SetConfig<string>("GetUrlUpdate", ref getUrlUpdate);
-            SetConfig<string>("GetUrlStart", ref getUrlStart);
-            SetConfig<string>("GetUrlStop", ref getUrlStop);
-            SetConfig<string>("GetUrlConfig", ref getUrlConfig);
-            SetConfig<string>("ExternalIPAddressUrl", ref externalIPAddressUrl);
+            GetConfig<int>("UserNameWhiteListMinimumEditDistance", ref userNameWhitelistMaximumEditDistance);
+            GetConfig<int>("FailedLoginAttemptsBeforeBanUserNameWhitelist", ref failedLoginAttemptsBeforeBanUserNameWhitelist);
+            GetConfig<string>("GetUrlUpdate", ref getUrlUpdate);
+            GetConfig<string>("GetUrlStart", ref getUrlStart);
+            GetConfig<string>("GetUrlStop", ref getUrlStop);
+            GetConfig<string>("GetUrlConfig", ref getUrlConfig);
+            GetConfig<string>("ExternalIPAddressUrl", ref externalIPAddressUrl);
         }
 
         /// <summary>
@@ -298,11 +311,11 @@ namespace IPBan
         }
 
         /// <summary>
-        /// Return all the groups that match the specified keywords
+        /// Return all the groups that match the specified keywords (Windows only)
         /// </summary>
         /// <param name="keywords">Keywords</param>
         /// <returns>Groups that match</returns>
-        public IEnumerable<ExpressionsToBlockGroup> GetGroupsMatchingKeywords(ulong keywords)
+        public IEnumerable<ExpressionsToBlockGroup> WindowsEventViewerGetGroupsMatchingKeywords(ulong keywords)
         {
             return WindowsEventViewerExpressionsToBlock.Groups.Where(g => (g.KeywordsULONG == keywords));
         }
@@ -333,9 +346,9 @@ namespace IPBan
         public TimeSpan MinimumTimeBetweenFailedLoginAttempts { get { return minimumTimeBetweenFailedLoginAttempts; } }
 
         /// <summary>
-        /// Rule name for Windows Firewall
+        /// Rule prefix for firewall
         /// </summary>
-        public string RuleName { get { return ruleName; } }
+        public string FirewallRulePrefix { get { return firewallRulePrefix; } }
 
         /// <summary>
         /// Event viewer expressions to block (Windows only)
@@ -381,6 +394,11 @@ namespace IPBan
         /// Number of failed logins before banning a user name in the user name whitelist
         /// </summary>
         public int FailedLoginAttemptsBeforeBanUserNameWhitelist { get { return failedLoginAttemptsBeforeBanUserNameWhitelist; } }
+
+        /// <summary>
+        /// Dictionary of string operating system name (Windows, Linux, OSX, etc.) and firewall class type
+        /// </summary>
+        public IReadOnlyDictionary<string, string> FirewallOSAndType { get { return osAndFirewallType; } }
 
         /// <summary>
         /// Process to run on ban - replace ###IPADDRESS### with the banned ip address

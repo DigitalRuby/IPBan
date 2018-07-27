@@ -106,11 +106,45 @@ namespace IPBan
             GetOrCreateRule(ruleName, remoteIpString, NET_FW_ACTION_.NET_FW_ACTION_BLOCK);
         }
 
-        public string RulePrefix { get; private set; } = "IPBan_BlockIPAddresses_";
+        private void MigrateOldDefaultRuleNames()
+        {
+            // migrate old default rule names to new names
+            INetFwRule rule = null;
+            for (int i = 0; ; i += maxIpAddressesPerRule)
+            {
+                lock (policy)
+                {
+                    try
+                    {
+                        rule = policy.Rules.Item("IPBan_BlockIPAddresses_" + i.ToString(CultureInfo.InvariantCulture));
+                        rule.Name = RulePrefix + i.ToString(CultureInfo.InvariantCulture);
+                    }
+                    catch
+                    {
+                        // ignore exception, assume does not exist
+                        break;
+                    }
+                }
+            }
+            lock (policy)
+            {
+                try
+                {
+                    rule = policy.Rules.Item("IPBan_BlockIPAddresses_AllowIPAddresses");
+                    rule.Name = RulePrefix + "AllowIPAddresses";
+                }
+                catch
+                {
+                }
+            }
+        }
+
+        public string RulePrefix { get; private set; } = "IPBan_";
 
         public void Initialize(string rulePrefix)
         {
             RulePrefix = rulePrefix;
+            MigrateOldDefaultRuleNames();
         }
 
         public bool BlockIPAddresses(IReadOnlyList<string> ipAddresses)

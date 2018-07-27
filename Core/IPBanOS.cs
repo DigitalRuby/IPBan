@@ -40,7 +40,7 @@ namespace IPBan
         public static int OS { get; private set; }
 
         /// <summary>
-        /// Operating system name
+        /// Operating system name (i.e. Windows, Linux or OSX)
         /// </summary>
         public static string Name { get; private set; }
 

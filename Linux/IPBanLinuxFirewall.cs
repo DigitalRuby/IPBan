@@ -93,7 +93,7 @@ namespace IPBan
             return result;
         }
 
-        public string RulePrefix { get; private set; } = "IPBan_BlockIPAddresses_";
+        public string RulePrefix { get; private set; } = "IPBan_";
 
         public void Initialize(string rulePrefix)
         {
