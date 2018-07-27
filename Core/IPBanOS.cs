@@ -183,4 +183,25 @@ namespace IPBan
         /// </summary>
         public int RequiredOS { get; private set; }
     }
+
+    /// <summary>
+    /// Apply a custom name to a class
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Class)]
+    public class CustomNameAttribute : Attribute
+    {
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="name">Custom name</param>
+        public CustomNameAttribute(string name)
+        {
+            Name = name;
+        }
+
+        /// <summary>
+        /// Short name
+        /// </summary>
+        public string Name { get; set; }
+    }
 }

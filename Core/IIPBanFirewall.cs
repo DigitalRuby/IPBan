@@ -99,8 +99,14 @@ namespace IPBan
             foreach (Type t in q)
             {
                 firewallType = t;
+                CustomNameAttribute customName = t.GetCustomAttribute<CustomNameAttribute>();
+
+                // look up the requested firewall by os name
                 if (osAndFirewall.TryGetValue(IPBanOS.Name, out string firewallToUse) &&
-                    t.Name == firewallToUse)
+
+                    // check type name or custom name attribute name, at least one must match
+                    (t.Name == firewallToUse ||
+                    (customName != null && (customName.Name ?? string.Empty).Equals(firewallToUse, StringComparison.OrdinalIgnoreCase))))
                 {
                     foundFirewallType = true;
                     break;
