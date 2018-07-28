@@ -53,7 +53,7 @@
 
   <ItemGroup>
     <EmbeddedResource Update="Properties\IPBanResources.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
+      <Generator>PublicResXFileCodeGenerator</Generator>
       <LastGenOutput>IPBanResources.Designer.cs</LastGenOutput>
       <CustomToolNamespace>IPBan</CustomToolNamespace>
     </EmbeddedResource>
