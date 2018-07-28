@@ -90,12 +90,14 @@ namespace IPBan
                 {
                     OS = IPBanOS.Windows;
                     Name = "Windows";
-                    ManagementObjectSearcher searcher = new ManagementObjectSearcher("SELECT Caption, Version FROM Win32_OperatingSystem");
-                    foreach (var result in searcher.Get())
+                    using (ManagementObjectSearcher searcher = new ManagementObjectSearcher("SELECT Caption, Version FROM Win32_OperatingSystem"))
                     {
-                        FriendlyName = result["Caption"] as string;
-                        Version = result["Version"] as string;
-                        break;
+                        foreach (var result in searcher.Get())
+                        {
+                            FriendlyName = result["Caption"] as string;
+                            Version = result["Version"] as string;
+                            break;
+                        }
                     }
                 }
                 else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
@@ -109,8 +111,9 @@ namespace IPBan
                     FriendlyName = "Unknown";
                 }
             }
-            catch
+            catch (Exception ex)
             {
+                IPBanLog.Error(ex);
             }
         }
         

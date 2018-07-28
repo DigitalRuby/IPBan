@@ -11,7 +11,11 @@ namespace IPBan
     {
         public static int Main(string[] args)
         {
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            if (args.Length != 0 && args[0].Equals("info", StringComparison.OrdinalIgnoreCase))
+            {
+                Console.WriteLine("System info: {0}", IPBanOS.OSString());
+            }
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 IPBanWindowsApp.WindowsMain(args);
             }
