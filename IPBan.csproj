@@ -13,7 +13,7 @@
     <OutputType>Exe</OutputType>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <StartupObject></StartupObject>
-    <TrimUnusedDependencies>true</TrimUnusedDependencies>
+    <TrimUnusedDependencies>false</TrimUnusedDependencies>
     <TargetLatestRuntimePatch>true</TargetLatestRuntimePatch>
     <PackageReleaseNotes>Bug fixes and performance improvements</PackageReleaseNotes>
   </PropertyGroup>

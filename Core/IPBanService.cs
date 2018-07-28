@@ -434,19 +434,6 @@ namespace IPBan
             Firewall = IPBanFirewallUtility.CreateFirewall(Config.FirewallOSAndType, Config.FirewallRulePrefix);
         }
 
-        private void Initialize()
-        {
-            IsRunning = true;
-            OSName = IPBanOS.Name + " (" + IPBanOS.FriendlyName + ")";
-            OSVersion = IPBanOS.Version;
-            ReadAppSettings();
-            LoadFirewall();
-            UpdateBannedIPAddressesOnStart();
-            LogInitialConfig();
-            IPBanDelegate?.Start(this);
-            IPBanLog.Write(LogLevel.Warning, "IPBan service started and initialized. Operating System: {0}", IPBanOS.OSString());
-        }
-
         private void CheckForExpiredIP()
         {
             List<string> ipAddressesToForget = new List<string>();
@@ -805,6 +792,8 @@ namespace IPBan
         protected IPBanService()
         {
             RequestMaker = this;
+            OSName = IPBanOS.Name + (string.IsNullOrWhiteSpace(IPBanOS.FriendlyName) ? string.Empty : " (" + IPBanOS.FriendlyName + ")");
+            OSVersion = IPBanOS.Version;
         }
 
         /// <summary>
@@ -1072,11 +1061,17 @@ namespace IPBan
         /// </summary>
         public void Start()
         {
-            Initialize();
+            IsRunning = true;
+            ReadAppSettings();
+            LoadFirewall();
+            UpdateBannedIPAddressesOnStart();
+            LogInitialConfig();
+            IPBanDelegate?.Start(this);
             if (!ManualCycle)
             {
                 cycleTask = Task.Run((Action)CycleTask);
             }
+            IPBanLog.Write(LogLevel.Warning, "IPBan service started and initialized. Operating System: {0}", IPBanOS.OSString());
         }
 
         /// <summary>
