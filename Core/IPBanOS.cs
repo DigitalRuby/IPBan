@@ -81,23 +81,24 @@ namespace IPBan
                     string tempFile = Path.GetTempFileName();
                     Process.Start("/bin/bash", "-c \"cat /etc/*release* > " + tempFile + "\"").WaitForExit();
                     string versionText = File.ReadAllText(tempFile);
+                    File.Delete(tempFile);
                     Name = ExtractRegex(versionText, "^(Id|Distrib_Id)=(?<value>.*?)$", "Linux");
                     FriendlyName = ExtractRegex(versionText, "^(Name|Distrib_CodeName)=(?<value>.+)$", "Linux");
                     Version = ExtractRegex(versionText, "^Version_Id=(?<value>.+)$", Version);
-                    File.Delete(tempFile);
                 }
                 else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 {
                     OS = IPBanOS.Windows;
                     Name = "Windows";
-                    using (ManagementObjectSearcher searcher = new ManagementObjectSearcher("SELECT Caption, Version FROM Win32_OperatingSystem"))
+                    string tempFile = Path.GetTempFileName();
+                    StartProcessAndWait("cmd", "/C wmic path Win32_OperatingSystem get Caption,Version > \"" + tempFile + "\"");
+                    string[] lines = File.ReadAllLines(tempFile);
+                    File.Delete(tempFile);
+                    if (lines.Length == 2)
                     {
-                        foreach (var result in searcher.Get())
-                        {
-                            FriendlyName = result["Caption"] as string;
-                            Version = result["Version"] as string;
-                            break;
-                        }
+                        int versionIndex = lines[0].IndexOf("Version");
+                        Name = lines[1].Substring(0, versionIndex - 1).Trim();
+                        Version = lines[1].Substring(versionIndex).Trim();
                     }
                 }
                 else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
