@@ -333,7 +333,7 @@ namespace IPBan
             string timestamp = DateTime.UtcNow.ToString("o");
             string version = Assembly.GetAssembly(typeof(IPBanService)).GetName().Version.ToString();
             string url = $"/IPSubmitBanned?ip={UrlEncode(ipAddress)}&osname={UrlEncode(OSName)}&osversion={UrlEncode(OSVersion)}&source={UrlEncode(source)}&timestamp={UrlEncode(timestamp)}&userName={UrlEncode(userName)}&version={version}";
-            string hash = Convert.ToBase64String(new SHA256Managed().ComputeHash(Encoding.UTF8.GetBytes(url + Resources.IPBanKey1)));
+            string hash = Convert.ToBase64String(new SHA256Managed().ComputeHash(Encoding.UTF8.GetBytes(url + IPBanResources.IPBanKey1)));
             url += "&hash=" + UrlEncode(hash);
             url = "https://api.ipban.com" + url;
 
@@ -505,7 +505,7 @@ namespace IPBan
                     }
                 }
 
-                // Remove the IPs that have expired.
+                // Remove the IPs that have expired. Always lock ipAddressesAndBanDate for all operations.
                 lock (ipAddressesAndBanDate)
                 {
                     foreach (string ip in ipAddressesToForget)
@@ -749,7 +749,7 @@ namespace IPBan
             {
                 ipAddressesToAllowInFirewallNeedsUpdate = false;
 
-                // quickly copy out data in a lock
+                // quickly copy out data in a lock, always lock ipAddressesAndBanDate
                 string[] ipAddresses;
                 lock (ipAddressesAndBanDate)
                 {

@@ -13,7 +13,7 @@
     <OutputType>Exe</OutputType>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <StartupObject></StartupObject>
-    <TrimUnusedDependencies>false</TrimUnusedDependencies>
+    <TrimUnusedDependencies>true</TrimUnusedDependencies>
     <TargetLatestRuntimePatch>true</TargetLatestRuntimePatch>
     <PackageReleaseNotes>Bug fixes and performance improvements</PackageReleaseNotes>
   </PropertyGroup>
@@ -44,17 +44,17 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Update="Properties\Resources.Designer.cs">
+    <Compile Update="Properties\IPBanResources.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
-      <DependentUpon>Resources.resx</DependentUpon>
+      <DependentUpon>IPBanResources.resx</DependentUpon>
     </Compile>
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Update="Properties\Resources.resx">
+    <EmbeddedResource Update="Properties\IPBanResources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+      <LastGenOutput>IPBanResources.Designer.cs</LastGenOutput>
       <CustomToolNamespace>IPBan</CustomToolNamespace>
     </EmbeddedResource>
   </ItemGroup>
