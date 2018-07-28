@@ -514,26 +514,6 @@ namespace IPBan
                         ipAddressesAndBlockCounts.Remove(ip);
                     }
                 }
-
-                // notify delegate outside of lock
-                if (IPBanDelegate != null)
-                {
-                    // notify delegate of unban in background thread
-                    RunTask(() =>
-                    {
-                        foreach (string ip in ipAddressesToForget)
-                        {
-                            try
-                            {
-                                IPBanDelegate.IPAddressBanned(ip, null, false);
-                            }
-                            catch (Exception ex)
-                            {
-                                IPBanLog.Error("Error in delegate IPAddressBanned", ex);
-                            }
-                        }
-                    });
-                }
             }
         }
 
@@ -1080,6 +1060,20 @@ namespace IPBan
         public void Stop()
         {
             Dispose();
+        }
+
+        /// <summary>
+        /// Get a list of ip address and failed login attempts
+        /// </summary>
+        public IEnumerable<KeyValuePair<string, IPBlockCount>> FailedLoginAttempts
+        {
+            get
+            {
+                lock (ipAddressesAndBanDate)
+                {
+                    return ipAddressesAndBlockCounts.ToArray();
+                }
+            }
         }
 
         /// <summary>
