@@ -76,7 +76,7 @@ namespace IPBan
                     Process.Start("/bin/bash", "-c \"cat /etc/*release* > " + tempFile + "\"").WaitForExit();
                     string versionText = File.ReadAllText(tempFile);
                     File.Delete(tempFile);
-                    Name = "Linux"; 
+                    Name = IPBanOS.Linux;
                     FriendlyName = ExtractRegex(versionText, "^(Id|Distrib_Id)=(?<value>.*?)$", string.Empty);
                     if (FriendlyName.Length != 0)
                     {
@@ -90,7 +90,7 @@ namespace IPBan
                 }
                 else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 {
-                    Name = "Windows";
+                    Name = IPBanOS.Windows;
                     string tempFile = Path.GetTempFileName();
 
                     // .net core WMI has a strange bug where WMI will not initialize on some systems
