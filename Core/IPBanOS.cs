@@ -17,27 +17,22 @@ namespace IPBan
         /// <summary>
         /// Unknown operating system
         /// </summary>
-        public const int Unknown = 0;
+        public const string Unknown = "Unknown";
 
         /// <summary>
         /// Windows
         /// </summary>
-        public const int Windows = 1;
+        public const string Windows = "Windows";
 
         /// <summary>
         /// Linux
         /// </summary>
-        public const int Linux = 2;
+        public const string Linux = "Linux";
 
         /// <summary>
-        /// Macintosh / OS 10
+        /// Macintosh / OS 10+
         /// </summary>
-        public const int OSX = 3;
-
-        /// <summary>
-        /// Operating system (IPBanOS.Unknown, IPBanOS.Windows, IPBanOS.Linux or IPBanOS.OSX)
-        /// </summary>
-        public static int OS { get; private set; }
+        public const string Mac = "Mac";
 
         /// <summary>
         /// Operating system name (i.e. Windows, Linux or OSX)
@@ -77,18 +72,21 @@ namespace IPBan
                 Description = RuntimeInformation.OSDescription;
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
                 {
-                    OS = IPBanOS.Linux;
                     string tempFile = Path.GetTempFileName();
                     Process.Start("/bin/bash", "-c \"cat /etc/*release* > " + tempFile + "\"").WaitForExit();
                     string versionText = File.ReadAllText(tempFile);
                     File.Delete(tempFile);
-                    Name = ExtractRegex(versionText, "^(Id|Distrib_Id)=(?<value>.*?)$", "Linux");
-                    FriendlyName = ExtractRegex(versionText, "^(Name|Distrib_CodeName)=(?<value>.+)$", "Linux");
+                    Name = "Linux"; 
+                    FriendlyName = ExtractRegex(versionText, "^(Id|Distrib_Id)=(?<value>.*?)$", string.Empty);
+                    string codeName = ExtractRegex(versionText, "^(Name|Distrib_CodeName)=(?<value>.+)$", string.Empty);
+                    if (codeName.Length != 0)
+                    {
+                        FriendlyName += " - " + codeName;
+                    }
                     Version = ExtractRegex(versionText, "^Version_Id=(?<value>.+)$", Version);
                 }
                 else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 {
-                    OS = IPBanOS.Windows;
                     Name = "Windows";
                     string tempFile = Path.GetTempFileName();
 
@@ -103,7 +101,7 @@ namespace IPBan
                         if (lines.Length == 2)
                         {
                             int versionIndex = lines[0].IndexOf("Version");
-                            Name = lines[1].Substring(0, versionIndex - 1).Trim();
+                            FriendlyName = lines[1].Substring(0, versionIndex - 1).Trim();
                             Version = lines[1].Substring(versionIndex).Trim();
                         }
                     }
@@ -123,12 +121,13 @@ namespace IPBan
                     }
                 else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
                 {
-                    OS = IPBanOS.OSX;
-                    Name = FriendlyName = "OSX";
+                    // TODO: Implement better for MAC
+                    Name = IPBanOS.Mac;
+                    FriendlyName = "OSX";
                 }
                 else
                 {
-                    OS = IPBanOS.Unknown;
+                    Name = IPBanOS.Unknown;
                     FriendlyName = "Unknown";
                 }
             }
@@ -189,7 +188,7 @@ namespace IPBan
         /// Constructor
         /// </summary>
         /// <param name="os">OS (IPBanOS.*)</param>
-        public RequiredOperatingSystemAttribute(int os)
+        public RequiredOperatingSystemAttribute(string os)
         {
             RequiredOS = os;
         }
@@ -199,13 +198,13 @@ namespace IPBan
         /// </summary>
         public bool IsValid
         {
-            get { return RequiredOS == IPBanOS.OS; }
+            get { return RequiredOS == IPBanOS.Name; }
         }
 
         /// <summary>
         /// The required operating system (IPBanOS.*)
         /// </summary>
-        public int RequiredOS { get; private set; }
+        public string RequiredOS { get; private set; }
     }
 
     /// <summary>
