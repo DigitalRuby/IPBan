@@ -91,16 +91,36 @@ namespace IPBan
                     OS = IPBanOS.Windows;
                     Name = "Windows";
                     string tempFile = Path.GetTempFileName();
-                    StartProcessAndWait("cmd", "/C wmic path Win32_OperatingSystem get Caption,Version > \"" + tempFile + "\"");
-                    string[] lines = File.ReadAllLines(tempFile);
-                    File.Delete(tempFile);
-                    if (lines.Length == 2)
+
+                    // .net core WMI has a strange bug where WMI will not initialize on some systems
+                    // since this is the only place where WMI is used, we can just work-around it
+                    // with the wmic executable, which exists (as of 2018) on all supported Windows.
+                    StartProcessAndWait("cmd", "/C wmic path Win32_OperatingSystem get Caption,Version /format:table > \"" + tempFile + "\"");
+                    if (File.Exists(tempFile))
                     {
-                        int versionIndex = lines[0].IndexOf("Version");
-                        Name = lines[1].Substring(0, versionIndex - 1).Trim();
-                        Version = lines[1].Substring(versionIndex).Trim();
+                        string[] lines = File.ReadAllLines(tempFile);
+                        File.Delete(tempFile);
+                        if (lines.Length == 2)
+                        {
+                            int versionIndex = lines[0].IndexOf("Version");
+                            Name = lines[1].Substring(0, versionIndex - 1).Trim();
+                            Version = lines[1].Substring(versionIndex).Trim();
+                        }
                     }
-                }
+                    else
+                    {
+                        // fall-back to WMI, maybe future .NET core versions will fix the bug
+                        using (ManagementObjectSearcher searcher = new ManagementObjectSearcher("SELECT Caption, Version FROM Win32_OperatingSystem"))
+                        {
+                            foreach (var result in searcher.Get())
+                            {
+                                FriendlyName = result["Caption"] as string;
+                                Version = result["Version"] as string;
+                                break;
+                            }
+                        }
+                    }
+                    }
                 else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
                 {
                     OS = IPBanOS.OSX;
