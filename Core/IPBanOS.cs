@@ -78,12 +78,15 @@ namespace IPBan
                     File.Delete(tempFile);
                     Name = "Linux"; 
                     FriendlyName = ExtractRegex(versionText, "^(Id|Distrib_Id)=(?<value>.*?)$", string.Empty);
-                    string codeName = ExtractRegex(versionText, "^(Name|Distrib_CodeName)=(?<value>.+)$", string.Empty);
-                    if (codeName.Length != 0)
+                    if (FriendlyName.Length != 0)
                     {
-                        FriendlyName += " - " + codeName;
+                        string codeName = ExtractRegex(versionText, "^(Name|Distrib_CodeName)=(?<value>.+)$", string.Empty);
+                        if (codeName.Length != 0)
+                        {
+                            FriendlyName += " - " + codeName;
+                        }
+                        Version = ExtractRegex(versionText, "^Version_Id=(?<value>.+)$", Version);
                     }
-                    Version = ExtractRegex(versionText, "^Version_Id=(?<value>.+)$", Version);
                 }
                 else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 {
