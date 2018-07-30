@@ -120,7 +120,7 @@ namespace IPBan
         /// <param name="key">Key</param>
         /// <param name="defaultValue">Default value if null or not found</param>
         /// <returns>Value</returns>
-        public static T GetConfig<T>(string key, T defaultValue = default)
+        public T GetConfig<T>(string key, T defaultValue = default)
         {
             try
             {
@@ -139,7 +139,7 @@ namespace IPBan
         /// <typeparam name="T">Type of value to set</typeparam>
         /// <param name="key">Key</param>
         /// <param name="value">Value</param>
-        public static void GetConfig<T>(string key, ref T value)
+        public void GetConfig<T>(string key, ref T value)
         {
             try
             {
