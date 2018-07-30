@@ -34,7 +34,7 @@ namespace IPBan
         private readonly TimeSpan cycleTime = TimeSpan.FromMinutes(1.0d);
         private readonly TimeSpan minimumTimeBetweenFailedLoginAttempts = TimeSpan.FromSeconds(5.0);
         private readonly int failedLoginAttemptsBeforeBan = 5;
-        private readonly string firewallRulePrefix = "BlockIPAddresses";
+        private readonly string firewallRulePrefix = "IPBan_";
         private readonly HashSet<string> blackList = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         private readonly HashSet<string> whiteList = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         private readonly bool clearBannedIPAddressesOnRestart;

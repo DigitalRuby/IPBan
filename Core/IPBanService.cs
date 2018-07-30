@@ -803,14 +803,11 @@ namespace IPBan
                 select a;
             Type instanceType = (q.FirstOrDefault() ?? typeof(IPBanService));
             IPBanService service = (IPBanService)Activator.CreateInstance(instanceType, BindingFlags.NonPublic | BindingFlags.Instance, null, null, null);
-            if (!testing)
-            {
-                service.SubmitIPAddresses = true;
-            }
-            else
+            if (testing)
             {
                 service.MultiThreaded = false;
                 service.ManualCycle = true;
+                service.SubmitIPAddresses = false;
             }
             return service;
         }
