@@ -741,16 +741,19 @@ namespace IPBan
             {
                 ipAddressesToAllowInFirewallNeedsUpdate = false;
 
-                // quickly copy out data in a lock, always lock ipAddressesAndBanDate
-                string[] ipAddresses;
-                lock (ipAddressesAndBanDate)
+                // if the config specifies that we should create a whitelist firewall rule, do so
+                if (Config.CreateWhitelistFirewallRule)
                 {
-                    ipAddresses = ipAddressesToAllowInFirewall.ToArray();
-                }
+                    // quickly copy out data in a lock, always lock ipAddressesAndBanDate
+                    string[] ipAddresses;
+                    lock (ipAddressesAndBanDate)
+                    {
+                        ipAddresses = ipAddressesToAllowInFirewall.ToArray();
+                    }
 
-                // re-create rules for all allowed ip addresses
-                // TODO: Figure out if this is really needed, some people don't want even whitelisted ip to have access to all ports
-                // Firewall.AllowIPAddresses(ipAddresses);
+                    // re-create rules for all allowed ip addresses
+                    Firewall.AllowIPAddresses(ipAddresses);
+                }
             }
         }
 

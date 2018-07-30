@@ -39,6 +39,7 @@ namespace IPBan
         private readonly HashSet<string> whiteList = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         private readonly bool clearBannedIPAddressesOnRestart;
         private readonly HashSet<string> userNameWhitelist = new HashSet<string>(StringComparer.Ordinal);
+        private readonly bool createWhitelistFirewallRule;
         private readonly int userNameWhitelistMaximumEditDistance = 2;
         private readonly int failedLoginAttemptsBeforeBanUserNameWhitelist = 20;
         private readonly Dictionary<string, string> osAndFirewallType = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
@@ -66,6 +67,7 @@ namespace IPBan
             GetConfig<TimeSpan>("CycleTime", ref cycleTime);
             GetConfig<TimeSpan>("MinimumTimeBetweenFailedLoginAttempts", ref minimumTimeBetweenFailedLoginAttempts);
             GetConfig<string>("FirewallRulePrefix", ref firewallRulePrefix);
+            GetConfig<bool>("CreateWhitelistFirewallRule", ref createWhitelistFirewallRule);
 
             string whiteListString = GetConfig<string>("Whitelist", string.Empty);
             string whiteListRegexString = GetConfig<string>("WhitelistRegex", string.Empty);
@@ -400,6 +402,11 @@ namespace IPBan
         /// White list of ips as a comma separated string
         /// </summary>
         public string WhiteList { get { return string.Join(",", whiteList); } }
+
+        /// <summary>
+        /// Whether to create a firewall rule to allow all whitelisted ip addresses access to all ports
+        /// </summary>
+        public bool CreateWhitelistFirewallRule { get { return createWhitelistFirewallRule; } }
 
         /// <summary>
         /// White list regex
