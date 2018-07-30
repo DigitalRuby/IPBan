@@ -120,4 +120,8 @@
   <data name="IPBanKey1" xml:space="preserve">
     <value>60E555E4ADFE4AAB9DAE61E0D57ADD7E</value>
   </data>
+  <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
+  <data name="nlog_config" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\nlog.config;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
 </root>

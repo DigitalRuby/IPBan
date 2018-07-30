@@ -23,7 +23,7 @@ namespace IPBan
     /// </summary>
     public class IPBanConfig
     {
-        private readonly Configuration config;
+        private readonly Dictionary<string, string> appSettings;
         private ExpressionsToBlock expressions;
         private Regex whiteListRegex;
         private Regex blackListRegex;
@@ -128,7 +128,7 @@ namespace IPBan
             try
             {
                 var converter = TypeDescriptor.GetConverter(typeof(T));
-                return (T)converter.ConvertFromInvariantString(config.AppSettings.Settings[key].Value);
+                return (T)converter.ConvertFromInvariantString(appSettings[key]);
             }
             catch
             {
@@ -147,7 +147,7 @@ namespace IPBan
             try
             {
                 var converter = TypeDescriptor.GetConverter(typeof(T));
-                value = (T)converter.ConvertFromInvariantString(config.AppSettings.Settings[key].Value);
+                value = (T)converter.ConvertFromInvariantString(appSettings[key]);
             }
             catch
             {
@@ -160,18 +160,21 @@ namespace IPBan
         /// <param name="configFilePath">Config file path</param>
         public IPBanConfig(string configFilePath)
         {
-            configFilePath = (configFilePath ?? ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None).FilePath);
-            if (configFilePath != ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None).FilePath)
+            configFilePath = (File.Exists(configFilePath) ? configFilePath : ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None).FilePath);
+            if (!File.Exists(configFilePath))
             {
-                File.Copy(configFilePath, ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None).FilePath, true);
+                throw new FileNotFoundException("Unable to find config file " + configFilePath);
             }
 
-            ExeConfigurationFileMap fileMap = new ExeConfigurationFileMap { ExeConfigFilename = configFilePath };
-            config = ConfigurationManager.OpenMappedExeConfiguration(fileMap, ConfigurationUserLevel.None);
+            appSettings = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
-            // deserialize custom types with XmlDocument, the .net core Configuration class is quite buggy
+            // deserialize with XmlDocument, the .net core Configuration class is quite buggy
             XmlDocument doc = new XmlDocument();
             doc.Load(configFilePath);
+            foreach (XmlNode node in doc.SelectNodes("//appSettings/add"))
+            {
+                appSettings[node.Attributes["key"].Value] = node.Attributes["value"].Value;
+            }
 
             GetConfig<int>("FailedLoginAttemptsBeforeBan", ref failedLoginAttemptsBeforeBan);
             GetConfig<TimeSpan>("BanTime", ref banTime);

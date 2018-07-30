@@ -26,7 +26,6 @@ namespace System.Diagnostics.Eventing.Reader
     [System.Security.Permissions.HostProtection(MayLeakOnAbort = true)]
     public class EventLogRecord : EventRecord
     {
-
         private const int SYSTEM_PROPERTY_COUNT = 18;
 
         //

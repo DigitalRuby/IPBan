@@ -68,5 +68,21 @@ namespace IPBan {
                 return ResourceManager.GetString("IPBanKey1", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &lt;?xml version=&quot;1.0&quot;?&gt;
+        ///&lt;nlog xmlns=&quot;http://www.nlog-project.org/schemas/NLog.xsd&quot; xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot; throwExceptions=&quot;false&quot; internalLogToConsole=&quot;false&quot; internalLogToConsoleError=&quot;false&quot; internalLogLevel=&quot;Trace&quot;&gt;
+        ///  &lt;targets&gt;
+        ///    &lt;target name=&quot;logfile&quot; xsi:type=&quot;File&quot; fileName=&quot;${basedir}/logfile.txt&quot; archiveNumbering=&quot;Sequence&quot; archiveEvery=&quot;Day&quot; maxArchiveFiles=&quot;28&quot; encoding=&quot;UTF-8&quot;/&gt;
+        ///    &lt;target name=&quot;console&quot; xsi:type=&quot;Console&quot;/&gt;
+        ///  &lt;/targets&gt;
+        ///  &lt;rules&gt;
+        ///    &lt;logge [rest of string was truncated]&quot;;.
+        /// </summary>
+        public static string nlog_config {
+            get {
+                return ResourceManager.GetString("nlog_config", resourceCulture);
+            }
+        }
     }
 }

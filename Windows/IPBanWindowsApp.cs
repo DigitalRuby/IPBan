@@ -84,7 +84,7 @@ namespace IPBan
             }
         }
 
-        public static int RunService(string[] args)
+        public static int RunWindowsService(string[] args)
         {
             Directory.SetCurrentDirectory(AppDomain.CurrentDomain.BaseDirectory);
             System.ServiceProcess.ServiceBase[] ServicesToRun;
@@ -119,7 +119,7 @@ namespace IPBan
         {
             if (Console.IsInputRedirected)
             {
-                return IPBanWindowsApp.RunService(args);
+                return IPBanWindowsApp.RunWindowsService(args);
             }
             else
             {

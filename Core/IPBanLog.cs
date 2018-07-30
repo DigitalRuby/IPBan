@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Configuration;
+using System.IO;
 using System.Linq;
 using System.Text;
 
@@ -95,8 +96,22 @@ namespace IPBan
         {
             try
             {
-                LogManager.LoadConfiguration(ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None).FilePath);
-                logger = LogManager.GetCurrentClassLogger();
+                LogFactory factory = LogManager.LoadConfiguration(ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None).FilePath);
+                if (factory.Configuration.AllTargets.Count == 0)
+                {
+                    if (File.Exists("nlog.config"))
+                    {
+                        factory = LogManager.LoadConfiguration("nlog.config");
+                    }
+                    else
+                    {
+                        string tempFile = Path.GetTempFileName();
+                        File.WriteAllText(tempFile, IPBanResources.nlog_config);
+                        factory = LogManager.LoadConfiguration(tempFile);
+                        File.Delete(tempFile);
+                    }
+                }
+                logger = factory.GetCurrentClassLogger();
             }
             catch (Exception ex)
             {
