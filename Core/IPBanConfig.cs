@@ -23,7 +23,7 @@ namespace IPBan
     /// </summary>
     public class IPBanConfig
     {
-        private readonly Dictionary<string, string> appSettings;
+        private readonly Dictionary<string, string> appSettings = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         private ExpressionsToBlock expressions;
         private Regex whiteListRegex;
         private Regex blackListRegex;
@@ -48,6 +48,92 @@ namespace IPBan
         private readonly string getUrlStop;
         private readonly string getUrlConfig;
         private readonly string externalIPAddressUrl;
+
+        private IPBanConfig(string xml)
+        {
+            // deserialize with XmlDocument, the .net core Configuration class is quite buggy
+            XmlDocument doc = new XmlDocument();
+            doc.LoadXml(xml);
+            foreach (XmlNode node in doc.SelectNodes("//appSettings/add"))
+            {
+                appSettings[node.Attributes["key"].Value] = node.Attributes["value"].Value;
+            }
+
+            GetConfig<int>("FailedLoginAttemptsBeforeBan", ref failedLoginAttemptsBeforeBan);
+            GetConfig<TimeSpan>("BanTime", ref banTime);
+            GetConfig<bool>("ClearBannedIPAddressesOnRestart", ref clearBannedIPAddressesOnRestart);
+            GetConfig<TimeSpan>("ExpireTime", ref expireTime);
+            GetConfig<TimeSpan>("CycleTime", ref cycleTime);
+            GetConfig<TimeSpan>("MinimumTimeBetweenFailedLoginAttempts", ref minimumTimeBetweenFailedLoginAttempts);
+            GetConfig<string>("FirewallRulePrefix", ref firewallRulePrefix);
+
+            string whiteListString = GetConfig<string>("Whitelist", string.Empty);
+            string whiteListRegexString = GetConfig<string>("WhitelistRegex", string.Empty);
+            string blacklistString = GetConfig<string>("Blacklist", string.Empty);
+            string blacklistRegexString = GetConfig<string>("BlacklistRegex", string.Empty);
+            PopulateList(whiteList, ref whiteListRegex, whiteListString, whiteListRegexString);
+            PopulateList(blackList, ref blackListRegex, blacklistString, blacklistRegexString);
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                expressions = new XmlSerializer(typeof(ExpressionsToBlock)).Deserialize(new XmlNodeReader(doc.SelectSingleNode("//ExpressionsToBlock"))) as ExpressionsToBlock;
+                if (expressions != null)
+                {
+                    foreach (ExpressionsToBlockGroup group in expressions.Groups)
+                    {
+                        foreach (ExpressionToBlock expression in group.Expressions)
+                        {
+                            expression.Regex = (expression.Regex ?? string.Empty).Trim();
+                            if (expression.Regex.Length != 0)
+                            {
+                                if (expression.Regex[0] == '^')
+                                {
+                                    expression.Regex = "^\\s*?" + expression.Regex.Substring(1) + "\\s*?";
+                                }
+                                else
+                                {
+                                    expression.Regex = "\\s*?" + expression.Regex + "\\s*?";
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            else
+            {
+                expressions = new ExpressionsToBlock { Groups = new ExpressionsToBlockGroup[0] };
+            }
+            LogFilesToParse logFilesToParse = new XmlSerializer(typeof(LogFilesToParse)).Deserialize(new XmlNodeReader(doc.SelectSingleNode("//LogFilesToParse"))) as LogFilesToParse;
+            logFiles = (logFilesToParse == null ? new LogFileToParse[0] : logFilesToParse.LogFiles);
+            GetConfig<string>("ProcessToRunOnBan", ref processToRunOnBan);
+
+            // retrieve firewall configuration
+            string[] firewallTypes = GetConfig<string>("FirewallType", string.Empty).Split(',', StringSplitOptions.RemoveEmptyEntries);
+            foreach (string firewallOSAndType in firewallTypes)
+            {
+                string[] pieces = firewallOSAndType.Split(':');
+                if (pieces.Length == 2)
+                {
+                    osAndFirewallType[pieces[0]] = pieces[1];
+                }
+            }
+
+            string userNameWhiteListString = GetConfig<string>("UserNameWhiteList", string.Empty);
+            foreach (string userName in userNameWhiteListString.Split(','))
+            {
+                string userNameTrimmed = userName.Normalize().Trim();
+                if (userNameTrimmed.Length > 0)
+                {
+                    userNameWhitelist.Add(userNameTrimmed);
+                }
+            }
+            GetConfig<int>("UserNameWhiteListMinimumEditDistance", ref userNameWhitelistMaximumEditDistance);
+            GetConfig<int>("FailedLoginAttemptsBeforeBanUserNameWhitelist", ref failedLoginAttemptsBeforeBanUserNameWhitelist);
+            GetConfig<string>("GetUrlUpdate", ref getUrlUpdate);
+            GetConfig<string>("GetUrlStart", ref getUrlStart);
+            GetConfig<string>("GetUrlStop", ref getUrlStop);
+            GetConfig<string>("GetUrlConfig", ref getUrlConfig);
+            GetConfig<string>("ExternalIPAddressUrl", ref externalIPAddressUrl);
+        }
 
         private void PopulateList(HashSet<string> set, ref Regex regex, string setValue, string regexValue)
         {
@@ -155,101 +241,28 @@ namespace IPBan
         }
 
         /// <summary>
-        /// Constructor
+        /// Load IPBan config from file
         /// </summary>
         /// <param name="configFilePath">Config file path</param>
-        public IPBanConfig(string configFilePath)
+        /// <returns>IPBanConfig</returns>
+        public static IPBanConfig LoadFromFile(string configFilePath)
         {
             configFilePath = (File.Exists(configFilePath) ? configFilePath : ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None).FilePath);
             if (!File.Exists(configFilePath))
             {
                 throw new FileNotFoundException("Unable to find config file " + configFilePath);
             }
+            return LoadFromXml(File.ReadAllText(configFilePath));
+        }
 
-            appSettings = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-
-            // deserialize with XmlDocument, the .net core Configuration class is quite buggy
-            XmlDocument doc = new XmlDocument();
-            doc.Load(configFilePath);
-            foreach (XmlNode node in doc.SelectNodes("//appSettings/add"))
-            {
-                appSettings[node.Attributes["key"].Value] = node.Attributes["value"].Value;
-            }
-
-            GetConfig<int>("FailedLoginAttemptsBeforeBan", ref failedLoginAttemptsBeforeBan);
-            GetConfig<TimeSpan>("BanTime", ref banTime);
-            GetConfig<bool>("ClearBannedIPAddressesOnRestart", ref clearBannedIPAddressesOnRestart);
-            GetConfig<TimeSpan>("ExpireTime", ref expireTime);
-            GetConfig<TimeSpan>("CycleTime", ref cycleTime);
-            GetConfig<TimeSpan>("MinimumTimeBetweenFailedLoginAttempts", ref minimumTimeBetweenFailedLoginAttempts);
-            GetConfig<string>("FirewallRulePrefix", ref firewallRulePrefix);
-
-            string whiteListString = GetConfig<string>("Whitelist", string.Empty);
-            string whiteListRegexString = GetConfig<string>("WhitelistRegex", string.Empty);
-            string blacklistString = GetConfig<string>("Blacklist", string.Empty);
-            string blacklistRegexString = GetConfig<string>("BlacklistRegex", string.Empty);
-            PopulateList(whiteList, ref whiteListRegex, whiteListString, whiteListRegexString);
-            PopulateList(blackList, ref blackListRegex, blacklistString, blacklistRegexString);
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                expressions = new XmlSerializer(typeof(ExpressionsToBlock)).Deserialize(new XmlNodeReader(doc.SelectSingleNode("//ExpressionsToBlock"))) as ExpressionsToBlock;
-                if (expressions != null)
-                {
-                    foreach (ExpressionsToBlockGroup group in expressions.Groups)
-                    {
-                        foreach (ExpressionToBlock expression in group.Expressions)
-                        {
-                            expression.Regex = (expression.Regex ?? string.Empty).Trim();
-                            if (expression.Regex.Length != 0)
-                            {
-                                if (expression.Regex[0] == '^')
-                                {
-                                    expression.Regex = "^\\s*?" + expression.Regex.Substring(1) + "\\s*?";
-                                }
-                                else
-                                {
-                                    expression.Regex = "\\s*?" + expression.Regex + "\\s*?";
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            else
-            {
-                expressions = new ExpressionsToBlock { Groups = new ExpressionsToBlockGroup[0] };
-            }
-            LogFilesToParse logFilesToParse = new XmlSerializer(typeof(LogFilesToParse)).Deserialize(new XmlNodeReader(doc.SelectSingleNode("//LogFilesToParse"))) as LogFilesToParse;
-            logFiles = (logFilesToParse == null ? new LogFileToParse[0] : logFilesToParse.LogFiles);
-            GetConfig<string>("ProcessToRunOnBan", ref processToRunOnBan);
-
-            // retrieve firewall configuration
-            string[] firewallTypes = GetConfig<string>("FirewallType", string.Empty).Split(',', StringSplitOptions.RemoveEmptyEntries);
-            foreach (string firewallOSAndType in firewallTypes)
-            {
-                string[] pieces = firewallOSAndType.Split(':');
-                if (pieces.Length == 2)
-                {
-                    osAndFirewallType[pieces[0]] = pieces[1];
-                }
-            }
-
-            string userNameWhiteListString = GetConfig<string>("UserNameWhiteList", string.Empty);
-            foreach (string userName in userNameWhiteListString.Split(','))
-            {
-                string userNameTrimmed = userName.Normalize().Trim();
-                if (userNameTrimmed.Length > 0)
-                {
-                    userNameWhitelist.Add(userNameTrimmed);
-                }
-            }
-            GetConfig<int>("UserNameWhiteListMinimumEditDistance", ref userNameWhitelistMaximumEditDistance);
-            GetConfig<int>("FailedLoginAttemptsBeforeBanUserNameWhitelist", ref failedLoginAttemptsBeforeBanUserNameWhitelist);
-            GetConfig<string>("GetUrlUpdate", ref getUrlUpdate);
-            GetConfig<string>("GetUrlStart", ref getUrlStart);
-            GetConfig<string>("GetUrlStop", ref getUrlStop);
-            GetConfig<string>("GetUrlConfig", ref getUrlConfig);
-            GetConfig<string>("ExternalIPAddressUrl", ref externalIPAddressUrl);
+        /// <summary>
+        /// Load IPBan config from XML
+        /// </summary>
+        /// <param name="xml">XML string</param>
+        /// <returns>IPBanConfig</returns>
+        public static IPBanConfig LoadFromXml(string xml)
+        {
+            return new IPBanConfig(xml);
         }
 
         /// <summary>

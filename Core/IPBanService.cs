@@ -122,7 +122,7 @@ namespace IPBan
                     lastConfigFileDateTime = lastDateTime;
                     lock (configLock)
                     {
-                        IPBanConfig newConfig = new IPBanConfig(ConfigFilePath);
+                        IPBanConfig newConfig = IPBanConfig.LoadFromFile(ConfigFilePath);
                         UpdateLogFiles(newConfig);
                         Config = newConfig;
                     }
