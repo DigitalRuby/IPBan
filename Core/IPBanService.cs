@@ -465,19 +465,31 @@ namespace IPBan
                         // take the ip out of the lists and mark the file as changed so that the ban script re-runs without this ip
                         ipAddressesAndBanDate.Remove(keyValue.Key);
                         ipAddressesAndBlockCounts.Remove(keyValue.Key);
+                        ipAddressesToForget.Add(keyValue.Key);
                         firewallNeedsBlockedIPAddressesUpdate = true;
                     }
                 }
             }
 
-            lock (ipAddressesAndBanDate)
+            if (IPBanDelegate != null)
             {
-                ipBlockCountList = ipAddressesAndBlockCounts.ToArray();
+                // notify delegate of ip addresses to unban
+                foreach (string ip in ipAddressesToForget)
+                {
+                    IPBanDelegate.IPAddressBanned(ip, null, false);
+                }
             }
 
             // if we are allowing ip addresses failed login attempts to expire and get reset back to 0
             if (Config.ExpireTime.TotalSeconds > 0)
             {
+                ipAddressesToForget.Clear();
+
+                lock (ipAddressesAndBanDate)
+                {
+                    ipBlockCountList = ipAddressesAndBlockCounts.ToArray();
+                }
+
                 // Check the list of failed login attempts, that are not yet blocked, for expired IPs.
                 foreach (KeyValuePair<string, IPBlockCount> keyValue in ipBlockCountList)
                 {
