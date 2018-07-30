@@ -11,6 +11,8 @@ using System.Net;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Xml;
+using System.Xml.Serialization;
 
 #endregion Imports
 
@@ -21,6 +23,7 @@ namespace IPBan
     /// </summary>
     public class IPBanConfig
     {
+        private readonly Configuration config;
         private ExpressionsToBlock expressions;
         private Regex whiteListRegex;
         private Regex blackListRegex;
@@ -125,7 +128,7 @@ namespace IPBan
             try
             {
                 var converter = TypeDescriptor.GetConverter(typeof(T));
-                return (T)converter.ConvertFromInvariantString(ConfigurationManager.AppSettings[key]);
+                return (T)converter.ConvertFromInvariantString(config.AppSettings.Settings[key].Value);
             }
             catch
             {
@@ -144,7 +147,7 @@ namespace IPBan
             try
             {
                 var converter = TypeDescriptor.GetConverter(typeof(T));
-                value = (T)converter.ConvertFromInvariantString(ConfigurationManager.AppSettings[key]);
+                value = (T)converter.ConvertFromInvariantString(config.AppSettings.Settings[key].Value);
             }
             catch
             {
@@ -163,11 +166,12 @@ namespace IPBan
                 File.Copy(configFilePath, ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None).FilePath, true);
             }
 
-            ConfigurationManager.RefreshSection("appSettings");
-            ConfigurationManager.RefreshSection("configSections");
-            ConfigurationManager.RefreshSection("nlog");
-            ConfigurationManager.RefreshSection("ExpressionsToBlock");
-            ConfigurationManager.RefreshSection("LogFilesToParse");
+            ExeConfigurationFileMap fileMap = new ExeConfigurationFileMap { ExeConfigFilename = configFilePath };
+            config = ConfigurationManager.OpenMappedExeConfiguration(fileMap, ConfigurationUserLevel.None);
+
+            // deserialize custom types with XmlDocument, the .net core Configuration class is quite buggy
+            XmlDocument doc = new XmlDocument();
+            doc.Load(configFilePath);
 
             GetConfig<int>("FailedLoginAttemptsBeforeBan", ref failedLoginAttemptsBeforeBan);
             GetConfig<TimeSpan>("BanTime", ref banTime);
@@ -185,7 +189,7 @@ namespace IPBan
             PopulateList(blackList, ref blackListRegex, blacklistString, blacklistRegexString);
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                expressions = (ExpressionsToBlock)System.Configuration.ConfigurationManager.GetSection("ExpressionsToBlock");
+                expressions = new XmlSerializer(typeof(ExpressionsToBlock)).Deserialize(new XmlNodeReader(doc.SelectSingleNode("//ExpressionsToBlock"))) as ExpressionsToBlock;
                 if (expressions != null)
                 {
                     foreach (ExpressionsToBlockGroup group in expressions.Groups)
@@ -212,7 +216,8 @@ namespace IPBan
             {
                 expressions = new ExpressionsToBlock { Groups = new ExpressionsToBlockGroup[0] };
             }
-            logFiles = ((LogFilesToParse)System.Configuration.ConfigurationManager.GetSection("LogFilesToParse"))?.LogFiles ?? new LogFileToParse[0];
+            LogFilesToParse logFilesToParse = new XmlSerializer(typeof(LogFilesToParse)).Deserialize(new XmlNodeReader(doc.SelectSingleNode("//LogFilesToParse"))) as LogFilesToParse;
+            logFiles = (logFilesToParse == null ? new LogFileToParse[0] : logFilesToParse.LogFiles);
             GetConfig<string>("ProcessToRunOnBan", ref processToRunOnBan);
 
             // retrieve firewall configuration
