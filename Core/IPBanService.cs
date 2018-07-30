@@ -749,7 +749,8 @@ namespace IPBan
                 }
 
                 // re-create rules for all allowed ip addresses
-                Firewall.AllowIPAddresses(ipAddresses);
+                // TODO: Figure out if this is really needed, some people don't want even whitelisted ip to have access to all ports
+                // Firewall.AllowIPAddresses(ipAddresses);
             }
         }
 
