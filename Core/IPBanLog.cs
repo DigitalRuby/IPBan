@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text;
 
 using NLog;
+using NLog.Config;
 
 #endregion Imports
 
@@ -105,10 +106,10 @@ namespace IPBan
                     }
                     else
                     {
-                        string tempFile = Path.GetTempFileName();
-                        File.WriteAllText(tempFile, IPBanResources.nlog_config);
-                        factory = LogManager.LoadConfiguration(tempFile);
-                        File.Delete(tempFile);
+                        System.IO.StringReader sr = new System.IO.StringReader(IPBanResources.nlog_config);
+                        System.Xml.XmlReader xr = System.Xml.XmlReader.Create(sr);
+                        LogManager.Configuration = new XmlLoggingConfiguration(xr, Directory.GetCurrentDirectory());
+                        factory = LogManager.LogFactory;
                     }
                 }
                 logger = factory.GetCurrentClassLogger();
