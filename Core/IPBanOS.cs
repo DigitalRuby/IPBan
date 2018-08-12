@@ -101,11 +101,14 @@ namespace IPBan
                     {
                         string[] lines = File.ReadAllLines(tempFile);
                         File.Delete(tempFile);
-                        if (lines.Length == 2)
+                        if (lines.Length > 1)
                         {
                             int versionIndex = lines[0].IndexOf("Version");
-                            FriendlyName = lines[1].Substring(0, versionIndex - 1).Trim();
-                            Version = lines[1].Substring(versionIndex).Trim();
+                            if (versionIndex >= 0)
+                            {
+                                FriendlyName = lines[1].Substring(0, versionIndex - 1).Trim();
+                                Version = lines[1].Substring(versionIndex).Trim();
+                            }
                         }
                     }
                     else
