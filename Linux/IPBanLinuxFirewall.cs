@@ -99,8 +99,8 @@ namespace IPBan
         {
             RulePrefix = rulePrefix;
             string tempFile = Path.GetTempFileName();
-            LoadIPAddresses(RulePrefix + "0", "DROP", tempFile, ref bannedIPAddresses);
             LoadIPAddresses(RulePrefix + "1", "ACCEPT", tempFile, ref allowedIPAddresses);
+            LoadIPAddresses(RulePrefix + "0", "DROP", tempFile, ref bannedIPAddresses);
             DeleteFile(tempFile);
         }
 
