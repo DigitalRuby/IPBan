@@ -34,7 +34,7 @@ namespace IPBan
             if (ipAddresses == null)
             {
                 ipAddresses = new HashSet<string>();
-                RunProcess("ipset", false, "create {0} iphash maxelem 1048576 -exist", ruleName);
+                RunProcess("ipset", false, "create {0} iphash family inet6 hashsize 1024 maxelem 1048576 -exist", ruleName);
                 if (RunProcess("ip6tables", false, "-C INPUT -m set --match-set \"{0}\" src -j {1}", ruleName, action) != 0)
                 {
                     RunProcess("ip6tables", true, "-A INPUT -m set --match-set \"{0}\" src -j {1}", ruleName, action);
@@ -72,7 +72,7 @@ namespace IPBan
 
             // add and remove the appropriate ip addresses
             StringBuilder script = new StringBuilder();
-            script.AppendLine("create " + ruleName + " hash:ip family inet hashsize 1024 maxelem 1048576 -exist");
+            script.AppendLine("create " + ruleName + " hash:ip family inet6 hashsize 1024 maxelem 1048576 -exist");
             foreach (string ipAddress in removedIPAddresses)
             {
                 script.AppendLine("del " + ruleName + " " + ipAddress + " -exist");
