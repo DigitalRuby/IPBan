@@ -35,9 +35,9 @@ namespace IPBan
             {
                 ipAddresses = new HashSet<string>();
                 RunProcess("ipset", false, "create {0} iphash maxelem 1048576 -exist", ruleName);
-                if (RunProcess("iptables", false, "-C INPUT -m set --match-set \"{0}\" src -j {1}", ruleName, action) != 0)
+                if (RunProcess("ip6tables", false, "-C INPUT -m set --match-set \"{0}\" src -j {1}", ruleName, action) != 0)
                 {
-                    RunProcess("iptables", true, "-A INPUT -m set --match-set \"{0}\" src -j {1}", ruleName, action);
+                    RunProcess("ip6tables", true, "-A INPUT -m set --match-set \"{0}\" src -j {1}", ruleName, action);
                 }
                 RunProcess("ipset", true, "save {0} > \"{1}\"", ruleName, tempFile);
                 foreach (string line in File.ReadLines(tempFile).Skip(1))
@@ -143,7 +143,7 @@ namespace IPBan
 // ipset -A IPBanBlacklist 10.10.10.11
 // ipset save > file.txt
 // ipset restore < file.txt
-// iptables -A INPUT -m set --match-set IPBanBlacklist dst -j DROP
-// iptables -F // clear all rules - this may break SSH permanently!
-// iptables-save > file.txt
-// iptables-restore < file.txt
+// ip6tables -A INPUT -m set --match-set IPBanBlacklist dst -j DROP
+// ip6tables -F // clear all rules - this may break SSH permanently!
+// ip6tables-save > file.txt
+// ip6tables-restore < file.txt
