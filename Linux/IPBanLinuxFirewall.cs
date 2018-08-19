@@ -12,6 +12,8 @@ namespace IPBan
     [RequiredOperatingSystem(IPBanOS.Linux)]
     public class IPBanLinuxFirewall : IIPBanFirewall
     {
+        private const string inetFamily = "inet"; // inet6 when ipv6 support added
+
         private HashSet<string> bannedIPAddresses;
         private HashSet<string> allowedIPAddresses;
 
@@ -34,10 +36,10 @@ namespace IPBan
             if (ipAddresses == null)
             {
                 ipAddresses = new HashSet<string>();
-                RunProcess("ipset", false, "create {0} iphash family inet6 hashsize 1024 maxelem 1048576 -exist", ruleName);
-                if (RunProcess("ip6tables", false, "-C INPUT -m set --match-set \"{0}\" src -j {1}", ruleName, action) != 0)
+                RunProcess("ipset", false, $"create {ruleName} iphash family {inetFamily} hashsize 1024 maxelem 1048576 -exist");
+                if (RunProcess("iptables", false, "-C INPUT -m set --match-set \"{0}\" src -j {1}", ruleName, action) != 0)
                 {
-                    RunProcess("ip6tables", true, "-A INPUT -m set --match-set \"{0}\" src -j {1}", ruleName, action);
+                    RunProcess("iptables", true, "-A INPUT -m set --match-set \"{0}\" src -j {1}", ruleName, action);
                 }
                 RunProcess("ipset", true, "save {0} > \"{1}\"", ruleName, tempFile);
                 foreach (string line in File.ReadLines(tempFile).Skip(1))
@@ -72,7 +74,7 @@ namespace IPBan
 
             // add and remove the appropriate ip addresses
             StringBuilder script = new StringBuilder();
-            script.AppendLine("create " + ruleName + " hash:ip family inet6 hashsize 1024 maxelem 1048576 -exist");
+            script.AppendLine($"create {ruleName} hash:ip family {inetFamily} hashsize 1024 maxelem 1048576 -exist");
             foreach (string ipAddress in removedIPAddresses)
             {
                 script.AppendLine("del " + ruleName + " " + ipAddress + " -exist");
@@ -143,7 +145,7 @@ namespace IPBan
 // ipset -A IPBanBlacklist 10.10.10.11
 // ipset save > file.txt
 // ipset restore < file.txt
-// ip6tables -A INPUT -m set --match-set IPBanBlacklist dst -j DROP
-// ip6tables -F // clear all rules - this may break SSH permanently!
-// ip6tables-save > file.txt
-// ip6tables-restore < file.txt
+// iptables -A INPUT -m set --match-set IPBanBlacklist dst -j DROP
+// iptables -F // clear all rules - this may break SSH permanently!
+// iptables-save > file.txt
+// iptables-restore < file.txt
