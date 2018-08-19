@@ -37,9 +37,9 @@ namespace IPBan
             {
                 ipAddresses = new HashSet<string>();
                 RunProcess("ipset", false, $"create {ruleName} iphash family {inetFamily} hashsize 1024 maxelem 1048576 -exist");
-                if (RunProcess("iptables", false, "-C INPUT -m set --match-set \"{0}\" src -j {1}", ruleName, action) != 0)
+                if (RunProcess("iptables", false, $"-C INPUT -m set --match-set \"{ruleName}\" src -j {action}") != 0)
                 {
-                    RunProcess("iptables", true, "-A INPUT -m set --match-set \"{0}\" src -j {1}", ruleName, action);
+                    RunProcess("iptables", true, $"-A INPUT -m set --match-set \"{ruleName}\" src -j {action}");
                 }
                 RunProcess("ipset", true, "save {0} > \"{1}\"", ruleName, tempFile);
                 foreach (string line in File.ReadLines(tempFile).Skip(1))
@@ -77,20 +77,20 @@ namespace IPBan
             script.AppendLine($"create {ruleName} hash:ip family {inetFamily} hashsize 1024 maxelem 1048576 -exist");
             foreach (string ipAddress in removedIPAddresses)
             {
-                script.AppendLine("del " + ruleName + " " + ipAddress + " -exist");
+                script.AppendLine($"del {ruleName} {ipAddress} -exist");
             }
             foreach (string ipAddress in newIPAddresses)
             {
                 if (ipAddress.TryGetFirewallIPAddress(out string firewallIPAddress))
                 {
-                    script.AppendLine("add " + ruleName + " " + firewallIPAddress + " -exist");
+                    script.AppendLine($"add {ruleName} {firewallIPAddress} -exist");
                 }
             }
 
             // write out the file and run the command to restore the set
             existingIPAddresses = newIPAddresses;
             File.WriteAllText(tempFile, script.ToString());
-            bool result = (RunProcess("ipset", true, "restore < \"{0}\"", tempFile) == 0);
+            bool result = (RunProcess("ipset", true, $"restore < \"{tempFile}\"") == 0);
             DeleteFile(tempFile);
             return result;
         }
