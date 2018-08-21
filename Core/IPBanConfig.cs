@@ -429,27 +429,27 @@ namespace IPBan
         public IReadOnlyDictionary<string, string> FirewallOSAndType { get { return osAndFirewallType; } }
 
         /// <summary>
-        /// Process to run on ban - replace ###IPADDRESS### with the banned ip address
+        /// Process to run on ban. See ReplaceUrl of IPBanService for place-holders.
         /// </summary>
         public string ProcessToRunOnBan { get { return processToRunOnBan; } }
 
         /// <summary>
-        /// A url to get when the service updates, empty for none. ###IPADDRESS### will be replaced with the local ip. ###MACHINENAME### will be replaced with the fully qualified domain name of the machine.
+        /// A url to get when the service updates, empty for none. See ReplaceUrl of IPBanService for place-holders.
         /// </summary>
         public string GetUrlUpdate { get { return getUrlUpdate; } }
 
         /// <summary>
-        /// A url to get when the service starts, empty for none. ###IPADDRESS### will be replaced with the local ip. ###MACHINENAME### will be replaced with the fully qualified domain name of the machine.
+        /// A url to get when the service starts, empty for none. See ReplaceUrl of IPBanService for place-holders.
         /// </summary>
         public string GetUrlStart { get { return getUrlStart; } }
 
         /// <summary>
-        /// A url to get when the service stops, empty for none. ###IPADDRESS### will be replaced with the local ip. ###MACHINENAME### will be replaced with the fully qualified domain name of the machine.
+        /// A url to get when the service stops, empty for none. See ReplaceUrl of IPBanService for place-holders.
         /// </summary>
         public string GetUrlStop { get { return getUrlStop; } }
 
         /// <summary>
-        /// A url to get for a config file update, empty for none. ###IPADDRESS### will be replaced with the local ip. ###MACHINENAME### will be replaced with the fully qualified domain name of the machine.
+        /// A url to get for a config file update, empty for none. See ReplaceUrl of IPBanService for place-holders.
         /// </summary>
         public string GetUrlConfig { get { return getUrlConfig; } }
 

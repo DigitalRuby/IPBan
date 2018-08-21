@@ -37,6 +37,13 @@ namespace IPBan
         void ProcessPendingFailedLogins();
 
         /// <summary>
+        /// Replace place-holders in url with values from this service
+        /// </summary>
+        /// <param name="url">Url to replace</param>
+        /// <returns>Replaced url</returns>
+        string ReplaceUrl(string url);
+
+        /// <summary>
         /// Add an updater for each cycle
         /// </summary>
         /// <param name="updater">Updater</param>
@@ -72,6 +79,11 @@ namespace IPBan
         /// Local ip address string
         /// </summary>
         string LocalIPAddressString { get; }
+
+        /// <summary>
+        /// Remote ip address string
+        /// </summary>
+        string RemoteIPAddressString { get; }
 
         /// <summary>
         /// Fully qualified domain name

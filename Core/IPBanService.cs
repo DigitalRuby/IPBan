@@ -192,6 +192,7 @@ namespace IPBan
                 {
                     byte[] bytes = RequestMaker.DownloadDataAsync(Config.ExternalIPAddressUrl).ConfigureAwait(false).GetAwaiter().GetResult();
                     RemoteIPAddressString = Encoding.UTF8.GetString(bytes).Trim();
+                    IPBanLog.Write(LogLevel.Info, "Remote ip address: {0}", RemoteIPAddressString);
                 }
                 catch
                 {
@@ -657,13 +658,7 @@ namespace IPBan
 
             if (!string.IsNullOrWhiteSpace(url))
             {
-                Assembly a = IPBanService.GetIPBanAssembly();
-                url = url.Replace("###IPADDRESS###", IPBanService.UrlEncode(LocalIPAddressString))
-                    .Replace("###MACHINENAME###", IPBanService.UrlEncode(FQDN))
-                    .Replace("###VERSION###", IPBanService.UrlEncode(a.GetName().Version.ToString()))
-                    .Replace("###GUID###", IPBanService.UrlEncode(MachineGuid))
-                    .Replace("###OSNAME###", IPBanService.UrlEncode(OSName))
-                    .Replace("###OSVERSION###", IPBanService.UrlEncode(OSVersion));
+                url = ReplaceUrl(url);
                 RunTask(() =>
                 {
                     try
@@ -1073,6 +1068,23 @@ namespace IPBan
         public void Stop()
         {
             Dispose();
+        }
+
+        /// <summary>
+        /// Replace place-holders in url with values from this service
+        /// </summary>
+        /// <param name="url">Url to replace</param>
+        /// <returns>Replaced url</returns>
+        public string ReplaceUrl(string url)
+        {
+            Assembly a = IPBanService.GetIPBanAssembly();
+            return url.Replace("###IPADDRESS###", IPBanService.UrlEncode(LocalIPAddressString))
+                .Replace("###REMOTE_IPADDRESS###", IPBanService.UrlEncode(RemoteIPAddressString))
+                .Replace("###MACHINENAME###", IPBanService.UrlEncode(FQDN))
+                .Replace("###VERSION###", IPBanService.UrlEncode(a.GetName().Version.ToString()))
+                .Replace("###GUID###", IPBanService.UrlEncode(MachineGuid))
+                .Replace("###OSNAME###", IPBanService.UrlEncode(OSName))
+                .Replace("###OSVERSION###", IPBanService.UrlEncode(OSVersion));
         }
 
         /// <summary>
