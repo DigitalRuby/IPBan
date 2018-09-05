@@ -14,7 +14,11 @@ IPBan Service
 - Extract the IPBan.zip (inside is IPBanWindows.zip) file to a place on your computer. Right click on all the extracted files and select properties. Make sure to select "unblock" if the option is available.
 - You *MUST* make this change to the local security policy to ensure ip addresses show up: 
 Change Local Security Policy -> Local Policies -> Audit Policy and turn failure logging on for "audit account logon events" and "audit logon events".
-From an admin command prompt: auditpol /set /category:"Logon/Logoff" /success:enable /failure:enable
+From an admin command prompt:
+```
+auditpol /set /category:"Logon/Logoff" /success:enable /failure:enable
+auditpol /set /category:"Account Logon" /success:enable /failure:enable
+```
 - For Windows Server 2008 or equivelant, you should disable NTLM logins and only allow NTLM2 logins. On Windows Server 2008, there is no way to get the ip address of NTLM logins. Use secpol -> local policies -> security options -> network security restrict ntlm incoming ntlm traffic -> deny all accounts.
 - To run as a Windows service run "sc create IPBAN type= own start= auto binPath= c:\path\to\service\IPBan.exe DisplayName= IPBAN". The service needs file system, event viewer and firewall access, so please run as SYSTEM to ensure permissions.
 - To run as a console app, simply run IPBan.exe and watch console output.
