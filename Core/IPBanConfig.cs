@@ -104,8 +104,15 @@ namespace IPBan
             {
                 expressions = new ExpressionsToBlock { Groups = new ExpressionsToBlockGroup[0] };
             }
-            LogFilesToParse logFilesToParse = new XmlSerializer(typeof(LogFilesToParse)).Deserialize(new XmlNodeReader(doc.SelectSingleNode("//LogFilesToParse"))) as LogFilesToParse;
-            logFiles = (logFilesToParse == null ? new LogFileToParse[0] : logFilesToParse.LogFiles);
+            try
+            {
+                LogFilesToParse logFilesToParse = new XmlSerializer(typeof(LogFilesToParse)).Deserialize(new XmlNodeReader(doc.SelectSingleNode("//LogFilesToParse"))) as LogFilesToParse;
+                logFiles = (logFilesToParse == null ? new LogFileToParse[0] : logFilesToParse.LogFiles);
+            }
+            catch
+            {
+                logFiles = new LogFileToParse[0];
+            }
             GetConfig<string>("ProcessToRunOnBan", ref processToRunOnBan);
 
             // retrieve firewall configuration
