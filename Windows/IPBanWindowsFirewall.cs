@@ -55,7 +55,7 @@ namespace IPBan
             return b.ToString();
         }
 
-        private INetFwRule GetOrCreateRule(string ruleName, string remoteIPAddresses, NET_FW_ACTION_ action)
+        private INetFwRule GetOrCreateRule(string ruleName, string remoteIPAddresses, NET_FW_ACTION_ action, params PortRange[] allowedPorts)
         {
             lock (policy)
             {
@@ -81,6 +81,17 @@ namespace IPBan
                     rule.LocalAddresses = "*";
                     rule.Profiles = int.MaxValue; // all
                     rule.Protocol = (int)NET_FW_IP_PROTOCOL_.NET_FW_IP_PROTOCOL_ANY;
+                    if (allowedPorts != null && allowedPorts.Length != 0)
+                    {
+                        if (action == NET_FW_ACTION_.NET_FW_ACTION_BLOCK)
+                        {
+                            rule.LocalPorts = IPBanFirewall.GetPortRangeStringBlockExcept(allowedPorts);
+                        }
+                        else
+                        {
+                            rule.LocalPorts = IPBanFirewall.GetPortRangeStringAllow(allowedPorts);
+                        }
+                    }
                     policy.Rules.Add(rule);
                 }
                 try
@@ -164,6 +175,11 @@ namespace IPBan
                 IPBanLog.Error(ex);
                 return false;
             }
+        }
+
+        public void BlockIPAddresses(string ruleNamePrefix, IEnumerable<IPAddressRange> ranges, params PortRange[] allowedPorts)
+        {
+            throw new NotImplementedException();
         }
 
         public bool AllowIPAddresses(IReadOnlyList<string> ipAddresses)

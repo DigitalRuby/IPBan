@@ -111,6 +111,11 @@ namespace IPBan
             return UpdateRule(ipAddresses, ref bannedIPAddresses);
         }
 
+        public void BlockIPAddresses(string ruleNamePrefix, IEnumerable<IPAddressRange> ranges, params PortRange[] allowedPorts)
+        {
+            throw new NotImplementedException();
+        }
+
         public bool AllowIPAddresses(IReadOnlyList<string> ipAddresses)
         {
             return UpdateRule(ipAddresses, ref allowedIPAddresses);
