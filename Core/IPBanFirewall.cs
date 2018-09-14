@@ -287,8 +287,6 @@ namespace IPBan
                                 yield return new IPAddressRange(currentRange.Begin, end);
                                 if (!currentFilter.End.TryIncrement(out IPAddress newBegin))
                                 {
-                                    // try the next filter
-                                    currentFilter = (filterEnum.MoveNext() ? filterEnum.Current : currentFilter);
                                     newBegin = currentFilter.End;
                                 }
 
