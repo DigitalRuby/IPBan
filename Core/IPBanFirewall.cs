@@ -281,8 +281,15 @@ namespace IPBan
                                     currentRange = rangeEnum.Current;
                                 }
                             }
-                            else if (currentFilter.Begin.TryDecrement(out IPAddress end))
+                            else
                             {
+                                // if compareBegin was >= the ip address range begin, we won't get here
+                                // this means the current filter begin must be greater than 0
+                                if (!currentFilter.Begin.TryDecrement(out IPAddress end))
+                                {
+                                    throw new InvalidOperationException("Current filter should have been able to decrement the begin ip address");
+                                }
+
                                 // filter begin is after the range begin, return the range begin and one before the filter begin
                                 yield return new IPAddressRange(currentRange.Begin, end);
                                 if (!currentFilter.End.TryIncrement(out IPAddress newBegin))
@@ -303,11 +310,6 @@ namespace IPBan
                                 {
                                     currentRange = new IPAddressRange(newBegin, currentRange.End);
                                 }
-                            }
-                            else
-                            {
-                                // try the next filter
-                                currentFilter = (filterEnum.MoveNext() ? filterEnum.Current : null);
                             }
                         }
                     }
