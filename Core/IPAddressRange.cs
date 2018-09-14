@@ -477,6 +477,24 @@ namespace IPBan
         }
 
         /// <summary>
+        /// Convert ip address range to string implicit
+        /// </summary>
+        /// <param name="range">Ip address range</param>
+        public static implicit operator string(IPAddressRange range)
+        {
+            return range.ToCidrString();
+        }
+
+        /// <summary>
+        /// Convert ip address range to string implicit
+        /// </summary>
+        /// <param name="s">Ip address range string</param>
+        public static implicit operator IPAddressRange(string s)
+        {
+            return (string.IsNullOrWhiteSpace(s) ? null : IPAddressRange.Parse(s));
+        }
+
+        /// <summary>
         /// Takes a subnetmask (eg, "255.255.254.0") and returns the CIDR bit length of that
         /// address. Throws an exception if the passed address is not valid as a subnet mask.
         /// </summary>
@@ -513,6 +531,37 @@ namespace IPBan
         public override string ToString()
         {
             return Equals(Begin, End) ? Begin.ToString() : string.Format("{0}/{1}", Begin, End);
+        }
+
+        /// <summary>
+        /// Check if this ip address range equals another object
+        /// </summary>
+        /// <param name="obj">Other object</param>
+        /// <returns>True if equal, false otherwise</returns>
+        public override bool Equals(object obj)
+        {
+            if (obj == null || !(obj is IPAddressRange other))
+            {
+                return false;
+            }
+            else if (Begin == null && other.Begin == null && End == null && other.End == null)
+            {
+                return true;
+            }
+            else if (Begin == null || End == null)
+            {
+                return false;
+            }
+            return Begin.Equals(other.Begin) && End.Equals(other.End);
+        }
+
+        /// <summary>
+        /// Get a hash code for this ip address range
+        /// </summary>
+        /// <returns>Hash code</returns>
+        public override int GetHashCode()
+        {
+            return (Begin == null ? 0 : Begin.GetHashCode()) + (End == null ? 0 : End.GetHashCode());
         }
 
         /// <summary>
@@ -608,23 +657,20 @@ namespace IPBan
 
         public int CompareTo(IPAddressRange other)
         {
-            for (int beginEndIndex = 0; beginEndIndex < 2; beginEndIndex++)
+            // compare begin addresses first
+            int compare = Begin.CompareTo(other.Begin);
+            if (compare != 0)
             {
-                byte[] bytes1 = (beginEndIndex == 0 ? Begin : End).GetAddressBytes();
-                byte[] bytes2 = (beginEndIndex == 0 ? other.Begin : other.End).GetAddressBytes();
-                if (bytes1.Length != bytes2.Length)
-                {
-                    return (bytes1.Length > bytes2.Length ? 1 : -1);
-                }
-                for (int byteIndex = 0; byteIndex < bytes1.Length; byteIndex++)
-                {
-                    int result = bytes1[byteIndex].CompareTo(bytes2[byteIndex]);
-                    if (result != 0)
-                    {
-                        return result;
-                    }
-                }
+                return compare;
             }
+
+            // begin address are equal, compare end addresses
+            compare = End.CompareTo(other.End);
+            if (compare != 0)
+            {
+                return compare;
+            }
+
             return 0; // equal
         }
 
