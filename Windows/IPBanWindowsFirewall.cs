@@ -38,7 +38,7 @@ namespace IPBan
             count = Math.Min(count, ipAddresses.Count - index);
 
             StringBuilder b = new StringBuilder(count * 16);
-            foreach (string ipAddress in ipAddresses)
+            foreach (string ipAddress in ipAddresses.Skip(index).Take(count))
             {
                 if (ipAddress.TryGetFirewallIPAddress(out string firewallIPAddress))
                 {
@@ -100,10 +100,19 @@ namespace IPBan
                 }
                 catch
                 {
-                    if (string.IsNullOrWhiteSpace(rule.RemoteAddresses))
+                }
+                finally
+                {
+                    if (string.IsNullOrWhiteSpace(rule.RemoteAddresses) || rule.RemoteAddresses == "*")
                     {
                         // if no ip addresses, remove the rule as it will allow or block everything
-                        policy.Rules.Remove(ruleName);
+                        try
+                        {
+                            policy.Rules.Remove(ruleName);
+                        }
+                        catch
+                        {
+                        }
                     }
                 }
                 return rule;
@@ -312,7 +321,7 @@ namespace IPBan
                         yield return ip.Substring(0, pos);
                     }
                 }
-                i++;
+                i += maxIpAddressesPerRule;
             }
         }
 
