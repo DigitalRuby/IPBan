@@ -100,13 +100,15 @@ namespace IPBan
                 LogFactory factory = LogManager.LoadConfiguration(ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None).FilePath);
                 if (factory.Configuration.AllTargets.Count == 0)
                 {
-                    if (File.Exists("nlog.config"))
+                    string nlogConfigPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "nlog.config");
+                    if (File.Exists(nlogConfigPath))
                     {
-                        factory = LogManager.LoadConfiguration("nlog.config");
+                        factory = LogManager.LoadConfiguration(nlogConfigPath);
                     }
                     else
                     {
-                        System.IO.StringReader sr = new System.IO.StringReader(IPBanResources.nlog_config);
+                        string nlogConfig = IPBanResources.nlog_config;
+                        System.IO.StringReader sr = new System.IO.StringReader(nlogConfig);
                         System.Xml.XmlReader xr = System.Xml.XmlReader.Create(sr);
                         LogManager.Configuration = new XmlLoggingConfiguration(xr, Directory.GetCurrentDirectory());
                         factory = LogManager.LogFactory;
@@ -122,11 +124,19 @@ namespace IPBan
         }
 
         /// <summary>
-        /// Map IPBan log level to NLog log level
+        /// Log current log levels
         /// </summary>
-        /// <param name="logLevel">IPBan log level</param>
-        /// <returns>NLog log level</returns>
-        public static NLog.LogLevel GetNLogLevel(IPBan.LogLevel logLevel)
+        public static void WriteLogLevels(IPBan.LogLevel level = LogLevel.Warn)
+        {
+            IPBanLog.Write(level, "Log levels: {0},{1},{2},{3},{4},{5}", logger.IsFatalEnabled, logger.IsErrorEnabled, logger.IsWarnEnabled, logger.IsInfoEnabled, logger.IsDebugEnabled, logger.IsTraceEnabled);
+        }
+
+            /// <summary>
+            /// Map IPBan log level to NLog log level
+            /// </summary>
+            /// <param name="logLevel">IPBan log level</param>
+            /// <returns>NLog log level</returns>
+            public static NLog.LogLevel GetNLogLevel(IPBan.LogLevel logLevel)
         {
             switch (logLevel)
             {

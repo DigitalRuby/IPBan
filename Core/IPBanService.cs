@@ -23,7 +23,7 @@ using System.Web;
 
 namespace IPBan
 {
-    public class IPBanService : IIPBanService, IHttpRequestMaker
+    public class IPBanService : IIPBanService
     {
         private enum UrlType
         {
@@ -42,7 +42,7 @@ namespace IPBan
             public string Source { get; set; }
         }
 
-        private Task cycleTask;
+        private System.Timers.Timer cycleTimer;
         private bool firewallNeedsBlockedIPAddressesUpdate;
         private bool gotStartUrl;
 
@@ -50,7 +50,6 @@ namespace IPBan
         // for locking, always use ipAddressesAndBanDate
         private readonly Dictionary<string, DateTime> ipAddressesAndBanDate = new Dictionary<string, DateTime>();
         private readonly Dictionary<string, IPBlockCount> ipAddressesAndBlockCounts = new Dictionary<string, IPBlockCount>();
-        private readonly ManualResetEvent cycleEvent = new ManualResetEvent(false);
         private readonly object configLock = new object();
         private readonly HashSet<IUpdater> updaters = new HashSet<IUpdater>();
         private readonly HashSet<IPBanLogFileScanner> logFilesToParse = new HashSet<IPBanLogFileScanner>();
@@ -331,7 +330,7 @@ namespace IPBan
             return HttpUtility.UrlEncode(text);
         }
 
-        internal Task SubmitIPAddress(string ipAddress, string source, string userName)
+        protected virtual Task SubmitIPAddress(string ipAddress, string source, string userName)
         {
             // submit url to ipban public database so that everyone can benefit from an aggregated list of banned ip addresses
             string timestamp = DateTime.UtcNow.ToString("o");
@@ -755,21 +754,14 @@ namespace IPBan
             }
         }
 
-        private void CycleTask()
+        private void CycleTimerElapsed(object sender, System.Timers.ElapsedEventArgs e)
         {
-            System.Diagnostics.Stopwatch timer = new Stopwatch();
-            while (IsRunning)
+            if (IsRunning)
             {
                 try
                 {
-                    timer.Restart();
+                    cycleTimer.Stop();
                     RunCycle();
-                    TimeSpan nextWait = Config.CycleTime - timer.Elapsed;
-                    if (nextWait.TotalMilliseconds < 1.0)
-                    {
-                        nextWait = TimeSpan.FromMilliseconds(1.0);
-                    }
-                    cycleEvent.WaitOne(nextWait);
                 }
                 catch (Exception ex)
                 {
@@ -777,6 +769,17 @@ namespace IPBan
                     IPBanLog.Error(ex);
                     Thread.Sleep(5000);
                 }
+                finally
+                {
+                    try
+                    {
+                        cycleTimer.Start();
+                    }
+                    catch
+                    {
+                    }
+                }
+                IPBanLog.Write(LogLevel.Diagnostic, "CycleTimerElapsed");
             }
         }
 
@@ -785,7 +788,7 @@ namespace IPBan
         /// </summary>
         protected IPBanService()
         {
-            RequestMaker = this;
+            RequestMaker = new DefaultHttpRequestMaker();
             OSName = IPBanOS.Name + (string.IsNullOrWhiteSpace(IPBanOS.FriendlyName) ? string.Empty : " (" + IPBanOS.FriendlyName + ")");
             OSVersion = IPBanOS.Version;
         }
@@ -1006,14 +1009,12 @@ namespace IPBan
             }
 
             IsRunning = false;
-            cycleEvent.Set();
-            cycleTask?.Wait();
-            cycleEvent.Dispose();
             GetUrl(UrlType.Stop);
             try
             {
                 IPBanDelegate?.Stop();
                 IPBanDelegate?.Dispose();
+                cycleTimer?.Dispose();
             }
             catch
             {
@@ -1052,6 +1053,11 @@ namespace IPBan
         /// </summary>
         public void Start()
         {
+            if (IsRunning)
+            {
+                return;
+            }
+
             IsRunning = true;
             ReadAppSettings();
             LoadFirewall();
@@ -1060,9 +1066,12 @@ namespace IPBan
             IPBanDelegate?.Start(this);
             if (!ManualCycle)
             {
-                cycleTask = Task.Run((Action)CycleTask);
+                cycleTimer = new System.Timers.Timer(Config.CycleTime.TotalMilliseconds);
+                cycleTimer.Elapsed += CycleTimerElapsed;
+                cycleTimer.Start();
             }
             IPBanLog.Write(LogLevel.Warning, "IPBan service started and initialized. Operating System: {0}", IPBanOS.OSString());
+            IPBanLog.WriteLogLevels();
         }
 
         /// <summary>
@@ -1163,22 +1172,6 @@ namespace IPBan
             lock (updaters)
             {
                 return updaters.Remove(updater);
-            }
-        }
-
-        /// <summary>
-        /// Implementation of IHttpRequestMaker
-        /// </summary>
-        /// <param name="url">Url</param>
-        /// <returns>Task of bytes</returns>
-        async Task<byte[]> IHttpRequestMaker.DownloadDataAsync(string url)
-        {
-            using (WebClient client = new WebClient())
-            {
-                Assembly a = (Assembly.GetEntryAssembly() ?? IPBanService.GetIPBanAssembly());
-                client.UseDefaultCredentials = true;
-                client.Headers["User-Agent"] = a.GetName().Name;
-                return await client.DownloadDataTaskAsync(url);
             }
         }
 
