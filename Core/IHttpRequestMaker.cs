@@ -24,6 +24,27 @@ namespace IPBan
     }
 
     /// <summary>
+    /// Represents an http request
+    /// </summary>
+    public interface IHttpRequest
+    {
+        /// <summary>
+        /// The requested uri
+        /// </summary>
+        Uri Uri { get; }
+
+        /// <summary>
+        /// The remove ip address of the connecting client
+        /// </summary>
+        IPAddress RemoteIPAddress { get; }
+
+        /// <summary>
+        /// Connection specific state
+        /// </summary>
+        Dictionary<object, object> Items { get; }
+    }
+
+    /// <summary>
     /// Default implementation of IHttpRequestMaker
     /// </summary>
     public class DefaultHttpRequestMaker : IHttpRequestMaker
@@ -50,5 +71,26 @@ namespace IPBan
                 return client.DownloadDataTaskAsync(url);
             }
         }
+    }
+
+    /// <summary>
+    /// Represents a default http request
+    /// </summary>
+    public class DefaultHttpRequest : IHttpRequest
+    {
+        /// <summary>
+        /// Uri
+        /// </summary>
+        public Uri Uri { get; set; }
+
+        /// <summary>
+        /// Client remote ip address
+        /// </summary>
+        public IPAddress RemoteIPAddress { get; set; }
+
+        /// <summary>
+        /// Client specific state
+        /// </summary>
+        public Dictionary<object, object> Items { get; } = new Dictionary<object, object>();
     }
 }
