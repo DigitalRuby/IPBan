@@ -1012,9 +1012,9 @@ namespace IPBan
             GetUrl(UrlType.Stop);
             try
             {
+                cycleTimer?.Dispose();
                 IPBanDelegate?.Stop();
                 IPBanDelegate?.Dispose();
-                cycleTimer?.Dispose();
             }
             catch
             {
