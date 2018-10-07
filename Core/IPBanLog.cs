@@ -128,15 +128,18 @@ namespace IPBan
         /// </summary>
         public static void WriteLogLevels(IPBan.LogLevel level = LogLevel.Warn)
         {
-            IPBanLog.Write(level, "Log levels: {0},{1},{2},{3},{4},{5}", logger.IsFatalEnabled, logger.IsErrorEnabled, logger.IsWarnEnabled, logger.IsInfoEnabled, logger.IsDebugEnabled, logger.IsTraceEnabled);
+            if (logger != null)
+            {
+                IPBanLog.Write(level, "Log levels: {0},{1},{2},{3},{4},{5}", logger.IsFatalEnabled, logger.IsErrorEnabled, logger.IsWarnEnabled, logger.IsInfoEnabled, logger.IsDebugEnabled, logger.IsTraceEnabled);
+            }
         }
 
-            /// <summary>
-            /// Map IPBan log level to NLog log level
-            /// </summary>
-            /// <param name="logLevel">IPBan log level</param>
-            /// <returns>NLog log level</returns>
-            public static NLog.LogLevel GetNLogLevel(IPBan.LogLevel logLevel)
+        /// <summary>
+        /// Map IPBan log level to NLog log level
+        /// </summary>
+        /// <param name="logLevel">IPBan log level</param>
+        /// <returns>NLog log level</returns>
+        public static NLog.LogLevel GetNLogLevel(IPBan.LogLevel logLevel)
         {
             switch (logLevel)
             {

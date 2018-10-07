@@ -204,17 +204,23 @@ namespace IPBan
             {
             }
 
-            // re-open files and read one byte to flush disk cache
-            foreach (WatchedFile file in UpdateWatchedFiles())
+            try
             {
-                try
+                // re-open files and read one byte to flush disk cache
+                foreach (WatchedFile file in UpdateWatchedFiles())
                 {
                     // if file length has changed, ping the file
                     bool delete = false;
-                    long len;
+                    long len = new FileInfo(file.FileName).Length;
+
+                    // if file has shrunk (deleted and recreated for example) reset positions to 0
+                    if (len < file.LastLength || len < file.LastPosition)
+                    {
+                        file.LastPosition = 0;
+                    }
 
                     // use file info for length compare to avoid doing a full file open
-                    if ((len = new FileInfo(file.FileName).Length) != file.LastLength)
+                    if (len != file.LastLength)
                     {
                         using (FileStream fs = new FileStream(file.FileName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
                         {
@@ -234,10 +240,10 @@ namespace IPBan
                         }
                     }
                 }
-                catch (Exception ex)
-                {
-                    IPBanLog.Error(ex);
-                }
+            }
+            catch (Exception ex)
+            {
+                IPBanLog.Error(ex);
             }
 
             try
@@ -258,6 +264,8 @@ namespace IPBan
             long end = Math.Min(file.LastLength, fs.Length);
             int countBeforeNewline = 0;
             fs.Position = file.LastPosition;
+
+            IPBanLog.Write(LogLevel.Info, "Processing watched file {0}, len = {1}, pos = {2}", file.FileName, file.LastLength, file.LastPosition);
 
             while (fs.Position < end && countBeforeNewline++ != maxCountBeforeNewline)
             {
