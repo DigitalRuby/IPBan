@@ -3,8 +3,8 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp2.1</TargetFramework>
-    <AssemblyVersion>1.3.3.0</AssemblyVersion>
-    <FileVersion>1.3.3.0</FileVersion>
+    <AssemblyVersion>1.3.4.0</AssemblyVersion>
+    <FileVersion>1.3.4.0</FileVersion>
     <Company>Digital Ruby, LLC</Company>
     <Authors>jjxtra</Authors>
     <Copyright>(c) 2010 Digital Ruby, LLC</Copyright>
@@ -15,7 +15,7 @@
     <StartupObject></StartupObject>
     <TrimUnusedDependencies>true</TrimUnusedDependencies>
     <TargetLatestRuntimePatch>true</TargetLatestRuntimePatch>
-    <PackageReleaseNotes>Critical Windows firewall bug fix</PackageReleaseNotes>
+    <PackageReleaseNotes>Fix for log file parse rollover / deletion</PackageReleaseNotes>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
