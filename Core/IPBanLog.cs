@@ -218,5 +218,10 @@ namespace IPBan
             {
             }
         }
+
+        /// <summary>
+        /// Internal access to the logger
+        /// </summary>
+        public static Logger Logger { get { return logger; } }
     }
 }

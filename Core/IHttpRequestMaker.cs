@@ -19,29 +19,9 @@ namespace IPBan
         /// GET request and retrieve raw data
         /// </summary>
         /// <param name="url">Url</param>
+        /// <param name="headers">Optional http headers</param>
         /// <returns>Task</returns>
-        Task<byte[]> DownloadDataAsync(string url);
-    }
-
-    /// <summary>
-    /// Represents an http request
-    /// </summary>
-    public interface IHttpRequest
-    {
-        /// <summary>
-        /// The requested uri
-        /// </summary>
-        Uri Uri { get; }
-
-        /// <summary>
-        /// The remove ip address of the connecting client
-        /// </summary>
-        IPAddress RemoteIPAddress { get; }
-
-        /// <summary>
-        /// Connection specific state
-        /// </summary>
-        Dictionary<object, object> Items { get; }
+        Task<byte[]> DownloadDataAsync(string url, params KeyValuePair<string, string>[] headers);
     }
 
     /// <summary>
@@ -60,7 +40,7 @@ namespace IPBan
         /// </summary>
         /// <param name="url">Url</param>
         /// <returns>Raw bytes</returns>
-        public Task<byte[]> DownloadDataAsync(string url)
+        public Task<byte[]> DownloadDataAsync(string url, params KeyValuePair<string, string>[] headers)
         {
             Interlocked.Increment(ref requestCount);
             using (WebClient client = new WebClient())
@@ -68,29 +48,12 @@ namespace IPBan
                 Assembly a = (Assembly.GetEntryAssembly() ?? IPBanService.GetIPBanAssembly());
                 client.UseDefaultCredentials = true;
                 client.Headers["User-Agent"] = a.GetName().Name;
+                foreach (KeyValuePair<string, string> header in headers)
+                {
+                    client.Headers[header.Key] = header.Value;
+                }
                 return client.DownloadDataTaskAsync(url);
             }
         }
-    }
-
-    /// <summary>
-    /// Represents a default http request
-    /// </summary>
-    public class DefaultHttpRequest : IHttpRequest
-    {
-        /// <summary>
-        /// Uri
-        /// </summary>
-        public Uri Uri { get; set; }
-
-        /// <summary>
-        /// Client remote ip address
-        /// </summary>
-        public IPAddress RemoteIPAddress { get; set; }
-
-        /// <summary>
-        /// Client specific state
-        /// </summary>
-        public Dictionary<object, object> Items { get; } = new Dictionary<object, object>();
     }
 }
