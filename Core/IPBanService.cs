@@ -192,7 +192,7 @@ namespace IPBan
             {
                 try
                 {
-                    byte[] bytes = RequestMaker.DownloadDataAsync(Config.ExternalIPAddressUrl).ConfigureAwait(false).GetAwaiter().GetResult();
+                    byte[] bytes = RequestMaker.MakeRequestAsync(Config.ExternalIPAddressUrl).ConfigureAwait(false).GetAwaiter().GetResult();
                     RemoteIPAddressString = Encoding.UTF8.GetString(bytes).Trim();
                     IPBanLog.Write(LogLevel.Info, "Remote ip address: {0}", RemoteIPAddressString);
                 }
@@ -342,7 +342,7 @@ namespace IPBan
 
             try
             {
-                return RequestMaker.DownloadDataAsync(url);
+                return RequestMaker.MakeRequestAsync(url);
             }
             catch
             {
@@ -665,7 +665,7 @@ namespace IPBan
                 {
                     try
                     {
-                        byte[] bytes = RequestMaker.DownloadDataAsync(url).ConfigureAwait(false).GetAwaiter().GetResult();
+                        byte[] bytes = RequestMaker.MakeRequestAsync(url).ConfigureAwait(false).GetAwaiter().GetResult();
                         if (urlType == UrlType.Start)
                         {
                             gotStartUrl = true;

@@ -16,12 +16,13 @@ namespace IPBan
     public interface IHttpRequestMaker
     {
         /// <summary>
-        /// GET request and retrieve raw data
+        /// Make a GET or POST http request
         /// </summary>
         /// <param name="url">Url</param>
+        /// <param name="postJson">Optional json to post for a POST request, else GET is used</param>
         /// <param name="headers">Optional http headers</param>
-        /// <returns>Task</returns>
-        Task<byte[]> DownloadDataAsync(string url, params KeyValuePair<string, string>[] headers);
+        /// <returns>Task of response byte[]</returns>
+        Task<byte[]> MakeRequestAsync(string url, string postJson = null, params KeyValuePair<string, string>[] headers);
     }
 
     /// <summary>
@@ -35,12 +36,7 @@ namespace IPBan
         /// </summary>
         public static long RequestCount { get { return requestCount; } }
 
-        /// <summary>
-        /// Download data from a URL using GET method
-        /// </summary>
-        /// <param name="url">Url</param>
-        /// <returns>Raw bytes</returns>
-        public Task<byte[]> DownloadDataAsync(string url, params KeyValuePair<string, string>[] headers)
+        public Task<byte[]> MakeRequestAsync(string url, string postJson = null, params KeyValuePair<string, string>[] headers)
         {
             Interlocked.Increment(ref requestCount);
             using (WebClient client = new WebClient())
@@ -52,7 +48,12 @@ namespace IPBan
                 {
                     client.Headers[header.Key] = header.Value;
                 }
-                return client.DownloadDataTaskAsync(url);
+                if (string.IsNullOrWhiteSpace(postJson))
+                {
+                    return client.DownloadDataTaskAsync(url);
+                }
+                client.Headers["Content-Type"] = "application/json";
+                return client.UploadDataTaskAsync(url, "POST", Encoding.UTF8.GetBytes(postJson));
             }
         }
     }
