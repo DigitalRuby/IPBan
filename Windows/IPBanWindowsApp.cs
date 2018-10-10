@@ -9,6 +9,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Security.Principal;
 using System.ServiceProcess;
 
 #endregion Imports
@@ -29,6 +30,18 @@ namespace IPBan
             service = IPBanService.CreateService(testing);
             service.Start();
             eventViewer = new IPBanWindowsEventViewer(service);
+        }
+
+        private static void RequireAdministrator()
+        {
+            using (WindowsIdentity identity = WindowsIdentity.GetCurrent())
+            {
+                WindowsPrincipal principal = new WindowsPrincipal(identity);
+                if (!principal.IsInRole(WindowsBuiltInRole.Administrator))
+                {
+                    throw new InvalidOperationException("Application must be run as administrator");
+                }
+            }
         }
 
         protected override void OnStart(string[] args)
@@ -117,6 +130,7 @@ namespace IPBan
 
         public static int ServiceEntryPoint(string[] args)
         {
+            RequireAdministrator();
             if (Console.IsInputRedirected)
             {
                 return IPBanWindowsApp.RunWindowsService(args);
