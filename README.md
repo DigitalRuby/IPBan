@@ -2,10 +2,15 @@ IPBan Service
 -----
 [![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=7EJ3K33SRLU9E)
 
+**Requirements**
+- IPBan requires .NET core 2.2 SDK and Visual Studio 2017 or newer to build from source. You can build a self contained executable to eliminate the need for dotnet core on the server machine, or just download the precompiled binaries.
+- Supported platforms: Windows (x86, x64), Linux (x64).
+- Mac OS X not officially supported at this time, but you can try your luck it should work in theory.
+
 **Instructions**
 
 - Official download link is http://www.digitalruby.com/download/ipban-software-download/ or https://github.com/jjxtra/IPBan/releases.
-- Make sure to look at the config file for configuration options.
+- Make sure to look at the config file for configuration options, each are documented with comments.
 - Here is a regex that matches any 32 bit ip address, useful if you need to add a new block option in the config file: 
 
 ```
