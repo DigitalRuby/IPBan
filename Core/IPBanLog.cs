@@ -101,17 +101,17 @@ namespace IPBan
                 if (factory.Configuration.AllTargets.Count == 0)
                 {
                     string nlogConfigPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "nlog.config");
+                    if (!File.Exists(nlogConfigPath))
+                    {
+                        File.WriteAllText(nlogConfigPath, IPBanResources.nlog_config);
+                    }
                     if (File.Exists(nlogConfigPath))
                     {
                         factory = LogManager.LoadConfiguration(nlogConfigPath);
                     }
                     else
                     {
-                        string nlogConfig = IPBanResources.nlog_config;
-                        System.IO.StringReader sr = new System.IO.StringReader(nlogConfig);
-                        System.Xml.XmlReader xr = System.Xml.XmlReader.Create(sr);
-                        LogManager.Configuration = new XmlLoggingConfiguration(xr, Directory.GetCurrentDirectory());
-                        factory = LogManager.LogFactory;
+                        throw new IOException("Unable to create nlog configuration file, nlog.config file does not exist");
                     }
                 }
                 logger = factory.GetCurrentClassLogger();
