@@ -15,7 +15,7 @@
     <StartupObject></StartupObject>
     <TrimUnusedDependencies>true</TrimUnusedDependencies>
     <TargetLatestRuntimePatch>true</TargetLatestRuntimePatch>
-    <PackageReleaseNotes>Fix for log file parse rollover / deletion</PackageReleaseNotes>
+    <PackageReleaseNotes>Write default nlog.config file</PackageReleaseNotes>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
