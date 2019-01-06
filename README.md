@@ -42,7 +42,9 @@ The service needs file system, event viewer and firewall access, so please run a
 - To run as a console app, simply run IPBan.exe and watch console output.
 - If you want to run and debug code in Visual Studio, make sure to run Visual Studio as administrator. Visual Studio 2017 or newer is required, along with .net core 2.1.1. Community edition is free.
 - On some Windows versions, NLA will default to on. This will lock you out of remote desktop, so make sure to turn this option off. 
- 
+- On Windows Small Business Server 2011 (and probably earlier) and Windows Server running Exchange, with installed PowerShell v.2 that does not know Unblock-File command, and newer version can’t be installed (as some scripts for managing OWA stop working correctly). Easier way is to manually unblock downloaded ZIP file and then unzip content.
+- On Windows Server running Exchange, it is impossible to disable NTLM (deny all clients in Security restrict ntlm incoming ntlm traffic) as then Outlook on client computers permanently asks users for entering username and password. Workaround (that I found till now) could be setting Network security: LAN Manager authenticating level in Security Optins of Local Policies to "Send NTLMv2 response only. Refuse LM & NTLM". But this has still small issue – when somebody tries to login with undefined username, log does not contain IP address.
+
 **Linux**
 
 - IPBan is currently supported on ubuntu 16.X - 18.X. For other Linux or MAC, you may need to adjust some of the instructions and add config file entries for the appropriate log files to parse.
