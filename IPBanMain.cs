@@ -23,6 +23,11 @@ namespace IPBan
             {
                 IPBanLinuxApp.LinuxMain(args);
             }
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            {
+                throw new PlatformNotSupportedException("Mac OSX is not yet supported, but will be in the future.");
+                //IPBanMacApp.MacMain(args);
+            }
             else
             {
                 throw new PlatformNotSupportedException();
