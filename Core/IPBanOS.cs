@@ -64,28 +64,62 @@ namespace IPBan
             return defaultValue;
         }
 
+        private static void LoadVersionFromWmiApi()
+        {
+            try
+            {
+                // WMI API sometimes fails to initialize on .NET core on some systems, not sure why...
+                // fall-back to WMI, maybe future .NET core versions will fix the bug
+                using (ManagementObjectSearcher searcher = new ManagementObjectSearcher("SELECT Caption, Version FROM Win32_OperatingSystem"))
+                {
+                    foreach (var result in searcher.Get())
+                    {
+                        FriendlyName = result["Caption"] as string;
+                        Version = result["Version"] as string;
+                        break;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                IPBanLog.Error(ex, "Unable to load os version from wmi api");
+            }
+        }
+
         static IPBanOS()
         {
             try
             {
+                // start off with built in version info, this is not as detailed or nice as we like,
+                //  so we try some other ways to get more detailed information
                 Version = Environment.OSVersion.VersionString;
                 Description = RuntimeInformation.OSDescription;
+
+                // attempt to get detailed version info
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
                 {
                     string tempFile = Path.GetTempFileName();
                     Process.Start("/bin/bash", "-c \"cat /etc/*release* > " + tempFile + "\"").WaitForExit();
-                    string versionText = File.ReadAllText(tempFile);
+                    System.Threading.Tasks.Task.Delay(100); // wait a small bit for file to really be closed
+                    string versionText = File.ReadAllText(tempFile).Trim();
                     File.Delete(tempFile);
-                    Name = IPBanOS.Linux;
-                    FriendlyName = ExtractRegex(versionText, "^(Id|Distrib_Id)=(?<value>.*?)$", string.Empty);
-                    if (FriendlyName.Length != 0)
+                    if (string.IsNullOrWhiteSpace(versionText))
                     {
-                        string codeName = ExtractRegex(versionText, "^(Name|Distrib_CodeName)=(?<value>.+)$", string.Empty);
-                        if (codeName.Length != 0)
+                        IPBanLog.Error(new IOException("Unable to load os version from /etc/*release* ..."));
+                    }
+                    else
+                    {
+                        Name = IPBanOS.Linux;
+                        FriendlyName = ExtractRegex(versionText, "^(Id|Distrib_Id)=(?<value>.*?)$", string.Empty);
+                        if (FriendlyName.Length != 0)
                         {
-                            FriendlyName += " - " + codeName;
+                            string codeName = ExtractRegex(versionText, "^(Name|Distrib_CodeName)=(?<value>.+)$", string.Empty);
+                            if (codeName.Length != 0)
+                            {
+                                FriendlyName += " - " + codeName;
+                            }
+                            Version = ExtractRegex(versionText, "^Version_Id=(?<value>.+)$", Version);
                         }
-                        Version = ExtractRegex(versionText, "^Version_Id=(?<value>.+)$", Version);
                     }
                 }
                 else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
@@ -99,32 +133,47 @@ namespace IPBan
                     StartProcessAndWait("cmd", "/C wmic path Win32_OperatingSystem get Caption,Version /format:table > \"" + tempFile + "\"");
                     if (File.Exists(tempFile))
                     {
-                        string[] lines = File.ReadAllLines(tempFile);
-                        File.Delete(tempFile);
-                        if (lines.Length > 1)
+                        // try up to 10 times to read the file
+                        for (int i = 0; i < 10; i++)
                         {
-                            int versionIndex = lines[0].IndexOf("Version");
-                            if (versionIndex >= 0)
+                            try
                             {
-                                FriendlyName = lines[1].Substring(0, versionIndex - 1).Trim();
-                                Version = lines[1].Substring(versionIndex).Trim();
+                                string[] lines = File.ReadAllLines(tempFile);
+                                File.Delete(tempFile);
+                                if (lines.Length > 1)
+                                {
+                                    int versionIndex = lines[0].IndexOf("Version");
+                                    if (versionIndex >= 0)
+                                    {
+                                        FriendlyName = lines[1].Substring(0, versionIndex - 1).Trim();
+                                        Version = lines[1].Substring(versionIndex).Trim();
+                                        break;
+                                    }
+                                }
+                                throw new IOException("Invalid file generated from wmic");
+                            }
+                            catch (Exception ex)
+                            {
+                                if (i < 9)
+                                {
+                                    System.Threading.Tasks.Task.Delay(200).Wait();
+                                }
+                                else
+                                {
+                                    IPBanLog.Error(ex, "Unable to load os version using wmic, trying wmi api...");
+
+                                    // last resort, try wmi api
+                                    LoadVersionFromWmiApi();
+                                }
                             }
                         }
                     }
                     else
                     {
-                        // fall-back to WMI, maybe future .NET core versions will fix the bug
-                        using (ManagementObjectSearcher searcher = new ManagementObjectSearcher("SELECT Caption, Version FROM Win32_OperatingSystem"))
-                        {
-                            foreach (var result in searcher.Get())
-                            {
-                                FriendlyName = result["Caption"] as string;
-                                Version = result["Version"] as string;
-                                break;
-                            }
-                        }
+                        // last resort, try wmi api
+                        LoadVersionFromWmiApi();
                     }
-                    }
+                }
                 else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
                 {
                     // TODO: Implement better for MAC
