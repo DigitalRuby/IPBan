@@ -1067,6 +1067,7 @@ namespace IPBan
             IPBanDelegate?.Start(this);
             if (!ManualCycle)
             {
+                RunCycle(); // run one cycle right away
                 cycleTimer = new System.Timers.Timer(Config.CycleTime.TotalMilliseconds);
                 cycleTimer.Elapsed += CycleTimerElapsed;
                 cycleTimer.Start();
