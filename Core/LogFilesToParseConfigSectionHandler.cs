@@ -12,6 +12,7 @@ namespace IPBan
     {
         public string Source { get; set; }
         public string PathAndMask { get; set; }
+        public bool Recursive { get; set; }
         public string Regex { get; set; }
         public string PlatformRegex { get; set; }
         public int PingInterval { get; set; } = 10000;

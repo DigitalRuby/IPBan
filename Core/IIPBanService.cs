@@ -8,9 +8,23 @@ using System.Threading.Tasks;
 namespace IPBan
 {
     /// <summary>
+    /// Failed login interface
+    /// </summary>
+    public interface IFailedLogin
+    {
+        /// <summary>
+        /// Add an ip address to be checked for banning later
+        /// </summary>
+        /// <param name="ipAddress">IP Address</param>
+        /// <param name="source">Source</param>
+        /// <param name="userName">User Name</param>
+        void AddFailedLogin(string ipAddress, string source, string userName);
+    }
+
+    /// <summary>
     /// IPBan service interface
     /// </summary>
-    public interface IIPBanService : IDisposable
+    public interface IIPBanService : IFailedLogin, IDisposable
     {
         /// <summary>
         /// Manually run regular processing - useful if testing
@@ -22,14 +36,6 @@ namespace IPBan
         /// </summary>
         /// <param name="xml">New config file xml</param>
         void UpdateConfig(string xml);
-
-        /// <summary>
-        /// Add an ip address to be checked for banning later
-        /// </summary>
-        /// <param name="ipAddress">IP Address</param>
-        /// <param name="source">Source</param>
-        /// <param name="userName">User Name</param>
-        void AddFailedLogin(string ipAddress, string source, string userName);
 
         /// <summary>
         /// Manually process all pending ip addresses immediately

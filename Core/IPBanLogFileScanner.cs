@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace IPBan
 {
-    public class IPBanLogFileScanner : IUpdater
+    public class IPBanLogFileScanner : IDisposable
     {
         private class WatchedFile
         {
@@ -39,7 +39,7 @@ namespace IPBan
             public long LastLength { get; set; }
         }
 
-        private readonly IIPBanService service;
+        private readonly IFailedLogin failedLogin;
         private readonly HashSet<WatchedFile> watchedFiles = new HashSet<WatchedFile>();
         private readonly AutoResetEvent ipEvent = new AutoResetEvent(false);
         private readonly System.Timers.Timer pingTimer;
@@ -50,18 +50,19 @@ namespace IPBan
         /// <summary>
         /// Create a log file scanner
         /// </summary>
-        /// <param name="service">IPBan service</param>
+        /// <param name="failedLogin">Interface for handling failed logins</param>
         /// <param name="source">The source, i.e. SSH or SMTP, etc.</param>
         /// <param name="pathAndMask">File path and mask (i.e. /var/log/auth*.log)</param>
+        /// <param name="recursive">Whether to parse all sub directories of path and mask recursively</param>
         /// <param name="regex">Regex to parse file lines to pull out ipaddress and username</param>
         /// <param name="maxFileSize">Max size of file before it is deleted or 0 for unlimited</param>
         /// <param name="pingIntervalMilliseconds"></param>
-        public IPBanLogFileScanner(IIPBanService service, string source, string pathAndMask, string regex, long maxFileSize = 0, int pingIntervalMilliseconds = 10000)
+        public IPBanLogFileScanner(IFailedLogin failedLogin, string source, string pathAndMask, bool recursive, string regex, long maxFileSize = 0, int pingIntervalMilliseconds = 10000)
         {
+            failedLogin.ThrowIfNull(nameof(failedLogin));
             Source = source;
-            this.service = service;
+            this.failedLogin = failedLogin;
             this.maxFileSize = maxFileSize;
-            service.AddUpdater(this);
             PathAndMask = pathAndMask;
             Regex = IPBanConfig.ParseRegex(regex);
             directoryToWatch = Path.GetDirectoryName(pathAndMask);
@@ -69,9 +70,10 @@ namespace IPBan
             pingTimer = new System.Timers.Timer(pingIntervalMilliseconds);
             pingTimer.Elapsed += PingTimerElapsed;
             pingTimer.Start();
-            
+
             // add initial files
-            foreach (string existingFileName in Directory.GetFiles(Path.GetDirectoryName(pathAndMask), Path.GetFileName(pathAndMask), SearchOption.TopDirectoryOnly))
+            SearchOption option = (recursive ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly);
+            foreach (string existingFileName in Directory.GetFiles(Path.GetDirectoryName(pathAndMask), Path.GetFileName(pathAndMask), option))
             {
                 // start at end of existing files
                 AddPingFile(existingFileName, new FileInfo(existingFileName).Length);
@@ -90,10 +92,6 @@ namespace IPBan
             {
                 watchedFiles.Clear();
             }
-        }
-
-        public void Update()
-        {
         }
 
         /// <summary>
@@ -307,7 +305,7 @@ namespace IPBan
                     if (foundMatch)
                     {
                         IPBanLog.Write(LogLevel.Debug, "Found match, ip: {0}, user: {1}", ipAddress, userName);
-                        service.AddFailedLogin(ipAddress, Source, userName);
+                        failedLogin.AddFailedLogin(ipAddress, Source, userName);
                         foundOne = true;
                     }
                     else

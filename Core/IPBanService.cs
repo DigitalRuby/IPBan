@@ -101,7 +101,8 @@ namespace IPBan
                                 Regex.IsMatch(IPBanOS.Description, newFile.PlatformRegex.Trim(), RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))
                             {
                                 // log files use a timer internally and do not need to be updated regularly
-                                logFilesToParse.Add(new IPBanLogFileScanner(this, newFile.Source, pathAndMask, newFile.Regex, newFile.MaxFileSize, newFile.PingInterval));
+                                IPBanLogFileScanner scanner = new IPBanLogFileScanner(this, newFile.Source, pathAndMask, newFile.Recursive, newFile.Regex, newFile.MaxFileSize, newFile.PingInterval);
+                                logFilesToParse.Add(scanner);
                             }
                             else
                             {
