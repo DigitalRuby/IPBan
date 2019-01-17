@@ -12,7 +12,7 @@ namespace IPBan
             bool testing = false; // TODO: Change to true if we are running Linux tests
             IPBanService service = IPBanService.CreateService(testing);
             service.Start();
-            IPBanLog.Write(LogLevel.Warning, "IPBan Linux Service Running, Press Ctrl-C to quit.");
+            IPBanLog.Warn("IPBan Linux Service Running, Press Ctrl-C to quit.");
             ManualResetEvent wait = new ManualResetEvent(false);
             wait.WaitOne();
         }

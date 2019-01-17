@@ -209,7 +209,7 @@ namespace IPBan
         /// <param name="allowedExitCode">Allowed exit codes, if empty not checked, otherwise a mismatch will throw an exception.</param>
         public static void StartProcessAndWait(string program, string args, params int[] allowedExitCode)
         {
-            IPBanLog.Write(LogLevel.Information, $"Executing process {program} {args}...");
+            IPBanLog.Info($"Executing process {program} {args}...");
 
             var p = new Process
             {

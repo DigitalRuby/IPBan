@@ -22,12 +22,12 @@ namespace IPBan
         {
             commandLine = program + " " + string.Format(commandLine, args);
             commandLine = "-c \"" + commandLine.Replace("\"", "\\\"") + "\"";
-            IPBanLog.Write(LogLevel.Debug, "Running firewall process: /bin/bash {0}", commandLine);
+            IPBanLog.Debug("Running firewall process: /bin/bash {0}", commandLine);
             Process p = Process.Start("/bin/bash", commandLine);
             p.WaitForExit();
             if (requireExitCode && p.ExitCode != 0)
             {
-                IPBanLog.Write(LogLevel.Error, "Process {0} {1} had exit code {2}", program, commandLine, p.ExitCode);
+                IPBanLog.Error("Process {0} {1} had exit code {2}", program, commandLine, p.ExitCode);
             }
             return p.ExitCode;
         }

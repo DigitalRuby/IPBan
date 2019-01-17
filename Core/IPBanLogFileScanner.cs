@@ -171,7 +171,7 @@ namespace IPBan
                 {
                     if (!watchedFilesCopy.Contains(existing))
                     {
-                        IPBanLog.Write(LogLevel.Debug, "Removing parsed log file {0}", existing.FileName);
+                        IPBanLog.Debug("Removing parsed log file {0}", existing.FileName);
                         watchedFiles.Remove(existing);
                     }
                 }
@@ -182,7 +182,7 @@ namespace IPBan
                     // add the file, will fail if it already exists
                     if (watchedFiles.Add(newFile))
                     {
-                        IPBanLog.Write(LogLevel.Debug, "Adding parsed log file {0}", newFile.FileName);
+                        IPBanLog.Debug("Adding parsed log file {0}", newFile.FileName);
                     }
                 }
 
@@ -268,7 +268,7 @@ namespace IPBan
             int countBeforeNewline = 0;
             fs.Position = file.LastPosition;
 
-            IPBanLog.Write(LogLevel.Info, "Processing watched file {0}, len = {1}, pos = {2}", file.FileName, file.LastLength, file.LastPosition);
+            IPBanLog.Info("Processing watched file {0}, len = {1}, pos = {2}", file.FileName, file.LastLength, file.LastPosition);
 
             while (fs.Position < end && countBeforeNewline++ != maxCountBeforeNewline)
             {
@@ -305,17 +305,17 @@ namespace IPBan
                 // find ip and user name from all lines
                 foreach (string line in lines)
                 {
-                    IPBanLog.Write(LogLevel.Debug, "Parsing log file line {0}...", line);
+                    IPBanLog.Debug("Parsing log file line {0}...", line);
                     bool foundMatch = IPBanService.GetIPAddressAndUserNameFromRegex(dns, Regex, line.Trim(), ref ipAddress, ref userName);
                     if (foundMatch)
                     {
-                        IPBanLog.Write(LogLevel.Debug, "Found match, ip: {0}, user: {1}", ipAddress, userName);
+                        IPBanLog.Debug("Found match, ip: {0}, user: {1}", ipAddress, userName);
                         failedLogin.AddFailedLogin(ipAddress, Source, userName);
                         foundOne = true;
                     }
                     else
                     {
-                        IPBanLog.Write(LogLevel.Debug, "No match!");
+                        IPBanLog.Debug("No match for line {0}", line);
                     }
                 }
 

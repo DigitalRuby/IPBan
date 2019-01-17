@@ -186,6 +186,96 @@ namespace IPBan
         }
 
         /// <summary>
+        /// Log a fatal
+        /// </summary>
+        /// <param name="text">Text with format</param>
+        /// <param name="args">Format args</param>
+        public static void Fatal(string text, params object[] args)
+        {
+            Write(LogLevel.Fatal, text, args);
+        }
+
+        /// <summary>
+        /// Log a fatal
+        /// </summary>
+        /// <param name="ex">Error</param>
+        public static void Fatal(Exception ex)
+        {
+            Write(LogLevel.Fatal, "Exception: " + ex.ToString());
+        }
+
+        /// <summary>
+        /// Log a fatal
+        /// </summary>
+        /// <param name="text">Text</param>
+        /// <param name="ex">Error</param>
+        public static void Fatal(string text, Exception ex)
+        {
+            Write(LogLevel.Fatal, text + ": " + ex.ToString());
+        }
+
+        /// <summary>
+        /// Log a fatal
+        /// </summary>
+        /// <param name="ex">Error</param>
+        /// <param name="text">Text with format</param>
+        /// <param name="args">Format args</param>
+        public static void Fatal(Exception ex, string text, params object[] args)
+        {
+            Write(LogLevel.Fatal, string.Format(text, args) + ": " + ex.ToString());
+        }
+
+        /// <summary>
+        /// Log a critical
+        /// </summary>
+        /// <param name="text">Text with format</param>
+        /// <param name="args">Format args</param>
+        public static void Critical(string text, params object[] args)
+        {
+            Write(LogLevel.Critical, text, args);
+        }
+
+        /// <summary>
+        /// Log a critical
+        /// </summary>
+        /// <param name="ex">Error</param>
+        public static void Critical(Exception ex)
+        {
+            Write(LogLevel.Critical, "Exception: " + ex.ToString());
+        }
+
+        /// <summary>
+        /// Log a critical
+        /// </summary>
+        /// <param name="text">Text</param>
+        /// <param name="ex">Error</param>
+        public static void Critical(string text, Exception ex)
+        {
+            Write(LogLevel.Critical, text + ": " + ex.ToString());
+        }
+
+        /// <summary>
+        /// Log a critical
+        /// </summary>
+        /// <param name="ex">Error</param>
+        /// <param name="text">Text with format</param>
+        /// <param name="args">Format args</param>
+        public static void Critical(Exception ex, string text, params object[] args)
+        {
+            Write(LogLevel.Critical, string.Format(text, args) + ": " + ex.ToString());
+        }
+
+        /// <summary>
+        /// Log an error
+        /// </summary>
+        /// <param name="text">Text with format</param>
+        /// <param name="args">Format args</param>
+        public static void Error(string text, params object[] args)
+        {
+            Write(LogLevel.Error, text, args);
+        }
+
+        /// <summary>
         /// Log an error
         /// </summary>
         /// <param name="ex">Error</param>
@@ -216,12 +306,53 @@ namespace IPBan
         }
 
         /// <summary>
+        /// Log a warn
+        /// </summary>
+        /// <param name="text">Text with format</param>
+        /// <param name="args">Format args</param>
+        public static void Warn(string text, params object[] args)
+        {
+            Write(LogLevel.Warn, text, args);
+        }
+
+
+        /// <summary>
+        /// Log an info
+        /// </summary>
+        /// <param name="text">Text with format</param>
+        /// <param name="args">Format args</param>
+        public static void Info(string text, params object[] args)
+        {
+            Write(LogLevel.Info, text, args);
+        }
+
+        /// <summary>
+        /// Log a debug
+        /// </summary>
+        /// <param name="text">Text with format</param>
+        /// <param name="args">Format args</param>
+        public static void Debug(string text, params object[] args)
+        {
+            Write(LogLevel.Debug, text, args);
+        }
+
+        /// <summary>
+        /// Log a trace
+        /// </summary>
+        /// <param name="text">Text with format</param>
+        /// <param name="args">Format args</param>
+        public static void Trace(string text, params object[] args)
+        {
+            Write(LogLevel.Trace, text, args);
+        }
+
+        /// <summary>
         /// Write to the log
         /// </summary>
         /// <param name="level">Log level</param>
         /// <param name="text">Text with format</param>
         /// <param name="args">Format args</param>
-        public static void Write(IPBan.LogLevel level, string text, params object[] args)
+        private static void Write(IPBan.LogLevel level, string text, params object[] args)
         {
             try
             {
