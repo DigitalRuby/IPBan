@@ -482,7 +482,14 @@ namespace IPBan
         /// <param name="range">Ip address range</param>
         public static implicit operator string(IPAddressRange range)
         {
-            return range.ToString();
+            try
+            {
+                return range.ToCidrString();
+            }
+            catch
+            {
+                return range.ToString();
+            }
         }
 
         /// <summary>

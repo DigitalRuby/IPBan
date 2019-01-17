@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -16,6 +17,8 @@ namespace IPBan
 
         private HashSet<string> bannedIPAddresses;
         private HashSet<string> allowedIPAddresses;
+        private string allowRulePrefix;
+        private string blockRulePrefix;
 
         private int RunProcess(string program, bool requireExitCode, string commandLine, params object[] args)
         {
@@ -64,10 +67,9 @@ namespace IPBan
             }
         }
 
-        private bool UpdateRule(IReadOnlyList<string> ipAddresses, ref HashSet<string> existingIPAddresses)
+        private bool UpdateRule(string ruleName, IEnumerable<string> ipAddresses, ref HashSet<string> existingIPAddresses, params PortRange[] allowPorts)
         {
             // ensure an ip set is created
-            string ruleName = RulePrefix + (existingIPAddresses == bannedIPAddresses ? "0" : "AllowIPAddresses");
             string tempFile = Path.GetTempFileName();
             HashSet<string> newIPAddresses = new HashSet<string>(ipAddresses);
             IEnumerable<string> removedIPAddresses = existingIPAddresses.Except(newIPAddresses);
@@ -99,26 +101,37 @@ namespace IPBan
 
         public void Initialize(string rulePrefix)
         {
-            RulePrefix = rulePrefix;
+            if (string.IsNullOrWhiteSpace(rulePrefix))
+            {
+                rulePrefix = "IPBan_";
+            }
+            RulePrefix = rulePrefix.Trim();
+            allowRulePrefix = RulePrefix + "1";
+            blockRulePrefix = RulePrefix + "0";
             string tempFile = Path.GetTempFileName();
-            LoadIPAddresses(RulePrefix + "1", "ACCEPT", tempFile, ref allowedIPAddresses);
-            LoadIPAddresses(RulePrefix + "0", "DROP", tempFile, ref bannedIPAddresses);
+            LoadIPAddresses(allowRulePrefix, "ACCEPT", tempFile, ref allowedIPAddresses);
+            LoadIPAddresses(blockRulePrefix, "DROP", tempFile, ref bannedIPAddresses);
             DeleteFile(tempFile);
         }
 
         public bool BlockIPAddresses(IReadOnlyList<string> ipAddresses)
         {
-            return UpdateRule(ipAddresses, ref bannedIPAddresses);
+            return UpdateRule(blockRulePrefix, ipAddresses, ref bannedIPAddresses);
         }
 
         public void BlockIPAddresses(string ruleNamePrefix, IEnumerable<IPAddressRange> ranges, params PortRange[] allowedPorts)
         {
             throw new NotImplementedException();
+
+            //HashSet<string> tmp = null;
+            //string ruleName = blockRulePrefix + "_" + ruleNamePrefix;
+            //RunProcess("ipset", false, $"create {ruleName} iphash family {inetFamily} hashsize 1024 maxelem 1048576 -exist");
+            //UpdateRule(ruleName, ranges.Select(r => r.ToCidrString()), ref tmp);
         }
 
         public bool AllowIPAddresses(IReadOnlyList<string> ipAddresses)
         {
-            return UpdateRule(ipAddresses, ref allowedIPAddresses);
+            return UpdateRule(allowRulePrefix, ipAddresses, ref allowedIPAddresses);
         }
 
         public IEnumerable<string> EnumerateBannedIPAddresses()
@@ -154,3 +167,4 @@ namespace IPBan
 // iptables -F // clear all rules - this may break SSH permanently!
 // iptables-save > file.txt
 // iptables-restore < file.txt
+// port ranges? iptables -A INPUT -p tcp -m tcp -m multiport ! --dports 80,443 -j DROP

@@ -18,11 +18,16 @@ namespace IPBan
         /// <summary>
         /// Make a GET or POST http request
         /// </summary>
-        /// <param name="url">Url</param>
+        /// <param name="Uri">Uri</param>
         /// <param name="postJson">Optional json to post for a POST request, else GET is used</param>
         /// <param name="headers">Optional http headers</param>
         /// <returns>Task of response byte[]</returns>
-        Task<byte[]> MakeRequestAsync(string url, string postJson = null, params KeyValuePair<string, string>[] headers);
+        Task<byte[]> MakeRequestAsync(Uri uri, string postJson = null, IEnumerable<KeyValuePair<string, string>> headers = null);
+
+        /// <summary>
+        /// Web proxy (optional)
+        /// </summary>
+        IWebProxy Proxy { get; set; }
     }
 
     /// <summary>
@@ -30,31 +35,63 @@ namespace IPBan
     /// </summary>
     public class DefaultHttpRequestMaker : IHttpRequestMaker
     {
-        private static long requestCount;
         /// <summary>
-        /// Global counter of requests made
+        /// Singleton of DefaultHttpRequestMaker
         /// </summary>
-        public static long RequestCount { get { return requestCount; } }
+        public static DefaultHttpRequestMaker Instance { get; } = new DefaultHttpRequestMaker();
 
-        public Task<byte[]> MakeRequestAsync(string url, string postJson = null, params KeyValuePair<string, string>[] headers)
+        private static long liveRequestCount;
+        /// <summary>
+        /// Global counter of live requests made
+        /// </summary>
+        public static long LiveRequestCount { get { return liveRequestCount; } }
+
+        private static long localRequestCount;
+        /// <summary>
+        /// Global counter of local requests made
+        /// </summary>
+        public static long LocalRequestCount { get { return localRequestCount; } }
+
+        public Task<byte[]> MakeRequestAsync(Uri uri, string postJson = null, IEnumerable<KeyValuePair<string, string>> headers = null)
         {
-            Interlocked.Increment(ref requestCount);
+            if (uri.Host.Contains("localhost", StringComparison.OrdinalIgnoreCase) || uri.Host.Contains("127.0.0.1") || uri.Host.Contains("::1"))
+            {
+                Interlocked.Increment(ref localRequestCount);
+            }
+            else
+            {
+                Interlocked.Increment(ref liveRequestCount);
+            }
             using (WebClient client = new WebClient())
             {
-                Assembly a = (Assembly.GetEntryAssembly() ?? IPBanService.GetIPBanAssembly());
-                client.UseDefaultCredentials = true;
-                client.Headers["User-Agent"] = a.GetName().Name;
-                foreach (KeyValuePair<string, string> header in headers)
+                Assembly versionAssembly = Assembly.GetEntryAssembly();
+                if (versionAssembly == null)
                 {
-                    client.Headers[header.Key] = header.Value;
+                    versionAssembly = Assembly.GetAssembly(Type.GetType("IPBanService"));
+                    if (versionAssembly == null)
+                    {
+                        versionAssembly = GetType().Assembly;
+                    }
+                }
+                client.UseDefaultCredentials = true;
+                client.Headers["User-Agent"] = versionAssembly.GetName().Name;
+                client.Proxy = Proxy ?? client.Proxy;
+                if (headers != null)
+                {
+                    foreach (KeyValuePair<string, string> header in headers)
+                    {
+                        client.Headers[header.Key] = header.Value;
+                    }
                 }
                 if (string.IsNullOrWhiteSpace(postJson))
                 {
-                    return client.DownloadDataTaskAsync(url);
+                    return client.DownloadDataTaskAsync(uri);
                 }
                 client.Headers["Content-Type"] = "application/json";
-                return client.UploadDataTaskAsync(url, "POST", Encoding.UTF8.GetBytes(postJson));
+                return client.UploadDataTaskAsync(uri, "POST", Encoding.UTF8.GetBytes(postJson));
             }
         }
+
+        public IWebProxy Proxy { get; set; }
     }
 }

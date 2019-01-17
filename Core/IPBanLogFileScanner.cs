@@ -40,6 +40,7 @@ namespace IPBan
         }
 
         private readonly IFailedLogin failedLogin;
+        private readonly IDnsLookup dns;
         private readonly HashSet<WatchedFile> watchedFiles = new HashSet<WatchedFile>();
         private readonly AutoResetEvent ipEvent = new AutoResetEvent(false);
         private readonly System.Timers.Timer pingTimer;
@@ -51,17 +52,21 @@ namespace IPBan
         /// Create a log file scanner
         /// </summary>
         /// <param name="failedLogin">Interface for handling failed logins</param>
+        /// <param name="dns">Interface for dns lookup</param>
         /// <param name="source">The source, i.e. SSH or SMTP, etc.</param>
         /// <param name="pathAndMask">File path and mask (i.e. /var/log/auth*.log)</param>
         /// <param name="recursive">Whether to parse all sub directories of path and mask recursively</param>
         /// <param name="regex">Regex to parse file lines to pull out ipaddress and username</param>
         /// <param name="maxFileSize">Max size of file before it is deleted or 0 for unlimited</param>
         /// <param name="pingIntervalMilliseconds"></param>
-        public IPBanLogFileScanner(IFailedLogin failedLogin, string source, string pathAndMask, bool recursive, string regex, long maxFileSize = 0, int pingIntervalMilliseconds = 10000)
+        public IPBanLogFileScanner(IFailedLogin failedLogin, IDnsLookup dns,
+            string source, string pathAndMask, bool recursive, string regex, long maxFileSize = 0, int pingIntervalMilliseconds = 10000)
         {
             failedLogin.ThrowIfNull(nameof(failedLogin));
+            dns.ThrowIfNull(nameof(dns));
             Source = source;
             this.failedLogin = failedLogin;
+            this.dns = dns;
             this.maxFileSize = maxFileSize;
             PathAndMask = pathAndMask;
             Regex = IPBanConfig.ParseRegex(regex);
@@ -301,7 +306,7 @@ namespace IPBan
                 foreach (string line in lines)
                 {
                     IPBanLog.Write(LogLevel.Debug, "Parsing log file line {0}...", line);
-                    bool foundMatch = IPBanService.GetIPAddressAndUserNameFromRegex(Regex, line.Trim(), ref ipAddress, ref userName);
+                    bool foundMatch = IPBanService.GetIPAddressAndUserNameFromRegex(dns, Regex, line.Trim(), ref ipAddress, ref userName);
                     if (foundMatch)
                     {
                         IPBanLog.Write(LogLevel.Debug, "Found match, ip: {0}, user: {1}", ipAddress, userName);

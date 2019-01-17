@@ -107,6 +107,21 @@ namespace IPBan
         IHttpRequestMaker RequestMaker { get; }
 
         /// <summary>
+        /// Firewall
+        /// </summary>
+        IIPBanFirewall Firewall { get; }
+
+        /// <summary>
+        /// Dns lookup
+        /// </summary>
+        IDnsLookup DnsLookup { get; }
+
+        /// <summary>
+        /// External ip address lookup
+        /// </summary>
+        ILocalMachineExternalIPAddressLookup ExternalIPAddressLookup { get; }
+
+        /// <summary>
         /// Operating system name
         /// </summary>
         string OSName { get; }
@@ -199,39 +214,24 @@ namespace IPBan
     }
 
     /// <summary>
-    /// Login failure results
+    /// Login failure result
     /// </summary>
     [Flags]
     public enum LoginFailedResult
     {
         /// <summary>
-        /// No result, use default behavior
+        /// Not whitelisted or blacklisted, use default behavior
         /// </summary>
         None = 0,
 
         /// <summary>
-        /// The ip address country is whitelisted
+        /// The ip address is whitelisted
         /// </summary>
-        CountryIsWhitelisted = 1,
+        Whitelisted = 1,
 
         /// <summary>
-        /// The ip address country is blacklisted
+        /// The ip address is blacklisted
         /// </summary>
-        CountryIsBlacklisted = 2,
-
-        /// <summary>
-        /// The ip address country is not whitelisted and the whitelist has countries in it
-        /// </summary>
-        CountryIsNotWhitelisted = 4,
-
-        /// <summary>
-        /// Whitelisted bitmask
-        /// </summary>
-        Whitelisted = CountryIsWhitelisted,
-
-        /// <summary>
-        /// Blacklisted bitmask
-        /// </summary>
-        Blacklisted = CountryIsBlacklisted | CountryIsNotWhitelisted
+        Blacklisted = 2
     }
 }

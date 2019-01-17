@@ -101,7 +101,8 @@ namespace IPBan
                                 Regex.IsMatch(IPBanOS.Description, newFile.PlatformRegex.Trim(), RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))
                             {
                                 // log files use a timer internally and do not need to be updated regularly
-                                IPBanLogFileScanner scanner = new IPBanLogFileScanner(this, newFile.Source, pathAndMask, newFile.Recursive, newFile.Regex, newFile.MaxFileSize, newFile.PingInterval);
+                                IPBanLogFileScanner scanner = new IPBanLogFileScanner(this, DnsLookup,
+                                    newFile.Source, pathAndMask, newFile.Recursive, newFile.Regex, newFile.MaxFileSize, newFile.PingInterval);
                                 logFilesToParse.Add(scanner);
                             }
                             else
@@ -125,7 +126,7 @@ namespace IPBan
                     lastConfigFileDateTime = lastDateTime;
                     lock (configLock)
                     {
-                        IPBanConfig newConfig = IPBanConfig.LoadFromFile(ConfigFilePath);
+                        IPBanConfig newConfig = IPBanConfig.LoadFromFile(ConfigFilePath, DnsLookup);
                         UpdateLogFiles(newConfig);
                         Config = newConfig;
                     }
@@ -162,7 +163,7 @@ namespace IPBan
                 try
                 {
                     // append ipv4 first, then the ipv6 then the remote ip
-                    IPAddress[] ips = Dns.GetHostAddresses(Dns.GetHostName());
+                    IPAddress[] ips = DnsLookup.GetHostAddressesAsync(Dns.GetHostName()).Sync();
                     foreach (IPAddress ip in ips)
                     {
                         if (ip.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
@@ -193,8 +194,7 @@ namespace IPBan
             {
                 try
                 {
-                    byte[] bytes = RequestMaker.MakeRequestAsync(Config.ExternalIPAddressUrl).ConfigureAwait(false).GetAwaiter().GetResult();
-                    RemoteIPAddressString = Encoding.UTF8.GetString(bytes).Trim();
+                    RemoteIPAddressString = this.ExternalIPAddressLookup.LookupExternalIPAddressAsync(RequestMaker, Config.ExternalIPAddressUrl).Sync().ToString();
                     IPBanLog.Write(LogLevel.Info, "Remote ip address: {0}", RemoteIPAddressString);
                 }
                 catch
@@ -306,7 +306,6 @@ namespace IPBan
                                 if (result.HasFlag(LoginFailedResult.Blacklisted))
                                 {
                                     AddBannedIPAddress(ipAddress, userName, source, bannedIpAddresses, now, configBlacklisted, ipBlockCount.Count, "Delegate banned ip: " + result);
-                                    continue;
                                 }
                             }
                             IPBanLog.Write(LogLevel.Warning, "Login attempt failed: {0}, {1}, {2}, {3}", ipAddress, userName, source, counter);
@@ -334,7 +333,7 @@ namespace IPBan
         protected virtual Task SubmitIPAddress(string ipAddress, string source, string userName)
         {
             // submit url to ipban public database so that everyone can benefit from an aggregated list of banned ip addresses
-            string timestamp = DateTime.UtcNow.ToString("o");
+            string timestamp = CurrentDateTime.ToString("o");
             string version = Assembly.GetAssembly(typeof(IPBanService)).GetName().Version.ToString();
             string url = $"/IPSubmitBanned?ip={UrlEncode(ipAddress)}&osname={UrlEncode(OSName)}&osversion={UrlEncode(OSVersion)}&source={UrlEncode(source)}&timestamp={UrlEncode(timestamp)}&userName={UrlEncode(userName)}&version={version}";
             string hash = Convert.ToBase64String(new SHA256Managed().ComputeHash(Encoding.UTF8.GetBytes(url + IPBanResources.IPBanKey1)));
@@ -343,7 +342,7 @@ namespace IPBan
 
             try
             {
-                return RequestMaker.MakeRequestAsync(url);
+                return RequestMaker.MakeRequestAsync(new Uri(url));
             }
             catch
             {
@@ -666,7 +665,7 @@ namespace IPBan
                 {
                     try
                     {
-                        byte[] bytes = RequestMaker.MakeRequestAsync(url).ConfigureAwait(false).GetAwaiter().GetResult();
+                        byte[] bytes = RequestMaker.MakeRequestAsync(new Uri(url)).Sync();
                         if (urlType == UrlType.Start)
                         {
                             gotStartUrl = true;
@@ -731,6 +730,10 @@ namespace IPBan
                 }
 
                 // re-create rules for all banned ip addresses
+                if (ipAddresses.Length == 0)
+                {
+                    IPBanLog.Write(LogLevel.Warning, "Clearing all block firewall rules because ipAddressesAndBanDate is empty");
+                }
                 Firewall.BlockIPAddresses(ipAddresses);
             }
 
@@ -789,7 +792,6 @@ namespace IPBan
         /// </summary>
         protected IPBanService()
         {
-            RequestMaker = new DefaultHttpRequestMaker();
             OSName = IPBanOS.Name + (string.IsNullOrWhiteSpace(IPBanOS.FriendlyName) ? string.Empty : " (" + IPBanOS.FriendlyName + ")");
             OSVersion = IPBanOS.Version;
         }
@@ -893,12 +895,13 @@ namespace IPBan
         /// <summary>
         /// Get an ip address and user name out of text using regex
         /// </summary>
+        /// <param name="dns">Dns lookup to resolve ip addresses</param>
         /// <param name="regex">Regex</param>
         /// <param name="text">Text</param>
         /// <param name="ipAddress">Found ip address or null if none</param>
         /// <param name="userName">Found user name or null if none</param>
         /// <returns>True if a regex match was found, false otherwise</returns>
-        public static bool GetIPAddressAndUserNameFromRegex(Regex regex, string text, ref string ipAddress, ref string userName)
+        public static bool GetIPAddressAndUserNameFromRegex(IDnsLookup dns, Regex regex, string text, ref string ipAddress, ref string userName)
         {
             bool foundMatch = false;
 
@@ -939,7 +942,7 @@ namespace IPBan
                         IPBanLog.Write(LogLevel.Information, "Parsing as IP failed, checking dns '{0}'", tempIPAddress);
                         try
                         {
-                            IPHostEntry entry = Dns.GetHostEntry(tempIPAddress);
+                            IPHostEntry entry = dns.GetHostEntryAsync(tempIPAddress).Sync();
                             if (entry != null && entry.AddressList != null && entry.AddressList.Length > 0)
                             {
                                 ipAddress = entry.AddressList.FirstOrDefault().ToString();
@@ -1183,14 +1186,24 @@ namespace IPBan
         public string ConfigFilePath { get; set; }
 
         /// <summary>
-        /// Http request maker, defaults to this
+        /// Http request maker, defaults to DefaultHttpRequestMaker
         /// </summary>
-        public IHttpRequestMaker RequestMaker { get; set; }
+        public IHttpRequestMaker RequestMaker { get; set; } = DefaultHttpRequestMaker.Instance;
 
         /// <summary>
         /// The firewall implementation - this will auto-detect if not set
         /// </summary>
         public IIPBanFirewall Firewall { get; set; }
+
+        /// <summary>
+        /// The dns implementation - defaults to DefaultDnsLookup
+        /// </summary>
+        public IDnsLookup DnsLookup { get; set; } = DefaultDnsLookup.Instance;
+
+        /// <summary>
+        /// External ip address implementation - defaults to ExternalIPAddressLookupDefault.Instance
+        /// </summary>
+        public ILocalMachineExternalIPAddressLookup ExternalIPAddressLookup { get; set; } = LocalMachineExternalIPAddressLookupDefault.Instance;
 
         /// <summary>
         /// Configuration
@@ -1242,14 +1255,14 @@ namespace IPBan
         /// </summary>
         public string OSVersion { get; private set; }
         
-        private DateTime currentDateTime;
+        private DateTime? currentDateTime;
         /// <summary>
         /// Allows changing the current date time to facilitate testing of behavior over elapsed times
         /// </summary>
         public DateTime CurrentDateTime
         {
-            get { return currentDateTime == default ? DateTime.UtcNow : currentDateTime; }
-            set { currentDateTime = value; }
+            get { return currentDateTime ?? DateTime.UtcNow; }
+            set { currentDateTime = (value == default ? null : (DateTime?)value); }
         }
 
         /// <summary>

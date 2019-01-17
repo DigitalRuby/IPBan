@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Net;
+using System.Net.Sockets;
+using System.Reflection;
 using System.Text;
 
 namespace IPBan
@@ -10,7 +12,7 @@ namespace IPBan
     /// <summary>
     /// Utility methods for working with firewall data
     /// </summary>
-    public static class IPBanFirewall
+    public static class IPBanFirewallUtility
     {
         private static void AppendRange(StringBuilder b, PortRange range)
         {
@@ -20,6 +22,75 @@ namespace IPBan
                 b.Append(range);
                 b.Append(',');
             }
+        }
+
+        /// <summary>
+        /// Get a firewall ip address, clean and normalize
+        /// </summary>
+        /// <param name="ipAddress">IP Address</param>
+        /// <param name="normalizedIP">The normalized ip ready to go in the firewall or null if invalid ip address</param>
+        /// <returns>True if ip address can go in the firewall, false otherwise</returns>
+        public static bool TryGetFirewallIPAddress(this string ipAddress, out string normalizedIP)
+        {
+            normalizedIP = ipAddress?.Trim();
+            if (string.IsNullOrWhiteSpace(normalizedIP) ||
+                normalizedIP == "0.0.0.0" ||
+                normalizedIP == "127.0.0.1" ||
+                normalizedIP == "::0" ||
+                normalizedIP == "::1" ||
+                !IPAddressRange.TryParse(normalizedIP, out _))
+            {
+                normalizedIP = null;
+                return false;
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// Create a firewall
+        /// </summary>
+        /// <param name="osAndFirewall">Dictionary of string operating system name (Windows, Linux, OSX) and firewall class</param>
+        /// <param name="rulePrefix">Rule prefix or null for default</param>
+        /// <returns>Firewall</returns>
+        public static IIPBanFirewall CreateFirewall(IReadOnlyDictionary<string, string> osAndFirewall, string rulePrefix)
+        {
+            bool foundFirewallType = false;
+            Type firewallType = typeof(IIPBanFirewall);
+            var q =
+                from a in AppDomain.CurrentDomain.GetAssemblies().SelectMany(a => a.GetTypes())
+                where a != firewallType &&
+                    firewallType.IsAssignableFrom(a) &&
+                    a.GetCustomAttribute<RequiredOperatingSystemAttribute>() != null &&
+                    a.GetCustomAttribute<RequiredOperatingSystemAttribute>().IsValid
+                select a;
+            foreach (Type t in q)
+            {
+                firewallType = t;
+                CustomNameAttribute customName = t.GetCustomAttribute<CustomNameAttribute>();
+
+                // look up the requested firewall by os name
+                if (osAndFirewall.TryGetValue(IPBanOS.Name, out string firewallToUse) &&
+
+                    // check type name or custom name attribute name, at least one must match
+                    (t.Name == firewallToUse ||
+                    (customName != null && (customName.Name ?? string.Empty).Equals(firewallToUse, StringComparison.OrdinalIgnoreCase))))
+                {
+                    foundFirewallType = true;
+                    break;
+                }
+            }
+            if (firewallType == null)
+            {
+                throw new ArgumentException("Firewall is null, at least one type should implement IIPBanFirewall");
+            }
+            else if (osAndFirewall.Count != 0 && !foundFirewallType)
+            {
+                string typeString = string.Join(',', osAndFirewall.Select(kv => kv.Key + ":" + kv.Value));
+                throw new ArgumentException("Unable to find firewalls of types: " + typeString + ", osname: " + IPBanOS.Name);
+            }
+            IIPBanFirewall firewall = Activator.CreateInstance(firewallType) as IIPBanFirewall;
+            firewall.Initialize(string.IsNullOrWhiteSpace(rulePrefix) ? "IPBan_" : rulePrefix);
+            return firewall;
         }
 
         /// <summary>
@@ -316,5 +387,7 @@ namespace IPBan
                 }
             }
         }
+
+
     }
 }

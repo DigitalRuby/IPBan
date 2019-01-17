@@ -49,9 +49,12 @@ namespace IPBan
         private readonly string getUrlStop;
         private readonly string getUrlConfig;
         private readonly string externalIPAddressUrl;
+        private readonly IDnsLookup dns;
 
-        private IPBanConfig(string xml)
+        private IPBanConfig(string xml, IDnsLookup dns)
         {
+            this.dns = dns;
+
             // deserialize with XmlDocument, the .net core Configuration class is quite buggy
             XmlDocument doc = new XmlDocument();
             doc.LoadXml(xml);
@@ -166,7 +169,7 @@ namespace IPBan
                             }
                             else
                             {
-                                IPAddress[] addresses = Dns.GetHostEntry(ipOrDns).AddressList;
+                                IPAddress[] addresses = dns.GetHostEntryAsync(ipOrDns).Sync().AddressList;
                                 if (addresses != null)
                                 {
                                     foreach (IPAddress adr in addresses)
@@ -253,25 +256,29 @@ namespace IPBan
         /// Load IPBan config from file
         /// </summary>
         /// <param name="configFilePath">Config file path</param>
+        /// <param name="service">Service</param>
+        /// <param name="dns">Dns lookup for resolving ip addresses</param>
         /// <returns>IPBanConfig</returns>
-        public static IPBanConfig LoadFromFile(string configFilePath)
+        public static IPBanConfig LoadFromFile(string configFilePath, IDnsLookup dns)
         {
             configFilePath = (File.Exists(configFilePath) ? configFilePath : ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None).FilePath);
             if (!File.Exists(configFilePath))
             {
                 throw new FileNotFoundException("Unable to find config file " + configFilePath);
             }
-            return LoadFromXml(File.ReadAllText(configFilePath));
+            return LoadFromXml(File.ReadAllText(configFilePath), dns);
         }
 
         /// <summary>
         /// Load IPBan config from XML
         /// </summary>
         /// <param name="xml">XML string</param>
+        /// <param name="service">Service</param>
+        /// <param name="dns">Dns lookup for resolving ip addresses</param>
         /// <returns>IPBanConfig</returns>
-        public static IPBanConfig LoadFromXml(string xml)
+        public static IPBanConfig LoadFromXml(string xml, IDnsLookup dns)
         {
-            return new IPBanConfig(xml);
+            return new IPBanConfig(xml, dns);
         }
 
         /// <summary>
