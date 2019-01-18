@@ -112,8 +112,9 @@ namespace IPBan
                 LogFilesToParse logFilesToParse = new XmlSerializer(typeof(LogFilesToParse)).Deserialize(new XmlNodeReader(doc.SelectSingleNode("//LogFilesToParse"))) as LogFilesToParse;
                 logFiles = (logFilesToParse == null ? new LogFileToParse[0] : logFilesToParse.LogFiles);
             }
-            catch
+            catch (Exception ex)
             {
+                IPBanLog.Error(ex);
                 logFiles = new LogFileToParse[0];
             }
             GetConfig<string>("ProcessToRunOnBan", ref processToRunOnBan);

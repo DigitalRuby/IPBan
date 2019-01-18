@@ -14,6 +14,7 @@ namespace IPBan
     /// </summary>
     public static class IPBanFirewallUtility
     {
+        private static readonly char[] ipV4Delimiters = new char[] { '-', ':', '/' };
         private static void AppendRange(StringBuilder b, PortRange range)
         {
             string rangeString = range.ToString();
@@ -22,6 +23,44 @@ namespace IPBan
                 b.Append(range);
                 b.Append(',');
             }
+        }
+
+        /// <summary>
+        /// Parse IPV4 only
+        /// </summary>
+        /// <param name="ipString">IP string</param>
+        /// <returns>32 bit value, 0 if not an IPV4 ip string</returns>
+        public static uint ParseIPV4(string ipString)
+        {
+            int index = ipString.IndexOfAny(ipV4Delimiters);
+            if (index >= 0)
+            {
+                ipString = ipString.Substring(0, index);
+            }
+            IPAddress ipAddress = IPAddress.Parse(ipString);
+            if (ipAddress.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
+            {
+                byte[] ipBytes = ipAddress.GetAddressBytes();
+                uint u = ((uint)ipBytes[3] << 24);
+                u += ((uint)ipBytes[2] << 16);
+                u += ((uint)ipBytes[1] << 8);
+                u += ((uint)ipBytes[0]);
+                return u;
+            }
+            return 0;
+        }
+
+        /// <summary>
+        /// Convert 32 bit value to ip string
+        /// </summary>
+        /// <param name="value">32 bit value</param>
+        /// <returns>IPV4 string</returns>
+        public static string IPV4ToString(uint value)
+        {
+            return (value & 0x000000FF) + "." +
+                ((value & 0x0000FF00) >> 8) + "." +
+                ((value & 0x00FF0000) >> 16) + "." +
+                ((value & 0xFF000000) >> 24);
         }
 
         /// <summary>

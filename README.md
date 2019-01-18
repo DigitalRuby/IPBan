@@ -47,7 +47,7 @@ The service needs file system, event viewer and firewall access, so please run a
 
 **Linux**
 
-- IPBan is currently supported on ubuntu 16.X - 18.X. For other Linux or MAC, you may need to adjust some of the instructions and add config file entries for the appropriate log files to parse.
+- IPBan is currently supported on ubuntu 16.X - 18.X with iptables and ipv4 only. For other Linux or MAC, you may need to adjust some of the instructions and add config file entries for the appropriate log files to parse.
 - SSH into your server as root. If using another admin account name, substitute all root user instances with your account name.
 - Install dependencies:
 ```

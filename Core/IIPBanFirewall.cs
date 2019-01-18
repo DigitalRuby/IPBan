@@ -27,7 +27,8 @@ namespace IPBan
         /// <param name="ruleNamePrefix">Rule name prefix</param>
         /// <param name="ranges">Ranges to block</param>
         /// <param name="allowedPorts">Allowed ports, any port not in this list is blocked</param>
-        void BlockIPAddresses(string ruleNamePrefix, IEnumerable<IPAddressRange> ranges, params PortRange[] allowedPorts);
+        /// <returns>True if success, false if error</returns>
+        bool BlockIPAddresses(string ruleNamePrefix, IEnumerable<IPAddressRange> ranges, params PortRange[] allowedPorts);
 
         /// <summary>
         /// Creates new rules to allow all the ip addresses on all ports, and removes any left-over rules. Exceptions are logged.

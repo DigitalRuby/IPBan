@@ -240,38 +240,47 @@ namespace IPBan
             }
         }
 
-        public void BlockIPAddresses(string ruleNamePrefix, IEnumerable<IPAddressRange> ranges, params PortRange[] allowedPorts)
+        public bool BlockIPAddresses(string ruleNamePrefix, IEnumerable<IPAddressRange> ranges, params PortRange[] allowedPorts)
         {
-            string prefix = RulePrefix + ruleNamePrefix;
-
-            // recreate rules
-            int counter = 0;
-            int index = 0;
-            StringBuilder ipList = new StringBuilder();
-            foreach (IPAddressRange range in ranges)
+            try
             {
-                ipList.Append(range.ToCidrString());
-                ipList.Append(',');
-                if (++counter == maxIpAddressesPerRule)
+                string prefix = RulePrefix + ruleNamePrefix;
+
+                // recreate rules
+                int counter = 0;
+                int index = 0;
+                StringBuilder ipList = new StringBuilder();
+                foreach (IPAddressRange range in ranges)
+                {
+                    ipList.Append(range.ToCidrString());
+                    ipList.Append(',');
+                    if (++counter == maxIpAddressesPerRule)
+                    {
+                        ipList.Length--; // remove ending comma
+                        GetOrCreateRule(prefix + index.ToString(CultureInfo.InvariantCulture), ipList.ToString(), NET_FW_ACTION_.NET_FW_ACTION_BLOCK, allowedPorts);
+                        counter = 0;
+                        index += maxIpAddressesPerRule;
+                        ipList.Clear();
+                    }
+                }
+
+                // create rule for any leftover ip addresses
+                if (ipList.Length > 1)
                 {
                     ipList.Length--; // remove ending comma
                     GetOrCreateRule(prefix + index.ToString(CultureInfo.InvariantCulture), ipList.ToString(), NET_FW_ACTION_.NET_FW_ACTION_BLOCK, allowedPorts);
-                    counter = 0;
                     index += maxIpAddressesPerRule;
-                    ipList.Clear();
                 }
-            }
 
-            // create rule for any leftover ip addresses
-            if (ipList.Length > 1)
+                // delete any leftover rules
+                DeleteRules(prefix, index);
+                return true;
+            }
+            catch (Exception ex)
             {
-                ipList.Length--; // remove ending comma
-                GetOrCreateRule(prefix + index.ToString(CultureInfo.InvariantCulture), ipList.ToString(), NET_FW_ACTION_.NET_FW_ACTION_BLOCK, allowedPorts);
-                index += maxIpAddressesPerRule;
+                IPBanLog.Error(ex);
+                return false;
             }
-
-            // delete any leftover rules
-            DeleteRules(prefix, index);
         }
 
         public bool AllowIPAddresses(IReadOnlyList<string> ipAddresses)
@@ -285,10 +294,11 @@ namespace IPBan
             for (i = 0; i < ipAddresses.Count; i += maxIpAddressesPerRule)
             {
                 string remoteIP = CreateRuleStringForIPAddresses(ipAddresses, i, maxIpAddressesPerRule);
-                if (GetOrCreateRule(allowRulePrefix + i.ToString(CultureInfo.InvariantCulture), remoteIP, NET_FW_ACTION_.NET_FW_ACTION_ALLOW) == null)
+                if (string.IsNullOrWhiteSpace(remoteIP))
                 {
-                    return false;
+                    break;
                 }
+                GetOrCreateRule(allowRulePrefix + i.ToString(CultureInfo.InvariantCulture), remoteIP, NET_FW_ACTION_.NET_FW_ACTION_ALLOW);
             }
             DeleteRules(allowRulePrefix, i);
             return true;
