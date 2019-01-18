@@ -78,10 +78,14 @@ namespace IPBan
 
             // add initial files
             SearchOption option = (recursive ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly);
-            foreach (string existingFileName in Directory.GetFiles(Path.GetDirectoryName(pathAndMask), Path.GetFileName(pathAndMask), option))
+            string dir = Path.GetDirectoryName(pathAndMask);
+            if (Directory.Exists(dir))
             {
-                // start at end of existing files
-                AddPingFile(existingFileName, new FileInfo(existingFileName).Length);
+                foreach (string existingFileName in Directory.GetFiles(dir, Path.GetFileName(pathAndMask), option))
+                {
+                    // start at end of existing files
+                    AddPingFile(existingFileName, new FileInfo(existingFileName).Length);
+                }
             }
         }
 
