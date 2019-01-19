@@ -325,11 +325,6 @@ namespace IPBan
             }
         }
 
-        public static string UrlEncode(string text)
-        {
-            return HttpUtility.UrlEncode(text);
-        }
-
         protected virtual Task SubmitIPAddress(string ipAddress, string source, string userName)
         {
             if (System.Diagnostics.Debugger.IsAttached)
@@ -340,9 +335,9 @@ namespace IPBan
             // submit url to ipban public database so that everyone can benefit from an aggregated list of banned ip addresses
             string timestamp = CurrentDateTime.ToString("o");
             string version = Assembly.GetAssembly(typeof(IPBanService)).GetName().Version.ToString();
-            string url = $"/IPSubmitBanned?ip={UrlEncode(ipAddress)}&osname={UrlEncode(OSName)}&osversion={UrlEncode(OSVersion)}&source={UrlEncode(source)}&timestamp={UrlEncode(timestamp)}&userName={UrlEncode(userName)}&version={version}";
+            string url = $"/IPSubmitBanned?ip={ipAddress.UrlEncode()}&osname={OSName.UrlEncode()}&osversion={OSVersion.UrlEncode()}&source={source.UrlEncode()}&timestamp={timestamp.UrlEncode()}&userName={userName.UrlEncode()}&version={version.UrlEncode()}";
             string hash = Convert.ToBase64String(new SHA256Managed().ComputeHash(Encoding.UTF8.GetBytes(url + IPBanResources.IPBanKey1)));
-            url += "&hash=" + UrlEncode(hash);
+            url += "&hash=" + hash.UrlEncode();
             url = "https://api.ipban.com" + url;
 
             try
@@ -1106,13 +1101,13 @@ namespace IPBan
         public string ReplaceUrl(string url)
         {
             Assembly a = IPBanService.GetIPBanAssembly();
-            return url.Replace("###IPADDRESS###", IPBanService.UrlEncode(LocalIPAddressString))
-                .Replace("###REMOTE_IPADDRESS###", IPBanService.UrlEncode(RemoteIPAddressString))
-                .Replace("###MACHINENAME###", IPBanService.UrlEncode(FQDN))
-                .Replace("###VERSION###", IPBanService.UrlEncode(a.GetName().Version.ToString()))
-                .Replace("###GUID###", IPBanService.UrlEncode(MachineGuid))
-                .Replace("###OSNAME###", IPBanService.UrlEncode(OSName))
-                .Replace("###OSVERSION###", IPBanService.UrlEncode(OSVersion));
+            return url.Replace("###IPADDRESS###", LocalIPAddressString.UrlEncode())
+                .Replace("###REMOTE_IPADDRESS###", RemoteIPAddressString.UrlEncode())
+                .Replace("###MACHINENAME###", FQDN.UrlEncode())
+                .Replace("###VERSION###", a.GetName().Version.ToString().UrlEncode())
+                .Replace("###GUID###", MachineGuid.UrlEncode())
+                .Replace("###OSNAME###", OSName.UrlEncode())
+                .Replace("###OSVERSION###", OSVersion.UrlEncode());
         }
 
         /// <summary>

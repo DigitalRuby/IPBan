@@ -6,6 +6,7 @@ using System.Runtime.InteropServices;
 using System.Security;
 using System.Text;
 using System.Threading.Tasks;
+using System.Web;
 
 namespace IPBan
 {
@@ -40,6 +41,16 @@ namespace IPBan
         public static string ToStringInvariant(this object obj, string defaultValue = "")
         {
             return Convert.ToString(obj, CultureInfo.InvariantCulture) ?? defaultValue;
+        }
+
+        /// <summary>
+        /// Url encode a string
+        /// </summary>
+        /// <param name="text">String to url encode</param>
+        /// <returns>Url encoded string</returns>
+        public static string UrlEncode(this string text)
+        {
+            return HttpUtility.UrlEncode(text ?? string.Empty);
         }
 
         /// <summary>
