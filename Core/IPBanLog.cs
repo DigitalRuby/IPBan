@@ -97,8 +97,16 @@ namespace IPBan
         {
             try
             {
-                LogFactory factory = LogManager.LoadConfiguration(ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None).FilePath);
-                if (factory.Configuration.AllTargets.Count == 0)
+                LogFactory factory = null;
+                try
+                {
+                    factory = LogManager.LoadConfiguration(ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None).FilePath);
+                }
+                catch
+                {
+                    // if no config, exception is thrown that is OK
+                }
+                if (factory == null || factory.Configuration.AllTargets.Count == 0)
                 {
                     string nlogConfigPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "nlog.config");
                     if (!File.Exists(nlogConfigPath))
@@ -124,7 +132,7 @@ namespace IPBan
                     }
                     else
                     {
-                        throw new IOException("Unable to create nlog configuration file, nlog.config file does not exist");
+                        throw new IOException("Unable to create nlog configuration file, nlog.config file failed to write default config.");
                     }
                 }
                 logger = factory.GetCurrentClassLogger();
