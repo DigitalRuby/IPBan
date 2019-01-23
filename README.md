@@ -47,6 +47,10 @@ The service needs file system, event viewer and firewall access, so please run a
 
 **Linux**
 
+- Build and run code with Visual Studio code. In order to debug, Visual Studio code must run as root.
+	- This shell script runs vscode as root:
+	- sudo mount -t vboxsf ipban ~/Desktop/ipban # only needed if you are in a Virtual Box VM and have setup a shared folder to Windows
+	- sudo code --user-data-dir="/tmp/vscode-root"
 - IPBan is currently supported on ubuntu 16.X - 18.X with iptables and ipv4 only. For other Linux or MAC, you may need to adjust some of the instructions and add config file entries for the appropriate log files to parse.
 - SSH into your server as root. If using another admin account name, substitute all root user instances with your account name.
 - Install dependencies:
