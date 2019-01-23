@@ -44,6 +44,107 @@ namespace IPBan
             }
         }
 
+        private static void TestDB()
+        {
+            IPBanDB db = new IPBanDB();
+            db.Truncate(true);
+            const string ip = "10.10.10.10";
+            DateTime dt1 = new DateTime(2018, 1, 1, 1, 1, 1, 1, DateTimeKind.Utc);
+            DateTime dt2 = new DateTime(2019, 1, 1, 1, 1, 1, 1, DateTimeKind.Utc);
+            int count = db.IncrementFailedLoginCount(ip, dt1, 1);
+            if (count != 1)
+            {
+                throw new InvalidDataException("Failed login count is wrong");
+            }
+            count = db.IncrementFailedLoginCount(ip, dt2, 2);
+            if (count != 3)
+            {
+                throw new InvalidDataException("Failed login count is wrong");
+            }
+            if (!db.SetBanDate(ip, dt2))
+            {
+                throw new InvalidDataException("Ban date should have been set");
+            }
+            if (db.SetBanDate(ip, dt2 + TimeSpan.FromDays(1.0))) // no effect
+            {
+                throw new InvalidDataException("Ban date should not have been set");
+            }
+            IPBanDB.IPAddressEntry e = db.GetIPAddress(ip);
+            if (e.IPAddress != ip)
+            {
+                throw new InvalidDataException("Wrong ip address from db");
+            }
+            if (e.LastFailedLogin != dt2)
+            {
+                throw new InvalidDataException("Last failed login datetime is not correct");
+            }
+            if (e.FailedLoginCount != 3)
+            {
+                throw new InvalidDataException("Last failed login count is not correct");
+            }
+            if (e.BanDate != dt2)
+            {
+                throw new InvalidDataException("Ban date is not correct");
+            }
+            count = db.IncrementFailedLoginCount("5.5.5.5", dt1, 2);
+            if (count != 2)
+            {
+                throw new InvalidDataException("Count of failed login is wrong");
+            }
+            count = db.GetIPAddressCount();
+            if (count != 2)
+            {
+                throw new InvalidDataException("Count of all ip is wrong");
+            }
+            count = db.GetBannedIPAddressCount();
+            if (count != 1)
+            {
+                throw new InvalidDataException("Count of banned ip is wrong");
+            }
+            DateTime? banDate = db.GetBanDate(ip);
+            if (banDate != dt2)
+            {
+                throw new InvalidDataException("Ban date is wrong");
+            }
+            banDate = db.GetBanDate("5.5.5.5");
+            if (banDate != null)
+            {
+                throw new InvalidDataException("Ban date is wrong");
+            }
+            db.SetBannedIPAddresses(new string[] { ip, "5.5.5.5", "5.5.5.6", "::5.5.5.5", "6.6.6.6", "11.11.11.11", "12.12.12.12", "11.11.11.11" }, dt2);
+            count = db.GetBannedIPAddressCount();
+            if (count != 7)
+            {
+                throw new InvalidDataException("Count of banned ip is wrong");
+            }
+            IPAddressRange range = IPAddressRange.Parse("5.5.5.0/24");
+            count = 0;
+            foreach (string ipAddress in db.DeleteIPAddresses(range))
+            {
+                if (ipAddress != "5.5.5.5" && ipAddress != "5.5.5.6")
+                {
+                    throw new InvalidDataException("Wrong ip address deleted from range");
+                }
+                count++;
+            }
+            db.SetBannedIPAddresses(new string[] { "5.5.5.5", "5.5.5.6" }, dt2);
+            count = 0;
+            range = new IPAddressRange { Begin = System.Net.IPAddress.Parse("::5.5.5.0"), End = System.Net.IPAddress.Parse("::5.5.5.255") };
+            foreach (string ipAddress in db.DeleteIPAddresses(range))
+            {
+                if (ipAddress != "::5.5.5.5")
+                {
+                    throw new InvalidDataException("Wrong ip address deleted from range");
+                }
+                count++;
+            }
+            if (count != 1)
+            {
+                throw new InvalidDataException("Wrong number of ip addresses deleted from range");
+            }
+            Console.WriteLine("IPBanDB test complete, no errors");
+        }
+
         protected override void OnStart(string[] args)
         {
             base.OnStart(args);
@@ -108,6 +209,12 @@ namespace IPBan
 
         public static int RunConsole(string[] args)
         {
+            if (args.Contains("test-ipbandb", StringComparer.OrdinalIgnoreCase))
+            {
+                TestDB();
+                return 0;
+            }
+
             bool test = args.Contains("test", StringComparer.OrdinalIgnoreCase);
             bool test2 = args.Contains("test-eventViewer", StringComparer.OrdinalIgnoreCase);
             CreateService(test || test2);

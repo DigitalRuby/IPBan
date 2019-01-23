@@ -134,9 +134,8 @@ namespace IPBan
             }
         }
 
-        private void CreateBlockRule(IReadOnlyList<string> ipAddresses, int index, int count)
+        private void CreateBlockRule(IReadOnlyList<string> ipAddresses, int index, int count, string ruleName)
         {
-            string ruleName = RulePrefix + index.ToString(CultureInfo.InvariantCulture);
             string remoteIpString = CreateRuleStringForIPAddresses(ipAddresses, index, count);
             GetOrCreateRule(ruleName, remoteIpString, NET_FW_ACTION_.NET_FW_ACTION_BLOCK);
         }
@@ -221,14 +220,26 @@ namespace IPBan
             MigrateOldDefaultRuleNames();
         }
 
-        public bool BlockIPAddresses(IReadOnlyList<string> ipAddresses)
+        public bool BlockIPAddresses(IEnumerable<string> ipAddresses)
         {
             try
             {
-                int i;
-                for (i = 0; i < ipAddresses.Count; i += maxIpAddressesPerRule)
+                int i = 0;
+                List<string> ipAddressesList = new List<string>();
+                foreach (string ipAddress in ipAddresses)
                 {
-                    CreateBlockRule(ipAddresses, i, maxIpAddressesPerRule);
+                    ipAddressesList.Add(ipAddress);
+                    if (ipAddressesList.Count == maxIpAddressesPerRule)
+                    {
+                        CreateBlockRule(ipAddressesList, 0, maxIpAddressesPerRule, RulePrefix + i.ToStringInvariant());
+                        i += maxIpAddressesPerRule;
+                        ipAddressesList.Clear();
+                    }
+                }
+                if (ipAddressesList.Count != 0)
+                {
+                    CreateBlockRule(ipAddressesList, 0, maxIpAddressesPerRule, RulePrefix + i.ToStringInvariant());
+                    i += maxIpAddressesPerRule;
                 }
                 DeleteRules(RulePrefix, i);
                 return true;
@@ -283,22 +294,31 @@ namespace IPBan
             }
         }
 
-        public bool AllowIPAddresses(IReadOnlyList<string> ipAddresses)
+        public bool AllowIPAddresses(IEnumerable<string> ipAddresses)
         {
-            if (ipAddresses == null || ipAddresses.Count == 0)
+            if (ipAddresses == null)
             {
                 return false;
             }
 
+            List<string> ipAddressesList = new List<string>();
             int i = 0;
-            for (i = 0; i < ipAddresses.Count; i += maxIpAddressesPerRule)
+            foreach (string ipAddress in ipAddresses)
             {
-                string remoteIP = CreateRuleStringForIPAddresses(ipAddresses, i, maxIpAddressesPerRule);
-                if (string.IsNullOrWhiteSpace(remoteIP))
+                ipAddressesList.Add(ipAddress);
+                if (ipAddressesList.Count == maxIpAddressesPerRule)
                 {
-                    break;
+                    string remoteIP = CreateRuleStringForIPAddresses(ipAddressesList, i, maxIpAddressesPerRule);
+                    GetOrCreateRule(allowRulePrefix + i.ToString(CultureInfo.InvariantCulture), remoteIP, NET_FW_ACTION_.NET_FW_ACTION_ALLOW);
+                    i += maxIpAddressesPerRule;
+                    ipAddressesList.Clear();
                 }
+            }
+            if (ipAddressesList.Count != 0)
+            {
+                string remoteIP = CreateRuleStringForIPAddresses(ipAddressesList, i, maxIpAddressesPerRule);
                 GetOrCreateRule(allowRulePrefix + i.ToString(CultureInfo.InvariantCulture), remoteIP, NET_FW_ACTION_.NET_FW_ACTION_ALLOW);
+                i += maxIpAddressesPerRule;
             }
             DeleteRules(allowRulePrefix, i);
             return true;

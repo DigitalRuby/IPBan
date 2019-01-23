@@ -13,12 +13,12 @@ namespace IPBan
     [RequiredOperatingSystem(IPBanOS.Mac)]
     public class IPBanMacFirewall : IIPBanFirewall
     {
-        public bool AllowIPAddresses(IReadOnlyList<string> ipAddresses)
+        public bool AllowIPAddresses(IEnumerable<string> ipAddresses)
         {
             throw new NotImplementedException();
         }
 
-        public bool BlockIPAddresses(IReadOnlyList<string> ipAddresses)
+        public bool BlockIPAddresses(IEnumerable<string> ipAddresses)
         {
             throw new NotImplementedException();
         }

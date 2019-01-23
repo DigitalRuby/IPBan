@@ -19,7 +19,7 @@ namespace IPBan
         /// </summary>
         /// <param name="ipAddresses">IP Addresses</param>
         /// <returns>True if success, false if error</returns>
-        bool BlockIPAddresses(IReadOnlyList<string> ipAddresses);
+        bool BlockIPAddresses(IEnumerable<string> ipAddresses);
 
         /// <summary>
         /// Deletes any existing rule prefixed by ruleNamePrefix then creates a new rule(s) prefixed by ruleNamePrefix with block rules for all ranges specified.
@@ -35,7 +35,7 @@ namespace IPBan
         /// </summary>
         /// <param name="ipAddresses">IP Addresses</param>
         /// <returns>True if success, false if error</returns>
-        bool AllowIPAddresses(IReadOnlyList<string> ipAddresses);
+        bool AllowIPAddresses(IEnumerable<string> ipAddresses);
 
         /// <summary>
         /// Checks if an ip address is blocked in the firewall

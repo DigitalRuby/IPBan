@@ -329,14 +329,6 @@ namespace IPBan
             End = new IPAddress(Bits.Or(baseAdrBytes, Bits.Not(maskBytes)));
         }
 
-        [EditorBrowsable(EditorBrowsableState.Never), Obsolete("Use IPAddressRange.Parse static method instead.")]
-        public IPAddressRange(string ipRangeString)
-        {
-            var parsed = Parse(ipRangeString);
-            Begin = parsed.Begin;
-            End = parsed.End;
-        }
-
 #if NET45
         protected IPAddressRange(SerializationInfo info, StreamingContext context)
         {

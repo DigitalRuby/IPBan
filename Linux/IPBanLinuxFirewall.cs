@@ -20,8 +20,8 @@ namespace IPBan
         private const int allowRuleMaxCount = 65536;
         private const int blockRuleRangesMaxCount = 4194304;
 
-        private HashSet<uint> bannedIPAddresses;
-        private HashSet<uint> allowedIPAddresses;
+        private List<uint> bannedIPAddresses;
+        private List<uint> allowedIPAddresses;
         private string allowRuleName;
         private string blockRuleName;
 
@@ -49,6 +49,55 @@ namespace IPBan
             return p.ExitCode;
         }
 
+        private void DeleteRule(string ruleName)
+        {
+            string tempFile = Path.GetTempFileName();
+            try
+            {
+                RunProcess("iptables", true, "-L --line-numbers > \"{0}\"", tempFile);
+                string[] lines = File.ReadAllLines(tempFile);
+                string ruleNameWithSpaces = " " + ruleName + " ";
+                foreach (string line in lines)
+                {
+                    if (line.Contains(ruleNameWithSpaces, StringComparison.OrdinalIgnoreCase))
+                    {
+                        // rule number is first piece of the line
+                        int index = line.IndexOf(' ');
+                        int ruleNum = int.Parse(line.Substring(0, index));
+
+                        // replace the rule with the new info
+                        RunProcess("iptables", true, $"-D INPUT {ruleNum}");
+                        break;
+                    }
+                }
+            }
+            finally
+            {
+                DeleteFile(tempFile);
+            }
+        }
+
+        private void DeleteSet(string ruleName)
+        {
+            string tempFile = Path.GetTempFileName();
+            try
+            {
+                RunProcess("ipset", true, "list -n > \"{0}\"", tempFile);
+                foreach (string line in File.ReadAllLines(tempFile))
+                {
+                    if (line.Trim().Equals(ruleName, StringComparison.OrdinalIgnoreCase))
+                    {
+                        RunProcess("ipset", true, $"destroy {ruleName}");
+                        break;
+                    }
+                }
+            }
+            finally
+            {
+                DeleteFile(tempFile);
+            }
+        }
+
         private void CreateOrUpdateRule(string ruleName, string action, string hashType, int maxCount, params PortRange[] allowedPorts)
         {
             // ensure that a set exists for the iptables rule in the event that this is the first run
@@ -68,9 +117,10 @@ namespace IPBan
                          IPBanFirewallUtility.GetPortRangeStringAllow(allowedPorts));
                     portString = " -m multiport --dports " + portList.Replace('-', ':') + " "; // iptables uses ':' instead of '-' for range
                 }
+                string ruleNameWithSpaces = " " + ruleName + " ";
                 foreach (string line in lines)
                 {
-                    if (line.Contains(ruleName, StringComparison.OrdinalIgnoreCase))
+                    if (line.Contains(ruleNameWithSpaces, StringComparison.OrdinalIgnoreCase))
                     {
                         // rule number is first piece of the line
                         int index = line.IndexOf(' ');
@@ -89,8 +139,7 @@ namespace IPBan
                 }
 
                 // persist table rules, this file is tiny so no need for a temp file and then move
-                string fileName = GetTableFileName();
-                RunProcess("iptables-save", true, $"> \"{fileName}\"");
+                RunProcess("iptables-save", true, $"> \"{GetTableFileName()}\"");
             }
             finally
             {
@@ -98,9 +147,9 @@ namespace IPBan
             }
         }
 
-        private HashSet<uint> LoadIPAddresses(string ruleName, string action, string hashType, int maxCount)
+        private List<uint> LoadIPAddresses(string ruleName, string action, string hashType, int maxCount)
         {
-            HashSet<uint> ipAddresses = new HashSet<uint>();
+            List<uint> ipAddresses = new List<uint>();
 
             try
             {
@@ -150,45 +199,51 @@ namespace IPBan
             }
         }
 
-        private HashSet<uint> UpdateRule(string ruleName, string action, IEnumerable<string> ipAddresses,
-            HashSet<uint> existingIPAddresses, bool ranges, int maxCount, out bool result, params PortRange[] allowPorts)
+        // deleteRule will drop the rule and matching set before creating the rule and set, use this is you don't care to update the rule and set in place
+        private List<uint> UpdateRule(string ruleName, string action, IEnumerable<string> ipAddresses,
+            List<uint> existingIPAddresses, string hashType, int maxCount, bool deleteRule, out bool result, params PortRange[] allowPorts)
         {
             string ipFile = GetSetFileName(ruleName);
             string ipFileTemp = ipFile + ".tmp";
-            HashSet<string> newIPAddresses = new HashSet<string>();
-            HashSet<uint> newIPAddressesUint = new HashSet<uint>();
-            uint value;
-            foreach (string ip in ipAddresses)
-            {
-                if ((value = IPBanFirewallUtility.ParseIPV4(ip)) != 0)
-                {
-                    newIPAddresses.Add(ip);
-
-                    // for now ranges don't care to know the uint list of ip
-                    if (!ranges)
-                    {
-                        newIPAddressesUint.Add(value);
-                    }
-                }
-            }
-
-            IEnumerable<string> removedIPAddresses = (existingIPAddresses == null ? new string[0] :
-                existingIPAddresses.Select(e => IPBanFirewallUtility.IPV4ToString(e)).Except(newIPAddresses));
-            string hashType = (ranges ? "net" : "ip");
+            List<uint> newIPAddressesUint = new List<uint>();
+            uint value = 0;
 
             // add and remove the appropriate ip addresses from the set
             using (StreamWriter writer = File.CreateText(ipFileTemp))
             {
                 writer.WriteLine($"create {ruleName} hash:{hashType} family {inetFamily} hashsize {hashSize} maxelem {maxCount} -exist");
-                foreach (string ipAddress in removedIPAddresses)
+                foreach (string ipAddress in ipAddresses)
                 {
-                    writer.WriteLine($"del {ruleName} {ipAddress} -exist");
-                }
-                foreach (string ipAddress in newIPAddresses)
-                {
-                    if (ipAddress.TryGetFirewallIPAddress(out string firewallIPAddress))
+                    // only allow ipv4 for now
+                    if (IPAddressRange.TryParse(ipAddress, out IPAddressRange range) &&
+                        range.Begin.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork &&
+                        range.End.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork &&
+                        // if deleting the rule, don't track the uint value
+                        (!deleteRule || (value = IPBanFirewallUtility.ParseIPV4(ipAddress)) != 0))
                     {
-                        writer.WriteLine($"add {ruleName} {firewallIPAddress} -exist");
+                        try
+                        {
+                            writer.WriteLine($"add {ruleName} {range.ToCidrString()} -exist");
+                            if (!deleteRule)
+                            {
+                                newIPAddressesUint.Add(value);
+                            }
+                        }
+                        catch
+                        {
+                            // ignore invalid cidr ranges
+                        }
+                    }
+                }
+                newIPAddressesUint.Sort();
+
+                // if the rule was deleted, no need to add del entries
+                if (!deleteRule)
+                {
+                    // for ip that dropped out, remove from firewall
+                    foreach (uint droppedIP in existingIPAddresses.Where(e => newIPAddressesUint.BinarySearch(e) < 0))
+                    {
+                        writer.WriteLine($"del {ruleName} {IPBanFirewallUtility.IPV4ToString(droppedIP)} -exist");
                     }
                 }
             }
@@ -199,6 +254,12 @@ namespace IPBan
                 DeleteFile(ipFile);
             }
             File.Move(ipFileTemp, ipFile);
+
+            if (deleteRule)
+            {
+                DeleteRule(ruleName);
+                DeleteSet(ruleName);
+            }
 
             // restore the file to get the set updated
             result = (RunProcess("ipset", true, $"restore < \"{ipFile}\"") == 0);
@@ -239,11 +300,11 @@ namespace IPBan
             bannedIPAddresses = LoadIPAddresses(blockRuleName, "DROP", "ip", blockRuleMaxCount);
         }
 
-        public bool BlockIPAddresses(IReadOnlyList<string> ipAddresses)
+        public bool BlockIPAddresses(IEnumerable<string> ipAddresses)
         {
             try
             {
-                bannedIPAddresses = UpdateRule(blockRuleName, "DROP", ipAddresses, bannedIPAddresses, false, blockRuleMaxCount, out bool result);
+                bannedIPAddresses = UpdateRule(blockRuleName, "DROP", ipAddresses, bannedIPAddresses, "ip", blockRuleMaxCount, false, out bool result);
                 return result;
             }
             catch (Exception ex)
@@ -258,7 +319,7 @@ namespace IPBan
             try
             {
                 string ruleName = blockRuleName + "_" + ruleNamePrefix;
-                UpdateRule(ruleName, "DROP", ranges.Select(r => r.ToCidrString()), null, true, blockRuleRangesMaxCount, out bool result, allowedPorts);
+                UpdateRule(ruleName, "DROP", ranges.Select(r => r.ToCidrString()), null, "net", blockRuleRangesMaxCount, true, out bool result, allowedPorts);
                 return result;
             }
             catch (Exception ex)
@@ -268,11 +329,11 @@ namespace IPBan
             }
         }
 
-        public bool AllowIPAddresses(IReadOnlyList<string> ipAddresses)
+        public bool AllowIPAddresses(IEnumerable<string> ipAddresses)
         {
             try
             {
-                allowedIPAddresses = UpdateRule(allowRuleName, "ACCEPT", ipAddresses, allowedIPAddresses, false, allowRuleMaxCount, out bool result);
+                allowedIPAddresses = UpdateRule(allowRuleName, "ACCEPT", ipAddresses, allowedIPAddresses, "ip", allowRuleMaxCount, false, out bool result);
                 return result;
             }
             catch (Exception ex)
