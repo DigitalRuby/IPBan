@@ -44,6 +44,16 @@ namespace IPBan
         }
 
         /// <summary>
+        /// Convert utf-8 bytes to string
+        /// </summary>
+        /// <param name="bytes">Bytes</param>
+        /// <returns>Utf-8 decoded string</returns>
+        public static string ToStringUTF8(this byte[] bytes)
+        {
+            return Encoding.UTF8.GetString(bytes);
+        }
+
+        /// <summary>
         /// Url encode a string
         /// </summary>
         /// <param name="text">String to url encode</param>
@@ -166,6 +176,24 @@ namespace IPBan
                 return null;
             }
             return utf8EncodingNoPrefix.GetBytes(s);
+        }
+
+        /// <summary>
+        /// Convert an object to an http header value string
+        /// </summary>
+        /// <param name="obj">Object</param>
+        /// <returns>Http header value string</returns>
+        public static string ToHttpHeaderString(this object obj)
+        {
+            if (obj == null)
+            {
+                return string.Empty;
+            }
+            else if (obj is SecureString secureString)
+            {
+                return secureString.ToUnsecureString();
+            }
+            return obj.ToStringInvariant();
         }
 
         /// <summary>

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Reflection;
+using System.Security;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -22,7 +23,7 @@ namespace IPBan
         /// <param name="postJson">Optional json to post for a POST request, else GET is used</param>
         /// <param name="headers">Optional http headers</param>
         /// <returns>Task of response byte[]</returns>
-        Task<byte[]> MakeRequestAsync(Uri uri, string postJson = null, IEnumerable<KeyValuePair<string, string>> headers = null);
+        Task<byte[]> MakeRequestAsync(Uri uri, string postJson = null, IEnumerable<KeyValuePair<string, object>> headers = null);
 
         /// <summary>
         /// Web proxy (optional)
@@ -40,6 +41,11 @@ namespace IPBan
         /// </summary>
         public static DefaultHttpRequestMaker Instance { get; } = new DefaultHttpRequestMaker();
 
+        /// <summary>
+        /// Whether live requests should be disabled (unit tests)
+        /// </summary>
+        public static bool DisableLiveRequests { get; set; }
+
         private static long liveRequestCount;
         /// <summary>
         /// Global counter of live requests made
@@ -52,11 +58,15 @@ namespace IPBan
         /// </summary>
         public static long LocalRequestCount { get { return localRequestCount; } }
 
-        public Task<byte[]> MakeRequestAsync(Uri uri, string postJson = null, IEnumerable<KeyValuePair<string, string>> headers = null)
+        public Task<byte[]> MakeRequestAsync(Uri uri, string postJson = null, IEnumerable<KeyValuePair<string, object>> headers = null)
         {
             if (uri.Host.Contains("localhost", StringComparison.OrdinalIgnoreCase) || uri.Host.Contains("127.0.0.1") || uri.Host.Contains("::1"))
             {
                 Interlocked.Increment(ref localRequestCount);
+            }
+            else if (DisableLiveRequests)
+            {
+                throw new InvalidOperationException("Live requests have been disabled, cannot process url " + uri.ToString());
             }
             else
             {
@@ -78,9 +88,9 @@ namespace IPBan
                 client.Proxy = Proxy ?? client.Proxy;
                 if (headers != null)
                 {
-                    foreach (KeyValuePair<string, string> header in headers)
+                    foreach (KeyValuePair<string, object> header in headers)
                     {
-                        client.Headers[header.Key] = header.Value;
+                        client.Headers[header.Key] = header.Value.ToHttpHeaderString();
                     }
                 }
                 if (string.IsNullOrWhiteSpace(postJson))
