@@ -287,7 +287,7 @@ namespace IPBan
         /// </summary>
         /// <param name="ipAddress">IP Address</param>
         /// <returns>True if whitelisted, false otherwise</returns>
-        public bool IsIPAddressWhitelisted(string ipAddress)
+        public bool IsWhitelisted(string ipAddress)
         {
             return !string.IsNullOrWhiteSpace(ipAddress) &&
                 (whiteList.Contains(ipAddress) ||

@@ -225,7 +225,7 @@ namespace IPBan
                     string ipAddress = failedLogin.IPAddress;
                     string userName = failedLogin.UserName;
                     string source = failedLogin.Source;
-                    if (Config.IsIPAddressWhitelisted(ipAddress) ||
+                    if (Config.IsWhitelisted(ipAddress) ||
                         (IPBanDelegate != null && IPBanDelegate.IsIPAddressWhitelisted(ipAddress)))
                     {
                         IPBanLog.Warn("Ignoring whitelisted ip address {0}, {1}, {2}", ipAddress, userName, source);
@@ -433,7 +433,7 @@ namespace IPBan
                 {
                     // if the ban has expired, or the ip address has become whitelisted, unban
                     bool banExpire = (allowBanExpire && (now - ipAddress.BanDate.Value) > Config.BanTime);
-                    bool whitelisted = Config.IsIPAddressWhitelisted(ipAddress.IPAddress);
+                    bool whitelisted = Config.IsWhitelisted(ipAddress.IPAddress);
                     if (banExpire || whitelisted)
                     {
                         IPBanLog.Warn("Un-banning ip address {0}, ban expire: {1}, whitelisted: {2}", ipAddress.IPAddress, banExpire, whitelisted);
