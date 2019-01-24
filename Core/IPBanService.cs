@@ -808,6 +808,10 @@ namespace IPBan
                         existing.DateTime = CurrentDateTime;
                         existing.Count += count;
                     }
+                    else
+                    {
+                        IPBanLog.Info("Ignoring failed login from {0}, min time between failed logins has not elapsed", existing.IPAddress);
+                    }
                 }
             }
         }

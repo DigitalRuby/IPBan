@@ -322,7 +322,7 @@ namespace IPBan
                         {
                             iterations = int.Parse(repeater.Groups["count"].Value, CultureInfo.InvariantCulture);
                         }
-                        IPBanLog.Debug("Found match, ip: {0}, user: {1}", ipAddress, userName);
+                        IPBanLog.Debug("Found match, ip: {0}, user: {1}, count: {2}", ipAddress, userName, iterations);
                         failedLogin.AddFailedLogin(ipAddress, Source, userName, iterations);
                         foundOne = true;
                     }
