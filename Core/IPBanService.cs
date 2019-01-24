@@ -261,6 +261,7 @@ namespace IPBan
                             if (alreadyBanned)
                             {
                                 IPBanLog.Info("IP {0}, {1}, {2} should already be banned, alreadyBanned == true.", ipAddress, userName, source);
+                                firewallNeedsBlockedIPAddressesUpdate = true;
                             }
                             else
                             {

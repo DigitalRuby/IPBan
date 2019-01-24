@@ -229,7 +229,14 @@ namespace IPBan
                     {
                         try
                         {
-                            writer.WriteLine($"add {ruleName} {range.ToCidrString()} -exist");
+                            if (range.Begin.Equals(range.End))
+                            {
+                                writer.WriteLine($"add {ruleName} {range.Begin} -exist");
+                            }
+                            else
+                            {
+                                writer.WriteLine($"add {ruleName} {range.ToCidrString()} -exist");
+                            }
                             if (!deleteRule)
                             {
                                 newIPAddressesUint.Add(value);

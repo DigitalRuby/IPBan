@@ -219,6 +219,20 @@ namespace IPBan
                 {
                     // if file length has changed, ping the file
                     bool delete = false;
+
+                    // ugly hack to force file to flush
+                    using (FileStream fs = new FileStream(file.FileName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                    {
+                        try
+                        {
+                            fs.Position = fs.Length - 1;
+                            fs.ReadByte();
+                        }
+                        catch
+                        {
+                        }
+                    }
+
                     long len = new FileInfo(file.FileName).Length;
 
                     // if file has shrunk (deleted and recreated for example) reset positions to 0
@@ -235,6 +249,10 @@ namespace IPBan
                             file.LastLength = len;
                             delete = PingFile(file, fs);
                         }
+                    }
+                    else
+                    {
+                        IPBanLog.Debug("Watched file {0} length has not changed", file.FileName);
                     }
                     if (delete)
                     {
