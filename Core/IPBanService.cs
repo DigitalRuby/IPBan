@@ -770,36 +770,34 @@ namespace IPBan
         /// <summary>
         /// Add an ip address to be checked for banning later
         /// </summary>
-        /// <param name="ipAddress">IP Address</param>
-        /// <param name="source">Source</param>
-        /// <param name="userName">User Name</param>
-        public void AddFailedLogin(string ipAddress, string source, string userName, int count)
+        /// <param name="info">IP address log info</param>
+        public void AddFailedLogin(IPAddressLogInfo info)
         {
-            if (!IPBanFirewallUtility.TryGetFirewallIPAddress(ipAddress, out string normalizedIPAddress))
+            if (!IPBanFirewallUtility.TryGetFirewallIPAddress(info.IPAddress, out string normalizedIPAddress))
             {
                 return;
             }
 
-            source = (source ?? "?");
-            userName = (userName ?? string.Empty);
+            info.Source = (info.Source ?? "?");
+            info.UserName = (info.UserName ?? string.Empty);
             lock (pendingFailedLogins)
             {
-                FailedLogin existing = pendingFailedLogins.FirstOrDefault(p => p.IPAddress == normalizedIPAddress && (p.UserName == null || p.UserName == userName));
+                FailedLogin existing = pendingFailedLogins.FirstOrDefault(p => p.IPAddress == normalizedIPAddress && (p.UserName == null || p.UserName == info.UserName));
                 if (existing == null)
                 {
                     existing = new FailedLogin
                     {
                         IPAddress = normalizedIPAddress,
-                        Source = source,
-                        UserName = userName,
+                        Source = info.Source,
+                        UserName = info.UserName,
                         DateTime = CurrentDateTime,
-                        Count = count
+                        Count = info.Count
                     };
                     pendingFailedLogins.Add(existing);
                 }
                 else
                 {
-                    existing.UserName = (existing.UserName ?? userName);
+                    existing.UserName = (existing.UserName ?? info.UserName);
 
                     // if more than n seconds has passed, increment the counter
                     // we don't want to count multiple event logs that all map to the same ip address from one failed
@@ -807,7 +805,7 @@ namespace IPBan
                     if ((CurrentDateTime - existing.DateTime) >= Config.MinimumTimeBetweenFailedLoginAttempts)
                     {
                         existing.DateTime = CurrentDateTime;
-                        existing.Count += count;
+                        existing.Count += info.Count;
                     }
                     else
                     {
@@ -826,9 +824,19 @@ namespace IPBan
         /// <param name="ipAddress">Found ip address or null if none</param>
         /// <param name="userName">Found user name or null if none</param>
         /// <returns>True if a regex match was found, false otherwise</returns>
-        public static bool GetIPAddressAndUserNameFromRegex(IDnsLookup dns, Regex regex, string text, ref string ipAddress, ref string userName)
+        public static IPAddressLogInfo GetIPAddressInfoFromRegex(IDnsLookup dns, Regex regex, string text)
         {
             bool foundMatch = false;
+            string userName = null;
+            string ipAddress = null;
+            string source = null;
+            int repeatCount = 1;
+
+            Match repeater = Regex.Match(text, "message repeated (?<count>[0-9]+) times", RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
+            if (repeater.Success)
+            {
+                repeatCount = int.Parse(repeater.Groups["count"].Value, CultureInfo.InvariantCulture);
+            }
 
             foreach (Match m in regex.Matches(text))
             {
@@ -843,6 +851,12 @@ namespace IPBan
                 {
                     userName = (userName ?? userNameGroup.Value.Trim('\'', '\"', '(', ')', '[', ']', '{', '}', ' ', '\r', '\n'));
                 }
+                Group sourceGroup = m.Groups["source"];
+                if (sourceGroup != null && sourceGroup.Success)
+                {
+                    source = (source ?? sourceGroup.Value.Trim('\'', '\"', '(', ')', '[', ']', '{', '}', ' ', '\r', '\n'));
+                }
+
 
                 // check if the regex had an ipadddress group
                 Group ipAddressGroup = m.Groups["ipaddress"];
@@ -889,12 +903,7 @@ namespace IPBan
                 }
             }
 
-            if (!foundMatch)
-            {
-                ipAddress = null;
-            }
-
-            return foundMatch;
+            return new IPAddressLogInfo(foundMatch, ipAddress, userName, source, repeatCount);
         }
 
         /// <summary>
@@ -1193,6 +1202,59 @@ namespace IPBan
         /// Whether to submit ip addresses for global ban list
         /// </summary>
         public bool SubmitIPAddresses { get; set; } = true;
+    }
+
+    /// <summary>
+    /// Information about an ip address from a log entry
+    /// </summary>
+    public class IPAddressLogInfo
+    {
+        /// <summary>
+        /// Default constructor
+        /// </summary>
+        public IPAddressLogInfo() { } 
+
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="foundMatch">Whether a match was found</param>
+        /// <param name="ipAddress">IP address</param>
+        /// <param name="userName">User name</param>
+        /// <param name="source">Source</param>
+        /// <param name="count">How many messages were aggregated, 1 for no aggregation</param>
+        public IPAddressLogInfo(bool foundMatch, string ipAddress, string userName, string source, int count)
+        {
+            FoundMatch = foundMatch;
+            IPAddress = ipAddress;
+            UserName = userName;
+            Source = source;
+            Count = count;
+        }
+
+        /// <summary>
+        /// Whether a match was found
+        /// </summary>
+        public bool FoundMatch { get; set; }
+
+        /// <summary>
+        /// IP address
+        /// </summary>
+        public string IPAddress { get; set; }
+
+        /// <summary>
+        /// User name
+        /// </summary>
+        public string UserName { get; set; }
+
+        /// <summary>
+        /// Source
+        /// </summary>
+        public string Source { get; set; }
+
+        /// <summary>
+        /// How many messages were aggregated, 1 for no aggregation
+        /// </summary>
+        public int Count { get; set; }
     }
 
     /// <summary>

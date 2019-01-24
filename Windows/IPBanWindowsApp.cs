@@ -128,6 +128,10 @@ namespace IPBan
                 count++;
             }
             db.SetBannedIPAddresses(new string[] { "5.5.5.5", "5.5.5.6" }, dt2);
+            if (db.IncrementFailedLoginCount("9.9.9.9", dt2, 1) != 1)
+            {
+                throw new InvalidDataException("Failed login count is wrong");
+            }
             count = 0;
             range = new IPAddressRange { Begin = System.Net.IPAddress.Parse("::5.5.5.0"), End = System.Net.IPAddress.Parse("::5.5.5.255") };
             foreach (string ipAddress in db.DeleteIPAddresses(range))
@@ -141,6 +145,16 @@ namespace IPBan
             if (count != 1)
             {
                 throw new InvalidDataException("Wrong number of ip addresses deleted from range");
+            }
+            IPBanDB.IPAddressEntry[] ipAll = db.EnumerateIPAddresses().ToArray();
+            if (ipAll.Length != 7)
+            {
+                throw new InvalidDataException("IP address count is wrong");
+            }
+            IPBanDB.IPAddressEntry[] bannedIpAll = db.EnumerateBannedIPAddresses().ToArray();
+            if (bannedIpAll.Length != 6)
+            {
+                throw new InvalidDataException("Banned ip address count is wrong");
             }
             Console.WriteLine("IPBanDB test complete, no errors");
         }

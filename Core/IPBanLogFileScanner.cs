@@ -321,8 +321,6 @@ namespace IPBan
                 // read text and run regex to find ip addresses to ban
                 string subString = Encoding.UTF8.GetString(bytes);
                 string[] lines = subString.Split('\n');
-                string ipAddress = null;
-                string userName = null;
                 bool foundOne = false;
 
                 // find ip and user name from all lines
@@ -330,18 +328,12 @@ namespace IPBan
                 {
                     string trimmedLine = line.Trim();
                     IPBanLog.Debug("Parsing log file line {0}...", trimmedLine);
-                    bool foundMatch = IPBanService.GetIPAddressAndUserNameFromRegex(dns, Regex, trimmedLine, ref ipAddress, ref userName);
-                    if (foundMatch)
+                    IPAddressLogInfo info = IPBanService.GetIPAddressInfoFromRegex(dns, Regex, trimmedLine);
+                    if (info.FoundMatch)
                     {
-                        int iterations = 1;
-                        Match repeater = Regex.Match(trimmedLine, "message repeated (?<count>[0-9]+) times",
-                            RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
-                        if (repeater.Success)
-                        {
-                            iterations = int.Parse(repeater.Groups["count"].Value, CultureInfo.InvariantCulture);
-                        }
-                        IPBanLog.Debug("Found match, ip: {0}, user: {1}, count: {2}", ipAddress, userName, iterations);
-                        failedLogin.AddFailedLogin(ipAddress, Source, userName, iterations);
+                        info.Source = info.Source ?? Source;
+                        IPBanLog.Debug("Log file found match, ip: {0}, user: {1}, source: {2}, count: {3}", info.IPAddress, info.UserName, info.Source, info.Count);
+                        failedLogin.AddFailedLogin(info);
                         foundOne = true;
                     }
                     else

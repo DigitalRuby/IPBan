@@ -303,7 +303,22 @@ namespace IPBan
         /// <returns>IP addresses with expired ban date</returns>
         public IEnumerable<IPAddressEntry> EnumerateIPAddresses()
         {
-            using (SQLiteDataReader reader = ExecuteReader("SELECT IPAddressText, LastFailedLogin, FailedLoginCount, BanDate FROM IPAddresses"))
+            using (SQLiteDataReader reader = ExecuteReader("SELECT IPAddressText, LastFailedLogin, FailedLoginCount, BanDate FROM IPAddresses ORDER BY IPAddress"))
+            {
+                while (reader.Read())
+                {
+                    yield return ParseIPAddressEntry(reader);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Get all banned ip addresses
+        /// </summary>
+        /// <returns>IP addresses with non-null ban dates</returns>
+        public IEnumerable<IPAddressEntry> EnumerateBannedIPAddresses()
+        {
+            using (SQLiteDataReader reader = ExecuteReader("SELECT IPAddressText, LastFailedLogin, FailedLoginCount, BanDate FROM IPAddresses WHERE BanDate IS NOT NULL ORDER BY IPAddress"))
             {
                 while (reader.Read())
                 {
@@ -347,21 +362,6 @@ namespace IPBan
                 while (reader.Read())
                 {
                     yield return reader.GetString(0);
-                }
-            }
-        }
-
-        /// <summary>
-        /// Get all banned ip addresses
-        /// </summary>
-        /// <returns>IP addresses with non-null ban dates</returns>
-        public IEnumerable<IPAddressEntry> EnumerateBannedIPAddresses()
-        {
-            using (SQLiteDataReader reader = ExecuteReader("SELECT IPAddressText, LastFailedLogin, FailedLoginCount, BanDate FROM IPAddresses WHERE BanDate IS NOT NULL"))
-            {
-                while (reader.Read())
-                {
-                    yield return ParseIPAddressEntry(reader);
                 }
             }
         }

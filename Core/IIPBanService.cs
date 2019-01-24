@@ -13,13 +13,10 @@ namespace IPBan
     public interface IFailedLogin
     {
         /// <summary>
-        /// Add an ip address to be checked for banning later
+        /// Add a failed login
         /// </summary>
-        /// <param name="ipAddress">IP Address</param>
-        /// <param name="source">Source</param>
-        /// <param name="userName">User Name</param>
-        /// <param name="count">Number of failures</param>
-        void AddFailedLogin(string ipAddress, string source, string userName, int count);
+        /// <param name="info">IP address log info</param>
+        void AddFailedLogin(IPAddressLogInfo info);
     }
 
     /// <summary>

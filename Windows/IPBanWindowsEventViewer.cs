@@ -44,21 +44,21 @@ namespace IPBan
             }
         }
 
-        private bool AddFailedLoginForEventViewerXml(string ipAddress, string source, string userName, XmlDocument doc)
+        private bool AddFailedLoginForEventViewerXml(IPAddressLogInfo info, XmlDocument doc)
         {
-            if (string.IsNullOrWhiteSpace(ipAddress))
+            if (string.IsNullOrWhiteSpace(info.IPAddress))
             {
                 return false;
             }
-            else if (string.IsNullOrWhiteSpace(source))
+            else if (string.IsNullOrWhiteSpace(info.Source))
             {
                 XmlNode sourceNode = doc.SelectSingleNode("//Source");
                 if (sourceNode != null)
                 {
-                    source = sourceNode.InnerText.Trim();
+                    info.Source = sourceNode.InnerText.Trim();
                 }
             }
-            if (string.IsNullOrWhiteSpace(userName))
+            if (string.IsNullOrWhiteSpace(info.UserName))
             {
                 XmlNode userNameNode = doc.SelectSingleNode("//Data[@Name='TargetUserName']");
                 if (userNameNode == null)
@@ -67,17 +67,16 @@ namespace IPBan
                 }
                 if (userNameNode != null)
                 {
-                    userName = userNameNode.InnerText.Trim();
+                    info.UserName = userNameNode.InnerText.Trim();
                 }
             }
 
-            IPBanLog.Info("Event Viewer Login Fail, IP: {0}, USER: {1}", ipAddress, userName);
-            service.AddFailedLogin(ipAddress, source, userName, 1);
+            service.AddFailedLogin(info);
 
             return true;
         }
 
-        private void ExtractEventViewerXml(XmlDocument doc, out string ipAddress, out string source, out string userName)
+        private IPAddressLogInfo ExtractEventViewerXml(XmlDocument doc)
         {
             XmlNode keywordsNode = doc.SelectSingleNode("//Keywords");
             string keywordsText = keywordsNode.InnerText;
@@ -86,7 +85,7 @@ namespace IPBan
                 keywordsText = keywordsText.Substring(2);
             }
             ulong keywordsULONG = ulong.Parse(keywordsText, NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture);
-            ipAddress = source = userName = null;
+            IPAddressLogInfo info = null;
 
             if (keywordsNode != null)
             {
@@ -101,7 +100,7 @@ namespace IPBan
                         if (nodes.Count == 0)
                         {
                             IPBanLog.Info("No nodes found for xpath {0}", expression.XPath);
-                            ipAddress = null;
+                            info = null;
                             break;
                         }
 
@@ -113,36 +112,39 @@ namespace IPBan
                         }
                         else
                         {
-                            bool foundMatch = false;
+                            info = null;
 
                             // try and find an ip from any of the nodes
                             foreach (XmlNode node in nodes)
                             {
                                 // if we get a match, stop checking nodes
-                                if ((foundMatch = IPBanService.GetIPAddressAndUserNameFromRegex(service.DnsLookup, expression.RegexObject, node.InnerText, ref ipAddress, ref userName)))
+                                info = IPBanService.GetIPAddressInfoFromRegex(service.DnsLookup, expression.RegexObject, node.InnerText);
+                                if (info.FoundMatch)
                                 {
                                     break;
                                 }
                             }
 
-                            if (!foundMatch)
+                            if (info != null && !info.FoundMatch)
                             {
                                 // match fail, null out ip, we have to match ALL the nodes or we get null ip and do not ban
                                 IPBanLog.Info("Regex {0} did not match any nodes with xpath {1}", expression.Regex, expression.XPath);
-                                ipAddress = null;
+                                info = null;
                                 break;
                             }
                         }
                     }
 
-                    if (ipAddress != null)
+                    if (info != null && info.FoundMatch && info.IPAddress != null)
                     {
-                        source = group.Source;
+                        info.Source = info.Source ?? group.Source;
                         break;
                     }
-                    ipAddress = source = userName = null; // set null for the next node attempt
+                    info = null; // set null for next attempt
                 }
             }
+
+            return info;
         }
 
         private XmlDocument ParseXml(string xml)
@@ -251,16 +253,15 @@ namespace IPBan
         /// Process event viewer XML
         /// </summary>
         /// <param name="xml">XML</param>
-        /// <param name="testing">True if testing, false otherwise</param>
-        public void ProcessEventViewerXml(string xml, bool testing = false)
+        public void ProcessEventViewerXml(string xml)
         {
-            IPBanLog.Info("Processing xml: {0}", xml);
+            IPBanLog.Info("Processing event viewer xml: {0}", xml);
 
             XmlDocument doc = ParseXml(xml);
-            ExtractEventViewerXml(doc, out string ipAddress, out string source, out string userName);
-            if (AddFailedLoginForEventViewerXml(ipAddress, source, userName, doc) && testing)
+            IPAddressLogInfo info = ExtractEventViewerXml(doc);
+            if (info != null && info.FoundMatch && AddFailedLoginForEventViewerXml(info, doc))
             {
-                Console.WriteLine("Found {0}, {1}, {2}", ipAddress, source, userName);
+                IPBanLog.Info("Event viewer found: {0}, {1}, {2}", info.IPAddress, info.Source, info.UserName);
             }
         }
 
@@ -354,7 +355,7 @@ namespace IPBan
                     {
                         Console.Write("Count: {0}    \r", count);
                     }
-                    ProcessEventViewerXml(record.ToXml(), true);
+                    ProcessEventViewerXml(record.ToXml());
                 }
                 service.RunCycle();
             }
