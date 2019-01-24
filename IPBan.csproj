@@ -3,8 +3,8 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp2.2</TargetFramework>
-    <AssemblyVersion>1.3.6.0</AssemblyVersion>
-    <FileVersion>1.3.6.0</FileVersion>
+    <AssemblyVersion>1.4.0.0</AssemblyVersion>
+    <FileVersion>1.4.0.0</FileVersion>
     <Company>Digital Ruby, LLC</Company>
     <Authors>jjxtra</Authors>
     <Copyright>(c) 2010 Digital Ruby, LLC</Copyright>
@@ -15,7 +15,7 @@
     <StartupObject></StartupObject>
     <TrimUnusedDependencies>true</TrimUnusedDependencies>
     <TargetLatestRuntimePatch>true</TargetLatestRuntimePatch>
-    <PackageReleaseNotes>Write default nlog.config file</PackageReleaseNotes>
+    <PackageReleaseNotes>New sqlite ip database, fix ipv6 bugs</PackageReleaseNotes>
     <DebugType>portable</DebugType>
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
