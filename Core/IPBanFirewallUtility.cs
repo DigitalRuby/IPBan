@@ -77,9 +77,18 @@ namespace IPBan
                 normalizedIP == "127.0.0.1" ||
                 normalizedIP == "::0" ||
                 normalizedIP == "::1" ||
-                !IPAddressRange.TryParse(normalizedIP, out _))
+                !IPAddressRange.TryParse(normalizedIP, out IPAddressRange range))
             {
                 normalizedIP = null;
+                return false;
+            }
+            try
+            {
+                normalizedIP = (range.Begin.Equals(range.End) ? range.Begin.ToString() : range.ToCidrString());
+            }
+            catch (Exception ex)
+            {
+                IPBanLog.Debug("Failed to normalize ip {0}, it is not a single ip or cidr range: {1}", ipAddress, ex);
                 return false;
             }
             return true;

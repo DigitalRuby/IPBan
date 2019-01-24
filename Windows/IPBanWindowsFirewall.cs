@@ -27,6 +27,7 @@ namespace IPBan
         private const string clsidFwRule = "{2C5BC43E-3369-4C33-AB0C-BE9469677AF4}";
         private static readonly INetFwPolicy2 policy = Activator.CreateInstance(Type.GetTypeFromCLSID(new Guid(clsidFwPolicy2))) as INetFwPolicy2;
         private static readonly Type ruleType = Type.GetTypeFromCLSID(new Guid(clsidFwRule));
+        private static readonly char[] firewallEntryDelimiters = new char[] { '/', '-' };
 
         private string allowRulePrefix;
 
@@ -419,7 +420,7 @@ namespace IPBan
                 }
                 foreach (string ip in rule.RemoteAddresses.Split(','))
                 {
-                    int pos = ip.IndexOf('/');
+                    int pos = ip.IndexOfAny(firewallEntryDelimiters);
                     if (pos < 0)
                     {
                         yield return ip;

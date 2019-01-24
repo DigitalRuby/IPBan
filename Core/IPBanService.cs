@@ -775,7 +775,7 @@ namespace IPBan
         /// <param name="userName">User Name</param>
         public void AddFailedLogin(string ipAddress, string source, string userName, int count)
         {
-            if (ipAddress == "::1" || ipAddress == "127.0.0.1")
+            if (!IPBanFirewallUtility.TryGetFirewallIPAddress(ipAddress, out string normalizedIPAddress))
             {
                 return;
             }
@@ -784,12 +784,12 @@ namespace IPBan
             userName = (userName ?? string.Empty);
             lock (pendingFailedLogins)
             {
-                FailedLogin existing = pendingFailedLogins.FirstOrDefault(p => p.IPAddress == ipAddress && (p.UserName == null || p.UserName == userName));
+                FailedLogin existing = pendingFailedLogins.FirstOrDefault(p => p.IPAddress == normalizedIPAddress && (p.UserName == null || p.UserName == userName));
                 if (existing == null)
                 {
                     existing = new FailedLogin
                     {
-                        IPAddress = ipAddress,
+                        IPAddress = normalizedIPAddress,
                         Source = source,
                         UserName = userName,
                         DateTime = CurrentDateTime,
