@@ -103,6 +103,12 @@ namespace IPBan
             // ensure that a set exists for the iptables rule in the event that this is the first run
             RunProcess("ipset", false, $"create {ruleName} hash:{hashType} family {inetFamily} hashsize {hashSize} maxelem {maxCount} -exist");
 
+            string setFileName = GetSetFileName(ruleName);
+            if (!File.Exists(setFileName))
+            {
+                RunProcess("ipset", true, $"save {ruleName} > \"{setFileName}\"");
+            }
+
             // create or update the rule in iptables
             string tempFile = Path.GetTempFileName();
             try
@@ -289,15 +295,15 @@ namespace IPBan
                 RunProcess("ipset", true, $"restore < \"{setFile}\"");
             }
 
+            allowedIPAddresses = LoadIPAddresses(allowRuleName, "ACCEPT", "ip", allowRuleMaxCount);
+            bannedIPAddresses = LoadIPAddresses(blockRuleName, "DROP", "ip", blockRuleMaxCount);
+
             // restore existing rules from disk
             string ruleFile = GetTableFileName();
             if (File.Exists(ruleFile))
             {
                 RunProcess("iptables-restore", true, $"< \"{ruleFile}\"");
             }
-
-            allowedIPAddresses = LoadIPAddresses(allowRuleName, "ACCEPT", "ip", allowRuleMaxCount);
-            bannedIPAddresses = LoadIPAddresses(blockRuleName, "DROP", "ip", blockRuleMaxCount);
         }
 
         public bool BlockIPAddresses(IEnumerable<string> ipAddresses)

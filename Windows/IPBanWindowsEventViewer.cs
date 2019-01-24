@@ -72,7 +72,7 @@ namespace IPBan
             }
 
             IPBanLog.Info("Event Viewer Login Fail, IP: {0}, USER: {1}", ipAddress, userName);
-            service.AddFailedLogin(ipAddress, source, userName);
+            service.AddFailedLogin(ipAddress, source, userName, 1);
 
             return true;
         }

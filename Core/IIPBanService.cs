@@ -18,7 +18,8 @@ namespace IPBan
         /// <param name="ipAddress">IP Address</param>
         /// <param name="source">Source</param>
         /// <param name="userName">User Name</param>
-        void AddFailedLogin(string ipAddress, string source, string userName);
+        /// <param name="count">Number of failures</param>
+        void AddFailedLogin(string ipAddress, string source, string userName, int count);
     }
 
     /// <summary>

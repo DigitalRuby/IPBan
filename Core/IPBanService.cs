@@ -218,13 +218,13 @@ namespace IPBan
         private void ProcessPendingFailedLogins(IEnumerable<FailedLogin> ipAddresses)
         {
             List<KeyValuePair<string, string>> bannedIpAddresses = new List<KeyValuePair<string, string>>();
-            foreach (FailedLogin p in ipAddresses)
+            foreach (FailedLogin failedLogin in ipAddresses)
             {
                 try
                 {
-                    string ipAddress = p.IPAddress;
-                    string userName = p.UserName;
-                    string source = p.Source;
+                    string ipAddress = failedLogin.IPAddress;
+                    string userName = failedLogin.UserName;
+                    string source = failedLogin.Source;
                     if (Config.IsIPAddressWhitelisted(ipAddress) ||
                         (IPBanDelegate != null && IPBanDelegate.IsIPAddressWhitelisted(ipAddress)))
                     {
@@ -242,15 +242,14 @@ namespace IPBan
                             maxFailedLoginAttempts = Config.FailedLoginAttemptsBeforeBan;
                         }
 
-                        int counter = p.Count;
-                        DateTime now = p.DateTime;
+                        DateTime now = failedLogin.DateTime;
 
                         // check for the target user name for additional blacklisting checks                    
                         bool configBlacklisted = Config.IsBlackListed(ipAddress) ||
                             Config.IsBlackListed(userName) ||
                             !Config.IsUserNameWithinMaximumEditDistanceOfUserNameWhitelist(userName) ||
                             (IPBanDelegate != null && IPBanDelegate.IsIPAddressBlacklisted(ipAddress));
-                        int newCount = ipDB.IncrementFailedLoginCount(ipAddress, CurrentDateTime, counter);
+                        int newCount = ipDB.IncrementFailedLoginCount(ipAddress, CurrentDateTime, failedLogin.Count);
                         IPBanLog.Info("Incremented count for ip {0} to {1}, user name: {2}", ipAddress, newCount, userName);
 
                         // if the ip address is black listed or the ip address has reached the maximum failed login attempts before ban, ban the ip address
@@ -269,12 +268,12 @@ namespace IPBan
                                 {
                                     IPBanDelegate.LoginAttemptFailed(ipAddress, source, userName).ConfigureAwait(false).GetAwaiter().GetResult();
                                 }
-                                AddBannedIPAddress(ipAddress, source, userName, bannedIpAddresses, now, configBlacklisted, counter, string.Empty);
+                                AddBannedIPAddress(ipAddress, source, userName, bannedIpAddresses, now, configBlacklisted, newCount, string.Empty);
                             }
                         }
                         else if (newCount > maxFailedLoginAttempts)
                         {
-                            IPBanLog.Info("IP {0}, {1}, {2} should already be banned.", ipAddress, counter, source);
+                            IPBanLog.Info("IP {0}, {1}, {2} should already be banned.", ipAddress, newCount, source);
                         }
                         else
                         {
@@ -286,7 +285,7 @@ namespace IPBan
                                     AddBannedIPAddress(ipAddress, userName, source, bannedIpAddresses, now, configBlacklisted, newCount, "Delegate banned ip: " + result);
                                 }
                             }
-                            IPBanLog.Warn("Login attempt failed: {0}, {1}, {2}, {3}", ipAddress, userName, source, counter);
+                            IPBanLog.Warn("Login attempt failed: {0}, {1}, {2}, {3}", ipAddress, userName, source, newCount);
                         }
                     }
                 }
@@ -773,7 +772,7 @@ namespace IPBan
         /// <param name="ipAddress">IP Address</param>
         /// <param name="source">Source</param>
         /// <param name="userName">User Name</param>
-        public void AddFailedLogin(string ipAddress, string source, string userName)
+        public void AddFailedLogin(string ipAddress, string source, string userName, int count)
         {
             if (ipAddress == "::1" || ipAddress == "127.0.0.1")
             {
@@ -787,7 +786,14 @@ namespace IPBan
                 FailedLogin existing = pendingFailedLogins.FirstOrDefault(p => p.IPAddress == ipAddress && (p.UserName == null || p.UserName == userName));
                 if (existing == null)
                 {
-                    existing = new FailedLogin { IPAddress = ipAddress, Source = source, UserName = userName, DateTime = CurrentDateTime, Count = 1 };
+                    existing = new FailedLogin
+                    {
+                        IPAddress = ipAddress,
+                        Source = source,
+                        UserName = userName,
+                        DateTime = CurrentDateTime,
+                        Count = count
+                    };
                     pendingFailedLogins.Add(existing);
                 }
                 else
@@ -800,7 +806,7 @@ namespace IPBan
                     if ((CurrentDateTime - existing.DateTime) >= Config.MinimumTimeBetweenFailedLoginAttempts)
                     {
                         existing.DateTime = CurrentDateTime;
-                        existing.Count++;
+                        existing.Count += count;
                     }
                 }
             }

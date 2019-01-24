@@ -1,6 +1,7 @@
-﻿using System;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -309,12 +310,20 @@ namespace IPBan
                 // find ip and user name from all lines
                 foreach (string line in lines)
                 {
-                    IPBanLog.Debug("Parsing log file line {0}...", line);
-                    bool foundMatch = IPBanService.GetIPAddressAndUserNameFromRegex(dns, Regex, line.Trim(), ref ipAddress, ref userName);
+                    string trimmedLine = line.Trim();
+                    IPBanLog.Debug("Parsing log file line {0}...", trimmedLine);
+                    bool foundMatch = IPBanService.GetIPAddressAndUserNameFromRegex(dns, Regex, trimmedLine, ref ipAddress, ref userName);
                     if (foundMatch)
                     {
+                        int iterations = 1;
+                        Match repeater = Regex.Match(trimmedLine, "message repeated (?<count>[0-9]+) times",
+                            RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
+                        if (repeater.Success)
+                        {
+                            iterations = int.Parse(repeater.Groups["count"].Value, CultureInfo.InvariantCulture);
+                        }
                         IPBanLog.Debug("Found match, ip: {0}, user: {1}", ipAddress, userName);
-                        failedLogin.AddFailedLogin(ipAddress, Source, userName);
+                        failedLogin.AddFailedLogin(ipAddress, Source, userName, iterations);
                         foundOne = true;
                     }
                     else
