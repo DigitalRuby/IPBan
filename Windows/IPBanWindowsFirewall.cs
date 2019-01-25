@@ -397,6 +397,18 @@ namespace IPBan
             return false;
         }
 
+        public IEnumerable<string> GetRuleNames(string ruleNamePrefix = null)
+        {
+            string prefix = RulePrefix + (ruleNamePrefix ?? string.Empty);
+            foreach (INetFwRule rule in policy.Rules)
+            {
+                if (rule.Name.StartsWith(prefix))
+                {
+                    yield return rule.Name;
+                }
+            }
+        }
+
         public IEnumerable<string> EnumerateBannedIPAddresses()
         {
             int i = 0;

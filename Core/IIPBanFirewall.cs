@@ -22,7 +22,7 @@ namespace IPBan
         bool BlockIPAddresses(IEnumerable<string> ipAddresses);
 
         /// <summary>
-        /// Deletes any existing rule prefixed by ruleNamePrefix then creates a new rule(s) prefixed by ruleNamePrefix with block rules for all ranges specified.
+        /// Deletes any existing rule prefixed by ruleNamePrefix then creates a new rule(s) prefixed by ruleNamePrefix with block rules for all ranges specified. Exceptions are logged.
         /// </summary>
         /// <param name="ruleNamePrefix">Rule name prefix</param>
         /// <param name="ranges">Ranges to block</param>
@@ -50,6 +50,13 @@ namespace IPBan
         /// <param name="ipAddress">IP Address</param>
         /// <returns>True if explicitly allowed, false if not</returns>
         bool IsIPAddressAllowed(string ipAddress);
+
+        /// <summary>
+        /// Get all rules with the specified rule name prefix
+        /// </summary>
+        /// <param name="ruleNamePrefix">Rule name prefix or null for default</param>
+        /// <returns></returns>
+        IEnumerable<string> GetRuleNames(string ruleNamePrefix = null);
 
         /// <summary>
         /// Gets all banned ip addresses

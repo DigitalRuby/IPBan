@@ -28,6 +28,11 @@ namespace IPBan
             throw new NotImplementedException();
         }
 
+        public IEnumerable<string> GetRuleNames(string ruleNamePrefix = null)
+        {
+            throw new NotImplementedException();
+        }
+
         public IEnumerable<string> EnumerateAllowedIPAddresses()
         {
             throw new NotImplementedException();

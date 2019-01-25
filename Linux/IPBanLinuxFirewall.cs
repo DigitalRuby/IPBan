@@ -37,10 +37,33 @@ namespace IPBan
 
         private int RunProcess(string program, bool requireExitCode, string commandLine, params object[] args)
         {
+            return RunProcess(program, requireExitCode, out _, commandLine, args);
+        }
+
+        private int RunProcess(string program, bool requireExitCode, out IReadOnlyList<string> lines, string commandLine, params object[] args)
+        {
             commandLine = program + " " + string.Format(commandLine, args);
             commandLine = "-c \"" + commandLine.Replace("\"", "\\\"") + "\"";
             IPBanLog.Debug("Running firewall process: /bin/bash {0}", commandLine);
-            Process p = Process.Start("/bin/bash", commandLine);
+            Process p = new Process
+            {
+                StartInfo = new ProcessStartInfo
+                {
+                    FileName = "/bin/bash",
+                    Arguments = commandLine,
+                    UseShellExecute = false,
+                    CreateNoWindow = true,
+                    RedirectStandardOutput = true
+                }
+            };
+            p.Start();
+            List<string> lineList = new List<string>();
+            string line;
+            while ((line = p.StandardOutput.ReadLine()) != null)
+            {
+                lineList.Add(line);
+            }
+            lines = lineList;
             p.WaitForExit();
             if (requireExitCode && p.ExitCode != 0)
             {
@@ -51,50 +74,33 @@ namespace IPBan
 
         private void DeleteRule(string ruleName)
         {
-            string tempFile = Path.GetTempFileName();
-            try
+            RunProcess("iptables", true, out IReadOnlyList<string> lines, "-L --line-numbers");
+            string ruleNameWithSpaces = " " + ruleName + " ";
+            foreach (string line in lines)
             {
-                RunProcess("iptables", true, "-L --line-numbers > \"{0}\"", tempFile);
-                string[] lines = File.ReadAllLines(tempFile);
-                string ruleNameWithSpaces = " " + ruleName + " ";
-                foreach (string line in lines)
+                if (line.Contains(ruleNameWithSpaces, StringComparison.OrdinalIgnoreCase))
                 {
-                    if (line.Contains(ruleNameWithSpaces, StringComparison.OrdinalIgnoreCase))
-                    {
-                        // rule number is first piece of the line
-                        int index = line.IndexOf(' ');
-                        int ruleNum = int.Parse(line.Substring(0, index));
+                    // rule number is first piece of the line
+                    int index = line.IndexOf(' ');
+                    int ruleNum = int.Parse(line.Substring(0, index));
 
-                        // replace the rule with the new info
-                        RunProcess("iptables", true, $"-D INPUT {ruleNum}");
-                        break;
-                    }
+                    // replace the rule with the new info
+                    RunProcess("iptables", true, $"-D INPUT {ruleNum}");
+                    break;
                 }
-            }
-            finally
-            {
-                DeleteFile(tempFile);
             }
         }
 
         private void DeleteSet(string ruleName)
         {
-            string tempFile = Path.GetTempFileName();
-            try
+            RunProcess("ipset", true, out IReadOnlyList<string> lines, "list -n");
+            foreach (string line in lines)
             {
-                RunProcess("ipset", true, "list -n > \"{0}\"", tempFile);
-                foreach (string line in File.ReadAllLines(tempFile))
+                if (line.Trim().Equals(ruleName, StringComparison.OrdinalIgnoreCase))
                 {
-                    if (line.Trim().Equals(ruleName, StringComparison.OrdinalIgnoreCase))
-                    {
-                        RunProcess("ipset", true, $"destroy {ruleName}");
-                        break;
-                    }
+                    RunProcess("ipset", true, $"destroy {ruleName}");
+                    break;
                 }
-            }
-            finally
-            {
-                DeleteFile(tempFile);
             }
         }
 
@@ -110,47 +116,38 @@ namespace IPBan
             }
 
             // create or update the rule in iptables
-            string tempFile = Path.GetTempFileName();
-            try
+            RunProcess("iptables", true, out IReadOnlyList<string> lines, "-L --line-numbers");
+            string portString = " ";
+            bool replaced = false;
+            if (allowedPorts.Length != 0)
             {
-                RunProcess("iptables", true, "-L --line-numbers > \"{0}\"", tempFile);
-                string[] lines = File.ReadAllLines(tempFile);
-                string portString = " ";
-                bool replaced = false;
-                if (allowedPorts.Length != 0)
-                {
-                    string portList = (action == "DROP" ? IPBanFirewallUtility.GetPortRangeStringBlockExcept(allowedPorts) :
-                         IPBanFirewallUtility.GetPortRangeStringAllow(allowedPorts));
-                    portString = " -m multiport --dports " + portList.Replace('-', ':') + " "; // iptables uses ':' instead of '-' for range
-                }
-                string ruleNameWithSpaces = " " + ruleName + " ";
-                foreach (string line in lines)
-                {
-                    if (line.Contains(ruleNameWithSpaces, StringComparison.OrdinalIgnoreCase))
-                    {
-                        // rule number is first piece of the line
-                        int index = line.IndexOf(' ');
-                        int ruleNum = int.Parse(line.Substring(0, index));
-
-                        // replace the rule with the new info
-                        RunProcess("iptables", true, $"-R INPUT {ruleNum} -m set{portString}--match-set \"{ruleName}\" src -j {action}");
-                        replaced = true;
-                        break;
-                    }
-                }
-                if (!replaced)
-                {
-                    // add a new rule
-                    RunProcess("iptables", true, $"-A INPUT -m set{portString}--match-set \"{ruleName}\" src -j {action}");
-                }
-
-                // persist table rules, this file is tiny so no need for a temp file and then move
-                RunProcess("iptables-save", true, $"> \"{GetTableFileName()}\"");
+                string portList = (action == "DROP" ? IPBanFirewallUtility.GetPortRangeStringBlockExcept(allowedPorts) :
+                     IPBanFirewallUtility.GetPortRangeStringAllow(allowedPorts));
+                portString = " -m multiport --dports " + portList.Replace('-', ':') + " "; // iptables uses ':' instead of '-' for range
             }
-            finally
+            string ruleNameWithSpaces = " " + ruleName + " ";
+            foreach (string line in lines)
             {
-                DeleteFile(tempFile);
+                if (line.Contains(ruleNameWithSpaces, StringComparison.OrdinalIgnoreCase))
+                {
+                    // rule number is first piece of the line
+                    int index = line.IndexOf(' ');
+                    int ruleNum = int.Parse(line.Substring(0, index));
+
+                    // replace the rule with the new info
+                    RunProcess("iptables", true, $"-R INPUT {ruleNum} -m set{portString}--match-set \"{ruleName}\" src -j {action}");
+                    replaced = true;
+                    break;
+                }
             }
+            if (!replaced)
+            {
+                // add a new rule
+                RunProcess("iptables", true, $"-A INPUT -m set{portString}--match-set \"{ruleName}\" src -j {action}");
+            }
+
+            // persist table rules, this file is tiny so no need for a temp file and then move
+            RunProcess("iptables-save", true, $"> \"{GetTableFileName()}\"");
         }
 
         private List<uint> LoadIPAddresses(string ruleName, string action, string hashType, int maxCount)
@@ -353,6 +350,24 @@ namespace IPBan
             {
                 IPBanLog.Error(ex);
                 return false;
+            }
+        }
+
+        public IEnumerable<string> GetRuleNames(string ruleNamePrefix = null)
+        {
+            const string setText = " match-set ";
+            string prefix = setText + RulePrefix + (ruleNamePrefix ?? string.Empty);
+            RunProcess("iptables", true, out IReadOnlyList<string> lines, "-L");
+            foreach (string line in lines)
+            {
+                int pos = line.IndexOf(prefix);
+                if (pos >= 0)
+                {
+                    pos += setText.Length;
+                    int start = pos;
+                    while (++pos < line.Length && line[pos] != ' ') { }
+                    yield return line.Substring(start, pos - start);
+                }
             }
         }
 
