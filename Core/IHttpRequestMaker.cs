@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Net.Cache;
 using System.Net.Http;
 using System.Reflection;
 using System.Security;
@@ -29,6 +30,11 @@ namespace IPBan
         /// Web proxy (optional)
         /// </summary>
         IWebProxy Proxy { get; set; }
+
+        /// <summary>
+        /// Cache policy
+        /// </summary>
+        RequestCachePolicy CachePolicy { get; set; }
     }
 
     /// <summary>
@@ -86,6 +92,7 @@ namespace IPBan
                 client.UseDefaultCredentials = true;
                 client.Headers["User-Agent"] = versionAssembly.GetName().Name;
                 client.Proxy = Proxy ?? client.Proxy;
+                client.CachePolicy = CachePolicy;
                 if (headers != null)
                 {
                     foreach (KeyValuePair<string, object> header in headers)
@@ -103,5 +110,6 @@ namespace IPBan
         }
 
         public IWebProxy Proxy { get; set; }
+        public RequestCachePolicy CachePolicy { get; set; }
     }
 }
