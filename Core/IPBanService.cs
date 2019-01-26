@@ -267,7 +267,7 @@ namespace IPBan
                             {
                                 if (IPBanDelegate != null)
                                 {
-                                    IPBanDelegate.LoginAttemptFailed(ipAddress, source, userName).ConfigureAwait(false).GetAwaiter().GetResult();
+                                    IPBanDelegate.LoginAttemptFailed(ipAddress, source, userName).Sync();
                                 }
                                 AddBannedIPAddress(ipAddress, source, userName, bannedIpAddresses, now, configBlacklisted, newCount, string.Empty);
                             }
@@ -280,7 +280,7 @@ namespace IPBan
                         {
                             if (IPBanDelegate != null)
                             {
-                                LoginFailedResult result = IPBanDelegate.LoginAttemptFailed(ipAddress, source, userName).ConfigureAwait(false).GetAwaiter().GetResult();
+                                LoginFailedResult result = IPBanDelegate.LoginAttemptFailed(ipAddress, source, userName).Sync();
                                 if (result.HasFlag(LoginFailedResult.Blacklisted))
                                 {
                                     AddBannedIPAddress(ipAddress, userName, source, bannedIpAddresses, now, configBlacklisted, newCount, "Delegate banned ip: " + result);
