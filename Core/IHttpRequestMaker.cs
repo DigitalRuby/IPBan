@@ -92,7 +92,7 @@ namespace IPBan
                 client.UseDefaultCredentials = true;
                 client.Headers["User-Agent"] = versionAssembly.GetName().Name;
                 client.Proxy = Proxy ?? client.Proxy;
-                client.CachePolicy = CachePolicy;
+                client.CachePolicy = CachePolicy ?? client.CachePolicy;
                 if (headers != null)
                 {
                     foreach (KeyValuePair<string, object> header in headers)
@@ -110,6 +110,6 @@ namespace IPBan
         }
 
         public IWebProxy Proxy { get; set; }
-        public RequestCachePolicy CachePolicy { get; set; }
+        public RequestCachePolicy CachePolicy { get; set; } = new RequestCachePolicy(RequestCacheLevel.Default);
     }
 }
