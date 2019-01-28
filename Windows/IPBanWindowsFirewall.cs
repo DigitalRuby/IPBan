@@ -210,6 +210,30 @@ namespace IPBan
 
         private IEnumerable<INetFwRule> EnumerateRulesMatchingPrefix(string prefix)
         {
+            // powershell example
+            // (New-Object -ComObject HNetCfg.FwPolicy2).rules | Where-Object { $_.Name -match '^prefix' } | ForEach-Object { Write-Output "$($_.Name)" }
+            // TODO: Revisit in .NET core 3.0
+            var e = policy.Rules.GetEnumeratorVariant();
+            object[] results = new object[64];
+            IntPtr useless = new IntPtr();
+
+            while (true)
+            {
+                e.Next(results.Length, results, useless);
+                foreach (object o in results)
+                {
+                    if (!(o is INetFwRule rule))
+                    {
+                        break;
+                    }
+                    else if (prefix == "*" || rule.Name.StartsWith(prefix))
+                    {
+                        yield return rule;
+                    }
+                }
+            }
+
+            /*
             System.Diagnostics.Process p = new System.Diagnostics.Process
             {
                 StartInfo = new System.Diagnostics.ProcessStartInfo
@@ -225,7 +249,7 @@ namespace IPBan
             string line;
             string ruleName;
             INetFwRule rule;
-            Regex regex = new Regex(" " + prefix + ".*");
+            Regex regex = new Regex(": +" + prefix + ".*");
             Match match;
 
             while ((line = p.StandardOutput.ReadLine()) != null)
@@ -233,7 +257,7 @@ namespace IPBan
                 match = regex.Match(line);
                 if (match.Success)
                 {
-                    ruleName = match.Value.Trim();
+                    ruleName = match.Value.Trim(' ', ':');
                     rule = null;
                     try
                     {
@@ -248,6 +272,7 @@ namespace IPBan
                     }
                 }
             }
+            */
         }
 
         public string RulePrefix { get; private set; } = "IPBan_";

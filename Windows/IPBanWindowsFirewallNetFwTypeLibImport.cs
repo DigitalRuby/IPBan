@@ -1690,11 +1690,16 @@ namespace NetFwTypeLib
         [return: MarshalAs(UnmanagedType.Interface)]
         INetFwRule Item([In] [MarshalAs(UnmanagedType.BStr)] string Name);
 
+        [DispId(-4)]
+        System.Runtime.InteropServices.ComTypes.IEnumVARIANT GetEnumeratorVariant();
+
+        /*
         [MethodImpl(MethodImplOptions.InternalCall)]
         [DispId(-4)]
         [TypeLibFunc(1)]
         [return: MarshalAs(UnmanagedType.CustomMarshaler, MarshalType = "System.Runtime.InteropServices.CustomMarshalers.EnumeratorToEnumVariantMarshaler")]
         new IEnumerator GetEnumerator();
+        */
     }
 
     [ComImport]
