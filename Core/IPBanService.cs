@@ -305,21 +305,22 @@ namespace IPBan
 
         protected virtual Task SubmitIPAddress(string ipAddress, string source, string userName)
         {
-            if (System.Diagnostics.Debugger.IsAttached)
-            {
-                return Task.CompletedTask;
-            }
-
-            // submit url to ipban public database so that everyone can benefit from an aggregated list of banned ip addresses
-            string timestamp = CurrentDateTime.ToString("o");
-            string version = Assembly.GetAssembly(typeof(IPBanService)).GetName().Version.ToString();
-            string url = $"/IPSubmitBanned?ip={ipAddress.UrlEncode()}&osname={OSName.UrlEncode()}&osversion={OSVersion.UrlEncode()}&source={source.UrlEncode()}&timestamp={timestamp.UrlEncode()}&userName={userName.UrlEncode()}&version={version.UrlEncode()}";
-            string hash = Convert.ToBase64String(new SHA256Managed().ComputeHash(Encoding.UTF8.GetBytes(url + IPBanResources.IPBanKey1)));
-            url += "&hash=" + hash.UrlEncode();
-            url = "https://api.ipban.com" + url;
-
             try
             {
+                if (System.Diagnostics.Debugger.IsAttached || !System.Net.IPAddress.TryParse(ipAddress, out System.Net.IPAddress ipAddressObj) || ipAddressObj.IsInternal())
+                {
+                    return Task.CompletedTask;
+                }
+
+                // submit url to ipban public database so that everyone can benefit from an aggregated list of banned ip addresses
+                string timestamp = CurrentDateTime.ToString("o");
+                string version = Assembly.GetAssembly(typeof(IPBanService)).GetName().Version.ToString();
+                string url = $"/IPSubmitBanned?ip={ipAddress.UrlEncode()}&osname={OSName.UrlEncode()}&osversion={OSVersion.UrlEncode()}&source={source.UrlEncode()}&timestamp={timestamp.UrlEncode()}&userName={userName.UrlEncode()}&version={version.UrlEncode()}";
+                string hash = Convert.ToBase64String(new SHA256Managed().ComputeHash(Encoding.UTF8.GetBytes(url + IPBanResources.IPBanKey1)));
+                url += "&hash=" + hash.UrlEncode();
+                url = "https://api.ipban.com" + url;
+
+
                 return RequestMaker.MakeRequestAsync(new Uri(url));
             }
             catch

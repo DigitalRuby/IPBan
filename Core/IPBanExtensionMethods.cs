@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Security;
 using System.Text;
@@ -218,6 +219,76 @@ namespace IPBan
                 dt = dt.ToUniversalTime();
             }
             return (dt - unixEpoch).TotalMilliseconds;
+        }
+
+        /// <summary>
+        /// An extension method to determine if an IP address is internal, as specified in RFC1918
+        /// </summary>
+        /// <param name="ip">The IP address that will be tested</param>
+        /// <returns>Returns true if the IP is internal, false if it is external</returns>
+        public static bool IsInternal(this System.Net.IPAddress ip)
+        {
+            if (ip.IsIPv4MappedToIPv6)
+            {
+                ip = ip.MapToIPv4();
+            }
+            if (ip.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
+            {
+                byte[] bytes = ip.GetAddressBytes();
+                switch (bytes[0])
+                {
+                    case 10:
+                    case 127:
+                        return true;
+                    case 172:
+                        return bytes[1] >= 16 && bytes[1] < 32;
+                    case 192:
+                        return bytes[1] == 168;
+                    default:
+                        return false;
+                }
+            }
+
+            string addressAsString = ip.ToString();
+            string firstWord = addressAsString.Split(new[] { ':' }, StringSplitOptions.RemoveEmptyEntries)[0];
+
+            // equivalent of 127.0.0.1 in IPv6
+            if (addressAsString == "::1")
+            {
+                return true;
+            }
+
+            // The original IPv6 Site Local addresses (fec0::/10) are deprecated. Unfortunately IsIPv6SiteLocal only checks for the original deprecated version:
+            else if (ip.IsIPv6SiteLocal)
+            {
+                return true;
+            }
+
+            // These days Unique Local Addresses (ULA) are used in place of Site Local. 
+            // ULA has two variants: 
+            //      fc00::/8 is not defined yet, but might be used in the future for internal-use addresses that are registered in a central place (ULA Central). 
+            //      fd00::/8 is in use and does not have to registered anywhere.
+            else if (firstWord.Length >= 4 && firstWord.Substring(0, 2) == "fc")
+            {
+                return true;
+            }
+            else if (firstWord.Length >= 4 && firstWord.Substring(0, 2) == "fd")
+            {
+                return true;
+            }
+            // Link local addresses (prefixed with fe80) are not routable
+            else if (firstWord == "fe80")
+            {
+                return true;
+            }
+            // Discard Prefix
+            else if (firstWord == "100")
+            {
+                return true;
+            }
+
+            // Any other IP address is not Unique Local Address (ULA)
+            return false;
         }
 
         /// <summary>
