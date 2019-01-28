@@ -319,8 +319,6 @@ namespace IPBan
                 string hash = Convert.ToBase64String(new SHA256Managed().ComputeHash(Encoding.UTF8.GetBytes(url + IPBanResources.IPBanKey1)));
                 url += "&hash=" + hash.UrlEncode();
                 url = "https://api.ipban.com" + url;
-
-
                 return RequestMaker.MakeRequestAsync(new Uri(url));
             }
             catch
