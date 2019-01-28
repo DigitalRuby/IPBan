@@ -212,28 +212,31 @@ namespace IPBan
         {
             // powershell example
             // (New-Object -ComObject HNetCfg.FwPolicy2).rules | Where-Object { $_.Name -match '^prefix' } | ForEach-Object { Write-Output "$($_.Name)" }
-            // TODO: Revisit in .NET core 3.0
+            // TODO: Revisit COM interface in .NET core 3.0
             var e = policy.Rules.GetEnumeratorVariant();
             object[] results = new object[64];
-            IntPtr useless = new IntPtr();
-            bool done = false;
-
-            while (!done)
+            int count;
+            IntPtr bufferLengthPointer = Marshal.AllocCoTaskMem(Marshal.SizeOf(typeof(int)));
+            try
             {
-                e.Next(results.Length, results, useless);
-                foreach (object o in results)
+                do
                 {
-                    if (!(o is INetFwRule rule))
+                    e.Next(results.Length, results, bufferLengthPointer);
+                    count = Marshal.ReadInt32(bufferLengthPointer);
+                    foreach (object o in results)
                     {
-                        done = true;
-                        break;
-                    }
-                    else if (prefix == "*" || rule.Name.StartsWith(prefix))
-                    {
-                        yield return rule;
+                        if ((o is INetFwRule rule) &&
+                            (prefix == "*" || rule.Name.StartsWith(prefix)))
+                        {
+                            yield return rule;
+                        }
                     }
                 }
-                Array.Clear(results, 0, results.Length);
+                while (count == results.Length);
+            }
+            finally
+            {
+                Marshal.FreeCoTaskMem(bufferLengthPointer);
             }
 
             /*
