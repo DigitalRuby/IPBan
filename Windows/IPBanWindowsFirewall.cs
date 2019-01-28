@@ -216,14 +216,16 @@ namespace IPBan
             var e = policy.Rules.GetEnumeratorVariant();
             object[] results = new object[64];
             IntPtr useless = new IntPtr();
+            bool done = false;
 
-            while (true)
+            while (!done)
             {
                 e.Next(results.Length, results, useless);
                 foreach (object o in results)
                 {
                     if (!(o is INetFwRule rule))
                     {
+                        done = true;
                         break;
                     }
                     else if (prefix == "*" || rule.Name.StartsWith(prefix))
@@ -231,6 +233,7 @@ namespace IPBan
                         yield return rule;
                     }
                 }
+                Array.Clear(results, 0, results.Length);
             }
 
             /*
