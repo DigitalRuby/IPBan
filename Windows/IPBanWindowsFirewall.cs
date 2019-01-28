@@ -208,6 +208,48 @@ namespace IPBan
             }
         }
 
+        private IEnumerable<INetFwRule> EnumerateRulesMatchingPrefix(string prefix)
+        {
+            System.Diagnostics.Process p = new System.Diagnostics.Process
+            {
+                StartInfo = new System.Diagnostics.ProcessStartInfo
+                {
+                    Arguments = "advfirewall firewall show rule name=all",
+                    CreateNoWindow = true,
+                    FileName = "netsh.exe",
+                    UseShellExecute = false,
+                    RedirectStandardOutput = true
+                }
+            };
+            p.Start();
+            string line;
+            string ruleName;
+            INetFwRule rule;
+            Regex regex = new Regex(" " + prefix + ".*");
+            Match match;
+
+            while ((line = p.StandardOutput.ReadLine()) != null)
+            {
+                match = regex.Match(line);
+                if (match.Success)
+                {
+                    ruleName = match.Value.Trim();
+                    rule = null;
+                    try
+                    {
+                        rule = policy.Rules.Item(ruleName);
+                    }
+                    catch
+                    {
+                    }
+                    if (rule != null)
+                    {
+                        yield return rule;
+                    }
+                }
+            }
+        }
+
         public string RulePrefix { get; private set; } = "IPBan_";
 
         public void Initialize(string rulePrefix)
@@ -400,7 +442,7 @@ namespace IPBan
         public IEnumerable<string> GetRuleNames(string ruleNamePrefix = null)
         {
             string prefix = RulePrefix + (ruleNamePrefix ?? string.Empty);
-            foreach (INetFwRule rule in policy.Rules)
+            foreach (INetFwRule rule in EnumerateRulesMatchingPrefix(prefix))
             {
                 if (rule.Name.StartsWith(prefix))
                 {
@@ -474,6 +516,40 @@ namespace IPBan
                     else
                     {
                         yield return ip.Substring(0, pos);
+                    }
+                }
+            }
+        }
+
+        public IEnumerable<IPAddressRange> EnumerateIPAddresses(string ruleNamePrefix = null)
+        {
+            string prefix = RulePrefix + (ruleNamePrefix ?? string.Empty);
+            int commaPos = 0;
+
+            foreach (INetFwRule rule in EnumerateRulesMatchingPrefix(prefix))
+            {
+                string ipList = rule.RemoteAddresses;
+                if (!string.IsNullOrWhiteSpace(ipList) && ipList != "*")
+                {
+                    for (int i = 0; i < ipList.Length;)
+                    {
+                        commaPos = ipList.IndexOf(',', commaPos);
+                        if (commaPos >= 0)
+                        {
+                            if (IPAddressRange.TryParse(ipList.Substring(i, commaPos - i), out IPAddressRange range))
+                            {
+                                yield return range;
+                            }
+                            i = ++commaPos;
+                        }
+                        else
+                        {
+                            if (IPAddressRange.TryParse(ipList.Substring(i), out IPAddressRange range))
+                            {
+                                yield return range;
+                            }
+                            break;
+                        }
                     }
                 }
             }

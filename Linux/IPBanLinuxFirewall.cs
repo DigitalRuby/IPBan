@@ -381,6 +381,28 @@ namespace IPBan
             return allowedIPAddresses.Select(b => IPBanFirewallUtility.IPV4ToString(b));
         }
 
+        public IEnumerable<IPAddressRange> EnumerateIPAddresses(string ruleNamePrefix = null)
+        {
+            string prefix = RulePrefix + (ruleNamePrefix ?? string.Empty);
+            string[] pieces;
+
+            foreach (string setFile in Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory, "*.set"))
+            {
+                if (setFile.StartsWith(prefix))
+                {
+                    foreach (string line in File.ReadLines(setFile).Skip(1).Where(l => l.StartsWith("add ")))
+                    {
+                        // example line: add setname ipaddress -exist
+                        pieces = line.Split(' ');
+                        if (IPAddressRange.TryParse(pieces[2], out IPAddressRange range))
+                        {
+                            yield return range;
+                        }
+                    }
+                }
+            }
+        }
+
         public bool IsIPAddressBlocked(string ipAddress)
         {
             return bannedIPAddresses.Contains(IPBanFirewallUtility.ParseIPV4(ipAddress));

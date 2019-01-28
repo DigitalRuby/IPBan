@@ -69,5 +69,12 @@ namespace IPBan
         /// </summary>
         /// <returns>IEnumerable of all ip addresses</returns>
         IEnumerable<string> EnumerateAllowedIPAddresses();
+
+        /// <summary>
+        /// Gets all ip addresses for a rule prefix
+        /// </summary>
+        /// <param name="ruleNamePrefix">Rule prefix</param>
+        /// <returns>IEnumerable of all ip addreses</returns>
+        IEnumerable<IPAddressRange> EnumerateIPAddresses(string ruleNamePrefix = null);
     }
 }

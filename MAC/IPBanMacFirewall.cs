@@ -57,6 +57,11 @@ namespace IPBan
         {
             throw new NotImplementedException();
         }
+
+        public IEnumerable<IPAddressRange> EnumerateIPAddresses(string ruleNamePrefix = null)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
 
