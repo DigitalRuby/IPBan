@@ -711,10 +711,8 @@ namespace IPBan
         /// <summary>
         /// Create an IPBanService by searching all types in all assemblies
         /// </summary>
-        /// <param name="testing">True if testing, false otherwise. Testing mode disables certain features that are not needed in test mode.
-        /// In test mode manual cycle is true and multi-threaded is false.</param>
         /// <returns>IPBanService (if not found an exception is thrown)</returns>
-        public static IPBanService CreateService(bool testing = false)
+        public static IPBanService CreateService()
         {
             // if any derived class of IPBanService, use that
             var q =
@@ -723,13 +721,6 @@ namespace IPBan
                 select a;
             Type instanceType = (q.FirstOrDefault() ?? typeof(IPBanService));
             IPBanService service = (IPBanService)Activator.CreateInstance(instanceType, BindingFlags.NonPublic | BindingFlags.Instance, null, null, null);
-            if (testing)
-            {
-                service.MultiThreaded = false;
-                service.ManualCycle = true;
-                service.SubmitIPAddresses = false;
-                service.ipDB.Truncate(true);
-            }
             return service;
         }
 
@@ -1165,12 +1156,12 @@ namespace IPBan
         /// <summary>
         /// Whether delegate callbacks and other tasks are multithreaded. Default is true. Set to false if unit or integration testing.
         /// </summary>
-        public bool MultiThreaded { get; private set; } = true;
+        public bool MultiThreaded { get; set; } = true;
 
         /// <summary>
         /// True if the cycle is manual, in which case RunCycle must be called periodically, otherwise if false RunCycle is called automatically.
         /// </summary>
-        public bool ManualCycle { get; private set; }
+        public bool ManualCycle { get; set; }
 
         /// <summary>
         /// The operating system name. If null, it is auto-detected.
@@ -1201,6 +1192,11 @@ namespace IPBan
         /// Whether to submit ip addresses for global ban list
         /// </summary>
         public bool SubmitIPAddresses { get; set; } = true;
+
+        /// <summary>
+        /// IPBan database
+        /// </summary>
+        public IPBanDB DB { get { return ipDB; } }
     }
 
     /// <summary>

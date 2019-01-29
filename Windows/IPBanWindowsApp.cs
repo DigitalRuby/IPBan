@@ -21,14 +21,24 @@ namespace IPBan
         private static IPBanService service;
         private static IPBanWindowsEventViewer eventViewer;
 
-        private static void CreateService(bool testing)
+        private static void CreateService(bool test)
         {
             if (service != null)
             {
                 service.Dispose();
             }
-            service = IPBanService.CreateService(testing);
+            service = IPBanService.CreateService();
+            if (test)
+            {
+                // TODO: Move to unit test project
+                service.MultiThreaded = false;
+                service.ManualCycle = true;
+                service.SubmitIPAddresses = false;
+                service.DB.Truncate(true);
+            }
             service.Start();
+
+            // attach Windows event viewer to the service
             eventViewer = new IPBanWindowsEventViewer(service);
         }
 
@@ -224,20 +234,17 @@ namespace IPBan
         public static int RunConsole(string[] args)
         {
             // TODO: Move tests to unit test project
+            bool test = args.FirstOrDefault(a => a.Contains("test", StringComparison.OrdinalIgnoreCase)) != null;
+            CreateService(test);
             if (args.Contains("test-ipbandb", StringComparer.OrdinalIgnoreCase))
             {
                 TestDB();
-                return 0;
             }
-
-            bool test = args.Contains("test", StringComparer.OrdinalIgnoreCase);
-            bool test2 = args.Contains("test-eventViewer", StringComparer.OrdinalIgnoreCase);
-            CreateService(test || test2);
-            if (test)
+            else if (args.Contains("test", StringComparer.OrdinalIgnoreCase))
             {
                 eventViewer.RunTests();
             }
-            else if (test2)
+            else if (args.Contains("test-eventviewer", StringComparer.OrdinalIgnoreCase))
             {
                 eventViewer.TestAllEntries();
             }
