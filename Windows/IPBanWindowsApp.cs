@@ -223,6 +223,7 @@ namespace IPBan
 
         public static int RunConsole(string[] args)
         {
+            // TODO: Move tests to unit test project
             if (args.Contains("test-ipbandb", StringComparer.OrdinalIgnoreCase))
             {
                 TestDB();

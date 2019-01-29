@@ -9,8 +9,7 @@ namespace IPBan
     {
         public static void MacMain(string[] args)
         {
-            bool testing = false; // TODO: Change to true if we are running Mac tests
-            IPBanService service = IPBanService.CreateService(testing);
+            IPBanService service = IPBanService.CreateService();
             service.Start();
             IPBanLog.Warn("IPBan Mac Service Running, Press Ctrl-C to quit.");
             ManualResetEvent wait = new ManualResetEvent(false);
