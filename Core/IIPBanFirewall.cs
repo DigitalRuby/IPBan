@@ -59,7 +59,14 @@ namespace IPBan
         IEnumerable<string> GetRuleNames(string ruleNamePrefix = null);
 
         /// <summary>
-        /// Gets all banned ip addresses
+        /// Delete the rule with the specified name
+        /// </summary>
+        /// <param name="ruleName">Rule name</param>
+        /// <returns>True if success, false if failure</returns>
+        bool DeleteRule(string ruleName);
+
+        /// <summary>
+        /// Gets all banned ip addresses from BlockIPAddresses(list) calls
         /// </summary>
         /// <returns>IEnumerable of all ip addresses</returns>
         IEnumerable<string> EnumerateBannedIPAddresses();

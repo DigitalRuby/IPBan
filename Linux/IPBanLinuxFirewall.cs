@@ -72,25 +72,6 @@ namespace IPBan
             return p.ExitCode;
         }
 
-        private void DeleteRule(string ruleName)
-        {
-            RunProcess("iptables", true, out IReadOnlyList<string> lines, "-L --line-numbers");
-            string ruleNameWithSpaces = " " + ruleName + " ";
-            foreach (string line in lines)
-            {
-                if (line.Contains(ruleNameWithSpaces, StringComparison.OrdinalIgnoreCase))
-                {
-                    // rule number is first piece of the line
-                    int index = line.IndexOf(' ');
-                    int ruleNum = int.Parse(line.Substring(0, index));
-
-                    // replace the rule with the new info
-                    RunProcess("iptables", true, $"-D INPUT {ruleNum}");
-                    break;
-                }
-            }
-        }
-
         private void DeleteSet(string ruleName)
         {
             RunProcess("ipset", true, out IReadOnlyList<string> lines, "list -n");
@@ -369,6 +350,26 @@ namespace IPBan
                     yield return line.Substring(start, pos - start);
                 }
             }
+        }
+
+        public bool DeleteRule(string ruleName)
+        {
+            RunProcess("iptables", true, out IReadOnlyList<string> lines, "-L --line-numbers");
+            string ruleNameWithSpaces = " " + ruleName + " ";
+            foreach (string line in lines)
+            {
+                if (line.Contains(ruleNameWithSpaces, StringComparison.OrdinalIgnoreCase))
+                {
+                    // rule number is first piece of the line
+                    int index = line.IndexOf(' ');
+                    int ruleNum = int.Parse(line.Substring(0, index));
+
+                    // remove the rule from iptables
+                    RunProcess("iptables", true, $"-D INPUT {ruleNum}");
+                    return true;
+                }
+            }
+            return false;
         }
 
         public IEnumerable<string> EnumerateBannedIPAddresses()

@@ -33,6 +33,11 @@ namespace IPBan
             throw new NotImplementedException();
         }
 
+        public bool DeleteRule(string ruleName)
+        {
+            throw new NotImplementedException();
+        }
+
         public IEnumerable<string> EnumerateAllowedIPAddresses()
         {
             throw new NotImplementedException();

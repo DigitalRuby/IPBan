@@ -22,7 +22,12 @@ namespace IPBan
     public class IPBanWindowsFirewall : IIPBanFirewall
     {
         // DO NOT CHANGE THESE CONST AND READONLY FIELDS!
-        private const int maxIpAddressesPerRule = 1000;
+
+        /// <summary>
+        /// Max number of ip addresses per rule
+        /// </summary>
+        public const int MaxIpAddressesPerRule = 1000;
+
         private const string clsidFwPolicy2 = "{E2B3C97F-6AE1-41AC-817A-F6F92166D7DD}";
         private const string clsidFwRule = "{2C5BC43E-3369-4C33-AB0C-BE9469677AF4}";
         private static readonly INetFwPolicy2 policy = Activator.CreateInstance(Type.GetTypeFromCLSID(new Guid(clsidFwPolicy2))) as INetFwPolicy2;
@@ -88,17 +93,19 @@ namespace IPBan
                     rule.Grouping = "IPBan";
                     rule.LocalAddresses = "*";
                     rule.Profiles = int.MaxValue; // all
-                    rule.Protocol = (int)NET_FW_IP_PROTOCOL_.NET_FW_IP_PROTOCOL_ANY;
+                    rule.Protocol = (int)NET_FW_IP_PROTOCOL_.NET_FW_IP_PROTOCOL_TCP;
                     if (allowedPorts != null && allowedPorts.Length != 0)
                     {
+                        string localPorts;
                         if (action == NET_FW_ACTION_.NET_FW_ACTION_BLOCK)
                         {
-                            rule.LocalPorts = IPBanFirewallUtility.GetPortRangeStringBlockExcept(allowedPorts);
+                            localPorts = IPBanFirewallUtility.GetPortRangeStringBlockExcept(allowedPorts);
                         }
                         else
                         {
-                            rule.LocalPorts = IPBanFirewallUtility.GetPortRangeStringAllow(allowedPorts);
+                            localPorts = IPBanFirewallUtility.GetPortRangeStringAllow(allowedPorts);
                         }
+                        rule.LocalPorts = localPorts;
                     }
                     ruleNeedsToBeAdded = true;
                 }
@@ -145,7 +152,7 @@ namespace IPBan
         {
             // migrate old default rule names to new names
             INetFwRule rule = null;
-            for (int i = 0; ; i += maxIpAddressesPerRule)
+            for (int i = 0; ; i += MaxIpAddressesPerRule)
             {
                 lock (policy)
                 {
@@ -181,7 +188,7 @@ namespace IPBan
             {
                 lock (policy)
                 {
-                    for (int i = startIndex; ; i += maxIpAddressesPerRule)
+                    for (int i = startIndex; ; i += MaxIpAddressesPerRule)
                     {
                         string ruleName = rulePrefix + i.ToString(CultureInfo.InvariantCulture);
                         try
@@ -303,17 +310,17 @@ namespace IPBan
                 foreach (string ipAddress in ipAddresses)
                 {
                     ipAddressesList.Add(ipAddress);
-                    if (ipAddressesList.Count == maxIpAddressesPerRule)
+                    if (ipAddressesList.Count == MaxIpAddressesPerRule)
                     {
-                        CreateBlockRule(ipAddressesList, 0, maxIpAddressesPerRule, RulePrefix + i.ToStringInvariant());
-                        i += maxIpAddressesPerRule;
+                        CreateBlockRule(ipAddressesList, 0, MaxIpAddressesPerRule, RulePrefix + i.ToStringInvariant());
+                        i += MaxIpAddressesPerRule;
                         ipAddressesList.Clear();
                     }
                 }
                 if (ipAddressesList.Count != 0)
                 {
-                    CreateBlockRule(ipAddressesList, 0, maxIpAddressesPerRule, RulePrefix + i.ToStringInvariant());
-                    i += maxIpAddressesPerRule;
+                    CreateBlockRule(ipAddressesList, 0, MaxIpAddressesPerRule, RulePrefix + i.ToStringInvariant());
+                    i += MaxIpAddressesPerRule;
                 }
                 DeleteRules(RulePrefix, i);
                 return true;
@@ -329,7 +336,7 @@ namespace IPBan
         {
             try
             {
-                string prefix = RulePrefix + ruleNamePrefix;
+                string prefix = (RulePrefix + ruleNamePrefix).TrimEnd('_') + "_";
 
                 // recreate rules
                 int counter = 0;
@@ -339,12 +346,12 @@ namespace IPBan
                 {
                     ipList.Append(range.ToCidrString());
                     ipList.Append(',');
-                    if (++counter == maxIpAddressesPerRule)
+                    if (++counter == MaxIpAddressesPerRule)
                     {
                         ipList.Length--; // remove ending comma
                         GetOrCreateRule(prefix + index.ToString(CultureInfo.InvariantCulture), ipList.ToString(), NET_FW_ACTION_.NET_FW_ACTION_BLOCK, allowedPorts);
                         counter = 0;
-                        index += maxIpAddressesPerRule;
+                        index += MaxIpAddressesPerRule;
                         ipList.Clear();
                     }
                 }
@@ -354,7 +361,7 @@ namespace IPBan
                 {
                     ipList.Length--; // remove ending comma
                     GetOrCreateRule(prefix + index.ToString(CultureInfo.InvariantCulture), ipList.ToString(), NET_FW_ACTION_.NET_FW_ACTION_BLOCK, allowedPorts);
-                    index += maxIpAddressesPerRule;
+                    index += MaxIpAddressesPerRule;
                 }
 
                 // delete any leftover rules
@@ -380,19 +387,19 @@ namespace IPBan
             foreach (string ipAddress in ipAddresses)
             {
                 ipAddressesList.Add(ipAddress);
-                if (ipAddressesList.Count == maxIpAddressesPerRule)
+                if (ipAddressesList.Count == MaxIpAddressesPerRule)
                 {
-                    string remoteIP = CreateRuleStringForIPAddresses(ipAddressesList, i, maxIpAddressesPerRule);
+                    string remoteIP = CreateRuleStringForIPAddresses(ipAddressesList, i, MaxIpAddressesPerRule);
                     GetOrCreateRule(allowRulePrefix + i.ToString(CultureInfo.InvariantCulture), remoteIP, NET_FW_ACTION_.NET_FW_ACTION_ALLOW);
-                    i += maxIpAddressesPerRule;
+                    i += MaxIpAddressesPerRule;
                     ipAddressesList.Clear();
                 }
             }
             if (ipAddressesList.Count != 0)
             {
-                string remoteIP = CreateRuleStringForIPAddresses(ipAddressesList, i, maxIpAddressesPerRule);
+                string remoteIP = CreateRuleStringForIPAddresses(ipAddressesList, i, MaxIpAddressesPerRule);
                 GetOrCreateRule(allowRulePrefix + i.ToString(CultureInfo.InvariantCulture), remoteIP, NET_FW_ACTION_.NET_FW_ACTION_ALLOW);
-                i += maxIpAddressesPerRule;
+                i += MaxIpAddressesPerRule;
             }
             DeleteRules(allowRulePrefix, i);
             return true;
@@ -404,7 +411,7 @@ namespace IPBan
             {
                 lock (policy)
                 {
-                    for (int i = 0; ; i += maxIpAddressesPerRule)
+                    for (int i = 0; ; i += MaxIpAddressesPerRule)
                     {
                         string ruleName = RulePrefix + i.ToString(CultureInfo.InvariantCulture);
                         try
@@ -441,7 +448,7 @@ namespace IPBan
             {
                 lock (policy)
                 {
-                    for (int i = 0; ; i += maxIpAddressesPerRule)
+                    for (int i = 0; ; i += MaxIpAddressesPerRule)
                     {
                         string ruleName = allowRulePrefix + i.ToString(CultureInfo.InvariantCulture);
                         try
@@ -473,13 +480,27 @@ namespace IPBan
         public IEnumerable<string> GetRuleNames(string ruleNamePrefix = null)
         {
             string prefix = RulePrefix + (ruleNamePrefix ?? string.Empty);
-            foreach (INetFwRule rule in EnumerateRulesMatchingPrefix(prefix))
+            foreach (INetFwRule rule in EnumerateRulesMatchingPrefix(prefix).OrderBy(r => r.Name))
             {
                 if (rule.Name.StartsWith(prefix))
                 {
                     yield return rule.Name;
                 }
             }
+        }
+
+        public bool DeleteRule(string ruleName)
+        {
+            try
+            {
+                INetFwRule rule = policy.Rules.Item(ruleName);
+                policy.Rules.Remove(rule.Name);
+                return true;
+            }
+            catch
+            {
+            }
+            return false;
         }
 
         public IEnumerable<string> EnumerateBannedIPAddresses()
@@ -515,14 +536,14 @@ namespace IPBan
                         yield return ip.Substring(0, pos);
                     }
                 }
-                i += maxIpAddressesPerRule;
+                i += MaxIpAddressesPerRule;
             }
         }
 
         public IEnumerable<string> EnumerateAllowedIPAddresses()
         {
             INetFwRule rule;
-            for (int i = 0; ; i += maxIpAddressesPerRule)
+            for (int i = 0; ; i += MaxIpAddressesPerRule)
             {
                 try
                 {
@@ -555,10 +576,9 @@ namespace IPBan
         public IEnumerable<IPAddressRange> EnumerateIPAddresses(string ruleNamePrefix = null)
         {
             string prefix = RulePrefix + (ruleNamePrefix ?? string.Empty);
-            int commaPos = 0;
-
             foreach (INetFwRule rule in EnumerateRulesMatchingPrefix(prefix))
             {
+                int commaPos = 0;
                 string ipList = rule.RemoteAddresses;
                 if (!string.IsNullOrWhiteSpace(ipList) && ipList != "*")
                 {
