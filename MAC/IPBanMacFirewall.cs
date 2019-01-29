@@ -13,6 +13,17 @@ namespace IPBan
     [RequiredOperatingSystem(IPBanOS.Mac)]
     public class IPBanMacFirewall : IIPBanFirewall
     {
+        public string RulePrefix { get; private set; }
+
+        public void Initialize(string rulePrefix)
+        {
+            if (string.IsNullOrWhiteSpace(rulePrefix))
+            {
+                rulePrefix = "IPBan_";
+            }
+            RulePrefix = rulePrefix.Trim();
+        }
+
         public bool AllowIPAddresses(IEnumerable<string> ipAddresses)
         {
             throw new NotImplementedException();
@@ -33,6 +44,11 @@ namespace IPBan
             throw new NotImplementedException();
         }
 
+        public bool RuleExists(string ruleName)
+        {
+            throw new NotImplementedException();
+        }
+
         public bool DeleteRule(string ruleName)
         {
             throw new NotImplementedException();
@@ -44,11 +60,6 @@ namespace IPBan
         }
 
         public IEnumerable<string> EnumerateBannedIPAddresses()
-        {
-            throw new NotImplementedException();
-        }
-
-        public void Initialize(string rulePrefix)
         {
             throw new NotImplementedException();
         }

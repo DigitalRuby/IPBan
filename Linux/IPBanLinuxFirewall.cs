@@ -79,10 +79,23 @@ namespace IPBan
             {
                 if (line.Trim().Equals(ruleName, StringComparison.OrdinalIgnoreCase))
                 {
+                    // remove set
                     RunProcess("ipset", true, $"destroy {ruleName}");
+                    string setFileName = GetSetFileName(ruleName);
+                    if (File.Exists(setFileName))
+                    {
+                        File.Delete(setFileName);
+                    }
                     break;
                 }
             }
+        }
+
+        private void SaveTableToDisk()
+        {
+            // persist table rules, this file is tiny so no need for a temp file and then move
+            string tableFileName = GetTableFileName();
+            RunProcess("iptables-save", true, $"> \"{tableFileName}\"");
         }
 
         private void CreateOrUpdateRule(string ruleName, string action, string hashType, int maxCount, params PortRange[] allowedPorts)
@@ -127,8 +140,7 @@ namespace IPBan
                 RunProcess("iptables", true, $"-A INPUT -m set{portString}--match-set \"{ruleName}\" src -j {action}");
             }
 
-            // persist table rules, this file is tiny so no need for a temp file and then move
-            RunProcess("iptables-save", true, $"> \"{GetTableFileName()}\"");
+            SaveTableToDisk();
         }
 
         private List<uint> LoadIPAddresses(string ruleName, string action, string hashType, int maxCount)
@@ -249,7 +261,6 @@ namespace IPBan
             if (deleteRule)
             {
                 DeleteRule(ruleName);
-                DeleteSet(ruleName);
             }
 
             // restore the file to get the set updated
@@ -307,9 +318,14 @@ namespace IPBan
 
         public bool BlockIPAddresses(string ruleNamePrefix, IEnumerable<IPAddressRange> ranges, params PortRange[] allowedPorts)
         {
+            if (string.IsNullOrWhiteSpace(ruleNamePrefix))
+            {
+                return false;
+            }
+
             try
             {
-                string ruleName = blockRuleName + "_" + ruleNamePrefix;
+                string ruleName = RulePrefix + "_" + ruleNamePrefix + "_0";
                 UpdateRule(ruleName, "DROP", ranges.Select(r => r.ToCidrString()), null, "net", blockRuleRangesMaxCount, true, out bool result, allowedPorts);
                 return result;
             }
@@ -352,6 +368,20 @@ namespace IPBan
             }
         }
 
+        public bool RuleExists(string ruleName)
+        {
+            RunProcess("iptables", true, out IReadOnlyList<string> lines, "-L --line-numbers");
+            string ruleNameWithSpaces = " " + ruleName + " ";
+            foreach (string line in lines)
+            {
+                if (line.Contains(ruleNameWithSpaces, StringComparison.OrdinalIgnoreCase))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
         public bool DeleteRule(string ruleName)
         {
             RunProcess("iptables", true, out IReadOnlyList<string> lines, "-L --line-numbers");
@@ -366,6 +396,11 @@ namespace IPBan
 
                     // remove the rule from iptables
                     RunProcess("iptables", true, $"-D INPUT {ruleNum}");
+                    SaveTableToDisk();
+
+                    // remove the set
+                    DeleteSet(ruleName);
+
                     return true;
                 }
             }

@@ -59,6 +59,13 @@ namespace IPBan
         IEnumerable<string> GetRuleNames(string ruleNamePrefix = null);
 
         /// <summary>
+        /// Check if a rule exists
+        /// </summary>
+        /// <param name="ruleName">Rule name</param>
+        /// <returns>True if rule exists, false otherwise</returns>
+        bool RuleExists(string ruleName);
+
+        /// <summary>
         /// Delete the rule with the specified name
         /// </summary>
         /// <param name="ruleName">Rule name</param>
@@ -83,5 +90,10 @@ namespace IPBan
         /// <param name="ruleNamePrefix">Rule prefix</param>
         /// <returns>IEnumerable of all ip addreses</returns>
         IEnumerable<IPAddressRange> EnumerateIPAddresses(string ruleNamePrefix = null);
+
+        /// <summary>
+        /// The rule prefix for the firewall
+        /// </summary>
+        string RulePrefix { get; }
     }
 }

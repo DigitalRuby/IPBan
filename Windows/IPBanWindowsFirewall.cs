@@ -334,6 +334,11 @@ namespace IPBan
 
         public bool BlockIPAddresses(string ruleNamePrefix, IEnumerable<IPAddressRange> ranges, params PortRange[] allowedPorts)
         {
+            if (string.IsNullOrWhiteSpace(ruleNamePrefix))
+            {
+                return false;
+            }
+
             try
             {
                 string prefix = (RulePrefix + ruleNamePrefix).TrimEnd('_') + "_";
@@ -487,6 +492,18 @@ namespace IPBan
                     yield return rule.Name;
                 }
             }
+        }
+
+        public bool RuleExists(string ruleName)
+        {
+            try
+            {
+                return (policy.Rules.Item(ruleName) != null);
+            }
+            catch
+            {
+            }
+            return false;
         }
 
         public bool DeleteRule(string ruleName)
