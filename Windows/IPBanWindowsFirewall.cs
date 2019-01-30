@@ -93,20 +93,6 @@ namespace IPBan
                     rule.Grouping = "IPBan";
                     rule.LocalAddresses = "*";
                     rule.Profiles = int.MaxValue; // all
-                    rule.Protocol = (int)NET_FW_IP_PROTOCOL_.NET_FW_IP_PROTOCOL_TCP;
-                    if (allowedPorts != null && allowedPorts.Length != 0)
-                    {
-                        string localPorts;
-                        if (action == NET_FW_ACTION_.NET_FW_ACTION_BLOCK)
-                        {
-                            localPorts = IPBanFirewallUtility.GetPortRangeStringBlockExcept(allowedPorts);
-                        }
-                        else
-                        {
-                            localPorts = IPBanFirewallUtility.GetPortRangeStringAllow(allowedPorts);
-                        }
-                        rule.LocalPorts = localPorts;
-                    }
                     ruleNeedsToBeAdded = true;
                 }
 
@@ -115,6 +101,25 @@ namespace IPBan
                 {
                     try
                     {
+                        if (allowedPorts != null && allowedPorts.Length != 0)
+                        {
+                            rule.Protocol = (int)NET_FW_IP_PROTOCOL_.NET_FW_IP_PROTOCOL_TCP;
+                            string localPorts;
+                            if (action == NET_FW_ACTION_.NET_FW_ACTION_BLOCK)
+                            {
+                                localPorts = IPBanFirewallUtility.GetPortRangeStringBlockExcept(allowedPorts);
+                            }
+                            else
+                            {
+                                localPorts = IPBanFirewallUtility.GetPortRangeStringAllow(allowedPorts);
+                            }
+                            rule.LocalPorts = localPorts;
+                        }
+                        else
+                        {
+                            rule.LocalPorts = null;
+                            rule.Protocol = (int)NET_FW_IP_PROTOCOL_.NET_FW_IP_PROTOCOL_ANY;
+                        }
                         rule.RemoteAddresses = remoteIPAddresses;
                     }
                     catch

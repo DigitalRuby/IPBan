@@ -249,7 +249,7 @@ namespace IPBan
                             Config.IsBlackListed(userName) ||
                             !Config.IsUserNameWithinMaximumEditDistanceOfUserNameWhitelist(userName) ||
                             (IPBanDelegate != null && IPBanDelegate.IsIPAddressBlacklisted(ipAddress));
-                        int newCount = ipDB.IncrementFailedLoginCount(ipAddress, CurrentDateTime, failedLogin.Count);
+                        int newCount = ipDB.IncrementFailedLoginCount(ipAddress, UtcNow, failedLogin.Count);
                         IPBanLog.Info("Incremented count for ip {0} to {1}, user name: {2}", ipAddress, newCount, userName);
 
                         // if the ip address is black listed or the ip address has reached the maximum failed login attempts before ban, ban the ip address
@@ -313,7 +313,7 @@ namespace IPBan
                 }
 
                 // submit url to ipban public database so that everyone can benefit from an aggregated list of banned ip addresses
-                string timestamp = CurrentDateTime.ToString("o");
+                string timestamp = UtcNow.ToString("o");
                 string version = Assembly.GetAssembly(typeof(IPBanService)).GetName().Version.ToString();
                 string url = $"/IPSubmitBanned?ip={ipAddress.UrlEncode()}&osname={OSName.UrlEncode()}&osversion={OSVersion.UrlEncode()}&source={source.UrlEncode()}&timestamp={timestamp.UrlEncode()}&userName={userName.UrlEncode()}&version={version.UrlEncode()}";
                 string hash = Convert.ToBase64String(new SHA256Managed().ComputeHash(Encoding.UTF8.GetBytes(url + IPBanResources.IPBanKey1)));
@@ -395,7 +395,7 @@ namespace IPBan
             else
             {
                 // make sure all banned ip addresses in the firewall are also in the database
-                ipDB.SetBannedIPAddresses(Firewall.EnumerateBannedIPAddresses(), CurrentDateTime);
+                ipDB.SetBannedIPAddresses(Firewall.EnumerateBannedIPAddresses(), UtcNow);
 
                 // in case some banned ip are in the database but not in the firewall, force a firewall update
                 firewallNeedsBlockedIPAddressesUpdate = true;
@@ -415,7 +415,7 @@ namespace IPBan
         {
             List<string> ipAddressesToUnBan = new List<string>();
             List<string> ipAddressesToForget = new List<string>();
-            DateTime now = CurrentDateTime;
+            DateTime now = UtcNow;
             bool allowBanExpire = (Config.BanTime.TotalMilliseconds > 0.0);
             bool allowFailedLoginExpire = (Config.ExpireTime.TotalMilliseconds > 0.0);
 
@@ -500,7 +500,7 @@ namespace IPBan
                 // we don't do the delegate update in a background thread because if it changes state, we need that done on the main loop thread
                 if (IPBanDelegate.Update())
                 {
-                    DateTime now = CurrentDateTime;
+                    DateTime now = UtcNow;
 
                     // sync up the blacklist and whitelist from the delegate
                     foreach (string ip in IPBanDelegate.EnumerateBlackList())
@@ -780,7 +780,7 @@ namespace IPBan
                         IPAddress = normalizedIPAddress,
                         Source = info.Source,
                         UserName = info.UserName,
-                        DateTime = CurrentDateTime,
+                        DateTime = UtcNow,
                         Count = info.Count
                     };
                     pendingFailedLogins.Add(existing);
@@ -792,9 +792,9 @@ namespace IPBan
                     // if more than n seconds has passed, increment the counter
                     // we don't want to count multiple event logs that all map to the same ip address from one failed
                     // attempt to count multiple times
-                    if ((CurrentDateTime - existing.DateTime) >= Config.MinimumTimeBetweenFailedLoginAttempts)
+                    if ((UtcNow - existing.DateTime) >= Config.MinimumTimeBetweenFailedLoginAttempts)
                     {
-                        existing.DateTime = CurrentDateTime;
+                        existing.DateTime = UtcNow;
                         existing.Count += info.Count;
                     }
                     else
@@ -1174,14 +1174,14 @@ namespace IPBan
         /// </summary>
         public string OSVersion { get; private set; }
         
-        private DateTime? currentDateTime;
+        private static DateTime? utcNow;
         /// <summary>
-        /// Allows changing the current date time to facilitate testing of behavior over elapsed times
+        /// Allows changing the current date time to facilitate testing of behavior over elapsed times. Set to default(DateTime) to revert to DateTime.UtcNow.
         /// </summary>
-        public DateTime CurrentDateTime
+        public static DateTime UtcNow
         {
-            get { return currentDateTime ?? DateTime.UtcNow; }
-            set { currentDateTime = (value == default ? null : (DateTime?)value); }
+            get { return utcNow ?? DateTime.UtcNow; }
+            set { utcNow = (value == default ? null : (DateTime?)value); }
         }
 
         /// <summary>
