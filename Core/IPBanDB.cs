@@ -172,6 +172,9 @@ namespace IPBan
         /// </summary>
         public void Dispose()
         {
+            SQLiteConnection.ClearAllPools();
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
         }
 
         /// <summary>

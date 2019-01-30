@@ -72,6 +72,7 @@ namespace IPBan
 
             lock (policy)
             {
+recreateRule:
                 INetFwRule rule = null;
                 try
                 {
@@ -117,13 +118,28 @@ namespace IPBan
                         }
                         else
                         {
-                            rule.LocalPorts = null;
-                            rule.Protocol = (int)NET_FW_IP_PROTOCOL_.NET_FW_IP_PROTOCOL_ANY;
+                            try
+                            {
+                                rule.Protocol = (int)NET_FW_IP_PROTOCOL_.NET_FW_IP_PROTOCOL_ANY;
+                            }
+                            catch
+                            {
+                                // failed to set protocol to any, we are switching from tcp back to any with ports, the only option is to
+                                //  recreate the rule
+                                if (!ruleNeedsToBeAdded)
+                                {
+                                    policy.Rules.Remove(ruleName);
+                                    goto recreateRule;
+                                }
+                            }
                         }
                         rule.RemoteAddresses = remoteIPAddresses;
                     }
-                    catch
+                    catch (Exception ex)
                     {
+                        // if something failed, do not create the rule
+                        emptyIPAddressString = true;
+                        IPBanLog.Error(ex);
                     }
                 }
 
