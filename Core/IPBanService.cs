@@ -104,7 +104,7 @@ namespace IPBan
                         }
                         else
                         {
-                            IPBanLog.Debug("Ignoring log file {0}", newFile);
+                            IPBanLog.Debug("Ignoring log file path {0}, regex: {1}", pathAndMask, newFile.PlatformRegex);
                         }
                     }
                 }
