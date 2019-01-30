@@ -972,6 +972,7 @@ namespace IPBan
             catch
             {
             }
+            ipDB.Dispose();
             logFilesToParse.Clear();
             IPBanLog.Warn("Stopped IPBan service");
         }
