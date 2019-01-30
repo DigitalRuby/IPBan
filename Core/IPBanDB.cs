@@ -48,17 +48,36 @@ namespace IPBan
 
         private int ExecuteNonQuery(string cmdText, params object[] param)
         {
-            using (SQLiteConnection connection = new SQLiteConnection(connString))
+            return ExecuteNonQuery(null, null, cmdText, param);
+        }
+
+        private int ExecuteNonQuery(SQLiteConnection conn, SQLiteTransaction tran, string cmdText, params object[] param)
+        {
+            bool closeConn = false;
+            if (conn == null)
             {
-                connection.Open();
-                using (SQLiteCommand command = connection.CreateCommand())
+                conn = new SQLiteConnection(connString);
+                conn.Open();
+                closeConn = true;
+            }
+            try
+            {
+                using (SQLiteCommand command = conn.CreateCommand())
                 {
                     command.CommandText = cmdText;
+                    command.Transaction = tran;
                     for (int i = 0; i < param.Length; i++)
                     {
                         command.Parameters.Add(new SQLiteParameter("@Param" + i, param[i]));
                     }
                     return command.ExecuteNonQuery();
+                }
+            }
+            finally
+            {
+                if (closeConn)
+                {
+                    conn.Close();
                 }
             }
         }
@@ -109,6 +128,21 @@ namespace IPBan
                 FailedLoginCount = (int)failedLoginCount,
                 BanDate = banDate
             };
+        }
+
+        private int SetBanDateInternal(string ipAddress, DateTime banDate, SQLiteConnection conn, SQLiteTransaction tran)
+        {
+            if (IPAddress.TryParse(ipAddress, out IPAddress ipAddressObj))
+            {
+                byte[] ipBytes = ipAddressObj.GetAddressBytes();
+                long timestamp = (long)banDate.UnixTimestampFromDateTimeMilliseconds();
+                int count = ExecuteNonQuery(conn, tran, @"INSERT INTO IPAddresses(IPAddress, IPAddressText, LastFailedLogin, FailedLoginCount, BanDate)
+                    VALUES(@Param0, @Param1, @Param2, 0, @Param2)
+                    ON CONFLICT(IPAddress)
+                    DO UPDATE SET BanDate = @Param2 WHERE BanDate IS NULL; ", ipBytes, ipAddress, timestamp);
+                return count;
+            }
+            return 0;
         }
 
         private void Initialize()
@@ -234,10 +268,7 @@ namespace IPBan
             {
                 byte[] ipBytes = ipAddressObj.GetAddressBytes();
                 long timestamp = (long)banDate.UnixTimestampFromDateTimeMilliseconds();
-                int count = ExecuteNonQuery(@"INSERT INTO IPAddresses(IPAddress, IPAddressText, LastFailedLogin, FailedLoginCount, BanDate)
-                    VALUES(@Param0, @Param1, @Param2, 0, @Param2)
-                    ON CONFLICT(IPAddress)
-                    DO UPDATE SET BanDate = @Param2 WHERE BanDate IS NULL; ", ipBytes, ipAddress, timestamp);
+                int count = SetBanDateInternal(ipAddress, banDate, null, null);
                 return (count != 0);
             }
             return false;
@@ -274,12 +305,23 @@ namespace IPBan
         /// </summary>
         /// <param name="ipAddresses">IP addresses to set as banned</param>
         /// <param name="banDate">Ban date to set</param>
-        public void SetBannedIPAddresses(IEnumerable<string> ipAddresses, DateTime banDate)
+        /// <returns>Count</returns>
+        public int SetBannedIPAddresses(IEnumerable<string> ipAddresses, DateTime banDate)
         {
-            foreach (string ipAddress in ipAddresses)
+            int count = 0;
+            using (SQLiteConnection conn = new SQLiteConnection(connString))
             {
-                SetBanDate(ipAddress, banDate);
+                conn.Open();
+                using (SQLiteTransaction tran = conn.BeginTransaction(System.Data.IsolationLevel.ReadCommitted))
+                {
+                    foreach (string ipAddress in ipAddresses)
+                    {
+                        count += SetBanDateInternal(ipAddress, banDate, conn, tran);
+                    }
+                    tran.Commit();
+                }
             }
+            return count;
         }
 
         /// <summary>

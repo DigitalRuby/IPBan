@@ -166,6 +166,20 @@ namespace IPBan
             {
                 throw new InvalidDataException("Banned ip address count is wrong");
             }
+            string[] ips = new string[65536];
+            int index = 0;
+            for (int i = 0; i < 256; i++)
+            {
+                for (int j = 0; j < 256; j++)
+                {
+                    ips[index++] = "255." + i + ".255." + j;
+                }
+            }
+            if (db.SetBannedIPAddresses(ips, dt2) != 65536)
+            {
+                throw new InvalidDataException("Invalid count for set banned ip addresses");
+            }
+
             Console.WriteLine("IPBanDB test complete, no errors");
         }
 
