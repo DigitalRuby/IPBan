@@ -175,9 +175,14 @@ namespace IPBan
                     ips[index++] = "255." + i + ".255." + j;
                 }
             }
+            DateTime now = DateTime.UtcNow;
             if (db.SetBannedIPAddresses(ips, dt2) != 65536)
             {
                 throw new InvalidDataException("Invalid count for set banned ip addresses");
+            }
+            if ((DateTime.UtcNow - now).TotalSeconds > 5.0)
+            {
+                throw new InvalidDataException("SetBannedIPAddresses took too long");
             }
 
             Console.WriteLine("IPBanDB test complete, no errors");
