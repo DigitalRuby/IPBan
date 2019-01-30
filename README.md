@@ -3,7 +3,7 @@ IPBan Service
 [![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=7EJ3K33SRLU9E)
 
 **Requirements**
-- IPBan requires .NET core 2.2 SDK and Visual Studio 2017 or newer to build from source. You can build a self contained executable to eliminate the need for dotnet core on the server machine, or just download the precompiled binaries.
+- IPBan requires .NET core 2.2 SDK and Visual Studio 2017 or newer or Visual Studio Code (Linux) to build from source. You can build a self contained executable to eliminate the need for dotnet core on the server machine, or just download the precompiled binaries.
 - Supported platforms: Windows (x86, x64), Linux (x64).
 - Mac OS X not supported at this time.
 
@@ -51,7 +51,7 @@ The service needs file system, event viewer and firewall access, so please run a
 	- This shell script runs vscode as root:
 	- sudo mount -t vboxsf ipban ~/Desktop/ipban # only needed if you are in a Virtual Box VM and have setup a shared folder to Windows
 	- sudo code --user-data-dir="/tmp/vscode-root"
-- IPBan is currently supported on ubuntu 16.X - 18.X with iptables and ipv4 only. For other Linux or MAC, you may need to adjust some of the instructions and add config file entries for the appropriate log files to parse.
+- IPBan is currently supported on all Linux that have iptables and ipset installed. Only ipv4 is supported.
 - SSH into your server as root. If using another admin account name, substitute all root user instances with your account name.
 - Install dependencies:
 ```
@@ -60,12 +60,12 @@ sudo apt-get install ipset
 sudo apt-get install vsftpd
 sudo apt-get update
 ```
-- mkdir /root/IPBan
-- Extract the IPBan.zip file (inside is IPBanLinux.zip) folder and use ftp to copy files to /root/IPBan
-- chmod +x ./root/IPBan/IPBan (makes sure the IPBan executable has execute permissions)
+- mkdir /root/ipban
+- Extract the IPBan.zip file (inside is IPBanLinux.zip) folder and use ftp to copy files to /root/ipban
+- chmod +x ./root/ipban/ipban (makes sure the IPBan executable has execute permissions)
 - Create service:
 ```
-sudo nano /lib/systemd/system/IPBan.service
+sudo nano /lib/systemd/system/ipban.service
 ```
 - Paste in these contents:
 ```
@@ -74,7 +74,7 @@ Description=IPBan Service
 After=network.target
 
 [Service]
-ExecStart=/root/IPBan/IPBan
+ExecStart=/root/ipban/ipban
 Restart=on-failure
 
 [Install]
@@ -84,9 +84,9 @@ WantedBy=multi-user.target
 - Start the service:
 ```
 sudo systemctl daemon-reload 
-sudo systemctl enable IPBan
-sudo systemctl start IPBan
-systemctl status IPBan
+sudo systemctl enable ipban
+sudo systemctl start ipban
+systemctl status ipban
 ```
 
 **About Me**
