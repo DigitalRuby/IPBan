@@ -9,9 +9,10 @@ namespace IPBan
 {
     public class SerialTaskQueue : IDisposable
     {
-        private readonly BlockingCollection<Task> taskQueue = new BlockingCollection<Task>();
+        private readonly BlockingCollection<Func<Task>> taskQueue = new BlockingCollection<Func<Task>>();
         private readonly Task taskQueueRunner;
         private readonly CancellationTokenSource taskQueueRunnerCancel = new CancellationTokenSource();
+        private readonly AutoResetEvent taskEmptyEvent = new AutoResetEvent(false);
 
         private Task StartQueue()
         {
@@ -21,11 +22,16 @@ namespace IPBan
                 {
                     while (!taskQueueRunnerCancel.IsCancellationRequested)
                     {
-                        if (taskQueue.TryTake(out Task runner, -1, taskQueueRunnerCancel.Token))
+                        if (taskQueue.TryTake(out Func<Task> runner, -1, taskQueueRunnerCancel.Token))
                         {
                             try
                             {
-                                runner.Wait(-1, taskQueueRunnerCancel.Token);
+                                Task task = runner();
+                                task.Wait(-1, taskQueueRunnerCancel.Token);
+                                if (taskQueue.Count == 0)
+                                {
+                                    taskEmptyEvent.Set();
+                                }
                             }
                             catch (OperationCanceledException)
                             {
@@ -40,6 +46,7 @@ namespace IPBan
                 catch
                 {
                 }
+                Dispose();
             });
         }
 
@@ -66,6 +73,7 @@ namespace IPBan
             try
             {
                 taskQueueRunnerCancel.Cancel();
+                Clear();
             }
             catch
             {
@@ -73,12 +81,28 @@ namespace IPBan
         }
 
         /// <summary>
-        /// Add a task
+        /// Add an action
         /// </summary>
-        /// <param name="task"></param>
-        public void Add(Task task)
+        /// <param name="action"></param>
+        /// <returns>True if added, false if the queue is or has been disposed</returns>
+        public bool Add(Func<Task> action)
         {
-            taskQueue.Add(task);
+            if (!taskQueueRunnerCancel.IsCancellationRequested)
+            {
+                taskQueue.Add(action);
+                return true;
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Wait for the queue to empty
+        /// </summary>
+        /// <param name="timeout">Timeout</param>
+        /// <returns>True if success, false if timeout</returns>
+        public bool Wait(TimeSpan timeout = default)
+        {
+            return taskEmptyEvent.WaitOne(timeout == default ? Timeout.InfiniteTimeSpan : timeout);
         }
 
         /// <summary>
@@ -87,6 +111,7 @@ namespace IPBan
         public void Clear()
         {
             while (taskQueue.TryTake(out _)) { }
+            taskEmptyEvent.Set();
         }
 
         /// <summary>

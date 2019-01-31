@@ -11,6 +11,8 @@ using System.Linq;
 using System.Reflection;
 using System.Security.Principal;
 using System.ServiceProcess;
+using System.Threading;
+using System.Threading.Tasks;
 
 #endregion Imports
 
