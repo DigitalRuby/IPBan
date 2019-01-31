@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace IPBan
 {
@@ -18,8 +20,9 @@ namespace IPBan
         /// Pass an empty list to remove all blocked ip addresses.
         /// </summary>
         /// <param name="ipAddresses">IP Addresses</param>
+        /// <param name="cancelToken">Cancel token</param>
         /// <returns>True if success, false if error</returns>
-        bool BlockIPAddresses(IEnumerable<string> ipAddresses);
+        Task<bool> BlockIPAddresses(IEnumerable<string> ipAddresses, CancellationToken cancelToken = default);
 
         /// <summary>
         /// Deletes any existing rule prefixed by ruleNamePrefix then creates a new rule(s) prefixed by ruleNamePrefix with block rules for all ranges specified. Exceptions are logged.
@@ -27,8 +30,9 @@ namespace IPBan
         /// <param name="ruleNamePrefix">Rule name prefix</param>
         /// <param name="ranges">Ranges to block</param>
         /// <param name="allowedPorts">Allowed ports, any port not in this list is blocked</param>
+        /// <param name="cancelToken">Cancel token</param>
         /// <returns>True if success, false if error</returns>
-        bool BlockIPAddresses(string ruleNamePrefix, IEnumerable<IPAddressRange> ranges, params PortRange[] allowedPorts);
+        Task<bool> BlockIPAddresses(string ruleNamePrefix, IEnumerable<IPAddressRange> ranges, IEnumerable<PortRange> allowedPorts, CancellationToken cancelToken = default);
 
         /// <summary>
         /// Creates new rules to allow all the ip addresses on all ports, and removes any left-over rules. Exceptions are logged.

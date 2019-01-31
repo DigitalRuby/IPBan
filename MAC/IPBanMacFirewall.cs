@@ -6,6 +6,8 @@ using System.Linq;
 using System.Net;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace IPBan
 {
@@ -29,12 +31,12 @@ namespace IPBan
             throw new NotImplementedException();
         }
 
-        public bool BlockIPAddresses(IEnumerable<string> ipAddresses)
+        public Task<bool> BlockIPAddresses(IEnumerable<string> ipAddresses, CancellationToken cancelToken)
         {
             throw new NotImplementedException();
         }
 
-        public bool BlockIPAddresses(string ruleNamePrefix, IEnumerable<IPAddressRange> ranges, params PortRange[] allowedPorts)
+        public Task<bool> BlockIPAddresses(string ruleNamePrefix, IEnumerable<IPAddressRange> ranges, IEnumerable<PortRange> allowedPorts, CancellationToken cancelToken)
         {
             throw new NotImplementedException();
         }

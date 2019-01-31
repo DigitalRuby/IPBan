@@ -389,7 +389,7 @@ namespace IPBan
             if (Config.ClearBannedIPAddressesOnRestart)
             {
                 IPBanLog.Warn("Clearing all banned ip addresses on start because ClearBannedIPAddressesOnRestart is set");
-                Firewall.BlockIPAddresses(new string[0]);
+                Firewall.BlockIPAddresses(new string[0]).Sync();
                 ipDB.Truncate(true);
             }
             else
@@ -646,7 +646,7 @@ namespace IPBan
                 {
                     IPBanLog.Warn("Clearing all block firewall rules because {0} is empty", IPBanDB.FileName);
                 }
-                Firewall.BlockIPAddresses(ipDB.EnumerateBannedIPAddresses().Select(i => i.IPAddress));
+                TaskQueue.Add(Firewall.BlockIPAddresses(ipDB.EnumerateBannedIPAddresses().Select(i => i.IPAddress), TaskQueue.CancelToken));
             }
 
             // update firewall if needed
@@ -936,6 +936,7 @@ namespace IPBan
                 return;
             }
 
+            TaskQueue.Dispose();
             IsRunning = false;
             GetUrl(UrlType.Stop);
             try
@@ -1123,6 +1124,11 @@ namespace IPBan
         /// External ip address implementation - defaults to ExternalIPAddressLookupDefault.Instance
         /// </summary>
         public ILocalMachineExternalIPAddressLookup ExternalIPAddressLookup { get; set; } = LocalMachineExternalIPAddressLookupDefault.Instance;
+
+        /// <summary>
+        /// Serial task queue
+        /// </summary>
+        public SerialTaskQueue TaskQueue { get; } = new SerialTaskQueue();
 
         /// <summary>
         /// Configuration

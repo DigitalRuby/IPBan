@@ -9,6 +9,9 @@ using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
+using System.Threading.Tasks;
+
 using NetFwTypeLib;
 
 #endregion Imports
@@ -64,7 +67,7 @@ namespace IPBan
             return b.ToString();
         }
 
-        private bool GetOrCreateRule(string ruleName, string remoteIPAddresses, NET_FW_ACTION_ action, params PortRange[] allowedPorts)
+        private bool GetOrCreateRule(string ruleName, string remoteIPAddresses, NET_FW_ACTION_ action, IEnumerable<PortRange> allowedPorts = null)
         {
             remoteIPAddresses = (remoteIPAddresses ?? string.Empty).Trim();
             bool emptyIPAddressString = string.IsNullOrWhiteSpace(remoteIPAddresses) || remoteIPAddresses == "*";
@@ -102,17 +105,18 @@ recreateRule:
                 {
                     try
                     {
-                        if (allowedPorts != null && allowedPorts.Length != 0)
+                        PortRange[] allowedPortsArray = (allowedPorts?.ToArray());
+                        if (allowedPortsArray != null && allowedPortsArray.Length != 0)
                         {
                             rule.Protocol = (int)NET_FW_IP_PROTOCOL_.NET_FW_IP_PROTOCOL_TCP;
                             string localPorts;
                             if (action == NET_FW_ACTION_.NET_FW_ACTION_BLOCK)
                             {
-                                localPorts = IPBanFirewallUtility.GetPortRangeStringBlockExcept(allowedPorts);
+                                localPorts = IPBanFirewallUtility.GetPortRangeStringBlockExcept(allowedPortsArray);
                             }
                             else
                             {
-                                localPorts = IPBanFirewallUtility.GetPortRangeStringAllow(allowedPorts);
+                                localPorts = IPBanFirewallUtility.GetPortRangeStringAllow(allowedPortsArray);
                             }
                             rule.LocalPorts = localPorts;
                         }
@@ -322,7 +326,7 @@ recreateRule:
             MigrateOldDefaultRuleNames();
         }
 
-        public bool BlockIPAddresses(IEnumerable<string> ipAddresses)
+        public Task<bool> BlockIPAddresses(IEnumerable<string> ipAddresses, CancellationToken cancelToken = default)
         {
             try
             {
@@ -330,6 +334,10 @@ recreateRule:
                 List<string> ipAddressesList = new List<string>();
                 foreach (string ipAddress in ipAddresses)
                 {
+                    if (cancelToken.IsCancellationRequested)
+                    {
+                        throw new OperationCanceledException(cancelToken);
+                    }
                     ipAddressesList.Add(ipAddress);
                     if (ipAddressesList.Count == MaxIpAddressesPerRule)
                     {
@@ -338,26 +346,30 @@ recreateRule:
                         ipAddressesList.Clear();
                     }
                 }
+                if (cancelToken.IsCancellationRequested)
+                {
+                    throw new OperationCanceledException(cancelToken);
+                }
                 if (ipAddressesList.Count != 0)
                 {
                     CreateBlockRule(ipAddressesList, 0, MaxIpAddressesPerRule, RulePrefix + i.ToStringInvariant());
                     i += MaxIpAddressesPerRule;
                 }
                 DeleteRules(RulePrefix, i);
-                return true;
+                return Task.FromResult(true);
             }
             catch (Exception ex)
             {
                 IPBanLog.Error(ex);
-                return false;
+                return Task.FromResult(false);
             }
         }
 
-        public bool BlockIPAddresses(string ruleNamePrefix, IEnumerable<IPAddressRange> ranges, params PortRange[] allowedPorts)
+        public Task<bool> BlockIPAddresses(string ruleNamePrefix, IEnumerable<IPAddressRange> ranges, IEnumerable<PortRange> allowedPorts, CancellationToken cancelToken = default)
         {
             if (string.IsNullOrWhiteSpace(ruleNamePrefix))
             {
-                return false;
+                return Task.FromResult(false);
             }
 
             try
@@ -370,6 +382,10 @@ recreateRule:
                 StringBuilder ipList = new StringBuilder();
                 foreach (IPAddressRange range in ranges)
                 {
+                    if (cancelToken.IsCancellationRequested)
+                    {
+                        throw new OperationCanceledException(cancelToken);
+                    }
                     ipList.Append(range.ToCidrString());
                     ipList.Append(',');
                     if (++counter == MaxIpAddressesPerRule)
@@ -380,6 +396,10 @@ recreateRule:
                         index += MaxIpAddressesPerRule;
                         ipList.Clear();
                     }
+                }
+                if (cancelToken.IsCancellationRequested)
+                {
+                    throw new OperationCanceledException(cancelToken);
                 }
 
                 // create rule for any leftover ip addresses
@@ -392,12 +412,12 @@ recreateRule:
 
                 // delete any leftover rules
                 DeleteRules(prefix, index);
-                return true;
+                return Task.FromResult(true);
             }
             catch (Exception ex)
             {
                 IPBanLog.Error(ex);
-                return false;
+                return Task.FromResult(false);
             }
         }
 

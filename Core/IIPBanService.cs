@@ -120,6 +120,11 @@ namespace IPBan
         ILocalMachineExternalIPAddressLookup ExternalIPAddressLookup { get; }
 
         /// <summary>
+        /// Serial task queue
+        /// </summary>
+        SerialTaskQueue TaskQueue { get; }
+
+        /// <summary>
         /// Operating system name
         /// </summary>
         string OSName { get; }
