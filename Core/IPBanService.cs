@@ -250,7 +250,7 @@ namespace IPBan
                             !Config.IsUserNameWithinMaximumEditDistanceOfUserNameWhitelist(userName) ||
                             (IPBanDelegate != null && IPBanDelegate.IsIPAddressBlacklisted(ipAddress));
                         int newCount = ipDB.IncrementFailedLoginCount(ipAddress, UtcNow, failedLogin.Count);
-                        IPBanLog.Info("Incremented count for ip {0} to {1}, user name: {2}", ipAddress, newCount, userName);
+                        IPBanLog.Warn("Login attempt failed: {0}, {1}, {2}, {3}", ipAddress, userName, source, newCount);
 
                         // if the ip address is black listed or the ip address has reached the maximum failed login attempts before ban, ban the ip address
                         if (configBlacklisted || newCount >= maxFailedLoginAttempts)
@@ -260,8 +260,7 @@ namespace IPBan
                             // if the ip address is not already in the ban list, add it and mark it as needing to be banned
                             if (alreadyBanned)
                             {
-                                IPBanLog.Info("IP {0}, {1}, {2} should already be banned, alreadyBanned == true.", ipAddress, userName, source);
-                                firewallNeedsBlockedIPAddressesUpdate = true;
+                                IPBanLog.Info("IP {0}, {1}, {2} ban pending.", ipAddress, userName, source);
                             }
                             else
                             {
@@ -274,7 +273,7 @@ namespace IPBan
                         }
                         else if (newCount > maxFailedLoginAttempts)
                         {
-                            IPBanLog.Info("IP {0}, {1}, {2} should already be banned.", ipAddress, newCount, source);
+                            IPBanLog.Info("IP {0}, {1}, {2} ban pending.", ipAddress, newCount, source);
                         }
                         else
                         {
@@ -286,7 +285,6 @@ namespace IPBan
                                     AddBannedIPAddress(ipAddress, userName, source, bannedIpAddresses, now, configBlacklisted, newCount, "Delegate banned ip: " + result);
                                 }
                             }
-                            IPBanLog.Warn("Login attempt failed: {0}, {1}, {2}, {3}", ipAddress, userName, source, newCount);
                         }
                     }
                 }

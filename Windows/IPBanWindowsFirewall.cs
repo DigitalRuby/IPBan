@@ -128,7 +128,7 @@ recreateRule:
                             }
                             catch
                             {
-                                // failed to set protocol to any, we are switching from tcp back to any with ports, the only option is to
+                                // failed to set protocol to any, we are switching from tcp back to any without ports, the only option is to
                                 //  recreate the rule
                                 if (!ruleNeedsToBeAdded)
                                 {
