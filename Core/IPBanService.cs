@@ -644,7 +644,7 @@ namespace IPBan
                 {
                     IPBanLog.Warn("Clearing all block firewall rules because {0} is empty", IPBanDB.FileName);
                 }
-                TaskQueue.Add(() => Firewall.BlockIPAddresses(ipDB.EnumerateBannedIPAddresses().Select(i => i.IPAddress), TaskQueue.CancelToken));
+                TaskQueue.Add(() => Firewall.BlockIPAddresses(ipDB.EnumerateBannedIPAddresses().Select(i => i.IPAddress), TaskQueue.GetToken()));
             }
 
             // update firewall if needed
