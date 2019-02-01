@@ -93,7 +93,7 @@ systemctl status ipban
 
 I'm Jeff Johnson and I created IPBan to block hackers out because Windows (and Linux quite frankly) does a horrible job of this by default and performance suffers as hackers try to breach your remote desktop or SSH. IPBan gets them in the block rule of the firewall where they belong.
 
-Please visit http://www.digitalruby.com/securing-your-windows-dedicated-server/ for more information about this program.
+Please visit http://www.digitalruby.com/ipban for more information about this program or downloads.
 
 I do consulting and contracting if you need extra customizations for this software.
 
