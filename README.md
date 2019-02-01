@@ -9,7 +9,7 @@ IPBan Service
 
 **Instructions**
 
-- Official download link is http://www.digitalruby.com/download/ipban-software-download/ or https://github.com/jjxtra/IPBan/releases.
+- Official download link is https://www.digitalruby.com/download/ipban-software-download/.
 - Make sure to look at the config file for configuration options, each are documented with comments.
 - Here is a regex that matches any 32 bit ip address, useful if you need to add a new block option in the config file: 
 
@@ -93,7 +93,7 @@ systemctl status ipban
 
 I'm Jeff Johnson and I created IPBan to block hackers out because Windows (and Linux quite frankly) does a horrible job of this by default and performance suffers as hackers try to breach your remote desktop or SSH. IPBan gets them in the block rule of the firewall where they belong.
 
-Please visit http://www.digitalruby.com/ipban for more information about this program or downloads.
+Please visit https://www.digitalruby.com/ipban for more information about this program or downloads.
 
 I do consulting and contracting if you need extra customizations for this software.
 
