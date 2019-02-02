@@ -18,6 +18,8 @@ using NetFwTypeLib;
 
 namespace IPBan
 {
+    // TODO: Use https://github.com/falahati/NetworkAdapterSelector/blob/master/NetworkAdapterSelector.Hook/Guest.cs
+
     /// <summary>
     /// Helper class for Windows firewall and banning ip addresses.
     /// </summary>
