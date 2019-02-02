@@ -301,7 +301,7 @@ namespace IPBan
             }
         }
 
-        protected virtual Task SubmitIPAddress(string ipAddress, string source, string userName)
+        private Task SubmitIPAddress(string ipAddress, string source, string userName)
         {
             try
             {
