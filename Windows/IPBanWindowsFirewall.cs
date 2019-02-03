@@ -19,6 +19,7 @@ using NetFwTypeLib;
 namespace IPBan
 {
     // TODO: Use https://github.com/falahati/NetworkAdapterSelector/blob/master/NetworkAdapterSelector.Hook/Guest.cs
+    // https://falahati.net/my-blog/103-bind-ip-in-c-sharp-code-injection-shell-extension
 
     /// <summary>
     /// Helper class for Windows firewall and banning ip addresses.
