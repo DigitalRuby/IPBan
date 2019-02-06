@@ -2,6 +2,8 @@ IPBan Service
 -----
 [![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=7EJ3K33SRLU9E)
 
+--> Sign up for the IPBan mailing list: https://eepurl.com/ggvc2L <--
+
 **Requirements**
 - IPBan requires .NET core 2.2 SDK and Visual Studio 2017 or newer or Visual Studio Code (Linux) to build from source. You can build a self contained executable to eliminate the need for dotnet core on the server machine, or just download the precompiled binaries.
 - Supported platforms: Windows (x86, x64), Linux (x64).
