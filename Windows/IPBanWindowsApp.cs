@@ -44,18 +44,6 @@ namespace IPBan
             eventViewer = new IPBanWindowsEventViewer(service);
         }
 
-        private static void RequireAdministrator()
-        {
-            using (WindowsIdentity identity = WindowsIdentity.GetCurrent())
-            {
-                WindowsPrincipal principal = new WindowsPrincipal(identity);
-                if (!principal.IsInRole(WindowsBuiltInRole.Administrator))
-                {
-                    throw new InvalidOperationException("Application must be run as administrator");
-                }
-            }
-        }
-
         private static void TestDB()
         {
             IPBanDB db = new IPBanDB();
@@ -280,7 +268,6 @@ namespace IPBan
 
         public static int ServiceEntryPoint(string[] args)
         {
-            RequireAdministrator();
             if (Console.IsInputRedirected)
             {
                 return IPBanWindowsApp.RunWindowsService(args);

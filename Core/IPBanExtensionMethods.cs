@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Security;
+using System.Security.Principal;
 using System.Text;
 using System.Threading.Tasks;
 using System.Web;
@@ -289,6 +290,24 @@ namespace IPBan
 
             // Any other IP address is not Unique Local Address (ULA)
             return false;
+        }
+
+        /// <summary>
+        /// Asks for administrator privileges upgrade if the platform supports it, otherwise does nothing
+        /// </summary>
+        public static void RequireAdministrator()
+        {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                using (WindowsIdentity identity = WindowsIdentity.GetCurrent())
+                {
+                    WindowsPrincipal principal = new WindowsPrincipal(identity);
+                    if (!principal.IsInRole(WindowsBuiltInRole.Administrator))
+                    {
+                        throw new InvalidOperationException("Application must be run as administrator");
+                    }
+                }
+            }
         }
 
         /// <summary>

@@ -11,6 +11,8 @@ namespace IPBan
     {
         public static int Main(string[] args)
         {
+            IPBanExtensionMethods.RequireAdministrator();
+
             if (args.Length != 0 && args[0].Equals("info", StringComparison.OrdinalIgnoreCase))
             {
                 Console.WriteLine("System info: {0}", IPBanOS.OSString());
@@ -25,7 +27,7 @@ namespace IPBan
             }
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
             {
-                throw new PlatformNotSupportedException("Mac OSX is not yet supported, but will be in the future.");
+                throw new PlatformNotSupportedException("Mac OSX is not yet supported, but may be in the future.");
                 //IPBanMacApp.MacMain(args);
             }
             else
