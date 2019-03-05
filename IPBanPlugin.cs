@@ -67,7 +67,7 @@ namespace IPBan
                 // Windows
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 {
-                    string data = $"ipban failed login ip address: {remoteIpAddress}, source: {source}, user: {userName}";
+                    string data = $"ipban failed login, ip address: {remoteIpAddress}, source: {source}, user: {userName}";
                     eventLog.WriteEntry(data, EventLogEntryType.Warning);
                 }
                 // MAC
