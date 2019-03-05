@@ -65,7 +65,7 @@ sudo apt-get update
 ```
 - mkdir /root/ipban
 - Extract the IPBan.zip file (inside is IPBanLinux.zip) folder and use ftp to copy files to /root/ipban
-- chmod +x ./root/ipban/ipban (makes sure the IPBan executable has execute permissions)
+- chmod +x ./root/ipban/IPBan (makes sure the IPBan executable has execute permissions)
 - Create service:
 ```
 sudo nano /lib/systemd/system/ipban.service
@@ -77,7 +77,7 @@ Description=IPBan Service
 After=network.target
 
 [Service]
-ExecStart=/root/ipban/ipban
+ExecStart=/root/ipban/IPBan
 Restart=on-failure
 
 [Install]
