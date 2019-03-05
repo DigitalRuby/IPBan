@@ -4567,10 +4567,11 @@ namespace System.Diagnostics.Eventing.Reader
     {
         public static EventLogPermission GetEventLogPermission()
         {
-            var permission = new EventLogPermission();
-            var entry = new EventLogPermissionEntry(EventLogPermissionAccess.Administer, ".");
-            permission.PermissionEntries.Add(entry);
-            return permission;
+            return new EventLogPermission(EventLogPermissionAccess.Administer, ".");
+            //var permission = new EventLogPermission();
+            //var entry = new EventLogPermissionEntry(EventLogPermissionAccess.Administer, ".");
+            //permission.PermissionEntries.Add(entry);
+            //return permission;
         }
     }
 

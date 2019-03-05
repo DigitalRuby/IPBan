@@ -112,17 +112,6 @@ namespace IPBan
                         foreach (ExpressionToBlock expression in group.Expressions)
                         {
                             expression.Regex = (expression.Regex ?? string.Empty).Trim();
-                            if (expression.Regex.Length != 0)
-                            {
-                                if (expression.Regex[0] == '^')
-                                {
-                                    expression.Regex = "^\\s*?" + expression.Regex.Substring(1) + "\\s*?";
-                                }
-                                else
-                                {
-                                    expression.Regex = "\\s*?" + expression.Regex + "\\s*?";
-                                }
-                            }
                         }
                     }
                 }
