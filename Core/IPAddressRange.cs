@@ -1,5 +1,7 @@
-﻿// https://github.com/jsakamoto/ipaddressrange
-// License?
+﻿//
+// derived from https://github.com/jsakamoto/ipaddressrange/blob/master/IPAddressRange/IPAddressRange.cs
+// which as of March 2019 was using mozilla public license
+//
 
 using System;
 using System.Linq;
