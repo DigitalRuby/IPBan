@@ -251,6 +251,10 @@ namespace IPBan
             // add and remove the appropriate ip addresses from the set
             using (StreamWriter writer = File.CreateText(ipFileTemp))
             {
+                if (cancelToken.IsCancellationRequested)
+                {
+                    throw new OperationCanceledException(cancelToken);
+                }
                 writer.WriteLine($"create {ruleName} hash:{hashType} family {inetFamily} hashsize {hashSize} maxelem {maxCount} -exist");
                 foreach (string ipAddress in ipAddresses)
                 {
@@ -392,17 +396,17 @@ namespace IPBan
             }
         }
 
-        public bool AllowIPAddresses(IEnumerable<string> ipAddresses)
+        public Task<bool> AllowIPAddresses(IEnumerable<string> ipAddresses, CancellationToken cancelToken = default)
         {
             try
             {
-                allowedIPAddresses = UpdateRule(allowRuleName, "ACCEPT", ipAddresses, allowedIPAddresses, "ip", allowRuleMaxCount, false, null, default, out bool result);
-                return result;
+                allowedIPAddresses = UpdateRule(allowRuleName, "ACCEPT", ipAddresses, allowedIPAddresses, "ip", allowRuleMaxCount, false, null, cancelToken, out bool result);
+                return Task.FromResult<bool>(result);
             }
             catch (Exception ex)
             {
                 IPBanLog.Error(ex);
-                return false;
+                return Task.FromResult<bool>(false);
             }
         }
 

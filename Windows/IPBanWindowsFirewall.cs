@@ -448,34 +448,49 @@ recreateRule:
             }
         }
 
-        public bool AllowIPAddresses(IEnumerable<string> ipAddresses)
+        public Task<bool> AllowIPAddresses(IEnumerable<string> ipAddresses, CancellationToken cancelToken = default)
         {
-            if (ipAddresses == null)
+            try
             {
-                return false;
-            }
-
-            List<string> ipAddressesList = new List<string>();
-            int i = 0;
-            foreach (string ipAddress in ipAddresses)
-            {
-                ipAddressesList.Add(ipAddress);
-                if (ipAddressesList.Count == MaxIpAddressesPerRule)
+                List<string> ipAddressesList = new List<string>();
+                int i = 0;
+                foreach (string ipAddress in ipAddresses)
+                {
+                    if (cancelToken.IsCancellationRequested)
+                    {
+                        throw new OperationCanceledException();
+                    }
+                    ipAddressesList.Add(ipAddress);
+                    if (ipAddressesList.Count == MaxIpAddressesPerRule)
+                    {
+                        string remoteIP = CreateRuleStringForIPAddresses(ipAddressesList, i, MaxIpAddressesPerRule);
+                        GetOrCreateRule(allowRulePrefix + i.ToString(CultureInfo.InvariantCulture), remoteIP, NET_FW_ACTION_.NET_FW_ACTION_ALLOW);
+                        i += MaxIpAddressesPerRule;
+                        ipAddressesList.Clear();
+                    }
+                }
+                if (cancelToken.IsCancellationRequested)
+                {
+                    throw new OperationCanceledException();
+                }
+                if (ipAddressesList.Count != 0)
                 {
                     string remoteIP = CreateRuleStringForIPAddresses(ipAddressesList, i, MaxIpAddressesPerRule);
                     GetOrCreateRule(allowRulePrefix + i.ToString(CultureInfo.InvariantCulture), remoteIP, NET_FW_ACTION_.NET_FW_ACTION_ALLOW);
                     i += MaxIpAddressesPerRule;
-                    ipAddressesList.Clear();
                 }
+                if (cancelToken.IsCancellationRequested)
+                {
+                    throw new OperationCanceledException();
+                }
+                DeleteRules(allowRulePrefix, i);
+                return Task.FromResult<bool>(true);
             }
-            if (ipAddressesList.Count != 0)
+            catch (Exception ex)
             {
-                string remoteIP = CreateRuleStringForIPAddresses(ipAddressesList, i, MaxIpAddressesPerRule);
-                GetOrCreateRule(allowRulePrefix + i.ToString(CultureInfo.InvariantCulture), remoteIP, NET_FW_ACTION_.NET_FW_ACTION_ALLOW);
-                i += MaxIpAddressesPerRule;
+                IPBanLog.Error(ex);
+                return Task.FromResult<bool>(false);
             }
-            DeleteRules(allowRulePrefix, i);
-            return true;
         }
 
         public bool IsIPAddressBlocked(string ipAddress)

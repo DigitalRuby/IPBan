@@ -20,9 +20,11 @@ namespace IPBan
         /// <param name="userName">User name</param>
         /// <param name="osName">OS name</param>
         /// <param name="osVersion">OS version</param>
+        /// <param name="assemblyVersion">Assembly version</param>
         /// <param name="requestMaker">Request maker if needed, null otherwise</param>
         /// <returns>Task</returns>
-        System.Threading.Tasks.Task HandleBannedIPAddress(string ipAddress, string source, string userName, string osName, string osVersion, IHttpRequestMaker requestMaker);
+        System.Threading.Tasks.Task HandleBannedIPAddress(string ipAddress, string source, string userName,
+            string osName, string osVersion, string assemblyVersion, IHttpRequestMaker requestMaker);
     }
 
     /// <summary>
@@ -36,7 +38,7 @@ namespace IPBan
         public static string BaseUrl { get; set; } = "https://api.ipban.com";
 
         /// <inheritdoc />
-        public Task HandleBannedIPAddress(string ipAddress, string source, string userName, string osName, string osVersion, IHttpRequestMaker requestMaker)
+        public Task HandleBannedIPAddress(string ipAddress, string source, string userName, string osName, string osVersion, string assemblyVersion, IHttpRequestMaker requestMaker)
         {
             if (requestMaker == null)
             {
@@ -52,8 +54,7 @@ namespace IPBan
 
                 // submit url to ipban public database so that everyone can benefit from an aggregated list of banned ip addresses
                 string timestamp = IPBanService.UtcNow.ToString("o");
-                string version = Assembly.GetAssembly(typeof(IPBanService)).GetName().Version.ToString();
-                string url = $"/IPSubmitBanned?ip={ipAddress.UrlEncode()}&osname={osName.UrlEncode()}&osversion={osVersion.UrlEncode()}&source={source.UrlEncode()}&timestamp={timestamp.UrlEncode()}&userName={userName.UrlEncode()}&version={version.UrlEncode()}";
+                string url = $"/IPSubmitBanned?ip={ipAddress.UrlEncode()}&osname={osName.UrlEncode()}&osversion={osVersion.UrlEncode()}&source={source.UrlEncode()}&timestamp={timestamp.UrlEncode()}&userName={userName.UrlEncode()}&version={assemblyVersion.UrlEncode()}";
                 string hash = Convert.ToBase64String(new SHA256Managed().ComputeHash(Encoding.UTF8.GetBytes(url + IPBanResources.IPBanKey1)));
                 url += "&hash=" + hash.UrlEncode();
                 url = BaseUrl + url;

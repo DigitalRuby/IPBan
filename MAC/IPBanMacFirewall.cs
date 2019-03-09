@@ -50,17 +50,17 @@ namespace IPBan
             RulePrefix = rulePrefix.Trim();
         }
 
-        public bool AllowIPAddresses(IEnumerable<string> ipAddresses)
+        public Task<bool> AllowIPAddresses(IEnumerable<string> ipAddresses, CancellationToken cancelToken = default)
         {
             throw new NotImplementedException();
         }
 
-        public Task<bool> BlockIPAddresses(IEnumerable<string> ipAddresses, CancellationToken cancelToken)
+        public Task<bool> BlockIPAddresses(IEnumerable<string> ipAddresses, CancellationToken cancelToken = default)
         {
             throw new NotImplementedException();
         }
 
-        public Task<bool> BlockIPAddresses(string ruleNamePrefix, IEnumerable<IPAddressRange> ranges, IEnumerable<PortRange> allowedPorts, CancellationToken cancelToken)
+        public Task<bool> BlockIPAddresses(string ruleNamePrefix, IEnumerable<IPAddressRange> ranges, IEnumerable<PortRange> allowedPorts, CancellationToken cancelToken = default)
         {
             throw new NotImplementedException();
         }

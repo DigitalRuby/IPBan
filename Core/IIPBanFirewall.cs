@@ -62,8 +62,9 @@ namespace IPBan
         /// Creates new rules to allow all the ip addresses on all ports, and removes any left-over rules. Exceptions are logged.
         /// </summary>
         /// <param name="ipAddresses">IP Addresses</param>
+        /// <param name="cancelToken">Cancel token</param>
         /// <returns>True if success, false if error</returns>
-        bool AllowIPAddresses(IEnumerable<string> ipAddresses);
+        Task<bool> AllowIPAddresses(IEnumerable<string> ipAddresses, CancellationToken cancelToken = default);
 
         /// <summary>
         /// Checks if an ip address is blocked in the firewall

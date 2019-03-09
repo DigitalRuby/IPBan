@@ -336,14 +336,14 @@ namespace IPBan
 
             if (BannedIPAddressHandler != null && System.Net.IPAddress.TryParse(ipAddress, out System.Net.IPAddress ipAddressObj) && !ipAddressObj.IsInternal())
             {
-                BannedIPAddressHandler.HandleBannedIPAddress(ipAddress, source, userName, OSName, OSVersion, RequestMaker).ConfigureAwait(false).GetAwaiter();
+                BannedIPAddressHandler.HandleBannedIPAddress(ipAddress, source, userName, OSName, OSVersion, AssemblyVersion, RequestMaker).ConfigureAwait(false).GetAwaiter();
             }
         }
 
         private void ProcessBannedIPAddresses(IEnumerable<KeyValuePair<string, string>> bannedIPAddresses)
         {
             // kick off external process and delegate notification in another thread
-            string programToRunConfigString = Config.ProcessToRunOnBan;
+            string programToRunConfigString = (Config.ProcessToRunOnBan ?? string.Empty).Trim();
             RunTask(() =>
             {
                 foreach (var bannedIp in bannedIPAddresses)
@@ -644,7 +644,14 @@ namespace IPBan
                 {
                     IPBanLog.Warn("Clearing all block firewall rules because {0} is empty", IPBanDB.FileName);
                 }
-                TaskQueue.Add(() => Firewall.BlockIPAddresses(ipDB.EnumerateBannedIPAddresses().Select(i => i.IPAddress), TaskQueue.GetToken()));
+                if (MultiThreaded)
+                {
+                    TaskQueue.Add(() => Firewall.BlockIPAddresses(ipDB.EnumerateBannedIPAddresses().Select(i => i.IPAddress), TaskQueue.GetToken()));
+                }
+                else
+                {
+                    Firewall.BlockIPAddresses(ipDB.EnumerateBannedIPAddresses().Select(i => i.IPAddress)).Sync();
+                }
             }
 
             // update firewall if needed
@@ -661,8 +668,15 @@ namespace IPBan
 
                     if (ipAddresses != null)
                     {
-                        // re-create rules for all allowed ip addresses
-                        Firewall.AllowIPAddresses(ipAddresses);
+                        if (MultiThreaded)
+                        {
+                            TaskQueue.Add(() => Firewall.AllowIPAddresses(ipAddresses, TaskQueue.GetToken()));
+                        }
+                        else
+                        {
+                            // re-create rules for all allowed ip addresses
+                            Firewall.AllowIPAddresses(ipAddresses).Sync();
+                        }
                     }
                 }
             }
@@ -710,16 +724,17 @@ namespace IPBan
         /// Create an IPBanService by searching all types in all assemblies
         /// </summary>
         /// <returns>IPBanService (if not found an exception is thrown)</returns>
-        public static IPBanService CreateService()
+        public static T CreateService<T>() where T : IPBanService
         {
+            Type typeOfT = typeof(T);
+
             // if any derived class of IPBanService, use that
             var q =
-                from a in AppDomain.CurrentDomain.GetAssemblies().SelectMany(a => a.GetTypes())
-                where a.IsSubclassOf(typeof(IPBanService))
-                select a;
+                from type in AppDomain.CurrentDomain.GetAssemblies().SelectMany(a => a.GetTypes())
+                where typeOfT.IsAssignableFrom(type)
+                select type;
             Type instanceType = (q.FirstOrDefault() ?? typeof(IPBanService));
-            IPBanService service = (IPBanService)Activator.CreateInstance(instanceType, BindingFlags.NonPublic | BindingFlags.Instance, null, null, null);
-            return service;
+            return Activator.CreateInstance(instanceType, BindingFlags.NonPublic | BindingFlags.Instance, null, null, null) as T;
         }
 
         /// <summary>
@@ -845,9 +860,12 @@ namespace IPBan
                     source = (source ?? sourceGroup.Value.Trim('\'', '\"', '(', ')', '[', ']', '{', '}', ' ', '\r', '\n'));
                 }
 
-
                 // check if the regex had an ipadddress group
                 Group ipAddressGroup = m.Groups["ipaddress"];
+                if (ipAddressGroup == null)
+                {
+                    ipAddressGroup = m.Groups["ipaddress_exact"];
+                }
                 if (ipAddressGroup != null && ipAddressGroup.Success && !string.IsNullOrWhiteSpace(ipAddressGroup.Value))
                 {
                     string tempIPAddress = ipAddressGroup.Value.Trim();
@@ -855,15 +873,16 @@ namespace IPBan
                     // in case of IP:PORT format, try a second time, stripping off the :PORT, saves having to do this in all
                     //  the different ip regex.
                     int lastColon = tempIPAddress.LastIndexOf(':');
-                    if (IPAddress.TryParse(tempIPAddress, out IPAddress tmp) ||
-                        (lastColon >= 0 && IPAddress.TryParse(tempIPAddress.Substring(0, lastColon), out tmp)))
+                    bool isValidIPAddress = IPAddress.TryParse(tempIPAddress, out IPAddress tmp);
+                    if (isValidIPAddress || (lastColon >= 0 && IPAddress.TryParse(tempIPAddress.Substring(0, lastColon), out tmp)))
                     {
                         ipAddress = tmp.ToString();
                         foundMatch = true;
                         break;
                     }
 
-                    if (tempIPAddress != Environment.MachineName && tempIPAddress != "-")
+                    // if we are parsing anything as ip address (including dns names)
+                    if (ipAddressGroup.Name == "ipaddress" && tempIPAddress != Environment.MachineName && tempIPAddress != "-")
                     {
                         // Check Host by name
                         IPBanLog.Info("Parsing as IP failed, checking dns '{0}'", tempIPAddress);
@@ -986,7 +1005,14 @@ namespace IPBan
                 return;
             }
 
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                // attach Windows event viewer to the service
+                EventViewer = new IPBanWindowsEventViewer(this);
+            }
+
             IsRunning = true;
+            AssemblyVersion = IPBanService.GetIPBanAssembly().GetName().Version.ToString();
             ReadAppSettings();
             LoadFirewall();
             UpdateBannedIPAddressesOnStart();
@@ -1099,6 +1125,50 @@ namespace IPBan
         }
 
         /// <summary>
+        /// Create a test IPBanService
+        /// </summary>
+        /// <param name="directory">Root directory</param>
+        /// <param name="configFileName">Config file name</param>
+        /// <param name="configFileModifier">Change config file (param are file text, returns new file text)</param>
+        /// <returns>Service</returns>
+        public static T CreateAndStartIPBanTestService<T>(string directory = null, string configFileName = null,
+            Func<string, string> configFileModifier = null) where T : IPBanService
+        {
+            if (string.IsNullOrWhiteSpace(directory))
+            {
+                Assembly a = IPBanService.GetIPBanAssembly();
+                directory = Path.GetDirectoryName(a.Location);
+            }
+            if (string.IsNullOrWhiteSpace(configFileName))
+            {
+                Assembly a = IPBanService.GetIPBanAssembly();
+                configFileName = IPBanService.ConfigFileName;
+            }
+            string configFilePath = Path.Combine(directory, configFileName);
+            string configFileText = File.ReadAllText(configFilePath);
+            if (configFileModifier != null)
+            {
+                configFileText = configFileModifier(configFileText);
+                File.WriteAllText(configFilePath, configFileText);
+            }
+            T service = IPBanService.CreateService<T>() as T;
+            service.ExternalIPAddressLookup = LocalMachineExternalIPAddressLookupTest.Instance;
+            service.ConfigFilePath = configFilePath;
+            service.MultiThreaded = false;
+            service.ManualCycle = true;
+            service.BannedIPAddressHandler = null; // no external ip handling
+            service.DB.Truncate(true);
+            service.Start();
+            service.Firewall.BlockIPAddresses(new string[0]).Sync();
+            return service;
+        }
+
+        /// <summary>
+        /// Config file name
+        /// </summary>
+        public const string ConfigFileName = "IPBan.dll.config";
+
+        /// <summary>
         /// Config file path
         /// </summary>
         public string ConfigFilePath { get; set; }
@@ -1182,7 +1252,17 @@ namespace IPBan
         /// The operating system version. If null, it is auto-detected.
         /// </summary>
         public string OSVersion { get; private set; }
-        
+
+        /// <summary>
+        /// Assembly version
+        /// </summary>
+        public string AssemblyVersion { get; private set; }
+
+        /// <summary>
+        /// Event viewer (null if not on Windows)
+        /// </summary>
+        public IPBanWindowsEventViewer EventViewer { get; private set; }
+
         private static DateTime? utcNow;
         /// <summary>
         /// Allows changing the current date time to facilitate testing of behavior over elapsed times. Set to default(DateTime) to revert to DateTime.UtcNow.

@@ -21,10 +21,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="IPBanTests\**" />
     <Compile Remove="packages\**" />
     <Compile Remove="package\**" />
+    <EmbeddedResource Remove="IPBanTests\**" />
     <EmbeddedResource Remove="packages\**" />
     <EmbeddedResource Remove="package\**" />
+    <None Remove="IPBanTests\**" />
     <None Remove="packages\**" />
     <None Remove="package\**" />
   </ItemGroup>
