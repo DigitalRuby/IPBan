@@ -51,7 +51,7 @@ namespace IPBan
                 // TODO: Move to unit test project
                 service.MultiThreaded = false;
                 service.ManualCycle = true;
-                service.SubmitIPAddresses = false;
+                service.BannedIPAddressHandler = null;
                 service.DB.Truncate(true);
             }
             service.Start();

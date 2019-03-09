@@ -144,6 +144,11 @@ namespace IPBan
         ILocalMachineExternalIPAddressLookup ExternalIPAddressLookup { get; }
 
         /// <summary>
+        /// Extra handle for banned ip addresses
+        /// </summary>
+        IBannedIPAddressHandler BannedIPAddressHandler { get; }
+
+        /// <summary>
         /// Serial task queue
         /// </summary>
         SerialTaskQueue TaskQueue { get; }
@@ -157,11 +162,6 @@ namespace IPBan
         /// Operating system version
         /// </summary>
         string OSVersion { get; }
-
-        /// <summary>
-        /// Whether to submit ip addresses for global ban list
-        /// </summary>
-        bool SubmitIPAddresses { get; set; }
     }
 
     /// <summary>

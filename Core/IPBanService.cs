@@ -325,31 +325,6 @@ namespace IPBan
             }
         }
 
-        private Task SubmitIPAddress(string ipAddress, string source, string userName)
-        {
-            try
-            {
-                if (System.Diagnostics.Debugger.IsAttached || !System.Net.IPAddress.TryParse(ipAddress, out System.Net.IPAddress ipAddressObj) || ipAddressObj.IsInternal())
-                {
-                    return Task.CompletedTask;
-                }
-
-                // submit url to ipban public database so that everyone can benefit from an aggregated list of banned ip addresses
-                string timestamp = UtcNow.ToString("o");
-                string version = Assembly.GetAssembly(typeof(IPBanService)).GetName().Version.ToString();
-                string url = $"/IPSubmitBanned?ip={ipAddress.UrlEncode()}&osname={OSName.UrlEncode()}&osversion={OSVersion.UrlEncode()}&source={source.UrlEncode()}&timestamp={timestamp.UrlEncode()}&userName={userName.UrlEncode()}&version={version.UrlEncode()}";
-                string hash = Convert.ToBase64String(new SHA256Managed().ComputeHash(Encoding.UTF8.GetBytes(url + IPBanResources.IPBanKey1)));
-                url += "&hash=" + hash.UrlEncode();
-                url = "https://api.ipban.com" + url;
-                return RequestMaker.MakeRequestAsync(new Uri(url));
-            }
-            catch
-            {
-                // don't care, this is not fatal
-                return Task.CompletedTask;
-            }
-        }
-
         private void AddBannedIPAddress(string ipAddress, string source, string userName, List<KeyValuePair<string, string>> bannedIpAddresses,
             DateTime dateTime, bool configBlacklisted, int counter, string extraInfo)
         {
@@ -358,9 +333,10 @@ namespace IPBan
             firewallNeedsBlockedIPAddressesUpdate = true;
             IPBanLog.Warn("Banning ip address: {0}, user name: {1}, config black listed: {2}, count: {3}, extra info: {4}",
                 ipAddress, userName, configBlacklisted, counter, extraInfo);
-            if (SubmitIPAddresses)
+
+            if (BannedIPAddressHandler != null && System.Net.IPAddress.TryParse(ipAddress, out System.Net.IPAddress ipAddressObj) && !ipAddressObj.IsInternal())
             {
-                SubmitIPAddress(ipAddress, source, userName);
+                BannedIPAddressHandler.HandleBannedIPAddress(ipAddress, source, userName, OSName, OSVersion, RequestMaker).ConfigureAwait(false).GetAwaiter();
             }
         }
 
@@ -1148,6 +1124,11 @@ namespace IPBan
         public ILocalMachineExternalIPAddressLookup ExternalIPAddressLookup { get; set; } = LocalMachineExternalIPAddressLookupDefault.Instance;
 
         /// <summary>
+        /// Extra handler for banned ip addresses (optional)
+        /// </summary>
+        public IBannedIPAddressHandler BannedIPAddressHandler { get; set; } = new DefaultBannedIPAddressHandler();
+
+        /// <summary>
         /// Serial task queue
         /// </summary>
         public SerialTaskQueue TaskQueue { get; } = new SerialTaskQueue();
@@ -1216,11 +1197,6 @@ namespace IPBan
         /// Whether the service is currently running
         /// </summary>
         public bool IsRunning { get; set; }
-
-        /// <summary>
-        /// Whether to submit ip addresses for global ban list
-        /// </summary>
-        public bool SubmitIPAddresses { get; set; } = true;
 
         /// <summary>
         /// IPBan database
