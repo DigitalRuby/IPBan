@@ -346,14 +346,14 @@ namespace IPBan
 
             if (lastNewlinePos > -1)
             {
-                // we could read line by line by going one byte at a time, but the hope here is that by taking
-                // advantage of stream reader and binary reader read bytes we can get some improved cpu usage
-                // at the expense of having to store all the bytes in memory for a small time
-                fs.Position = file.LastPosition;
-                byte[] bytes = new BinaryReader(fs).ReadBytes((int)(lastNewlinePos - fs.Position));
-
                 try
                 {
+                    // we could read line by line by going one byte at a time, but the hope here is that by taking
+                    // advantage of stream reader and binary reader read bytes we can get some improved cpu usage
+                    // at the expense of having to store all the bytes in memory for a small time
+                    fs.Position = file.LastPosition;
+                    byte[] bytes = new BinaryReader(fs).ReadBytes((int)(lastNewlinePos - fs.Position));
+
                     using (StreamReader reader = new StreamReader(new MemoryStream(bytes), Encoding.UTF8))
                     {
                         string line;
