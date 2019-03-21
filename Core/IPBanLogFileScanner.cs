@@ -330,7 +330,7 @@ namespace IPBan
 
             if (countBeforeNewline == maxCountBeforeNewline)
             {
-                throw new InvalidOperationException("Log file " + this.fileMask + " may not be a plain text new line delimited file");
+                throw new InvalidOperationException($"Log file '{fileMask}' may not be a plain text new line delimited file");
             }
 
             if (lastNewlinePos > -1)
