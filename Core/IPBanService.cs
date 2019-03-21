@@ -122,7 +122,7 @@ namespace IPBan
                             Regex.IsMatch(IPBanOS.Description, newFile.PlatformRegex.Trim(), RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))
                         {
                             // log files use a timer internally and do not need to be updated regularly
-                            IPBanLogFileScanner scanner = new IPBanLogFileScanner(this, DnsLookup,
+                            IPBanLogFileScanner scanner = new IPBanIPAddressLogFileScanner(this, DnsLookup,
                                 newFile.Source, pathAndMask, newFile.Recursive, newFile.Regex, newFile.MaxFileSize, newFile.PingInterval);
                             logFilesToParse.Add(scanner);
                         }

@@ -6,6 +6,7 @@ IPBan Service
 
 **Requirements**
 - IPBan requires .NET core 2.2 SDK and Visual Studio 2017 or newer or Visual Studio Code (Linux) to build from source. You can build a self contained executable to eliminate the need for dotnet core on the server machine, or just download the precompiled binaries.
+- Running and/or debugging code requires that you run as administrator or root.
 - Supported platforms: Windows (x86, x64), Linux (x64).
 - Mac OS X not supported at this time.
 
@@ -50,7 +51,7 @@ The service needs file system, event viewer and firewall access, so please run a
 
 **Linux**
 
-- Build and run code with Visual Studio code. In order to debug, Visual Studio code must run as root.
+- Build and run code with Visual Studio code
 	- This shell script runs vscode as root:
 	- sudo mount -t vboxsf ipban ~/Desktop/ipban # only needed if you are in a Virtual Box VM and have setup a shared folder to Windows
 	- sudo code --user-data-dir="/tmp/vscode-root"

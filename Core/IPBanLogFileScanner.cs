@@ -37,7 +37,7 @@ namespace IPBan
 {
     public class IPBanLogFileScanner : IDisposable
     {
-        private class WatchedFile
+        protected class WatchedFile
         {
             public WatchedFile(string fileName, long lastPosition = 0)
             {
@@ -64,10 +64,7 @@ namespace IPBan
             public long LastLength { get; set; }
         }
 
-        private readonly IFailedLogin failedLogin;
-        private readonly IDnsLookup dns;
         private readonly HashSet<WatchedFile> watchedFiles = new HashSet<WatchedFile>();
-        private readonly AutoResetEvent ipEvent = new AutoResetEvent(false);
         private readonly System.Timers.Timer pingTimer;
         private readonly string directoryToWatch;
         private readonly string fileMask;
@@ -76,30 +73,22 @@ namespace IPBan
         /// <summary>
         /// Create a log file scanner
         /// </summary>
-        /// <param name="failedLogin">Interface for handling failed logins</param>
-        /// <param name="dns">Interface for dns lookup</param>
-        /// <param name="source">The source, i.e. SSH or SMTP, etc.</param>
         /// <param name="pathAndMask">File path and mask (i.e. /var/log/auth*.log)</param>
         /// <param name="recursive">Whether to parse all sub directories of path and mask recursively</param>
-        /// <param name="regex">Regex to parse file lines to pull out ipaddress and username</param>
         /// <param name="maxFileSize">Max size of file before it is deleted or 0 for unlimited</param>
-        /// <param name="pingIntervalMilliseconds"></param>
-        public IPBanLogFileScanner(IFailedLogin failedLogin, IDnsLookup dns,
-            string source, string pathAndMask, bool recursive, string regex, long maxFileSize = 0, int pingIntervalMilliseconds = 10000)
+        /// <param name="pingIntervalMilliseconds">Ping interval in milliseconds, less than 1 for manual ping required</param>
+        public IPBanLogFileScanner(string pathAndMask, bool recursive, long maxFileSize = 0, int pingIntervalMilliseconds = 0)
         {
-            failedLogin.ThrowIfNull(nameof(failedLogin));
-            dns.ThrowIfNull(nameof(dns));
-            Source = source;
-            this.failedLogin = failedLogin;
-            this.dns = dns;
             this.maxFileSize = maxFileSize;
             PathAndMask = pathAndMask;
-            Regex = IPBanConfig.ParseRegex(regex);
             directoryToWatch = Path.GetDirectoryName(pathAndMask);
             fileMask = Path.GetFileName(pathAndMask);
-            pingTimer = new System.Timers.Timer(pingIntervalMilliseconds);
-            pingTimer.Elapsed += PingTimerElapsed;
-            pingTimer.Start();
+            if (pingIntervalMilliseconds > 0)
+            {
+                pingTimer = new System.Timers.Timer(pingIntervalMilliseconds);
+                pingTimer.Elapsed += PingTimerElapsed;
+                pingTimer.Start();
+            }
 
             // add initial files
             SearchOption option = (recursive ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly);
@@ -117,11 +106,14 @@ namespace IPBan
         public void Dispose()
         {
             // wait for any outstanding file pings
-            while (!pingTimer.Enabled)
+            if (pingTimer != null)
             {
-                Thread.Sleep(20);
+                while (!pingTimer.Enabled)
+                {
+                    Thread.Sleep(20);
+                }
+                pingTimer?.Dispose();
             }
-            pingTimer.Dispose();
             lock (watchedFiles)
             {
                 watchedFiles.Clear();
@@ -129,12 +121,95 @@ namespace IPBan
         }
 
         /// <summary>
-        /// Wait for ip addresses to be found, usually only needed for testing
+        /// Ping the files, this is normally done on a timer, but if you have passed a 0 second
+        /// ping interval to the constructor, you must call this manually
         /// </summary>
-        /// <param name="timeoutMilliseconds">Timeout in milliseconds</param>
-        public void WaitForIPAddresses(int timeoutMilliseconds = 1000)
+        public void PingFiles()
         {
-            ipEvent.WaitOne(timeoutMilliseconds);
+            try
+            {
+                if (pingTimer != null)
+                {
+                    pingTimer.Enabled = false;
+                }
+            }
+            catch
+            {
+            }
+
+            try
+            {
+                // re-open files and read one byte to flush disk cache
+                foreach (WatchedFile file in UpdateWatchedFiles())
+                {
+                    // if file length has changed, ping the file
+                    bool delete = false;
+
+                    // ugly hack to force file to flush
+                    using (FileStream fs = new FileStream(file.FileName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                    {
+                        try
+                        {
+                            if (fs.Length != 0)
+                            {
+                                fs.Position = fs.Length - 1;
+                                fs.ReadByte();
+                            }
+                        }
+                        catch
+                        {
+                        }
+                    }
+
+                    long len = new FileInfo(file.FileName).Length;
+
+                    // if file has shrunk (deleted and recreated for example) reset positions to 0
+                    if (len < file.LastLength || len < file.LastPosition)
+                    {
+                        file.LastPosition = 0;
+                    }
+
+                    // use file info for length compare to avoid doing a full file open
+                    if (len != file.LastLength)
+                    {
+                        using (FileStream fs = new FileStream(file.FileName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                        {
+                            file.LastLength = len;
+                            delete = PingFile(file, fs);
+                        }
+                    }
+                    else
+                    {
+                        IPBanLog.Debug("Watched file {0} length has not changed", file.FileName);
+                    }
+                    if (delete)
+                    {
+                        try
+                        {
+                            File.Delete(file.FileName);
+                        }
+                        catch
+                        {
+                            // OK someone else might have it open, in which case we have no chance to delete
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                IPBanLog.Error(ex);
+            }
+
+            try
+            {
+                if (pingTimer != null)
+                {
+                    pingTimer.Enabled = true;
+                }
+            }
+            catch
+            {
+            }
         }
 
         /// <summary>
@@ -151,6 +226,22 @@ namespace IPBan
         /// The regex to find the ip address and user name from the file
         /// </summary>
         public Regex Regex { get; private set; }
+
+        /// <summary>
+        /// Handler to read processed lines. Takes string param of line, returns bool true to continue processing,
+        /// or false to stop processing.
+        /// </summary>
+        public System.Func<string, bool> ProcessLine { get; set; }
+
+        /// <summary>
+        /// Process a line
+        /// </summary>
+        /// <param name="line">Line to process</param>
+        /// <returns>True to continue processing, false to stop</returns>
+        protected virtual bool OnProcessLine(string line)
+        {
+            return true;
+        }
 
         private void PingTimerElapsed(object sender, System.Timers.ElapsedEventArgs e)
         {
@@ -226,91 +317,11 @@ namespace IPBan
             return watchedFilesCopy;
         }
 
-        private void PingFiles()
-        {
-            try
-            {
-                pingTimer.Enabled = false;
-            }
-            catch
-            {
-            }
-
-            try
-            {
-                // re-open files and read one byte to flush disk cache
-                foreach (WatchedFile file in UpdateWatchedFiles())
-                {
-                    // if file length has changed, ping the file
-                    bool delete = false;
-
-                    // ugly hack to force file to flush
-                    using (FileStream fs = new FileStream(file.FileName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
-                    {
-                        try
-                        {
-                            fs.Position = fs.Length - 1;
-                            fs.ReadByte();
-                        }
-                        catch
-                        {
-                        }
-                    }
-
-                    long len = new FileInfo(file.FileName).Length;
-
-                    // if file has shrunk (deleted and recreated for example) reset positions to 0
-                    if (len < file.LastLength || len < file.LastPosition)
-                    {
-                        file.LastPosition = 0;
-                    }
-
-                    // use file info for length compare to avoid doing a full file open
-                    if (len != file.LastLength)
-                    {
-                        using (FileStream fs = new FileStream(file.FileName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
-                        {
-                            file.LastLength = len;
-                            delete = PingFile(file, fs);
-                        }
-                    }
-                    else
-                    {
-                        IPBanLog.Debug("Watched file {0} length has not changed", file.FileName);
-                    }
-                    if (delete)
-                    {
-                        try
-                        {
-                            File.Delete(file.FileName);
-                        }
-                        catch
-                        {
-                            // OK someone else might have it open, in which case we have no chance to delete
-                        }
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                IPBanLog.Error(ex);
-            }
-
-            try
-            {
-                pingTimer.Enabled = true;
-            }
-            catch
-            {
-            }
-        }
-
         private bool PingFile(WatchedFile file, FileStream fs)
         {
             const int maxCountBeforeNewline = 1024;
             int b;
             long lastNewlinePos = -1;
-            byte[] bytes;
             long end = Math.Min(file.LastLength, fs.Length);
             int countBeforeNewline = 0;
             fs.Position = file.LastPosition;
@@ -335,41 +346,31 @@ namespace IPBan
 
             if (lastNewlinePos > -1)
             {
-                // set file position ready for the next read right after the newline
+                // we could read line by line by going one byte at a time, but the hope here is that by taking
+                // advantage of stream reader and binary reader read bytes we can get some improved cpu usage
+                // at the expense of having to store all the bytes in memory for a small time
                 fs.Position = file.LastPosition;
-                bytes = new BinaryReader(fs).ReadBytes((int)(lastNewlinePos - fs.Position));
+                byte[] bytes = new BinaryReader(fs).ReadBytes((int)(lastNewlinePos - fs.Position));
 
-                // set position for next ping
-                file.LastPosition = lastNewlinePos + 1;
-
-                // read text and run regex to find ip addresses to ban
-                string subString = Encoding.UTF8.GetString(bytes);
-                string[] lines = subString.Split('\n');
-                bool foundOne = false;
-
-                // find ip and user name from all lines
-                foreach (string line in lines)
+                try
                 {
-                    string trimmedLine = line.Trim();
-                    IPBanLog.Debug("Parsing log file line {0}...", trimmedLine);
-                    IPAddressLogInfo info = IPBanService.GetIPAddressInfoFromRegex(dns, Regex, trimmedLine);
-                    if (info.FoundMatch)
+                    using (StreamReader reader = new StreamReader(new MemoryStream(bytes), Encoding.UTF8))
                     {
-                        info.Source = info.Source ?? Source;
-                        IPBanLog.Debug("Log file found match, ip: {0}, user: {1}, source: {2}, count: {3}", info.IPAddress, info.UserName, info.Source, info.Count);
-                        failedLogin.AddFailedLogin(info);
-                        foundOne = true;
-                    }
-                    else
-                    {
-                        IPBanLog.Debug("No match for line {0}", line);
+                        string line;
+                        while ((line = reader.ReadLine()) != null)
+                        {
+                            line = line.Trim();
+                            if (!OnProcessLine(line) || (ProcessLine != null && !ProcessLine(line)))
+                            {
+                                break;
+                            }
+                        }
                     }
                 }
-
-                if (foundOne)
+                finally
                 {
-                    // signal that we have found ip addresses
-                    ipEvent.Set();
+                    // set file position for next ping
+                    fs.Position = file.LastPosition = ++lastNewlinePos;
                 }
             }
 
