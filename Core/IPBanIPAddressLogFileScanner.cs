@@ -50,11 +50,19 @@ namespace IPBan
         /// <param name="pathAndMask">File path and mask (i.e. /var/log/auth*.log)</param>
         /// <param name="recursive">Whether to parse all sub directories of path and mask recursively</param>
         /// <param name="regex">Regex to parse file lines to pull out ipaddress and username</param>
-        /// <param name="maxFileSize">Max size of file before it is deleted or 0 for unlimited</param>
+        /// <param name="maxFileSizeBytes">Max size of file (in bytes) before it is deleted or 0 for unlimited</param>
         /// <param name="pingIntervalMilliseconds">Ping interval in milliseconds, less than 1 for manual ping required</param>
-        public IPBanIPAddressLogFileScanner(IFailedLogin failedLogin, IDnsLookup dns,
-            string source, string pathAndMask, bool recursive, string regex, long maxFileSize = 0, int pingIntervalMilliseconds = 0) :
-            base(pathAndMask, recursive, maxFileSize, pingIntervalMilliseconds)
+        public IPBanIPAddressLogFileScanner
+        (
+            IFailedLogin failedLogin,
+            IDnsLookup dns,
+            string source,
+            string pathAndMask,
+            bool recursive,
+            string regex,
+            long maxFileSizeBytes = 0,
+            int pingIntervalMilliseconds = 0
+        ) : base(pathAndMask, recursive, maxFileSizeBytes, pingIntervalMilliseconds)
         {
             failedLogin.ThrowIfNull(nameof(failedLogin));
             dns.ThrowIfNull(nameof(dns));

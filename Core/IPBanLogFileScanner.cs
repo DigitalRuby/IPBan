@@ -75,11 +75,11 @@ namespace IPBan
         /// </summary>
         /// <param name="pathAndMask">File path and mask (i.e. /var/log/auth*.log)</param>
         /// <param name="recursive">Whether to parse all sub directories of path and mask recursively</param>
-        /// <param name="maxFileSize">Max size of file before it is deleted or 0 for unlimited</param>
+        /// <param name="maxFileSizeBytes">Max size of file (in bytes) before it is deleted or 0 for unlimited</param>
         /// <param name="pingIntervalMilliseconds">Ping interval in milliseconds, less than 1 for manual ping required</param>
-        public IPBanLogFileScanner(string pathAndMask, bool recursive, long maxFileSize = 0, int pingIntervalMilliseconds = 0)
+        public IPBanLogFileScanner(string pathAndMask, bool recursive, long maxFileSizeBytes = 0, int pingIntervalMilliseconds = 0)
         {
-            this.maxFileSize = maxFileSize;
+            this.maxFileSize = maxFileSizeBytes;
             PathAndMask = pathAndMask;
             directoryToWatch = Path.GetDirectoryName(pathAndMask);
             fileMask = Path.GetFileName(pathAndMask);
