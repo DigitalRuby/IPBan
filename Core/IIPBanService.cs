@@ -44,9 +44,21 @@ namespace IPBan
     }
 
     /// <summary>
+    /// Unban ip addresses interface
+    /// </summary>
+    public interface IUnblockIPAddresses
+    {
+        /// <summary>
+        /// Unban ip addresses
+        /// </summary>
+        /// <param name="ipAddresses">IP addresses to unban</param>
+        void UnblockIPAddresses(IEnumerable<string> ipAddresses);
+    }
+
+    /// <summary>
     /// IPBan service interface
     /// </summary>
-    public interface IIPBanService : IFailedLogin, IDisposable
+    public interface IIPBanService : IFailedLogin, IUnblockIPAddresses, IDisposable
     {
         /// <summary>
         /// Manually run regular processing - useful if testing

@@ -10,6 +10,14 @@ IPBan Service
 - Supported platforms: Windows (x86, x64), Linux (x64).
 - Mac OS X not supported at this time.
 
+**Features**
+- Auto ban ip addresses on Windows and Linux by detecting failed logins from event viewer and/or log files (SSH, FTP, SMTP, etc.)
+- Highly configurable, many options to determine failed loging count threshold, time to ban, etc.
+- Banning happens basically instantly for event viewer. For log files, you can set how often it polls for changes.
+- Very fast - I've optimized and tuned this code since 2012. The bottleneck is pretty much always the firewall implementation, not this code.
+- Unban ip addresses easily by placing an unban.txt file into the service folder with each ip address on a line to unban.
+- See the app.config file for a complete list of options, each property is well documented. There are lots of them.
+
 **Instructions**
 
 - Official download link is https://www.digitalruby.com/download/ipban-software-download/.

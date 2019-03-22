@@ -104,6 +104,11 @@ namespace IPBan
         {
             throw new NotImplementedException();
         }
+
+        public void UnblockIPAddresses(IEnumerable<string> ipAddresses)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
 

@@ -720,5 +720,54 @@ recreateRule:
                 }
             }
         }
+
+        public void UnblockIPAddresses(IEnumerable<string> ipAddresses)
+        {
+            try
+            {
+                lock (policy)
+                {
+                    for (int i = 0; ; i += MaxIpAddressesPerRule)
+                    {
+                        string ruleName = RulePrefix + i.ToString(CultureInfo.InvariantCulture);
+                        try
+                        {
+                            INetFwRule rule = policy.Rules.Item(ruleName);
+                            if (rule == null)
+                            {
+                                // no more rules to check
+                                break;
+                            }
+                            string remoteIPs = rule.RemoteAddresses;
+                            foreach (string ipAddress in ipAddresses)
+                            {
+                                remoteIPs = Regex.Replace(remoteIPs, ipAddress.Replace(".", "\\.") + "\\/[^,]+,?", ",", RegexOptions.IgnoreCase);
+                                remoteIPs = remoteIPs.Replace(",,", ",");
+                                remoteIPs = remoteIPs.Trim().Trim(',');
+                            }
+
+                            // ensure we don't have a block rule with no ip addresses, this will block the entire world (WTF Microsoft)...
+                            if (string.IsNullOrWhiteSpace(remoteIPs))
+                            {
+                                policy.Rules.Remove(rule.Name);
+                            }
+                            else
+                            {
+                                rule.RemoteAddresses = remoteIPs;
+                            }
+                        }
+                        catch
+                        {
+                            // no more rules to check
+                            break;
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                IPBanLog.Error(ex);
+            }
+        }
     }
 }

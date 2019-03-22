@@ -32,7 +32,7 @@ using System.Threading.Tasks;
 
 namespace IPBan
 {
-    public interface IIPBanFirewall
+    public interface IIPBanFirewall : IUnblockIPAddresses
     {
         /// <summary>
         /// Ensure the firewall is initialized

@@ -310,7 +310,7 @@ namespace IPBan
             }
             else
             {
-                // TODO: Is there a way to move to a file that exists?
+                // TODO: Is there an easier way to move to a file that exists?
                 if (File.Exists(ipFile))
                 {
                     DeleteFile(ipFile);
@@ -393,6 +393,22 @@ namespace IPBan
             {
                 IPBanLog.Error(ex);
                 return Task.FromResult(false);
+            }
+        }
+
+        public void UnblockIPAddresses(IEnumerable<string> ipAddresses)
+        {
+            bool changed = false;
+            foreach (string ipAddress in ipAddresses)
+            {
+                if (!string.IsNullOrWhiteSpace(ipAddress) && RunProcess("ipset", false, $"del {blockRuleName} {ipAddress} -exist") == 0)
+                {
+                    changed = true;
+                }
+            }
+            if (changed)
+            {
+                RunProcess("ipset", true, $"save {blockRuleName} > \"{GetSetFileName(blockRuleName)}\"");
             }
         }
 

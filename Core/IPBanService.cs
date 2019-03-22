@@ -1012,6 +1012,7 @@ namespace IPBan
             }
 
             IsRunning = true;
+            AddUpdater(new IPBanUnblockIPAddressesUpdater(this, Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "unban.txt")));
             AssemblyVersion = IPBanService.GetIPBanAssembly().GetName().Version.ToString();
             ReadAppSettings();
             LoadFirewall();
@@ -1035,6 +1036,21 @@ namespace IPBan
         public void Stop()
         {
             Dispose();
+        }
+
+        /// <summary>
+        /// Unban ip addresses
+        /// </summary>
+        /// <param name="ipAddresses">IP addresses to unban</param>
+        public void UnblockIPAddresses(IEnumerable<string> ipAddresses)
+        {
+            // remove ip from firewall
+            Firewall.UnblockIPAddresses(ipAddresses);
+
+            // remove ip from database
+            DB.DeleteIPAddresses(ipAddresses);
+
+            // ip addresses are now unbanned
         }
 
         /// <summary>
@@ -1282,6 +1298,11 @@ namespace IPBan
         /// IPBan database
         /// </summary>
         public IPBanDB DB { get { return ipDB; } }
+
+        /// <summary>
+        /// File name to write ip addresses to (one per line) to unblock the ip addresses in the file
+        /// </summary>
+        public string UnblockIPAddressesFileName { get; } = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "unban.txt");
     }
 
     /// <summary>
