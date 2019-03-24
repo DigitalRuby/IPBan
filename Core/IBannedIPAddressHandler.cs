@@ -25,6 +25,11 @@ namespace IPBan
         /// <returns>Task</returns>
         System.Threading.Tasks.Task HandleBannedIPAddress(string ipAddress, string source, string userName,
             string osName, string osVersion, string assemblyVersion, IHttpRequestMaker requestMaker);
+
+        /// <summary>
+        /// Base url for any http requests that need to be made
+        /// </summary>
+        string BaseUrl { get; set; }
     }
 
     /// <summary>
@@ -35,7 +40,7 @@ namespace IPBan
         /// <summary>
         /// Base url
         /// </summary>
-        public static string BaseUrl { get; set; } = "https://api.ipban.com";
+        public string BaseUrl { get; set; } = "https://api.ipban.com";
 
         /// <inheritdoc />
         public Task HandleBannedIPAddress(string ipAddress, string source, string userName, string osName, string osVersion, string assemblyVersion, IHttpRequestMaker requestMaker)

@@ -1173,8 +1173,8 @@ namespace IPBan
             service.MultiThreaded = false;
             service.ManualCycle = true;
             service.BannedIPAddressHandler = null; // no external ip handling
-            service.DB.Truncate(true);
             service.Start();
+            service.DB.Truncate(true);
             service.Firewall.BlockIPAddresses(new string[0]).Sync();
             return service;
         }
