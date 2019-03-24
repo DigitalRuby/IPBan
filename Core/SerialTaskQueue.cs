@@ -133,14 +133,16 @@ namespace IPBan
                                 {
                                     break;
                                 }
-                                catch
+                                catch (Exception ex)
                                 {
+                                    IPBanLog.Info(ex.ToString());
                                 }
                             }
                         }
                     }
-                    catch
+                    catch (Exception ex)
                     {
+                        IPBanLog.Info(ex.ToString());
                     }
                     Dispose();
                 });

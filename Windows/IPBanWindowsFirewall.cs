@@ -743,7 +743,7 @@ recreateRule:
                             {
                                 remoteIPs = Regex.Replace(remoteIPs, ipAddress.Replace(".", "\\.") + "\\/[^,]+,?", ",", RegexOptions.IgnoreCase);
                                 remoteIPs = remoteIPs.Replace(",,", ",");
-                                remoteIPs = remoteIPs.Trim().Trim(',');
+                                remoteIPs = remoteIPs.Trim().Trim(',', '/', ':', '.', ';', '*').Trim();
                             }
 
                             // ensure we don't have a block rule with no ip addresses, this will block the entire world (WTF Microsoft)...

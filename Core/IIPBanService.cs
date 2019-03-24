@@ -174,6 +174,11 @@ namespace IPBan
         /// Operating system version
         /// </summary>
         string OSVersion { get; }
+
+        /// <summary>
+        /// Whether the service is multi-threaded
+        /// </summary>
+        bool MultiThreaded { get; }
     }
 
     /// <summary>

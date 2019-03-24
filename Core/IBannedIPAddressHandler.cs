@@ -52,7 +52,7 @@ namespace IPBan
 
             try
             {
-                if (System.Diagnostics.Debugger.IsAttached || !System.Net.IPAddress.TryParse(ipAddress, out System.Net.IPAddress ipAddressObj) || ipAddressObj.IsInternal())
+                if (!System.Net.IPAddress.TryParse(ipAddress, out System.Net.IPAddress ipAddressObj) || ipAddressObj.IsInternal())
                 {
                     return Task.CompletedTask;
                 }
