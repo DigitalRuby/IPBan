@@ -211,6 +211,11 @@ namespace IPBan
 
         private string GetEventLogQueryString(List<string> ignored)
         {
+            if (service.Config == null)
+            {
+                return null;
+            }
+
             int id = 0;
             string queryString = "<QueryList>";
             HashSet<string> logNames = new HashSet<string>(System.Diagnostics.Eventing.Reader.EventLogSession.GlobalSession.GetLogNames());

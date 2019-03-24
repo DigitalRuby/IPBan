@@ -116,7 +116,14 @@ namespace IPBan
                 client.UseDefaultCredentials = true;
                 client.Headers["User-Agent"] = versionAssembly.GetName().Name;
                 client.Proxy = Proxy ?? client.Proxy;
-                client.CachePolicy = CachePolicy ?? client.CachePolicy;
+                if (DisableLiveRequests)
+                {
+                    client.Headers["Cache-Control"] = "no-cache";
+                }
+                else
+                {
+                    client.CachePolicy = (CachePolicy ?? client.CachePolicy);
+                }
                 if (headers != null)
                 {
                     foreach (KeyValuePair<string, object> header in headers)
