@@ -153,12 +153,12 @@ namespace IPBan
         /// <summary>
         /// External ip address lookup
         /// </summary>
-        ILocalMachineExternalIPAddressLookup ExternalIPAddressLookup { get; }
+        ILocalMachineExternalIPAddressLookup ExternalIPAddressLookup { get; set; }
 
         /// <summary>
         /// Extra handle for banned ip addresses
         /// </summary>
-        IBannedIPAddressHandler BannedIPAddressHandler { get; }
+        IBannedIPAddressHandler BannedIPAddressHandler { get; set; }
 
         /// <summary>
         /// Serial task queue
@@ -207,10 +207,11 @@ namespace IPBan
         /// Notify when an ip is banned
         /// </summary>
         /// <param name="ip">IP address</param>
+        /// <param name="source">Source</param>
         /// <param name="userName">User name</param>
         /// <param name="banned">True if banned, false if unbanned</param>
         /// <returns>Task</returns>
-        Task IPAddressBanned(string ip, string userName, bool banned);
+        Task IPAddressBanned(string ip, string source, string userName, bool banned);
 
         /// <summary>
         /// Notify when a login attempt fails

@@ -57,13 +57,17 @@ namespace IPBan
             Config
         }
 
-        private class FailedLogin
+        private class BannedIPAddress
         {
             public string IPAddress { get; set; }
+            public string Source { get; set; }
             public string UserName { get; set; }
+        }
+
+        private class FailedLogin : BannedIPAddress
+        {
             public DateTime DateTime { get; set; }
             public int Count { get; set; }
-            public string Source { get; set; }
         }
 
         private System.Timers.Timer cycleTimer;
@@ -241,7 +245,7 @@ namespace IPBan
 
         private void ProcessPendingFailedLogins(IEnumerable<FailedLogin> ipAddresses)
         {
-            List<KeyValuePair<string, string>> bannedIpAddresses = new List<KeyValuePair<string, string>>();
+            List<BannedIPAddress> bannedIpAddresses = new List<BannedIPAddress>();
             foreach (FailedLogin failedLogin in ipAddresses)
             {
                 try
@@ -325,10 +329,10 @@ namespace IPBan
             }
         }
 
-        private void AddBannedIPAddress(string ipAddress, string source, string userName, List<KeyValuePair<string, string>> bannedIpAddresses,
+        private void AddBannedIPAddress(string ipAddress, string source, string userName, List<BannedIPAddress> bannedIpAddresses,
             DateTime dateTime, bool configBlacklisted, int counter, string extraInfo)
         {
-            bannedIpAddresses.Add(new KeyValuePair<string, string>(ipAddress, userName));
+            bannedIpAddresses.Add(new BannedIPAddress { IPAddress = ipAddress, Source = source, UserName = userName });
             ipDB.SetBanDate(ipAddress, dateTime);
             firewallNeedsBlockedIPAddressesUpdate = true;
             IPBanLog.Warn("Banning ip address: {0}, user name: {1}, config black listed: {2}, count: {3}, extra info: {4}",
@@ -340,7 +344,7 @@ namespace IPBan
             }
         }
 
-        private void ProcessBannedIPAddresses(IEnumerable<KeyValuePair<string, string>> bannedIPAddresses)
+        private void ProcessBannedIPAddresses(IEnumerable<BannedIPAddress> bannedIPAddresses)
         {
             // kick off external process and delegate notification in another thread
             string programToRunConfigString = (Config.ProcessToRunOnBan ?? string.Empty).Trim();
@@ -358,7 +362,9 @@ namespace IPBan
                             {
                                 string program = pieces[0];
                                 string arguments = pieces[1];
-                                Process.Start(program, arguments.Replace("###IPADDRESS###", bannedIp.Key).Replace("###USERNAME###", bannedIp.Value));
+                                Process.Start(program, arguments.Replace("###IPADDRESS###", bannedIp.IPAddress)
+                                    .Replace("###SOURCE###", bannedIp.Source)
+                                    .Replace("###USERNAME###", bannedIp.UserName));
                             }
                             else
                             {
@@ -372,7 +378,7 @@ namespace IPBan
                     }
                     try
                     {
-                        IPBanDelegate?.IPAddressBanned(bannedIp.Key, bannedIp.Value, true);
+                        IPBanDelegate?.IPAddressBanned(bannedIp.IPAddress, bannedIp.Source, bannedIp.UserName, true);
                     }
                     catch (Exception ex)
                     {
@@ -457,7 +463,7 @@ namespace IPBan
                 // notify delegate of ip addresses to unban
                 foreach (string ip in ipAddressesToUnBan)
                 {
-                    IPBanDelegate.IPAddressBanned(ip, null, false);
+                    IPBanDelegate.IPAddressBanned(ip, null, null, false);
                 }
             }
 
@@ -1062,7 +1068,7 @@ namespace IPBan
         {
             Assembly a = IPBanService.GetIPBanAssembly();
             return url.Replace("###IPADDRESS###", LocalIPAddressString.UrlEncode())
-                .Replace("###REMOTE_IPADDRESS###", RemoteIPAddressString.UrlEncode())
+                .Replace("###REMOTEIPADDRESS###", RemoteIPAddressString.UrlEncode())
                 .Replace("###MACHINENAME###", FQDN.UrlEncode())
                 .Replace("###VERSION###", a.GetName().Version.ToString().UrlEncode())
                 .Replace("###GUID###", MachineGuid.UrlEncode())
