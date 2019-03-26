@@ -37,7 +37,10 @@ namespace IPBan
         public string Source { get; set; }
         public string PathAndMask { get; set; }
         public bool Recursive { get; set; }
-        public string Regex { get; set; }
+
+        [XmlElement("Regex")]
+        public IPAddressLogFileScannerRegex[] Regex { get; set; }
+
         public string PlatformRegex { get; set; }
         public int PingInterval { get; set; } = 10000;
         public int MaxFileSize { get; set; }
@@ -75,7 +78,10 @@ namespace IPBan
                 {
                     foreach (LogFileToParse file in expressions.LogFiles)
                     {
-                        file.Regex = file.Regex.Trim();
+                        foreach (IPAddressLogFileScannerRegex regex in file.Regex)
+                        {
+                            regex.Regex = regex.Regex.Trim();
+                        }
                     }
                 }
                 return expressions;

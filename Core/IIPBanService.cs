@@ -32,15 +32,15 @@ using System.Threading.Tasks;
 namespace IPBan
 {
     /// <summary>
-    /// Failed login interface
+    /// Login event interface
     /// </summary>
-    public interface IFailedLogin
+    public interface IIPAddressEventHandler
     {
         /// <summary>
-        /// Add a failed login
+        /// Handle an ip address event
         /// </summary>
-        /// <param name="info">IP address log info</param>
-        void AddFailedLogin(IPAddressLogInfo info);
+        /// <param name="info">IP address event info</param>
+        void HandleIPAddressEvent(IPAddressEvent info);
     }
 
     /// <summary>
@@ -58,7 +58,7 @@ namespace IPBan
     /// <summary>
     /// IPBan service interface
     /// </summary>
-    public interface IIPBanService : IFailedLogin, IUnblockIPAddresses, IDisposable
+    public interface IIPBanService : IIPAddressEventHandler, IUnblockIPAddresses, IDisposable
     {
         /// <summary>
         /// Manually run regular processing - useful if testing
@@ -156,9 +156,14 @@ namespace IPBan
         ILocalMachineExternalIPAddressLookup ExternalIPAddressLookup { get; set; }
 
         /// <summary>
-        /// Extra handle for banned ip addresses
+        /// Extra handler for banned ip addresses
         /// </summary>
         IBannedIPAddressHandler BannedIPAddressHandler { get; set; }
+
+        /// <summary>
+        /// Delegate for extra handling
+        /// </summary>
+        IIPBanDelegate IPBanDelegate { get; }
 
         /// <summary>
         /// Serial task queue

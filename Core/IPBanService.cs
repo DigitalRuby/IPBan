@@ -780,7 +780,7 @@ namespace IPBan
         /// Add an ip address to be checked for banning later
         /// </summary>
         /// <param name="info">IP address log info</param>
-        public void AddFailedLogin(IPAddressLogInfo info)
+        public void HandleIPAddressEvent(IPAddressEvent info)
         {
             if (!IPBanFirewallUtility.TryGetFirewallIPAddress(info.IPAddress, out string normalizedIPAddress))
             {
@@ -789,38 +789,46 @@ namespace IPBan
 
             info.Source = (info.Source ?? "?");
             info.UserName = (info.UserName ?? string.Empty);
-            lock (pendingFailedLogins)
+            if (!info.Success)
             {
-                FailedLogin existing = pendingFailedLogins.FirstOrDefault(p => p.IPAddress == normalizedIPAddress && (p.UserName == null || p.UserName == info.UserName));
-                if (existing == null)
+                lock (pendingFailedLogins)
                 {
-                    existing = new FailedLogin
+                    FailedLogin existing = pendingFailedLogins.FirstOrDefault(p => p.IPAddress == normalizedIPAddress && (p.UserName == null || p.UserName == info.UserName));
+                    if (existing == null)
                     {
-                        IPAddress = normalizedIPAddress,
-                        Source = info.Source,
-                        UserName = info.UserName,
-                        DateTime = UtcNow,
-                        Count = info.Count
-                    };
-                    pendingFailedLogins.Add(existing);
-                }
-                else
-                {
-                    existing.UserName = (existing.UserName ?? info.UserName);
-
-                    // if more than n seconds has passed, increment the counter
-                    // we don't want to count multiple event logs that all map to the same ip address from one failed
-                    // attempt to count multiple times
-                    if ((UtcNow - existing.DateTime) >= Config.MinimumTimeBetweenFailedLoginAttempts)
-                    {
-                        existing.DateTime = UtcNow;
-                        existing.Count += info.Count;
+                        existing = new FailedLogin
+                        {
+                            IPAddress = normalizedIPAddress,
+                            Source = info.Source,
+                            UserName = info.UserName,
+                            DateTime = UtcNow,
+                            Count = info.Count
+                        };
+                        pendingFailedLogins.Add(existing);
                     }
                     else
                     {
-                        IPBanLog.Info("Ignoring failed login from {0}, min time between failed logins has not elapsed", existing.IPAddress);
+                        existing.UserName = (existing.UserName ?? info.UserName);
+
+                        // if more than n seconds has passed, increment the counter
+                        // we don't want to count multiple event logs that all map to the same ip address from one failed
+                        // attempt to count multiple times
+                        if ((UtcNow - existing.DateTime) >= Config.MinimumTimeBetweenFailedLoginAttempts)
+                        {
+                            existing.DateTime = UtcNow;
+                            existing.Count += info.Count;
+                        }
+                        else
+                        {
+                            IPBanLog.Info("Ignoring failed login from {0}, min time between failed logins has not elapsed", existing.IPAddress);
+                        }
                     }
                 }
+            }
+            else
+            {
+                // pass the success login on
+                IPBanDelegate?.LoginAttemptSucceeded(info.IPAddress, info.Source, info.UserName).ConfigureAwait(false).GetAwaiter();
             }
         }
 
@@ -833,7 +841,7 @@ namespace IPBan
         /// <param name="ipAddress">Found ip address or null if none</param>
         /// <param name="userName">Found user name or null if none</param>
         /// <returns>True if a regex match was found, false otherwise</returns>
-        public static IPAddressLogInfo GetIPAddressInfoFromRegex(IDnsLookup dns, Regex regex, string text)
+        public static IPAddressEvent GetIPAddressInfoFromRegex(IDnsLookup dns, Regex regex, string text)
         {
             bool foundMatch = false;
             string userName = null;
@@ -916,7 +924,7 @@ namespace IPBan
                 }
             }
 
-            return new IPAddressLogInfo(foundMatch, ipAddress, userName, source, repeatCount);
+            return new IPAddressEvent(foundMatch, ipAddress, userName, source, repeatCount);
         }
 
         /// <summary>
@@ -1314,12 +1322,12 @@ namespace IPBan
     /// <summary>
     /// Information about an ip address from a log entry
     /// </summary>
-    public class IPAddressLogInfo
+    public class IPAddressEvent
     {
         /// <summary>
         /// Default constructor
         /// </summary>
-        public IPAddressLogInfo() { } 
+        public IPAddressEvent() { } 
 
         /// <summary>
         /// Constructor
@@ -1329,13 +1337,15 @@ namespace IPBan
         /// <param name="userName">User name</param>
         /// <param name="source">Source</param>
         /// <param name="count">How many messages were aggregated, 1 for no aggregation</param>
-        public IPAddressLogInfo(bool foundMatch, string ipAddress, string userName, string source, int count)
+        /// <param name="success">False for a failed login, true for a success login</param>
+        public IPAddressEvent(bool foundMatch, string ipAddress, string userName, string source, int count, bool success = false)
         {
             FoundMatch = foundMatch;
             IPAddress = ipAddress;
             UserName = userName;
             Source = source;
             Count = count;
+            Success = success;
         }
 
         /// <summary>
@@ -1362,6 +1372,11 @@ namespace IPBan
         /// How many messages were aggregated, 1 for no aggregation
         /// </summary>
         public int Count { get; set; }
+
+        /// <summary>
+        /// False for a failed login, true for a success login
+        /// </summary>
+        public bool Success { get; set; }
     }
 
     /// <summary>

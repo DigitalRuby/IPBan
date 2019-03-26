@@ -48,7 +48,8 @@ namespace IPBan
     public class IPBanConfig
     {
         private readonly Dictionary<string, string> appSettings = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-        private ExpressionsToBlock expressions;
+        private EventViewerExpressionsToBlock expressionsFailure;
+        private EventViewerExpressionsToNotify expressionsSuccess;
         private Regex whiteListRegex;
         private Regex blackListRegex;
 
@@ -104,12 +105,24 @@ namespace IPBan
             PopulateList(blackList, ref blackListRegex, blacklistString, blacklistRegexString);
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                expressions = new XmlSerializer(typeof(ExpressionsToBlock)).Deserialize(new XmlNodeReader(doc.SelectSingleNode("//ExpressionsToBlock"))) as ExpressionsToBlock;
-                if (expressions != null)
+                expressionsFailure = new XmlSerializer(typeof(EventViewerExpressionsToBlock)).Deserialize(new XmlNodeReader(doc.SelectSingleNode("//ExpressionsToBlock"))) as EventViewerExpressionsToBlock;
+                if (expressionsFailure != null)
                 {
-                    foreach (ExpressionsToBlockGroup group in expressions.Groups)
+                    foreach (EventViewerExpressionGroup group in expressionsFailure.Groups)
                     {
-                        foreach (ExpressionToBlock expression in group.Expressions)
+                        foreach (EventViewerExpression expression in group.Expressions)
+                        {
+                            expression.Regex = (expression.Regex ?? string.Empty).Trim();
+                        }
+                    }
+                }
+                expressionsSuccess = new XmlSerializer(typeof(EventViewerExpressionsToNotify)).Deserialize(new XmlNodeReader(doc.SelectSingleNode("//ExpressionsToNotify"))) as EventViewerExpressionsToNotify;
+                if (expressionsSuccess != null)
+                {
+                    foreach (EventViewerExpressionGroup group in expressionsSuccess.Groups)
+                    {
+                        group.NotifyOnly = true;
+                        foreach (EventViewerExpression expression in group.Expressions)
                         {
                             expression.Regex = (expression.Regex ?? string.Empty).Trim();
                         }
@@ -118,7 +131,8 @@ namespace IPBan
             }
             else
             {
-                expressions = new ExpressionsToBlock { Groups = new ExpressionsToBlockGroup[0] };
+                expressionsFailure = new EventViewerExpressionsToBlock { Groups = new EventViewerExpressionGroup[0] };
+                expressionsSuccess = new EventViewerExpressionsToNotify { Groups = new EventViewerExpressionGroup[0] };
             }
             try
             {
@@ -366,9 +380,10 @@ namespace IPBan
         /// </summary>
         /// <param name="keywords">Keywords</param>
         /// <returns>Groups that match</returns>
-        public IEnumerable<ExpressionsToBlockGroup> WindowsEventViewerGetGroupsMatchingKeywords(ulong keywords)
+        public IEnumerable<EventViewerExpressionGroup> WindowsEventViewerGetGroupsMatchingKeywords(ulong keywords)
         {
-            return WindowsEventViewerExpressionsToBlock.Groups.Where(g => (g.KeywordsULONG == keywords));
+            return WindowsEventViewerExpressionsToBlock.Groups.Where(g => (g.KeywordsULONG == keywords))
+                .Union(expressionsSuccess.Groups.Where(g => (g.KeywordsULONG == keywords)));
         }
 
         /// <summary>
@@ -404,8 +419,8 @@ namespace IPBan
         /// <summary>
         /// Event viewer expressions to block (Windows only)
         /// </summary>
-        public ExpressionsToBlock WindowsEventViewerExpressionsToBlock { get { return expressions; } }
-
+        public EventViewerExpressionsToBlock WindowsEventViewerExpressionsToBlock { get { return expressionsFailure; } }
+        
         /// <summary>
         /// Log files to parse
         /// </summary>

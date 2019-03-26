@@ -65,7 +65,7 @@ namespace IPBan
             }
         }
 
-        private bool AddFailedLoginForEventViewerXml(IPAddressLogInfo info, XmlDocument doc)
+        private bool AddFailedLoginForEventViewerXml(IPAddressEvent info, XmlDocument doc)
         {
             if (string.IsNullOrWhiteSpace(info.IPAddress))
             {
@@ -92,12 +92,12 @@ namespace IPBan
                 }
             }
 
-            service.AddFailedLogin(info);
+            service.HandleIPAddressEvent(info);
 
             return true;
         }
 
-        private IPAddressLogInfo ExtractEventViewerXml(XmlDocument doc)
+        private IPAddressEvent ExtractEventViewerXml(XmlDocument doc)
         {
             XmlNode keywordsNode = doc.SelectSingleNode("//Keywords");
             string keywordsText = keywordsNode.InnerText;
@@ -106,14 +106,15 @@ namespace IPBan
                 keywordsText = keywordsText.Substring(2);
             }
             ulong keywordsULONG = ulong.Parse(keywordsText, NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture);
-            IPAddressLogInfo info = null;
+            IPAddressEvent info = null;
+            bool foundNotifyOnly = false;
 
             if (keywordsNode != null)
             {
                 // we must match on keywords
-                foreach (ExpressionsToBlockGroup group in service.Config.WindowsEventViewerGetGroupsMatchingKeywords(keywordsULONG))
+                foreach (EventViewerExpressionGroup group in service.Config.WindowsEventViewerGetGroupsMatchingKeywords(keywordsULONG))
                 {
-                    foreach (ExpressionToBlock expression in group.Expressions)
+                    foreach (EventViewerExpression expression in group.Expressions)
                     {
                         // find all the nodes, try and get an ip from any of them, all must match
                         XmlNodeList nodes = doc.SelectNodes(expression.XPath);
@@ -142,6 +143,14 @@ namespace IPBan
                                 info = IPBanService.GetIPAddressInfoFromRegex(service.DnsLookup, expression.RegexObject, node.InnerText);
                                 if (info.FoundMatch)
                                 {
+                                    if (group.NotifyOnly)
+                                    {
+                                        foundNotifyOnly = true;
+                                    }
+                                    else if (foundNotifyOnly)
+                                    {
+                                        throw new InvalidDataException("Conflicting expressions in event viewer, both failed and success logins matched keywords " + group.Keywords);
+                                    }
                                     break;
                                 }
                             }
@@ -151,6 +160,7 @@ namespace IPBan
                                 // match fail, null out ip, we have to match ALL the nodes or we get null ip and do not ban
                                 IPBanLog.Info("Regex {0} did not match any nodes with xpath {1}", expression.Regex, expression.XPath);
                                 info = null;
+                                foundNotifyOnly = false;
                                 break;
                             }
                         }
@@ -165,6 +175,10 @@ namespace IPBan
                 }
             }
 
+            if (info != null)
+            {
+                info.Success = foundNotifyOnly;
+            }
             return info;
         }
 
@@ -219,7 +233,7 @@ namespace IPBan
             int id = 0;
             string queryString = "<QueryList>";
             HashSet<string> logNames = new HashSet<string>(System.Diagnostics.Eventing.Reader.EventLogSession.GlobalSession.GetLogNames());
-            foreach (ExpressionsToBlockGroup group in service.Config.WindowsEventViewerExpressionsToBlock.Groups)
+            foreach (EventViewerExpressionGroup group in service.Config.WindowsEventViewerExpressionsToBlock.Groups)
             {
                 if (!logNames.Contains(group.Path) ||
                     (Environment.OSVersion.Version.Major < group.MinimumWindowsMajorVersion ||
@@ -274,9 +288,21 @@ namespace IPBan
             IPBanLog.Info("Processing event viewer xml: {0}", xml);
 
             XmlDocument doc = ParseXml(xml);
-            IPAddressLogInfo info = ExtractEventViewerXml(doc);
-            if (info != null && info.FoundMatch && AddFailedLoginForEventViewerXml(info, doc))
+            IPAddressEvent info = ExtractEventViewerXml(doc);
+            if (info != null && info.FoundMatch)
             {
+                if (!info.Success)
+                {
+                    // if fail to add the failed login (bad ip, etc.) exit out
+                    if (!AddFailedLoginForEventViewerXml(info, doc))
+                    {
+                        return;
+                    }
+                }
+                else
+                {
+                    service.IPBanDelegate?.LoginAttemptSucceeded(info.IPAddress, info.Source, info.UserName).ConfigureAwait(false).GetAwaiter();
+                }
                 IPBanLog.Info("Event viewer found: {0}, {1}, {2}", info.IPAddress, info.Source, info.UserName);
             }
         }

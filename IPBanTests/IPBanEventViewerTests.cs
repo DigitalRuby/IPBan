@@ -1,4 +1,29 @@
+/*
+MIT License
+
+Copyright (c) 2019 Digital Ruby, LLC - https://www.digitalruby.com
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+*/
+
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -10,14 +35,17 @@ using NUnit.Framework;
 namespace IPBanTests
 {
     [TestFixture]
-    public class IPBanEventViewerTests
+    public class IPBanEventViewerTests : IIPBanDelegate
     {
+        private readonly Dictionary<string, int> events = new Dictionary<string, int>();
+
         private IPBanService service;
 
         [SetUp]
         public void Setup()
         {
             service = IPBanService.CreateAndStartIPBanTestService<IPBanService>();
+            service.IPBanDelegate = this;
             service.Firewall.BlockIPAddresses(new string[0]);
         }
 
@@ -28,6 +56,7 @@ namespace IPBanTests
             service.Stop();
             service.Dispose();
             service = null;
+            events.Clear();
         }
 
         /*
@@ -66,7 +95,8 @@ namespace IPBanTests
                 @"<Event xmlns='http://schemas.microsoft.com/win/2004/08/events/event'><System><Provider Name='MSSQLSERVER' /><EventID Qualifiers='49152'>18456</EventID><Level>0</Level><Task>4</Task><Keywords>0x90000000000000</Keywords><TimeCreated SystemTime='2015-09-10T14:20:42.000000000Z' /><EventRecordID>4439286</EventRecordID><Channel>Application</Channel><Computer>DSVR018379</Computer><Security /></System><EventData><Data>sa</Data><Data>Reason: Password did not match that for the login provided.</Data><Data>[CLIENT: 222.186.61.16]</Data><Binary>184800000E0000000B00000044005300560052003000310038003300370039000000070000006D00610073007400650072000000</Binary></EventData></Event>",
                 @"<Event xmlns='http://schemas.microsoft.com/win/2004/08/events/event'><System><Provider Name='Microsoft-Windows-Security-Auditing' Guid='{54849625-5478-4994-A5BA-3E3B0328C30D}' /><EventID>4625</EventID><Version>0</Version><Level>0</Level><Task>12544</Task><Opcode>0</Opcode><Keywords>0x8010000000000000</Keywords><TimeCreated SystemTime='2017-08-09T11:06:11.486303500Z' /><EventRecordID>17925</EventRecordID><Correlation ActivityID='{A7FB7D60-01E0-0000-877D-FBA7E001D301}' /><Execution ProcessID='648' ThreadID='972' /><Channel>Security</Channel><Computer>DESKTOP-N8QJFLU</Computer><Security /></System><EventData><Data Name='SubjectUserSid'>S-1-0-0</Data><Data Name='SubjectUserName'>-</Data><Data Name='SubjectDomainName'>-</Data><Data Name='SubjectLogonId'>0x0</Data><Data Name='TargetUserSid'>S-1-0-0</Data><Data Name='TargetUserName'>steven.powell</Data><Data Name='TargetDomainName'>VENOM</Data><Data Name='Status'>0xc000006d</Data><Data Name='FailureReason'>%%2313</Data><Data Name='SubStatus'>0xc0000064</Data><Data Name='LogonType'>3</Data><Data Name='LogonProcessName'>NtLmSsp</Data><Data Name='AuthenticationPackageName'>NTLM</Data><Data Name='WorkstationName'>SP-W7-PC</Data><Data Name='TransmittedServices'>-</Data><Data Name='LmPackageName'>-</Data><Data Name='KeyLength'>0</Data><Data Name='ProcessId'>0x0</Data><Data Name='ProcessName'>-</Data><Data Name='IpAddress'>37.191.115.2</Data><Data Name='IpPort'>0</Data></EventData></Event>",
                 @"<Event xmlns='http://schemas.microsoft.com/win/2004/08/events/event'><System><Provider Name='Microsoft-Windows-RemoteDesktopServices-RdpCoreTS' Guid='{1139C61B-B549-4251-8ED3-27250A1EDEC8}' /><EventID>140</EventID><Version>0</Version><Level>3</Level><Task>4</Task><Opcode>14</Opcode><Keywords>0x4000000000000000</Keywords><TimeCreated SystemTime='2016-11-13T11:52:25.314996400Z' /><EventRecordID>1683867</EventRecordID><Correlation ActivityID='{F4204608-FB58-4924-A3D9-B8A1B0870000}' /><Execution ProcessID='2920' ThreadID='4104' /><Channel>Microsoft-Windows-RemoteDesktopServices-RdpCoreTS/Operational</Channel><Computer>SERVER</Computer><Security UserID='S-1-5-20' /></System><EventData><Data Name='IPString'>1.2.3.4</Data></EventData></Event>",
-                @"<Event xmlns='http://schemas.microsoft.com/win/2004/08/events/event'><System><Provider Name='MSSQLSERVER' /><EventID Qualifiers='49152'>18456</EventID><Level>0</Level><Task>4</Task><Keywords>0x90000000000000</Keywords><TimeCreated SystemTime='2017-11-25T02:03:39.164598300Z' /><EventRecordID>19044</EventRecordID><Channel>Application</Channel><Computer>srv01</Computer><Security /></System><EventData><Data>sa</Data><Data>Raison : le mot de passe ne correspond pas à la connexion spécifiée.</Data><Data> [CLIENT : 196.65.47.84]</Data><Binary>184800000E0000000D00000053004500520056004500550052002D0043004F004E0047000000070000006D00610073007400650072000000</Binary></EventData></Event>"
+                @"<Event xmlns='http://schemas.microsoft.com/win/2004/08/events/event'><System><Provider Name='MSSQLSERVER' /><EventID Qualifiers='49152'>18456</EventID><Level>0</Level><Task>4</Task><Keywords>0x90000000000000</Keywords><TimeCreated SystemTime='2017-11-25T02:03:39.164598300Z' /><EventRecordID>19044</EventRecordID><Channel>Application</Channel><Computer>srv01</Computer><Security /></System><EventData><Data>sa</Data><Data>Raison : le mot de passe ne correspond pas à la connexion spécifiée.</Data><Data> [CLIENT : 196.65.47.84]</Data><Binary>184800000E0000000D00000053004500520056004500550052002D0043004F004E0047000000070000006D00610073007400650072000000</Binary></EventData></Event>",
+                @"<Event xmlns='http://schemas.microsoft.com/win/2004/08/events/event'><System><Provider Name='OpenSSH' Guid='{C4B57D35-0636-4BC3-A262-370F249F9802}' /><EventID>4</EventID><Version>0</Version><Level>4</Level><Task>0</Task><Opcode>0</Opcode><Keywords>0x4000000000000000</Keywords><TimeCreated SystemTime='2019-03-26T00:58:31.360472700Z' /><EventRecordID>247502</EventRecordID><Correlation /><Execution ProcessID='4944' ThreadID='6160' /><Channel>OpenSSH/Operational</Channel><Computer>ns524406</Computer><Security UserID='S-1-5-18' /></System><EventData><Data Name='process'>sshd</Data><Data Name='payload'>Accepted password for success_user from 88.88.88.88 port 12345 ssh2 </Data></EventData></Event>"
             };
 
             for (int i = 0; i < 5; i++)
@@ -102,6 +132,65 @@ namespace IPBanTests
             Array.Sort(expected);
             Assert.AreEqual(expected.Length, blockedIPAddresses.Length);
             Assert.AreEqual(expected, blockedIPAddresses);
+            Assert.AreEqual(1, events.Count);
+            Assert.AreEqual(5, events["88.88.88.88_SSH_success_user"]);
+        }
+
+        void IDisposable.Dispose()
+        {
+        }
+
+        IEnumerable<string> IIPBanDelegate.EnumerateBlackList()
+        {
+            return new string[0];
+        }
+
+        IEnumerable<string> IIPBanDelegate.EnumerateWhiteList()
+        {
+            return new string[0];
+        }
+
+        Task IIPBanDelegate.IPAddressBanned(string ip, string source, string userName, bool banned)
+        {
+            return Task.CompletedTask;
+        }
+
+        bool IIPBanDelegate.IsIPAddressBlacklisted(string ipAddress)
+        {
+            return false;
+        }
+
+        bool IIPBanDelegate.IsIPAddressWhitelisted(string ipAddress)
+        {
+            return false;
+        }
+
+        Task<LoginFailedResult> IIPBanDelegate.LoginAttemptFailed(string ip, string source, string userName)
+        {
+            return Task.FromResult(LoginFailedResult.None);
+        }
+
+        Task IIPBanDelegate.LoginAttemptSucceeded(string ip, string source, string userName)
+        {
+            string key = ip + "_" + (source?.ToString()) + "_" + (userName?.ToString());
+            events.TryGetValue(key, out int count);
+            events[key] = ++count;
+            return Task.CompletedTask;
+        }
+
+        void IIPBanDelegate.Start(IIPBanService service)
+        {
+            
+        }
+
+        void IIPBanDelegate.Stop()
+        {
+            
+        }
+
+        bool IIPBanDelegate.Update()
+        {
+            return true;
         }
 
         /*

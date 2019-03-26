@@ -42,7 +42,7 @@ namespace IPBan
     /// <summary>
     /// Info about a single Windows event viewer lookup
     /// </summary>
-    public class ExpressionToBlock
+    public class EventViewerExpression
     {
         /// <summary>
         /// The regex, created from Regex property
@@ -72,7 +72,7 @@ namespace IPBan
     /// <summary>
     /// A single Windows event viewer group
     /// </summary>
-    public class ExpressionsToBlockGroup
+    public class EventViewerExpressionGroup
     {
         /// <summary>
         /// The event viewer source
@@ -94,6 +94,11 @@ namespace IPBan
         /// Minimum Windows minor version - see https://msdn.microsoft.com/en-us/library/windows/desktop/ms724832%28v=vs.85%29.aspx?f=255&MSPPError=-2147217396
         /// </summary>
         public int MinimumWindowsMinorVersion { get; set; } = 0;
+
+        /// <summary>
+        /// Set automatically
+        /// </summary>
+        public bool NotifyOnly { get; set; }
 
         /// <summary>
         /// Keywords backing variable, private
@@ -129,39 +134,28 @@ namespace IPBan
 
         [XmlArray("Expressions")]
         [XmlArrayItem("Expression")]
-        public ExpressionToBlock[] Expressions { get; set; }
+        public EventViewerExpression[] Expressions { get; set; }
     }
 
     /// <summary>
-    /// List of Windows event viewer groups
+    /// List of Windows event viewer groups for failed login attempts
     /// </summary>
-    public class ExpressionsToBlock
+    [XmlType("ExpressionsToBlock")]
+    public class EventViewerExpressionsToBlock
     {
         [XmlArray("Groups")]
         [XmlArrayItem("Group")]
-        public ExpressionsToBlockGroup[] Groups { get; set; }
+        public EventViewerExpressionGroup[] Groups { get; set; }
     }
 
-    public class ExpressionsToBlockConfigSectionHandler : IConfigurationSectionHandler
+    /// <summary>
+    /// List of Windows event viewer groups for success login attempts
+    /// </summary>
+    [XmlType("ExpressionsToNotify")]
+    public class EventViewerExpressionsToNotify
     {
-        private const string sectionName = "ExpressionsToBlock";
-
-        public object Create(object parent, object configContext, XmlNode section)
-        {
-            string config = section.SelectSingleNode("//" + sectionName).OuterXml;
-
-            if (!string.IsNullOrWhiteSpace(config))
-            {
-                XmlSerializer serializer = new XmlSerializer(typeof(ExpressionsToBlock));
-                MemoryStream ms = new MemoryStream(Encoding.UTF8.GetBytes(config))
-                {
-                    Position = 0
-                };
-                ExpressionsToBlock expressions = serializer.Deserialize(ms) as ExpressionsToBlock;
-                return expressions;
-            }
-
-            return null;
-        }
+        [XmlArray("Groups")]
+        [XmlArrayItem("Group")]
+        public EventViewerExpressionGroup[] Groups { get; set; }
     }
 }

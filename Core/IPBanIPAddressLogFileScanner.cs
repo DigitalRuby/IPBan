@@ -32,19 +32,44 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml.Serialization;
 
 namespace IPBan
 {
+    /// <summary>
+    /// Regex to scan in a log file
+    /// </summary>
+    public class IPAddressLogFileScannerRegex
+    {
+        /// <summary>
+        /// Regex
+        /// </summary>
+        [XmlText]
+        public string Regex { get; set; }
+
+        /// <summary>
+        /// True to only notify, false to handle the ip address
+        /// </summary>
+        [XmlAttribute]
+        public bool NotifyOnly { get; set; }
+    }
+
     public class IPBanIPAddressLogFileScanner : IPBanLogFileScanner
     {
-        private readonly IFailedLogin failedLogin;
+        private class RegexInfo
+        {
+            public Regex Regex { get; set; }
+            public bool NotifyOnly { get; set; }
+        }
+
+        private readonly IIPAddressEventHandler loginHandler;
         private readonly IDnsLookup dns;
-        private readonly Regex regex;
+        private readonly RegexInfo[] regex;
 
         /// <summary>
         /// Create a log file scanner
         /// </summary>
-        /// <param name="failedLogin">Interface for handling failed logins</param>
+        /// <param name="loginHandler">Interface for handling logins</param>
         /// <param name="dns">Interface for dns lookup</param>
         /// <param name="source">The source, i.e. SSH or SMTP, etc.</param>
         /// <param name="pathAndMask">File path and mask (i.e. /var/log/auth*.log)</param>
@@ -54,22 +79,28 @@ namespace IPBan
         /// <param name="pingIntervalMilliseconds">Ping interval in milliseconds, less than 1 for manual ping required</param>
         public IPBanIPAddressLogFileScanner
         (
-            IFailedLogin failedLogin,
+            IIPAddressEventHandler loginHandler,
             IDnsLookup dns,
             string source,
             string pathAndMask,
             bool recursive,
-            string regex,
+            IReadOnlyCollection<IPAddressLogFileScannerRegex> regex,
             long maxFileSizeBytes = 0,
             int pingIntervalMilliseconds = 0
         ) : base(pathAndMask, recursive, maxFileSizeBytes, pingIntervalMilliseconds)
         {
-            failedLogin.ThrowIfNull(nameof(failedLogin));
+            loginHandler.ThrowIfNull(nameof(loginHandler));
             dns.ThrowIfNull(nameof(dns));
             Source = source;
-            this.failedLogin = failedLogin;
+            this.loginHandler = loginHandler;
             this.dns = dns;
-            this.regex = IPBanConfig.ParseRegex(regex);
+            this.regex = new RegexInfo[regex.Count];
+            int regexIndex = 0;
+            foreach (IPAddressLogFileScannerRegex re in regex)
+            {
+                Regex regexObject = IPBanConfig.ParseRegex(re.Regex);
+                this.regex[regexIndex++] = new RegexInfo { Regex = IPBanConfig.ParseRegex(re.Regex), NotifyOnly = re.NotifyOnly };
+            }            
         }
 
         /// <summary>
@@ -80,18 +111,21 @@ namespace IPBan
         protected override bool OnProcessLine(string line)
         {
             IPBanLog.Debug("Parsing log file line {0}...", line);
-            IPAddressLogInfo info = IPBanService.GetIPAddressInfoFromRegex(dns, regex, line);
-            if (info.FoundMatch)
+            foreach (RegexInfo regex in this.regex)
             {
-                info.Source = info.Source ?? Source;
-                IPBanLog.Debug("Log file found match, ip: {0}, user: {1}, source: {2}, count: {3}", info.IPAddress, info.UserName, info.Source, info.Count);
-                failedLogin.AddFailedLogin(info);
-            }
-            else
-            {
-                IPBanLog.Debug("No match for line {0}", line);
+                IPAddressEvent info = IPBanService.GetIPAddressInfoFromRegex(dns, regex.Regex, line);
+                if (info.FoundMatch)
+                {
+                    info.Success = regex.NotifyOnly;
+                    info.Source = info.Source ?? Source;
+                    IPBanLog.Debug("Log file found match, ip: {0}, user: {1}, source: {2}, count: {3}, success: {4}",
+                        info.IPAddress, info.UserName, info.Source, info.Count, info.Success);
+                    loginHandler.HandleIPAddressEvent(info);
+                    return true;
+                }
             }
 
+            IPBanLog.Debug("No match for line {0}", line);
             return true;
         }
     }
