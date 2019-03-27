@@ -177,7 +177,7 @@ namespace IPBan
 
             if (info != null)
             {
-                info.Success = foundNotifyOnly;
+                info.Flag = (foundNotifyOnly ? IPAddressEventFlag.SuccessfulLogin : IPAddressEventFlag.FailedLogin);
             }
             return info;
         }
@@ -291,7 +291,7 @@ namespace IPBan
             IPAddressEvent info = ExtractEventViewerXml(doc);
             if (info != null && info.FoundMatch)
             {
-                if (!info.Success)
+                if (info.Flag.HasFlag(IPAddressEventFlag.FailedLogin))
                 {
                     // if fail to add the failed login (bad ip, etc.) exit out
                     if (!AddFailedLoginForEventViewerXml(info, doc))

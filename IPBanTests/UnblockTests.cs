@@ -39,8 +39,8 @@ namespace IPBanTests
     {
         private const string ip1 = "99.99.99.98";
         private const string ip2 = "99.99.99.99";
-        private static readonly IPAddressEvent info1 = new IPAddressEvent { Count = 98, IPAddress = ip1, Source = "RDP", UserName = "test_user" };
-        private static readonly IPAddressEvent info2 = new IPAddressEvent { Count = 99, IPAddress = ip2, Source = "SSH", UserName = "test_user2" };
+        private static readonly IPAddressEvent info1 = new IPAddressEvent { Count = 98, IPAddress = ip1, Source = "RDP", UserName = "test_user", Flag = IPAddressEventFlag.FailedLogin };
+        private static readonly IPAddressEvent info2 = new IPAddressEvent { Count = 99, IPAddress = ip2, Source = "SSH", UserName = "test_user2", Flag = IPAddressEventFlag.FailedLogin };
 
         private IPBanService service;
 
@@ -62,7 +62,7 @@ namespace IPBanTests
         {
             service.HandleIPAddressEvent(info1);
             service.HandleIPAddressEvent(info2);
-            service.RunCycle();
+            service.RunCycle().Sync();
         }
 
         private void AssertFailedLogins()
@@ -91,7 +91,7 @@ namespace IPBanTests
             File.WriteAllLines(service.UnblockIPAddressesFileName, new string[] { ip1, ip2 });
 
             // this should un ban the ip addresses
-            service.RunCycle();
+            service.RunCycle().Sync();
 
             AssertNoFailedLogins();
         }
@@ -105,7 +105,7 @@ namespace IPBanTests
             service.UnblockIPAddresses(new string[] { ip1, ip2 });
 
             // this should un ban the ip addresses
-            service.RunCycle();
+            service.RunCycle().Sync();
 
             AssertNoFailedLogins();
         }

@@ -105,7 +105,7 @@ namespace IPBanTests
                 {
                     service.EventViewer.ProcessEventViewerXml(xml);
                 }
-                service.RunCycle();
+                service.RunCycle().Sync();
 
                 // pretend enough time has passed to not batch the login attempts
                 IPBanService.UtcNow += TimeSpan.FromSeconds(10.0);

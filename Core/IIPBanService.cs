@@ -40,7 +40,7 @@ namespace IPBan
         /// Handle an ip address event
         /// </summary>
         /// <param name="info">IP address event info</param>
-        void HandleIPAddressEvent(IPAddressEvent info);
+        Task HandleIPAddressEvent(IPAddressEvent info);
     }
 
     /// <summary>
@@ -63,7 +63,8 @@ namespace IPBan
         /// <summary>
         /// Manually run regular processing - useful if testing
         /// </summary>
-        void RunCycle();
+        /// <returns>Task</returns>
+        Task RunCycle();
 
         /// <summary>
         /// Update config file with new xml
@@ -74,7 +75,8 @@ namespace IPBan
         /// <summary>
         /// Manually process all pending ip addresses immediately
         /// </summary>
-        void ProcessPendingFailedLogins();
+        /// <returns>Task</returns>
+        Task ProcessPendingFailedLogins();
 
         /// <summary>
         /// Replace place-holders in url with values from this service

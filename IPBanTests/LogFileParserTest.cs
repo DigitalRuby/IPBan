@@ -27,6 +27,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Text;
+using System.Threading.Tasks;
 
 using IPBan;
 
@@ -131,7 +132,7 @@ namespace IPBanTests
                 Assert.AreEqual(1, failedIPAddresses[1].Count, "Repeat count is wrong");
 
                 Assert.AreEqual(1, successIPAddresses.Count);
-                Assert.IsTrue(successIPAddresses[0].Success);
+                Assert.IsTrue(successIPAddresses[0].Flag.HasFlag(IPAddressEventFlag.SuccessfulLogin));
                 Assert.AreEqual("4.4.4.4", successIPAddresses[0].IPAddress);
                 Assert.AreEqual("SSH", successIPAddresses[0].Source);
                 Assert.AreEqual("THISUSER", successIPAddresses[0].UserName);
@@ -157,9 +158,9 @@ namespace IPBanTests
             }
         }
 
-        void IIPAddressEventHandler.HandleIPAddressEvent(IPAddressEvent info)
+        Task IIPAddressEventHandler.HandleIPAddressEvent(IPAddressEvent info)
         {
-            if (info.Success)
+            if (info.Flag.HasFlag(IPAddressEventFlag.SuccessfulLogin))
             {
                 successIPAddresses.Add(info);
             }
@@ -167,6 +168,7 @@ namespace IPBanTests
             {
                 failedIPAddresses.Add(info);
             }
+            return Task.CompletedTask;
         }
     }
 }

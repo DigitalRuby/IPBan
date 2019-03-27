@@ -40,9 +40,9 @@ namespace IPBanTests
         private const string ip1 = "99.99.99.99";
         private const string ip2 = "99.99.99.98";
         private const string ip3 = "99.99.99.97";
-        private static readonly IPAddressEvent info1 = new IPAddressEvent { Count = 98, IPAddress = ip1, Source = "RDP", UserName = "test_user" };
-        private static readonly IPAddressEvent info2 = new IPAddressEvent { Count = 99, IPAddress = ip2, Source = "SSH", UserName = "test_user2" };
-        private static readonly IPAddressEvent info3 = new IPAddressEvent { Count = 97, IPAddress = ip3, Source = "SSH", UserName = "test_user3", Success = true };
+        private static readonly IPAddressEvent info1 = new IPAddressEvent { Count = 98, IPAddress = ip1, Source = "RDP", UserName = "test_user", Flag = IPAddressEventFlag.FailedLogin };
+        private static readonly IPAddressEvent info2 = new IPAddressEvent { Count = 99, IPAddress = ip2, Source = "SSH", UserName = "test_user2", Flag = IPAddressEventFlag.FailedLogin };
+        private static readonly IPAddressEvent info3 = new IPAddressEvent { Count = 97, IPAddress = ip3, Source = "SSH", UserName = "test_user3", Flag = IPAddressEventFlag.SuccessfulLogin };
 
         private readonly Dictionary<string, int> events = new Dictionary<string, int>();
         private IPBanService service;
@@ -84,7 +84,7 @@ namespace IPBanTests
             service.HandleIPAddressEvent(info1);
             service.HandleIPAddressEvent(info2);
             service.HandleIPAddressEvent(info3);
-            service.RunCycle();
+            service.RunCycle().Sync();
 
             Assert.AreEqual(10, events.Count);
             AssertEvent("LoginAttemptSucceeded_99.99.99.97_SSH_test_user3", 1);

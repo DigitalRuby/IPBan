@@ -167,7 +167,7 @@ namespace IPBan
             }
         }
 
-        private void SetNetworkInfo()
+        private async Task SetNetworkInfo()
         {
             if (string.IsNullOrWhiteSpace(FQDN))
             {
@@ -187,7 +187,7 @@ namespace IPBan
                 try
                 {
                     // append ipv4 first, then the ipv6 then the remote ip
-                    IPAddress[] ips = DnsLookup.GetHostAddressesAsync(Dns.GetHostName()).Sync();
+                    IPAddress[] ips = await DnsLookup.GetHostAddressesAsync(Dns.GetHostName());
                     foreach (IPAddress ip in ips)
                     {
                         if (ip.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
@@ -218,7 +218,8 @@ namespace IPBan
             {
                 try
                 {
-                    RemoteIPAddressString = this.ExternalIPAddressLookup.LookupExternalIPAddressAsync(RequestMaker, Config.ExternalIPAddressUrl).Sync().ToString();
+                    IPAddress ipAddress = await ExternalIPAddressLookup.LookupExternalIPAddressAsync(RequestMaker, Config.ExternalIPAddressUrl);
+                    RemoteIPAddressString = ipAddress.ToString();
                     IPBanLog.Info("Remote ip address: {0}", RemoteIPAddressString);
                 }
                 catch
@@ -228,13 +229,13 @@ namespace IPBan
             }
 
             // hit start url if first time, if not first time will be ignored
-            GetUrl(UrlType.Start);
+            await GetUrl(UrlType.Start);
 
             // send update
-            GetUrl(UrlType.Update);
+            await GetUrl(UrlType.Update);
 
             // request new config file
-            GetUrl(UrlType.Config);
+            await GetUrl(UrlType.Config);
         }
 
         private void LogInitialConfig()
@@ -243,7 +244,7 @@ namespace IPBan
             IPBanLog.Info("Blacklist: {0}, Blacklist Regex: {1}", Config.BlackList, Config.BlackListRegex);
         }
 
-        private void ProcessPendingFailedLogins(IEnumerable<FailedLogin> ipAddresses)
+        private async Task ProcessPendingFailedLogins(IEnumerable<FailedLogin> ipAddresses)
         {
             List<BannedIPAddress> bannedIpAddresses = new List<BannedIPAddress>();
             foreach (FailedLogin failedLogin in ipAddresses)
@@ -284,19 +285,13 @@ namespace IPBan
                         if (configBlacklisted || newCount >= maxFailedLoginAttempts)
                         {
                             bool alreadyBanned = (ipDB.GetBanDate(ipAddress) != null);
-
-                            // if the ip address is not already in the ban list, add it and mark it as needing to be banned
                             if (alreadyBanned)
                             {
                                 IPBanLog.Info("IP {0}, {1}, {2} ban pending.", ipAddress, userName, source);
                             }
-                            else
+                            else if (IPBanDelegate == null || (await IPBanDelegate.LoginAttemptFailed(ipAddress, source, userName) != LoginFailedResult.Whitelisted))
                             {
-                                if (IPBanDelegate != null)
-                                {
-                                    IPBanDelegate.LoginAttemptFailed(ipAddress, source, userName).Sync();
-                                }
-                                AddBannedIPAddress(ipAddress, source, userName, bannedIpAddresses, now, configBlacklisted, newCount, string.Empty);
+                                await AddBannedIPAddress(ipAddress, source, userName, bannedIpAddresses, now, configBlacklisted, newCount, string.Empty);
                             }
                         }
                         else if (newCount > maxFailedLoginAttempts)
@@ -305,12 +300,13 @@ namespace IPBan
                         }
                         else
                         {
+                            // failed login attempt
                             if (IPBanDelegate != null)
                             {
-                                LoginFailedResult result = IPBanDelegate.LoginAttemptFailed(ipAddress, source, userName).Sync();
+                                LoginFailedResult result = await IPBanDelegate.LoginAttemptFailed(ipAddress, source, userName);
                                 if (result.HasFlag(LoginFailedResult.Blacklisted))
                                 {
-                                    AddBannedIPAddress(ipAddress, userName, source, bannedIpAddresses, now, configBlacklisted, newCount, "Delegate banned ip: " + result);
+                                    await AddBannedIPAddress(ipAddress, userName, source, bannedIpAddresses, now, configBlacklisted, newCount, "Delegate banned ip: " + result);
                                 }
                             }
                         }
@@ -322,14 +318,10 @@ namespace IPBan
                 }
             }
 
-            // finish processing of pending banned ip addresses
-            if (bannedIpAddresses.Count != 0)
-            {
-                ProcessBannedIPAddresses(bannedIpAddresses);
-            }
+            ExecuteExternalProcessForBannedIPAddresses(bannedIpAddresses);
         }
 
-        private void AddBannedIPAddress(string ipAddress, string source, string userName, List<BannedIPAddress> bannedIpAddresses,
+        private async Task AddBannedIPAddress(string ipAddress, string source, string userName, List<BannedIPAddress> bannedIpAddresses,
             DateTime dateTime, bool configBlacklisted, int counter, string extraInfo)
         {
             bannedIpAddresses.Add(new BannedIPAddress { IPAddress = ipAddress, Source = source, UserName = userName });
@@ -340,14 +332,28 @@ namespace IPBan
 
             if (BannedIPAddressHandler != null && System.Net.IPAddress.TryParse(ipAddress, out System.Net.IPAddress ipAddressObj) && !ipAddressObj.IsInternal())
             {
-                BannedIPAddressHandler.HandleBannedIPAddress(ipAddress, source, userName, OSName, OSVersion, AssemblyVersion, RequestMaker).ConfigureAwait(false).GetAwaiter();
+                await BannedIPAddressHandler.HandleBannedIPAddress(ipAddress, source, userName, OSName, OSVersion, AssemblyVersion, RequestMaker);
+            }
+            if (IPBanDelegate != null)
+            {
+                await IPBanDelegate.IPAddressBanned(ipAddress, source, userName, true);
             }
         }
 
-        private void ProcessBannedIPAddresses(IEnumerable<BannedIPAddress> bannedIPAddresses)
+        private void ExecuteExternalProcessForBannedIPAddresses(IReadOnlyCollection<BannedIPAddress> bannedIPAddresses)
         {
+            if (bannedIPAddresses.Count == 0)
+            {
+                return;
+            }
+
             // kick off external process and delegate notification in another thread
             string programToRunConfigString = (Config.ProcessToRunOnBan ?? string.Empty).Trim();
+            if (string.IsNullOrWhiteSpace(programToRunConfigString))
+            {
+                return;
+            }
+
             RunTask(() =>
             {
                 foreach (var bannedIp in bannedIPAddresses)
@@ -375,14 +381,6 @@ namespace IPBan
                         {
                             IPBanLog.Error("Failed to execute process on ban", ex);
                         }
-                    }
-                    try
-                    {
-                        IPBanDelegate?.IPAddressBanned(bannedIp.IPAddress, bannedIp.Source, bannedIp.UserName, true);
-                    }
-                    catch (Exception ex)
-                    {
-                        IPBanLog.Error("Error in delegate IPAddressBanned", ex);
                     }
                 }
             });
@@ -415,7 +413,7 @@ namespace IPBan
             Firewall = IPBanFirewallUtility.CreateFirewall(Config.FirewallOSAndType, Config.FirewallRulePrefix);
         }
 
-        private void CheckForExpiredIP()
+        private async Task CheckForExpiredIP()
         {
             List<string> ipAddressesToUnBan = new List<string>();
             List<string> ipAddressesToForget = new List<string>();
@@ -463,7 +461,7 @@ namespace IPBan
                 // notify delegate of ip addresses to unban
                 foreach (string ip in ipAddressesToUnBan)
                 {
-                    IPBanDelegate.IPAddressBanned(ip, null, null, false);
+                    await IPBanDelegate.IPAddressBanned(ip, null, null, false);
                 }
             }
 
@@ -564,7 +562,7 @@ namespace IPBan
             }
         }
 
-        private void GetUrl(UrlType urlType)
+        private async Task GetUrl(UrlType urlType)
         {
             if ((urlType == UrlType.Start && gotStartUrl) || string.IsNullOrWhiteSpace(LocalIPAddressString) || string.IsNullOrWhiteSpace(FQDN))
             {
@@ -587,40 +585,37 @@ namespace IPBan
             if (!string.IsNullOrWhiteSpace(url))
             {
                 url = ReplaceUrl(url);
-                RunTask(() =>
+                try
                 {
-                    try
+                    byte[] bytes = await RequestMaker.MakeRequestAsync(new Uri(url));
+                    if (urlType == UrlType.Start)
                     {
-                        byte[] bytes = RequestMaker.MakeRequestAsync(new Uri(url)).Sync();
-                        if (urlType == UrlType.Start)
+                        gotStartUrl = true;
+                    }
+                    else if (urlType == UrlType.Update)
+                    {
+                        // if the update url sends bytes, we assume a software update, and run the result as an .exe
+                        if (bytes.Length != 0)
                         {
-                            gotStartUrl = true;
-                        }
-                        else if (urlType == UrlType.Update)
-                        {
-                            // if the update url sends bytes, we assume a software update, and run the result as an .exe
-                            if (bytes.Length != 0)
-                            {
-                                string tempFile = Path.Combine(Path.GetTempPath(), "IPBanServiceUpdate.exe");
-                                File.WriteAllBytes(tempFile, bytes);
+                            string tempFile = Path.Combine(Path.GetTempPath(), "IPBanServiceUpdate.exe");
+                            File.WriteAllBytes(tempFile, bytes);
 
-                                // however you are doing the update, you must allow -c and -d parameters
-                                // pass -c to tell the update executable to delete itself when done
-                                // pass -d for a directory which tells the .exe where this service lives
-                                string args = "-c \"-d=" + AppDomain.CurrentDomain.BaseDirectory + "\"";
-                                Process.Start(tempFile, args);
-                            }
-                        }
-                        else if (urlType == UrlType.Config && bytes.Length != 0)
-                        {
-                            UpdateConfig(Encoding.UTF8.GetString(bytes));
+                            // however you are doing the update, you must allow -c and -d parameters
+                            // pass -c to tell the update executable to delete itself when done
+                            // pass -d for a directory which tells the .exe where this service lives
+                            string args = "-c \"-d=" + AppDomain.CurrentDomain.BaseDirectory + "\"";
+                            Process.Start(tempFile, args);
                         }
                     }
-                    catch (Exception ex)
+                    else if (urlType == UrlType.Config && bytes.Length != 0)
                     {
-                        IPBanLog.Error(ex, "Error getting url of type {0} at {1}", urlType, url);
+                        UpdateConfig(Encoding.UTF8.GetString(bytes));
                     }
-                });
+                }
+                catch (Exception ex)
+                {
+                    IPBanLog.Error(ex, "Error getting url of type {0} at {1}", urlType, url);
+                }
             }
         }
 
@@ -688,14 +683,14 @@ namespace IPBan
             }
         }
 
-        private void CycleTimerElapsed(object sender, System.Timers.ElapsedEventArgs e)
+        private async Task CycleTimerElapsed(object sender, System.Timers.ElapsedEventArgs e)
         {
             if (IsRunning)
             {
                 try
                 {
                     cycleTimer.Stop();
-                    RunCycle();
+                    await RunCycle();
                 }
                 catch (Exception ex)
                 {
@@ -746,90 +741,99 @@ namespace IPBan
         /// <summary>
         /// Manually run one cycle. This is called automatically, unless ManualCycle is true.
         /// </summary>
-        public void RunCycle()
+        public async Task RunCycle()
         {
             ReadAppSettings();
-            SetNetworkInfo();
+            await SetNetworkInfo();
             UpdateDelegate();
-            CheckForExpiredIP();
-            ProcessPendingFailedLogins();
             UpdateUpdaters();
-            UpdateFirewall();
+            await ProcessPendingFailedLogins();
         }
 
         /// <summary>
         /// Manually process all pending ip addresses. This is usually called automatically.
         /// </summary>
-        public void ProcessPendingFailedLogins()
+        public async Task ProcessPendingFailedLogins()
         {
+            await CheckForExpiredIP();
+
             // make a quick copy of pending ip addresses so we don't lock it for very long
-            List<FailedLogin> ipAddresses;
+            List<FailedLogin> ipAddresses = null;
             lock (pendingFailedLogins)
             {
-                if (pendingFailedLogins.Count == 0)
+                if (pendingFailedLogins.Count != 0)
                 {
-                    return;
+                    ipAddresses = new List<FailedLogin>(pendingFailedLogins);
+                    pendingFailedLogins.Clear();
                 }
-                ipAddresses = new List<FailedLogin>(pendingFailedLogins);
-                pendingFailedLogins.Clear();
             }
-            ProcessPendingFailedLogins(ipAddresses);
+            if (ipAddresses != null)
+            {
+                await ProcessPendingFailedLogins(ipAddresses);
+            }
+            UpdateFirewall();
         }
 
         /// <summary>
         /// Add an ip address to be checked for banning later
         /// </summary>
         /// <param name="info">IP address log info</param>
-        public void HandleIPAddressEvent(IPAddressEvent info)
+        /// <returns>Task</returns>
+        public Task HandleIPAddressEvent(IPAddressEvent info)
         {
-            if (!IPBanFirewallUtility.TryGetFirewallIPAddress(info.IPAddress, out string normalizedIPAddress))
+            if (IPBanFirewallUtility.TryGetFirewallIPAddress(info.IPAddress, out string normalizedIPAddress))
             {
-                return;
-            }
-
-            info.Source = (info.Source ?? "?");
-            info.UserName = (info.UserName ?? string.Empty);
-            if (!info.Success)
-            {
-                lock (pendingFailedLogins)
+                info.Source = (info.Source ?? "?");
+                info.UserName = (info.UserName ?? string.Empty);
+                if (info.Flag.HasFlag(IPAddressEventFlag.FailedLogin))
                 {
-                    FailedLogin existing = pendingFailedLogins.FirstOrDefault(p => p.IPAddress == normalizedIPAddress && (p.UserName == null || p.UserName == info.UserName));
-                    if (existing == null)
+                    lock (pendingFailedLogins)
                     {
-                        existing = new FailedLogin
+                        FailedLogin existing = pendingFailedLogins.FirstOrDefault(p => p.IPAddress == normalizedIPAddress && (p.UserName == null || p.UserName == info.UserName));
+                        if (existing == null)
                         {
-                            IPAddress = normalizedIPAddress,
-                            Source = info.Source,
-                            UserName = info.UserName,
-                            DateTime = UtcNow,
-                            Count = info.Count
-                        };
-                        pendingFailedLogins.Add(existing);
-                    }
-                    else
-                    {
-                        existing.UserName = (existing.UserName ?? info.UserName);
-
-                        // if more than n seconds has passed, increment the counter
-                        // we don't want to count multiple event logs that all map to the same ip address from one failed
-                        // attempt to count multiple times
-                        if ((UtcNow - existing.DateTime) >= Config.MinimumTimeBetweenFailedLoginAttempts)
-                        {
-                            existing.DateTime = UtcNow;
-                            existing.Count += info.Count;
+                            existing = new FailedLogin
+                            {
+                                IPAddress = normalizedIPAddress,
+                                Source = info.Source,
+                                UserName = info.UserName,
+                                DateTime = UtcNow,
+                                Count = info.Count
+                            };
+                            pendingFailedLogins.Add(existing);
                         }
                         else
                         {
-                            IPBanLog.Info("Ignoring failed login from {0}, min time between failed logins has not elapsed", existing.IPAddress);
+                            existing.UserName = (existing.UserName ?? info.UserName);
+
+                            // if more than n seconds has passed, increment the counter
+                            // we don't want to count multiple event logs that all map to the same ip address from one failed
+                            // attempt to count multiple times
+                            if ((UtcNow - existing.DateTime) >= Config.MinimumTimeBetweenFailedLoginAttempts)
+                            {
+                                existing.DateTime = UtcNow;
+                                existing.Count += info.Count;
+                            }
+                            else
+                            {
+                                IPBanLog.Info("Ignoring failed login from {0}, min time between failed logins has not elapsed", existing.IPAddress);
+                            }
                         }
                     }
                 }
+                else if (IPBanDelegate != null)
+                {
+                    if (MultiThreaded)
+                    {
+                        // pass the success login on
+                        return IPBanDelegate.LoginAttemptSucceeded(info.IPAddress, info.Source, info.UserName);
+                    }
+
+                    // single threaded
+                    IPBanDelegate.LoginAttemptSucceeded(info.IPAddress, info.Source, info.UserName).Sync();
+                }
             }
-            else
-            {
-                // pass the success login on
-                IPBanDelegate?.LoginAttemptSucceeded(info.IPAddress, info.Source, info.UserName).ConfigureAwait(false).GetAwaiter();
-            }
+            return Task.CompletedTask;
         }
 
         /// <summary>
@@ -924,7 +928,7 @@ namespace IPBan
                 }
             }
 
-            return new IPAddressEvent(foundMatch, ipAddress, userName, source, repeatCount);
+            return new IPAddressEvent(foundMatch, ipAddress, userName, source, repeatCount, IPAddressEventFlag.FailedLogin);
         }
 
         /// <summary>
@@ -969,7 +973,7 @@ namespace IPBan
 
             TaskQueue.Dispose();
             IsRunning = false;
-            GetUrl(UrlType.Stop);
+            GetUrl(UrlType.Stop).Sync();
             try
             {
                 cycleTimer?.Dispose();
@@ -1035,9 +1039,9 @@ namespace IPBan
             IPBanDelegate?.Start(this);
             if (!ManualCycle)
             {
-                RunCycle(); // run one cycle right away
+                RunCycle().Sync(); // run one cycle right away
                 cycleTimer = new System.Timers.Timer(Config.CycleTime.TotalMilliseconds);
-                cycleTimer.Elapsed += CycleTimerElapsed;
+                cycleTimer.Elapsed += async (sender, e) => await CycleTimerElapsed(sender, e);
                 cycleTimer.Start();
             }
             IPBanLog.Warn("IPBan service started and initialized. Operating System: {0}", IPBanOS.OSString());
@@ -1337,15 +1341,15 @@ namespace IPBan
         /// <param name="userName">User name</param>
         /// <param name="source">Source</param>
         /// <param name="count">How many messages were aggregated, 1 for no aggregation</param>
-        /// <param name="success">False for a failed login, true for a success login</param>
-        public IPAddressEvent(bool foundMatch, string ipAddress, string userName, string source, int count, bool success = false)
+        /// <param name="flag">Event flag</param>
+        public IPAddressEvent(bool foundMatch, string ipAddress, string userName, string source, int count, IPAddressEventFlag flag)
         {
             FoundMatch = foundMatch;
             IPAddress = ipAddress;
             UserName = userName;
             Source = source;
             Count = count;
-            Success = success;
+            Flag = flag;
         }
 
         /// <summary>
@@ -1374,9 +1378,9 @@ namespace IPBan
         public int Count { get; set; }
 
         /// <summary>
-        /// False for a failed login, true for a success login
+        /// Event flag
         /// </summary>
-        public bool Success { get; set; }
+        public IPAddressEventFlag Flag { get; set; }
     }
 
     /// <summary>
@@ -1388,5 +1392,32 @@ namespace IPBan
         /// Update
         /// </summary>
         void Update();
+    }
+
+    /// <summary>
+    /// IP address event flags
+    /// </summary>
+    [Flags]
+    public enum IPAddressEventFlag
+    {
+        /// <summary>
+        /// No event
+        /// </summary>
+        None = 0,
+
+        /// <summary>
+        /// Successful login
+        /// </summary>
+        SuccessfulLogin = 1,
+
+        /// <summary>
+        /// Blocked / banned ip address
+        /// </summary>
+        BlockedIPAddress = 2,
+
+        /// <summary>
+        /// Failed login
+        /// </summary>
+        FailedLogin = 4,
     }
 }
