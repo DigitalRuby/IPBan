@@ -73,13 +73,45 @@ namespace IPBan
                 // MAC
                 else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
                 {
-                    // not yet supporte
+                    // not yet supported
                 }
                 // Linux
                 else if (Directory.Exists(@"/var/log"))
                 {
                     File.AppendAllText("/var/log/ipbancustom_maildemon.log", $"{DateTime.UtcNow.ToString("u")}, ipban failed login, ip address: {remoteIpAddress}, source: {source}, user: {userName}");
+                }
+            }
+            catch (Exception ex)
+            {
+                ErrorHandler?.Invoke(ex);
+            }
+        }
 
+        /// <summary>
+        /// Log a successful login attempt to IPBan
+        /// </summary>
+        /// <param name="source">Source, i.e. RDP, SMTP, FTP, etc.</param>
+        /// <param name="userName">User name if known</param>
+        /// <param name="remoteIpAddress">The remote ip address that succeeded to login</param>
+        public static void IPBanLoginSucceeded(string source, string userName, string remoteIpAddress)
+        {
+            try
+            {
+                // Windows
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                {
+                    string data = $"ipban success login, ip address: {remoteIpAddress}, source: {source}, user: {userName}";
+                    eventLog.WriteEntry(data, EventLogEntryType.Warning);
+                }
+                // MAC
+                else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                {
+                    // not yet supported
+                }
+                // Linux
+                else if (Directory.Exists(@"/var/log"))
+                {
+                    File.AppendAllText("/var/log/ipbancustom_maildemon.log", $"{DateTime.UtcNow.ToString("u")}, ipban success login, ip address: {remoteIpAddress}, source: {source}, user: {userName}");
                 }
             }
             catch (Exception ex)

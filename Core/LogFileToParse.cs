@@ -57,37 +57,4 @@ namespace IPBan
         [XmlArrayItem("LogFile")]
         public LogFileToParse[] LogFiles;
     }
-
-    public class LogFilesToParseConfigSectionHandler : IConfigurationSectionHandler
-    {
-        private const string sectionName = "LogFilesToParse";
-
-        public object Create(object parent, object configContext, XmlNode section)
-        {
-            string config = section.SelectSingleNode("//" + sectionName).OuterXml;
-
-            if (!string.IsNullOrWhiteSpace(config))
-            {
-                XmlSerializer serializer = new XmlSerializer(typeof(LogFilesToParse));
-                MemoryStream ms = new MemoryStream(Encoding.UTF8.GetBytes(config))
-                {
-                    Position = 0
-                };
-                LogFilesToParse expressions = serializer.Deserialize(ms) as LogFilesToParse;
-                if (expressions != null && expressions.LogFiles != null)
-                {
-                    foreach (LogFileToParse file in expressions.LogFiles)
-                    {
-                        foreach (IPAddressLogFileScannerRegex regex in file.Regex)
-                        {
-                            regex.Regex = regex.Regex.Trim();
-                        }
-                    }
-                }
-                return expressions;
-            }
-
-            return null;
-        }
-    }
 }
