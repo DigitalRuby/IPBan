@@ -73,7 +73,7 @@ namespace IPBan
                 // MAC
                 else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
                 {
-                    // not yet supporte
+                    // not yet supported
                 }
                 // Linux
                 else if (Directory.Exists(@"/var/log"))
