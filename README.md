@@ -7,7 +7,7 @@ IPBan Service
 **Requirements**
 - IPBan requires .NET core 2.2 SDK and Visual Studio 2017 or newer or Visual Studio Code (Linux) to build from source. You can build a self contained executable to eliminate the need for dotnet core on the server machine, or just download the precompiled binaries.
 - Running and/or debugging code requires that you run as administrator or root.
-- Supported platforms: Windows (x86, x64), Linux (x64).
+- Officially supported platforms: Windows 8.1 or newer (x86, x64), Windows Server 2012 or newer (x86, x64), Linux Ubuntu 16.04+ or equivelant (x64).
 - Mac OS X not supported at this time.
 
 **Features**

@@ -53,7 +53,7 @@ namespace IPBan
         private Regex whiteListRegex;
         private Regex blackListRegex;
 
-        private readonly LogFileToParse[] logFiles;
+        private readonly IPBanLogFileToParse[] logFiles;
         private readonly TimeSpan banTime = TimeSpan.FromDays(1.0d);
         private readonly TimeSpan expireTime = TimeSpan.FromDays(1.0d);
         private readonly TimeSpan cycleTime = TimeSpan.FromMinutes(1.0d);
@@ -136,13 +136,13 @@ namespace IPBan
             }
             try
             {
-                LogFilesToParse logFilesToParse = new XmlSerializer(typeof(LogFilesToParse)).Deserialize(new XmlNodeReader(doc.SelectSingleNode("//LogFilesToParse"))) as LogFilesToParse;
-                logFiles = (logFilesToParse == null ? new LogFileToParse[0] : logFilesToParse.LogFiles);
+                IPBanLogFilesToParse logFilesToParse = new XmlSerializer(typeof(IPBanLogFilesToParse)).Deserialize(new XmlNodeReader(doc.SelectSingleNode("//LogFilesToParse"))) as IPBanLogFilesToParse;
+                logFiles = (logFilesToParse == null ? new IPBanLogFileToParse[0] : logFilesToParse.LogFiles);
             }
             catch (Exception ex)
             {
                 IPBanLog.Error(ex);
-                logFiles = new LogFileToParse[0];
+                logFiles = new IPBanLogFileToParse[0];
             }
             GetConfig<string>("ProcessToRunOnBan", ref processToRunOnBan);
 
@@ -226,9 +226,15 @@ namespace IPBan
         /// To find newlines in the text, use the escape code for \n using \u0010
         /// </summary>
         /// <param name="text">Text</param>
-        /// <returns>Regex</returns>
+        /// <returns>Regex or null if text is null or whitespace</returns>
         public static Regex ParseRegex(string text)
         {
+            text = (text ?? string.Empty).Trim();
+            if (text.Length == 0)
+            {
+                return null;
+            }
+
             string[] lines = text.Split('\n');
             StringBuilder sb = new StringBuilder();
             foreach (string line in lines)
@@ -420,11 +426,16 @@ namespace IPBan
         /// Event viewer expressions to block (Windows only)
         /// </summary>
         public EventViewerExpressionsToBlock WindowsEventViewerExpressionsToBlock { get { return expressionsFailure; } }
-        
+
+        /// <summary>
+        /// Event viewer expressions to notify for successful logins (Windows only)
+        /// </summary>
+        public EventViewerExpressionsToNotify WindowsEventViewerExpressionsToNotify { get { return expressionsSuccess; } }
+
         /// <summary>
         /// Log files to parse
         /// </summary>
-        public IReadOnlyCollection<LogFileToParse> LogFilesToParse { get { return logFiles; } }
+        public IReadOnlyList<IPBanLogFileToParse> LogFilesToParse { get { return logFiles; } }
 
         /// <summary>
         /// True to clear and unban ip addresses upon restart, false otherwise

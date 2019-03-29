@@ -112,7 +112,7 @@ namespace IPBan
                     logFilesToParse.Remove(file);
                 }
             }
-            foreach (LogFileToParse newFile in newConfig.LogFilesToParse)
+            foreach (IPBanLogFileToParse newFile in newConfig.LogFilesToParse)
             {
                 string[] pathsAndMasks = newFile.PathAndMask.Split('\n');
                 for (int i = 0; i < pathsAndMasks.Length; i++)
@@ -127,7 +127,7 @@ namespace IPBan
                         {
                             // log files use a timer internally and do not need to be updated regularly
                             IPBanLogFileScanner scanner = new IPBanIPAddressLogFileScanner(this, DnsLookup,
-                                newFile.Source, pathAndMask, newFile.Recursive, newFile.Regex, newFile.MaxFileSize, newFile.PingInterval);
+                                newFile.Source, pathAndMask, newFile.Recursive, newFile.FailedLoginRegex, newFile.SuccessfulLoginRegex, newFile.MaxFileSize, newFile.PingInterval);
                             logFilesToParse.Add(scanner);
                         }
                         else

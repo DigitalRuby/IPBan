@@ -32,15 +32,13 @@ using System.Xml.Serialization;
 
 namespace IPBan
 {
-    public class LogFileToParse
+    public class IPBanLogFileToParse
     {
         public string Source { get; set; }
         public string PathAndMask { get; set; }
         public bool Recursive { get; set; }
-
-        [XmlElement("Regex")]
-        public IPAddressLogFileScannerRegex[] Regex { get; set; }
-
+        public string FailedLoginRegex { get; set; }
+        public string SuccessfulLoginRegex { get; set; }
         public string PlatformRegex { get; set; }
         public int PingInterval { get; set; } = 10000;
         public int MaxFileSize { get; set; }
@@ -51,10 +49,11 @@ namespace IPBan
         }
     }
 
-    public class LogFilesToParse
+    [XmlType("LogFilesToParse")]
+    public class IPBanLogFilesToParse
     {
         [XmlArray("LogFiles")]
         [XmlArrayItem("LogFile")]
-        public LogFileToParse[] LogFiles;
+        public IPBanLogFileToParse[] LogFiles;
     }
 }

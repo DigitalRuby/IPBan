@@ -36,7 +36,7 @@ using NUnit.Framework;
 namespace IPBanTests
 {
     [TestFixture]
-    public class LogFileParserTest : IIPAddressEventHandler
+    public class IPBanLogFileParserTests : IIPAddressEventHandler
     {
         private static readonly string tempPath = Path.Combine(Path.GetTempPath(), "LogFileParserTest");
         private static readonly string pathAndMask = Path.Combine(tempPath, "test1*.txt");
@@ -79,11 +79,8 @@ namespace IPBanTests
                 source: "SSH",
                 pathAndMask: pathAndMask,
                 recursive: false,
-                regex: new IPAddressLogFileScannerRegex[]
-                {
-                    new IPAddressLogFileScannerRegex { Regex = "__prefix__(?<ipaddress>.+)__suffix(__(?<username>.*?)__end)?" },
-                    new IPAddressLogFileScannerRegex { Regex = "success_prefix__(?<ipaddress>.+)__suffix(__(?<username>.*?)__end)?", NotifyOnly = true }
-                },
+                regexFailure: "__prefix__(?<ipaddress>.+)__suffix(__(?<username>.*?)__end)?",
+                regexSuccess: "success_prefix__(?<ipaddress>.+)__suffix(__(?<username>.*?)__end)?",
                 pingIntervalMilliseconds: 0))
             {
                 StreamWriter writer = new StreamWriter(CreateFile(fullPath), Encoding.UTF8)

@@ -35,7 +35,7 @@ using NUnit.Framework;
 namespace IPBanTests
 {
     [TestFixture]
-    public class UnblockTests
+    public class IPBanUnblockTests
     {
         private const string ip1 = "99.99.99.98";
         private const string ip2 = "99.99.99.99";

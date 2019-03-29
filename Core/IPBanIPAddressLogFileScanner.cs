@@ -36,35 +36,12 @@ using System.Xml.Serialization;
 
 namespace IPBan
 {
-    /// <summary>
-    /// Regex to scan in a log file
-    /// </summary>
-    public class IPAddressLogFileScannerRegex
-    {
-        /// <summary>
-        /// Regex
-        /// </summary>
-        [XmlText]
-        public string Regex { get; set; }
-
-        /// <summary>
-        /// True to only notify, false to handle the ip address
-        /// </summary>
-        [XmlAttribute]
-        public bool NotifyOnly { get; set; }
-    }
-
     public class IPBanIPAddressLogFileScanner : IPBanLogFileScanner
     {
-        private class RegexInfo
-        {
-            public Regex Regex { get; set; }
-            public bool NotifyOnly { get; set; }
-        }
-
         private readonly IIPAddressEventHandler loginHandler;
         private readonly IDnsLookup dns;
-        private readonly RegexInfo[] regex;
+        private readonly Regex regexFailure;
+        private readonly Regex regexSuccess;
 
         /// <summary>
         /// Create a log file scanner
@@ -74,7 +51,8 @@ namespace IPBan
         /// <param name="source">The source, i.e. SSH or SMTP, etc.</param>
         /// <param name="pathAndMask">File path and mask (i.e. /var/log/auth*.log)</param>
         /// <param name="recursive">Whether to parse all sub directories of path and mask recursively</param>
-        /// <param name="regex">Regex to parse file lines to pull out ipaddress and username</param>
+        /// <param name="regexFailure">Regex to parse file lines to pull out failed login ipaddress and username</param>
+        /// <param name="regexSuccess">Regex to parse file lines to pull out successful login ipaddress and username</param>
         /// <param name="maxFileSizeBytes">Max size of file (in bytes) before it is deleted or 0 for unlimited</param>
         /// <param name="pingIntervalMilliseconds">Ping interval in milliseconds, less than 1 for manual ping required</param>
         public IPBanIPAddressLogFileScanner
@@ -84,7 +62,8 @@ namespace IPBan
             string source,
             string pathAndMask,
             bool recursive,
-            IReadOnlyCollection<IPAddressLogFileScannerRegex> regex,
+            string regexFailure,
+            string regexSuccess,
             long maxFileSizeBytes = 0,
             int pingIntervalMilliseconds = 0
         ) : base(pathAndMask, recursive, maxFileSizeBytes, pingIntervalMilliseconds)
@@ -94,13 +73,8 @@ namespace IPBan
             Source = source;
             this.loginHandler = loginHandler;
             this.dns = dns;
-            this.regex = new RegexInfo[regex.Count];
-            int regexIndex = 0;
-            foreach (IPAddressLogFileScannerRegex re in regex)
-            {
-                Regex regexObject = IPBanConfig.ParseRegex(re.Regex);
-                this.regex[regexIndex++] = new RegexInfo { Regex = IPBanConfig.ParseRegex(re.Regex), NotifyOnly = re.NotifyOnly };
-            }            
+            this.regexFailure = IPBanConfig.ParseRegex(regexFailure);
+            this.regexSuccess = IPBanConfig.ParseRegex(regexSuccess);
         }
 
         /// <summary>
@@ -111,12 +85,26 @@ namespace IPBan
         protected override bool OnProcessLine(string line)
         {
             IPBanLog.Debug("Parsing log file line {0}...", line);
-            foreach (RegexInfo regex in this.regex)
+            bool result = ParseRegex(regexFailure, line, false);
+            if (!result)
             {
-                IPAddressEvent info = IPBanService.GetIPAddressInfoFromRegex(dns, regex.Regex, line);
+                result = ParseRegex(regexSuccess, line, true);
+                if (!result)
+                {
+                    IPBanLog.Debug("No match for line {0}", line);
+                }
+            }
+            return true;
+        }
+
+        private bool ParseRegex(Regex regex, string line, bool notifyOnly)
+        {
+            if (regex != null)
+            {
+                IPAddressEvent info = IPBanService.GetIPAddressInfoFromRegex(dns, regex, line);
                 if (info.FoundMatch)
                 {
-                    info.Flag = (regex.NotifyOnly ? IPAddressEventFlag.SuccessfulLogin : IPAddressEventFlag.FailedLogin);
+                    info.Flag = (notifyOnly ? IPAddressEventFlag.SuccessfulLogin : IPAddressEventFlag.FailedLogin);
                     info.Source = info.Source ?? Source;
                     IPBanLog.Debug("Log file found match, ip: {0}, user: {1}, source: {2}, count: {3}, flag: {4}",
                         info.IPAddress, info.UserName, info.Source, info.Count, info.Flag);
@@ -124,9 +112,7 @@ namespace IPBan
                     return true;
                 }
             }
-
-            IPBanLog.Debug("No match for line {0}", line);
-            return true;
+            return false;
         }
     }
 }
