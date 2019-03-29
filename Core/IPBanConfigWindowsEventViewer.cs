@@ -96,7 +96,7 @@ namespace IPBan
         public int MinimumWindowsMinorVersion { get; set; } = 0;
 
         /// <summary>
-        /// Set automatically
+        /// Set automatically, determines whether this expression is failed login (false) or successful login (true)
         /// </summary>
         public bool NotifyOnly { get; set; }
 
@@ -138,10 +138,9 @@ namespace IPBan
     }
 
     /// <summary>
-    /// List of Windows event viewer groups for failed login attempts
+    /// Base class for event viewer expressions
     /// </summary>
-    [XmlType("ExpressionsToBlock")]
-    public class EventViewerExpressionsToBlock
+    public class EventViewerExpressions
     {
         [XmlArray("Groups")]
         [XmlArrayItem("Group")]
@@ -149,13 +148,14 @@ namespace IPBan
     }
 
     /// <summary>
+    /// List of Windows event viewer groups for failed login attempts
+    /// </summary>
+    [XmlType("ExpressionsToBlock")]
+    public class EventViewerExpressionsToBlock : EventViewerExpressions { }
+
+    /// <summary>
     /// List of Windows event viewer groups for success login attempts
     /// </summary>
     [XmlType("ExpressionsToNotify")]
-    public class EventViewerExpressionsToNotify
-    {
-        [XmlArray("Groups")]
-        [XmlArrayItem("Group")]
-        public EventViewerExpressionGroup[] Groups { get; set; }
-    }
+    public class EventViewerExpressionsToNotify : EventViewerExpressions { }
 }
