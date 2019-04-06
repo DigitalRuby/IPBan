@@ -1,13 +1,13 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netcoreapp2.2</TargetFramework>
 
     <IsPackable>false</IsPackable>
 
-    <AssemblyVersion>1.4.3.0</AssemblyVersion>
+    <AssemblyVersion>1.4.4.0</AssemblyVersion>
 
-    <FileVersion>1.4.3.0</FileVersion>
+    <FileVersion>1.4.4.0</FileVersion>
 
     <RootNamespace>DigitalRuby.IPBanTests</RootNamespace>
 
