@@ -50,7 +50,7 @@ sc create IPBAN type= own start= auto binPath= c:\path\to\service\DigitalRuby.IP
 sc description IPBAN "Automatically builds firewall rules for abusive login attempts: https://github.com/DigitalRuby/IPBan"
 ```
 The service needs file system, event viewer and firewall access, so please run as SYSTEM to ensure permissions.  Running "sc" as described above in an elevated command prompt will install the service using the local SYSTEM account.
-- To run as a console app, simply run IPBan.exe and watch console output.
+- To run as a console app, simply run DigitalRuby.IPBan.exe and watch console output.
 - If you want to run and debug code in Visual Studio, make sure to run Visual Studio as administrator. Visual Studio 2017 or newer is required, along with .net core 2.1.1. Community edition is free.
 - On some Windows versions, NLA will default to on. This will lock you out of remote desktop, so make sure to turn this option off. 
 - On Windows Small Business Server 2011 (and probably earlier) and Windows Server running Exchange, with installed PowerShell v.2 that does not know Unblock-File command, and newer version can’t be installed (as some scripts for managing OWA stop working correctly). Easier way is to manually unblock downloaded ZIP file and then unzip content.
