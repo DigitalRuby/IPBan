@@ -115,7 +115,7 @@ Donations are accepted, any amount is appreciated, I work on this project for fr
 
 Jeff Johnson, CEO/CTO  
 Digital Ruby, LLC  
-http://www.digitalruby.com  
+https://www.digitalruby.com  
 support@digitalruby.com
 
 
