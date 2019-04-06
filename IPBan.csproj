@@ -3,9 +3,9 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp2.2</TargetFramework>
-    <AssemblyVersion>1.4.2.0</AssemblyVersion>
-    <FileVersion>1.4.2.0</FileVersion>
-    <PackageVersion>1.4.2.0</PackageVersion>
+    <AssemblyVersion>1.4.3.0</AssemblyVersion>
+    <FileVersion>1.4.3.0</FileVersion>
+    <PackageVersion>1.4.3.0</PackageVersion>
     <Company>Digital Ruby, LLC</Company>
     <Authors>jjxtra</Authors>
     <Copyright>(c) 2010 Digital Ruby, LLC</Copyright>
