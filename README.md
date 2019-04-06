@@ -46,7 +46,7 @@ auditpol /set /category:"Account Logon" /success:enable /failure:enable
 - For Windows Server 2008 or equivalent, you should disable NTLM logins and only allow NTLM2 logins. On Windows Server 2008, there is no way to get the ip address of NTLM logins. Use secpol -> local policies -> security options -> network security restrict ntlm incoming ntlm traffic -> deny all accounts.
 - To install as a Windows service use the [sc command](https://docs.microsoft.com/en-us/windows-server/administration/windows-commands/sc-create) and run the following in an elevated command window:
 ```
-sc create IPBAN type= own start= auto binPath= c:\path\to\service\IPBan.exe DisplayName= IPBAN
+sc create IPBAN type= own start= auto binPath= c:\path\to\service\DigitalRuby.IPBan.exe DisplayName= IPBAN
 sc description IPBAN "Automatically builds firewall rules for abusive login attempts: https://github.com/DigitalRuby/IPBan"
 ```
 The service needs file system, event viewer and firewall access, so please run as SYSTEM to ensure permissions.  Running "sc" as described above in an elevated command prompt will install the service using the local SYSTEM account.
@@ -74,7 +74,7 @@ sudo apt-get update
 ```
 - mkdir /root/ipban
 - Extract the IPBan.zip file (inside is IPBanLinux.zip) folder and use ftp to copy files to /root/ipban
-- chmod +x ./root/ipban/IPBan (makes sure the IPBan executable has execute permissions)
+- chmod +x ./root/ipban/DigitalRuby.IPBan (makes sure the DigitalRuby.IPBan executable has execute permissions)
 - Create service:
 ```
 sudo nano /lib/systemd/system/ipban.service
@@ -86,7 +86,7 @@ Description=IPBan Service
 After=network.target
 
 [Service]
-ExecStart=/root/ipban/IPBan
+ExecStart=/root/ipban/DigitalRuby.IPBan
 Restart=on-failure
 
 [Install]
