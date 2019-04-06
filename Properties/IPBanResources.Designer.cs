@@ -39,7 +39,7 @@ namespace DigitalRuby.IPBan {
         public static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("IPBan.Properties.IPBanResources", typeof(IPBanResources).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("DigitalRuby.IPBan.Properties.IPBanResources", typeof(IPBanResources).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
