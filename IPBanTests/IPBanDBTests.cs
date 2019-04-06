@@ -25,11 +25,11 @@ SOFTWARE.
 using System;
 using System.IO;
 using System.Linq;
-using IPBan;
+using DigitalRuby.IPBan;
 
 using NUnit.Framework;
 
-namespace IPBanTests
+namespace DigitalRuby.IPBanTests
 {
     [TestFixture]
     public class IPBanDBTests

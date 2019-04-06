@@ -36,7 +36,7 @@ using NLog.Config;
 
 #endregion Imports
 
-namespace IPBan
+namespace DigitalRuby.IPBan
 {
     /// <summary>
     /// Log levels

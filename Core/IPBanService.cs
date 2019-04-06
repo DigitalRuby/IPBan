@@ -45,7 +45,7 @@ using System.Web;
 
 #endregion Imports
 
-namespace IPBan
+namespace DigitalRuby.IPBan
 {
     public class IPBanService : IIPBanService
     {

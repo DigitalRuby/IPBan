@@ -28,11 +28,11 @@ using System.IO;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
-using IPBan;
+using DigitalRuby.IPBan;
 
 using NUnit.Framework;
 
-namespace IPBanTests
+namespace DigitalRuby.IPBanTests
 {
     [TestFixture]
     public class IPBanDelegateTests : IIPBanDelegate

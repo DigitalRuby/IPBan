@@ -16,7 +16,7 @@ using System.Globalization;
 using System.Runtime.Serialization;
 #endif
 
-namespace IPBan
+namespace DigitalRuby.IPBan
 {
     // NOTE: Why implement IReadOnlyDictionary<TKey,TVal> interface? 
     // =============================================================

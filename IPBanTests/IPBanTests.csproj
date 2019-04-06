@@ -4,6 +4,14 @@
     <TargetFramework>netcoreapp2.2</TargetFramework>
 
     <IsPackable>false</IsPackable>
+
+    <AssemblyVersion>1.4.2.0</AssemblyVersion>
+
+    <FileVersion>1.4.2.0</FileVersion>
+
+    <RootNamespace>DigitalRuby.IPBanTests</RootNamespace>
+
+    <AssemblyName>DigitalRuby.IPBanTests</AssemblyName>
   </PropertyGroup>
 
   <ItemGroup>

@@ -33,7 +33,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace IPBan
+namespace DigitalRuby.IPBan
 {
     public class IPBanLogFileScanner : IDisposable
     {

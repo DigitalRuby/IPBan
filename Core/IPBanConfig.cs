@@ -40,7 +40,7 @@ using System.Xml.Serialization;
 
 #endregion Imports
 
-namespace IPBan
+namespace DigitalRuby.IPBan
 {
     /// <summary>
     /// Configuration for ip ban app

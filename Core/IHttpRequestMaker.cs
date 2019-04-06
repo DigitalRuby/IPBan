@@ -34,7 +34,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace IPBan
+namespace DigitalRuby.IPBan
 {
     /// <summary>
     /// Simple interface that can make http requests

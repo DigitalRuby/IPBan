@@ -37,7 +37,7 @@ using System.Xml.Serialization;
 
 #endregion Imports
 
-namespace IPBan
+namespace DigitalRuby.IPBan
 {
     /// <summary>
     /// Info about a single Windows event viewer lookup

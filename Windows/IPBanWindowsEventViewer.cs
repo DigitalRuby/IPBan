@@ -31,7 +31,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Xml;
 
-namespace IPBan
+namespace DigitalRuby.IPBan
 {
     public class IPBanWindowsEventViewer : IUpdater
     {

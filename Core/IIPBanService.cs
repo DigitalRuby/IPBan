@@ -29,7 +29,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
-namespace IPBan
+namespace DigitalRuby.IPBan
 {
     /// <summary>
     /// Login event interface

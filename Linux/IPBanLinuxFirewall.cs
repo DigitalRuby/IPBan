@@ -34,7 +34,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace IPBan
+namespace DigitalRuby.IPBan
 {
     [RequiredOperatingSystem(IPBanOS.Linux)]
     public class IPBanLinuxFirewall : IIPBanFirewall

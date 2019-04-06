@@ -29,7 +29,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace IPBan
+namespace DigitalRuby.IPBan
 {
     /// <summary>
     /// Handle for banned ip addresses

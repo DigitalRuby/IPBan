@@ -28,7 +28,7 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace IPBan
+namespace DigitalRuby.IPBan
 {
     /// <summary>
     /// Simple DNS interface to lookup data about ip address or host name

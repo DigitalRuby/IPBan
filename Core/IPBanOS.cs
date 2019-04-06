@@ -33,7 +33,7 @@ using System.Text.RegularExpressions;
 using System.Management;
 using System.Linq;
 
-namespace IPBan
+namespace DigitalRuby.IPBan
 {
     // cat /etc/*-release
     public static class IPBanOS

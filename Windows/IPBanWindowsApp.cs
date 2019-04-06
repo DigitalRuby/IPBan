@@ -32,7 +32,7 @@ using System.ServiceProcess;
 
 #endregion Imports
 
-namespace IPBan
+namespace DigitalRuby.IPBan
 {
     public class IPBanWindowsApp : ServiceBase
     {

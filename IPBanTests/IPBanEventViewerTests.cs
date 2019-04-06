@@ -28,11 +28,11 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
-using IPBan;
+using DigitalRuby.IPBan;
 
 using NUnit.Framework;
 
-namespace IPBanTests
+namespace DigitalRuby.IPBanTests
 {
     [TestFixture]
     public class IPBanEventViewerTests : IIPBanDelegate

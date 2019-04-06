@@ -29,7 +29,7 @@ using System.IO;
 using System.Net;
 using System.Text;
 
-namespace IPBan
+namespace DigitalRuby.IPBan
 {
     public class IPBanDB : IDisposable
     {

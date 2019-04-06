@@ -40,7 +40,7 @@ using NetFwTypeLib;
 
 #endregion Imports
 
-namespace IPBan
+namespace DigitalRuby.IPBan
 {
     // TODO: Use https://github.com/falahati/NetworkAdapterSelector/blob/master/NetworkAdapterSelector.Hook/Guest.cs
     // https://falahati.net/my-blog/103-bind-ip-in-c-sharp-code-injection-shell-extension

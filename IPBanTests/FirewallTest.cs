@@ -33,11 +33,11 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
-using IPBan;
+using DigitalRuby.IPBan;
 
 using NUnit.Framework;
 
-namespace IPBanTests
+namespace DigitalRuby.IPBanTests
 {
     [TestFixture]
     public class FirewallTest

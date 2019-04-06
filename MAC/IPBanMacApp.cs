@@ -27,7 +27,7 @@ using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using System.Threading;
 
-namespace IPBan
+namespace DigitalRuby.IPBan
 {
     public static class IPBanMacApp
     {

@@ -27,7 +27,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
-namespace IPBan
+namespace DigitalRuby.IPBan
 {
     public class IPBanUnblockIPAddressesUpdater : IUpdater
     {

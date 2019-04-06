@@ -34,7 +34,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
 
-namespace IPBan
+namespace DigitalRuby.IPBan
 {
     public class IPBanIPAddressLogFileScanner : IPBanLogFileScanner
     {

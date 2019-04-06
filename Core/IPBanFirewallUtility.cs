@@ -31,7 +31,7 @@ using System.Net.Sockets;
 using System.Reflection;
 using System.Text;
 
-namespace IPBan
+namespace DigitalRuby.IPBan
 {
     /// <summary>
     /// Utility methods for working with firewall data

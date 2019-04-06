@@ -3,8 +3,9 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp2.2</TargetFramework>
-    <AssemblyVersion>1.4.1.0</AssemblyVersion>
-    <FileVersion>1.4.1.0</FileVersion>
+    <AssemblyVersion>1.4.2.0</AssemblyVersion>
+    <FileVersion>1.4.2.0</FileVersion>
+    <PackageVersion>1.4.2.0</PackageVersion>
     <Company>Digital Ruby, LLC</Company>
     <Authors>jjxtra</Authors>
     <Copyright>(c) 2010 Digital Ruby, LLC</Copyright>
@@ -15,9 +16,20 @@
     <StartupObject></StartupObject>
     <TrimUnusedDependencies>true</TrimUnusedDependencies>
     <TargetLatestRuntimePatch>true</TargetLatestRuntimePatch>
-    <PackageReleaseNotes>Startup speed boost</PackageReleaseNotes>
+    <PackageId>DigitalRuby.IPBan</PackageId>
+    <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
+    <PackageProjectUrl>https://github.com/DigitalRuby/IPBan</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/DigitalRuby/IPBan</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <Description>Ban ip addresses based on failed login attempts.</Description>
+    <Summary>Allow auto-banning ip addresses based on failed logins and rules. Can read event viewer or log files. Windows and Linux supported. Includes firewall API.</Summary>
+    <PackageReleaseNotes>Add unban.txt option. One address per line, will be unbanned on next cycle. Place in same folder as executable.</PackageReleaseNotes>
     <DebugType>portable</DebugType>
     <LangVersion>latest</LangVersion>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+    <RootNamespace>DigitalRuby.IPBan</RootNamespace>
+    <AssemblyName>DigitalRuby.IPBan</AssemblyName>
   </PropertyGroup>
 
   <ItemGroup>
@@ -30,6 +42,7 @@
     <None Remove="IPBanTests\**" />
     <None Remove="packages\**" />
     <None Remove="package\**" />
+    <None Include="LICENSE.md" Link="LICENSE.md" Pack="true" PackagePath="" />
   </ItemGroup>
 
   <ItemGroup>

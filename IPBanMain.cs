@@ -29,7 +29,7 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 
-namespace IPBan
+namespace DigitalRuby.IPBan
 {
     public static class IPBanMain
     {

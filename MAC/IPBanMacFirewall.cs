@@ -33,7 +33,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace IPBan
+namespace DigitalRuby.IPBan
 {
     // TODO: use pfctl
     [RequiredOperatingSystem(IPBanOS.Mac)]

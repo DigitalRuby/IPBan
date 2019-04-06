@@ -30,7 +30,7 @@ using System.Text;
 using System.Xml;
 using System.Xml.Serialization;
 
-namespace IPBan
+namespace DigitalRuby.IPBan
 {
     public class IPBanLogFileToParse
     {

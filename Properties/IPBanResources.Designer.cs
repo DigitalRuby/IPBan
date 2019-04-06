@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace IPBan {
+namespace DigitalRuby.IPBan {
     using System;
     
     

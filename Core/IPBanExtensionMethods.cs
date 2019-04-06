@@ -34,7 +34,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Web;
 
-namespace IPBan
+namespace DigitalRuby.IPBan
 {
     /// <summary>
     /// Extension methods for IPBan
