@@ -1200,7 +1200,7 @@ namespace DigitalRuby.IPBan
         /// <summary>
         /// Config file name
         /// </summary>
-        public const string ConfigFileName = "IPBan.dll.config";
+        public const string ConfigFileName = "DigitalRuby.IPBan.dll.config";
 
         /// <summary>
         /// Config file path
