@@ -267,9 +267,11 @@ namespace DigitalRuby.IPBan
         /// Constructor
         /// </summary>
         /// <param name="os">OS (IPBanOS.*)</param>
-        public RequiredOperatingSystemAttribute(string os)
+        /// <param name="priority">Priority</param>
+        public RequiredOperatingSystemAttribute(string os, int priority = 1)
         {
             RequiredOS = os;
+            Priority = priority;
         }
 
         /// <summary>
@@ -283,7 +285,12 @@ namespace DigitalRuby.IPBan
         /// <summary>
         /// The required operating system (IPBanOS.*)
         /// </summary>
-        public string RequiredOS { get; private set; }
+        public string RequiredOS { get; }
+
+        /// <summary>
+        /// Priority, higher priority override lower priority for the same OS
+        /// </summary>
+        public int Priority { get; }
     }
 
     /// <summary>

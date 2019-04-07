@@ -127,6 +127,7 @@ namespace DigitalRuby.IPBan
         public static IIPBanFirewall CreateFirewall(IReadOnlyDictionary<string, string> osAndFirewall, string rulePrefix)
         {
             bool foundFirewallType = false;
+            int priority = int.MinValue;
             Type firewallType = typeof(IIPBanFirewall);
             var q =
                 from a in AppDomain.CurrentDomain.GetAssemblies().SelectMany(a => a.GetTypes())
@@ -134,21 +135,21 @@ namespace DigitalRuby.IPBan
                     firewallType.IsAssignableFrom(a) &&
                     a.GetCustomAttribute<RequiredOperatingSystemAttribute>() != null &&
                     a.GetCustomAttribute<RequiredOperatingSystemAttribute>().IsValid
-                select a;
-            foreach (Type t in q)
+                select new { Type = a, OS = a.GetCustomAttribute<RequiredOperatingSystemAttribute>(), Name = a.GetCustomAttribute<CustomNameAttribute>() };
+            foreach (var result in q)
             {
-                firewallType = t;
-                CustomNameAttribute customName = t.GetCustomAttribute<CustomNameAttribute>();
+                firewallType = result.Type;
 
                 // look up the requested firewall by os name
                 if (osAndFirewall.TryGetValue(IPBanOS.Name, out string firewallToUse) &&
+                    priority < result.OS.Priority &&
 
                     // check type name or custom name attribute name, at least one must match
-                    (t.Name == firewallToUse ||
-                    (customName != null && (customName.Name ?? string.Empty).Equals(firewallToUse, StringComparison.OrdinalIgnoreCase))))
+                    (firewallType.Name == firewallToUse ||
+                    (result.Name != null && (result.Name.Name ?? string.Empty).Equals(firewallToUse, StringComparison.OrdinalIgnoreCase))))
                 {
+                    priority = result.OS.Priority;
                     foundFirewallType = true;
-                    break;
                 }
             }
             if (firewallType == null)
