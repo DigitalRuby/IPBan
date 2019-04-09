@@ -27,6 +27,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Runtime.InteropServices;
 using System.Security;
 using System.Security.Principal;
@@ -314,6 +315,41 @@ namespace DigitalRuby.IPBan
 
             // Any other IP address is not Unique Local Address (ULA)
             return false;
+        }
+
+        /// <summary>
+        /// Get a UInt32 from an ipv4 address
+        /// </summary>
+        /// <param name="ip">IPV4 address</param>
+        /// <returns>UInt32</returns>
+        /// <exception cref="InvalidOperationException">Not an ipv4 address</exception>
+        public static uint ToUInt32(this IPAddress ip)
+        {
+            if (ip.AddressFamily != System.Net.Sockets.AddressFamily.InterNetwork)
+            {
+                throw new InvalidOperationException("Not an ipv4 address");
+            }
+
+            byte[] bytes = ip.GetAddressBytes();
+            if (BitConverter.IsLittleEndian)
+            {
+                bytes = bytes.Reverse().ToArray();
+            }
+            return BitConverter.ToUInt32(bytes);
+        }
+
+        /// <summary>
+        /// Get a UInt128 from an ipv6 address.
+        /// </summary>
+        /// <param name="ip">IPV6 address</param>
+        /// <returns>UInt128</returns>
+        /// <exception cref="ArgumentOutOfRangeException">Not an ipv6 address</exception>
+        public static UInt128 ToUInt128(this IPAddress ip)
+        {
+            byte[] bytes = ip.GetAddressBytes().Reverse().ToArray();
+            ulong l1 = BitConverter.ToUInt64(bytes, 0);
+            ulong l2 = BitConverter.ToUInt64(bytes, 8);
+            return new UInt128(l2, l1);
         }
 
         /// <summary>
