@@ -353,6 +353,44 @@ namespace DigitalRuby.IPBan
         }
 
         /// <summary>
+        /// Get an ip address from a UInt32
+        /// </summary>
+        /// <param name="value">UInt32</param>
+        /// <returns>IPAddress</returns>
+        public static IPAddress ToIPAddress(this uint value)
+        {
+            byte[] bytes = BitConverter.GetBytes(value);
+            if (BitConverter.IsLittleEndian)
+            {
+                bytes = bytes.Reverse().ToArray();
+            }
+            return new IPAddress(bytes);
+        }
+
+        /// <summary>
+        /// Get an ip address from a UInt128
+        /// </summary>
+        /// <param name="value">UInt128</param>
+        /// <returns>IPAddress</returns>
+        public static IPAddress ToIPAddress(this UInt128 value)
+        {
+            byte[] bytes1 = BitConverter.GetBytes(value.MostSignificant);
+            byte[] bytes2 = BitConverter.GetBytes(value.LeastSignificant);
+            byte[] finalBytes;
+            if (BitConverter.IsLittleEndian)
+            {
+                bytes1 = bytes1.Reverse().ToArray();
+                bytes2 = bytes2.Reverse().ToArray();
+                finalBytes = bytes1.Concat(bytes2).ToArray();
+            }
+            else
+            {
+                finalBytes = bytes2.Concat(bytes1).ToArray();
+            }
+            return new IPAddress(finalBytes);
+        }
+
+        /// <summary>
         /// Asks for administrator privileges upgrade if the platform supports it, otherwise does nothing
         /// </summary>
         public static void RequireAdministrator()

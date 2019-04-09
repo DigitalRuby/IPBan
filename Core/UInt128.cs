@@ -718,5 +718,21 @@ namespace DigitalRuby.IPBan
 
         private readonly ulong _leastSignificant;
         private readonly ulong _mostSignificant;
+
+        /// <summary>
+        /// Get the least significate ulong
+        /// </summary>
+        public ulong LeastSignificant
+        {
+            get { return _leastSignificant; }
+        }
+
+        /// <summary>
+        /// Get the most significant ulong
+        /// </summary>
+        public ulong MostSignificant
+        {
+            get { return _mostSignificant; }
+        }
     }
 }
