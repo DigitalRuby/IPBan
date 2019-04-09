@@ -1010,6 +1010,14 @@ namespace DigitalRuby.IPBan
             }
             ipDB.Dispose();
             logFilesToParse.Clear();
+            try
+            {
+                // cleanup firewall
+                Firewall.Dispose();
+            }
+            catch
+            {
+            }
             IPBanLog.Warn("Stopped IPBan service");
         }
 
