@@ -49,7 +49,7 @@ namespace DigitalRuby.IPBan
     /// Helper class for Windows firewall and banning ip addresses.
     /// </summary>
     [RequiredOperatingSystem(IPBanOS.Windows)]
-    public class IPBanWindowsFirewall : IIPBanFirewall
+    public class IPBanWindowsFirewall : IPBanBaseFirewall, IIPBanFirewall
     {
         // DO NOT CHANGE THESE CONST AND READONLY FIELDS!
 
@@ -63,8 +63,7 @@ namespace DigitalRuby.IPBan
         private static readonly INetFwPolicy2 policy = Activator.CreateInstance(Type.GetTypeFromCLSID(new Guid(clsidFwPolicy2))) as INetFwPolicy2;
         private static readonly Type ruleType = Type.GetTypeFromCLSID(new Guid(clsidFwRule));
         private static readonly char[] firewallEntryDelimiters = new char[] { '/', '-' };
-
-        private string allowRulePrefix;
+        private readonly string allowRulePrefix;
 
         private string CreateRuleStringForIPAddresses(IReadOnlyList<string> ipAddresses, int index, int count)
         {
@@ -340,15 +339,8 @@ recreateRule:
             */
         }
 
-        public string RulePrefix { get; private set; } = "IPBan_";
-
-        public void Initialize(string rulePrefix)
+        public IPBanWindowsFirewall(string rulePrefix = null) : base(rulePrefix)
         {
-            if (string.IsNullOrWhiteSpace(rulePrefix))
-            {
-                rulePrefix = "IPBan_";
-            }
-            RulePrefix = rulePrefix.Trim();
             allowRulePrefix = RulePrefix + "Allow_";
             MigrateOldDefaultRuleNames();
         }
@@ -493,7 +485,7 @@ recreateRule:
             }
         }
 
-        public bool IsIPAddressBlocked(string ipAddress)
+        public bool IsIPAddressBlocked(string ipAddress, int port = -1)
         {
             try
             {

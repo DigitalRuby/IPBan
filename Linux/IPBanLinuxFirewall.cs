@@ -37,7 +37,7 @@ using System.Threading.Tasks;
 namespace DigitalRuby.IPBan
 {
     [RequiredOperatingSystem(IPBanOS.Linux)]
-    public class IPBanLinuxFirewall : IIPBanFirewall
+    public class IPBanLinuxFirewall : IPBanBaseFirewall, IIPBanFirewall
     {
         private const string inetFamily = "inet"; // inet6 when ipv6 support added
         private const int hashSize = 1024;
@@ -332,16 +332,8 @@ namespace DigitalRuby.IPBan
             return newIPAddressesUint;
         }
 
-        public string RulePrefix { get; private set; } = "IPBan_";
-
-        public void Initialize(string rulePrefix)
+        public IPBanLinuxFirewall(string rulePrefix = null) : base(rulePrefix)
         {
-            if (string.IsNullOrWhiteSpace(rulePrefix))
-            {
-                rulePrefix = "IPBan_";
-            }          
-            
-            RulePrefix = rulePrefix.Trim();
             allowRuleName = RulePrefix + "1";
             blockRuleName = RulePrefix + "0";
 
@@ -515,7 +507,7 @@ namespace DigitalRuby.IPBan
             }
         }
 
-        public bool IsIPAddressBlocked(string ipAddress)
+        public bool IsIPAddressBlocked(string ipAddress, int port = -1)
         {
             return bannedIPAddresses.Contains(IPBanFirewallUtility.ParseIPV4(ipAddress));
         }

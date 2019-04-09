@@ -37,17 +37,10 @@ namespace DigitalRuby.IPBan
 {
     // TODO: use pfctl
     [RequiredOperatingSystem(IPBanOS.Mac)]
-    public class IPBanMacFirewall : IIPBanFirewall
+    public class IPBanMacFirewall : IPBanBaseFirewall, IIPBanFirewall
     {
-        public string RulePrefix { get; private set; }
-
-        public void Initialize(string rulePrefix)
+        public IPBanMacFirewall(string rulePrefix = null) : base(rulePrefix)
         {
-            if (string.IsNullOrWhiteSpace(rulePrefix))
-            {
-                rulePrefix = "IPBan_";
-            }
-            RulePrefix = rulePrefix.Trim();
         }
 
         public Task<bool> AllowIPAddresses(IEnumerable<string> ipAddresses, CancellationToken cancelToken = default)
@@ -95,7 +88,7 @@ namespace DigitalRuby.IPBan
             throw new NotImplementedException();
         }
 
-        public bool IsIPAddressBlocked(string ipAddress)
+        public bool IsIPAddressBlocked(string ipAddress, int port = -1)
         {
             throw new NotImplementedException();
         }

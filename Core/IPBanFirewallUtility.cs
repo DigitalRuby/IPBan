@@ -135,19 +135,31 @@ namespace DigitalRuby.IPBan
                     firewallType.IsAssignableFrom(a) &&
                     a.GetCustomAttribute<RequiredOperatingSystemAttribute>() != null &&
                     a.GetCustomAttribute<RequiredOperatingSystemAttribute>().IsValid
-                select new { Type = a, OS = a.GetCustomAttribute<RequiredOperatingSystemAttribute>(), Name = a.GetCustomAttribute<CustomNameAttribute>() };
+                select new { FirewallType = a, OS = a.GetCustomAttribute<RequiredOperatingSystemAttribute>(), Name = a.GetCustomAttribute<CustomNameAttribute>() };
             foreach (var result in q)
             {
-                firewallType = result.Type;
-
                 // look up the requested firewall by os name
-                if (osAndFirewall.TryGetValue(IPBanOS.Name, out string firewallToUse) &&
-                    priority < result.OS.Priority &&
-
-                    // check type name or custom name attribute name, at least one must match
-                    (firewallType.Name == firewallToUse ||
-                    (result.Name != null && (result.Name.Name ?? string.Empty).Equals(firewallToUse, StringComparison.OrdinalIgnoreCase))))
+                if ((!osAndFirewall.TryGetValue(IPBanOS.Name, out string firewallToUse) || (result.FirewallType.Name.Equals(firewallToUse, StringComparison.OrdinalIgnoreCase)) ||
+                    (result.Name != null && (result.Name.Name ?? string.Empty).Equals(firewallToUse, StringComparison.OrdinalIgnoreCase)))
+                    && priority < result.OS.Priority)
                 {
+                    // if IsAvailable method is provided, attempt to call
+                    MethodInfo available = result.FirewallType.GetMethod("IsAvailable", BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy);
+                    if (available != null)
+                    {
+                        try
+                        {
+                            if (!Convert.ToBoolean(available.Invoke(null, null)))
+                            {
+                                continue;
+                            }
+                        }
+                        catch
+                        {
+                            continue;
+                        }
+                    }
+                    firewallType = result.FirewallType;
                     priority = result.OS.Priority;
                     foundFirewallType = true;
                 }
@@ -161,9 +173,7 @@ namespace DigitalRuby.IPBan
                 string typeString = string.Join(',', osAndFirewall.Select(kv => kv.Key + ":" + kv.Value));
                 throw new ArgumentException("Unable to find firewalls of types: " + typeString + ", osname: " + IPBanOS.Name);
             }
-            IIPBanFirewall firewall = Activator.CreateInstance(firewallType) as IIPBanFirewall;
-            firewall.Initialize(string.IsNullOrWhiteSpace(rulePrefix) ? "IPBan_" : rulePrefix);
-            return firewall;
+            return Activator.CreateInstance(firewallType, new object[] { rulePrefix }) as IIPBanFirewall;
         }
 
         /// <summary>
