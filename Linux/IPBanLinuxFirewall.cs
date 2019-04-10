@@ -354,11 +354,19 @@ namespace DigitalRuby.IPBan
             }
         }
 
-        public Task<bool> BlockIPAddresses(IEnumerable<string> ipAddresses, CancellationToken cancelToken = default)
+        public Task<bool> BlockIPAddresses(string ruleNamePrefix, IEnumerable<string> ipAddresses, CancellationToken cancelToken = default)
         {
             try
             {
-                bannedIPAddresses = UpdateRule(blockRuleName, "DROP", ipAddresses, bannedIPAddresses, "ip", blockRuleMaxCount, false, null, cancelToken, out bool result);
+                if (string.IsNullOrWhiteSpace(ruleNamePrefix))
+                {
+                    ruleNamePrefix = blockRuleName;
+                }
+                else
+                {
+                    ruleNamePrefix = RulePrefix + ruleNamePrefix;
+                }
+                bannedIPAddresses = UpdateRule(ruleNamePrefix, "DROP", ipAddresses, bannedIPAddresses, "ip", blockRuleMaxCount, false, null, cancelToken, out bool result);
                 return Task.FromResult(result);
             }
             catch (Exception ex)

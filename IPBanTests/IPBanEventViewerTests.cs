@@ -46,13 +46,13 @@ namespace DigitalRuby.IPBanTests
         {
             service = IPBanService.CreateAndStartIPBanTestService<IPBanService>();
             service.IPBanDelegate = this;
-            service.Firewall.BlockIPAddresses(new string[0]);
+            service.Firewall.BlockIPAddresses(null, new string[0]);
         }
 
         [TearDown]
         public void TearDown()
         {
-            service.Firewall.BlockIPAddresses(new string[0]);
+            service.Firewall.BlockIPAddresses(null, new string[0]);
             service.Stop();
             service.Dispose();
             service = null;

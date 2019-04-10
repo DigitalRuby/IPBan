@@ -391,7 +391,7 @@ namespace DigitalRuby.IPBan
             if (Config.ClearBannedIPAddressesOnRestart)
             {
                 IPBanLog.Warn("Clearing all banned ip addresses on start because ClearBannedIPAddressesOnRestart is set");
-                Firewall.BlockIPAddresses(new string[0]).Sync();
+                Firewall.BlockIPAddresses(null, new string[0]).Sync();
                 ipDB.Truncate(true);
             }
             else
@@ -411,6 +411,7 @@ namespace DigitalRuby.IPBan
         private void LoadFirewall()
         {
             Firewall = IPBanFirewallUtility.CreateFirewall(Config.FirewallOSAndType, Config.FirewallRulePrefix);
+            AddUpdater(Firewall);
         }
 
         private async Task CheckForExpiredIP()
@@ -647,11 +648,11 @@ namespace DigitalRuby.IPBan
                 }
                 if (MultiThreaded)
                 {
-                    TaskQueue.Add(() => Firewall.BlockIPAddresses(ipDB.EnumerateBannedIPAddresses().Select(i => i.IPAddress), TaskQueue.GetToken()));
+                    TaskQueue.Add(() => Firewall.BlockIPAddresses(null, ipDB.EnumerateBannedIPAddresses().Select(i => i.IPAddress), TaskQueue.GetToken()));
                 }
                 else
                 {
-                    Firewall.BlockIPAddresses(ipDB.EnumerateBannedIPAddresses().Select(i => i.IPAddress)).Sync();
+                    Firewall.BlockIPAddresses(null, ipDB.EnumerateBannedIPAddresses().Select(i => i.IPAddress)).Sync();
                 }
             }
 
@@ -1009,15 +1010,6 @@ namespace DigitalRuby.IPBan
             {
             }
             ipDB.Dispose();
-            logFilesToParse.Clear();
-            try
-            {
-                // cleanup firewall
-                Firewall.Dispose();
-            }
-            catch
-            {
-            }
             IPBanLog.Warn("Stopped IPBan service");
         }
 
@@ -1201,7 +1193,7 @@ namespace DigitalRuby.IPBan
             service.BannedIPAddressHandler = null; // no external ip handling
             service.Start();
             service.DB.Truncate(true);
-            service.Firewall.BlockIPAddresses(new string[0]).Sync();
+            service.Firewall.BlockIPAddresses(null, new string[0]).Sync();
             return service;
         }
 

@@ -318,7 +318,7 @@ namespace DigitalRuby.IPBan
         }
 
         /// <summary>
-        /// Get a UInt32 from an ipv4 address
+        /// Get a UInt32 from an ipv4 address. The UInt32 will be in the byte order of the CPU.
         /// </summary>
         /// <param name="ip">IPV4 address</param>
         /// <returns>UInt32</returns>
@@ -339,7 +339,7 @@ namespace DigitalRuby.IPBan
         }
 
         /// <summary>
-        /// Get a UInt128 from an ipv6 address.
+        /// Get a UInt128 from an ipv6 address. The UInt128 will be in the byte order of the CPU.
         /// </summary>
         /// <param name="ip">IPV6 address</param>
         /// <returns>UInt128</returns>
@@ -353,7 +353,7 @@ namespace DigitalRuby.IPBan
         }
 
         /// <summary>
-        /// Get an ip address from a UInt32
+        /// Get an ip address from a UInt32. The value is assumed to be in the byte order of the CPU.
         /// </summary>
         /// <param name="value">UInt32</param>
         /// <returns>IPAddress</returns>
@@ -368,7 +368,7 @@ namespace DigitalRuby.IPBan
         }
 
         /// <summary>
-        /// Get an ip address from a UInt128
+        /// Get an ip address from a UInt128. The UInt128 is assumed to be in the byte order of the CPU.
         /// </summary>
         /// <param name="value">UInt128</param>
         /// <returns>IPAddress</returns>
@@ -390,21 +390,35 @@ namespace DigitalRuby.IPBan
             return new IPAddress(finalBytes);
         }
 
+        [DllImport("libc")]
+        public static extern uint getuid();
+
         /// <summary>
         /// Asks for administrator privileges upgrade if the platform supports it, otherwise does nothing
         /// </summary>
         public static void RequireAdministrator()
         {
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            try
             {
-                using (WindowsIdentity identity = WindowsIdentity.GetCurrent())
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 {
-                    WindowsPrincipal principal = new WindowsPrincipal(identity);
-                    if (!principal.IsInRole(WindowsBuiltInRole.Administrator))
+                    using (WindowsIdentity identity = WindowsIdentity.GetCurrent())
                     {
-                        throw new InvalidOperationException("Application must be run as administrator");
+                        WindowsPrincipal principal = new WindowsPrincipal(identity);
+                        if (!principal.IsInRole(WindowsBuiltInRole.Administrator))
+                        {
+                            throw new InvalidOperationException("Application must be run as administrator");
+                        }
                     }
                 }
+                else if (getuid() != 0)
+                {
+                    throw new InvalidOperationException("Application must be run as administrator");
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new ApplicationException("Unable to determine administrator status", ex);
             }
         }
 

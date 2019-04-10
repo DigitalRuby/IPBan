@@ -81,6 +81,10 @@ namespace DigitalRuby.IPBan
             }
         }
 
+        public virtual void Update()
+        {
+        }
+
         /// <summary>
         /// Rule prefix - defaults to 'IPBan_'
         /// </summary>

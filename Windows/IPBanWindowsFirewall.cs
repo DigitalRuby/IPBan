@@ -345,10 +345,18 @@ recreateRule:
             MigrateOldDefaultRuleNames();
         }
 
-        public Task<bool> BlockIPAddresses(IEnumerable<string> ipAddresses, CancellationToken cancelToken = default)
+        public Task<bool> BlockIPAddresses(string ruleNamePrefix, IEnumerable<string> ipAddresses, CancellationToken cancelToken = default)
         {
             try
             {
+                if (string.IsNullOrWhiteSpace(ruleNamePrefix))
+                {
+                    ruleNamePrefix = RulePrefix;
+                }
+                else
+                {
+                    ruleNamePrefix = RulePrefix + ruleNamePrefix;
+                }
                 int i = 0;
                 List<string> ipAddressesList = new List<string>();
                 foreach (string ipAddress in ipAddresses)
@@ -360,7 +368,7 @@ recreateRule:
                     ipAddressesList.Add(ipAddress);
                     if (ipAddressesList.Count == MaxIpAddressesPerRule)
                     {
-                        CreateBlockRule(ipAddressesList, 0, MaxIpAddressesPerRule, RulePrefix + i.ToStringInvariant());
+                        CreateBlockRule(ipAddressesList, 0, MaxIpAddressesPerRule, ruleNamePrefix + i.ToStringInvariant());
                         i += MaxIpAddressesPerRule;
                         ipAddressesList.Clear();
                     }
@@ -371,7 +379,7 @@ recreateRule:
                 }
                 if (ipAddressesList.Count != 0)
                 {
-                    CreateBlockRule(ipAddressesList, 0, MaxIpAddressesPerRule, RulePrefix + i.ToStringInvariant());
+                    CreateBlockRule(ipAddressesList, 0, MaxIpAddressesPerRule, ruleNamePrefix + i.ToStringInvariant());
                     i += MaxIpAddressesPerRule;
                 }
                 DeleteRules(RulePrefix, i);

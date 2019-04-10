@@ -51,20 +51,20 @@ namespace DigitalRuby.IPBanTests
             firewall = IPBanFirewallUtility.CreateFirewall(firewallAndOsType, "IPBanTest_");
 
             // clear all blocks
-            firewall.BlockIPAddresses(new string[0]).Sync();
+            firewall.BlockIPAddresses(null, new string[0]).Sync();
         }
 
         [TearDown]
         public void TestStop()
         {
             // clear all blocks
-            firewall.BlockIPAddresses(new string[0]).Sync();
+            firewall.BlockIPAddresses(null, new string[0]).Sync();
         }
 
         [Test]
         public void TestBlock()
         {
-            firewall.BlockIPAddresses(new string[] { "99.99.99.99" }).Sync();
+            firewall.BlockIPAddresses(null, new string[] { "99.99.99.99" }).Sync();
             Assert.IsTrue(firewall.IsIPAddressBlocked("99.99.99.99"));
         }
 
@@ -76,7 +76,7 @@ namespace DigitalRuby.IPBanTests
             {
                 toBlock[i] = "10.10." + ((i & 0xFF00) >> 8) + "." + (i & 0x00FF);
             }
-            firewall.BlockIPAddresses(toBlock).Sync();
+            firewall.BlockIPAddresses(null, toBlock).Sync();
             string[] bannedIP = firewall.EnumerateBannedIPAddresses().ToArray();
             foreach (string origIP in toBlock)
             {
@@ -88,7 +88,7 @@ namespace DigitalRuby.IPBanTests
         public void TestIPV6()
         {
             string[] toBlock = new string[] { "fe80::c872:be03:5c94:4af2%8", "192.168.0.20" };
-            firewall.BlockIPAddresses(toBlock).Sync();
+            firewall.BlockIPAddresses(null, toBlock).Sync();
             string[] bannedIP = firewall.EnumerateBannedIPAddresses().ToArray();
             string[] bannedIP2 = firewall.EnumerateIPAddresses().Select(i => i.Begin.ToString()).ToArray();
             Assert.AreEqual(bannedIP.Length, bannedIP2.Length);

@@ -32,19 +32,20 @@ using System.Threading.Tasks;
 
 namespace DigitalRuby.IPBan
 {
-    public interface IIPBanFirewall : IUnblockIPAddresses, IDisposable
+    public interface IIPBanFirewall : IUnblockIPAddresses, IUpdater, IDisposable
     {
         /// <summary>
-        /// Creates new rules to block all the ip addresses, and removes any left-over rules. Exceptions are logged.
+        /// Creates/updates rules to block all the ip addresses, and removes any left-over rules. Exceptions are logged.
         /// Pass an empty list to remove all blocked ip addresses.
         /// </summary>
+        /// <param name="ruleNamePrefix">Rule name prefix</param>
         /// <param name="ipAddresses">IP Addresses</param>
         /// <param name="cancelToken">Cancel token</param>
         /// <returns>True if success, false if error</returns>
-        Task<bool> BlockIPAddresses(IEnumerable<string> ipAddresses, CancellationToken cancelToken = default);
+        Task<bool> BlockIPAddresses(string ruleNamePrefix, IEnumerable<string> ipAddresses, CancellationToken cancelToken = default);
 
         /// <summary>
-        /// Deletes any existing rule prefixed by ruleNamePrefix then creates a new rule(s) prefixed by ruleNamePrefix with block rules for all ranges specified. Exceptions are logged.
+        /// Creates/updates new rule(s) prefixed by ruleNamePrefix with block rules for all ranges specified. Exceptions are logged.
         /// </summary>
         /// <param name="ruleNamePrefix">Rule name prefix</param>
         /// <param name="ranges">Ranges to block</param>

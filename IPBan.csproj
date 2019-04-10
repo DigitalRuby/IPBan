@@ -30,6 +30,7 @@
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
     <RootNamespace>DigitalRuby.IPBan</RootNamespace>
     <AssemblyName>DigitalRuby.IPBan</AssemblyName>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
   </PropertyGroup>
 
   <ItemGroup>
