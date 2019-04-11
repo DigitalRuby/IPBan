@@ -382,7 +382,7 @@ recreateRule:
                     CreateBlockRule(ipAddressesList, 0, MaxIpAddressesPerRule, ruleNamePrefix + i.ToStringInvariant());
                     i += MaxIpAddressesPerRule;
                 }
-                DeleteRules(RulePrefix, i);
+                DeleteRules(ruleNamePrefix, i);
                 return Task.FromResult(true);
             }
             catch (Exception ex)

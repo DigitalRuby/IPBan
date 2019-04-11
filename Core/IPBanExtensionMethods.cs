@@ -318,12 +318,13 @@ namespace DigitalRuby.IPBan
         }
 
         /// <summary>
-        /// Get a UInt32 from an ipv4 address. The UInt32 will be in the byte order of the CPU.
+        /// Get a UInt32 from an ipv4 address. By default, the UInt32 will be in the byte order of the CPU.
         /// </summary>
         /// <param name="ip">IPV4 address</param>
+        /// <param name="swap">Whether to make the uint in the byte order of the cpu (true) or network host order (false)</param>
         /// <returns>UInt32</returns>
         /// <exception cref="InvalidOperationException">Not an ipv4 address</exception>
-        public static uint ToUInt32(this IPAddress ip)
+        public static uint ToUInt32(this IPAddress ip, bool swap = true)
         {
             if (ip.AddressFamily != System.Net.Sockets.AddressFamily.InterNetwork)
             {
@@ -331,7 +332,7 @@ namespace DigitalRuby.IPBan
             }
 
             byte[] bytes = ip.GetAddressBytes();
-            if (BitConverter.IsLittleEndian)
+            if (swap && BitConverter.IsLittleEndian)
             {
                 bytes = bytes.Reverse().ToArray();
             }
@@ -353,14 +354,15 @@ namespace DigitalRuby.IPBan
         }
 
         /// <summary>
-        /// Get an ip address from a UInt32. The value is assumed to be in the byte order of the CPU.
+        /// Get an ip address from a UInt32. By default, the value is assumed to be in the byte order of the CPU.
         /// </summary>
         /// <param name="value">UInt32</param>
+        /// <param name="swap">Whether to swap to network host order if needed</param>
         /// <returns>IPAddress</returns>
-        public static IPAddress ToIPAddress(this uint value)
+        public static IPAddress ToIPAddress(this uint value, bool swap = true)
         {
             byte[] bytes = BitConverter.GetBytes(value);
-            if (BitConverter.IsLittleEndian)
+            if (swap && BitConverter.IsLittleEndian)
             {
                 bytes = bytes.Reverse().ToArray();
             }
