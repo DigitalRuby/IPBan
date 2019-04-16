@@ -265,7 +265,7 @@ namespace DigitalRuby.IPBan
                             }
                             else if (IPBanDelegate == null || (await IPBanDelegate.LoginAttemptFailed(ipAddress, source, userName) != LoginFailedResult.Whitelisted))
                             {
-                                await AddBannedIPAddress(ipAddress, source, userName, bannedIpAddresses, now, configBlacklisted, newCount, string.Empty);
+                                AddBannedIPAddress(ipAddress, source, userName, bannedIpAddresses, now, configBlacklisted, newCount, string.Empty);
                             }
                         }
                         else if (newCount > maxFailedLoginAttempts)
@@ -280,7 +280,7 @@ namespace DigitalRuby.IPBan
                                 LoginFailedResult result = await IPBanDelegate.LoginAttemptFailed(ipAddress, source, userName);
                                 if (result.HasFlag(LoginFailedResult.Blacklisted))
                                 {
-                                    await AddBannedIPAddress(ipAddress, userName, source, bannedIpAddresses, now, configBlacklisted, newCount, "Delegate banned ip: " + result);
+                                    AddBannedIPAddress(ipAddress, userName, source, bannedIpAddresses, now, configBlacklisted, newCount, "Delegate banned ip: " + result);
                                 }
                             }
                         }
@@ -295,7 +295,7 @@ namespace DigitalRuby.IPBan
             ExecuteExternalProcessForBannedIPAddresses(bannedIpAddresses);
         }
 
-        private async Task AddBannedIPAddress(string ipAddress, string source, string userName, List<BannedIPAddress> bannedIpAddresses,
+        private void AddBannedIPAddress(string ipAddress, string source, string userName, List<BannedIPAddress> bannedIpAddresses,
             DateTime dateTime, bool configBlacklisted, int counter, string extraInfo)
         {
             bannedIpAddresses.Add(new BannedIPAddress { IPAddress = ipAddress, Source = source, UserName = userName });
@@ -304,14 +304,32 @@ namespace DigitalRuby.IPBan
             IPBanLog.Warn("Banning ip address: {0}, user name: {1}, config black listed: {2}, count: {3}, extra info: {4}",
                 ipAddress, userName, configBlacklisted, counter, extraInfo);
 
-            if (BannedIPAddressHandler != null && System.Net.IPAddress.TryParse(ipAddress, out System.Net.IPAddress ipAddressObj) && !ipAddressObj.IsInternal())
+            // kick off notifications of ban in the background
+            Task.Run(() =>
             {
-                await BannedIPAddressHandler.HandleBannedIPAddress(ipAddress, source, userName, OSName, OSVersion, AssemblyVersion, RequestMaker);
-            }
-            if (IPBanDelegate != null)
-            {
-                await IPBanDelegate.IPAddressBanned(ipAddress, source, userName, true);
-            }
+                if (BannedIPAddressHandler != null && System.Net.IPAddress.TryParse(ipAddress, out System.Net.IPAddress ipAddressObj) && !ipAddressObj.IsInternal())
+                {
+                    try
+                    {
+                        BannedIPAddressHandler.HandleBannedIPAddress(ipAddress, source, userName, OSName, OSVersion, AssemblyVersion, RequestMaker).ConfigureAwait(false).GetAwaiter();
+                    }
+                    catch (Exception ex)
+                    {
+                        IPBanLog.Info("Error calling banned ip address handler: " + ex.ToString());
+                    }
+                }
+                if (IPBanDelegate != null)
+                {
+                    try
+                    {
+                        IPBanDelegate.IPAddressBanned(ipAddress, source, userName, true).ConfigureAwait(false).GetAwaiter();
+                    }
+                    catch (Exception ex)
+                    {
+                        IPBanLog.Info("Error calling ipban delegate with banned ip address: " + ex.ToString());
+                    }
+                }
+            });
         }
 
         private void ExecuteExternalProcessForBannedIPAddresses(IReadOnlyCollection<BannedIPAddress> bannedIPAddresses)

@@ -121,7 +121,7 @@ namespace DigitalRuby.IPBan
 
                         if (nodes.Count == 0)
                         {
-                            IPBanLog.Info("No nodes found for xpath {0}", expression.XPath);
+                            IPBanLog.Debug("No nodes found for xpath {0}", expression.XPath);
                             info = null;
                             break;
                         }
@@ -130,7 +130,7 @@ namespace DigitalRuby.IPBan
                         if (string.IsNullOrWhiteSpace(expression.Regex))
                         {
                             // count as a match, do not modify the ip address if it was already set
-                            IPBanLog.Info("No regex, so counting as a match");
+                            IPBanLog.Debug("No regex, so counting as a match");
                         }
                         else
                         {
@@ -158,7 +158,7 @@ namespace DigitalRuby.IPBan
                             if (info != null && !info.FoundMatch)
                             {
                                 // match fail, null out ip, we have to match ALL the nodes or we get null ip and do not ban
-                                IPBanLog.Info("Regex {0} did not match any nodes with xpath {1}", expression.Regex, expression.XPath);
+                                IPBanLog.Debug("Regex {0} did not match any nodes with xpath {1}", expression.Regex, expression.XPath);
                                 info = null;
                                 foundNotifyOnly = false;
                                 break;
@@ -285,7 +285,7 @@ namespace DigitalRuby.IPBan
         /// <param name="xml">XML</param>
         public void ProcessEventViewerXml(string xml)
         {
-            IPBanLog.Info("Processing event viewer xml: {0}", xml);
+            IPBanLog.Debug("Processing event viewer xml: {0}", xml);
 
             XmlDocument doc = ParseXml(xml);
             IPAddressEvent info = ExtractEventViewerXml(doc);
@@ -303,7 +303,7 @@ namespace DigitalRuby.IPBan
                 {
                     service.IPBanDelegate?.LoginAttemptSucceeded(info.IPAddress, info.Source, info.UserName).ConfigureAwait(false).GetAwaiter();
                 }
-                IPBanLog.Info("Event viewer found: {0}, {1}, {2}", info.IPAddress, info.Source, info.UserName);
+                IPBanLog.Debug("Event viewer found: {0}, {1}, {2}", info.IPAddress, info.Source, info.UserName);
             }
         }
     }
