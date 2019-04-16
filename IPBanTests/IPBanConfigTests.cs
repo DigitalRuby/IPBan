@@ -60,7 +60,7 @@ namespace DigitalRuby.IPBanTests
             const string pathAndMask2 = "/var/log/ipbancustom*.log";
             const string pathAndMask3 = "C:/Program Files/Microsoft/Exchange Server/*.log";
             const string pathAndMask4 = "C:/IPBanCustomLogs/*.log";
-            const string failedRegex1 = @"\s*\w+\s+\w+\s+[0-9:]+\s+\w+\s+sshd.*?\s+failed\s+password\s+for(\sinvalid\suser)?\s+(?<username>.+?)\s+from\s+(?<ipaddress>.+?)\s+port\s+[0-9]+\s+ssh2?\s*|\s*\w+\s+\w+\s+[0-9:]+\s+\w+\s+sshd.*?\s+connection\s+closed\s+by\s+((invalid\s+user\s+)?(?<username>.+?)\s+)?(?<ipaddress>.+?)\s+port\s+[0-9]+\s+\[preauth\]\s*";
+            const string failedRegex1 = @"\s*\w+\s+\w+\s+[0-9:]+\s+\w+\s+sshd.*?\s+failed\s+password\s+for(\sinvalid\suser)?\s+(?<username>.+?)\s+from\s+(?<ipaddress>.+?)\s+port\s+[0-9]+\s+ssh2?\s*|\s*\w+\s+\w+\s+[0-9:]+\s+\w+\s+sshd.*?\s+did\s+not\s+receive\s+identification\s+string\s+from\s+(?<ipaddress>[^\s]+)|\s*\w+\s+\w+\s+[0-9:]+\s+\w+\s+sshd.*?\s+connection\s+closed\s+by\s+(?<ipaddress>.+?)\s+port\s+[0-9]+\s+\[preauth\]\s*(\(no\s+attempt\s+to\s+login\s+after\s+timeout\))?";
             const string successRegex1 = @"Accepted\spassword\sfor\s(?<username>.+?)\sfrom\s(?<ipaddress>.+?)\sport\s[0-9]+\sssh";
             const string failedRegex2 = @"ipban\sfailed\slogin,\sip\saddress:\s(?<ipaddress>.+?),\ssource:\s(?<source>.+?),\suser:\s(?<username>[^\s,]+)";
             const string successRegex2 = @"ipban\ssuccess\slogin,\sip\saddress:\s(?<ipaddress>.+?),\ssource:\s(?<source>.+?),\suser:\s(?<username>[^\s,]+)";
@@ -103,16 +103,15 @@ namespace DigitalRuby.IPBanTests
             const int minimumWindowsMajorVersion = 6;
             EventViewerExpressionGroup[] groups = cfg.WindowsEventViewerExpressionsToBlock.Groups;
             Assert.NotNull(groups);
-            Assert.AreEqual(9, groups.Length);
+            Assert.AreEqual(8, groups.Length);
             AssertEventViewerGroup(groups[0], "0x8010000000000000", minimumWindowsMajorVersion, 0, false, "Security", "RDP", "//EventID", "^(4625|5152)$", "//Data[@Name='IpAddress' or @Name='Workstation' or @Name='SourceAddress']", "(?<ipaddress>.+)");
             AssertEventViewerGroup(groups[1], "0x80000000000000", minimumWindowsMajorVersion, 0, false, "Application", "IPBanCustom", "//Data", @"ipban\sfailed\slogin,\sip\saddress:\s(?<ipaddress>.+?),\ssource:\s(?<source>.+?),\suser:\s(?<username>[^\s,]+)");
             AssertEventViewerGroup(groups[2], "0x90000000000000", minimumWindowsMajorVersion, 0, false, "Application", "MSSQL", "//Provider[@Name='MSSQLSERVER']", string.Empty, "//Data", @"(?!(\[CLIENT\s?:|Reason\s?:))(?<username>.+)", "//Data", @"\[CLIENT\s?:\s?(?<ipaddress>.*?)\]");
             AssertEventViewerGroup(groups[3], "0x80000000000000", minimumWindowsMajorVersion, 0, false, "Application", "MySQL", "//Provider[@Name='MySQL']", string.Empty, "//Data", "Access denied for user '?(?<username>.*?)'@'(?<ipaddress>.*?)'");
             AssertEventViewerGroup(groups[4], "0x80000000000000", minimumWindowsMajorVersion, 0, false, "System", "MSExchange", "//Provider[@Name='MSExchangeTransport']", string.Empty, "//Data", "LogonDenied", "//Data", "(?<ipaddress_exact>.+)");
             AssertEventViewerGroup(groups[5], "0x80000000000000", minimumWindowsMajorVersion, 0, false, "Application", "phpMyAdmin", "//Data", "phpMyAdmin", "//Data", @"user denied: (?<username>.*?)\(mysql-denied\) from *(?<ipaddress>.+)");
-            AssertEventViewerGroup(groups[6], "0x8000000000000000", minimumWindowsMajorVersion, 0, false, "OpenSSH/Admin", "SSH", "//Data[@Name='payload']", @"maximum authentication attempts exceeded for( invalid user)? (?<username>.*?) from (?<ipaddress>.*?)\s");
-            AssertEventViewerGroup(groups[7], "0x4000000000000000", minimumWindowsMajorVersion, 0, false, "OpenSSH/Operational", "SSH", "//Data[@Name='payload']", @"Failed password for( invalid user)? (?<username>.*?) from (?<ipaddress>.*?)\s|Connection closed by (?<ipaddress>.*?) port [0-9]+ \[preauth\]");
-            AssertEventViewerGroup(groups[8], "0x4000000000000000", minimumWindowsMajorVersion, 0, false, "Microsoft-Windows-RemoteDesktopServices-RdpCoreTS/Operational", "RDP", "//Opcode", "^14$", "//Data[@Name='ClientIP' or @Name='IPString']", "(?<ipaddress>.+)");
+            AssertEventViewerGroup(groups[6], "0x4000000000000000", minimumWindowsMajorVersion, 0, false, "OpenSSH/Operational", "SSH", "//Data[@Name='payload']", @"failed\s+password\s+for(\sinvalid\suser)?\s+(?<username>.+?)\s+from\s+(?<ipaddress>.+?)\s+port\s+[0-9]+\s+ssh2?\s*|did\s+not\s+receive\s+identification\s+string\s+from\s+(?<ipaddress>[^\s]+)|connection\s+closed\s+by\s+(?<ipaddress>.+?)\s+port\s+[0-9]+\s+\[preauth\]\s*(\(no\s+attempt\s+to\s+login\s+after\s+timeout\))?");
+            AssertEventViewerGroup(groups[7], "0x4000000000000000", minimumWindowsMajorVersion, 0, false, "Microsoft-Windows-RemoteDesktopServices-RdpCoreTS/Operational", "RDP", "//Opcode", "^14$", "//Data[@Name='ClientIP' or @Name='IPString']", "(?<ipaddress>.+)");
 
             groups = cfg.WindowsEventViewerExpressionsToNotify.Groups;
             Assert.NotNull(groups);
