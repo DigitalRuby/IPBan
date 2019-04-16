@@ -40,7 +40,7 @@ using NUnit.Framework;
 namespace DigitalRuby.IPBanTests
 {
     [TestFixture]
-    public class FirewallTest
+    public class IPBanFirewallTests
     {
         private static readonly Dictionary<string, string> firewallAndOsType = new Dictionary<string, string>();
         private IIPBanFirewall firewall;

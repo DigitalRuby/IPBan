@@ -108,7 +108,7 @@ namespace DigitalRuby.IPBan
                     info.Source = info.Source ?? Source;
                     IPBanLog.Debug("Log file found match, ip: {0}, user: {1}, source: {2}, count: {3}, flag: {4}",
                         info.IPAddress, info.UserName, info.Source, info.Count, info.Flag);
-                    loginHandler.HandleIPAddressEvent(info);
+                    loginHandler.AddIPAddressEvent(info);
                     return true;
                 }
             }

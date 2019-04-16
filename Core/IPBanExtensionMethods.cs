@@ -392,6 +392,40 @@ namespace DigitalRuby.IPBan
             return new IPAddress(finalBytes);
         }
 
+        /// <summary>
+        /// Get the local ip address of the local machine
+        /// </summary>
+        /// <param name="dns">Dns lookup</param>
+        /// <param name="addressFamily">Desired address family</param>
+        /// <returns>Local ip address or null if unable to determine. If no address family match, falls back to an ipv6 attempt.</returns>
+        public static async Task<System.Net.IPAddress> GetLocalIPAddress(this IDnsLookup dns, System.Net.Sockets.AddressFamily addressFamily = System.Net.Sockets.AddressFamily.InterNetwork)
+        {
+            try
+            {
+                // append ipv4 first, then the ipv6 then the remote ip
+                System.Net.IPAddress[] ips = await dns.GetHostAddressesAsync(Dns.GetHostName());
+                foreach (System.Net.IPAddress ip in ips)
+                {
+                    if (ip.AddressFamily == addressFamily)
+                    {
+                        return ip;
+                    }
+                }
+                foreach (System.Net.IPAddress ip in ips)
+                {
+                    if (ip.AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6)
+                    {
+                        return ip;
+                    }
+                }
+            }
+            catch
+            {
+
+            }
+            return null;
+        }
+
         [DllImport("libc")]
         public static extern uint getuid();
 

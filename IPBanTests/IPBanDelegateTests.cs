@@ -81,9 +81,9 @@ namespace DigitalRuby.IPBanTests
 
         private void AddLoginEvents()
         {
-            service.HandleIPAddressEvent(info1);
-            service.HandleIPAddressEvent(info2);
-            service.HandleIPAddressEvent(info3);
+            service.AddIPAddressEvent(info1);
+            service.AddIPAddressEvent(info2);
+            service.AddIPAddressEvent(info3);
             service.RunCycle().Sync();
 
             Assert.AreEqual(10, events.Count);

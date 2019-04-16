@@ -35,12 +35,14 @@ using NUnit.Framework;
 namespace DigitalRuby.IPBanTests
 {
     [TestFixture]
-    public class IPBanUnblockTests
+    public class IPBanBanTests
     {
-        private const string ip1 = "99.99.99.98";
-        private const string ip2 = "99.99.99.99";
+        private const string ip1 = "99.99.99.97";
+        private const string ip2 = "99.99.99.98";
+        private const string ip3 = "99.99.99.99";
         private static readonly IPAddressEvent info1 = new IPAddressEvent { Count = 98, IPAddress = ip1, Source = "RDP", UserName = "test_user", Flag = IPAddressEventFlag.FailedLogin };
         private static readonly IPAddressEvent info2 = new IPAddressEvent { Count = 99, IPAddress = ip2, Source = "SSH", UserName = "test_user2", Flag = IPAddressEventFlag.FailedLogin };
+        private static readonly IPAddressEvent info3 = new IPAddressEvent { Count = 1, IPAddress = ip1, Source = "RDP", UserName = "test_user", Flag = IPAddressEventFlag.FailedLogin };
 
         private IPBanService service;
 
@@ -48,6 +50,7 @@ namespace DigitalRuby.IPBanTests
         public void Setup()
         {
             // ensure a clean start
+            IPBanService.UtcNow = DateTime.UtcNow;
             service = IPBanService.CreateAndStartIPBanTestService<IPBanService>();
         }
 
@@ -56,12 +59,13 @@ namespace DigitalRuby.IPBanTests
         {
             service.Firewall.BlockIPAddresses(null, new string[0]);
             service.Dispose();
+            IPBanService.UtcNow = DateTime.UtcNow;
         }
 
         private void AddFailedLogins()
         {
-            service.HandleIPAddressEvent(info1);
-            service.HandleIPAddressEvent(info2);
+            service.AddIPAddressEvent(info1);
+            service.AddIPAddressEvent(info2);
             service.RunCycle().Sync();
         }
 
@@ -77,8 +81,30 @@ namespace DigitalRuby.IPBanTests
         {
             Assert.IsFalse(service.Firewall.IsIPAddressBlocked(ip1));
             Assert.IsFalse(service.Firewall.IsIPAddressBlocked(ip2));
+        }
+
+        private void AssertNoIPInDB()
+        {
             Assert.IsNull(service.DB.GetIPAddress(ip1));
             Assert.IsNull(service.DB.GetIPAddress(ip2));
+        }
+
+        [Test]
+        public void TestBanIPAddresses()
+        {
+            AddFailedLogins();
+            AssertFailedLogins();
+
+            // forget all the bans
+            IPBanService.UtcNow += TimeSpan.FromDays(14.0);
+            service.RunCycle().Sync();
+
+            AssertNoFailedLogins();
+
+            // add a single failed login, should not cause a block
+            service.AddIPAddressEvent(info3);
+            service.RunCycle().Sync();
+            AssertNoFailedLogins();            
         }
 
         [Test]
@@ -94,6 +120,7 @@ namespace DigitalRuby.IPBanTests
             service.RunCycle().Sync();
 
             AssertNoFailedLogins();
+            AssertNoIPInDB();
         }
 
         [Test]
@@ -108,6 +135,7 @@ namespace DigitalRuby.IPBanTests
             service.RunCycle().Sync();
 
             AssertNoFailedLogins();
+            AssertNoIPInDB();
         }
     }
 }

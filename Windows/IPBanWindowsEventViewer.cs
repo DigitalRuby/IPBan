@@ -92,7 +92,7 @@ namespace DigitalRuby.IPBan
                 }
             }
 
-            service.HandleIPAddressEvent(info);
+            service.AddIPAddressEvent(info);
 
             return true;
         }

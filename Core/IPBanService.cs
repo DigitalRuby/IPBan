@@ -184,34 +184,8 @@ namespace DigitalRuby.IPBan
 
             if (string.IsNullOrWhiteSpace(LocalIPAddressString))
             {
-                try
-                {
-                    // append ipv4 first, then the ipv6 then the remote ip
-                    IPAddress[] ips = await DnsLookup.GetHostAddressesAsync(Dns.GetHostName());
-                    foreach (IPAddress ip in ips)
-                    {
-                        if (ip.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
-                        {
-                            LocalIPAddressString = ip.ToString();
-                            break;
-                        }
-                    }
-                    if (string.IsNullOrWhiteSpace(LocalIPAddressString))
-                    {
-                        foreach (IPAddress ip in ips)
-                        {
-                            if (ip.AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6)
-                            {
-                                LocalIPAddressString = ip.ToString();
-                                break;
-                            }
-                        }
-                    }
-                }
-                catch
-                {
-
-                }
+                LocalIPAddressString = DnsLookup.GetLocalIPAddress()?.ToString();
+                IPBanLog.Info("Local ip address: {0}", LocalIPAddressString);
             }
 
             if (string.IsNullOrWhiteSpace(RemoteIPAddressString))
@@ -776,11 +750,11 @@ namespace DigitalRuby.IPBan
         }
 
         /// <summary>
-        /// Add an ip address to be checked for banning later
+        /// Add an ip address to be checked later
         /// </summary>
         /// <param name="info">IP address log info</param>
         /// <returns>Task</returns>
-        public Task HandleIPAddressEvent(IPAddressEvent info)
+        public Task AddIPAddressEvent(IPAddressEvent info)
         {
             if (IPBanFirewallUtility.TryGetFirewallIPAddress(info.IPAddress, out string normalizedIPAddress))
             {

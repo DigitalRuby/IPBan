@@ -32,15 +32,15 @@ using System.Threading.Tasks;
 namespace DigitalRuby.IPBan
 {
     /// <summary>
-    /// Login event interface
+    /// IP address event interface
     /// </summary>
     public interface IIPAddressEventHandler
     {
         /// <summary>
-        /// Handle an ip address event
+        /// Add an ip address event
         /// </summary>
         /// <param name="info">IP address event info</param>
-        Task HandleIPAddressEvent(IPAddressEvent info);
+        Task AddIPAddressEvent(IPAddressEvent info);
     }
 
     /// <summary>

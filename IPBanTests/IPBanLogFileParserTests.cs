@@ -155,7 +155,7 @@ namespace DigitalRuby.IPBanTests
             }
         }
 
-        Task IIPAddressEventHandler.HandleIPAddressEvent(IPAddressEvent info)
+        Task IIPAddressEventHandler.AddIPAddressEvent(IPAddressEvent info)
         {
             if (info.Flag.HasFlag(IPAddressEventFlag.SuccessfulLogin))
             {
