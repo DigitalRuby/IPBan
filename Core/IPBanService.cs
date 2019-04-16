@@ -184,8 +184,14 @@ namespace DigitalRuby.IPBan
 
             if (string.IsNullOrWhiteSpace(LocalIPAddressString))
             {
-                LocalIPAddressString = DnsLookup.GetLocalIPAddress().Sync()?.ToString();
-                IPBanLog.Info("Local ip address: {0}", LocalIPAddressString);
+                try
+                {
+                    LocalIPAddressString = DnsLookup.GetLocalIPAddress().Sync()?.ToString();
+                    IPBanLog.Info("Local ip address: {0}", LocalIPAddressString);
+                }
+                catch
+                {
+                }
             }
 
             if (string.IsNullOrWhiteSpace(RemoteIPAddressString))
@@ -198,7 +204,6 @@ namespace DigitalRuby.IPBan
                 }
                 catch
                 {
-
                 }
             }
 
