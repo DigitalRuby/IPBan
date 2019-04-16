@@ -273,10 +273,6 @@ namespace DigitalRuby.IPBan
                                 AddBannedIPAddress(ipAddress, source, userName, bannedIpAddresses, now, configBlacklisted, newCount, string.Empty);
                             }
                         }
-                        else if (newCount > maxFailedLoginAttempts)
-                        {
-                            IPBanLog.Info("IP {0}, {1}, {2} ban pending.", ipAddress, newCount, source);
-                        }
                         else
                         {
                             // failed login attempt
