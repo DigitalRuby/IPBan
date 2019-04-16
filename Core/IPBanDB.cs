@@ -404,14 +404,21 @@ namespace DigitalRuby.IPBan
         {
             int count = 0;
 
-            foreach (string ipAddress in ipAddresses)
+            using (SQLiteConnection conn = new SQLiteConnection(connString))
             {
-                if (IPAddress.TryParse(ipAddress, out IPAddress ipAddressObj))
+                conn.Open();
+                using (SQLiteTransaction tran = conn.BeginTransaction(System.Data.IsolationLevel.ReadCommitted))
                 {
-                    count += ExecuteNonQuery("DELETE FROM IPAddresses WHERE IPAddress = @Param0", ipAddressObj.GetAddressBytes());
+                    foreach (string ipAddress in ipAddresses)
+                    {
+                        if (IPAddress.TryParse(ipAddress, out IPAddress ipAddressObj))
+                        {
+                            count += ExecuteNonQuery(conn, tran, "DELETE FROM IPAddresses WHERE IPAddress = @Param0", ipAddressObj.GetAddressBytes());
+                        }
+                    }
+                    tran.Commit();
                 }
             }
-
             return count;
         }
 
