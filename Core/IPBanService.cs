@@ -809,7 +809,7 @@ namespace DigitalRuby.IPBan
                             }
                             else
                             {
-                                IPBanLog.Info("Ignoring failed login from {0}, min time between failed logins has not elapsed", existing.IPAddress);
+                                IPBanLog.Debug("Ignoring failed login from {0}, min time between failed logins has not elapsed", existing.IPAddress);
                             }
                         }
                     }
