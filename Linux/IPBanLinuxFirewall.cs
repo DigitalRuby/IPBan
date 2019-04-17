@@ -92,6 +92,7 @@ namespace DigitalRuby.IPBan
             if (!p.WaitForExit(60000))
             {
                 IPBanLog.Error("Process {0} timed out", commandLine);
+                p.Kill();
             }
             if (requireExitCode && p.ExitCode != 0)
             {
