@@ -721,7 +721,7 @@ recreateRule:
             }
         }
 
-        public void UnblockIPAddresses(IEnumerable<string> ipAddresses)
+        public Task UnblockIPAddresses(IEnumerable<string> ipAddresses)
         {
             try
             {
@@ -768,6 +768,7 @@ recreateRule:
             {
                 IPBanLog.Error(ex);
             }
+            return Task.CompletedTask;
         }
     }
 }

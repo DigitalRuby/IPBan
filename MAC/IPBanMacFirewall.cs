@@ -98,7 +98,7 @@ namespace DigitalRuby.IPBan
             throw new NotImplementedException();
         }
 
-        public void UnblockIPAddresses(IEnumerable<string> ipAddresses)
+        public Task UnblockIPAddresses(IEnumerable<string> ipAddresses)
         {
             throw new NotImplementedException();
         }

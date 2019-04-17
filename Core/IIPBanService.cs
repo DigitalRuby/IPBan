@@ -52,7 +52,8 @@ namespace DigitalRuby.IPBan
         /// Unban ip addresses
         /// </summary>
         /// <param name="ipAddresses">IP addresses to unban</param>
-        void UnblockIPAddresses(IEnumerable<string> ipAddresses);
+        /// <returns>Task</returns>
+        Task UnblockIPAddresses(IEnumerable<string> ipAddresses);
     }
 
     /// <summary>

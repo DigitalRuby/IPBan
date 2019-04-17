@@ -268,6 +268,7 @@ namespace DigitalRuby.IPBan
                     }
 
                     // only allow ipv4 for now
+                    value = 0;
                     if (IPAddressRange.TryParse(ipAddress, out IPAddressRange range) &&
                         range.Begin.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork &&
                         range.End.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork &&
@@ -286,7 +287,7 @@ namespace DigitalRuby.IPBan
                             }
                             if (!deleteRule)
                             {
-                                newIPAddressesUint.Add(value);
+                                newIPAddressesUint.Add((value == 0 ? IPBanFirewallUtility.ParseIPV4(ipAddress) : value));
                             }
                         }
                         catch
@@ -341,7 +342,16 @@ namespace DigitalRuby.IPBan
             allowRuleName = RulePrefix + "1";
             blockRuleName = RulePrefix + "0";
 
+            /*
             // restore existing sets from disk
+            RunProcess("ipset", true, out IReadOnlyList<string> existingSets, $"-L | grep ^Name:");
+            foreach (string set in existingSets.Where(s => s.StartsWith("Name: " + RulePrefix, StringComparison.OrdinalIgnoreCase))
+                .Select(s => s.Substring("Name: ".Length)))
+            {
+                RunProcess("ipset", true, $"flush {set}");
+            }
+            */
+
             foreach (string setFile in Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory, "*.set"))
             {
                 RunProcess("ipset", true, $"restore < \"{setFile}\"");
@@ -400,7 +410,7 @@ namespace DigitalRuby.IPBan
             }
         }
 
-        public void UnblockIPAddresses(IEnumerable<string> ipAddresses)
+        public Task UnblockIPAddresses(IEnumerable<string> ipAddresses)
         {
             bool changed = false;
             foreach (string ipAddress in ipAddresses)
@@ -414,6 +424,7 @@ namespace DigitalRuby.IPBan
             {
                 RunProcess("ipset", true, $"save {blockRuleName} > \"{GetSetFileName(blockRuleName)}\"");
             }
+            return Task.CompletedTask;
         }
 
         public Task<bool> AllowIPAddresses(IEnumerable<string> ipAddresses, CancellationToken cancelToken = default)

@@ -1061,15 +1061,14 @@ namespace DigitalRuby.IPBan
         /// Unban ip addresses
         /// </summary>
         /// <param name="ipAddresses">IP addresses to unban</param>
-        public void UnblockIPAddresses(IEnumerable<string> ipAddresses)
+        /// <returns>Task</returns>
+        public Task UnblockIPAddresses(IEnumerable<string> ipAddresses)
         {
-            // remove ip from firewall
-            Firewall.UnblockIPAddresses(ipAddresses);
-
             // remove ip from database
             DB.DeleteIPAddresses(ipAddresses);
 
-            // ip addresses are now unbanned
+            // remove ip from firewall
+            return Firewall.UnblockIPAddresses(ipAddresses);
         }
 
         /// <summary>
@@ -1169,6 +1168,14 @@ namespace DigitalRuby.IPBan
         public static T CreateAndStartIPBanTestService<T>(string directory = null, string configFileName = null,
             Func<string, string> configFileModifier = null) where T : IPBanService
         {
+            // cleanup any db, set or tbl files
+            foreach (string file in Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory, "*.set")
+                .Union(Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory, "*.tbl"))
+                .Union(Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory, "*.sqlite"))
+                .Union(Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory, "*journal*")))
+            {
+                File.Delete(file);
+            }
             if (string.IsNullOrWhiteSpace(directory))
             {
                 Assembly a = IPBanService.GetIPBanAssembly();
@@ -1195,6 +1202,7 @@ namespace DigitalRuby.IPBan
             service.Start();
             service.DB.Truncate(true);
             service.Firewall.BlockIPAddresses(null, new string[0]).Sync();
+            service.RunCycle().Sync();
             return service;
         }
 
