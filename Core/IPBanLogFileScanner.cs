@@ -90,17 +90,7 @@ namespace DigitalRuby.IPBan
                 pingTimer.Start();
             }
 
-            // add initial files
-            SearchOption option = (recursive ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly);
-            string dir = Path.GetDirectoryName(pathAndMask);
-            if (Directory.Exists(dir))
-            {
-                foreach (string existingFileName in Directory.GetFiles(dir, Path.GetFileName(pathAndMask), option))
-                {
-                    // start at end of existing files
-                    AddPingFile(existingFileName, new FileInfo(existingFileName).Length);
-                }
-            }
+            ScanForFiles(pathAndMask, recursive);
         }
 
         public void Dispose()
@@ -139,8 +129,7 @@ namespace DigitalRuby.IPBan
 
             try
             {
-                // re-open files and read one byte to flush disk cache
-                foreach (WatchedFile file in UpdateWatchedFiles())
+                foreach (WatchedFile file in GetCurrentWatchedFiles())
                 {
                     // if file length has changed, ping the file
                     bool delete = false;
@@ -243,6 +232,21 @@ namespace DigitalRuby.IPBan
             return true;
         }
 
+        private void ScanForFiles(string pathAndMask, bool recursive)
+        {
+            // add initial files
+            SearchOption option = (recursive ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly);
+            string dir = Path.GetDirectoryName(pathAndMask);
+            if (Directory.Exists(dir))
+            {
+                foreach (string existingFileName in Directory.GetFiles(dir, Path.GetFileName(pathAndMask), option))
+                {
+                    // start at end of existing files
+                    AddPingFile(existingFileName, new FileInfo(existingFileName).Length);
+                }
+            }
+        }
+
         private void PingTimerElapsed(object sender, System.Timers.ElapsedEventArgs e)
         {
             PingFiles();
@@ -264,7 +268,7 @@ namespace DigitalRuby.IPBan
             }
         }
 
-        private HashSet<WatchedFile> UpdateWatchedFiles()
+        private HashSet<WatchedFile> GetCurrentWatchedFiles()
         {
             HashSet<WatchedFile> watchedFilesCopy = new HashSet<WatchedFile>();
 
@@ -306,7 +310,7 @@ namespace DigitalRuby.IPBan
                     }
                 }
 
-                // make a copy so we can enumerate outside a lock
+                // make a copy of everything so we can enumerate outside a lock
                 watchedFilesCopy.Clear();
                 foreach (WatchedFile file in watchedFiles)
                 {

@@ -129,6 +129,7 @@ namespace DigitalRuby.IPBan
                             IPBanLogFileScanner scanner = new IPBanIPAddressLogFileScanner(this, DnsLookup,
                                 newFile.Source, pathAndMask, newFile.Recursive, newFile.FailedLoginRegex, newFile.SuccessfulLoginRegex, newFile.MaxFileSize, newFile.PingInterval);
                             logFilesToParse.Add(scanner);
+                            IPBanLog.Debug("Adding log file to parse: {0}", pathAndMask);
                         }
                         else
                         {
