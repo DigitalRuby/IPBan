@@ -29,7 +29,7 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
 
-namespace DigitalRuby.IPBan
+namespace IPBan
 {
     /// <summary>
     /// IPBan integration for external applications
@@ -44,16 +44,25 @@ namespace DigitalRuby.IPBan
         public static Action<Exception> ErrorHandler { get; set; }
 
         /// <summary>
+        /// Process name
+        /// </summary>
+        public static string ProcessName { get; }
+
+        /// <summary>
         /// Static constructor
         /// </summary>
         static IPBanPlugin()
         {
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                 eventLog = new EventLog("Application", Environment.MachineName, "IPBanCustom");
+                eventLog = new EventLog("Application", Environment.MachineName, "IPBanCustom");
+            }
+            using (Process p = Process.GetCurrentProcess())
+            {
+                ProcessName = p.ProcessName;
             }
         }
-      
+
         /// <summary>
         /// Log a failed login attempt to IPBan
         /// </summary>
@@ -78,8 +87,7 @@ namespace DigitalRuby.IPBan
                 // Linux
                 else if (Directory.Exists(@"/var/log"))
                 {
-                    string processName = System.Diagnostics.Process.GetCurrentProcess().ProcessName;
-                    File.AppendAllText($"/var/log/ipbancustom_{processName}.log\n", $"{DateTime.UtcNow.ToString("u")}, ipban failed login, ip address: {remoteIpAddress}, source: {source}, user: {userName}");
+                    File.AppendAllText($"/var/log/ipbancustom_{ProcessName}.log\n", $"{DateTime.UtcNow.ToString("u")}, ipban failed login, ip address: {remoteIpAddress}, source: {source}, user: {userName}");
                 }
             }
             catch (Exception ex)
@@ -113,7 +121,7 @@ namespace DigitalRuby.IPBan
                 else if (Directory.Exists(@"/var/log"))
                 {
                     string processName = System.Diagnostics.Process.GetCurrentProcess().ProcessName;
-                    File.AppendAllText($"/var/log/ipbancustom_{processName}.log\n", $"{DateTime.UtcNow.ToString("u")}, ipban success login, ip address: {remoteIpAddress}, source: {source}, user: {userName}");
+                    File.AppendAllText($"/var/log/ipbancustom_{ProcessName}.log\n", $"{DateTime.UtcNow.ToString("u")}, ipban success login, ip address: {remoteIpAddress}, source: {source}, user: {userName}");
                 }
             }
             catch (Exception ex)
