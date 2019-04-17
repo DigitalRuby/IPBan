@@ -28,6 +28,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -87,6 +88,12 @@ namespace DigitalRuby.IPBanTests
         [Test]
         public void TestIPV6()
         {
+            // TODO: Add ipv6 to Linux firewall implementation
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                return;
+            }
+
             string[] toBlock = new string[] { "fe80::c872:be03:5c94:4af2%8", "192.168.0.20" };
             firewall.BlockIPAddresses(null, toBlock).Sync();
             string[] bannedIP = firewall.EnumerateBannedIPAddresses().ToArray();
