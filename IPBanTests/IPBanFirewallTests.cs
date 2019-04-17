@@ -49,7 +49,7 @@ namespace DigitalRuby.IPBanTests
         [SetUp]
         public void TestStart()
         {
-            firewall = IPBanFirewallUtility.CreateFirewall(firewallAndOsType, "IPBanTest_");
+            firewall = IPBanFirewallUtility.CreateFirewall(firewallAndOsType);
 
             // clear all blocks
             firewall.BlockIPAddresses(null, new string[0]).Sync();

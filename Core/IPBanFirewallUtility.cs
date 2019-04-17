@@ -127,7 +127,7 @@ namespace DigitalRuby.IPBan
         /// <param name="osAndFirewall">Dictionary of string operating system name (Windows, Linux, OSX) and firewall class</param>
         /// <param name="rulePrefix">Rule prefix or null for default</param>
         /// <returns>Firewall</returns>
-        public static IIPBanFirewall CreateFirewall(IReadOnlyDictionary<string, string> osAndFirewall, string rulePrefix)
+        public static IIPBanFirewall CreateFirewall(IReadOnlyDictionary<string, string> osAndFirewall, string rulePrefix = null)
         {
             bool foundFirewallType = false;
             int priority = int.MinValue;
