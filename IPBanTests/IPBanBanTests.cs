@@ -57,9 +57,7 @@ namespace DigitalRuby.IPBanTests
         [TearDown]
         public void Teardown()
         {
-            service.Firewall.BlockIPAddresses(null, new string[0]);
-            service.Dispose();
-            IPBanService.UtcNow = DateTime.UtcNow;
+            IPBanService.DisposeIPBanTestService(service);
         }
 
         private void AddFailedLogins()

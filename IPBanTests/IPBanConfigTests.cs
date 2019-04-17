@@ -130,7 +130,8 @@ namespace DigitalRuby.IPBanTests
         public void TestDefaultConfig()
         {
             // ensure config file is read properly
-            using (IPBanService service = IPBanService.CreateAndStartIPBanTestService<IPBanService>())
+            IPBanService service = IPBanService.CreateAndStartIPBanTestService<IPBanService>();
+            try
             {
                 IPBanConfig cfg = service.Config;
                 Assert.IsNotNull(cfg);
@@ -154,6 +155,10 @@ namespace DigitalRuby.IPBanTests
 
                 AssertLogFilesToParse(cfg);
                 AssertEventViewer(cfg);
+            }
+            finally
+            {
+                IPBanService.DisposeIPBanTestService(service);
             }
         }
     }

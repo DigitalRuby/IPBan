@@ -74,8 +74,7 @@ namespace DigitalRuby.IPBanTests
         [TearDown]
         public void Teardown()
         {
-            service.Firewall.BlockIPAddresses(null, new string[0]);
-            service.Dispose();
+            IPBanService.DisposeIPBanTestService(service);
             events.Clear();
         }
 

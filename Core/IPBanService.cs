@@ -1207,6 +1207,21 @@ namespace DigitalRuby.IPBan
         }
 
         /// <summary>
+        /// Dispose of an IPBanService created with CreateAndStartIPBanTestService
+        /// </summary>
+        /// <param name="service">Service to dispose</param>
+        public static void DisposeIPBanTestService(IPBanService service)
+        {
+            if (service != null)
+            {
+                service.Firewall.BlockIPAddresses(null, new string[0]);
+                service.RunCycle().Sync();
+                service.Dispose();
+                IPBanService.UtcNow = DateTime.UtcNow;
+            }
+        }
+
+        /// <summary>
         /// Config file name
         /// </summary>
         public const string ConfigFileName = "DigitalRuby.IPBan.dll.config";
