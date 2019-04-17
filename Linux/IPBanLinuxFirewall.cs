@@ -415,8 +415,10 @@ namespace DigitalRuby.IPBan
             bool changed = false;
             foreach (string ipAddress in ipAddresses)
             {
-                if (!string.IsNullOrWhiteSpace(ipAddress) && RunProcess("ipset", false, $"del {blockRuleName} {ipAddress} -exist") == 0)
+                uint ipValue = IPBanFirewallUtility.ParseIPV4(ipAddress);
+                if (ipValue != 0 && !string.IsNullOrWhiteSpace(ipAddress) && RunProcess("ipset", true, $"del {blockRuleName} {ipAddress} -exist") == 0)
                 {
+                    bannedIPAddresses.Remove(ipValue);
                     changed = true;
                 }
             }

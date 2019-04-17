@@ -61,7 +61,10 @@ namespace DigitalRuby.IPBan
             {
                 ipString = ipString.Substring(0, index);
             }
-            IPAddress ipAddress = IPAddress.Parse(ipString);
+            if (!IPAddress.TryParse(ipString, out IPAddress ipAddress))
+            {
+                return 0;
+            }
             if (ipAddress.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
             {
                 byte[] ipBytes = ipAddress.GetAddressBytes();
