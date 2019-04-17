@@ -68,13 +68,14 @@ namespace DigitalRuby.IPBan
         private int RunProcess(string program, bool requireExitCode, out IReadOnlyList<string> lines, string commandLine, params object[] args)
         {
             commandLine = string.Format(commandLine, args);
+            string bash = "-c \"" + program + " " + commandLine.Replace("\"", "\\\"") + "\"";
             IPBanLog.Debug("Running firewall process: {0} {1}", program, commandLine);
             using (Process p = new Process
             {
                 StartInfo = new ProcessStartInfo
                 {
-                    FileName = program,
-                    Arguments = commandLine,
+                    FileName = "/bin/bash",
+                    Arguments = bash,
                     UseShellExecute = false,
                     CreateNoWindow = true,
                     RedirectStandardOutput = true
@@ -131,7 +132,7 @@ namespace DigitalRuby.IPBan
         private bool CreateOrUpdateRule(string ruleName, string action, string hashType, int maxCount, IEnumerable<PortRange> allowedPorts, CancellationToken cancelToken)
         {
             // ensure that a set exists for the iptables rule in the event that this is the first run
-            RunProcess("ipset", false, $"create {ruleName} hash:{hashType} family {inetFamily} hashsize {hashSize} maxelem {maxCount} -exist");
+            RunProcess("ipset", true, $"create {ruleName} hash:{hashType} family {inetFamily} hashsize {hashSize} maxelem {maxCount} -exist");
             if (cancelToken.IsCancellationRequested)
             {
                 throw new OperationCanceledException(cancelToken);
