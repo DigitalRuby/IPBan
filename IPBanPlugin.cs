@@ -112,7 +112,8 @@ namespace DigitalRuby.IPBan
                 // Linux
                 else if (Directory.Exists(@"/var/log"))
                 {
-                    File.AppendAllText("/var/log/ipbancustom_maildemon.log", $"{DateTime.UtcNow.ToString("u")}, ipban success login, ip address: {remoteIpAddress}, source: {source}, user: {userName}");
+                    string processName = System.Diagnostics.Process.GetCurrentProcess().ProcessName;
+                    File.AppendAllText($"/var/log/ipbancustom_{processName}.log\n", $"{DateTime.UtcNow.ToString("u")}, ipban success login, ip address: {remoteIpAddress}, source: {source}, user: {userName}");
                 }
             }
             catch (Exception ex)
