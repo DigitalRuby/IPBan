@@ -74,9 +74,13 @@ namespace DigitalRuby.IPBan
         private bool firewallNeedsBlockedIPAddressesUpdate;
         private bool gotStartUrl;
 
+        // batch failed logins every cycle
+        private readonly List<FailedLogin> pendingFailedLogins = new List<FailedLogin>();
+
         // note that an ip that has a block count may not yet be in the ipAddressesAndBanDate dictionary
         // for locking, always use ipAddressesAndBanDate
         private readonly IPBanDB ipDB = new IPBanDB();
+
         private readonly object configLock = new object();
         private readonly HashSet<IUpdater> updaters = new HashSet<IUpdater>();
         private readonly HashSet<IPBanLogFileScanner> logFilesToParse = new HashSet<IPBanLogFileScanner>();
@@ -84,10 +88,6 @@ namespace DigitalRuby.IPBan
         private HashSet<string> ipAddressesToAllowInFirewall = new HashSet<string>();
         private bool ipAddressesToAllowInFirewallNeedsUpdate;
         private DateTime lastConfigFileDateTime = DateTime.MinValue;
-
-        // the windows event viewer calls back on a background thread, this allows pushing the ip addresses to a list that will be accessed
-        //  in the main loop
-        private readonly List<FailedLogin> pendingFailedLogins = new List<FailedLogin>();
 
         private void RunTask(Action action)
         {
@@ -973,8 +973,8 @@ namespace DigitalRuby.IPBan
                 return;
             }
 
-            TaskQueue.Dispose();
             IsRunning = false;
+            TaskQueue.Dispose();
             GetUrl(UrlType.Stop).Sync();
             try
             {

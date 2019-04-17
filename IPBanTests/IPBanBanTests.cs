@@ -102,7 +102,7 @@ namespace DigitalRuby.IPBanTests
             // add a single failed login, should not cause a block
             service.AddIPAddressEvent(info3);
             service.RunCycle().Sync();
-            AssertNoFailedLogins();            
+            AssertNoFailedLogins();
         }
 
         [Test]

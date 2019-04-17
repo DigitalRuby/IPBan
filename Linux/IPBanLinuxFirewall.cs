@@ -70,7 +70,7 @@ namespace DigitalRuby.IPBan
             commandLine = program + " " + string.Format(commandLine, args);
             commandLine = "-c \"" + commandLine.Replace("\"", "\\\"") + "\"";
             IPBanLog.Debug("Running firewall process: /bin/bash {0}", commandLine);
-            Process p = new Process
+            using (Process p = new Process
             {
                 StartInfo = new ProcessStartInfo
                 {
@@ -80,25 +80,27 @@ namespace DigitalRuby.IPBan
                     CreateNoWindow = true,
                     RedirectStandardOutput = true
                 }
-            };
-            p.Start();
-            List<string> lineList = new List<string>();
-            string line;
-            while ((line = p.StandardOutput.ReadLine()) != null)
+            })
             {
-                lineList.Add(line);
+                p.Start();
+                List<string> lineList = new List<string>();
+                string line;
+                while ((line = p.StandardOutput.ReadLine()) != null)
+                {
+                    lineList.Add(line);
+                }
+                lines = lineList;
+                if (!p.WaitForExit(60000))
+                {
+                    IPBanLog.Error("Process {0} timed out", commandLine);
+                    p.Kill();
+                }
+                if (requireExitCode && p.ExitCode != 0)
+                {
+                    IPBanLog.Error("Process {0} had exit code {1}", commandLine, p.ExitCode);
+                }
+                return p.ExitCode;
             }
-            lines = lineList;
-            if (!p.WaitForExit(60000))
-            {
-                IPBanLog.Error("Process {0} timed out", commandLine);
-                p.Kill();
-            }
-            if (requireExitCode && p.ExitCode != 0)
-            {
-                IPBanLog.Error("Process {0} had exit code {1}", commandLine, p.ExitCode);
-            }
-            return p.ExitCode;
         }
 
         private void DeleteSet(string ruleName)
