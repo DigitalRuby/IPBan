@@ -258,7 +258,7 @@ namespace DigitalRuby.IPBan
                             !Config.IsUserNameWithinMaximumEditDistanceOfUserNameWhitelist(userName) ||
                             (IPBanDelegate != null && IPBanDelegate.IsIPAddressBlacklisted(ipAddress));
                         int newCount = ipDB.IncrementFailedLoginCount(ipAddress, UtcNow, failedLogin.Count);
-                        IPBanLog.Warn("Login attempt failed: {0}, {1}, {2}, {3}", ipAddress, userName, source, newCount);
+                        IPBanLog.Warn(now, "Login failure: {0}, {1}, {2}, {3}", ipAddress, userName, source, newCount);
 
                         // if the ip address is black listed or the ip address has reached the maximum failed login attempts before ban, ban the ip address
                         if (configBlacklisted || newCount >= maxFailedLoginAttempts)
@@ -266,7 +266,7 @@ namespace DigitalRuby.IPBan
                             bool alreadyBanned = (ipDB.GetBanDate(ipAddress) != null);
                             if (alreadyBanned)
                             {
-                                IPBanLog.Warn("IP {0}, {1}, {2} ban pending.", ipAddress, userName, source);
+                                IPBanLog.Warn(now, "IP {0}, {1}, {2} ban pending.", ipAddress, userName, source);
                             }
                             else if (IPBanDelegate == null || (await IPBanDelegate.LoginAttemptFailed(ipAddress, source, userName) != LoginFailedResult.Whitelisted))
                             {
@@ -302,7 +302,7 @@ namespace DigitalRuby.IPBan
             bannedIpAddresses.Add(new BannedIPAddress { IPAddress = ipAddress, Source = source, UserName = userName });
             ipDB.SetBanDate(ipAddress, dateTime);
             firewallNeedsBlockedIPAddressesUpdate = true;
-            IPBanLog.Warn("Banning ip address: {0}, user name: {1}, config black listed: {2}, count: {3}, extra info: {4}",
+            IPBanLog.Warn(dateTime, "Banning ip address: {0}, user name: {1}, config black listed: {2}, count: {3}, extra info: {4}",
                 ipAddress, userName, configBlacklisted, counter, extraInfo);
 
             // kick off notifications of ban in the background
@@ -801,11 +801,15 @@ namespace DigitalRuby.IPBan
                             existing.UserName = (existing.UserName ?? info.UserName);
 
                             // if more than n seconds has passed, increment the counter
-                            // we don't want to count multiple event logs that all map to the same ip address from one failed
-                            // attempt to count multiple times
+                            // we don't want to count multiple logs that all map to the same ip address from one failed
+                            // attempt to count multiple times if they happen rapidly, if the parsers are parsing the same
+                            // failed login that reads many different ways, we don't want to lock out legitimate failed logins
                             if ((UtcNow - existing.DateTime) >= Config.MinimumTimeBetweenFailedLoginAttempts)
                             {
+                                // update to the latest timestamp of the failed login
                                 existing.DateTime = UtcNow;
+
+                                // increment counter
                                 existing.Count += info.Count;
                             }
                             else
@@ -815,16 +819,20 @@ namespace DigitalRuby.IPBan
                         }
                     }
                 }
-                else if (IPBanDelegate != null)
+                else
                 {
-                    if (MultiThreaded)
+                    IPBanLog.Warn(info.Timestamp, "Login succeeded: {0}, {1}, {2}", info.IPAddress, info.UserName, info.Source);
+                    if (IPBanDelegate != null)
                     {
-                        // pass the success login on
-                        return IPBanDelegate.LoginAttemptSucceeded(info.IPAddress, info.Source, info.UserName);
-                    }
+                        if (MultiThreaded)
+                        {
+                            // pass the success login on
+                            return IPBanDelegate.LoginAttemptSucceeded(info.IPAddress, info.Source, info.UserName);
+                        }
 
-                    // single threaded
-                    IPBanDelegate.LoginAttemptSucceeded(info.IPAddress, info.Source, info.UserName).Sync();
+                        // single threaded
+                        IPBanDelegate.LoginAttemptSucceeded(info.IPAddress, info.Source, info.UserName).Sync();
+                    }
                 }
             }
             return Task.CompletedTask;
@@ -1335,7 +1343,8 @@ namespace DigitalRuby.IPBan
         /// <param name="source">Source</param>
         /// <param name="count">How many messages were aggregated, 1 for no aggregation</param>
         /// <param name="flag">Event flag</param>
-        public IPAddressEvent(bool foundMatch, string ipAddress, string userName, string source, int count, IPAddressEventFlag flag)
+        /// <param name="timestamp">Timestamp of the event, default for current timestamp</param>
+        public IPAddressEvent(bool foundMatch, string ipAddress, string userName, string source, int count, IPAddressEventFlag flag, DateTime timestamp = default)
         {
             FoundMatch = foundMatch;
             IPAddress = ipAddress;
@@ -1343,6 +1352,7 @@ namespace DigitalRuby.IPBan
             Source = source;
             Count = count;
             Flag = flag;
+            Timestamp = (timestamp == default ? IPBanService.UtcNow : timestamp);
         }
 
         /// <summary>
@@ -1369,6 +1379,11 @@ namespace DigitalRuby.IPBan
         /// How many messages were aggregated, 1 for no aggregation
         /// </summary>
         public int Count { get; set; }
+
+        /// <summary>
+        /// Timestamp of the event
+        /// </summary>
+        public DateTime Timestamp { get; set; }
 
         /// <summary>
         /// Event flag

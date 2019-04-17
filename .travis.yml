@@ -1,0 +1,8 @@
+language: csharp
+solution: IPBan.sln
+mono: none
+dist: bionic
+dotnet: 2.2.102
+script:
+  - dotnet restore
+  - dotnet test
