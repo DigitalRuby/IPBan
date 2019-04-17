@@ -68,13 +68,12 @@ namespace DigitalRuby.IPBan
         private int RunProcess(string program, bool requireExitCode, out IReadOnlyList<string> lines, string commandLine, params object[] args)
         {
             commandLine = program + " " + string.Format(commandLine, args);
-            commandLine = "-c \"" + commandLine.Replace("\"", "\\\"") + "\"";
-            IPBanLog.Debug("Running firewall process: /bin/bash {0}", commandLine);
+            IPBanLog.Debug("Running firewall process: sudo {0}", commandLine);
             using (Process p = new Process
             {
                 StartInfo = new ProcessStartInfo
                 {
-                    FileName = "/bin/bash",
+                    FileName = "sudo",
                     Arguments = commandLine,
                     UseShellExecute = false,
                     CreateNoWindow = true,
