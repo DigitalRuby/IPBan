@@ -39,7 +39,7 @@ namespace DigitalRuby.IPBan
 
             if (args.Length != 0 && args[0].Equals("info", StringComparison.OrdinalIgnoreCase))
             {
-                Console.WriteLine("System info: {0}", IPBanOS.OSString());
+                IPBanLog.Warn("System info: {0}", IPBanOS.OSString());
             }
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {

@@ -48,13 +48,6 @@ namespace DigitalRuby.IPBan
             service.Start();
         }
 
-        private static void TestDB()
-        {
-            
-
-            Console.WriteLine("IPBanDB test complete, no errors");
-        }
-
         protected override void OnStart(string[] args)
         {
             base.OnStart(args);
