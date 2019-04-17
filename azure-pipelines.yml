@@ -15,7 +15,12 @@ variables:
 steps:
 
 - script: sudo apt-get install iptables
+  displayName: install iptables
 - script: sudo apt-get install ipset
+  displayName: install ipset
 - script: sudo apt-get update
+  displayName: apt-get update
 - script: dotnet build --configuration $(buildConfiguration)
+  displayName: build
 - script: sudo dotnet test --configuration $(buildConfiguration)
+  displayName: test
