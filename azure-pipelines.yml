@@ -13,7 +13,9 @@ variables:
   buildConfiguration: 'Release'
 
 steps:
+
+- script: sudo apt-get install iptables
+- script: sudo apt-get install ipset
+- script: sudo apt-get update
 - script: dotnet build --configuration $(buildConfiguration)
-  displayName: 'dotnet build $(buildConfiguration)'
 - script: sudo dotnet test --configuration $(buildConfiguration)
-  displayName: 'sudo dotnet test $(buildConfiguration)'
