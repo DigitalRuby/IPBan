@@ -15,5 +15,5 @@ variables:
 steps:
 - script: dotnet build --configuration $(buildConfiguration)
   displayName: 'dotnet build $(buildConfiguration)'
-- script: dotnet test --configuration $(buildConfiguration)
-  displayName: 'dotnet test $(buildConfiguration)'
+- script: sudo dotnet test --configuration $(buildConfiguration)
+  displayName: 'sudo dotnet test $(buildConfiguration)'
