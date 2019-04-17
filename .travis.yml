@@ -4,9 +4,11 @@ mono: none
 dist: bionic
 dotnet: 2.2.102
 
-script:
+before_install:
   - sudo apt-get install iptables
   - sudo apt-get install ipset
   - sudo apt-get update
+
+script:
   - sudo dotnet restore
   - sudo dotnet test
