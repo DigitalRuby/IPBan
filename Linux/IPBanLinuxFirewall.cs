@@ -91,12 +91,12 @@ namespace DigitalRuby.IPBan
                 lines = lineList;
                 if (!p.WaitForExit(60000))
                 {
-                    IPBanLog.Error("Process {0} timed out", commandLine);
+                    IPBanLog.Error("Process {0} {1} timed out", program, commandLine);
                     p.Kill();
                 }
                 if (requireExitCode && p.ExitCode != 0)
                 {
-                    IPBanLog.Error("Process {0} had exit code {1}", commandLine, p.ExitCode);
+                    IPBanLog.Error("Process {0} {1} had exit code {2}", program, commandLine, p.ExitCode);
                 }
                 return p.ExitCode;
             }
