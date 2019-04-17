@@ -38,7 +38,6 @@ namespace DigitalRuby.IPBanTests
     [TestFixture]
     public class IPBanConfigTests
     {
-
         private void AssertLogFileToParse(IPBanLogFileToParse file, string failedLoginRegex, int maxFileSize, string pathAndMask, int pingInterval, string platformRegex,
             bool recursive, string source, string successfulLoginRegex)
         {
