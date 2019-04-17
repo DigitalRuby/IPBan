@@ -26,6 +26,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
 using DigitalRuby.IPBan;
@@ -74,6 +75,11 @@ namespace DigitalRuby.IPBanTests
         [Test]
         public void TestEventViewer()
         {
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                return;
+            }
+
             string[] xmlTestStrings = new string[]
             {
                 @"<Event xmlns='http://schemas.microsoft.com/win/2004/08/events/event'><System><Provider Name='MSSQLSERVER' /><EventID Qualifiers='49152'>18456</EventID><Level>0</Level><Task>4</Task><Keywords>0x90000000000000</Keywords><TimeCreated SystemTime='2018-07-23T05:02:39.000000000Z' /><EventRecordID>3423</EventRecordID><Channel>Application</Channel><Computer>ns524406</Computer><Security /></System><EventData><Data>sa</Data><Data>Reason: An error occurred while evaluating the password.</Data><Data>[CLIENT: 61.62.63.64]</Data><Binary>184800000E000000090000004E0053003500320034003400300036000000070000006D00610073007400650072000000</Binary></EventData></Event>",
