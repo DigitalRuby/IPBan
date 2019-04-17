@@ -159,20 +159,31 @@ namespace DigitalRuby.IPBan
                     string nlogConfigPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "nlog.config");
                     if (!File.Exists(nlogConfigPath))
                     {
+                        string logLevel = "Warn";
+                        foreach (Assembly a in AppDomain.CurrentDomain.GetAssemblies())
+                        {
+                            if (a.FullName.Contains("nunit.framework", StringComparison.OrdinalIgnoreCase))
+                            {
+                                logLevel = "Trace";
+                                break;
+                            }
+                        }
+
                         Console.WriteLine("Creating default nlog.config file");
 
                         // storing this as a resource fails to use correct string in precompiled .exe with .net core, bug with Microsoft I think
-                        File.WriteAllText(nlogConfigPath, @"<?xml version=""1.0""?>
+                        string defaultNLogConfig = $@"<?xml version=""1.0""?>
 <nlog xmlns=""http://www.nlog-project.org/schemas/NLog.xsd"" xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" throwExceptions=""false"" internalLogToConsole=""false"" internalLogToConsoleError=""false"" internalLogLevel=""Trace"">
   <targets>
-    <target name=""logfile"" xsi:type=""File"" fileName=""${basedir}/logfile.txt"" archiveNumbering=""Sequence"" archiveEvery=""Day"" maxArchiveFiles=""28"" encoding=""UTF-8""/>
+    <target name=""logfile"" xsi:type=""File"" fileName=""${{basedir}}/logfile.txt"" archiveNumbering=""Sequence"" archiveEvery=""Day"" maxArchiveFiles=""28"" encoding=""UTF-8""/>
     <target name=""console"" xsi:type=""Console""/>
   </targets>
   <rules>
-    <logger name=""*"" minlevel=""Warn"" writeTo=""logfile""/>
-    <logger name=""*"" minlevel=""Warn"" writeTo=""console""/>
+    <logger name=""*"" minlevel=""{logLevel}"" writeTo=""logfile""/>
+    <logger name=""*"" minlevel=""{logLevel}"" writeTo=""console""/>
   </rules>
-</nlog>");
+</nlog>";
+                        File.WriteAllText(nlogConfigPath, defaultNLogConfig);
                     }
                     if (File.Exists(nlogConfigPath))
                     {
