@@ -116,29 +116,29 @@ namespace DigitalRuby.IPBan
                 {
                     try
                     {
-                        while (!taskQueueRunnerCancel.IsCancellationRequested)
+                        while (taskQueue.TryTake(out Func<Task> runner, -1, taskQueueRunnerCancel.Token))
                         {
-                            if (taskQueue.TryTake(out Func<Task> runner, -1, taskQueueRunnerCancel.Token))
+                            try
                             {
-                                try
+                                Task task = runner();
+                                task.Wait(-1, taskQueueRunnerCancel.Token);
+                                if (taskQueue.Count == 0)
                                 {
-                                    Task task = runner();
-                                    task.Wait(-1, taskQueueRunnerCancel.Token);
-                                    if (taskQueue.Count == 0)
-                                    {
-                                        taskEmptyEvent.Set();
-                                    }
-                                }
-                                catch (OperationCanceledException)
-                                {
-                                    break;
-                                }
-                                catch (Exception ex)
-                                {
-                                    IPBanLog.Info(ex.ToString());
+                                    taskEmptyEvent.Set();
                                 }
                             }
+                            catch (OperationCanceledException)
+                            {
+                                break;
+                            }
+                            catch (Exception ex)
+                            {
+                                IPBanLog.Info(ex.ToString());
+                            }
                         }
+                    }
+                    catch (OperationCanceledException)
+                    {
                     }
                     catch (Exception ex)
                     {

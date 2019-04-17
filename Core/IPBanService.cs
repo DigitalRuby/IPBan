@@ -266,7 +266,7 @@ namespace DigitalRuby.IPBan
                             bool alreadyBanned = (ipDB.GetBanDate(ipAddress) != null);
                             if (alreadyBanned)
                             {
-                                IPBanLog.Info("IP {0}, {1}, {2} ban pending.", ipAddress, userName, source);
+                                IPBanLog.Warn("IP {0}, {1}, {2} ban pending.", ipAddress, userName, source);
                             }
                             else if (IPBanDelegate == null || (await IPBanDelegate.LoginAttemptFailed(ipAddress, source, userName) != LoginFailedResult.Whitelisted))
                             {
