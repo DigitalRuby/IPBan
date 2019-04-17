@@ -237,7 +237,7 @@ namespace DigitalRuby.IPBan
                     if (Config.IsWhitelisted(ipAddress) ||
                         (IPBanDelegate != null && IPBanDelegate.IsIPAddressWhitelisted(ipAddress)))
                     {
-                        IPBanLog.Warn("Ignoring whitelisted ip address {0}, {1}, {2}", ipAddress, userName, source);
+                        IPBanLog.Warn("Login failure, ignoring whitelisted ip address {0}, {1}, {2}", ipAddress, userName, source);
                     }
                     else
                     {
