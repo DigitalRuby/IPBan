@@ -11,5 +11,5 @@ before_install:
   - sudo apt-get update
 
 script:
-  - sudo dotnet restore
-  - sudo dotnet test
+  - dotnet restore
+  - dotnet test
