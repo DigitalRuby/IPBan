@@ -87,7 +87,7 @@ namespace IPBan
                 // Linux
                 else if (Directory.Exists(@"/var/log"))
                 {
-                    File.AppendAllText($"/var/log/ipbancustom_{ProcessName}.log\n", $"{DateTime.UtcNow.ToString("u")}, ipban failed login, ip address: {remoteIpAddress}, source: {source}, user: {userName}");
+                    File.AppendAllText($"/var/log/ipbancustom_{ProcessName}.log", $"{DateTime.UtcNow.ToString("u")}, ipban failed login, ip address: {remoteIpAddress}, source: {source}, user: {userName}\n");
                 }
             }
             catch (Exception ex)
@@ -121,7 +121,7 @@ namespace IPBan
                 else if (Directory.Exists(@"/var/log"))
                 {
                     string processName = System.Diagnostics.Process.GetCurrentProcess().ProcessName;
-                    File.AppendAllText($"/var/log/ipbancustom_{ProcessName}.log\n", $"{DateTime.UtcNow.ToString("u")}, ipban success login, ip address: {remoteIpAddress}, source: {source}, user: {userName}");
+                    File.AppendAllText($"/var/log/ipbancustom_{ProcessName}.log", $"{DateTime.UtcNow.ToString("u")}, ipban success login, ip address: {remoteIpAddress}, source: {source}, user: {userName}\n");
                 }
             }
             catch (Exception ex)
