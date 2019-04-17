@@ -26,6 +26,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -99,6 +100,11 @@ namespace DigitalRuby.IPBanTests
 
         private void AssertEventViewer(IPBanConfig cfg)
         {
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                return;
+            }
+
             const int minimumWindowsMajorVersion = 6;
             EventViewerExpressionGroup[] groups = cfg.WindowsEventViewerExpressionsToBlock.Groups;
             Assert.NotNull(groups);
