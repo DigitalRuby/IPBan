@@ -36,33 +36,30 @@ using System.Threading.Tasks;
 
 namespace DigitalRuby.IPBan
 {
-    [RequiredOperatingSystem(IPBanOS.Linux)]
-    public class IPBanLinuxFirewall : IPBanBaseFirewall, IIPBanFirewall
+    /// <summary>
+    /// Linux Firewall for IPV6, is wrapped inside IPBanLinuxFirewall
+    /// </summary>
+    internal class IPBanLinuxFirewall6 : IPBanBaseFirewall, IIPBanFirewall
     {
-        /// <summary>
-        /// IPV6 firewall
-        /// </summary>
-        private readonly IPBanLinuxFirewall6 firewall6;
-
-        private const string inetFamily = "inet"; // inet6 when ipv6 support added
+        private const string inetFamily = "inet6";
         private const int hashSize = 1024;
         private const int blockRuleMaxCount = 2097152;
-        private const int allowRuleMaxCount = 65536;
+        private const int allowRuleMaxCount = 16384;
         private const int blockRuleRangesMaxCount = 4194304;
 
-        private List<uint> bannedIPAddresses;
-        private List<uint> allowedIPAddresses;
+        private List<UInt128> bannedIPAddresses;
+        private List<UInt128> allowedIPAddresses;
         private string allowRuleName;
         private string blockRuleName;
 
         private string GetSetFileName(string ruleName)
         {
-            return Path.Combine(AppDomain.CurrentDomain.BaseDirectory, ruleName + ".set");
+            return Path.Combine(AppDomain.CurrentDomain.BaseDirectory, ruleName + ".set6");
         }
 
         private string GetTableFileName()
         {
-            return Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ipban.tbl");
+            return Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ipban.tbl6");
         }
 
         private int RunProcess(string program, bool requireExitCode, string commandLine, params object[] args)
@@ -131,12 +128,12 @@ namespace DigitalRuby.IPBan
         {
             // persist table rules, this file is tiny so no need for a temp file and then move
             string tableFileName = GetTableFileName();
-            RunProcess("iptables-save", true, $"> \"{tableFileName}\"");
+            RunProcess("ip6tables-save", true, $"> \"{tableFileName}\"");
         }
 
         private bool CreateOrUpdateRule(string ruleName, string action, string hashType, int maxCount, IEnumerable<PortRange> allowedPorts, CancellationToken cancelToken)
         {
-            // ensure that a set exists for the iptables rule in the event that this is the first run
+            // ensure that a set exists for the ip6tables rule in the event that this is the first run
             RunProcess("ipset", true, $"create {ruleName} hash:{hashType} family {inetFamily} hashsize {hashSize} maxelem {maxCount} -exist");
             if (cancelToken.IsCancellationRequested)
             {
@@ -156,15 +153,15 @@ namespace DigitalRuby.IPBan
 
             PortRange[] allowedPortsArray = allowedPorts?.ToArray();
 
-            // create or update the rule in iptables
-            RunProcess("iptables", true, out IReadOnlyList<string> lines, "-L --line-numbers");
+            // create or update the rule in ip6tables
+            RunProcess("ip6tables", true, out IReadOnlyList<string> lines, "-L --line-numbers");
             string portString = " ";
             bool replaced = false;
             if (allowedPortsArray != null && allowedPortsArray.Length != 0)
             {
                 string portList = (action == "DROP" ? IPBanFirewallUtility.GetPortRangeStringBlockExcept(allowedPorts) :
                      IPBanFirewallUtility.GetPortRangeStringAllow(allowedPorts));
-                portString = " -m multiport --dports " + portList.Replace('-', ':') + " "; // iptables uses ':' instead of '-' for range
+                portString = " -m multiport --dports " + portList.Replace('-', ':') + " "; // ip6tables uses ':' instead of '-' for range
             }
             string ruleNameWithSpaces = " " + ruleName + " ";
             foreach (string line in lines)
@@ -176,7 +173,7 @@ namespace DigitalRuby.IPBan
                     int ruleNum = int.Parse(line.Substring(0, index));
 
                     // replace the rule with the new info
-                    RunProcess("iptables", true, $"-R INPUT {ruleNum} -m set{portString}--match-set \"{ruleName}\" src -j {action}");
+                    RunProcess("ip6tables", true, $"-R INPUT {ruleNum} -m set{portString}--match-set \"{ruleName}\" src -j {action}");
                     replaced = true;
                     break;
                 }
@@ -184,7 +181,7 @@ namespace DigitalRuby.IPBan
             if (!replaced)
             {
                 // add a new rule
-                RunProcess("iptables", true, $"-A INPUT -m set{portString}--match-set \"{ruleName}\" src -j {action}");
+                RunProcess("ip6tables", true, $"-A INPUT -m set{portString}--match-set \"{ruleName}\" src -j {action}");
             }
 
             if (cancelToken.IsCancellationRequested)
@@ -197,9 +194,9 @@ namespace DigitalRuby.IPBan
             return true;
         }
 
-        private List<uint> LoadIPAddresses(string ruleName, string action, string hashType, int maxCount)
+        private List<UInt128> LoadIPAddresses(string ruleName, string action, string hashType, int maxCount)
         {
-            List<uint> ipAddresses = new List<uint>();
+            List<UInt128> ipAddresses = new List<UInt128>();
 
             try
             {
@@ -214,11 +211,11 @@ namespace DigitalRuby.IPBan
                 string fileName = GetSetFileName(ruleName);
                 if (File.Exists(fileName))
                 {
-                    uint value;
+                    UInt128 value;
                     foreach (string line in File.ReadLines(fileName).Skip(1))
                     {
                         string[] pieces = line.Split(' ');
-                        if (pieces.Length > 2 && pieces[0] == "add" && (value = IPBanFirewallUtility.ParseIPV4(pieces[2])) != 0)
+                        if (pieces.Length > 2 && pieces[0] == "add" && (value = IPBanFirewallUtility.ParseIPV6(pieces[2])) != 0)
                         {
                             ipAddresses.Add(value);
                         }
@@ -250,14 +247,14 @@ namespace DigitalRuby.IPBan
         }
 
         // deleteRule will drop the rule and matching set before creating the rule and set, use this is you don't care to update the rule and set in place
-        private List<uint> UpdateRule(string ruleName, string action, IEnumerable<string> ipAddresses,
-            List<uint> existingIPAddresses, string hashType, int maxCount, bool deleteRule, IEnumerable<PortRange> allowPorts, CancellationToken cancelToken,
+        private List<UInt128> UpdateRule(string ruleName, string action, IEnumerable<string> ipAddresses,
+            List<UInt128> existingIPAddresses, string hashType, int maxCount, bool deleteRule, IEnumerable<PortRange> allowPorts, CancellationToken cancelToken,
             out bool result)
         {
             string ipFile = GetSetFileName(ruleName);
             string ipFileTemp = ipFile + ".tmp";
-            List<uint> newIPAddressesUint = new List<uint>();
-            uint value = 0;
+            List<UInt128> newIPAddressesUint = new List<UInt128>();
+            UInt128 value = 0;
 
             // add and remove the appropriate ip addresses from the set
             using (StreamWriter writer = File.CreateText(ipFileTemp))
@@ -274,13 +271,12 @@ namespace DigitalRuby.IPBan
                         throw new OperationCanceledException(cancelToken);
                     }
 
-                    // only allow ipv4 for now
                     value = 0;
                     if (IPAddressRange.TryParse(ipAddress, out IPAddressRange range) &&
-                        range.Begin.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork &&
-                        range.End.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork &&
-                        // if deleting the rule, don't track the uint value
-                        (!deleteRule || (value = IPBanFirewallUtility.ParseIPV4(ipAddress)) != 0))
+                        range.Begin.AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6 &&
+                        range.End.AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6 &&
+                        // if deleting the rule, don't track the UInt128 value
+                        (!deleteRule || (value = IPBanFirewallUtility.ParseIPV6(ipAddress)) != 0))
                     {
                         try
                         {
@@ -294,7 +290,7 @@ namespace DigitalRuby.IPBan
                             }
                             if (!deleteRule)
                             {
-                                newIPAddressesUint.Add((value == 0 ? IPBanFirewallUtility.ParseIPV4(ipAddress) : value));
+                                newIPAddressesUint.Add((value == 0 ? IPBanFirewallUtility.ParseIPV6(ipAddress) : value));
                             }
                         }
                         catch
@@ -309,9 +305,9 @@ namespace DigitalRuby.IPBan
                 if (!deleteRule)
                 {
                     // for ip that dropped out, remove from firewall
-                    foreach (uint droppedIP in existingIPAddresses.Where(e => newIPAddressesUint.BinarySearch(e) < 0))
+                    foreach (UInt128 droppedIP in existingIPAddresses.Where(e => newIPAddressesUint.BinarySearch(e) < 0))
                     {
-                        writer.WriteLine($"del {ruleName} {IPBanFirewallUtility.IPV4ToString(droppedIP)} -exist");
+                        writer.WriteLine($"del {ruleName} {IPBanFirewallUtility.IPV6ToString(droppedIP)} -exist");
                     }
                 }
             }
@@ -344,10 +340,8 @@ namespace DigitalRuby.IPBan
             return newIPAddressesUint;
         }
 
-        public IPBanLinuxFirewall(string rulePrefix = null) : base(rulePrefix)
+        public IPBanLinuxFirewall6(string rulePrefix = null) : base(rulePrefix)
         {
-            firewall6 = new IPBanLinuxFirewall6(RulePrefix + "v6_");
-
             allowRuleName = RulePrefix + "1";
             blockRuleName = RulePrefix + "0";
 
@@ -361,7 +355,7 @@ namespace DigitalRuby.IPBan
             }
             */
 
-            foreach (string setFile in Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory, "*.set"))
+            foreach (string setFile in Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory, "*.set6"))
             {
                 RunProcess("ipset", true, $"restore < \"{setFile}\"");
             }
@@ -373,18 +367,12 @@ namespace DigitalRuby.IPBan
             string ruleFile = GetTableFileName();
             if (File.Exists(ruleFile))
             {
-                RunProcess("iptables-restore", true, $"< \"{ruleFile}\"");
+                RunProcess("ip6tables-restore", true, $"< \"{ruleFile}\"");
             }
         }
 
-        public async Task<bool> BlockIPAddresses(string ruleNamePrefix, IEnumerable<string> ipAddresses, CancellationToken cancelToken = default)
+        public Task<bool> BlockIPAddresses(string ruleNamePrefix, IEnumerable<string> ipAddresses, CancellationToken cancelToken = default)
         {
-            bool result = await firewall6.BlockIPAddresses(ruleNamePrefix, ipAddresses, cancelToken);
-            if (!result)
-            {
-                return false;
-            }
-
             try
             {
                 if (string.IsNullOrWhiteSpace(ruleNamePrefix))
@@ -395,50 +383,42 @@ namespace DigitalRuby.IPBan
                 {
                     ruleNamePrefix = RulePrefix + ruleNamePrefix;
                 }
-                bannedIPAddresses = UpdateRule(ruleNamePrefix, "DROP", ipAddresses, bannedIPAddresses, "ip", blockRuleMaxCount, false, null, cancelToken, out result);
-                return result;
+                bannedIPAddresses = UpdateRule(ruleNamePrefix, "DROP", ipAddresses, bannedIPAddresses, "ip", blockRuleMaxCount, false, null, cancelToken, out bool result);
+                return Task.FromResult(result);
             }
             catch (Exception ex)
             {
                 IPBanLog.Error(ex);
-                return false;
+                return Task.FromResult(false);
             }
         }
 
-        public async Task<bool> BlockIPAddresses(string ruleNamePrefix, IEnumerable<IPAddressRange> ranges, IEnumerable<PortRange> allowedPorts, CancellationToken cancelToken = default)
+        public Task<bool> BlockIPAddresses(string ruleNamePrefix, IEnumerable<IPAddressRange> ranges, IEnumerable<PortRange> allowedPorts, CancellationToken cancelToken = default)
         {
-            bool result = await firewall6.BlockIPAddresses(ruleNamePrefix, ranges, allowedPorts, cancelToken);
-            if (!result)
-            {
-                return false;
-            }
-
             if (string.IsNullOrWhiteSpace(ruleNamePrefix))
             {
-                return false;
+                return Task.FromResult(false);
             }
 
             try
             {
                 string ruleName = RulePrefix + "_" + ruleNamePrefix + "_0";
-                UpdateRule(ruleName, "DROP", ranges.Select(r => r.ToCidrString()), null, "net", blockRuleRangesMaxCount, true, allowedPorts, cancelToken, out result);
-                return result;
+                UpdateRule(ruleName, "DROP", ranges.Select(r => r.ToCidrString()), null, "net", blockRuleRangesMaxCount, true, allowedPorts, cancelToken, out bool result);
+                return Task.FromResult(result);
             }
             catch (Exception ex)
             {
                 IPBanLog.Error(ex);
-                return false;
+                return Task.FromResult(false);
             }
         }
 
-        public async Task UnblockIPAddresses(IEnumerable<string> ipAddresses)
+        public Task UnblockIPAddresses(IEnumerable<string> ipAddresses)
         {
-            await firewall6.UnblockIPAddresses(ipAddresses);
-
             bool changed = false;
             foreach (string ipAddress in ipAddresses)
             {
-                uint ipValue = IPBanFirewallUtility.ParseIPV4(ipAddress);
+                UInt128 ipValue = IPBanFirewallUtility.ParseIPV6(ipAddress);
                 if (ipValue != 0 && !string.IsNullOrWhiteSpace(ipAddress) && RunProcess("ipset", true, $"del {blockRuleName} {ipAddress} -exist") == 0)
                 {
                     bannedIPAddresses.Remove(ipValue);
@@ -449,25 +429,20 @@ namespace DigitalRuby.IPBan
             {
                 RunProcess("ipset", true, $"save {blockRuleName} > \"{GetSetFileName(blockRuleName)}\"");
             }
+            return Task.CompletedTask;
         }
 
-        public async Task<bool> AllowIPAddresses(IEnumerable<string> ipAddresses, CancellationToken cancelToken = default)
+        public Task<bool> AllowIPAddresses(IEnumerable<string> ipAddresses, CancellationToken cancelToken = default)
         {
-            bool result = await firewall6.AllowIPAddresses(ipAddresses, cancelToken);
-            if (!result)
-            {
-                return false;
-            }
-
             try
             {
-                allowedIPAddresses = UpdateRule(allowRuleName, "ACCEPT", ipAddresses, allowedIPAddresses, "ip", allowRuleMaxCount, false, null, cancelToken, out result);
-                return result;
+                allowedIPAddresses = UpdateRule(allowRuleName, "ACCEPT", ipAddresses, allowedIPAddresses, "ip", allowRuleMaxCount, false, null, cancelToken, out bool result);
+                return Task.FromResult<bool>(result);
             }
             catch (Exception ex)
             {
                 IPBanLog.Error(ex);
-                return false;
+                return Task.FromResult<bool>(false);
             }
         }
 
@@ -475,7 +450,7 @@ namespace DigitalRuby.IPBan
         {
             const string setText = " match-set ";
             string prefix = setText + RulePrefix + (ruleNamePrefix ?? string.Empty);
-            RunProcess("iptables", true, out IReadOnlyList<string> lines, "-L");
+            RunProcess("ip6tables", true, out IReadOnlyList<string> lines, "-L");
             foreach (string line in lines)
             {
                 int pos = line.IndexOf(prefix);
@@ -487,15 +462,11 @@ namespace DigitalRuby.IPBan
                     yield return line.Substring(start, pos - start);
                 }
             }
-            foreach (string name in firewall6.GetRuleNames())
-            {
-                yield return name;
-            }
         }
 
         public bool RuleExists(string ruleName)
         {
-            RunProcess("iptables", true, out IReadOnlyList<string> lines, "-L --line-numbers");
+            RunProcess("ip6tables", true, out IReadOnlyList<string> lines, "-L --line-numbers");
             string ruleNameWithSpaces = " " + ruleName + " ";
             foreach (string line in lines)
             {
@@ -504,12 +475,12 @@ namespace DigitalRuby.IPBan
                     return true;
                 }
             }
-            return firewall6.RuleExists(ruleName);
+            return false;
         }
 
         public bool DeleteRule(string ruleName)
         {
-            RunProcess("iptables", true, out IReadOnlyList<string> lines, "-L --line-numbers");
+            RunProcess("ip6tables", true, out IReadOnlyList<string> lines, "-L --line-numbers");
             string ruleNameWithSpaces = " " + ruleName + " ";
             foreach (string line in lines)
             {
@@ -519,8 +490,8 @@ namespace DigitalRuby.IPBan
                     int index = line.IndexOf(' ');
                     int ruleNum = int.Parse(line.Substring(0, index));
 
-                    // remove the rule from iptables
-                    RunProcess("iptables", true, $"-D INPUT {ruleNum}");
+                    // remove the rule from ip6tables
+                    RunProcess("ip6tables", true, $"-D INPUT {ruleNum}");
                     SaveTableToDisk();
 
                     // remove the set
@@ -529,20 +500,17 @@ namespace DigitalRuby.IPBan
                     return true;
                 }
             }
-
-            return firewall6.DeleteRule(ruleName);
+            return false;
         }
 
         public IEnumerable<string> EnumerateBannedIPAddresses()
         {
-            return bannedIPAddresses.Select(b => IPBanFirewallUtility.IPV4ToString(b))
-                .Union(firewall6.EnumerateBannedIPAddresses());
+            return bannedIPAddresses.Select(b => IPBanFirewallUtility.IPV6ToString(b));
         }
 
         public IEnumerable<string> EnumerateAllowedIPAddresses()
         {
-            return allowedIPAddresses.Select(b => IPBanFirewallUtility.IPV4ToString(b))
-                .Union(firewall6.EnumerateAllowedIPAddresses());
+            return allowedIPAddresses.Select(b => IPBanFirewallUtility.IPV6ToString(b));
         }
 
         public IEnumerable<IPAddressRange> EnumerateIPAddresses(string ruleNamePrefix = null)
@@ -550,7 +518,7 @@ namespace DigitalRuby.IPBan
             string prefix = RulePrefix + (ruleNamePrefix ?? string.Empty);
             string[] pieces;
 
-            foreach (string setFile in Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory, "*.set"))
+            foreach (string setFile in Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory, "*.set6"))
             {
                 if (Path.GetFileName(setFile).StartsWith(prefix))
                 {
@@ -565,38 +533,16 @@ namespace DigitalRuby.IPBan
                     }
                 }
             }
-
-            foreach (IPAddressRange range in firewall6.EnumerateIPAddresses(ruleNamePrefix))
-            {
-                yield return range;
-            }
         }
 
         public bool IsIPAddressBlocked(string ipAddress, int port = -1)
         {
-            return bannedIPAddresses.Contains(IPBanFirewallUtility.ParseIPV4(ipAddress)) ||
-                firewall6.IsIPAddressBlocked(ipAddress, port);
+            return bannedIPAddresses.Contains(IPBanFirewallUtility.ParseIPV6(ipAddress));
         }
 
         public bool IsIPAddressAllowed(string ipAddress)
         {
-            return allowedIPAddresses.Contains(IPBanFirewallUtility.ParseIPV4(ipAddress)) ||
-                firewall6.IsIPAddressAllowed(ipAddress);
+            return allowedIPAddresses.Contains(IPBanFirewallUtility.ParseIPV6(ipAddress));
         }
     }
 }
-
-// https://linuxconfig.org/how-to-setup-ftp-server-on-ubuntu-18-04-bionic-beaver-with-vsftpd
-// ipset create IPBanBlacklist iphash maxelem 1048576
-// ipset destroy IPBanBlacklist // clear everything
-// ipset -A IPBanBlacklist 10.10.10.10
-// ipset -A IPBanBlacklist 10.10.10.11
-// ipset save > file.txt
-// ipset restore < file.txt
-// iptables -A INPUT -m set --match-set IPBanBlacklist dst -j DROP
-// iptables -F // clear all rules - this may break SSH permanently!
-// iptables-save > file.txt
-// iptables-restore < file.txt
-// port ranges? iptables -A INPUT -p tcp -m tcp -m multiport --dports 1:79,81:442,444:65535 -j DROP
-// list rules with line numbers: iptables -L --line-numbers
-// modify rule at line number: iptables -R INPUT 12 -s 5.158.0.0/16 -j DROP

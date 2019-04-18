@@ -53,7 +53,7 @@ namespace DigitalRuby.IPBan
         /// Parse IPV4 only
         /// </summary>
         /// <param name="ipString">IP string</param>
-        /// <returns>32 bit value, 0 if not an IPV4 ip string</returns>
+        /// <returns>32 bit value in byte order of CPU, 0 if not an IPV4 ip string</returns>
         public static uint ParseIPV4(string ipString)
         {
             int index = ipString.IndexOfAny(ipV4Delimiters);
@@ -78,6 +78,20 @@ namespace DigitalRuby.IPBan
         }
 
         /// <summary>
+        /// Parse IPV6 string
+        /// </summary>
+        /// <param name="ipString">IPV6 string</param>
+        /// <returns>128 bit value or 0 if parse fail</returns>
+        public static UInt128 ParseIPV6(string ipString)
+        {
+            if (IPAddress.TryParse(ipString, out IPAddress ip))
+            {
+                return ip.ToUInt128();
+            }
+            return 0;
+        }
+
+        /// <summary>
         /// Convert 32 bit value to ip string
         /// </summary>
         /// <param name="value">32 bit value</param>
@@ -88,6 +102,16 @@ namespace DigitalRuby.IPBan
                 ((value & 0x0000FF00) >> 8) + "." +
                 ((value & 0x00FF0000) >> 16) + "." +
                 ((value & 0xFF000000) >> 24);
+        }
+
+        /// <summary>
+        /// Convert 128 bit value to ip string
+        /// </summary>
+        /// <param name="value">32 bit value</param>
+        /// <returns>IPV6 string</returns>
+        public static string IPV6ToString(UInt128 value)
+        {
+            return value.ToIPAddress().ToString();
         }
 
         /// <summary>
@@ -133,18 +157,20 @@ namespace DigitalRuby.IPBan
             int priority = int.MinValue;
             Type firewallType = typeof(IIPBanFirewall);
             var q =
-                from a in AppDomain.CurrentDomain.GetAssemblies().SelectMany(a => a.GetTypes())
-                where a != firewallType &&
-                    firewallType.IsAssignableFrom(a) &&
-                    a.GetCustomAttribute<RequiredOperatingSystemAttribute>() != null &&
-                    a.GetCustomAttribute<RequiredOperatingSystemAttribute>().IsValid
-                select new { FirewallType = a, OS = a.GetCustomAttribute<RequiredOperatingSystemAttribute>(), Name = a.GetCustomAttribute<CustomNameAttribute>() };
+                from fwType in AppDomain.CurrentDomain.GetAssemblies().SelectMany(a => a.GetTypes())
+                where fwType.IsPublic &&
+                    fwType != firewallType &&
+                    firewallType.IsAssignableFrom(fwType) &&
+                    fwType.GetCustomAttribute<RequiredOperatingSystemAttribute>() != null &&
+                    fwType.GetCustomAttribute<RequiredOperatingSystemAttribute>().IsValid
+                select new { FirewallType = fwType, OS = fwType.GetCustomAttribute<RequiredOperatingSystemAttribute>(), Name = fwType.GetCustomAttribute<CustomNameAttribute>() };
             foreach (var result in q)
             {
                 // look up the requested firewall by os name
-                if ((!osAndFirewall.TryGetValue(IPBanOS.Name, out string firewallToUse) || (result.FirewallType.Name.Equals(firewallToUse, StringComparison.OrdinalIgnoreCase)) ||
-                    (result.Name != null && (result.Name.Name ?? string.Empty).Equals(firewallToUse, StringComparison.OrdinalIgnoreCase)))
-                    && priority < result.OS.Priority)
+                if (priority < result.OS.Priority &&
+                    (!osAndFirewall.TryGetValue(IPBanOS.Name, out string firewallToUse) ||
+                    (result.FirewallType.Name.Equals(firewallToUse, StringComparison.OrdinalIgnoreCase)) ||
+                    (result.Name != null && (result.Name.Name ?? string.Empty).Equals(firewallToUse, StringComparison.OrdinalIgnoreCase))))
                 {
                     // if IsAvailable method is provided, attempt to call
                     MethodInfo available = result.FirewallType.GetMethod("IsAvailable", BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy);

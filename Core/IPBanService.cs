@@ -1172,6 +1172,8 @@ namespace DigitalRuby.IPBan
             // cleanup any db, set or tbl files
             foreach (string file in Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory, "*.set")
                 .Union(Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory, "*.tbl"))
+                .Union(Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory, "*.set6"))
+                .Union(Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory, "*.tbl6"))
                 .Union(Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory, "*.sqlite"))
                 .Union(Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory, "*journal*")))
             {
