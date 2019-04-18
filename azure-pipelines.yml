@@ -10,10 +10,8 @@ strategy:
     matrix:
         linux:
             imageName: 'ubuntu-16.04'
-            platform: 'Linux'
         windows:
             imageName: 'vs2017-win2016'
-            platform: 'Windows'
 
 pool:
     vmImage: $(imageName)
@@ -24,18 +22,18 @@ variables:
 steps:
     - script: sudo apt-get install iptables
       displayName: 'Install iptables on Linux'
-      condition: eq(platform, 'Linux' )
+      condition: eq( variables['Agent.OS'], 'Linux' )
     - script: sudo apt-get install ipset
       displayName: 'Install ipset on Linux'
-      condition: eq(platform, 'Linux' )
+      condition: eq( variables['Agent.OS'], 'Linux' )
     - script: sudo apt-get update
       displayName: 'Run apt-get update on Linux'
-      condition: eq(platform, 'Linux' )
+      condition: eq( variables['Agent.OS'], 'Linux' )
     - script: dotnet build --configuration $(buildConfiguration)
       displayName: 'Build All'
     - script: sudo dotnet test --configuration $(buildConfiguration)
       displayName: 'Test Linux'
-      condition: eq(platform, 'Linux' )
+      condition: eq( variables['Agent.OS'], 'Linux' )
     - script: dotnet test --configuration $(buildConfiguration)
       displayName: 'Test Windows'
-      condition: eq(platform, 'Windows' )
+      condition: eq( variables['Agent.OS'], 'Windows' )
