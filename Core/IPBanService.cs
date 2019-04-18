@@ -79,7 +79,7 @@ namespace DigitalRuby.IPBan
 
         // note that an ip that has a block count may not yet be in the ipAddressesAndBanDate dictionary
         // for locking, always use ipAddressesAndBanDate
-        private readonly IPBanDB ipDB = new IPBanDB();
+        private readonly IPBanDB ipDB;
 
         private readonly object configLock = new object();
         private readonly HashSet<IUpdater> updaters = new HashSet<IUpdater>();
@@ -714,6 +714,7 @@ namespace DigitalRuby.IPBan
         {
             OSName = IPBanOS.Name + (string.IsNullOrWhiteSpace(IPBanOS.FriendlyName) ? string.Empty : " (" + IPBanOS.FriendlyName + ")");
             OSVersion = IPBanOS.Version;
+            ipDB = new IPBanDB();
         }
 
         /// <summary>
