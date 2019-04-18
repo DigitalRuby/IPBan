@@ -124,41 +124,51 @@ namespace DigitalRuby.IPBan
             bool foundFirewallType = false;
             int priority = int.MinValue;
             Type firewallType = typeof(IIPBanFirewall);
+            Assembly[] assemblies = AppDomain.CurrentDomain.GetAssemblies().ToArray();
+            Type[] types = assemblies.SelectMany(a => a.GetTypes()).ToArray();
             var q =
-                from fwType in AppDomain.CurrentDomain.GetAssemblies().SelectMany(a => a.GetTypes())
+                from fwType in types
                 where fwType.IsPublic &&
                     fwType != firewallType &&
                     firewallType.IsAssignableFrom(fwType) &&
                     fwType.GetCustomAttribute<RequiredOperatingSystemAttribute>() != null &&
                     fwType.GetCustomAttribute<RequiredOperatingSystemAttribute>().IsValid
                 select new { FirewallType = fwType, OS = fwType.GetCustomAttribute<RequiredOperatingSystemAttribute>(), Name = fwType.GetCustomAttribute<CustomNameAttribute>() };
-            foreach (var result in q)
+            var array = q.ToArray();
+            foreach (var result in array)
             {
                 // look up the requested firewall by os name
-                if (priority < result.OS.Priority &&
-                    (!osAndFirewall.TryGetValue(IPBanOS.Name, out string firewallToUse) ||
-                    (result.FirewallType.Name.Equals(firewallToUse, StringComparison.OrdinalIgnoreCase)) ||
-                    (result.Name != null && (result.Name.Name ?? string.Empty).Equals(firewallToUse, StringComparison.OrdinalIgnoreCase))))
+                bool matchPriority = priority < result.OS.Priority;
+                if (matchPriority)
                 {
-                    // if IsAvailable method is provided, attempt to call
-                    MethodInfo available = result.FirewallType.GetMethod("IsAvailable", BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy);
-                    if (available != null)
+                    bool matchName = true;
+                    if (osAndFirewall != null && osAndFirewall.Count != 0 &&
+                        (osAndFirewall.TryGetValue(IPBanOS.Name, out string firewallToUse) || osAndFirewall.TryGetValue("*", out firewallToUse)))
                     {
-                        try
+                        matchName = result.Name.Name.Equals(firewallToUse, StringComparison.OrdinalIgnoreCase);
+                    }
+                    if (matchName)
+                    {
+                        // if IsAvailable method is provided, attempt to call
+                        MethodInfo available = result.FirewallType.GetMethod("IsAvailable", BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy);
+                        if (available != null)
                         {
-                            if (!Convert.ToBoolean(available.Invoke(null, null)))
+                            try
+                            {
+                                if (!Convert.ToBoolean(available.Invoke(null, null)))
+                                {
+                                    continue;
+                                }
+                            }
+                            catch
                             {
                                 continue;
                             }
                         }
-                        catch
-                        {
-                            continue;
-                        }
+                        firewallType = result.FirewallType;
+                        priority = result.OS.Priority;
+                        foundFirewallType = true;
                     }
-                    firewallType = result.FirewallType;
-                    priority = result.OS.Priority;
-                    foundFirewallType = true;
                 }
             }
             if (firewallType == null)

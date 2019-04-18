@@ -37,6 +37,7 @@ namespace DigitalRuby.IPBan
 {
     // TODO: use pfctl
     [RequiredOperatingSystem(IPBanOS.Mac)]
+    [CustomName("Default")]
     public class IPBanMacFirewall : IPBanBaseFirewall, IIPBanFirewall
     {
         public IPBanMacFirewall(string rulePrefix = null) : base(rulePrefix)

@@ -49,6 +49,7 @@ namespace DigitalRuby.IPBan
     /// Helper class for Windows firewall and banning ip addresses.
     /// </summary>
     [RequiredOperatingSystem(IPBanOS.Windows)]
+    [CustomName("Default")]
     public class IPBanWindowsFirewall : IPBanBaseFirewall, IIPBanFirewall
     {
         // DO NOT CHANGE THESE CONST AND READONLY FIELDS!

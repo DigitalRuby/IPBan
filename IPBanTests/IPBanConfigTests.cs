@@ -25,6 +25,7 @@ SOFTWARE.
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -145,7 +146,8 @@ namespace DigitalRuby.IPBanTests
                 Assert.AreEqual("https://checkip.amazonaws.com/", cfg.ExternalIPAddressUrl);
                 Assert.AreEqual(5, cfg.FailedLoginAttemptsBeforeBan);
                 Assert.AreEqual(20, cfg.FailedLoginAttemptsBeforeBanUserNameWhitelist);
-                Assert.IsEmpty(cfg.FirewallOSAndType);
+                Assert.AreEqual(1, cfg.FirewallOSAndType.Count);
+                Assert.AreEqual("*:Default", cfg.FirewallOSAndType.Keys.First() + ":" + cfg.FirewallOSAndType.Values.First());
                 Assert.AreEqual("IPBan_", cfg.FirewallRulePrefix);
                 Assert.AreEqual(TimeSpan.FromSeconds(1.0), cfg.MinimumTimeBetweenFailedLoginAttempts);
                 Assert.IsEmpty(cfg.ProcessToRunOnBan);

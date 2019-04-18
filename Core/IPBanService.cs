@@ -1206,7 +1206,6 @@ namespace DigitalRuby.IPBan
             service.Start();
             service.DB.Truncate(true);
             service.Firewall.BlockIPAddresses(null, new string[0]).Sync();
-            service.RunCycle().Sync();
             return service;
         }
 
@@ -1221,7 +1220,7 @@ namespace DigitalRuby.IPBan
                 service.Firewall.BlockIPAddresses(null, new string[0]);
                 service.RunCycle().Sync();
                 service.Dispose();
-                IPBanService.UtcNow = DateTime.UtcNow;
+                IPBanService.UtcNow = default;
             }
         }
 

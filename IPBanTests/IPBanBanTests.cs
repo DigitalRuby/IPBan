@@ -52,6 +52,7 @@ namespace DigitalRuby.IPBanTests
             // ensure a clean start
             IPBanService.UtcNow = DateTime.UtcNow;
             service = IPBanService.CreateAndStartIPBanTestService<IPBanService>();
+            Assert.AreNotEqual(typeof(IPBanMemoryFirewall), service.Firewall.GetType());
         }
 
         [TearDown]
