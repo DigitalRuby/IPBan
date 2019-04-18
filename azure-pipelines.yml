@@ -23,19 +23,19 @@ variables:
 
 steps:
     - script: sudo apt-get install iptables
-        displayName: Install iptables on Linux
+        displayName: 'Install iptables on Linux'
         condition: eq(platform, 'Linux' )
     - script: sudo apt-get install ipset
-        displayName: Install ipset on Linux
+        displayName: 'Install ipset on Linux'
         condition: eq(platform, 'Linux' )
     - script: sudo apt-get update
-        displayName: Run apt-get update on Linux
+        displayName: 'Run apt-get update on Linux'
         condition: eq(platform, 'Linux' )
     - script: dotnet build --configuration $(buildConfiguration)
-        displayName: Build All
+        displayName: 'Build All'
     - script: sudo dotnet test --configuration $(buildConfiguration)
-        displayName: Test Linux
+        displayName: 'Test Linux'
         condition: eq(platform, 'Linux' )
     - script: dotnet test --configuration $(buildConfiguration)
-        displayName: Test Windows
+        displayName: 'Test Windows'
         condition: eq(platform, 'Windows' )
