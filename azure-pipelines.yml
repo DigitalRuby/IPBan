@@ -36,4 +36,4 @@ steps:
       condition: eq( variables['Agent.OS'], 'Linux' )
     - script: dotnet test --configuration $(buildConfiguration)
       displayName: 'Test Windows'
-      condition: eq( variables['Agent.OS'], 'Windows' )
+      condition: contains( variables['Agent.OS'], 'Windows' )
