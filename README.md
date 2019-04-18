@@ -1,5 +1,7 @@
 IPBan Service
 -----
+[![Build Status](https://jjxtra.visualstudio.com/Digital Ruby/_apis/build/status/DigitalRuby_IPBan?branchName=master)](https://jjxtra.visualstudio.com/Digital Ruby/_build/latest?definitionId=4&branchName=master)
+
 [![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=7EJ3K33SRLU9E)
 
 <a href="https://email.digitalruby.com/SubscribeInitial/IPBan">Sign up for the IPBan Mailing List</a>
