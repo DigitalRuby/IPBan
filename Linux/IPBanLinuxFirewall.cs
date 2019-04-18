@@ -45,7 +45,7 @@ namespace DigitalRuby.IPBan
         /// </summary>
         private readonly IPBanLinuxFirewall6 firewall6;
 
-        private const string inetFamily = "inet"; // inet6 when ipv6 support added
+        private const string inetFamily = "inet"; // firewall6 takes care of inet6
         private const int hashSize = 1024;
         private const int blockRuleMaxCount = 2097152;
         private const int allowRuleMaxCount = 65536;
