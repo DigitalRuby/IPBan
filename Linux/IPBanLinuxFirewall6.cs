@@ -418,11 +418,14 @@ namespace DigitalRuby.IPBan
             bool changed = false;
             foreach (string ipAddress in ipAddresses)
             {
-                UInt128 ipValue = IPBanFirewallUtility.ParseIPV6(ipAddress);
-                if (ipValue != 0 && !string.IsNullOrWhiteSpace(ipAddress) && RunProcess("ipset", true, $"del {blockRuleName} {ipAddress} -exist") == 0)
+                if (IPAddress.TryParse(ipAddress, out IPAddress ip) && ip.AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6)
                 {
-                    bannedIPAddresses.Remove(ipValue);
-                    changed = true;
+                    UInt128 ipValue = ip.ToUInt128();
+                    if (ipValue != 0 && !string.IsNullOrWhiteSpace(ipAddress) && RunProcess("ipset", true, $"del {blockRuleName} {ip} -exist") == 0)
+                    {
+                        bannedIPAddresses.Remove(ipValue);
+                        changed = true;
+                    }
                 }
             }
             if (changed)
@@ -537,12 +540,20 @@ namespace DigitalRuby.IPBan
 
         public bool IsIPAddressBlocked(string ipAddress, int port = -1)
         {
-            return bannedIPAddresses.Contains(IPBanFirewallUtility.ParseIPV6(ipAddress));
+            if (IPAddress.TryParse(ipAddress, out IPAddress ip) && ip.AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6)
+            {
+                return bannedIPAddresses.Contains(ip.ToUInt128());
+            }
+            return false;
         }
 
         public bool IsIPAddressAllowed(string ipAddress)
         {
-            return allowedIPAddresses.Contains(IPBanFirewallUtility.ParseIPV6(ipAddress));
+            if (IPAddress.TryParse(ipAddress, out IPAddress ip) && ip.AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6)
+            {
+                return allowedIPAddresses.Contains(ip.ToUInt128());
+            }
+            return false;
         }
     }
 }
