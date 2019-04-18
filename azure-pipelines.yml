@@ -4,23 +4,38 @@
 # https://docs.microsoft.com/azure/devops/pipelines/languages/dotnet-core
 
 trigger:
-- master
+    - master
+
+strategy:
+    matrix:
+        linux:
+            imageName: 'ubuntu-16.04'
+            platform: 'Linux'
+        windows:
+            imageName: 'vs2017-win2016'
+            platform: 'Windows'
 
 pool:
-  vmImage: 'Ubuntu-16.04'
+    vmImage: $(imageName)
 
 variables:
-  buildConfiguration: 'Release'
+    buildConfiguration: 'Release'
 
 steps:
-
-- script: sudo apt-get install iptables
-  displayName: Install iptables
-- script: sudo apt-get install ipset
-  displayName: Install ipset
-- script: sudo apt-get update
-  displayName: Run apt-get update
-- script: dotnet build --configuration $(buildConfiguration)
-  displayName: Build
-- script: sudo dotnet test --configuration $(buildConfiguration)
-  displayName: Test
+    - script: sudo apt-get install iptables
+        displayName: Install iptables on Linux
+        condition: eq(platform, 'Linux' )
+    - script: sudo apt-get install ipset
+        displayName: Install ipset on Linux
+        condition: eq(platform, 'Linux' )
+    - script: sudo apt-get update
+        displayName: Run apt-get update on Linux
+        condition: eq(platform, 'Linux' )
+    - script: dotnet build --configuration $(buildConfiguration)
+        displayName: Build All
+    - script: sudo dotnet test --configuration $(buildConfiguration)
+        displayName: Test Linux
+        condition: eq(platform, 'Linux' )
+    - script: dotnet test --configuration $(buildConfiguration)
+        displayName: Test Windows
+        condition: eq(platform, 'Windows' )
