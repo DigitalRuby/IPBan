@@ -61,18 +61,9 @@ namespace DigitalRuby.IPBan
             {
                 ipString = ipString.Substring(0, index);
             }
-            if (!IPAddress.TryParse(ipString, out IPAddress ipAddress))
+            if (IPAddress.TryParse(ipString, out IPAddress ipAddress) && ipAddress.AddressFamily == AddressFamily.InterNetwork)
             {
-                return 0;
-            }
-            if (ipAddress.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
-            {
-                byte[] ipBytes = ipAddress.GetAddressBytes();
-                uint u = ((uint)ipBytes[3] << 24);
-                u += ((uint)ipBytes[2] << 16);
-                u += ((uint)ipBytes[1] << 8);
-                u += ((uint)ipBytes[0]);
-                return u;
+                return ipAddress.ToUInt32();
             }
             return 0;
         }
@@ -81,37 +72,14 @@ namespace DigitalRuby.IPBan
         /// Parse IPV6 string
         /// </summary>
         /// <param name="ipString">IPV6 string</param>
-        /// <returns>128 bit value or 0 if parse fail</returns>
+        /// <returns>128 bit value in byte order of CPU or 0 if parse fail</returns>
         public static UInt128 ParseIPV6(string ipString)
         {
-            if (IPAddress.TryParse(ipString, out IPAddress ip))
+            if (IPAddress.TryParse(ipString, out IPAddress ip) && ip.AddressFamily == AddressFamily.InterNetworkV6)
             {
                 return ip.ToUInt128();
             }
             return 0;
-        }
-
-        /// <summary>
-        /// Convert 32 bit value to ip string
-        /// </summary>
-        /// <param name="value">32 bit value</param>
-        /// <returns>IPV4 string</returns>
-        public static string IPV4ToString(uint value)
-        {
-            return (value & 0x000000FF) + "." +
-                ((value & 0x0000FF00) >> 8) + "." +
-                ((value & 0x00FF0000) >> 16) + "." +
-                ((value & 0xFF000000) >> 24);
-        }
-
-        /// <summary>
-        /// Convert 128 bit value to ip string
-        /// </summary>
-        /// <param name="value">32 bit value</param>
-        /// <returns>IPV6 string</returns>
-        public static string IPV6ToString(UInt128 value)
-        {
-            return value.ToIPAddress().ToString();
         }
 
         /// <summary>

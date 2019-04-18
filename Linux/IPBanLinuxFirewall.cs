@@ -311,7 +311,7 @@ namespace DigitalRuby.IPBan
                     // for ip that dropped out, remove from firewall
                     foreach (uint droppedIP in existingIPAddresses.Where(e => newIPAddressesUint.BinarySearch(e) < 0))
                     {
-                        writer.WriteLine($"del {ruleName} {IPBanFirewallUtility.IPV4ToString(droppedIP)} -exist");
+                        writer.WriteLine($"del {ruleName} {droppedIP.ToIPAddress()} -exist");
                     }
                 }
             }
@@ -535,13 +535,13 @@ namespace DigitalRuby.IPBan
 
         public IEnumerable<string> EnumerateBannedIPAddresses()
         {
-            return bannedIPAddresses.Select(b => IPBanFirewallUtility.IPV4ToString(b))
+            return bannedIPAddresses.Select(b => b.ToIPAddress().ToString())
                 .Union(firewall6.EnumerateBannedIPAddresses());
         }
 
         public IEnumerable<string> EnumerateAllowedIPAddresses()
         {
-            return allowedIPAddresses.Select(b => IPBanFirewallUtility.IPV4ToString(b))
+            return allowedIPAddresses.Select(b => b.ToIPAddress().ToString())
                 .Union(firewall6.EnumerateAllowedIPAddresses());
         }
 

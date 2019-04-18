@@ -115,12 +115,12 @@ namespace DigitalRuby.IPBanTests
         public void TestIPV4Conversion()
         {
             uint value = IPBanFirewallUtility.ParseIPV4("192.168.1.123");
-            Assert.AreEqual(0x7b01a8c0, value, "ParseIPV4 fail");
-            string ip = IPBanFirewallUtility.IPV4ToString(value);
+            Assert.AreEqual(0xc0a8017b, value, "ParseIPV4 fail");
+            string ip = value.ToIPAddress().ToString();
             Assert.AreEqual("192.168.1.123", ip, "IPV4ToString fail");
             value = IPBanFirewallUtility.ParseIPV4("192.168.0.0/24");
-            Assert.AreEqual(0x0000a8c0, value, "ParseIPV4 fail");
-            ip = IPBanFirewallUtility.IPV4ToString(value);
+            Assert.AreEqual(0xc0a80000, value, "ParseIPV4 fail");
+            ip = value.ToIPAddress().ToString();
             Assert.AreEqual("192.168.0.0", ip, "IPV4ToString fail");
         }
 
