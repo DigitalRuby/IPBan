@@ -1,6 +1,8 @@
 ~/
 .vs/
 .vscode/
+Debug/
+Release/
 bin/
 obj/
 package/
