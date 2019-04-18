@@ -22,18 +22,18 @@ variables:
 steps:
     - script: sudo apt-get install iptables
       displayName: 'Install iptables on Linux'
-      condition: eq( variables['Agent.OS'], 'Linux' )
+      condition: contains( variables['Agent.OS'], 'Linux' )
     - script: sudo apt-get install ipset
       displayName: 'Install ipset on Linux'
-      condition: eq( variables['Agent.OS'], 'Linux' )
+      condition: contains( variables['Agent.OS'], 'Linux' )
     - script: sudo apt-get update
       displayName: 'Run apt-get update on Linux'
-      condition: eq( variables['Agent.OS'], 'Linux' )
+      condition: contains( variables['Agent.OS'], 'Linux' )
     - script: dotnet build --configuration $(buildConfiguration)
       displayName: 'Build All'
     - script: sudo dotnet test --configuration $(buildConfiguration)
       displayName: 'Test Linux'
-      condition: eq( variables['Agent.OS'], 'Linux' )
+      condition: contains( variables['Agent.OS'], 'Linux' )
     - script: dotnet test --configuration $(buildConfiguration)
       displayName: 'Test Windows'
       condition: contains( variables['Agent.OS'], 'Windows' )
