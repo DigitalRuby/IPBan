@@ -279,7 +279,7 @@ namespace DigitalRuby.IPBan
         /// </summary>
         public bool IsValid
         {
-            get { return RequiredOS == null || RequiredOS == IPBanOS.Name; }
+            get { return RequiredOS == null || RequiredOS.Equals(IPBanOS.Name, StringComparison.OrdinalIgnoreCase); }
         }
 
         /// <summary>
