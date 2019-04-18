@@ -7,7 +7,7 @@ IPBan Service
 <a href="https://email.digitalruby.com/SubscribeInitial/IPBan">Sign up for the IPBan Mailing List</a>
 
 **Requirements**
-- IPBan requires .NET core 2.2 SDK and Visual Studio 2017 or newer or Visual Studio Code (Linux) to build from source. You can build a self contained executable to eliminate the need for dotnet core on the server machine, or just download the precompiled binaries.
+- IPBan requires .NET core 2.2 SDK to build and debug code. For an IDE, I suggest Visual Studio Community 2017 (2019+ recommended) for Windows or MAC, or VS code for Linux. All are free. You can build a self contained executable to eliminate the need for dotnet core on the server machine, or just download the precompiled binaries.
 - Running and/or debugging code requires that you run as administrator or root.
 - Officially supported platforms: Windows 8.1 or newer (x86, x64), Windows Server 2012 or newer (x86, x64), Linux Ubuntu 16.04+ or equivelant (x64).
 - Mac OS X not supported at this time.
