@@ -112,7 +112,8 @@ namespace DigitalRuby.IPBan
             {
                 SQLiteConnection.CreateFile(dbPath);
             }
-            ExecuteNonQuery("PRAGMA auto_vacuum = INCREMENTAL;"); // PRAGMA journal_mode=WAL; // mostly single threaded, don't need WAL optimizations
+            ExecuteNonQuery("PRAGMA auto_vacuum = INCREMENTAL;");
+            ExecuteNonQuery("PRAGMA journal_mode=WAL;");
             ExecuteNonQuery("CREATE TABLE IF NOT EXISTS Strings (String VARCHAR(64), PRIMARY KEY (String))");
         }
 
