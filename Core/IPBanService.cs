@@ -527,7 +527,11 @@ namespace DigitalRuby.IPBan
                     DateTime now = UtcNow;
 
                     // sync up the blacklist and whitelist from the delegate
-                    firewallNeedsBlockedIPAddressesUpdate |= (ipDB.SetBannedIPAddresses(IPBanDelegate.EnumerateBlackList(), now) > 0);
+                    int banCount = ipDB.GetBannedIPAddressCount();
+
+                    // we only update firewall if new blacklisted ip addresses were added, if some dropped out, we simply wait for the time to expire in the ipDB
+                    // object and then they will drop out that way, that way external delegates with other clients won't cause us to drop ips that we just barely banned
+                    firewallNeedsBlockedIPAddressesUpdate |= (ipDB.SetBannedIPAddresses(IPBanDelegate.EnumerateBlackList(), now) != banCount);
 
                     // get white list from delegate and remove any blacklisted ip that is now whitelisted
                     HashSet<string> allowIPAddresses = new HashSet<string>(IPBanDelegate.EnumerateWhiteList());
