@@ -57,15 +57,11 @@ namespace DigitalRuby.IPBan
             Config
         }
 
-        private class BannedIPAddress
+        private class IPAddressPendingEvent
         {
             public string IPAddress { get; set; }
             public string Source { get; set; }
             public string UserName { get; set; }
-        }
-
-        private class FailedLogin : BannedIPAddress
-        {
             public DateTime DateTime { get; set; }
             public int Count { get; set; }
         }
@@ -75,7 +71,8 @@ namespace DigitalRuby.IPBan
         private bool gotStartUrl;
 
         // batch failed logins every cycle
-        private readonly List<FailedLogin> pendingFailedLogins = new List<FailedLogin>();
+        private readonly List<IPAddressPendingEvent> pendingFailedLogins = new List<IPAddressPendingEvent>();
+        private readonly List<IPAddressPendingEvent> pendingSuccessfulLogins = new List<IPAddressPendingEvent>();
 
         // note that an ip that has a block count may not yet be in the ipAddressesAndBanDate dictionary
         // for locking, always use ipAddressesAndBanDate
@@ -224,10 +221,10 @@ namespace DigitalRuby.IPBan
             IPBanLog.Info("Blacklist: {0}, Blacklist Regex: {1}", Config.BlackList, Config.BlackListRegex);
         }
 
-        private async Task ProcessPendingFailedLogins(IEnumerable<FailedLogin> ipAddresses)
+        private async Task ProcessPendingFailedLogins(IEnumerable<IPAddressPendingEvent> ipAddresses)
         {
-            List<BannedIPAddress> bannedIpAddresses = new List<BannedIPAddress>();
-            foreach (FailedLogin failedLogin in ipAddresses)
+            List<IPAddressPendingEvent> bannedIpAddresses = new List<IPAddressPendingEvent>();
+            foreach (IPAddressPendingEvent failedLogin in ipAddresses)
             {
                 try
                 {
@@ -269,21 +266,21 @@ namespace DigitalRuby.IPBan
                             {
                                 IPBanLog.Warn(now, "IP {0}, {1}, {2} ban pending.", ipAddress, userName, source);
                             }
-                            else if (IPBanDelegate == null || (await IPBanDelegate.LoginAttemptFailed(ipAddress, source, userName) != LoginFailedResult.Whitelisted))
+                            else
                             {
+                                if (IPBanDelegate != null)
+                                {
+                                    await IPBanDelegate.LoginAttemptFailed(ipAddress, source, userName);
+                                }
                                 AddBannedIPAddress(ipAddress, source, userName, bannedIpAddresses, now, configBlacklisted, newCount, string.Empty);
                             }
                         }
                         else
                         {
-                            // failed login attempt
+                            // send failed login attempt to delegate
                             if (IPBanDelegate != null)
                             {
-                                LoginFailedResult result = await IPBanDelegate.LoginAttemptFailed(ipAddress, source, userName);
-                                if (result.HasFlag(LoginFailedResult.Blacklisted))
-                                {
-                                    AddBannedIPAddress(ipAddress, userName, source, bannedIpAddresses, now, configBlacklisted, newCount, "Delegate banned ip: " + result);
-                                }
+                                await IPBanDelegate.LoginAttemptFailed(ipAddress, source, userName);
                             }
                         }
                     }
@@ -297,14 +294,44 @@ namespace DigitalRuby.IPBan
             ExecuteExternalProcessForBannedIPAddresses(bannedIpAddresses);
         }
 
-        private void AddBannedIPAddress(string ipAddress, string source, string userName, List<BannedIPAddress> bannedIpAddresses,
+        private Task ProcessPendingSuccessfulLogins(IEnumerable<IPAddressPendingEvent> ipAddresses)
+        {
+            if (IPBanDelegate != null)
+            {
+                return Task.Run(() =>
+                {
+                    try
+                    {
+                        foreach (IPAddressPendingEvent info in ipAddresses)
+                        {
+                            // pass the success login on
+                            IPBanDelegate.LoginAttemptSucceeded(info.IPAddress, info.Source, info.UserName);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        IPBanLog.Error(ex);
+                    }
+                });
+            }
+
+            return Task.CompletedTask;
+        }
+
+        private void AddBannedIPAddress(string ipAddress, string source, string userName, List<IPAddressPendingEvent> bannedIpAddresses,
             DateTime dateTime, bool configBlacklisted, int counter, string extraInfo)
         {
-            bannedIpAddresses.Add(new BannedIPAddress { IPAddress = ipAddress, Source = source, UserName = userName });
+            bannedIpAddresses.Add(new IPAddressPendingEvent { IPAddress = ipAddress, Source = source, UserName = userName });
             ipDB.SetBanDate(ipAddress, dateTime);
             firewallNeedsBlockedIPAddressesUpdate = true;
             IPBanLog.Warn(dateTime, "Banning ip address: {0}, user name: {1}, config black listed: {2}, count: {3}, extra info: {4}",
                 ipAddress, userName, configBlacklisted, counter, extraInfo);
+
+            // if no handlers, exit out
+            if (BannedIPAddressHandler == null && IPBanDelegate == null)
+            {
+                return;
+            }
 
             // kick off notifications of ban in the background
             Task.Run(() =>
@@ -334,7 +361,7 @@ namespace DigitalRuby.IPBan
             });
         }
 
-        private void ExecuteExternalProcessForBannedIPAddresses(IReadOnlyCollection<BannedIPAddress> bannedIPAddresses)
+        private void ExecuteExternalProcessForBannedIPAddresses(IReadOnlyCollection<IPAddressPendingEvent> bannedIPAddresses)
         {
             if (bannedIPAddresses.Count == 0)
             {
@@ -500,13 +527,25 @@ namespace DigitalRuby.IPBan
                     DateTime now = UtcNow;
 
                     // sync up the blacklist and whitelist from the delegate
-                    foreach (string ip in IPBanDelegate.EnumerateBlackList())
+                    using (IEnumerator<string> e = IPBanDelegate.EnumerateBlackList())
                     {
-                        firewallNeedsBlockedIPAddressesUpdate |= ipDB.SetBanDate(ip, now);
+                        while (e.MoveNext())
+                        {
+                            string ip = e.Current;
+                            firewallNeedsBlockedIPAddressesUpdate |= ipDB.SetBanDate(ip, now);
+                        }
                     }
 
                     // get white list from delegate and remove any blacklisted ip that is now whitelisted
-                    HashSet<string> allowIPAddresses = new HashSet<string>(IPBanDelegate.EnumerateWhiteList());
+                    HashSet<string> allowIPAddresses = new HashSet<string>();
+                    using (IEnumerator<string> e = IPBanDelegate.EnumerateWhiteList())
+                    {
+                        while (e.MoveNext())
+                        {
+                            string ip = e.Current;
+                            allowIPAddresses.Add(ip);
+                        }
+                    }
 
                     // add whitelist ip from config
                     if (!string.IsNullOrWhiteSpace(Config.WhiteList))
@@ -707,6 +746,97 @@ namespace DigitalRuby.IPBan
             }
         }
 
+        private void ProcessIPAddressEvent(IPAddressEvent info, List<IPAddressPendingEvent> pendingEvents, TimeSpan minTimeBetweenEvents, string type)
+        {
+            if (!IPBanFirewallUtility.TryGetFirewallIPAddress(info.IPAddress, out string normalizedIPAddress))
+            {
+                return;
+            }
+
+            info.Source = (info.Source ?? "?");
+            info.UserName = (info.UserName ?? string.Empty);
+
+            IPAddressPendingEvent existing = pendingEvents.FirstOrDefault(p => p.IPAddress == normalizedIPAddress && (p.UserName == null || p.UserName == info.UserName));
+            if (existing == null)
+            {
+                existing = new IPAddressPendingEvent
+                {
+                    IPAddress = normalizedIPAddress,
+                    Source = info.Source,
+                    UserName = info.UserName,
+                    DateTime = UtcNow,
+                    Count = info.Count
+                };
+                pendingEvents.Add(existing);
+            }
+            else
+            {
+                existing.UserName = (existing.UserName ?? info.UserName);
+
+                // if more than n seconds has passed, increment the counter
+                // we don't want to count multiple logs that all map to the same ip address from one failed
+                // attempt to count multiple times if they happen rapidly, if the parsers are parsing the same
+                // failed login that reads many different ways, we don't want to lock out legitimate failed logins
+                if ((UtcNow - existing.DateTime) >= minTimeBetweenEvents)
+                {
+                    // update to the latest timestamp of the failed login
+                    existing.DateTime = UtcNow;
+
+                    // increment counter
+                    existing.Count += info.Count;
+                }
+                else
+                {
+                    IPBanLog.Debug("Ignoring {0} login from {1}, min time between login attempts has not elapsed", type, existing.IPAddress);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Process all pending failed logins
+        /// </summary>
+        private async Task ProcessPendingFailedLogins()
+        {
+            await CheckForExpiredIP();
+
+            // make a quick copy of pending ip addresses so we don't lock it for very long
+            List<IPAddressPendingEvent> ipAddresses = null;
+            lock (pendingFailedLogins)
+            {
+                if (pendingFailedLogins.Count != 0)
+                {
+                    ipAddresses = new List<IPAddressPendingEvent>(pendingFailedLogins);
+                    pendingFailedLogins.Clear();
+                }
+            }
+            if (ipAddresses != null)
+            {
+                await ProcessPendingFailedLogins(ipAddresses);
+            }
+            UpdateFirewall();
+        }
+
+        /// <summary>
+        /// Process all pending successful logins
+        /// </summary>
+        private async Task ProcessPendingSuccessfulLogins()
+        {
+            // make a quick copy of pending ip addresses so we don't lock it for very long
+            List<IPAddressPendingEvent> ipAddresses = null;
+            lock (pendingSuccessfulLogins)
+            {
+                if (pendingSuccessfulLogins.Count != 0)
+                {
+                    ipAddresses = new List<IPAddressPendingEvent>(pendingSuccessfulLogins);
+                    pendingSuccessfulLogins.Clear();
+                }
+            }
+            if (ipAddresses != null)
+            {
+                await ProcessPendingSuccessfulLogins(ipAddresses);
+            }
+        }
+
         /// <summary>
         /// Constructor
         /// </summary>
@@ -744,30 +874,7 @@ namespace DigitalRuby.IPBan
             UpdateDelegate();
             UpdateUpdaters();
             await ProcessPendingFailedLogins();
-        }
-
-        /// <summary>
-        /// Manually process all pending ip addresses. This is usually called automatically.
-        /// </summary>
-        public async Task ProcessPendingFailedLogins()
-        {
-            await CheckForExpiredIP();
-
-            // make a quick copy of pending ip addresses so we don't lock it for very long
-            List<FailedLogin> ipAddresses = null;
-            lock (pendingFailedLogins)
-            {
-                if (pendingFailedLogins.Count != 0)
-                {
-                    ipAddresses = new List<FailedLogin>(pendingFailedLogins);
-                    pendingFailedLogins.Clear();
-                }
-            }
-            if (ipAddresses != null)
-            {
-                await ProcessPendingFailedLogins(ipAddresses);
-            }
-            UpdateFirewall();
+            await ProcessPendingSuccessfulLogins();
         }
 
         /// <summary>
@@ -777,65 +884,13 @@ namespace DigitalRuby.IPBan
         /// <returns>Task</returns>
         public Task AddIPAddressEvent(IPAddressEvent info)
         {
-            if (IPBanFirewallUtility.TryGetFirewallIPAddress(info.IPAddress, out string normalizedIPAddress))
+            if (info.Flag.HasFlag(IPAddressEventFlag.FailedLogin))
             {
-                info.Source = (info.Source ?? "?");
-                info.UserName = (info.UserName ?? string.Empty);
-                if (info.Flag.HasFlag(IPAddressEventFlag.FailedLogin))
-                {
-                    lock (pendingFailedLogins)
-                    {
-                        FailedLogin existing = pendingFailedLogins.FirstOrDefault(p => p.IPAddress == normalizedIPAddress && (p.UserName == null || p.UserName == info.UserName));
-                        if (existing == null)
-                        {
-                            existing = new FailedLogin
-                            {
-                                IPAddress = normalizedIPAddress,
-                                Source = info.Source,
-                                UserName = info.UserName,
-                                DateTime = UtcNow,
-                                Count = info.Count
-                            };
-                            pendingFailedLogins.Add(existing);
-                        }
-                        else
-                        {
-                            existing.UserName = (existing.UserName ?? info.UserName);
-
-                            // if more than n seconds has passed, increment the counter
-                            // we don't want to count multiple logs that all map to the same ip address from one failed
-                            // attempt to count multiple times if they happen rapidly, if the parsers are parsing the same
-                            // failed login that reads many different ways, we don't want to lock out legitimate failed logins
-                            if ((UtcNow - existing.DateTime) >= Config.MinimumTimeBetweenFailedLoginAttempts)
-                            {
-                                // update to the latest timestamp of the failed login
-                                existing.DateTime = UtcNow;
-
-                                // increment counter
-                                existing.Count += info.Count;
-                            }
-                            else
-                            {
-                                IPBanLog.Debug("Ignoring failed login from {0}, min time between failed logins has not elapsed", existing.IPAddress);
-                            }
-                        }
-                    }
-                }
-                else
-                {
-                    IPBanLog.Warn(info.Timestamp, "Login succeeded: {0}, {1}, {2}", info.IPAddress, info.UserName, info.Source);
-                    if (IPBanDelegate != null)
-                    {
-                        if (MultiThreaded)
-                        {
-                            // pass the success login on
-                            return IPBanDelegate.LoginAttemptSucceeded(info.IPAddress, info.Source, info.UserName);
-                        }
-
-                        // single threaded
-                        IPBanDelegate.LoginAttemptSucceeded(info.IPAddress, info.Source, info.UserName).Sync();
-                    }
-                }
+                ProcessIPAddressEvent(info, pendingFailedLogins, Config.MinimumTimeBetweenFailedLoginAttempts, "failed");
+            }
+            else
+            {
+                ProcessIPAddressEvent(info, pendingSuccessfulLogins, Config.MinimumTimeBetweenSuccessfulLoginAttempts, "successful");
             }
             return Task.CompletedTask;
         }
@@ -1450,8 +1505,13 @@ namespace DigitalRuby.IPBan
         BlockedIPAddress = 2,
 
         /// <summary>
+        /// Unblocked ip address
+        /// </summary>
+        UnblockedIPAddress = 4,
+
+        /// <summary>
         /// Failed login
         /// </summary>
-        FailedLogin = 4,
+        FailedLogin = 8,
     }
 }

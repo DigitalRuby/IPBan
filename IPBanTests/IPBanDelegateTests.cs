@@ -126,10 +126,10 @@ namespace DigitalRuby.IPBanTests
             return Task.CompletedTask;
         }
 
-        Task<LoginFailedResult> IIPBanDelegate.LoginAttemptFailed(string ip, string source, string userName)
+        Task IIPBanDelegate.LoginAttemptFailed(string ip, string source, string userName)
         {
             AddEvent(nameof(IIPBanDelegate.LoginAttemptFailed), ip, source, userName);
-            return Task.FromResult(LoginFailedResult.None);
+            return Task.CompletedTask;
         }
 
         Task IIPBanDelegate.LoginAttemptSucceeded(string ip, string source, string userName)
@@ -138,16 +138,16 @@ namespace DigitalRuby.IPBanTests
             return Task.CompletedTask;
         }
 
-        IEnumerable<string> IIPBanDelegate.EnumerateBlackList()
+        IEnumerator<string> IIPBanDelegate.EnumerateBlackList()
         {
             AddEvent(nameof(IIPBanDelegate.EnumerateBlackList));
-            return new string[0];
+            return new string[0].GetLockedEnumerator();
         }
 
-        IEnumerable<string> IIPBanDelegate.EnumerateWhiteList()
+        IEnumerator<string> IIPBanDelegate.EnumerateWhiteList()
         {
             AddEvent(nameof(IIPBanDelegate.EnumerateWhiteList));
-            return new string[0];
+            return new string[0].GetLockedEnumerator();
         }
 
         bool IIPBanDelegate.IsIPAddressWhitelisted(string ipAddress)

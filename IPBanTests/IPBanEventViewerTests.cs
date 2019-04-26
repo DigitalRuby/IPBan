@@ -151,14 +151,14 @@ namespace DigitalRuby.IPBanTests
         {
         }
 
-        IEnumerable<string> IIPBanDelegate.EnumerateBlackList()
+        IEnumerator<string> IIPBanDelegate.EnumerateBlackList()
         {
-            return new string[0];
+            return new string[0].GetLockedEnumerator();
         }
 
-        IEnumerable<string> IIPBanDelegate.EnumerateWhiteList()
+        IEnumerator<string> IIPBanDelegate.EnumerateWhiteList()
         {
-            return new string[0];
+            return new string[0].GetLockedEnumerator();
         }
 
         Task IIPBanDelegate.IPAddressBanned(string ip, string source, string userName, bool banned)
@@ -176,9 +176,9 @@ namespace DigitalRuby.IPBanTests
             return false;
         }
 
-        Task<LoginFailedResult> IIPBanDelegate.LoginAttemptFailed(string ip, string source, string userName)
+        Task IIPBanDelegate.LoginAttemptFailed(string ip, string source, string userName)
         {
-            return Task.FromResult(LoginFailedResult.None);
+            return Task.CompletedTask;
         }
 
         Task IIPBanDelegate.LoginAttemptSucceeded(string ip, string source, string userName)

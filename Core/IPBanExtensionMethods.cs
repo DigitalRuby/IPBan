@@ -23,6 +23,7 @@ SOFTWARE.
 */
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -32,6 +33,7 @@ using System.Runtime.InteropServices;
 using System.Security;
 using System.Security.Principal;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
 
@@ -42,6 +44,37 @@ namespace DigitalRuby.IPBan
     /// </summary>
     public static class IPBanExtensionMethods
     {
+        private class LockedEnumerable<T> : IEnumerator<T>
+        {
+            private readonly IEnumerable<T> obj;
+            private readonly IEnumerator<T> e;
+            public LockedEnumerable(IEnumerable<T> obj)
+            {
+                obj.ThrowIfNull();
+                Monitor.Enter(obj);
+                this.obj = obj;
+                e = obj.GetEnumerator();
+            }
+
+            public T Current => e.Current;
+            object IEnumerator.Current => e.Current;
+
+            public void Dispose()
+            {
+                Monitor.Exit(obj);
+            }
+
+            public bool MoveNext()
+            {
+                return e.MoveNext();
+            }
+
+            public void Reset()
+            {
+                e.Reset();
+            }
+        }
+
         private static readonly Encoding utf8EncodingNoPrefix = new UTF8Encoding(false);
         private static readonly DateTime unixEpoch = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
 
@@ -424,6 +457,17 @@ namespace DigitalRuby.IPBan
 
             }
             return null;
+        }
+
+        /// <summary>
+        /// Get an enumerator that locks an object until enumeration is complete
+        /// </summary>
+        /// <typeparam name="T">Type</typeparam>
+        /// <param name="obj">Object to lock during enumeration</param>
+        /// <returns>Enumerator with lock, must Dispose to release lock</returns>
+        public static IEnumerator<T> GetLockedEnumerator<T>(this IEnumerable<T> obj)
+        {
+            return new LockedEnumerable<T>(obj);
         }
 
         [DllImport("libc")]

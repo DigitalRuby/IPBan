@@ -58,6 +58,7 @@ namespace DigitalRuby.IPBan
         private readonly TimeSpan expireTime = TimeSpan.FromDays(1.0d);
         private readonly TimeSpan cycleTime = TimeSpan.FromMinutes(1.0d);
         private readonly TimeSpan minimumTimeBetweenFailedLoginAttempts = TimeSpan.FromSeconds(5.0);
+        private readonly TimeSpan minimumTimeBetweenSuccessfulLoginAttempts = TimeSpan.FromSeconds(5.0);
         private readonly int failedLoginAttemptsBeforeBan = 5;
         private readonly string firewallRulePrefix = "IPBan_";
         private readonly HashSet<string> blackList = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -416,6 +417,11 @@ namespace DigitalRuby.IPBan
         /// The minimum time between failed login attempts to increment the ban counter
         /// </summary>
         public TimeSpan MinimumTimeBetweenFailedLoginAttempts { get { return minimumTimeBetweenFailedLoginAttempts; } }
+
+        /// <summary>
+        /// The minimum time between successful login attempts to increment the success counter
+        /// </summary>
+        public TimeSpan MinimumTimeBetweenSuccessfulLoginAttempts { get { return minimumTimeBetweenSuccessfulLoginAttempts; } }
 
         /// <summary>
         /// Rule prefix for firewall

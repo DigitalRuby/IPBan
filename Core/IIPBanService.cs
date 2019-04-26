@@ -74,12 +74,6 @@ namespace DigitalRuby.IPBan
         void UpdateConfig(string xml);
 
         /// <summary>
-        /// Manually process all pending ip addresses immediately
-        /// </summary>
-        /// <returns>Task</returns>
-        Task ProcessPendingFailedLogins();
-
-        /// <summary>
         /// Replace place-holders in url with values from this service
         /// </summary>
         /// <param name="url">Url to replace</param>
@@ -227,8 +221,8 @@ namespace DigitalRuby.IPBan
         /// <param name="ip">Origin IP Address of the login attempt</param>
         /// <param name="source">The source of the failed login</param>
         /// <param name="userName">User name</param>
-        /// <returns>Task of bool. True if the ip sould be immediately banned, false otherwise</returns>
-        Task<LoginFailedResult> LoginAttemptFailed(string ip, string source, string userName);
+        /// <returns>Task</returns>
+        Task LoginAttemptFailed(string ip, string source, string userName);
 
         /// <summary>
         /// Notify when a login attempt succeeds
@@ -243,13 +237,13 @@ namespace DigitalRuby.IPBan
         /// Enumerate external blacklist
         /// </summary>
         /// <returns>Blacklist</returns>
-        IEnumerable<string> EnumerateBlackList();
+        IEnumerator<string> EnumerateBlackList();
 
         /// <summary>
         /// Enumerate external whitelist
         /// </summary>
         /// <returns>Whitelist</returns>
-        IEnumerable<string> EnumerateWhiteList();
+        IEnumerator<string> EnumerateWhiteList();
 
         /// <summary>
         /// Check if an ip address is whitelisted
@@ -264,27 +258,5 @@ namespace DigitalRuby.IPBan
         /// <param name="ipAddress">IP Address</param>
         /// <returns>True if blacklisted, false otherwise</returns>
         bool IsIPAddressBlacklisted(string ipAddress);
-    }
-
-    /// <summary>
-    /// Login failure result
-    /// </summary>
-    [Flags]
-    public enum LoginFailedResult
-    {
-        /// <summary>
-        /// Not whitelisted or blacklisted, use default behavior
-        /// </summary>
-        None = 0,
-
-        /// <summary>
-        /// The ip address is whitelisted
-        /// </summary>
-        Whitelisted = 1,
-
-        /// <summary>
-        /// The ip address is blacklisted
-        /// </summary>
-        Blacklisted = 2
     }
 }
