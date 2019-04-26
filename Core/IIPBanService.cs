@@ -237,13 +237,13 @@ namespace DigitalRuby.IPBan
         /// Enumerate external blacklist
         /// </summary>
         /// <returns>Blacklist</returns>
-        IEnumerator<string> EnumerateBlackList();
+        IEnumerable<string> EnumerateBlackList();
 
         /// <summary>
         /// Enumerate external whitelist
         /// </summary>
         /// <returns>Whitelist</returns>
-        IEnumerator<string> EnumerateWhiteList();
+        IEnumerable<string> EnumerateWhiteList();
 
         /// <summary>
         /// Check if an ip address is whitelisted

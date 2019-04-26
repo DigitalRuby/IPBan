@@ -151,14 +151,14 @@ namespace DigitalRuby.IPBanTests
         {
         }
 
-        IEnumerator<string> IIPBanDelegate.EnumerateBlackList()
+        IEnumerable<string> IIPBanDelegate.EnumerateBlackList()
         {
-            return new string[0].GetLockedEnumerator();
+            return new string[0];
         }
 
-        IEnumerator<string> IIPBanDelegate.EnumerateWhiteList()
+        IEnumerable<string> IIPBanDelegate.EnumerateWhiteList()
         {
-            return new string[0].GetLockedEnumerator();
+            return new string[0];
         }
 
         Task IIPBanDelegate.IPAddressBanned(string ip, string source, string userName, bool banned)

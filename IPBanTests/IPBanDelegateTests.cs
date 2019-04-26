@@ -138,16 +138,16 @@ namespace DigitalRuby.IPBanTests
             return Task.CompletedTask;
         }
 
-        IEnumerator<string> IIPBanDelegate.EnumerateBlackList()
+        IEnumerable<string> IIPBanDelegate.EnumerateBlackList()
         {
             AddEvent(nameof(IIPBanDelegate.EnumerateBlackList));
-            return new string[0].GetLockedEnumerator();
+            return new string[0];
         }
 
-        IEnumerator<string> IIPBanDelegate.EnumerateWhiteList()
+        IEnumerable<string> IIPBanDelegate.EnumerateWhiteList()
         {
             AddEvent(nameof(IIPBanDelegate.EnumerateWhiteList));
-            return new string[0].GetLockedEnumerator();
+            return new string[0];
         }
 
         bool IIPBanDelegate.IsIPAddressWhitelisted(string ipAddress)

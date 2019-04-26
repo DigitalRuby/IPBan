@@ -331,7 +331,7 @@ namespace DigitalRuby.IPBan
         /// </summary>
         /// <param name="ipAddresses">IP addresses to set as banned</param>
         /// <param name="banDate">Ban date to set</param>
-        /// <returns>Count</returns>
+        /// <returns>Count of newly banned ip addresses</returns>
         public int SetBannedIPAddresses(IEnumerable<string> ipAddresses, DateTime banDate)
         {
             int count = 0;

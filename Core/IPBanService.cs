@@ -527,25 +527,10 @@ namespace DigitalRuby.IPBan
                     DateTime now = UtcNow;
 
                     // sync up the blacklist and whitelist from the delegate
-                    using (IEnumerator<string> e = IPBanDelegate.EnumerateBlackList())
-                    {
-                        while (e.MoveNext())
-                        {
-                            string ip = e.Current;
-                            firewallNeedsBlockedIPAddressesUpdate |= ipDB.SetBanDate(ip, now);
-                        }
-                    }
+                    firewallNeedsBlockedIPAddressesUpdate |= (ipDB.SetBannedIPAddresses(IPBanDelegate.EnumerateBlackList(), now) > 0);
 
                     // get white list from delegate and remove any blacklisted ip that is now whitelisted
-                    HashSet<string> allowIPAddresses = new HashSet<string>();
-                    using (IEnumerator<string> e = IPBanDelegate.EnumerateWhiteList())
-                    {
-                        while (e.MoveNext())
-                        {
-                            string ip = e.Current;
-                            allowIPAddresses.Add(ip);
-                        }
-                    }
+                    HashSet<string> allowIPAddresses = new HashSet<string>(IPBanDelegate.EnumerateWhiteList());
 
                     // add whitelist ip from config
                     if (!string.IsNullOrWhiteSpace(Config.WhiteList))
