@@ -137,7 +137,7 @@ namespace DigitalRuby.IPBan
 
             public override DateTime FromSystemTime(DateTime systemTime)
             {
-                return TimeZoneInfo.ConvertTimeFromUtc(systemTime, zoneInfo);
+                return systemTime.ToUniversalTime();
             }
 
             public DateTime CurrentTime { get; set; } = IPBanService.UtcNow;
