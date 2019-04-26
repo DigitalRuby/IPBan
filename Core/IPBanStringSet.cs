@@ -172,7 +172,7 @@ namespace DigitalRuby.IPBan
         }
 
         /// <summary>
-        /// Add a string to the set
+        /// Add a string to the set. If you have many to add, call AddMany.
         /// </summary>
         /// <param name="text">String to add</param>
         /// <returns>True if added, false if already exists</returns>
@@ -182,11 +182,11 @@ namespace DigitalRuby.IPBan
         }
 
         /// <summary>
-        /// Delete a string from the set
+        /// Delete a string from the set. If you have many to remove, call DeleteMany.
         /// </summary>
         /// <param name="text">String to remove</param>
         /// <returns>True if removed, false if not exists</returns>
-        public bool Remove(string text)
+        public bool Delete(string text)
         {
             return (ExecuteNonQuery("DELETE FROM Strings WHERE String = @Param0", text) == 1);
         }
@@ -207,7 +207,7 @@ namespace DigitalRuby.IPBan
         }
 
         /// <summary>
-        /// Add strings to the set
+        /// Add strings to the set, more efficient than add one by one
         /// </summary>
         /// <param name="texts"></param>
         /// <returns>Count of newly added strings</returns>
@@ -230,7 +230,7 @@ namespace DigitalRuby.IPBan
         }
 
         /// <summary>
-        /// Delete strings from the set
+        /// Delete strings from the set, more efficient than delete one by one
         /// </summary>
         /// <param name="texts">Strings to delete</param>
         /// <returns>Number of deleted strings</returns>

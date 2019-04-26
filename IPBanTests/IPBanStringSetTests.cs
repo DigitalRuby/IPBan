@@ -77,8 +77,8 @@ namespace DigitalRuby.IPBanTests
                 Assert.IsFalse(set.Contains("test3"));
                 Assert.IsTrue(set.Add("test3"));
                 Assert.AreEqual(strings.Count + 1, set.GetCount());
-                Assert.IsTrue(set.Remove("test3"));
-                Assert.IsFalse(set.Remove("test3"));
+                Assert.IsTrue(set.Delete("test3"));
+                Assert.IsFalse(set.Delete("test3"));
                 Assert.AreEqual(strings.Count, set.GetCount());
                 Assert.AreEqual(strings.Count, set.Clear());
                 Assert.AreEqual(0, set.GetCount());
