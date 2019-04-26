@@ -122,7 +122,7 @@ namespace DigitalRuby.IPBan
 
         private class CustomTimeSource : NLog.Time.TimeSource
         {
-            private TimeZoneInfo zoneInfo = TimeZoneInfo.Local;
+            private TimeZoneInfo zoneInfo = TimeZoneInfo.Utc;
 
             [Required]
             public string Zone
