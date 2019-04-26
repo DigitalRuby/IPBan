@@ -118,6 +118,8 @@ namespace DigitalRuby.IPBan
     public static class IPBanLog
     {
         private static readonly Logger logger;
+
+        /* // makes nlog go haywire, revisit later
         private static readonly CustomTimeSource timeSource = new CustomTimeSource();
 
         private class CustomTimeSource : NLog.Time.TimeSource
@@ -140,6 +142,7 @@ namespace DigitalRuby.IPBan
 
             public DateTime CurrentTime { get; set; } = IPBanService.UtcNow;
         }
+        */
 
         static IPBanLog()
         {
@@ -195,7 +198,7 @@ namespace DigitalRuby.IPBan
                     }
                 }
                 logger = factory.GetCurrentClassLogger();
-                NLog.Time.TimeSource.Current = timeSource;
+                //NLog.Time.TimeSource.Current = timeSource;
             }
             catch (Exception ex)
             {
@@ -506,7 +509,7 @@ namespace DigitalRuby.IPBan
         {
             try
             {
-                timeSource.CurrentTime = IPBanService.UtcNow;
+                //timeSource.CurrentTime = IPBanService.UtcNow;
                 logger?.Log(GetNLogLevel(level), text, args);
             }
             catch
@@ -525,7 +528,7 @@ namespace DigitalRuby.IPBan
         {
             try
             {
-                timeSource.CurrentTime = ts;
+                //timeSource.CurrentTime = ts;
                 logger?.Log(GetNLogLevel(level), text, args);
             }
             catch
