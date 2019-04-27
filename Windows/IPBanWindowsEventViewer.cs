@@ -301,7 +301,7 @@ namespace DigitalRuby.IPBan
                 }
                 else
                 {
-                    service.IPBanDelegate?.LoginAttemptSucceeded(info.IPAddress, info.Source, info.UserName, service.MachineGuid, service.OSName, service.OSVersion).ConfigureAwait(false).GetAwaiter();
+                    service.IPBanDelegate?.LoginAttemptSucceeded(info.IPAddress, info.Source, info.UserName, service.MachineGuid, service.OSName, service.OSVersion, IPBanService.UtcNow).ConfigureAwait(false).GetAwaiter();
                 }
                 IPBanLog.Debug("Event viewer found: {0}, {1}, {2}", info.IPAddress, info.Source, info.UserName);
             }

@@ -213,10 +213,11 @@ namespace DigitalRuby.IPBan
         /// <param name="userName">User name</param>
         /// <param name="machineGuid">Machine guid</param>
         /// <param name="osName">OS name</param>
-        /// <param name="osVersion"OS version
+        /// <param name="osVersion">OS version</param>
+        /// <param name="timestamp">Timestamp</param>
         /// <param name="banned">True if banned, false if unbanned</param>
         /// <returns>Task</returns>
-        Task IPAddressBanned(string ip, string source, string userName, string machineGuid, string osName, string osVersion, bool banned);
+        Task IPAddressBanned(string ip, string source, string userName, string machineGuid, string osName, string osVersion, DateTime timestamp, bool banned);
 
         /// <summary>
         /// Notify when a login attempt fails
@@ -226,9 +227,10 @@ namespace DigitalRuby.IPBan
         /// <param name="userName">User name</param>
         /// <param name="machineGuid">Machine guid</param>
         /// <param name="osName">OS name</param>
-        /// <param name="osVersion"OS version
+        /// <param name="osVersion">OS version</param>
+        /// <param name="timestamp">Timestamp</param>
         /// <returns>Task</returns>
-        Task LoginAttemptFailed(string ip, string source, string userName, string machineGuid, string osName, string osVersion);
+        Task LoginAttemptFailed(string ip, string source, string userName, string machineGuid, string osName, string osVersion, DateTime timestamp);
 
         /// <summary>
         /// Notify when a login attempt succeeds
@@ -238,9 +240,10 @@ namespace DigitalRuby.IPBan
         /// <param name="userName">User name</param>
         /// <param name="machineGuid">Machine guid</param>
         /// <param name="osName">OS name</param>
-        /// <param name="osVersion"OS version
+        /// <param name="osVersion">OS version</param>
+        /// <param name="timestamp">Timestamp</param>
         /// <returns>Task</returns>
-        Task LoginAttemptSucceeded(string ip, string source, string userName, string machineGuid, string osName, string osVersion);
+        Task LoginAttemptSucceeded(string ip, string source, string userName, string machineGuid, string osName, string osVersion, DateTime timestamp);
 
         /// <summary>
         /// Enumerate external blacklist

@@ -161,7 +161,7 @@ namespace DigitalRuby.IPBanTests
             return new string[0];
         }
 
-        Task IIPBanDelegate.IPAddressBanned(string ip, string source, string userName, string machineGuid, string osName, string osVersion, bool banned)
+        Task IIPBanDelegate.IPAddressBanned(string ip, string source, string userName, string machineGuid, string osName, string osVersion, DateTime timestamp, bool banned)
         {
             return Task.CompletedTask;
         }
@@ -176,12 +176,12 @@ namespace DigitalRuby.IPBanTests
             return false;
         }
 
-        Task IIPBanDelegate.LoginAttemptFailed(string ip, string source, string userName, string machineGuid, string osName, string osVersion)
+        Task IIPBanDelegate.LoginAttemptFailed(string ip, string source, string userName, string machineGuid, string osName, string osVersion, DateTime timestamp)
         {
             return Task.CompletedTask;
         }
 
-        Task IIPBanDelegate.LoginAttemptSucceeded(string ip, string source, string userName, string machineGuid, string osName, string osVersion)
+        Task IIPBanDelegate.LoginAttemptSucceeded(string ip, string source, string userName, string machineGuid, string osName, string osVersion, DateTime timestamp)
         {
             string key = ip + "_" + (source?.ToString()) + "_" + (userName?.ToString());
             events.TryGetValue(key, out int count);

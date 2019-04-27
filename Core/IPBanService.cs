@@ -270,7 +270,7 @@ namespace DigitalRuby.IPBan
                             {
                                 if (IPBanDelegate != null)
                                 {
-                                    await IPBanDelegate.LoginAttemptFailed(ipAddress, source, userName, MachineGuid, OSName, OSVersion);
+                                    await IPBanDelegate.LoginAttemptFailed(ipAddress, source, userName, MachineGuid, OSName, OSVersion, UtcNow);
                                 }
                                 AddBannedIPAddress(ipAddress, source, userName, bannedIpAddresses, now, configBlacklisted, newCount, string.Empty);
                             }
@@ -280,7 +280,7 @@ namespace DigitalRuby.IPBan
                             // send failed login attempt to delegate
                             if (IPBanDelegate != null)
                             {
-                                await IPBanDelegate.LoginAttemptFailed(ipAddress, source, userName, MachineGuid, OSName, OSVersion);
+                                await IPBanDelegate.LoginAttemptFailed(ipAddress, source, userName, MachineGuid, OSName, OSVersion, UtcNow);
                             }
                         }
                     }
@@ -305,7 +305,7 @@ namespace DigitalRuby.IPBan
                         foreach (IPAddressPendingEvent info in ipAddresses)
                         {
                             // pass the success login on
-                            IPBanDelegate.LoginAttemptSucceeded(info.IPAddress, info.Source, info.UserName, MachineGuid, OSName, OSVersion);
+                            IPBanDelegate.LoginAttemptSucceeded(info.IPAddress, info.Source, info.UserName, MachineGuid, OSName, OSVersion, info.DateTime);
                         }
                     }
                     catch (Exception ex)
@@ -351,7 +351,7 @@ namespace DigitalRuby.IPBan
                 {
                     try
                     {
-                        IPBanDelegate.IPAddressBanned(ipAddress, source, userName, MachineGuid, OSName, OSVersion, true).ConfigureAwait(false).GetAwaiter();
+                        IPBanDelegate.IPAddressBanned(ipAddress, source, userName, MachineGuid, OSName, OSVersion, UtcNow, true).ConfigureAwait(false).GetAwaiter();
                     }
                     catch (Exception ex)
                     {
@@ -483,7 +483,7 @@ namespace DigitalRuby.IPBan
                 // notify delegate of ip addresses to unban
                 foreach (string ip in ipAddressesToUnBan)
                 {
-                    await IPBanDelegate.IPAddressBanned(ip, null, null, MachineGuid, OSName, OSVersion, false);
+                    await IPBanDelegate.IPAddressBanned(ip, null, null, MachineGuid, OSName, OSVersion, UtcNow, false);
                 }
             }
 
