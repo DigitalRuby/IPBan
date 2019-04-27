@@ -177,7 +177,7 @@ namespace DigitalRuby.IPBan
 
             if (info != null)
             {
-                info.Flag = (foundNotifyOnly ? IPAddressEventFlag.SuccessfulLogin : IPAddressEventFlag.FailedLogin);
+                info.Flag = (foundNotifyOnly ? IPAddressEventType.SuccessfulLogin : IPAddressEventType.FailedLogin);
             }
             return info;
         }
@@ -291,7 +291,7 @@ namespace DigitalRuby.IPBan
             IPAddressEvent info = ExtractEventViewerXml(doc);
             if (info != null && info.FoundMatch)
             {
-                if (info.Flag.HasFlag(IPAddressEventFlag.FailedLogin))
+                if (info.Flag.HasFlag(IPAddressEventType.FailedLogin))
                 {
                     // if fail to add the failed login (bad ip, etc.) exit out
                     if (!AddFailedLoginForEventViewerXml(info, doc))
@@ -301,7 +301,7 @@ namespace DigitalRuby.IPBan
                 }
                 else
                 {
-                    service.IPBanDelegate?.LoginAttemptSucceeded(info.IPAddress, info.Source, info.UserName).ConfigureAwait(false).GetAwaiter();
+                    service.IPBanDelegate?.LoginAttemptSucceeded(info.IPAddress, info.Source, info.UserName, service.MachineGuid, service.OSName, service.OSVersion).ConfigureAwait(false).GetAwaiter();
                 }
                 IPBanLog.Debug("Event viewer found: {0}, {1}, {2}", info.IPAddress, info.Source, info.UserName);
             }

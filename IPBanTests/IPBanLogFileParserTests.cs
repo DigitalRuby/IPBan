@@ -129,7 +129,7 @@ namespace DigitalRuby.IPBanTests
                 Assert.AreEqual(1, failedIPAddresses[1].Count, "Repeat count is wrong");
 
                 Assert.AreEqual(1, successIPAddresses.Count);
-                Assert.IsTrue(successIPAddresses[0].Flag.HasFlag(IPAddressEventFlag.SuccessfulLogin));
+                Assert.IsTrue(successIPAddresses[0].Flag.HasFlag(IPAddressEventType.SuccessfulLogin));
                 Assert.AreEqual("4.4.4.4", successIPAddresses[0].IPAddress);
                 Assert.AreEqual("SSH", successIPAddresses[0].Source);
                 Assert.AreEqual("THISUSER", successIPAddresses[0].UserName);
@@ -157,7 +157,7 @@ namespace DigitalRuby.IPBanTests
 
         Task IIPAddressEventHandler.AddIPAddressEvent(IPAddressEvent info)
         {
-            if (info.Flag.HasFlag(IPAddressEventFlag.SuccessfulLogin))
+            if (info.Flag.HasFlag(IPAddressEventType.SuccessfulLogin))
             {
                 successIPAddresses.Add(info);
             }

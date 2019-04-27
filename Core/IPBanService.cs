@@ -270,7 +270,7 @@ namespace DigitalRuby.IPBan
                             {
                                 if (IPBanDelegate != null)
                                 {
-                                    await IPBanDelegate.LoginAttemptFailed(ipAddress, source, userName);
+                                    await IPBanDelegate.LoginAttemptFailed(ipAddress, source, userName, MachineGuid, OSName, OSVersion);
                                 }
                                 AddBannedIPAddress(ipAddress, source, userName, bannedIpAddresses, now, configBlacklisted, newCount, string.Empty);
                             }
@@ -280,7 +280,7 @@ namespace DigitalRuby.IPBan
                             // send failed login attempt to delegate
                             if (IPBanDelegate != null)
                             {
-                                await IPBanDelegate.LoginAttemptFailed(ipAddress, source, userName);
+                                await IPBanDelegate.LoginAttemptFailed(ipAddress, source, userName, MachineGuid, OSName, OSVersion);
                             }
                         }
                     }
@@ -305,7 +305,7 @@ namespace DigitalRuby.IPBan
                         foreach (IPAddressPendingEvent info in ipAddresses)
                         {
                             // pass the success login on
-                            IPBanDelegate.LoginAttemptSucceeded(info.IPAddress, info.Source, info.UserName);
+                            IPBanDelegate.LoginAttemptSucceeded(info.IPAddress, info.Source, info.UserName, MachineGuid, OSName, OSVersion);
                         }
                     }
                     catch (Exception ex)
@@ -351,7 +351,7 @@ namespace DigitalRuby.IPBan
                 {
                     try
                     {
-                        IPBanDelegate.IPAddressBanned(ipAddress, source, userName, true).ConfigureAwait(false).GetAwaiter();
+                        IPBanDelegate.IPAddressBanned(ipAddress, source, userName, MachineGuid, OSName, OSVersion, true).ConfigureAwait(false).GetAwaiter();
                     }
                     catch (Exception ex)
                     {
@@ -483,7 +483,7 @@ namespace DigitalRuby.IPBan
                 // notify delegate of ip addresses to unban
                 foreach (string ip in ipAddressesToUnBan)
                 {
-                    await IPBanDelegate.IPAddressBanned(ip, null, null, false);
+                    await IPBanDelegate.IPAddressBanned(ip, null, null, MachineGuid, OSName, OSVersion, false);
                 }
             }
 
@@ -874,7 +874,7 @@ namespace DigitalRuby.IPBan
         /// <returns>Task</returns>
         public Task AddIPAddressEvent(IPAddressEvent info)
         {
-            if (info.Flag.HasFlag(IPAddressEventFlag.FailedLogin))
+            if (info.Flag.HasFlag(IPAddressEventType.FailedLogin))
             {
                 ProcessIPAddressEvent(info, pendingFailedLogins, Config.MinimumTimeBetweenFailedLoginAttempts, "failed");
             }
@@ -977,7 +977,7 @@ namespace DigitalRuby.IPBan
                 }
             }
 
-            return new IPAddressEvent(foundMatch, ipAddress, userName, source, repeatCount, IPAddressEventFlag.FailedLogin);
+            return new IPAddressEvent(foundMatch, ipAddress, userName, source, repeatCount, IPAddressEventType.FailedLogin);
         }
 
         /// <summary>
@@ -1415,7 +1415,7 @@ namespace DigitalRuby.IPBan
         /// <param name="count">How many messages were aggregated, 1 for no aggregation</param>
         /// <param name="flag">Event flag</param>
         /// <param name="timestamp">Timestamp of the event, default for current timestamp</param>
-        public IPAddressEvent(bool foundMatch, string ipAddress, string userName, string source, int count, IPAddressEventFlag flag, DateTime timestamp = default)
+        public IPAddressEvent(bool foundMatch, string ipAddress, string userName, string source, int count, IPAddressEventType flag, DateTime timestamp = default)
         {
             FoundMatch = foundMatch;
             IPAddress = ipAddress;
@@ -1459,7 +1459,7 @@ namespace DigitalRuby.IPBan
         /// <summary>
         /// Event flag
         /// </summary>
-        public IPAddressEventFlag Flag { get; set; }
+        public IPAddressEventType Flag { get; set; }
     }
 
     /// <summary>
@@ -1474,10 +1474,41 @@ namespace DigitalRuby.IPBan
     }
 
     /// <summary>
+    /// IP address event types
+    /// </summary>
+    public enum IPAddressEventType
+    {
+        /// <summary>
+        /// No event
+        /// </summary>
+        None = 0,
+
+        /// <summary>
+        /// Successful login
+        /// </summary>
+        SuccessfulLogin = 1,
+
+        /// <summary>
+        /// Blocked / banned ip address
+        /// </summary>
+        BlockedIPAddress = 2,
+
+        /// <summary>
+        /// Unblocked ip address
+        /// </summary>
+        UnblockedIPAddress = 3,
+
+        /// <summary>
+        /// Failed login
+        /// </summary>
+        FailedLogin = 4,
+    }
+
+    /// <summary>
     /// IP address event flags
     /// </summary>
     [Flags]
-    public enum IPAddressEventFlag
+    public enum IPAddressEventFlags
     {
         /// <summary>
         /// No event

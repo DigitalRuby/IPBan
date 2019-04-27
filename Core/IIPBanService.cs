@@ -211,9 +211,12 @@ namespace DigitalRuby.IPBan
         /// <param name="ip">IP address</param>
         /// <param name="source">Source</param>
         /// <param name="userName">User name</param>
+        /// <param name="machineGuid">Machine guid</param>
+        /// <param name="osName">OS name</param>
+        /// <param name="osVersion"OS version
         /// <param name="banned">True if banned, false if unbanned</param>
         /// <returns>Task</returns>
-        Task IPAddressBanned(string ip, string source, string userName, bool banned);
+        Task IPAddressBanned(string ip, string source, string userName, string machineGuid, string osName, string osVersion, bool banned);
 
         /// <summary>
         /// Notify when a login attempt fails
@@ -221,8 +224,11 @@ namespace DigitalRuby.IPBan
         /// <param name="ip">Origin IP Address of the login attempt</param>
         /// <param name="source">The source of the failed login</param>
         /// <param name="userName">User name</param>
+        /// <param name="machineGuid">Machine guid</param>
+        /// <param name="osName">OS name</param>
+        /// <param name="osVersion"OS version
         /// <returns>Task</returns>
-        Task LoginAttemptFailed(string ip, string source, string userName);
+        Task LoginAttemptFailed(string ip, string source, string userName, string machineGuid, string osName, string osVersion);
 
         /// <summary>
         /// Notify when a login attempt succeeds
@@ -230,8 +236,11 @@ namespace DigitalRuby.IPBan
         /// <param name="ip">Origin IP Address of the login attempt</param>
         /// <param name="source">The source of the failed login</param>
         /// <param name="userName">User name</param>
+        /// <param name="machineGuid">Machine guid</param>
+        /// <param name="osName">OS name</param>
+        /// <param name="osVersion"OS version
         /// <returns>Task</returns>
-        Task LoginAttemptSucceeded(string ip, string source, string userName);
+        Task LoginAttemptSucceeded(string ip, string source, string userName, string machineGuid, string osName, string osVersion);
 
         /// <summary>
         /// Enumerate external blacklist
