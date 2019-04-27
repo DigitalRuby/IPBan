@@ -456,7 +456,7 @@ namespace DigitalRuby.IPBan
                 {
                     // if the ban has expired, or the ip address has become whitelisted, unban
                     bool banExpire = (allowBanExpire && (now - ipAddress.BanDate.Value) > Config.BanTime);
-                    bool whitelisted = Config.IsWhitelisted(ipAddress.IPAddress);
+                    bool whitelisted = (Config.IsWhitelisted(ipAddress.IPAddress) || (IPBanDelegate != null && IPBanDelegate.IsIPAddressWhitelisted(ipAddress.IPAddress)));
                     if (banExpire || whitelisted)
                     {
                         IPBanLog.Warn("Un-banning ip address {0}, ban expire: {1}, whitelisted: {2}", ipAddress.IPAddress, banExpire, whitelisted);
@@ -531,7 +531,8 @@ namespace DigitalRuby.IPBan
 
                     // we only update firewall if new blacklisted ip addresses were added, if some dropped out, we simply wait for the time to expire in the ipDB
                     // object and then they will drop out that way, that way external delegates with other clients won't cause us to drop ips that we just barely banned
-                    firewallNeedsBlockedIPAddressesUpdate |= (ipDB.SetBannedIPAddresses(IPBanDelegate.EnumerateBlackList(), now) != banCount);
+                    IEnumerable<string> delegateBlacklistFiltered = IPBanDelegate.EnumerateBlackList().Where(i => !Config.IsWhitelisted(i) && !IPBanDelegate.IsIPAddressWhitelisted(i));
+                    firewallNeedsBlockedIPAddressesUpdate |= (ipDB.SetBannedIPAddresses(delegateBlacklistFiltered, now) != banCount);
 
                     // get white list from delegate and remove any blacklisted ip that is now whitelisted
                     HashSet<string> allowIPAddresses = new HashSet<string>(IPBanDelegate.EnumerateWhiteList());
@@ -858,8 +859,8 @@ namespace DigitalRuby.IPBan
         /// </summary>
         public async Task RunCycle()
         {
-            ReadAppSettings();
             await SetNetworkInfo();
+            ReadAppSettings();
             UpdateDelegate();
             UpdateUpdaters();
             await ProcessPendingFailedLogins();
