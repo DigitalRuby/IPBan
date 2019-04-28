@@ -40,9 +40,9 @@ namespace DigitalRuby.IPBanTests
         private const string ip1 = "99.99.99.99";
         private const string ip2 = "99.99.99.98";
         private const string ip3 = "99.99.99.97";
-        private static readonly IPAddressEvent info1 = new IPAddressEvent { Count = 98, IPAddress = ip1, Source = "RDP", UserName = "test_user", Flag = IPAddressEventType.FailedLogin };
-        private static readonly IPAddressEvent info2 = new IPAddressEvent { Count = 99, IPAddress = ip2, Source = "SSH", UserName = "test_user2", Flag = IPAddressEventType.FailedLogin };
-        private static readonly IPAddressEvent info3 = new IPAddressEvent { Count = 97, IPAddress = ip3, Source = "SSH", UserName = "test_user3", Flag = IPAddressEventType.SuccessfulLogin };
+        private static readonly IPAddressEvent info1 = new IPAddressEvent { Count = 98, IPAddress = ip1, Source = "RDP", UserName = "test_user", Type = IPAddressEventType.FailedLogin };
+        private static readonly IPAddressEvent info2 = new IPAddressEvent { Count = 99, IPAddress = ip2, Source = "SSH", UserName = "test_user2", Type = IPAddressEventType.FailedLogin };
+        private static readonly IPAddressEvent info3 = new IPAddressEvent { Count = 97, IPAddress = ip3, Source = "SSH", UserName = "test_user3", Type = IPAddressEventType.SuccessfulLogin };
 
         private readonly Dictionary<string, int> events = new Dictionary<string, int>();
         private IPBanService service;
@@ -80,22 +80,20 @@ namespace DigitalRuby.IPBanTests
 
         private void AddLoginEvents()
         {
-            service.AddIPAddressEvent(info1);
-            service.AddIPAddressEvent(info2);
-            service.AddIPAddressEvent(info3);
+            service.AddIPAddressEvents(new IPAddressEvent[] { info1, info2, info3 });
             service.RunCycle().Sync();
 
-            Assert.AreEqual(10, events.Count);
+            Assert.AreEqual(7, events.Count);
             AssertEvent("LoginAttemptSucceeded_99.99.99.97_SSH_test_user3", 1);
             AssertEvent("Update", 1);
-            AssertEvent("EnumerateBlackList", 1);
-            AssertEvent("EnumerateWhiteList", 1);
             AssertEvent("IsIPAddressWhitelisted", 2);
-            AssertEvent("IsIPAddressBlacklisted", 2);
             AssertEvent("LoginAttemptFailed_99.99.99.99_RDP_test_user", 1);
             AssertEvent("LoginAttemptFailed_99.99.99.98_SSH_test_user2", 1);
             AssertEvent("IPAddressBanned_99.99.99.99_RDP_test_user_True", 1);
             AssertEvent("IPAddressBanned_99.99.99.98_SSH_test_user2_True", 1);
+
+            Assert.IsTrue(service.Firewall.IsIPAddressBlocked("99.99.99.98"));
+            Assert.IsTrue(service.Firewall.IsIPAddressBlocked("99.99.99.99"));
         }
 
         [Test]
@@ -114,10 +112,9 @@ namespace DigitalRuby.IPBanTests
             AddEvent(nameof(IIPBanDelegate.Stop));
         }
 
-        bool IIPBanDelegate.Update()
+        void IIPBanDelegate.Update()
         {
             AddEvent(nameof(IIPBanDelegate.Update));
-            return true;
         }
 
         Task IIPBanDelegate.IPAddressBanned(string ip, string source, string userName, string machineGuid, string osName, string osVersion, DateTime timestamp, bool banned)
@@ -138,27 +135,9 @@ namespace DigitalRuby.IPBanTests
             return Task.CompletedTask;
         }
 
-        IEnumerable<string> IIPBanDelegate.EnumerateBlackList()
-        {
-            AddEvent(nameof(IIPBanDelegate.EnumerateBlackList));
-            return new string[0];
-        }
-
-        IEnumerable<string> IIPBanDelegate.EnumerateWhiteList()
-        {
-            AddEvent(nameof(IIPBanDelegate.EnumerateWhiteList));
-            return new string[0];
-        }
-
         bool IIPBanDelegate.IsIPAddressWhitelisted(string ipAddress)
         {
             AddEvent(nameof(IIPBanDelegate.IsIPAddressWhitelisted));
-            return false;
-        }
-
-        bool IIPBanDelegate.IsIPAddressBlacklisted(string ipAddress)
-        {
-            AddEvent(nameof(IIPBanDelegate.IsIPAddressBlacklisted));
             return false;
         }
 

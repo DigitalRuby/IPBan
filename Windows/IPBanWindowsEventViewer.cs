@@ -91,9 +91,6 @@ namespace DigitalRuby.IPBan
                     info.UserName = userNameNode.InnerText.Trim();
                 }
             }
-
-            service.AddIPAddressEvent(info);
-
             return true;
         }
 
@@ -177,7 +174,7 @@ namespace DigitalRuby.IPBan
 
             if (info != null)
             {
-                info.Flag = (foundNotifyOnly ? IPAddressEventType.SuccessfulLogin : IPAddressEventType.FailedLogin);
+                info.Type = (foundNotifyOnly ? IPAddressEventType.SuccessfulLogin : IPAddressEventType.FailedLogin);
             }
             return info;
         }
@@ -291,19 +288,14 @@ namespace DigitalRuby.IPBan
             IPAddressEvent info = ExtractEventViewerXml(doc);
             if (info != null && info.FoundMatch)
             {
-                if (info.Flag.HasFlag(IPAddressEventType.FailedLogin))
+                if (info.Type == IPAddressEventType.FailedLogin && !AddFailedLoginForEventViewerXml(info, doc))
                 {
                     // if fail to add the failed login (bad ip, etc.) exit out
-                    if (!AddFailedLoginForEventViewerXml(info, doc))
-                    {
-                        return;
-                    }
+                    return;
                 }
-                else
-                {
-                    service.IPBanDelegate?.LoginAttemptSucceeded(info.IPAddress, info.Source, info.UserName, service.MachineGuid, service.OSName, service.OSVersion, IPBanService.UtcNow).ConfigureAwait(false).GetAwaiter();
-                }
-                IPBanLog.Debug("Event viewer found: {0}, {1}, {2}", info.IPAddress, info.Source, info.UserName);
+                System.Diagnostics.Debug.Assert(info.Type == IPAddressEventType.FailedLogin || info.Type == IPAddressEventType.SuccessfulLogin);
+                service.AddIPAddressEvents(new IPAddressEvent[] { info });
+                IPBanLog.Debug("Event viewer found: {0}, {1}, {2}, {4}", info.IPAddress, info.Source, info.UserName, info.Type);
             }
         }
     }

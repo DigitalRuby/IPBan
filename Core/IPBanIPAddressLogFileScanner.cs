@@ -104,11 +104,11 @@ namespace DigitalRuby.IPBan
                 IPAddressEvent info = IPBanService.GetIPAddressInfoFromRegex(dns, regex, line);
                 if (info.FoundMatch)
                 {
-                    info.Flag = (notifyOnly ? IPAddressEventType.SuccessfulLogin : IPAddressEventType.FailedLogin);
+                    info.Type = (notifyOnly ? IPAddressEventType.SuccessfulLogin : IPAddressEventType.FailedLogin);
                     info.Source = info.Source ?? Source;
-                    IPBanLog.Debug("Log file found match, ip: {0}, user: {1}, source: {2}, count: {3}, flag: {4}",
-                        info.IPAddress, info.UserName, info.Source, info.Count, info.Flag);
-                    loginHandler.AddIPAddressEvent(info);
+                    IPBanLog.Debug("Log file found match, ip: {0}, user: {1}, source: {2}, count: {3}, type: {4}",
+                        info.IPAddress, info.UserName, info.Source, info.Count, info.Type);
+                    loginHandler.AddIPAddressEvents(new IPAddressEvent[] { info });
                     return true;
                 }
             }

@@ -40,9 +40,9 @@ namespace DigitalRuby.IPBanTests
         private const string ip1 = "99.99.99.97";
         private const string ip2 = "99.99.99.98";
         private const string ip3 = "99.99.99.99";
-        private static readonly IPAddressEvent info1 = new IPAddressEvent { Count = 98, IPAddress = ip1, Source = "RDP", UserName = "test_user", Flag = IPAddressEventType.FailedLogin };
-        private static readonly IPAddressEvent info2 = new IPAddressEvent { Count = 99, IPAddress = ip2, Source = "SSH", UserName = "test_user2", Flag = IPAddressEventType.FailedLogin };
-        private static readonly IPAddressEvent info3 = new IPAddressEvent { Count = 1, IPAddress = ip1, Source = "RDP", UserName = "test_user", Flag = IPAddressEventType.FailedLogin };
+        private static readonly IPAddressEvent info1 = new IPAddressEvent { Count = 98, IPAddress = ip1, Source = "RDP", UserName = "test_user", Type = IPAddressEventType.FailedLogin };
+        private static readonly IPAddressEvent info2 = new IPAddressEvent { Count = 99, IPAddress = ip2, Source = "SSH", UserName = "test_user2", Type = IPAddressEventType.FailedLogin };
+        private static readonly IPAddressEvent info3 = new IPAddressEvent { Count = 1, IPAddress = ip1, Source = "RDP", UserName = "test_user", Type = IPAddressEventType.FailedLogin };
 
         private IPBanService service;
 
@@ -63,8 +63,7 @@ namespace DigitalRuby.IPBanTests
 
         private void AddFailedLogins()
         {
-            service.AddIPAddressEvent(info1);
-            service.AddIPAddressEvent(info2);
+            service.AddIPAddressEvents(new IPAddressEvent[] { info1, info2 });
             service.RunCycle().Sync();
         }
 
@@ -101,7 +100,7 @@ namespace DigitalRuby.IPBanTests
             AssertNoFailedLogins();
 
             // add a single failed login, should not cause a block
-            service.AddIPAddressEvent(info3);
+            service.AddIPAddressEvents(new IPAddressEvent[] { info3 });
             service.RunCycle().Sync();
             AssertNoFailedLogins();
         }

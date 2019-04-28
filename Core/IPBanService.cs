@@ -165,6 +165,22 @@ namespace DigitalRuby.IPBan
             }
         }
 
+        private object BeginTransaction()
+        {
+            return ipDB.BeginTransaction();
+        }
+
+        private void CommitTransaction(object transaction)
+        {
+            ipDB.CommitTransaction(transaction);
+        }
+
+        private void RollbackTransaction(object transaction)
+        {
+            // if already committed, nothing happens
+            ipDB.RollbackTransaction(transaction);
+        }
+
         private async Task SetNetworkInfo()
         {
             if (string.IsNullOrWhiteSpace(FQDN))
@@ -224,74 +240,82 @@ namespace DigitalRuby.IPBan
         private async Task ProcessPendingFailedLogins(IEnumerable<IPAddressPendingEvent> ipAddresses)
         {
             List<IPAddressPendingEvent> bannedIpAddresses = new List<IPAddressPendingEvent>();
-            foreach (IPAddressPendingEvent failedLogin in ipAddresses)
+            object transaction = BeginTransaction();
+            try
             {
-                try
+                foreach (IPAddressPendingEvent failedLogin in ipAddresses)
                 {
-                    string ipAddress = failedLogin.IPAddress;
-                    string userName = failedLogin.UserName;
-                    string source = failedLogin.Source;
-                    if (Config.IsWhitelisted(ipAddress) ||
-                        (IPBanDelegate != null && IPBanDelegate.IsIPAddressWhitelisted(ipAddress)))
+                    try
                     {
-                        IPBanLog.Warn("Login failure, ignoring whitelisted ip address {0}, {1}, {2}", ipAddress, userName, source);
-                    }
-                    else
-                    {
-                        int maxFailedLoginAttempts;
-                        if (Config.IsUserNameWhitelisted(userName))
+                        string ipAddress = failedLogin.IPAddress;
+                        string userName = failedLogin.UserName;
+                        string source = failedLogin.Source;
+                        if (Config.IsWhitelisted(ipAddress) ||
+                            (IPBanDelegate != null && IPBanDelegate.IsIPAddressWhitelisted(ipAddress)))
                         {
-                            maxFailedLoginAttempts = Config.FailedLoginAttemptsBeforeBanUserNameWhitelist;
+                            IPBanLog.Warn("Login failure, ignoring whitelisted ip address {0}, {1}, {2}", ipAddress, userName, source);
                         }
                         else
                         {
-                            maxFailedLoginAttempts = Config.FailedLoginAttemptsBeforeBan;
-                        }
-
-                        DateTime now = failedLogin.DateTime;
-
-                        // check for the target user name for additional blacklisting checks                    
-                        bool configBlacklisted = Config.IsBlackListed(ipAddress) ||
-                            Config.IsBlackListed(userName) ||
-                            !Config.IsUserNameWithinMaximumEditDistanceOfUserNameWhitelist(userName) ||
-                            (IPBanDelegate != null && IPBanDelegate.IsIPAddressBlacklisted(ipAddress));
-                        int newCount = ipDB.IncrementFailedLoginCount(ipAddress, UtcNow, failedLogin.Count);
-                        IPBanLog.Warn(now, "Login failure: {0}, {1}, {2}, {3}", ipAddress, userName, source, newCount);
-
-                        // if the ip address is black listed or the ip address has reached the maximum failed login attempts before ban, ban the ip address
-                        if (configBlacklisted || newCount >= maxFailedLoginAttempts)
-                        {
-                            bool alreadyBanned = (ipDB.GetBanDate(ipAddress) != null);
-                            if (alreadyBanned)
+                            int maxFailedLoginAttempts;
+                            if (Config.IsUserNameWhitelisted(userName))
                             {
-                                IPBanLog.Warn(now, "IP {0}, {1}, {2} ban pending.", ipAddress, userName, source);
+                                maxFailedLoginAttempts = Config.FailedLoginAttemptsBeforeBanUserNameWhitelist;
                             }
                             else
                             {
-                                if (IPBanDelegate != null)
+                                maxFailedLoginAttempts = Config.FailedLoginAttemptsBeforeBan;
+                            }
+
+                            DateTime now = failedLogin.DateTime;
+
+                            // check for the target user name for additional blacklisting checks                    
+                            bool configBlacklisted = Config.IsBlackListed(ipAddress) ||
+                                Config.IsBlackListed(userName) ||
+                                !Config.IsUserNameWithinMaximumEditDistanceOfUserNameWhitelist(userName);
+                            int newCount = ipDB.IncrementFailedLoginCount(ipAddress, UtcNow, failedLogin.Count, transaction);
+                            IPBanLog.Warn(now, "Login failure: {0}, {1}, {2}, {3}", ipAddress, userName, source, newCount);
+
+                            // if the ip address is black listed or the ip address has reached the maximum failed login attempts before ban, ban the ip address
+                            if (configBlacklisted || newCount >= maxFailedLoginAttempts)
+                            {
+                                bool alreadyBanned = (ipDB.GetBanDate(ipAddress, transaction) != null);
+                                if (alreadyBanned)
+                                {
+                                    IPBanLog.Warn(now, "IP {0}, {1}, {2} ban pending.", ipAddress, userName, source);
+                                }
+                                else
+                                {
+                                    // if delegate and non-zero count, forward on - count of 0 means it was from external source, like a delegate
+                                    if (IPBanDelegate != null && failedLogin.Count > 0)
+                                    {
+                                        await IPBanDelegate.LoginAttemptFailed(ipAddress, source, userName, MachineGuid, OSName, OSVersion, UtcNow);
+                                    }
+                                    AddBannedIPAddress(ipAddress, source, userName, bannedIpAddresses, now, configBlacklisted, newCount, string.Empty, transaction);
+                                }
+                            }
+                            else
+                            {
+                                // if delegate and non-zero count, forward on - count of 0 means it was from external source, like a delegate
+                                if (IPBanDelegate != null && failedLogin.Count > 0)
                                 {
                                     await IPBanDelegate.LoginAttemptFailed(ipAddress, source, userName, MachineGuid, OSName, OSVersion, UtcNow);
                                 }
-                                AddBannedIPAddress(ipAddress, source, userName, bannedIpAddresses, now, configBlacklisted, newCount, string.Empty);
-                            }
-                        }
-                        else
-                        {
-                            // send failed login attempt to delegate
-                            if (IPBanDelegate != null)
-                            {
-                                await IPBanDelegate.LoginAttemptFailed(ipAddress, source, userName, MachineGuid, OSName, OSVersion, UtcNow);
                             }
                         }
                     }
+                    catch (Exception ex)
+                    {
+                        IPBanLog.Error(ex);
+                    }
                 }
-                catch (Exception ex)
-                {
-                    IPBanLog.Error(ex);
-                }
+                CommitTransaction(transaction);
+                ExecuteExternalProcessForBannedIPAddresses(bannedIpAddresses);
             }
-
-            ExecuteExternalProcessForBannedIPAddresses(bannedIpAddresses);
+            finally
+            {
+                RollbackTransaction(transaction);
+            }
         }
 
         private Task ProcessPendingSuccessfulLogins(IEnumerable<IPAddressPendingEvent> ipAddresses)
@@ -319,10 +343,10 @@ namespace DigitalRuby.IPBan
         }
 
         private void AddBannedIPAddress(string ipAddress, string source, string userName, List<IPAddressPendingEvent> bannedIpAddresses,
-            DateTime dateTime, bool configBlacklisted, int counter, string extraInfo)
+            DateTime dateTime, bool configBlacklisted, int counter, string extraInfo, object transaction)
         {
             bannedIpAddresses.Add(new IPAddressPendingEvent { IPAddress = ipAddress, Source = source, UserName = userName });
-            ipDB.SetBanDate(ipAddress, dateTime);
+            ipDB.SetBanDate(ipAddress, dateTime, transaction);
             firewallNeedsBlockedIPAddressesUpdate = true;
             IPBanLog.Warn(dateTime, "Banning ip address: {0}, user name: {1}, config black listed: {2}, count: {3}, extra info: {4}",
                 ipAddress, userName, configBlacklisted, counter, extraInfo);
@@ -521,64 +545,8 @@ namespace DigitalRuby.IPBan
 
             try
             {
-                // we don't do the delegate update in a background thread because if it changes state, we need that done on the main loop thread
-                if (IPBanDelegate.Update())
-                {
-                    DateTime now = UtcNow;
+                IPBanDelegate.Update();
 
-                    // sync up the blacklist and whitelist from the delegate
-                    int banCount = ipDB.GetBannedIPAddressCount();
-
-                    // we only update firewall if new blacklisted ip addresses were added, if some dropped out, we simply wait for the time to expire in the ipDB
-                    // object and then they will drop out that way, that way external delegates with other clients won't cause us to drop ips that we just barely banned
-                    IEnumerable<string> delegateBlacklistFiltered = IPBanDelegate.EnumerateBlackList().Where(i => !Config.IsWhitelisted(i) && !IPBanDelegate.IsIPAddressWhitelisted(i));
-                    firewallNeedsBlockedIPAddressesUpdate |= (ipDB.SetBannedIPAddresses(delegateBlacklistFiltered, now) != banCount);
-
-                    // get white list from delegate and remove any blacklisted ip that is now whitelisted
-                    HashSet<string> allowIPAddresses = new HashSet<string>(IPBanDelegate.EnumerateWhiteList());
-
-                    // add whitelist ip from config
-                    if (!string.IsNullOrWhiteSpace(Config.WhiteList))
-                    {
-                        foreach (string ip in Config.WhiteList.Split(','))
-                        {
-                            string trimmedIP = ip.Trim();
-                            if (IPAddressRange.TryParse(trimmedIP, out _))
-                            {
-                                allowIPAddresses.Add(trimmedIP);
-                            }
-                        }
-                    }
-
-                    foreach (string ip in allowIPAddresses)
-                    {
-                        // un-ban all whitelisted ip addresses
-                        if (ipDB.DeleteIPAddress(ip))
-                        {
-                            IPBanLog.Info("Unbanning ip {0}, it is in the whitelist", ip);
-                            firewallNeedsBlockedIPAddressesUpdate = true; // next loop will update the firewall
-                        }
-                        // check for subnet matches, unban any ip from the local subnet
-                        else if (ip.Contains('/') && IPAddressRange.TryParse(ip, out IPAddressRange ipRange))
-                        {
-                            bool foundInRange = false;
-                            foreach (string ipInRange in ipDB.DeleteIPAddresses(ipRange))
-                            {
-                                foundInRange = true;
-                                IPBanLog.Info("Unbanning ip {0}, it is in the whitelist as a local subnet", ipInRange);
-                            }
-                            firewallNeedsBlockedIPAddressesUpdate |= foundInRange; // next loop will update the firewall
-                        }
-                    }
-
-                    if (!ipAddressesToAllowInFirewall.SetEquals(allowIPAddresses))
-                    {
-                        // ensure that white list is explicitly allowed in the firewall
-                        // in case of mass blocking of ip ranges, certain ip can still be allowed
-                        ipAddressesToAllowInFirewall = allowIPAddresses;
-                        ipAddressesToAllowInFirewallNeedsUpdate = true;
-                    }
-                }
             }
             catch (Exception ex)
             {
@@ -868,20 +836,40 @@ namespace DigitalRuby.IPBan
         }
 
         /// <summary>
-        /// Add an ip address to be checked later
+        /// Add an ip address event
         /// </summary>
-        /// <param name="info">IP address log info</param>
+        /// <param name="events">IP address events</param>
         /// <returns>Task</returns>
-        public Task AddIPAddressEvent(IPAddressEvent info)
+        public Task AddIPAddressEvents(IEnumerable<IPAddressEvent> events)
         {
-            if (info.Flag.HasFlag(IPAddressEventType.FailedLogin))
+            object transaction = BeginTransaction();
+            List<IPAddressPendingEvent> bannedIPs = new List<IPAddressPendingEvent>();
+            try
             {
-                ProcessIPAddressEvent(info, pendingFailedLogins, Config.MinimumTimeBetweenFailedLoginAttempts, "failed");
+                foreach (IPAddressEvent evt in events)
+                {
+                    switch (evt.Type)
+                    {
+                        case IPAddressEventType.FailedLogin:
+                            ProcessIPAddressEvent(evt, pendingFailedLogins, Config.MinimumTimeBetweenFailedLoginAttempts, "failed");
+                            break;
+
+                        case IPAddressEventType.SuccessfulLogin:
+                            ProcessIPAddressEvent(evt, pendingSuccessfulLogins, Config.MinimumTimeBetweenSuccessfulLoginAttempts, "successful");
+                            break;
+
+                        case IPAddressEventType.BlockedIPAddress:
+                            AddBannedIPAddress(evt.IPAddress, evt.Source, evt.UserName, bannedIPs, evt.Timestamp, false, evt.Count, string.Empty, transaction);
+                            break;
+                    }
+                }
+                CommitTransaction(transaction);
             }
-            else
+            finally
             {
-                ProcessIPAddressEvent(info, pendingSuccessfulLogins, Config.MinimumTimeBetweenSuccessfulLoginAttempts, "successful");
+                RollbackTransaction(transaction);
             }
+            ExecuteExternalProcessForBannedIPAddresses(bannedIPs);
             return Task.CompletedTask;
         }
 
@@ -1413,17 +1401,26 @@ namespace DigitalRuby.IPBan
         /// <param name="userName">User name</param>
         /// <param name="source">Source</param>
         /// <param name="count">How many messages were aggregated, 1 for no aggregation</param>
-        /// <param name="flag">Event flag</param>
+        /// <param name="type">Event type</param>
         /// <param name="timestamp">Timestamp of the event, default for current timestamp</param>
-        public IPAddressEvent(bool foundMatch, string ipAddress, string userName, string source, int count, IPAddressEventType flag, DateTime timestamp = default)
+        public IPAddressEvent(bool foundMatch, string ipAddress, string userName, string source, int count, IPAddressEventType type, DateTime timestamp = default)
         {
             FoundMatch = foundMatch;
             IPAddress = ipAddress;
             UserName = userName;
             Source = source;
             Count = count;
-            Flag = flag;
+            Type = type;
             Timestamp = (timestamp == default ? IPBanService.UtcNow : timestamp);
+        }
+
+        /// <summary>
+        /// ToString
+        /// </summary>
+        /// <returns>String</returns>
+        public override string ToString()
+        {
+            return $"IP: {IPAddress}, Match: {FoundMatch}, UserName: {UserName}, Source: {Source}, Count: {Count}, Type: {Type}, Timestamp: {Timestamp}";
         }
 
         /// <summary>
@@ -1447,7 +1444,7 @@ namespace DigitalRuby.IPBan
         public string Source { get; set; }
 
         /// <summary>
-        /// How many messages were aggregated, 1 for no aggregation
+        /// How many messages were aggregated, 1 for no aggregation. Can be set to 0 if count is unknown or from an external source.
         /// </summary>
         public int Count { get; set; }
 
@@ -1459,7 +1456,7 @@ namespace DigitalRuby.IPBan
         /// <summary>
         /// Event flag
         /// </summary>
-        public IPAddressEventType Flag { get; set; }
+        public IPAddressEventType Type { get; set; }
     }
 
     /// <summary>

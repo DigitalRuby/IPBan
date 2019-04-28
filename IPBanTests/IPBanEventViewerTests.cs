@@ -151,24 +151,9 @@ namespace DigitalRuby.IPBanTests
         {
         }
 
-        IEnumerable<string> IIPBanDelegate.EnumerateBlackList()
-        {
-            return new string[0];
-        }
-
-        IEnumerable<string> IIPBanDelegate.EnumerateWhiteList()
-        {
-            return new string[0];
-        }
-
         Task IIPBanDelegate.IPAddressBanned(string ip, string source, string userName, string machineGuid, string osName, string osVersion, DateTime timestamp, bool banned)
         {
             return Task.CompletedTask;
-        }
-
-        bool IIPBanDelegate.IsIPAddressBlacklisted(string ipAddress)
-        {
-            return false;
         }
 
         bool IIPBanDelegate.IsIPAddressWhitelisted(string ipAddress)
@@ -199,9 +184,8 @@ namespace DigitalRuby.IPBanTests
             
         }
 
-        bool IIPBanDelegate.Update()
+        void IIPBanDelegate.Update()
         {
-            return true;
         }
 
         /*

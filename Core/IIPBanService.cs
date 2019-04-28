@@ -37,10 +37,10 @@ namespace DigitalRuby.IPBan
     public interface IIPAddressEventHandler
     {
         /// <summary>
-        /// Add an ip address event
+        /// Add ip address events
         /// </summary>
-        /// <param name="info">IP address event info</param>
-        Task AddIPAddressEvent(IPAddressEvent info);
+        /// <param name="events">IP address events</param>
+        Task AddIPAddressEvents(IEnumerable<IPAddressEvent> events);
     }
 
     /// <summary>
@@ -200,10 +200,9 @@ namespace DigitalRuby.IPBan
         void Stop();
 
         /// <summary>
-        /// Update
+        /// Update, do housekeeping, etc.
         /// </summary>
-        /// <returns>True if changes were made, false otherwise</returns>
-        bool Update();
+        void Update();
 
         /// <summary>
         /// Notify when an ip is banned
@@ -246,29 +245,10 @@ namespace DigitalRuby.IPBan
         Task LoginAttemptSucceeded(string ip, string source, string userName, string machineGuid, string osName, string osVersion, DateTime timestamp);
 
         /// <summary>
-        /// Enumerate external blacklist
-        /// </summary>
-        /// <returns>Blacklist</returns>
-        IEnumerable<string> EnumerateBlackList();
-
-        /// <summary>
-        /// Enumerate external whitelist
-        /// </summary>
-        /// <returns>Whitelist</returns>
-        IEnumerable<string> EnumerateWhiteList();
-
-        /// <summary>
         /// Check if an ip address is whitelisted
         /// </summary>
         /// <param name="ipAddress">IP Address</param>
         /// <returns>True if whitelisted, false otherwise</returns>
         bool IsIPAddressWhitelisted(string ipAddress);
-
-        /// <summary>
-        /// Check if an ip address is blacklisted
-        /// </summary>
-        /// <param name="ipAddress">IP Address</param>
-        /// <returns>True if blacklisted, false otherwise</returns>
-        bool IsIPAddressBlacklisted(string ipAddress);
     }
 }
