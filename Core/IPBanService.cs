@@ -351,8 +351,8 @@ namespace DigitalRuby.IPBan
             IPBanLog.Warn(dateTime, "Banning ip address: {0}, user name: {1}, config black listed: {2}, count: {3}, extra info: {4}",
                 ipAddress, userName, configBlacklisted, counter, extraInfo);
 
-            // if no handlers, exit out
-            if (BannedIPAddressHandler == null && IPBanDelegate == null)
+            // if this is a delegate callback (counter of 0) or no handlers, exit out
+            if (counter <= 0 || (BannedIPAddressHandler == null && IPBanDelegate == null))
             {
                 return;
             }
@@ -706,7 +706,7 @@ namespace DigitalRuby.IPBan
 
         private void ProcessIPAddressEvent(IPAddressEvent info, List<IPAddressPendingEvent> pendingEvents, TimeSpan minTimeBetweenEvents, string type)
         {
-            if (!IPBanFirewallUtility.TryGetFirewallIPAddress(info.IPAddress, out string normalizedIPAddress))
+            if (!IPBanFirewallUtility.TryGetFirewallIPAddress(info.IPAddress, out string normalizedIPAddress) || info.Count <= 0)
             {
                 return;
             }
