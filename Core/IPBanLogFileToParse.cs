@@ -32,26 +32,70 @@ using System.Xml.Serialization;
 
 namespace DigitalRuby.IPBan
 {
+    /// <summary>
+    /// Log file to parse data
+    /// </summary>
     public class IPBanLogFileToParse
     {
+        /// <summary>
+        /// Source
+        /// </summary>
         public string Source { get; set; }
+
+        /// <summary>
+        /// Path and mask, one per line
+        /// </summary>
         public string PathAndMask { get; set; }
+
+        /// <summary>
+        /// Recursive directory search?
+        /// </summary>
         public bool Recursive { get; set; }
+
+        /// <summary>
+        /// Failed login regex
+        /// </summary>
         public string FailedLoginRegex { get; set; }
+
+        /// <summary>
+        /// Successful login regex
+        /// </summary>
         public string SuccessfulLoginRegex { get; set; }
+
+        /// <summary>
+        /// Platform regex, i.e. Windows, Linux, etc.
+        /// </summary>
         public string PlatformRegex { get; set; }
+
+        /// <summary>
+        /// How often in milliseconds to ping the file
+        /// </summary>
         public int PingInterval { get; set; } = 10000;
+
+        /// <summary>
+        /// Max file size in bytes
+        /// </summary>
         public int MaxFileSize { get; set; }
 
+        /// <summary>
+        /// ToString
+        /// </summary>
+        /// <returns>String</returns>
         public override string ToString()
         {
             return string.Format("Path/mask: {0}, platform: {1}", PathAndMask, PlatformRegex);
         }
     }
 
+    /// <summary>
+    /// Log files to parse
+    /// </summary>
     [XmlType("LogFilesToParse")]
     public class IPBanLogFilesToParse
     {
+        /// <summary>
+        /// Log files
+        /// </summary>
         [XmlArray("LogFiles")]
         [XmlArrayItem("LogFile")]
         public IPBanLogFileToParse[] LogFiles;

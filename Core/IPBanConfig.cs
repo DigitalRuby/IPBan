@@ -196,7 +196,7 @@ namespace DigitalRuby.IPBan
                             {
                                 set.Add(ipOrDns);
                             }
-                            else
+                            else if (dns != null)
                             {
                                 IPAddress[] addresses = dns.GetHostEntryAsync(ipOrDns).Sync().AddressList;
                                 if (addresses != null)
@@ -219,6 +219,33 @@ namespace DigitalRuby.IPBan
             if (!string.IsNullOrWhiteSpace(regexValue))
             {
                 regex = ParseRegex(regexValue);
+            }
+        }
+
+        /// <summary>
+        /// Validate a regex - returns an error otherwise empty string if success
+        /// </summary>
+        /// <param name="regex">Regex to validate, can be null or empty</param>
+        /// <param name="options">Regex options</param>
+        /// <param name="throwException">True to throw the exception instead of returning the string, false otherwise</param>
+        /// <returns>Null if success, otherwise an error string indicating the problem</returns>
+        public static string ValidateRegex(string regex, RegexOptions options = RegexOptions.IgnoreCase | RegexOptions.CultureInvariant, bool throwException = false)
+        {
+            try
+            {
+                if (regex != null)
+                {
+                    new Regex(regex, options);
+                }
+                return null;
+            }
+            catch (Exception ex)
+            {
+                if (throwException)
+                {
+                    throw;
+                }
+                return ex.Message;
             }
         }
 
@@ -247,6 +274,32 @@ namespace DigitalRuby.IPBan
                 }
             }
             return new Regex(sb.ToString(), RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+        }
+
+        /// <summary>
+        /// Clean a multi-line string to make it more readable
+        /// </summary>
+        /// <param name="text">Multi-line string</param>
+        /// <returns>Cleaned multi-line string</returns>
+        public static string CleanMultilineString(string text)
+        {
+            text = (text ?? string.Empty).Trim();
+            if (text.Length == 0)
+            {
+                return string.Empty;
+            }
+
+            string[] lines = text.Split('\n', StringSplitOptions.RemoveEmptyEntries);
+            StringBuilder sb = new StringBuilder();
+            foreach (string line in lines)
+            {
+                string trimmedLine = line.Trim();
+                if (trimmedLine.Length != 0)
+                {
+                    sb.AppendLine(trimmedLine);
+                }
+            }
+            return sb.ToString();
         }
 
         /// <summary>
