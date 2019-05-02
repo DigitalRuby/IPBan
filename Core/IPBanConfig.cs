@@ -299,7 +299,7 @@ namespace DigitalRuby.IPBan
                     sb.AppendLine(trimmedLine);
                 }
             }
-            return sb.ToString();
+            return sb.ToString().Trim();
         }
 
         /// <summary>
