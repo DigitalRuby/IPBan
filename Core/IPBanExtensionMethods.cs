@@ -30,12 +30,16 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Runtime.InteropServices;
+using System.Runtime.Serialization;
 using System.Security;
 using System.Security.Principal;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
+using System.Xml;
+using System.Xml.Serialization;
+using System.Xml.XPath;
 
 namespace DigitalRuby.IPBan
 {
@@ -75,8 +79,103 @@ namespace DigitalRuby.IPBan
             }
         }
 
+        /// <summary>
+        /// Nasty hack for stupid xml serializer that cannot simply mark a property string as cdata
+        /// </summary>
+        [System.Serializable]
+        public class XmlCData : IXmlSerializable
+        {
+            private string value;
+
+            /// <summary>
+            /// Allow direct assignment from string:
+            /// CData cdata = "abc";
+            /// </summary>
+            /// <param name="value"></param>
+            /// <returns></returns>
+            public static implicit operator XmlCData(string value)
+            {
+                return new XmlCData(value);
+            }
+
+            /// <summary>
+            /// Allow direct assigment to string
+            /// </summary>
+            /// <param name="cdata"></param>
+            /// <returns>String or null if cdata is null</returns>
+            public static implicit operator string(XmlCData cdata)
+            {
+                return cdata?.value;
+            }
+
+            /// <summary>
+            /// Constructor
+            /// </summary>
+            public XmlCData() : this(string.Empty)
+            {
+            }
+
+            /// <summary>
+            /// Constructor
+            /// </summary>
+            /// <param name="value">Value</param>
+            public XmlCData(string value)
+            {
+                this.value = (value ?? string.Empty).Trim();
+            }
+
+            /// <summary>
+            /// ToString
+            /// </summary>
+            /// <returns>String</returns>
+            public override string ToString()
+            {
+                return value;
+            }
+
+            /// <summary>
+            /// Get xml schema
+            /// </summary>
+            /// <returns>Null</returns>
+            public System.Xml.Schema.XmlSchema GetSchema()
+            {
+                return null;
+            }
+
+            /// <summary>
+            /// Read xml
+            /// </summary>
+            /// <param name="reader">Reader</param>
+            public void ReadXml(System.Xml.XmlReader reader)
+            {
+                value = reader.ReadElementString();
+            }
+
+            /// <summary>
+            /// Write xml
+            /// </summary>
+            /// <param name="writer">Writer</param>
+            public void WriteXml(System.Xml.XmlWriter writer)
+            {
+                if (string.IsNullOrWhiteSpace(value))
+                {
+                    writer.WriteString(string.Empty);
+                }
+                else
+                {
+                    writer.WriteCData("\n" + value + "\n");
+                }
+            }
+        }
+
         private static readonly Encoding utf8EncodingNoPrefix = new UTF8Encoding(false);
         private static readonly DateTime unixEpoch = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
+        private static readonly XmlSerializerNamespaces emptyXmlNs = new XmlSerializerNamespaces();
+
+        static IPBanExtensionMethods()
+        {
+            emptyXmlNs.Add("", "");
+        }
 
         /// <summary>
         /// Throw ArgumentNullException if obj is null
@@ -111,6 +210,27 @@ namespace DigitalRuby.IPBan
         public static string ToStringUTF8(this byte[] bytes)
         {
             return Encoding.UTF8.GetString(bytes);
+        }
+
+        /// <summary>
+        /// Convert an object to an xml fragment
+        /// </summary>
+        /// <param name="obj">Object</param>
+        /// <returns>Xml fragment or null if obj is null</returns>
+        public static string ToStringXml(this object obj)
+        {
+            if (obj == null)
+            {
+                return null;
+            }
+
+            StringWriter xml = new StringWriter();
+            XmlSerializer serializer = new XmlSerializer(obj.GetType());
+            using (XmlWriter writer = XmlWriter.Create(xml, new XmlWriterSettings { Indent = true, NewLineHandling = NewLineHandling.None, OmitXmlDeclaration = true }))
+            {
+                serializer.Serialize(writer, obj, emptyXmlNs);
+            }
+            return xml.ToString();
         }
 
         /// <summary>

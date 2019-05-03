@@ -35,17 +35,18 @@ namespace DigitalRuby.IPBan
     /// <summary>
     /// Log file to parse data
     /// </summary>
+    [XmlRoot("LogFile")]
     public class IPBanLogFileToParse
     {
         /// <summary>
         /// Source
         /// </summary>
-        public string Source { get; set; }
+        public string Source { get; set; } = string.Empty;
 
         /// <summary>
         /// Path and mask, one per line
         /// </summary>
-        public string PathAndMask { get; set; }
+        public string PathAndMask { get; set; } = string.Empty;
 
         /// <summary>
         /// Recursive directory search?
@@ -55,17 +56,17 @@ namespace DigitalRuby.IPBan
         /// <summary>
         /// Failed login regex
         /// </summary>
-        public string FailedLoginRegex { get; set; }
+        public IPBanExtensionMethods.XmlCData FailedLoginRegex { get; set; } = string.Empty;
 
         /// <summary>
         /// Successful login regex
         /// </summary>
-        public string SuccessfulLoginRegex { get; set; }
+        public IPBanExtensionMethods.XmlCData SuccessfulLoginRegex { get; set; } = string.Empty;
 
         /// <summary>
         /// Platform regex, i.e. Windows, Linux, etc.
         /// </summary>
-        public string PlatformRegex { get; set; }
+        public IPBanExtensionMethods.XmlCData PlatformRegex { get; set; } = string.Empty;
 
         /// <summary>
         /// How often in milliseconds to ping the file

@@ -53,31 +53,29 @@ namespace DigitalRuby.IPBan
         /// <summary>
         /// Xpath to find
         /// </summary>
-        public string XPath { get; set; }
+        public string XPath { get; set; } = string.Empty;
 
-        private string regex;
+        private string regex = string.Empty;
         /// <summary>
         /// Regex string
         /// </summary>
-        public string Regex
+        public IPBanExtensionMethods.XmlCData Regex
         {
             get { return regex; }
-            set
-            {
-                RegexObject = IPBanConfig.ParseRegex(regex = value);
-            }
+            set { RegexObject = IPBanConfig.ParseRegex(regex = value); }
         }
     }
 
     /// <summary>
     /// A single Windows event viewer group
     /// </summary>
+    [XmlRoot("Group")]
     public class EventViewerExpressionGroup
     {
         /// <summary>
         /// The event viewer source
         /// </summary>
-        public string Source { get; set; }
+        public string Source { get; set; } = string.Empty;
 
         /// <summary>
         /// Keywords as a ULONG
@@ -130,14 +128,51 @@ namespace DigitalRuby.IPBan
             return "<Query Id='" + id.ToString(CultureInfo.InvariantCulture) + "' Path='" + Path + "'><Select Path='" + Path + "'>*[System[(band(Keywords," + keywordsDecimal.ToString() + "))]]</Select></Query>";
         }
 
-        public string Path;
+        public void SetExpressionsFromExpressionsText()
+        {
+            if (ExpressionsText == null)
+            {
+                return;
+            }
+
+            Expressions.Clear();
+            string[] lines = IPBanConfig.CleanMultilineString(ExpressionsText).Split('\n');
+            string line;
+            EventViewerExpression currentExpression = null;
+            for (int i = 0; i < lines.Length; i++)
+            {
+                line = lines[i].Trim();
+                if (line.StartsWith("//"))
+                {
+                    if (currentExpression != null)
+                    {
+                        Expressions.Add(currentExpression);
+                    }
+                    currentExpression = new EventViewerExpression { XPath = line, Regex = string.Empty };
+                }
+                else if (line.Length != 0 && currentExpression != null)
+                {
+                    currentExpression.Regex += line + "\n";
+                }
+            }
+            if (currentExpression != null)
+            {
+                Expressions.Add(currentExpression);
+            }
+        }
+
+        /// <summary>
+        /// Path to the event viewer entry, i.e. Application or Security
+        /// </summary>
+        public string Path { get; set; } = string.Empty;
 
         [XmlArray("Expressions")]
         [XmlArrayItem("Expression")]
         public List<EventViewerExpression> Expressions { get; set; } = new List<EventViewerExpression>();
 
         /// <summary>
-        /// If using plain text expressions, this will be set and needs conversion
+        /// If using plain text expressions, this will be set and needs conversion. Leave null if you are using Expressions directly.
+        /// The format is xpath (//*), newline, and then regex, newline, repeated.
         /// </summary>
         [XmlIgnore]
         public string ExpressionsText { get; set; }

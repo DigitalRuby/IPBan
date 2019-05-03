@@ -120,7 +120,7 @@ namespace DigitalRuby.IPBan
                         // if we don't have this log file and the platform matches, add it
                         if (logFilesToParse.FirstOrDefault(f => f.PathAndMask == pathAndMask) == null &&
                             !string.IsNullOrWhiteSpace(newFile.PlatformRegex) &&
-                            Regex.IsMatch(IPBanOS.Description, newFile.PlatformRegex.Trim(), RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))
+                            Regex.IsMatch(IPBanOS.Description, newFile.PlatformRegex.ToString().Trim(), RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))
                         {
                             // log files use a timer internally and do not need to be updated regularly
                             IPBanLogFileScanner scanner = new IPBanIPAddressLogFileScanner(this, DnsLookup,

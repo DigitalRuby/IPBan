@@ -113,7 +113,7 @@ namespace DigitalRuby.IPBan
                     {
                         foreach (EventViewerExpression expression in group.Expressions)
                         {
-                            expression.Regex = (expression.Regex ?? string.Empty).Trim();
+                            expression.Regex = (expression.Regex?.ToString() ?? string.Empty).Trim();
                         }
                     }
                 }
@@ -125,7 +125,7 @@ namespace DigitalRuby.IPBan
                         group.NotifyOnly = true;
                         foreach (EventViewerExpression expression in group.Expressions)
                         {
-                            expression.Regex = (expression.Regex ?? string.Empty).Trim();
+                            expression.Regex = (expression.Regex?.ToString() ?? string.Empty).Trim();
                         }
                     }
                 }
