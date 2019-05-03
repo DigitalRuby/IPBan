@@ -132,8 +132,8 @@ namespace DigitalRuby.IPBan
             }
             else
             {
-                expressionsFailure = new EventViewerExpressionsToBlock { Groups = new EventViewerExpressionGroup[0] };
-                expressionsSuccess = new EventViewerExpressionsToNotify { Groups = new EventViewerExpressionGroup[0] };
+                expressionsFailure = new EventViewerExpressionsToBlock();
+                expressionsSuccess = new EventViewerExpressionsToNotify();
             }
             try
             {

@@ -89,7 +89,7 @@ namespace DigitalRuby.IPBanTests
             Assert.AreEqual(path, group.Path);
             Assert.AreEqual(source, group.Source);
             Assert.NotNull(group.Expressions);
-            Assert.AreEqual(group.Expressions.Length, expressions.Length / 2);
+            Assert.AreEqual(group.Expressions.Count, expressions.Length / 2);
             for (int i = 0; i < expressions.Length;)
             {
                 int groupIndex = i / 2;
@@ -107,9 +107,9 @@ namespace DigitalRuby.IPBanTests
             }
 
             const int minimumWindowsMajorVersion = 6;
-            EventViewerExpressionGroup[] groups = cfg.WindowsEventViewerExpressionsToBlock.Groups;
+            List<EventViewerExpressionGroup> groups = cfg.WindowsEventViewerExpressionsToBlock.Groups;
             Assert.NotNull(groups);
-            Assert.AreEqual(8, groups.Length);
+            Assert.AreEqual(8, groups.Count);
             AssertEventViewerGroup(groups[0], "0x8010000000000000", minimumWindowsMajorVersion, 0, false, "Security", "RDP", "//EventID", "^(4625|5152)$", "//Data[@Name='IpAddress' or @Name='Workstation' or @Name='SourceAddress']", "(?<ipaddress>.+)");
             AssertEventViewerGroup(groups[1], "0x80000000000000", minimumWindowsMajorVersion, 0, false, "Application", "IPBanCustom", "//Data", @"ipban\sfailed\slogin,\sip\saddress:\s(?<ipaddress>.+?),\ssource:\s(?<source>.+?),\suser:\s(?<username>[^\s,]+)");
             AssertEventViewerGroup(groups[2], "0x90000000000000", minimumWindowsMajorVersion, 0, false, "Application", "MSSQL", "//Provider[@Name='MSSQLSERVER']", string.Empty, "//Data", @"(?!(\[CLIENT\s?:|Reason\s?:))(?<username>.+)", "//Data", @"\[CLIENT\s?:\s?(?<ipaddress>.*?)\]");
@@ -121,7 +121,7 @@ namespace DigitalRuby.IPBanTests
 
             groups = cfg.WindowsEventViewerExpressionsToNotify.Groups;
             Assert.NotNull(groups);
-            Assert.AreEqual(3, groups.Length);
+            Assert.AreEqual(3, groups.Count);
             AssertEventViewerGroup(groups[0], "0x8000000000000000", minimumWindowsMajorVersion, 0, true, "Security", "RDP", "//EventID", "^4624$", "//Data[@Name='IpAddress' or @Name='Workstation' or @Name='SourceAddress']", "(?<ipaddress>.+)");
             AssertEventViewerGroup(groups[1], "0x4000000000000000", minimumWindowsMajorVersion, 0, true, "OpenSSH/Operational", "SSH", "//Data[@Name='payload']", @"Accepted\s+password\s+for\s+(?<username>.+?)\s+from\s+(?<ipaddress>.+?)\s+port\s+[0-9]+\s+ssh");
             AssertEventViewerGroup(groups[2], "0x80000000000000", minimumWindowsMajorVersion, 0, true, "Application", "IPBanCustom", "//Data", @"ipban\ssuccess\slogin,\sip\saddress:\s(?<ipaddress>.+?),\ssource:\s(?<source>.+?),\suser:\s(?<username>[^\s,]+)");
