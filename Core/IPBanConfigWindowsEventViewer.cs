@@ -135,6 +135,12 @@ namespace DigitalRuby.IPBan
         [XmlArray("Expressions")]
         [XmlArrayItem("Expression")]
         public List<EventViewerExpression> Expressions { get; set; } = new List<EventViewerExpression>();
+
+        /// <summary>
+        /// If using plain text expressions, this will be set and needs conversion
+        /// </summary>
+        [XmlIgnore]
+        public string ExpressionsText { get; set; }
     }
 
     /// <summary>
