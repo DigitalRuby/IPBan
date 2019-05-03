@@ -134,7 +134,7 @@ namespace DigitalRuby.IPBan
 
         [XmlArray("Expressions")]
         [XmlArrayItem("Expression")]
-        public EventViewerExpression[] Expressions { get; set; }
+        public List<EventViewerExpression> Expressions { get; set; } = new List<EventViewerExpression>();
     }
 
     /// <summary>
@@ -144,7 +144,7 @@ namespace DigitalRuby.IPBan
     {
         [XmlArray("Groups")]
         [XmlArrayItem("Group")]
-        public EventViewerExpressionGroup[] Groups { get; set; }
+        public List<EventViewerExpressionGroup> Groups { get; set; } = new List<EventViewerExpressionGroup>();
     }
 
     /// <summary>
