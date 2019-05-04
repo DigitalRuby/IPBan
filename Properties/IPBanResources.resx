@@ -117,7 +117,559 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="About" xml:space="preserve">
+    <value>About</value>
+    <comment>i.e. About Us</comment>
+  </data>
+  <data name="AllowPorts" xml:space="preserve">
+    <value>Allow Ports</value>
+  </data>
+  <data name="AllowPortsTooltip" xml:space="preserve">
+    <value>Comma separated ports or port ranges to exclude from country bans, naughty list, etc.</value>
+  </data>
+  <data name="Apply" xml:space="preserve">
+    <value>Apply</value>
+    <comment>Apply changes</comment>
+  </data>
+  <data name="BanCount" xml:space="preserve">
+    <value>Ban Count</value>
+    <comment>Total number of bans / lock outs</comment>
+  </data>
+  <data name="BannedIPAddresses" xml:space="preserve">
+    <value>Banned ip addresses</value>
+  </data>
+  <data name="BanTime" xml:space="preserve">
+    <value>Ban Time</value>
+  </data>
+  <data name="BanTimeTooltip" xml:space="preserve">
+    <value>The duration of time to ban an ip address(DD:HH:MM:SS) - 00:00:00:00 for forever</value>
+  </data>
+  <data name="BaseUrl" xml:space="preserve">
+    <value>Base Url</value>
+    <comment>The base url for a site, i.e. http://www.ipban.com</comment>
+  </data>
+  <data name="BaseUrlTooltip" xml:space="preserve">
+    <value>The base url of the server to connect clients to, should be this server</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Cancel</value>
+    <comment>Cancel an order</comment>
+  </data>
+  <data name="City" xml:space="preserve">
+    <value>City</value>
+    <comment>A city, i.e. New York City</comment>
+  </data>
+  <data name="ClearBannedIPAddressesOnRestart" xml:space="preserve">
+    <value>Clear Bans on Restart</value>
+  </data>
+  <data name="ClearBannedIPAddressesOnRestartTooltip" xml:space="preserve">
+    <value>True to clear and unban all the ip addresses from the firewall upon restart, false otherwise</value>
+  </data>
+  <data name="ClientConfiguration" xml:space="preserve">
+    <value>Client Configuration</value>
+    <comment>Change the configuration of a client machine</comment>
+  </data>
+  <data name="ClientConfigurationOverrideTooltip" xml:space="preserve">
+    <value>Replace global configuration values for this client</value>
+  </data>
+  <data name="ConfirmDelete" xml:space="preserve">
+    <value>Confirm Delete</value>
+    <comment>Confirm a delete operation</comment>
+  </data>
+  <data name="Country" xml:space="preserve">
+    <value>Country</value>
+    <comment>Country of the world</comment>
+  </data>
+  <data name="CountryBlacklist" xml:space="preserve">
+    <value>Country Blacklist</value>
+  </data>
+  <data name="CountryBlacklistInterval" xml:space="preserve">
+    <value>Country Blacklist Interval</value>
+  </data>
+  <data name="CountryBlacklistIntervalTooltip" xml:space="preserve">
+    <value>24 hour start (local time), day of month to send out country blacklist to clients, i.e. 3,28</value>
+  </data>
+  <data name="CountryBlacklistTooltip" xml:space="preserve">
+    <value>Select banned country codes (comma separated). Firewall will be automatically updated with ip addresses from the selected countries.</value>
+  </data>
+  <data name="CreateWhitelistFirewallRule" xml:space="preserve">
+    <value>Create Whitelist Firewall Rule</value>
+  </data>
+  <data name="CreateWhitelistFirewallRuleTooltip" xml:space="preserve">
+    <value>Whether to create a whitelist firewall rule. This gives all whitelist ip access to all ports</value>
+  </data>
+  <data name="CycleTime" xml:space="preserve">
+    <value>Cycle Time</value>
+  </data>
+  <data name="CycleTimeTooltip" xml:space="preserve">
+    <value>The time between cycles to do house-keeping such as un-banning ip addresses, reloading config, etc. (DD:HH:MM:SS)</value>
+  </data>
+  <data name="Delete" xml:space="preserve">
+    <value>Delete</value>
+    <comment>Delete some data from the database</comment>
+  </data>
+  <data name="Docs" xml:space="preserve">
+    <value>Docs</value>
+    <comment>Short for documentation, a noun</comment>
+  </data>
+  <data name="Edit" xml:space="preserve">
+    <value>Edit</value>
+    <comment>Edit a document</comment>
+  </data>
+  <data name="EditMachine" xml:space="preserve">
+    <value>Edit Machine</value>
+    <comment>Edit machine user name and password</comment>
+  </data>
+  <data name="EnableSSL" xml:space="preserve">
+    <value>Enable SSL</value>
+    <comment>Whether to enable ssl (i.e. https instead of http)</comment>
+  </data>
+  <data name="EnableSSLTooltip" xml:space="preserve">
+    <value>Whether to enable SSL (secure socket layer)</value>
+  </data>
+  <data name="Error" xml:space="preserve">
+    <value>Error</value>
+    <comment>i.e. An error has happened</comment>
+  </data>
+  <data name="EventViewerFailedLogins" xml:space="preserve">
+    <value>Event Viewer Failed Logins</value>
+  </data>
+  <data name="EventViewerSuccessfulLogins" xml:space="preserve">
+    <value>Event Viewer Successful Logins</value>
+  </data>
+  <data name="EventViewerWindows" xml:space="preserve">
+    <value>Event Viewer (Windows)</value>
+  </data>
+  <data name="ExpireTime" xml:space="preserve">
+    <value>Expire Time</value>
+  </data>
+  <data name="ExpireTimeTooltip" xml:space="preserve">
+    <value>The duration after the last failed login attempt that the ip is forgotten(count reset back to 0). Set to 00:00:00:00 to never forget an ip. (DD:HH:MM:SS)</value>
+  </data>
+  <data name="FailedLoginAttempts" xml:space="preserve">
+    <value>Failed login attempts</value>
+  </data>
+  <data name="FailedLoginAttemptsBeforeBan" xml:space="preserve">
+    <value>Failed Logins Before Ban</value>
+  </data>
+  <data name="FailedLoginAttemptsBeforeBanTooltip" xml:space="preserve">
+    <value>Number of failed logins before banning an ip address</value>
+  </data>
+  <data name="FailedLoginsBeforeBanUserNameWhitelist" xml:space="preserve">
+    <value>Failed Logins Before Ban Whitelist</value>
+  </data>
+  <data name="FailedLoginsBeforeBanUserNameWhitelistTooltip" xml:space="preserve">
+    <value>Number of failed logins before banning the ip address if the user name is in the user name whitelist</value>
+  </data>
+  <data name="FilterSettings" xml:space="preserve">
+    <value>Filter Settings</value>
+  </data>
+  <data name="FirewallRulePrefix" xml:space="preserve">
+    <value>Firewall Rule Prefix</value>
+  </data>
+  <data name="FirewallRulePrefixTooltip" xml:space="preserve">
+    <value>Rule prefix name for firewall rules, must contain only A-Z, 0-9 and _</value>
+  </data>
+  <data name="FirewallSettings" xml:space="preserve">
+    <value>FirewallSettings</value>
+  </data>
+  <data name="FirewallType" xml:space="preserve">
+    <value>Firewall Type</value>
+  </data>
+  <data name="FirewallTypeTooltip" xml:space="preserve">
+    <value>Firewall types: Allows setting a type of firewall if not using the default firewall implementation.
+Prefix with OS:ClassName, example: Windows:Windivert,Linux:Default</value>
+  </data>
+  <data name="FQDN" xml:space="preserve">
+    <value>FQDN</value>
+    <comment>Fully qualified domain name, keep short</comment>
+  </data>
+  <data name="GeneralSettings" xml:space="preserve">
+    <value>General Settings</value>
+  </data>
+  <data name="Home" xml:space="preserve">
+    <value>Home</value>
+    <comment>i.e. Home page</comment>
+  </data>
+  <data name="IPAddress" xml:space="preserve">
+    <value>IP Address</value>
+    <comment>An ip address, like 127.0.0.1</comment>
+  </data>
+  <data name="IPAddressEventFlags_BlockedIPAddress" xml:space="preserve">
+    <value>Blocked IP Addresses</value>
+  </data>
+  <data name="IPAddressEventFlags_FailedLogin" xml:space="preserve">
+    <value>Failed Logins</value>
+  </data>
+  <data name="IPAddressEventFlags_SuccessfulLogin" xml:space="preserve">
+    <value>Successful Logins</value>
+  </data>
   <data name="IPBanKey1" xml:space="preserve">
     <value>60E555E4ADFE4AAB9DAE61E0D57ADD7E</value>
+  </data>
+  <data name="IPBanShield" xml:space="preserve">
+    <value>IPBan Shield</value>
+    <comment>Shield like a knight would use</comment>
+  </data>
+  <data name="IPBlacklist" xml:space="preserve">
+    <value>IP Blacklist</value>
+  </data>
+  <data name="IPBlacklistRegex" xml:space="preserve">
+    <value>IP Blacklist Regex</value>
+  </data>
+  <data name="IPBlacklistRegexTooltip" xml:space="preserve">
+    <value>Regular expression for more advanced blacklisting.Shortcut: use* to allow any piece of an ip, dns name or user name(i.e. 128.128.128.*). Sample regex that blacklists a few ips: ^(128\.128\.128\.*)|(99\.99\.99\.[0-9])$ More info about regex: http://www.regular-expressions.info/</value>
+  </data>
+  <data name="IPBlacklistTooltip" xml:space="preserve">
+    <value>Comma separated list of ip addresses OR DNS names OR user names to always ban and NEVER unban</value>
+  </data>
+  <data name="IPWhitelist" xml:space="preserve">
+    <value>IP Whitelist</value>
+  </data>
+  <data name="IPWhitelistRegex" xml:space="preserve">
+    <value>IP Whitelist Regex</value>
+  </data>
+  <data name="IPWhitelistRegexTooltip" xml:space="preserve">
+    <value>Regular expression for more advanced whitelisting.Shortcut: use* to allow any piece of an ip (i.e. 128.128.128.*). Sample regex that whitelists a few ips: ^(128\.128\.128\.*)|(99\.99\.99\.[0-9])$ More info about regex: http://www.regular-expressions.info/</value>
+  </data>
+  <data name="IPWhitelistTooltip" xml:space="preserve">
+    <value>IP addresses to never ban, comma separated</value>
+  </data>
+  <data name="LastUpdate" xml:space="preserve">
+    <value>Last Update</value>
+    <comment>The last update (date/time) of the software</comment>
+  </data>
+  <data name="LogParsing" xml:space="preserve">
+    <value>Log Parsing</value>
+    <comment>Like log file parsing, Windows event viewer, etc.</comment>
+  </data>
+  <data name="Machines" xml:space="preserve">
+    <value>Machines</value>
+    <comment>A list of computer machines</comment>
+  </data>
+  <data name="MachineWhitelist" xml:space="preserve">
+    <value>Machine Whitelist</value>
+    <comment>Allowed ip addresses for a specific machine</comment>
+  </data>
+  <data name="MaxActiveBlacklistedIPAddresses" xml:space="preserve">
+    <value>Blacklist Max Size</value>
+    <comment>The maximum active ip addresses</comment>
+  </data>
+  <data name="MaxActiveBlacklistedIPAddressesTooltip" xml:space="preserve">
+    <value>The maximum blacklisted ip addresses to return, in order of last seen date descending</value>
+  </data>
+  <data name="MinimumTimeBetweenFailedLoginAttempts" xml:space="preserve">
+    <value>Min Time Between Failed Logins</value>
+  </data>
+  <data name="MinimumTimeBetweenFailedLoginAttemptsTooltip" xml:space="preserve">
+    <value>The minimum time between failed login attempts for an ip address to increment the ban counter (DD:HH:MM:SS)</value>
+  </data>
+  <data name="MinimumTrustLevel" xml:space="preserve">
+    <value>Minimum Trust Level</value>
+  </data>
+  <data name="MinimumTrustLevelTooltip" xml:space="preserve">
+    <value>Minimum trust level for universal banned ip sharing (0-10) where 0 is trust all submissions</value>
+  </data>
+  <data name="NaughtyListInterval" xml:space="preserve">
+    <value>Naughty List Interval</value>
+  </data>
+  <data name="NaughtyListIntervalTooltip" xml:space="preserve">
+    <value>Naughty list interval in x,y format. X = 24 hour of day (0 to 23). Y = max count, i.e. 4,10000.</value>
+  </data>
+  <data name="Notes" xml:space="preserve">
+    <value>Notes</value>
+    <comment>i.e. take notes in class</comment>
+  </data>
+  <data name="NotificationFlags" xml:space="preserve">
+    <value>Notification Flags</value>
+  </data>
+  <data name="Notifications" xml:space="preserve">
+    <value>Notifications</value>
+    <comment>Manager notifications, like emails</comment>
+  </data>
+  <data name="OSName" xml:space="preserve">
+    <value>Operating System Name</value>
+  </data>
+  <data name="OSVersion" xml:space="preserve">
+    <value>Operating System Version</value>
+  </data>
+  <data name="Other" xml:space="preserve">
+    <value>Other</value>
+    <comment>i.e. Other or Misc., etc.</comment>
+  </data>
+  <data name="Password" xml:space="preserve">
+    <value>Password</value>
+  </data>
+  <data name="PasswordTooltip" xml:space="preserve">
+    <value>The password to login with</value>
+  </data>
+  <data name="PrivateAPIKey" xml:space="preserve">
+    <value>Private API Key</value>
+  </data>
+  <data name="PrivateAPIKeyTooltip" xml:space="preserve">
+    <value>Your IPBan Pro Private API Key</value>
+  </data>
+  <data name="ProcessToRunOnBan" xml:space="preserve">
+    <value>Process to Run on Ban</value>
+  </data>
+  <data name="ProcessToRunOnBanTooltip" xml:space="preserve">
+    <value>Run an external process when a ban occurs. Separate the process and any arguments with a pipe (|). ###IPADDRESS### will be replaced with the actual IP which was banned. The pipe is required. Example: c:\system files\on_ip_banned.exe|###IPADDRESS### -q</value>
+  </data>
+  <data name="PublicAPIKey" xml:space="preserve">
+    <value>Public API Key</value>
+  </data>
+  <data name="PublicAPIKeyTooltip" xml:space="preserve">
+    <value>Your IPBan Pro Public API Key</value>
+  </data>
+  <data name="RecentActivity" xml:space="preserve">
+    <value>Recent Activity</value>
+    <comment>Recent activity, i.e. the most recent ip addresses that have been banned</comment>
+  </data>
+  <data name="RecentBannedIPAddresses" xml:space="preserve">
+    <value>Recent Banned IP IPAddresses</value>
+    <comment>Recently banned ip addresses</comment>
+  </data>
+  <data name="RecentFailedLogins" xml:space="preserve">
+    <value>Recent Failed Logins</value>
+    <comment>Recently failed logins, probably hackers</comment>
+  </data>
+  <data name="RecentListCount" xml:space="preserve">
+    <value>Recent List Count</value>
+  </data>
+  <data name="RecentListCountTooltip" xml:space="preserve">
+    <value>Max count of the recent global blacklist</value>
+  </data>
+  <data name="RecentSuccessLogins" xml:space="preserve">
+    <value>Recent Successful Logins</value>
+  </data>
+  <data name="Region" xml:space="preserve">
+    <value>Region</value>
+    <comment>A region in a country, i.e. Quebec, Canada</comment>
+  </data>
+  <data name="RemoteHost" xml:space="preserve">
+    <value>Remote Host</value>
+    <comment>Remote host (dns name or internet provider name, etc.)</comment>
+  </data>
+  <data name="RemoteIP" xml:space="preserve">
+    <value>Remote IP Address</value>
+    <comment>Remote ip address</comment>
+  </data>
+  <data name="ResolveIPAddress" xml:space="preserve">
+    <value>Resolve IP Address</value>
+  </data>
+  <data name="Save" xml:space="preserve">
+    <value>Save</value>
+    <comment>i.e. save settings</comment>
+  </data>
+  <data name="Settings" xml:space="preserve">
+    <value>Settings</value>
+    <comment>i.e. Change the current settings</comment>
+  </data>
+  <data name="SiteCopyright" xml:space="preserve">
+    <value>(c) 2018 Digital Ruby, LLC</value>
+  </data>
+  <data name="SiteLink" xml:space="preserve">
+    <value>https://ipban.com</value>
+    <comment>Do not change, keep exactly as is</comment>
+  </data>
+  <data name="SiteName" xml:space="preserve">
+    <value>IPBan Pro Admin</value>
+  </data>
+  <data name="SmtpBodyTemplate" xml:space="preserve">
+    <value>Email Body Template</value>
+  </data>
+  <data name="SmtpBodyTemplateTooltip" xml:space="preserve">
+    <value>Body template for sent mail. {0} = machine name, {1} = machine ip address, {2} = banned ip address, {3} = remote host name, {4} = city, {5} = region, {6} = country.</value>
+  </data>
+  <data name="SmtpFrom" xml:space="preserve">
+    <value>Send Email As</value>
+  </data>
+  <data name="SmtpFromTooltip" xml:space="preserve">
+    <value>Smtp user to send mail as (i.e. bob@hotmail.com)</value>
+  </data>
+  <data name="SmtpPort" xml:space="preserve">
+    <value>Smtp Port</value>
+    <comment>Port for mail server, i.e. 20</comment>
+  </data>
+  <data name="SmtpPortTooltip" xml:space="preserve">
+    <value>The smtp server port, i.e. 20</value>
+  </data>
+  <data name="SmtpServer" xml:space="preserve">
+    <value>Smtp Server</value>
+    <comment>Mail server, i.e. mail.google.com</comment>
+  </data>
+  <data name="SmtpServerTooltip" xml:space="preserve">
+    <value>The smtp server, i.e. mail.yourdomain.com</value>
+  </data>
+  <data name="SmtpSubjectTemplate" xml:space="preserve">
+    <value>Email Subject Template</value>
+  </data>
+  <data name="SmtpSubjectTemplateTooltip" xml:space="preserve">
+    <value>Subject template for sent mail. {0} = machine name, {1} = machine ip address, {2} = banned ip address, {3} = remote host name, {4} = city, {5} = region, {6} = country.</value>
+  </data>
+  <data name="SmtpTo" xml:space="preserve">
+    <value>Send Email To</value>
+  </data>
+  <data name="SmtpToTooltip" xml:space="preserve">
+    <value>Comma separated list of users to send mail to</value>
+  </data>
+  <data name="SmtpWhoisBodyTemplate" xml:space="preserve">
+    <value>Whois Body Template</value>
+  </data>
+  <data name="SmtpWhoisBodyTemplateTooltip" xml:space="preserve">
+    <value>Body template for emailing abuse email addresses. {0} = banned ip address, {1} = banned host name, {2} = log of failed attempts.</value>
+  </data>
+  <data name="SmtpWhoisSubjectTemplate" xml:space="preserve">
+    <value>Whois Subject Template</value>
+  </data>
+  <data name="SmtpWhoisSubjectTemplateTooltip" xml:space="preserve">
+    <value>Subject template for emailing abuse email addresses. {0} = banned ip address, {1} = banned host name, {2} = external ip address of machine that banned the ip address, {3} = machine name, {4} = machine ip address.</value>
+  </data>
+  <data name="Source" xml:space="preserve">
+    <value>Source</value>
+    <comment>The source of a problem</comment>
+  </data>
+  <data name="Status" xml:space="preserve">
+    <value>Status</value>
+    <comment>i.e. Status of the machines</comment>
+  </data>
+  <data name="Submit" xml:space="preserve">
+    <value>Submit</value>
+    <comment>i.e. Submit an order</comment>
+  </data>
+  <data name="Success" xml:space="preserve">
+    <value>Success</value>
+    <comment>i.e., the result of the operation was a success</comment>
+  </data>
+  <data name="Summary" xml:space="preserve">
+    <value>Summary</value>
+  </data>
+  <data name="Test" xml:space="preserve">
+    <value>Test</value>
+    <comment>Test out a new function</comment>
+  </data>
+  <data name="Timestamp" xml:space="preserve">
+    <value>Timestamp</value>
+    <comment>A timestamp, i.e. date / time of an event</comment>
+  </data>
+  <data name="Tools" xml:space="preserve">
+    <value>Tools</value>
+  </data>
+  <data name="UnexpectedError" xml:space="preserve">
+    <value>An unexpected error has ocurred. Please email support@digitalruby.com for help.</value>
+  </data>
+  <data name="UserName" xml:space="preserve">
+    <value>User Name</value>
+    <comment>User name, i.e. bob123@gmail.com</comment>
+  </data>
+  <data name="UserNameTooltip" xml:space="preserve">
+    <value>The user name (i.e. bob@hotmail.com)</value>
+  </data>
+  <data name="UserNameWhitelist" xml:space="preserve">
+    <value>User Name Whitelist</value>
+  </data>
+  <data name="UserNameWhiteListMinimumEditDistance" xml:space="preserve">
+    <value>User Name Edit Distance</value>
+  </data>
+  <data name="UserNameWhiteListMinimumEditDistanceTooltip" xml:space="preserve">
+    <value>If user name whitelist is not empty and if the edit distance (levenshtein distance) of a failed user name is greater than this distance away, the user name is immediately banned. Set to 0 to ban all failed user names if UserNameWhitelist has entries. Case is ignored. Empty user names are always allowed.</value>
+  </data>
+  <data name="UserNameWhitelistTooltip" xml:space="preserve">
+    <value>Comma separated list of user names that are allowed. UserNameWhiteListMinimumEditDistance is checked for user names not in the list to determine whether a failed user name should be banned. Case is ignored. Empty user names are always allowed. *** IMPORTANT*** This can represent an attack vector by a hacker. If they know you are using DigitalRuby.IPBan and they don't get locked out right away, they might know they are somewhat close to the right user name. Make sure your passwords are complex enough and this shouldn't be a problem.</value>
+  </data>
+  <data name="Version" xml:space="preserve">
+    <value>Version</value>
+    <comment>Version of the software</comment>
+  </data>
+  <data name="Welcome" xml:space="preserve">
+    <value>Welcome, {0}</value>
+    <comment>i.e. Welcome, John</comment>
+  </data>
+  <data name="XmlConfiguration" xml:space="preserve">
+    <value>Xml Configuration</value>
+  </data>
+  <data name="XmlConfigurationTooltip" xml:space="preserve">
+    <value>Configure configuration using raw Xml</value>
+  </data>
+  <data name="EventViewerExpressions" xml:space="preserve">
+    <value>Expressions</value>
+  </data>
+  <data name="EventViewerExpressionsTooltip" xml:space="preserve">
+    <value>Event viewer expressions to find. Format is //XPath[newline]Regex. Regex can span multiple lines. Start a new XPath to search for by putting //XPath on a new line.</value>
+  </data>
+  <data name="EventViewerKeywords" xml:space="preserve">
+    <value>Keywords</value>
+  </data>
+  <data name="EventViewerKeywordsTooltip" xml:space="preserve">
+    <value>Event viewer keywords, in hex</value>
+  </data>
+  <data name="FailedLoginRegex" xml:space="preserve">
+    <value>Failed Login Regex</value>
+  </data>
+  <data name="FailedLoginRegexTooltip" xml:space="preserve">
+    <value>Regex to parse failed logins out of log files. Please provide ipaddress and username groups.</value>
+  </data>
+  <data name="MaxFileSize" xml:space="preserve">
+    <value>Max File Size</value>
+  </data>
+  <data name="MaxFileSizeTooltip" xml:space="preserve">
+    <value>The max size to let the file grow to before deleting it and starting over, in bytes</value>
+  </data>
+  <data name="NotifyOnly" xml:space="preserve">
+    <value>Notify Only</value>
+  </data>
+  <data name="NotifyOnlyTooltip" xml:space="preserve">
+    <value>Whether this is a notification of a successful login (true) or a failed login (false)</value>
+  </data>
+  <data name="PathAndMask" xml:space="preserve">
+    <value>Paths and Masks</value>
+  </data>
+  <data name="PathAndMaskTooltip" xml:space="preserve">
+    <value>Paths and masks to search, one per line</value>
+  </data>
+  <data name="LogFilePingInterval" xml:space="preserve">
+    <value>Ping Interval</value>
+  </data>
+  <data name="LogFilePingIntervalTooltip" xml:space="preserve">
+    <value>How often to ping the log file, in milliseconds</value>
+  </data>
+  <data name="PlatformRegex" xml:space="preserve">
+    <value>Platform Regex</value>
+  </data>
+  <data name="PlatformRegexTooltip" xml:space="preserve">
+    <value>The regex to filter based on current platform, i.e. Windows or Linux.</value>
+  </data>
+  <data name="Recursive" xml:space="preserve">
+    <value>Recursive</value>
+  </data>
+  <data name="RecursiveTooltip" xml:space="preserve">
+    <value>Whether to scan recursively</value>
+  </data>
+  <data name="SuccessfulLoginRegex" xml:space="preserve">
+    <value>Successful Login Regex</value>
+  </data>
+  <data name="SuccessfulLoginRegexTooltip" xml:space="preserve">
+    <value>Regex to parse succesful logins out of log files. Please provide ipaddress and username groups.</value>
+  </data>
+  <data name="XPath" xml:space="preserve">
+    <value>XPath</value>
+  </data>
+  <data name="XPathRegex" xml:space="preserve">
+    <value>XPath Regex</value>
+  </data>
+  <data name="XPathRegexTooltip" xml:space="preserve">
+    <value>Regex to find in the xpath, please provide ipaddress and username groups.</value>
+  </data>
+  <data name="XPathTooltip" xml:space="preserve">
+    <value>XPath to find, i.e. //Node/SubNode</value>
+  </data>
+  <data name="SourceTooltip" xml:space="preserve">
+    <value>The event source, i.e. RDP, SSH, SMTP, etc.</value>
+  </data>
+  <data name="EventViewerPath" xml:space="preserve">
+    <value>Path</value>
+  </data>
+  <data name="EventViewerPathTooltip" xml:space="preserve">
+    <value>The event viewer path, i.e. Application or Security, etc.</value>
   </data>
 </root>

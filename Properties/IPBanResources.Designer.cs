@@ -61,11 +61,1524 @@ namespace DigitalRuby.IPBan {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to About.
+        /// </summary>
+        public static string About {
+            get {
+                return ResourceManager.GetString("About", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Allow Ports.
+        /// </summary>
+        public static string AllowPorts {
+            get {
+                return ResourceManager.GetString("AllowPorts", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Comma separated ports or port ranges to exclude from country bans, naughty list, etc..
+        /// </summary>
+        public static string AllowPortsTooltip {
+            get {
+                return ResourceManager.GetString("AllowPortsTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Apply.
+        /// </summary>
+        public static string Apply {
+            get {
+                return ResourceManager.GetString("Apply", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Ban Count.
+        /// </summary>
+        public static string BanCount {
+            get {
+                return ResourceManager.GetString("BanCount", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Banned ip addresses.
+        /// </summary>
+        public static string BannedIPAddresses {
+            get {
+                return ResourceManager.GetString("BannedIPAddresses", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Ban Time.
+        /// </summary>
+        public static string BanTime {
+            get {
+                return ResourceManager.GetString("BanTime", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The duration of time to ban an ip address(DD:HH:MM:SS) - 00:00:00:00 for forever.
+        /// </summary>
+        public static string BanTimeTooltip {
+            get {
+                return ResourceManager.GetString("BanTimeTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Base Url.
+        /// </summary>
+        public static string BaseUrl {
+            get {
+                return ResourceManager.GetString("BaseUrl", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The base url of the server to connect clients to, should be this server.
+        /// </summary>
+        public static string BaseUrlTooltip {
+            get {
+                return ResourceManager.GetString("BaseUrlTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cancel.
+        /// </summary>
+        public static string Cancel {
+            get {
+                return ResourceManager.GetString("Cancel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to City.
+        /// </summary>
+        public static string City {
+            get {
+                return ResourceManager.GetString("City", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Clear Bans on Restart.
+        /// </summary>
+        public static string ClearBannedIPAddressesOnRestart {
+            get {
+                return ResourceManager.GetString("ClearBannedIPAddressesOnRestart", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to True to clear and unban all the ip addresses from the firewall upon restart, false otherwise.
+        /// </summary>
+        public static string ClearBannedIPAddressesOnRestartTooltip {
+            get {
+                return ResourceManager.GetString("ClearBannedIPAddressesOnRestartTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Client Configuration.
+        /// </summary>
+        public static string ClientConfiguration {
+            get {
+                return ResourceManager.GetString("ClientConfiguration", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Replace global configuration values for this client.
+        /// </summary>
+        public static string ClientConfigurationOverrideTooltip {
+            get {
+                return ResourceManager.GetString("ClientConfigurationOverrideTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Confirm Delete.
+        /// </summary>
+        public static string ConfirmDelete {
+            get {
+                return ResourceManager.GetString("ConfirmDelete", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Country.
+        /// </summary>
+        public static string Country {
+            get {
+                return ResourceManager.GetString("Country", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Country Blacklist.
+        /// </summary>
+        public static string CountryBlacklist {
+            get {
+                return ResourceManager.GetString("CountryBlacklist", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Country Blacklist Interval.
+        /// </summary>
+        public static string CountryBlacklistInterval {
+            get {
+                return ResourceManager.GetString("CountryBlacklistInterval", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to 24 hour start (local time), day of month to send out country blacklist to clients, i.e. 3,28.
+        /// </summary>
+        public static string CountryBlacklistIntervalTooltip {
+            get {
+                return ResourceManager.GetString("CountryBlacklistIntervalTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Select banned country codes (comma separated). Firewall will be automatically updated with ip addresses from the selected countries..
+        /// </summary>
+        public static string CountryBlacklistTooltip {
+            get {
+                return ResourceManager.GetString("CountryBlacklistTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Create Whitelist Firewall Rule.
+        /// </summary>
+        public static string CreateWhitelistFirewallRule {
+            get {
+                return ResourceManager.GetString("CreateWhitelistFirewallRule", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Whether to create a whitelist firewall rule. This gives all whitelist ip access to all ports.
+        /// </summary>
+        public static string CreateWhitelistFirewallRuleTooltip {
+            get {
+                return ResourceManager.GetString("CreateWhitelistFirewallRuleTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cycle Time.
+        /// </summary>
+        public static string CycleTime {
+            get {
+                return ResourceManager.GetString("CycleTime", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The time between cycles to do house-keeping such as un-banning ip addresses, reloading config, etc. (DD:HH:MM:SS).
+        /// </summary>
+        public static string CycleTimeTooltip {
+            get {
+                return ResourceManager.GetString("CycleTimeTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Delete.
+        /// </summary>
+        public static string Delete {
+            get {
+                return ResourceManager.GetString("Delete", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Docs.
+        /// </summary>
+        public static string Docs {
+            get {
+                return ResourceManager.GetString("Docs", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Edit.
+        /// </summary>
+        public static string Edit {
+            get {
+                return ResourceManager.GetString("Edit", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Edit Machine.
+        /// </summary>
+        public static string EditMachine {
+            get {
+                return ResourceManager.GetString("EditMachine", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Enable SSL.
+        /// </summary>
+        public static string EnableSSL {
+            get {
+                return ResourceManager.GetString("EnableSSL", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Whether to enable SSL (secure socket layer).
+        /// </summary>
+        public static string EnableSSLTooltip {
+            get {
+                return ResourceManager.GetString("EnableSSLTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error.
+        /// </summary>
+        public static string Error {
+            get {
+                return ResourceManager.GetString("Error", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Expressions.
+        /// </summary>
+        public static string EventViewerExpressions {
+            get {
+                return ResourceManager.GetString("EventViewerExpressions", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Event viewer expressions to find. Format is //XPath[newline]Regex. Regex can span multiple lines. Start a new XPath to search for by putting //XPath on a new line..
+        /// </summary>
+        public static string EventViewerExpressionsTooltip {
+            get {
+                return ResourceManager.GetString("EventViewerExpressionsTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Event Viewer Failed Logins.
+        /// </summary>
+        public static string EventViewerFailedLogins {
+            get {
+                return ResourceManager.GetString("EventViewerFailedLogins", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Keywords.
+        /// </summary>
+        public static string EventViewerKeywords {
+            get {
+                return ResourceManager.GetString("EventViewerKeywords", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Event viewer keywords, in hex.
+        /// </summary>
+        public static string EventViewerKeywordsTooltip {
+            get {
+                return ResourceManager.GetString("EventViewerKeywordsTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Path.
+        /// </summary>
+        public static string EventViewerPath {
+            get {
+                return ResourceManager.GetString("EventViewerPath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The event viewer path, i.e. Application or Security, etc..
+        /// </summary>
+        public static string EventViewerPathTooltip {
+            get {
+                return ResourceManager.GetString("EventViewerPathTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Event Viewer Successful Logins.
+        /// </summary>
+        public static string EventViewerSuccessfulLogins {
+            get {
+                return ResourceManager.GetString("EventViewerSuccessfulLogins", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Event Viewer (Windows).
+        /// </summary>
+        public static string EventViewerWindows {
+            get {
+                return ResourceManager.GetString("EventViewerWindows", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Expire Time.
+        /// </summary>
+        public static string ExpireTime {
+            get {
+                return ResourceManager.GetString("ExpireTime", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The duration after the last failed login attempt that the ip is forgotten(count reset back to 0). Set to 00:00:00:00 to never forget an ip. (DD:HH:MM:SS).
+        /// </summary>
+        public static string ExpireTimeTooltip {
+            get {
+                return ResourceManager.GetString("ExpireTimeTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed login attempts.
+        /// </summary>
+        public static string FailedLoginAttempts {
+            get {
+                return ResourceManager.GetString("FailedLoginAttempts", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed Logins Before Ban.
+        /// </summary>
+        public static string FailedLoginAttemptsBeforeBan {
+            get {
+                return ResourceManager.GetString("FailedLoginAttemptsBeforeBan", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Number of failed logins before banning an ip address.
+        /// </summary>
+        public static string FailedLoginAttemptsBeforeBanTooltip {
+            get {
+                return ResourceManager.GetString("FailedLoginAttemptsBeforeBanTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed Login Regex.
+        /// </summary>
+        public static string FailedLoginRegex {
+            get {
+                return ResourceManager.GetString("FailedLoginRegex", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Regex to parse failed logins out of log files. Please provide ipaddress and username groups..
+        /// </summary>
+        public static string FailedLoginRegexTooltip {
+            get {
+                return ResourceManager.GetString("FailedLoginRegexTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed Logins Before Ban Whitelist.
+        /// </summary>
+        public static string FailedLoginsBeforeBanUserNameWhitelist {
+            get {
+                return ResourceManager.GetString("FailedLoginsBeforeBanUserNameWhitelist", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Number of failed logins before banning the ip address if the user name is in the user name whitelist.
+        /// </summary>
+        public static string FailedLoginsBeforeBanUserNameWhitelistTooltip {
+            get {
+                return ResourceManager.GetString("FailedLoginsBeforeBanUserNameWhitelistTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Filter Settings.
+        /// </summary>
+        public static string FilterSettings {
+            get {
+                return ResourceManager.GetString("FilterSettings", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Firewall Rule Prefix.
+        /// </summary>
+        public static string FirewallRulePrefix {
+            get {
+                return ResourceManager.GetString("FirewallRulePrefix", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Rule prefix name for firewall rules, must contain only A-Z, 0-9 and _.
+        /// </summary>
+        public static string FirewallRulePrefixTooltip {
+            get {
+                return ResourceManager.GetString("FirewallRulePrefixTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to FirewallSettings.
+        /// </summary>
+        public static string FirewallSettings {
+            get {
+                return ResourceManager.GetString("FirewallSettings", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Firewall Type.
+        /// </summary>
+        public static string FirewallType {
+            get {
+                return ResourceManager.GetString("FirewallType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Firewall types: Allows setting a type of firewall if not using the default firewall implementation.
+        ///Prefix with OS:ClassName, example: Windows:Windivert,Linux:Default.
+        /// </summary>
+        public static string FirewallTypeTooltip {
+            get {
+                return ResourceManager.GetString("FirewallTypeTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to FQDN.
+        /// </summary>
+        public static string FQDN {
+            get {
+                return ResourceManager.GetString("FQDN", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to General Settings.
+        /// </summary>
+        public static string GeneralSettings {
+            get {
+                return ResourceManager.GetString("GeneralSettings", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Home.
+        /// </summary>
+        public static string Home {
+            get {
+                return ResourceManager.GetString("Home", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IP Address.
+        /// </summary>
+        public static string IPAddress {
+            get {
+                return ResourceManager.GetString("IPAddress", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Blocked IP Addresses.
+        /// </summary>
+        public static string IPAddressEventFlags_BlockedIPAddress {
+            get {
+                return ResourceManager.GetString("IPAddressEventFlags_BlockedIPAddress", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed Logins.
+        /// </summary>
+        public static string IPAddressEventFlags_FailedLogin {
+            get {
+                return ResourceManager.GetString("IPAddressEventFlags_FailedLogin", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Successful Logins.
+        /// </summary>
+        public static string IPAddressEventFlags_SuccessfulLogin {
+            get {
+                return ResourceManager.GetString("IPAddressEventFlags_SuccessfulLogin", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to 60E555E4ADFE4AAB9DAE61E0D57ADD7E.
         /// </summary>
         public static string IPBanKey1 {
             get {
                 return ResourceManager.GetString("IPBanKey1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IPBan Shield.
+        /// </summary>
+        public static string IPBanShield {
+            get {
+                return ResourceManager.GetString("IPBanShield", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IP Blacklist.
+        /// </summary>
+        public static string IPBlacklist {
+            get {
+                return ResourceManager.GetString("IPBlacklist", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IP Blacklist Regex.
+        /// </summary>
+        public static string IPBlacklistRegex {
+            get {
+                return ResourceManager.GetString("IPBlacklistRegex", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Regular expression for more advanced blacklisting.Shortcut: use* to allow any piece of an ip, dns name or user name(i.e. 128.128.128.*). Sample regex that blacklists a few ips: ^(128\.128\.128\.*)|(99\.99\.99\.[0-9])$ More info about regex: http://www.regular-expressions.info/.
+        /// </summary>
+        public static string IPBlacklistRegexTooltip {
+            get {
+                return ResourceManager.GetString("IPBlacklistRegexTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Comma separated list of ip addresses OR DNS names OR user names to always ban and NEVER unban.
+        /// </summary>
+        public static string IPBlacklistTooltip {
+            get {
+                return ResourceManager.GetString("IPBlacklistTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IP Whitelist.
+        /// </summary>
+        public static string IPWhitelist {
+            get {
+                return ResourceManager.GetString("IPWhitelist", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IP Whitelist Regex.
+        /// </summary>
+        public static string IPWhitelistRegex {
+            get {
+                return ResourceManager.GetString("IPWhitelistRegex", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Regular expression for more advanced whitelisting.Shortcut: use* to allow any piece of an ip (i.e. 128.128.128.*). Sample regex that whitelists a few ips: ^(128\.128\.128\.*)|(99\.99\.99\.[0-9])$ More info about regex: http://www.regular-expressions.info/.
+        /// </summary>
+        public static string IPWhitelistRegexTooltip {
+            get {
+                return ResourceManager.GetString("IPWhitelistRegexTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IP addresses to never ban, comma separated.
+        /// </summary>
+        public static string IPWhitelistTooltip {
+            get {
+                return ResourceManager.GetString("IPWhitelistTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Last Update.
+        /// </summary>
+        public static string LastUpdate {
+            get {
+                return ResourceManager.GetString("LastUpdate", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Ping Interval.
+        /// </summary>
+        public static string LogFilePingInterval {
+            get {
+                return ResourceManager.GetString("LogFilePingInterval", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to How often to ping the log file, in milliseconds.
+        /// </summary>
+        public static string LogFilePingIntervalTooltip {
+            get {
+                return ResourceManager.GetString("LogFilePingIntervalTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Log Parsing.
+        /// </summary>
+        public static string LogParsing {
+            get {
+                return ResourceManager.GetString("LogParsing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Machines.
+        /// </summary>
+        public static string Machines {
+            get {
+                return ResourceManager.GetString("Machines", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Machine Whitelist.
+        /// </summary>
+        public static string MachineWhitelist {
+            get {
+                return ResourceManager.GetString("MachineWhitelist", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Blacklist Max Size.
+        /// </summary>
+        public static string MaxActiveBlacklistedIPAddresses {
+            get {
+                return ResourceManager.GetString("MaxActiveBlacklistedIPAddresses", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The maximum blacklisted ip addresses to return, in order of last seen date descending.
+        /// </summary>
+        public static string MaxActiveBlacklistedIPAddressesTooltip {
+            get {
+                return ResourceManager.GetString("MaxActiveBlacklistedIPAddressesTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Max File Size.
+        /// </summary>
+        public static string MaxFileSize {
+            get {
+                return ResourceManager.GetString("MaxFileSize", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The max size to let the file grow to before deleting it and starting over, in bytes.
+        /// </summary>
+        public static string MaxFileSizeTooltip {
+            get {
+                return ResourceManager.GetString("MaxFileSizeTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Min Time Between Failed Logins.
+        /// </summary>
+        public static string MinimumTimeBetweenFailedLoginAttempts {
+            get {
+                return ResourceManager.GetString("MinimumTimeBetweenFailedLoginAttempts", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The minimum time between failed login attempts for an ip address to increment the ban counter (DD:HH:MM:SS).
+        /// </summary>
+        public static string MinimumTimeBetweenFailedLoginAttemptsTooltip {
+            get {
+                return ResourceManager.GetString("MinimumTimeBetweenFailedLoginAttemptsTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Minimum Trust Level.
+        /// </summary>
+        public static string MinimumTrustLevel {
+            get {
+                return ResourceManager.GetString("MinimumTrustLevel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Minimum trust level for universal banned ip sharing (0-10) where 0 is trust all submissions.
+        /// </summary>
+        public static string MinimumTrustLevelTooltip {
+            get {
+                return ResourceManager.GetString("MinimumTrustLevelTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Naughty List Interval.
+        /// </summary>
+        public static string NaughtyListInterval {
+            get {
+                return ResourceManager.GetString("NaughtyListInterval", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Naughty list interval in x,y format. X = 24 hour of day (0 to 23). Y = max count, i.e. 4,10000..
+        /// </summary>
+        public static string NaughtyListIntervalTooltip {
+            get {
+                return ResourceManager.GetString("NaughtyListIntervalTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Notes.
+        /// </summary>
+        public static string Notes {
+            get {
+                return ResourceManager.GetString("Notes", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Notification Flags.
+        /// </summary>
+        public static string NotificationFlags {
+            get {
+                return ResourceManager.GetString("NotificationFlags", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Notifications.
+        /// </summary>
+        public static string Notifications {
+            get {
+                return ResourceManager.GetString("Notifications", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Notify Only.
+        /// </summary>
+        public static string NotifyOnly {
+            get {
+                return ResourceManager.GetString("NotifyOnly", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Whether this is a notification of a successful login (true) or a failed login (false).
+        /// </summary>
+        public static string NotifyOnlyTooltip {
+            get {
+                return ResourceManager.GetString("NotifyOnlyTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Operating System Name.
+        /// </summary>
+        public static string OSName {
+            get {
+                return ResourceManager.GetString("OSName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Operating System Version.
+        /// </summary>
+        public static string OSVersion {
+            get {
+                return ResourceManager.GetString("OSVersion", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Other.
+        /// </summary>
+        public static string Other {
+            get {
+                return ResourceManager.GetString("Other", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Password.
+        /// </summary>
+        public static string Password {
+            get {
+                return ResourceManager.GetString("Password", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The password to login with.
+        /// </summary>
+        public static string PasswordTooltip {
+            get {
+                return ResourceManager.GetString("PasswordTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Paths and Masks.
+        /// </summary>
+        public static string PathAndMask {
+            get {
+                return ResourceManager.GetString("PathAndMask", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Paths and masks to search, one per line.
+        /// </summary>
+        public static string PathAndMaskTooltip {
+            get {
+                return ResourceManager.GetString("PathAndMaskTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Platform Regex.
+        /// </summary>
+        public static string PlatformRegex {
+            get {
+                return ResourceManager.GetString("PlatformRegex", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The regex to filter based on current platform, i.e. Windows or Linux..
+        /// </summary>
+        public static string PlatformRegexTooltip {
+            get {
+                return ResourceManager.GetString("PlatformRegexTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Private API Key.
+        /// </summary>
+        public static string PrivateAPIKey {
+            get {
+                return ResourceManager.GetString("PrivateAPIKey", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Your IPBan Pro Private API Key.
+        /// </summary>
+        public static string PrivateAPIKeyTooltip {
+            get {
+                return ResourceManager.GetString("PrivateAPIKeyTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Process to Run on Ban.
+        /// </summary>
+        public static string ProcessToRunOnBan {
+            get {
+                return ResourceManager.GetString("ProcessToRunOnBan", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Run an external process when a ban occurs. Separate the process and any arguments with a pipe (|). ###IPADDRESS### will be replaced with the actual IP which was banned. The pipe is required. Example: c:\system files\on_ip_banned.exe|###IPADDRESS### -q.
+        /// </summary>
+        public static string ProcessToRunOnBanTooltip {
+            get {
+                return ResourceManager.GetString("ProcessToRunOnBanTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Public API Key.
+        /// </summary>
+        public static string PublicAPIKey {
+            get {
+                return ResourceManager.GetString("PublicAPIKey", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Your IPBan Pro Public API Key.
+        /// </summary>
+        public static string PublicAPIKeyTooltip {
+            get {
+                return ResourceManager.GetString("PublicAPIKeyTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Recent Activity.
+        /// </summary>
+        public static string RecentActivity {
+            get {
+                return ResourceManager.GetString("RecentActivity", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Recent Banned IP IPAddresses.
+        /// </summary>
+        public static string RecentBannedIPAddresses {
+            get {
+                return ResourceManager.GetString("RecentBannedIPAddresses", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Recent Failed Logins.
+        /// </summary>
+        public static string RecentFailedLogins {
+            get {
+                return ResourceManager.GetString("RecentFailedLogins", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Recent List Count.
+        /// </summary>
+        public static string RecentListCount {
+            get {
+                return ResourceManager.GetString("RecentListCount", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Max count of the recent global blacklist.
+        /// </summary>
+        public static string RecentListCountTooltip {
+            get {
+                return ResourceManager.GetString("RecentListCountTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Recent Successful Logins.
+        /// </summary>
+        public static string RecentSuccessLogins {
+            get {
+                return ResourceManager.GetString("RecentSuccessLogins", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Recursive.
+        /// </summary>
+        public static string Recursive {
+            get {
+                return ResourceManager.GetString("Recursive", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Whether to scan recursively.
+        /// </summary>
+        public static string RecursiveTooltip {
+            get {
+                return ResourceManager.GetString("RecursiveTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Region.
+        /// </summary>
+        public static string Region {
+            get {
+                return ResourceManager.GetString("Region", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Remote Host.
+        /// </summary>
+        public static string RemoteHost {
+            get {
+                return ResourceManager.GetString("RemoteHost", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Remote IP Address.
+        /// </summary>
+        public static string RemoteIP {
+            get {
+                return ResourceManager.GetString("RemoteIP", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Resolve IP Address.
+        /// </summary>
+        public static string ResolveIPAddress {
+            get {
+                return ResourceManager.GetString("ResolveIPAddress", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Save.
+        /// </summary>
+        public static string Save {
+            get {
+                return ResourceManager.GetString("Save", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Settings.
+        /// </summary>
+        public static string Settings {
+            get {
+                return ResourceManager.GetString("Settings", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to (c) 2018 Digital Ruby, LLC.
+        /// </summary>
+        public static string SiteCopyright {
+            get {
+                return ResourceManager.GetString("SiteCopyright", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to https://ipban.com.
+        /// </summary>
+        public static string SiteLink {
+            get {
+                return ResourceManager.GetString("SiteLink", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to IPBan Pro Admin.
+        /// </summary>
+        public static string SiteName {
+            get {
+                return ResourceManager.GetString("SiteName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Email Body Template.
+        /// </summary>
+        public static string SmtpBodyTemplate {
+            get {
+                return ResourceManager.GetString("SmtpBodyTemplate", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Body template for sent mail. {0} = machine name, {1} = machine ip address, {2} = banned ip address, {3} = remote host name, {4} = city, {5} = region, {6} = country..
+        /// </summary>
+        public static string SmtpBodyTemplateTooltip {
+            get {
+                return ResourceManager.GetString("SmtpBodyTemplateTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Send Email As.
+        /// </summary>
+        public static string SmtpFrom {
+            get {
+                return ResourceManager.GetString("SmtpFrom", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Smtp user to send mail as (i.e. bob@hotmail.com).
+        /// </summary>
+        public static string SmtpFromTooltip {
+            get {
+                return ResourceManager.GetString("SmtpFromTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Smtp Port.
+        /// </summary>
+        public static string SmtpPort {
+            get {
+                return ResourceManager.GetString("SmtpPort", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The smtp server port, i.e. 20.
+        /// </summary>
+        public static string SmtpPortTooltip {
+            get {
+                return ResourceManager.GetString("SmtpPortTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Smtp Server.
+        /// </summary>
+        public static string SmtpServer {
+            get {
+                return ResourceManager.GetString("SmtpServer", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The smtp server, i.e. mail.yourdomain.com.
+        /// </summary>
+        public static string SmtpServerTooltip {
+            get {
+                return ResourceManager.GetString("SmtpServerTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Email Subject Template.
+        /// </summary>
+        public static string SmtpSubjectTemplate {
+            get {
+                return ResourceManager.GetString("SmtpSubjectTemplate", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Subject template for sent mail. {0} = machine name, {1} = machine ip address, {2} = banned ip address, {3} = remote host name, {4} = city, {5} = region, {6} = country..
+        /// </summary>
+        public static string SmtpSubjectTemplateTooltip {
+            get {
+                return ResourceManager.GetString("SmtpSubjectTemplateTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Send Email To.
+        /// </summary>
+        public static string SmtpTo {
+            get {
+                return ResourceManager.GetString("SmtpTo", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Comma separated list of users to send mail to.
+        /// </summary>
+        public static string SmtpToTooltip {
+            get {
+                return ResourceManager.GetString("SmtpToTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Whois Body Template.
+        /// </summary>
+        public static string SmtpWhoisBodyTemplate {
+            get {
+                return ResourceManager.GetString("SmtpWhoisBodyTemplate", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Body template for emailing abuse email addresses. {0} = banned ip address, {1} = banned host name, {2} = log of failed attempts..
+        /// </summary>
+        public static string SmtpWhoisBodyTemplateTooltip {
+            get {
+                return ResourceManager.GetString("SmtpWhoisBodyTemplateTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Whois Subject Template.
+        /// </summary>
+        public static string SmtpWhoisSubjectTemplate {
+            get {
+                return ResourceManager.GetString("SmtpWhoisSubjectTemplate", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Subject template for emailing abuse email addresses. {0} = banned ip address, {1} = banned host name, {2} = external ip address of machine that banned the ip address, {3} = machine name, {4} = machine ip address..
+        /// </summary>
+        public static string SmtpWhoisSubjectTemplateTooltip {
+            get {
+                return ResourceManager.GetString("SmtpWhoisSubjectTemplateTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Source.
+        /// </summary>
+        public static string Source {
+            get {
+                return ResourceManager.GetString("Source", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The event source, i.e. RDP, SSH, SMTP, etc..
+        /// </summary>
+        public static string SourceTooltip {
+            get {
+                return ResourceManager.GetString("SourceTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Status.
+        /// </summary>
+        public static string Status {
+            get {
+                return ResourceManager.GetString("Status", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Submit.
+        /// </summary>
+        public static string Submit {
+            get {
+                return ResourceManager.GetString("Submit", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Success.
+        /// </summary>
+        public static string Success {
+            get {
+                return ResourceManager.GetString("Success", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Successful Login Regex.
+        /// </summary>
+        public static string SuccessfulLoginRegex {
+            get {
+                return ResourceManager.GetString("SuccessfulLoginRegex", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Regex to parse succesful logins out of log files. Please provide ipaddress and username groups..
+        /// </summary>
+        public static string SuccessfulLoginRegexTooltip {
+            get {
+                return ResourceManager.GetString("SuccessfulLoginRegexTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Summary.
+        /// </summary>
+        public static string Summary {
+            get {
+                return ResourceManager.GetString("Summary", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Test.
+        /// </summary>
+        public static string Test {
+            get {
+                return ResourceManager.GetString("Test", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Timestamp.
+        /// </summary>
+        public static string Timestamp {
+            get {
+                return ResourceManager.GetString("Timestamp", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Tools.
+        /// </summary>
+        public static string Tools {
+            get {
+                return ResourceManager.GetString("Tools", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to An unexpected error has ocurred. Please email support@digitalruby.com for help..
+        /// </summary>
+        public static string UnexpectedError {
+            get {
+                return ResourceManager.GetString("UnexpectedError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to User Name.
+        /// </summary>
+        public static string UserName {
+            get {
+                return ResourceManager.GetString("UserName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The user name (i.e. bob@hotmail.com).
+        /// </summary>
+        public static string UserNameTooltip {
+            get {
+                return ResourceManager.GetString("UserNameTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to User Name Whitelist.
+        /// </summary>
+        public static string UserNameWhitelist {
+            get {
+                return ResourceManager.GetString("UserNameWhitelist", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to User Name Edit Distance.
+        /// </summary>
+        public static string UserNameWhiteListMinimumEditDistance {
+            get {
+                return ResourceManager.GetString("UserNameWhiteListMinimumEditDistance", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to If user name whitelist is not empty and if the edit distance (levenshtein distance) of a failed user name is greater than this distance away, the user name is immediately banned. Set to 0 to ban all failed user names if UserNameWhitelist has entries. Case is ignored. Empty user names are always allowed..
+        /// </summary>
+        public static string UserNameWhiteListMinimumEditDistanceTooltip {
+            get {
+                return ResourceManager.GetString("UserNameWhiteListMinimumEditDistanceTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Comma separated list of user names that are allowed. UserNameWhiteListMinimumEditDistance is checked for user names not in the list to determine whether a failed user name should be banned. Case is ignored. Empty user names are always allowed. *** IMPORTANT*** This can represent an attack vector by a hacker. If they know you are using DigitalRuby.IPBan and they don&apos;t get locked out right away, they might know they are somewhat close to the right user name. Make sure your passwords are complex enough and thi [rest of string was truncated]&quot;;.
+        /// </summary>
+        public static string UserNameWhitelistTooltip {
+            get {
+                return ResourceManager.GetString("UserNameWhitelistTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Version.
+        /// </summary>
+        public static string Version {
+            get {
+                return ResourceManager.GetString("Version", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Welcome, {0}.
+        /// </summary>
+        public static string Welcome {
+            get {
+                return ResourceManager.GetString("Welcome", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Xml Configuration.
+        /// </summary>
+        public static string XmlConfiguration {
+            get {
+                return ResourceManager.GetString("XmlConfiguration", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Configure configuration using raw Xml.
+        /// </summary>
+        public static string XmlConfigurationTooltip {
+            get {
+                return ResourceManager.GetString("XmlConfigurationTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to XPath.
+        /// </summary>
+        public static string XPath {
+            get {
+                return ResourceManager.GetString("XPath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to XPath Regex.
+        /// </summary>
+        public static string XPathRegex {
+            get {
+                return ResourceManager.GetString("XPathRegex", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Regex to find in the xpath, please provide ipaddress and username groups..
+        /// </summary>
+        public static string XPathRegexTooltip {
+            get {
+                return ResourceManager.GetString("XPathRegexTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to XPath to find, i.e. //Node/SubNode.
+        /// </summary>
+        public static string XPathTooltip {
+            get {
+                return ResourceManager.GetString("XPathTooltip", resourceCulture);
             }
         }
     }

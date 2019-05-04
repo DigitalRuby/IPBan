@@ -26,6 +26,7 @@ SOFTWARE.
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Configuration;
 using System.Globalization;
 using System.IO;
@@ -34,6 +35,8 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml;
 using System.Xml.Serialization;
+
+using Newtonsoft.Json;
 
 #endregion Imports
 
@@ -53,12 +56,20 @@ namespace DigitalRuby.IPBan
         /// <summary>
         /// Xpath to find
         /// </summary>
+        [DisplayFormat(ConvertEmptyStringToNull = false)]
+        [Required(AllowEmptyStrings = true)]
+        [LocalizedDisplayName(nameof(IPBanResources.XPath))]
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public string XPath { get; set; } = string.Empty;
 
         private string regex = string.Empty;
         /// <summary>
         /// Regex string
         /// </summary>
+        [DisplayFormat(ConvertEmptyStringToNull = false)]
+        [Required(AllowEmptyStrings = true)]
+        [LocalizedDisplayName(nameof(IPBanResources.XPathRegex))]
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public IPBanExtensionMethods.XmlCData Regex
         {
             get { return regex; }
@@ -75,6 +86,10 @@ namespace DigitalRuby.IPBan
         /// <summary>
         /// The event viewer source
         /// </summary>
+        [DisplayFormat(ConvertEmptyStringToNull = false)]
+        [Required(AllowEmptyStrings = true)]
+        [LocalizedDisplayName(nameof(IPBanResources.Source))]
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public string Source { get; set; } = string.Empty;
 
         /// <summary>
@@ -96,6 +111,10 @@ namespace DigitalRuby.IPBan
         /// <summary>
         /// Set automatically, determines whether this expression is failed login (false) or successful login (true)
         /// </summary>
+        [DisplayFormat(ConvertEmptyStringToNull = false)]
+        [Required(AllowEmptyStrings = true)]
+        [LocalizedDisplayName(nameof(IPBanResources.NotifyOnly))]
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public bool NotifyOnly { get; set; }
 
         /// <summary>
@@ -106,6 +125,10 @@ namespace DigitalRuby.IPBan
         /// <summary>
         /// Keywords as HEX string
         /// </summary>
+        [DisplayFormat(ConvertEmptyStringToNull = false)]
+        [Required(AllowEmptyStrings = true)]
+        [LocalizedDisplayName(nameof(IPBanResources.EventViewerKeywords))]
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public string Keywords
         {
             get { return keywords; }
@@ -164,8 +187,16 @@ namespace DigitalRuby.IPBan
         /// <summary>
         /// Path to the event viewer entry, i.e. Application or Security
         /// </summary>
+        [DisplayFormat(ConvertEmptyStringToNull = false)]
+        [Required(AllowEmptyStrings = true)]
+        [LocalizedDisplayName(nameof(IPBanResources.EventViewerPath))]
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public string Path { get; set; } = string.Empty;
 
+        [DisplayFormat(ConvertEmptyStringToNull = false)]
+        [Required(AllowEmptyStrings = true)]
+        [LocalizedDisplayName(nameof(IPBanResources.EventViewerExpressions))]
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         [XmlArray("Expressions")]
         [XmlArrayItem("Expression")]
         public List<EventViewerExpression> Expressions { get; set; } = new List<EventViewerExpression>();
@@ -175,6 +206,10 @@ namespace DigitalRuby.IPBan
         /// The format is xpath (//*), newline, and then regex, newline, repeated.
         /// </summary>
         [XmlIgnore]
+        [DisplayFormat(ConvertEmptyStringToNull = false)]
+        [Required(AllowEmptyStrings = true)]
+        [LocalizedDisplayName(nameof(IPBanResources.EventViewerExpressions))]
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public string ExpressionsText { get; set; }
     }
 

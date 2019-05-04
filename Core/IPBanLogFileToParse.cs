@@ -24,11 +24,14 @@ SOFTWARE.
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Configuration;
 using System.IO;
 using System.Text;
 using System.Xml;
 using System.Xml.Serialization;
+
+using Newtonsoft.Json;
 
 namespace DigitalRuby.IPBan
 {
@@ -41,41 +44,73 @@ namespace DigitalRuby.IPBan
         /// <summary>
         /// Source
         /// </summary>
+        [DisplayFormat(ConvertEmptyStringToNull = false)]
+        [Required(AllowEmptyStrings = true)]
+        [LocalizedDisplayName(nameof(IPBanResources.Source))]
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public string Source { get; set; } = string.Empty;
 
         /// <summary>
         /// Path and mask, one per line
         /// </summary>
+        [DisplayFormat(ConvertEmptyStringToNull = false)]
+        [Required(AllowEmptyStrings = true)]
+        [LocalizedDisplayName(nameof(IPBanResources.PathAndMask))]
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public string PathAndMask { get; set; } = string.Empty;
 
         /// <summary>
         /// Recursive directory search?
         /// </summary>
+        [DisplayFormat(ConvertEmptyStringToNull = false)]
+        [Required(AllowEmptyStrings = true)]
+        [LocalizedDisplayName(nameof(IPBanResources.Recursive))]
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public bool Recursive { get; set; }
 
         /// <summary>
         /// Failed login regex
         /// </summary>
+        [DisplayFormat(ConvertEmptyStringToNull = false)]
+        [Required(AllowEmptyStrings = true)]
+        [LocalizedDisplayName(nameof(IPBanResources.FailedLoginRegex))]
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public IPBanExtensionMethods.XmlCData FailedLoginRegex { get; set; } = string.Empty;
 
         /// <summary>
         /// Successful login regex
         /// </summary>
+        [DisplayFormat(ConvertEmptyStringToNull = false)]
+        [Required(AllowEmptyStrings = true)]
+        [LocalizedDisplayName(nameof(IPBanResources.SuccessfulLoginRegex))]
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public IPBanExtensionMethods.XmlCData SuccessfulLoginRegex { get; set; } = string.Empty;
 
         /// <summary>
         /// Platform regex, i.e. Windows, Linux, etc.
         /// </summary>
+        [DisplayFormat(ConvertEmptyStringToNull = false)]
+        [Required(AllowEmptyStrings = true)]
+        [LocalizedDisplayName(nameof(IPBanResources.PlatformRegex))]
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public IPBanExtensionMethods.XmlCData PlatformRegex { get; set; } = string.Empty;
 
         /// <summary>
         /// How often in milliseconds to ping the file
         /// </summary>
+        [DisplayFormat(ConvertEmptyStringToNull = false)]
+        [Required(AllowEmptyStrings = true)]
+        [LocalizedDisplayName(nameof(IPBanResources.LogFilePingInterval))]
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public int PingInterval { get; set; } = 10000;
 
         /// <summary>
         /// Max file size in bytes
         /// </summary>
+        [DisplayFormat(ConvertEmptyStringToNull = false)]
+        [Required(AllowEmptyStrings = true)]
+        [LocalizedDisplayName(nameof(IPBanResources.MaxFileSize))]
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public int MaxFileSize { get; set; }
 
         /// <summary>
