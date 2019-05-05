@@ -237,6 +237,11 @@ namespace DigitalRuby.IPBan
             IPBanLog.Info("Blacklist: {0}, Blacklist Regex: {1}", Config.BlackList, Config.BlackListRegex);
         }
 
+        private bool IsWhitelisted(string ipAddress)
+        {
+            return (Config.IsWhitelisted(ipAddress) || (IPBanDelegate != null && IPBanDelegate.IsIPAddressWhitelisted(ipAddress)));
+        }
+
         private async Task ProcessPendingFailedLogins(IEnumerable<IPAddressPendingEvent> ipAddresses)
         {
             List<IPAddressPendingEvent> bannedIpAddresses = new List<IPAddressPendingEvent>();
@@ -250,8 +255,7 @@ namespace DigitalRuby.IPBan
                         string ipAddress = failedLogin.IPAddress;
                         string userName = failedLogin.UserName;
                         string source = failedLogin.Source;
-                        if (Config.IsWhitelisted(ipAddress) ||
-                            (IPBanDelegate != null && IPBanDelegate.IsIPAddressWhitelisted(ipAddress)))
+                        if (IsWhitelisted(ipAddress))
                         {
                             IPBanLog.Warn("Login failure, ignoring whitelisted ip address {0}, {1}, {2}", ipAddress, userName, source);
                         }
@@ -480,7 +484,7 @@ namespace DigitalRuby.IPBan
                 {
                     // if the ban has expired, or the ip address has become whitelisted, unban
                     bool banExpire = (allowBanExpire && (now - ipAddress.BanDate.Value) > Config.BanTime);
-                    bool whitelisted = (Config.IsWhitelisted(ipAddress.IPAddress) || (IPBanDelegate != null && IPBanDelegate.IsIPAddressWhitelisted(ipAddress.IPAddress)));
+                    bool whitelisted = IsWhitelisted(ipAddress.IPAddress);
                     if (banExpire || whitelisted)
                     {
                         IPBanLog.Warn("Un-banning ip address {0}, ban expire: {1}, whitelisted: {2}", ipAddress.IPAddress, banExpire, whitelisted);
@@ -546,7 +550,6 @@ namespace DigitalRuby.IPBan
             try
             {
                 IPBanDelegate.Update();
-
             }
             catch (Exception ex)
             {
