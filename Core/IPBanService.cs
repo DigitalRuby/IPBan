@@ -380,9 +380,8 @@ namespace DigitalRuby.IPBan
                     {
                         BannedIPAddressHandler.HandleBannedIPAddress(ipAddress, source, userName, OSName, OSVersion, AssemblyVersion, RequestMaker).ConfigureAwait(false).GetAwaiter();
                     }
-                    catch (Exception ex)
+                    catch
                     {
-                        IPBanLog.Info("Error calling banned ip address handler: " + ex.ToString());
                     }
                 }
                 if (IPBanDelegate != null)
