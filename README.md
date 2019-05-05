@@ -100,6 +100,7 @@ systemctl status ipban
 ```
 
 **Analytics**
+
 To disable anonymously sending banned ip addresses to the global ipban database, set UseDefaultBannedIPAddressHandler to false in the config file.
 
 **About Me**
