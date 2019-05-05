@@ -296,7 +296,8 @@ namespace DigitalRuby.IPBan
                 string trimmedLine = line.Trim();
                 if (trimmedLine.Length != 0)
                 {
-                    sb.AppendLine(trimmedLine);
+                    sb.Append(trimmedLine);
+                    sb.Append('\n');
                 }
             }
             return sb.ToString().Trim();
