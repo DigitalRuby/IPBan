@@ -672,4 +672,10 @@ Prefix with OS:ClassName, example: Windows:Windivert,Linux:Default</value>
   <data name="EventViewerPathTooltip" xml:space="preserve">
     <value>The event viewer path, i.e. Application or Security, etc.</value>
   </data>
+  <data name="UseDefaultBannedIPAddressHandler" xml:space="preserve">
+    <value>Use Default Banned IP Address Handler</value>
+  </data>
+  <data name="UseDefaultBannedIPAddressHandlerTooltip" xml:space="preserve">
+    <value>Whether to use the default banned ip address handler. Turn off to disable default handling such as sharing anonymously the banned ip address to the global banned ip address database.</value>
+  </data>
 </root>

@@ -1457,6 +1457,24 @@ namespace DigitalRuby.IPBan {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Use Default Banned IP Address Handler.
+        /// </summary>
+        public static string UseDefaultBannedIPAddressHandler {
+            get {
+                return ResourceManager.GetString("UseDefaultBannedIPAddressHandler", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Whether to use the default banned ip address handler. Turn off to disable default handling such as sharing anonymously the banned ip address to the global banned ip address database..
+        /// </summary>
+        public static string UseDefaultBannedIPAddressHandlerTooltip {
+            get {
+                return ResourceManager.GetString("UseDefaultBannedIPAddressHandlerTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to User Name.
         /// </summary>
         public static string UserName {
