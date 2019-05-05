@@ -707,7 +707,7 @@ namespace DigitalRuby.IPBan
             }
         }
 
-        private void ProcessIPAddressEvent(IPAddressEvent info, List<IPAddressPendingEvent> pendingEvents, TimeSpan minTimeBetweenEvents, string type)
+        private void ProcessIPAddressEvent(IPAddressLogEvent info, List<IPAddressPendingEvent> pendingEvents, TimeSpan minTimeBetweenEvents, string type)
         {
             if (!IPBanFirewallUtility.TryGetFirewallIPAddress(info.IPAddress, out string normalizedIPAddress) || info.Count <= 0)
             {
@@ -839,17 +839,17 @@ namespace DigitalRuby.IPBan
         }
 
         /// <summary>
-        /// Add an ip address event
+        /// Add an ip address log event
         /// </summary>
         /// <param name="events">IP address events</param>
         /// <returns>Task</returns>
-        public Task AddIPAddressEvents(IEnumerable<IPAddressEvent> events)
+        public Task AddIPAddressLogEvents(IEnumerable<IPAddressLogEvent> events)
         {
             object transaction = BeginTransaction();
             List<IPAddressPendingEvent> bannedIPs = new List<IPAddressPendingEvent>();
             try
             {
-                foreach (IPAddressEvent evt in events)
+                foreach (IPAddressLogEvent evt in events)
                 {
                     switch (evt.Type)
                     {
@@ -885,7 +885,7 @@ namespace DigitalRuby.IPBan
         /// <param name="ipAddress">Found ip address or null if none</param>
         /// <param name="userName">Found user name or null if none</param>
         /// <returns>True if a regex match was found, false otherwise</returns>
-        public static IPAddressEvent GetIPAddressInfoFromRegex(IDnsLookup dns, Regex regex, string text)
+        public static IPAddressLogEvent GetIPAddressInfoFromRegex(IDnsLookup dns, Regex regex, string text)
         {
             bool foundMatch = false;
             string userName = null;
@@ -968,7 +968,7 @@ namespace DigitalRuby.IPBan
                 }
             }
 
-            return new IPAddressEvent(foundMatch, ipAddress, userName, source, repeatCount, IPAddressEventType.FailedLogin);
+            return new IPAddressLogEvent(foundMatch, ipAddress, userName, source, repeatCount, IPAddressEventType.FailedLogin);
         }
 
         /// <summary>
@@ -1384,82 +1384,6 @@ namespace DigitalRuby.IPBan
         /// File name to write ip addresses to (one per line) to unblock the ip addresses in the file
         /// </summary>
         public string UnblockIPAddressesFileName { get; } = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "unban.txt");
-    }
-
-    /// <summary>
-    /// Information about an ip address from a log entry
-    /// </summary>
-    public class IPAddressEvent
-    {
-        /// <summary>
-        /// Default constructor
-        /// </summary>
-        public IPAddressEvent() { } 
-
-        /// <summary>
-        /// Constructor
-        /// </summary>
-        /// <param name="foundMatch">Whether a match was found</param>
-        /// <param name="ipAddress">IP address</param>
-        /// <param name="userName">User name</param>
-        /// <param name="source">Source</param>
-        /// <param name="count">How many messages were aggregated, 1 for no aggregation</param>
-        /// <param name="type">Event type</param>
-        /// <param name="timestamp">Timestamp of the event, default for current timestamp</param>
-        public IPAddressEvent(bool foundMatch, string ipAddress, string userName, string source, int count, IPAddressEventType type, DateTime timestamp = default)
-        {
-            FoundMatch = foundMatch;
-            IPAddress = ipAddress;
-            UserName = userName;
-            Source = source;
-            Count = count;
-            Type = type;
-            Timestamp = (timestamp == default ? IPBanService.UtcNow : timestamp);
-        }
-
-        /// <summary>
-        /// ToString
-        /// </summary>
-        /// <returns>String</returns>
-        public override string ToString()
-        {
-            return $"IP: {IPAddress}, Match: {FoundMatch}, UserName: {UserName}, Source: {Source}, Count: {Count}, Type: {Type}, Timestamp: {Timestamp}";
-        }
-
-        /// <summary>
-        /// Whether a match was found
-        /// </summary>
-        public bool FoundMatch { get; set; }
-
-        /// <summary>
-        /// IP address
-        /// </summary>
-        public string IPAddress { get; set; }
-
-        /// <summary>
-        /// User name
-        /// </summary>
-        public string UserName { get; set; }
-
-        /// <summary>
-        /// Source
-        /// </summary>
-        public string Source { get; set; }
-
-        /// <summary>
-        /// How many messages were aggregated, 1 for no aggregation. Can be set to 0 if count is unknown or from an external source.
-        /// </summary>
-        public int Count { get; set; }
-
-        /// <summary>
-        /// Timestamp of the event
-        /// </summary>
-        public DateTime Timestamp { get; set; }
-
-        /// <summary>
-        /// Event flag
-        /// </summary>
-        public IPAddressEventType Type { get; set; }
     }
 
     /// <summary>

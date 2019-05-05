@@ -101,14 +101,14 @@ namespace DigitalRuby.IPBan
         {
             if (regex != null)
             {
-                IPAddressEvent info = IPBanService.GetIPAddressInfoFromRegex(dns, regex, line);
+                IPAddressLogEvent info = IPBanService.GetIPAddressInfoFromRegex(dns, regex, line);
                 if (info.FoundMatch)
                 {
                     info.Type = (notifyOnly ? IPAddressEventType.SuccessfulLogin : IPAddressEventType.FailedLogin);
                     info.Source = info.Source ?? Source;
                     IPBanLog.Debug("Log file found match, ip: {0}, user: {1}, source: {2}, count: {3}, type: {4}",
                         info.IPAddress, info.UserName, info.Source, info.Count, info.Type);
-                    loginHandler.AddIPAddressEvents(new IPAddressEvent[] { info });
+                    loginHandler.AddIPAddressLogEvents(new IPAddressLogEvent[] { info });
                     return true;
                 }
             }

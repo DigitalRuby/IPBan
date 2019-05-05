@@ -40,8 +40,8 @@ namespace DigitalRuby.IPBanTests
     {
         private static readonly string tempPath = Path.Combine(Path.GetTempPath(), "LogFileParserTest");
         private static readonly string pathAndMask = Path.Combine(tempPath, "test1*.txt");
-        private static readonly List<IPAddressEvent> failedIPAddresses = new List<IPAddressEvent>();
-        private static readonly List<IPAddressEvent> successIPAddresses = new List<IPAddressEvent>();
+        private static readonly List<IPAddressLogEvent> failedIPAddresses = new List<IPAddressLogEvent>();
+        private static readonly List<IPAddressLogEvent> successIPAddresses = new List<IPAddressLogEvent>();
 
         private static FileStream CreateFile(string name)
         {
@@ -155,9 +155,9 @@ namespace DigitalRuby.IPBanTests
             }
         }
 
-        Task IIPAddressEventHandler.AddIPAddressEvents(IEnumerable<IPAddressEvent> events)
+        Task IIPAddressEventHandler.AddIPAddressLogEvents(IEnumerable<IPAddressLogEvent> events)
         {
-            foreach (IPAddressEvent evt in events)
+            foreach (IPAddressLogEvent evt in events)
             {
                 if (evt.Type == IPAddressEventType.SuccessfulLogin)
                 {

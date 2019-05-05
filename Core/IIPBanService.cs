@@ -40,7 +40,7 @@ namespace DigitalRuby.IPBan
         /// Add ip address events
         /// </summary>
         /// <param name="events">IP address events</param>
-        Task AddIPAddressEvents(IEnumerable<IPAddressEvent> events);
+        Task AddIPAddressLogEvents(IEnumerable<IPAddressLogEvent> events);
     }
 
     /// <summary>

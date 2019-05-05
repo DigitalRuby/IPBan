@@ -541,4 +541,80 @@ namespace DigitalRuby.IPBan
         /// </summary>
         public static Logger Logger { get { return logger; } }
     }
+
+    /// <summary>
+    /// Information about an ip address from a log entry
+    /// </summary>
+    public class IPAddressLogEvent
+    {
+        /// <summary>
+        /// Default constructor
+        /// </summary>
+        public IPAddressLogEvent() { }
+
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="foundMatch">Whether a match was found</param>
+        /// <param name="ipAddress">IP address</param>
+        /// <param name="userName">User name</param>
+        /// <param name="source">Source</param>
+        /// <param name="count">How many messages were aggregated, 1 for no aggregation</param>
+        /// <param name="type">Event type</param>
+        /// <param name="timestamp">Timestamp of the event, default for current timestamp</param>
+        public IPAddressLogEvent(bool foundMatch, string ipAddress, string userName, string source, int count, IPAddressEventType type, DateTime timestamp = default)
+        {
+            FoundMatch = foundMatch;
+            IPAddress = ipAddress;
+            UserName = userName;
+            Source = source;
+            Count = count;
+            Type = type;
+            Timestamp = (timestamp == default ? IPBanService.UtcNow : timestamp);
+        }
+
+        /// <summary>
+        /// ToString
+        /// </summary>
+        /// <returns>String</returns>
+        public override string ToString()
+        {
+            return $"IP: {IPAddress}, Match: {FoundMatch}, UserName: {UserName}, Source: {Source}, Count: {Count}, Type: {Type}, Timestamp: {Timestamp}";
+        }
+
+        /// <summary>
+        /// Whether a match was found
+        /// </summary>
+        public bool FoundMatch { get; set; }
+
+        /// <summary>
+        /// IP address
+        /// </summary>
+        public string IPAddress { get; set; }
+
+        /// <summary>
+        /// User name
+        /// </summary>
+        public string UserName { get; set; }
+
+        /// <summary>
+        /// Source
+        /// </summary>
+        public string Source { get; set; }
+
+        /// <summary>
+        /// How many messages were aggregated, 1 for no aggregation. Can be set to 0 if count is unknown or from an external source.
+        /// </summary>
+        public int Count { get; set; }
+
+        /// <summary>
+        /// Timestamp of the event
+        /// </summary>
+        public DateTime Timestamp { get; set; }
+
+        /// <summary>
+        /// Event flag
+        /// </summary>
+        public IPAddressEventType Type { get; set; }
+    }
 }

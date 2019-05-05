@@ -65,7 +65,7 @@ namespace DigitalRuby.IPBan
             }
         }
 
-        private bool AddFailedLoginForEventViewerXml(IPAddressEvent info, XmlDocument doc)
+        private bool AddFailedLoginForEventViewerXml(IPAddressLogEvent info, XmlDocument doc)
         {
             if (string.IsNullOrWhiteSpace(info.IPAddress))
             {
@@ -94,7 +94,7 @@ namespace DigitalRuby.IPBan
             return true;
         }
 
-        private IPAddressEvent ExtractEventViewerXml(XmlDocument doc)
+        private IPAddressLogEvent ExtractEventViewerXml(XmlDocument doc)
         {
             XmlNode keywordsNode = doc.SelectSingleNode("//Keywords");
             string keywordsText = keywordsNode.InnerText;
@@ -103,7 +103,7 @@ namespace DigitalRuby.IPBan
                 keywordsText = keywordsText.Substring(2);
             }
             ulong keywordsULONG = ulong.Parse(keywordsText, NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture);
-            IPAddressEvent info = null;
+            IPAddressLogEvent info = null;
             bool foundNotifyOnly = false;
 
             if (keywordsNode != null)
@@ -285,7 +285,7 @@ namespace DigitalRuby.IPBan
             IPBanLog.Debug("Processing event viewer xml: {0}", xml);
 
             XmlDocument doc = ParseXml(xml);
-            IPAddressEvent info = ExtractEventViewerXml(doc);
+            IPAddressLogEvent info = ExtractEventViewerXml(doc);
             if (info != null && info.FoundMatch)
             {
                 if (info.Type == IPAddressEventType.FailedLogin && !AddFailedLoginForEventViewerXml(info, doc))
@@ -294,7 +294,7 @@ namespace DigitalRuby.IPBan
                     return;
                 }
                 System.Diagnostics.Debug.Assert(info.Type == IPAddressEventType.FailedLogin || info.Type == IPAddressEventType.SuccessfulLogin);
-                service.AddIPAddressEvents(new IPAddressEvent[] { info });
+                service.AddIPAddressLogEvents(new IPAddressLogEvent[] { info });
                 IPBanLog.Debug("Event viewer found: {0}, {1}, {2}, {4}", info.IPAddress, info.Source, info.UserName, info.Type);
             }
         }
