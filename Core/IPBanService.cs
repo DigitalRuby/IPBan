@@ -471,6 +471,8 @@ namespace DigitalRuby.IPBan
             bool allowBanExpire = (Config.BanTime.TotalMilliseconds > 0.0);
             bool allowFailedLoginExpire = (Config.ExpireTime.TotalMilliseconds > 0.0);
 
+            // TODO: Figure out how to query for expirations efficiently
+            // TODO: Only check whitelist if the whitelist has changed
             // loop the entire database to see if we need to unban or forget ip addresses
             foreach (IPBanDB.IPAddressEntry ipAddress in ipDB.EnumerateIPAddresses())
             {
