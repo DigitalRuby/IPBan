@@ -163,6 +163,16 @@ namespace DigitalRuby.IPBan
                     throw new ApplicationException("Configuration failed to load, make sure to unblock all the files. Right click each file, select properties and then unblock.", ex);
                 }
             }
+
+            // set or unset default banned ip address handler based on config
+            if (Config.UseDefaultBannedIPAddressHandler && BannedIPAddressHandler == null)
+            {
+                BannedIPAddressHandler = new DefaultBannedIPAddressHandler();
+            }
+            else if (!Config.UseDefaultBannedIPAddressHandler && BannedIPAddressHandler != null && BannedIPAddressHandler is DefaultBannedIPAddressHandler)
+            {
+                BannedIPAddressHandler = null;
+            }
         }
 
         private object BeginTransaction()

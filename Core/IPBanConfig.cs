@@ -70,6 +70,7 @@ namespace DigitalRuby.IPBan
         private readonly int failedLoginAttemptsBeforeBanUserNameWhitelist = 20;
         private readonly Dictionary<string, string> osAndFirewallType = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         private readonly string processToRunOnBan;
+        private readonly bool useDefaultBannedIPAddressHandler;
         private readonly string getUrlUpdate;
         private readonly string getUrlStart;
         private readonly string getUrlStop;
@@ -146,6 +147,7 @@ namespace DigitalRuby.IPBan
                 logFiles = new IPBanLogFileToParse[0];
             }
             GetConfig<string>("ProcessToRunOnBan", ref processToRunOnBan);
+            GetConfig<bool>("UseDefaultBannedIPAddressHandler", ref useDefaultBannedIPAddressHandler);
 
             // retrieve firewall configuration
             string[] firewallTypes = GetConfig<string>("FirewallType", string.Empty).Split(',', StringSplitOptions.RemoveEmptyEntries);
@@ -546,6 +548,11 @@ namespace DigitalRuby.IPBan
         /// Process to run on ban. See ReplaceUrl of IPBanService for place-holders.
         /// </summary>
         public string ProcessToRunOnBan { get { return processToRunOnBan; } }
+
+        /// <summary>
+        /// Whether to use the default banned ip address handler
+        /// </summary>
+        public bool UseDefaultBannedIPAddressHandler { get { return useDefaultBannedIPAddressHandler; } }
 
         /// <summary>
         /// A url to get when the service updates, empty for none. See ReplaceUrl of IPBanService for place-holders.
