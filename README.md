@@ -99,6 +99,9 @@ sudo systemctl start ipban
 systemctl status ipban
 ```
 
+**Analytics**
+To disable anonymously sending banned ip addresses to the global ipban database, set UseDefaultBannedIPAddressHandler to false in the config file.
+
 **About Me**
 
 I'm Jeff Johnson and I created IPBan to block hackers out because Windows (and Linux quite frankly) does a horrible job of this by default and performance suffers as hackers try to breach your remote desktop, SSH, SMTP, etc. IPBan gets them in the block rule of the firewall where they belong.
