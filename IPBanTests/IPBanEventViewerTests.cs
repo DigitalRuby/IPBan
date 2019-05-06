@@ -188,6 +188,12 @@ namespace DigitalRuby.IPBanTests
         {
         }
 
+        event Action IIPBanDelegate.WhitelistChanged
+        {
+            add { }
+            remove { }
+        }
+
         /*
         /// <summary>
         /// Test all entries in the event viewer that match config

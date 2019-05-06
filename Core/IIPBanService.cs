@@ -250,5 +250,10 @@ namespace DigitalRuby.IPBan
         /// <param name="ipAddress">IP Address</param>
         /// <returns>True if whitelisted, false otherwise</returns>
         bool IsIPAddressWhitelisted(string ipAddress);
+
+        /// <summary>
+        /// Fires whenever the delegate whitelist changes
+        /// </summary>
+        event Action WhitelistChanged;
     }
 }

@@ -85,6 +85,7 @@ namespace DigitalRuby.IPBan
         private HashSet<string> ipAddressesToAllowInFirewall = new HashSet<string>();
         private bool ipAddressesToAllowInFirewallNeedsUpdate;
         private DateTime lastConfigFileDateTime = DateTime.MinValue;
+        private bool whitelistChanged;
 
         private void RunTask(Action action)
         {
@@ -150,6 +151,7 @@ namespace DigitalRuby.IPBan
                     {
                         IPBanConfig newConfig = IPBanConfig.LoadFromFile(ConfigFilePath, DnsLookup);
                         UpdateLogFiles(newConfig);
+                        whitelistChanged = (Config == null || Config.WhiteList != newConfig.WhiteList || Config.WhiteListRegex != newConfig.WhiteListRegex);
                         Config = newConfig;
                     }
                 }
@@ -173,6 +175,11 @@ namespace DigitalRuby.IPBan
             {
                 BannedIPAddressHandler = null;
             }
+        }
+
+        private void WhitelistChangedFromDelegate()
+        {
+            whitelistChanged = true;
         }
 
         private object BeginTransaction()
@@ -475,13 +482,37 @@ namespace DigitalRuby.IPBan
 
         private async Task CheckForExpiredIP()
         {
-            List<string> ipAddressesToUnBan = new List<string>();
-            List<string> ipAddressesToForget = new List<string>();
+            HashSet<string> ipAddressesToUnBan = new HashSet<string>();
+            HashSet<string> ipAddressesToForget = new HashSet<string>();
             DateTime now = UtcNow;
             DateTime failLoginCutOff = (now - Config.ExpireTime);
             DateTime banCutOff = (now - Config.BanTime);
             bool allowBanExpire = (Config.BanTime.TotalMilliseconds > 0.0);
             bool allowFailedLoginExpire = (Config.ExpireTime.TotalMilliseconds > 0.0);
+
+            // if the whitelist changed, we have no choice but to loop the entire db to remove ip
+            // this should not happen very often so not a problem
+            if (whitelistChanged)
+            {
+                whitelistChanged = false;
+                foreach (IPBanDB.IPAddressEntry ipAddress in ipDB.EnumerateIPAddresses())
+                {
+                    if (IsWhitelisted(ipAddress.IPAddress))
+                    {
+                        if (ipAddress.BanDate != null)
+                        {
+                            IPBanLog.Warn("Un-banning whitelisted ip address {0}");
+                            ipAddressesToUnBan.Add(ipAddress.IPAddress);
+                            firewallNeedsBlockedIPAddressesUpdate = true;
+                        }
+                        else
+                        {
+                            IPBanLog.Warn("Forgetting whitelisted ip address {0}");
+                            ipAddressesToForget.Add(ipAddress.IPAddress);
+                        }
+                    }
+                }
+            }
 
             // fast query into database for entries that should be deleted due to un-ban or forgetting failed logins
             foreach (IPBanDB.IPAddressEntry ipAddress in ipDB.EnumerateIPAddresses(failLoginCutOff, banCutOff))
@@ -549,6 +580,9 @@ namespace DigitalRuby.IPBan
 
             try
             {
+                // ensure we are notified of whitelist updates
+                IPBanDelegate.WhitelistChanged -= WhitelistChangedFromDelegate;
+                IPBanDelegate.WhitelistChanged += WhitelistChangedFromDelegate;
                 IPBanDelegate.Update();
             }
             catch (Exception ex)

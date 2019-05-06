@@ -145,5 +145,11 @@ namespace DigitalRuby.IPBanTests
         {
             AddEvent(nameof(IIPBanDelegate.Dispose));
         }
+
+        event Action IIPBanDelegate.WhitelistChanged
+        {
+            add { }
+            remove { }
+        }
     }
 }
