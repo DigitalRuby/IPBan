@@ -86,7 +86,7 @@ namespace DigitalRuby.IPBanTests
             Assert.AreEqual(7, events.Count);
             AssertEvent("LoginAttemptSucceeded_99.99.99.97_SSH_test_user3", 1);
             AssertEvent("Update", 1);
-            AssertEvent("IsIPAddressWhitelisted", 2);
+            AssertEvent("IsIPAddressWhitelisted", 4);
             AssertEvent("LoginAttemptFailed_99.99.99.99_RDP_test_user", 1);
             AssertEvent("LoginAttemptFailed_99.99.99.98_SSH_test_user2", 1);
             AssertEvent("IPAddressBanned_99.99.99.99_RDP_test_user_True", 1);

@@ -220,9 +220,8 @@ namespace DigitalRuby.IPBan
             ExecuteNonQuery("PRAGMA auto_vacuum = INCREMENTAL;");
             ExecuteNonQuery("PRAGMA journal_mode = WAL;");
             ExecuteNonQuery("CREATE TABLE IF NOT EXISTS IPAddresses (IPAddress VARBINARY(16) NOT NULL, IPAddressText VARCHAR(64), LastFailedLogin BIGINT NOT NULL, FailedLoginCount BIGINT NOT NULL, BanDate BIGINT, PRIMARY KEY (IPAddress))");
-
-            // no indexes for now, maybe in the future if more features are added
-            //ExecuteNonQuery("CREATE INDEX IF NOT EXISTS IPAddresses_LastFailedLogin ON IPAddresses (BanDate)");
+            ExecuteNonQuery("CREATE INDEX IF NOT EXISTS IPAddresses_LastFailedLoginDate ON IPAddresses (LastFailedLogin)");
+            ExecuteNonQuery("CREATE INDEX IF NOT EXISTS IPAddresses_BanDate ON IPAddresses (BanDate)");
         }
 
         /// <summary>
@@ -421,10 +420,9 @@ namespace DigitalRuby.IPBan
         /// Set banned ip addresses. If the ip address is not in the database, it will be added,
         /// otherwise it will be updated with the ban date if the existing ban date is null.
         /// </summary>
-        /// <param name="ipAddresses">IP addresses to set as banned</param>
-        /// <param name="banDate">Ban date to set</param>
+        /// <param name="ipAddresses">IP addresses and ban dates to set as banned</param>
         /// <returns>Count of newly banned ip addresses</returns>
-        public int SetBannedIPAddresses(IEnumerable<string> ipAddresses, DateTime banDate)
+        public int SetBannedIPAddresses(IEnumerable<KeyValuePair<string, DateTime>> ipAddresses)
         {
             int count = 0;
             using (SQLiteConnection conn = new SQLiteConnection(connString))
@@ -432,9 +430,9 @@ namespace DigitalRuby.IPBan
                 conn.Open();
                 using (SQLiteTransaction tran = conn.BeginTransaction(System.Data.IsolationLevel.ReadCommitted))
                 {
-                    foreach (string ipAddress in ipAddresses)
+                    foreach (KeyValuePair<string, DateTime> ipAddress in ipAddresses)
                     {
-                        count += SetBanDateInternal(ipAddress, banDate, conn, tran);
+                        count += SetBanDateInternal(ipAddress.Key, ipAddress.Value, conn, tran);
                     }
                     tran.Commit();
                 }
@@ -460,10 +458,26 @@ namespace DigitalRuby.IPBan
         /// <summary>
         /// Get all ip addresses
         /// </summary>
-        /// <returns>IP addresses with expired ban date</returns>
-        public IEnumerable<IPAddressEntry> EnumerateIPAddresses()
+        /// <param name="cutOff">Fail login cut off, only return entries with last failed login before this timestamp, null to not query this</param>
+        /// <param name="banCutOff">Ban cut off, only return entries with a ban before this timestamp, null to not query this</param>
+        /// <returns>IP addresses that match the query</returns>
+        public IEnumerable<IPAddressEntry> EnumerateIPAddresses(DateTime? failLoginCutOff = null, DateTime? banCutOff = null)
         {
-            using (SQLiteDataReader reader = ExecuteReader("SELECT IPAddressText, LastFailedLogin, FailedLoginCount, BanDate FROM IPAddresses ORDER BY IPAddress", null))
+            long? failLoginCutOffUnix = null;
+            long? banCutOffUnix = null;
+            if (failLoginCutOff != null)
+            {
+                failLoginCutOffUnix = (long)failLoginCutOff.Value.UnixTimestampFromDateTimeMilliseconds();
+            }
+            if (banCutOff != null)
+            {
+                banCutOffUnix = (long)banCutOff.Value.UnixTimestampFromDateTimeMilliseconds();
+            }
+            using (SQLiteDataReader reader = ExecuteReader(@"SELECT IPAddressText, LastFailedLogin, FailedLoginCount, BanDate
+                FROM IPAddresses
+                WHERE (@Param0 IS NULL AND @Param1 IS NULL) OR (@Param0 IS NOT NULL AND LastFailedLogin <= @Param0) OR (@Param1 IS NOT NULL AND BanDate <= @Param1)
+                ORDER BY IPAddress",
+                null, failLoginCutOffUnix, banCutOffUnix))
             {
                 while (reader.Read())
                 {
@@ -476,13 +490,13 @@ namespace DigitalRuby.IPBan
         /// Get all banned ip addresses
         /// </summary>
         /// <returns>IP addresses with non-null ban dates</returns>
-        public IEnumerable<IPAddressEntry> EnumerateBannedIPAddresses()
+        public IEnumerable<string> EnumerateBannedIPAddresses()
         {
-            using (SQLiteDataReader reader = ExecuteReader("SELECT IPAddressText, LastFailedLogin, FailedLoginCount, BanDate FROM IPAddresses WHERE BanDate IS NOT NULL ORDER BY IPAddress", null))
+            using (SQLiteDataReader reader = ExecuteReader("SELECT IPAddressText /*, LastFailedLogin, FailedLoginCount, BanDate */ FROM IPAddresses WHERE BanDate IS NOT NULL ORDER BY IPAddress", null))
             {
                 while (reader.Read())
                 {
-                    yield return ParseIPAddressEntry(reader);
+                    yield return reader.GetString(0);// ParseIPAddressEntry(reader);
                 }
             }
         }
