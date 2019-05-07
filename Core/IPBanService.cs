@@ -1249,6 +1249,8 @@ namespace DigitalRuby.IPBan
         public static T CreateAndStartIPBanTestService<T>(string directory = null, string configFileName = null,
             Func<string, string> configFileModifier = null) where T : IPBanService
         {
+            DefaultHttpRequestMaker.DisableLiveRequests = true;
+
             // cleanup any db, set or tbl files
             foreach (string file in Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory, "*.set")
                 .Union(Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory, "*.tbl"))
@@ -1271,12 +1273,13 @@ namespace DigitalRuby.IPBan
             }
             string configFilePath = Path.Combine(directory, configFileName);
             string configFileText = File.ReadAllText(configFilePath);
+            configFilePath += ".tmp";
             configFileText = configFileText.Replace("<add key=\"UseDefaultBannedIPAddressHandler\" value=\"true\" />", "<add key=\"UseDefaultBannedIPAddressHandler\" value=\"false\" />");
             if (configFileModifier != null)
             {
                 configFileText = configFileModifier(configFileText);
-                File.WriteAllText(configFilePath, configFileText);
             }
+            File.WriteAllText(configFilePath, configFileText);
             T service = IPBanService.CreateService<T>() as T;
             service.ExternalIPAddressLookup = LocalMachineExternalIPAddressLookupTest.Instance;
             service.ConfigFilePath = configFilePath;
@@ -1300,6 +1303,7 @@ namespace DigitalRuby.IPBan
                 service.Firewall.BlockIPAddresses(null, new string[0]);
                 service.RunCycle().Sync();
                 service.Dispose();
+                DefaultHttpRequestMaker.DisableLiveRequests = false;
                 IPBanService.UtcNow = default;
             }
         }
