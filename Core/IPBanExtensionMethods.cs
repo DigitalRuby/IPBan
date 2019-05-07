@@ -168,7 +168,11 @@ namespace DigitalRuby.IPBan
             }
         }
 
-        private static readonly Encoding utf8EncodingNoPrefix = new UTF8Encoding(false);
+        /// <summary>
+        /// UTF8 encoder without prefix bytes
+        /// </summary>
+        public static readonly Encoding Utf8EncodingNoPrefix = new UTF8Encoding(false);
+
         private static readonly DateTime unixEpoch = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
         private static readonly XmlSerializerNamespaces emptyXmlNs = new XmlSerializerNamespaces();
 
@@ -355,7 +359,7 @@ namespace DigitalRuby.IPBan
             {
                 return null;
             }
-            return utf8EncodingNoPrefix.GetBytes(s);
+            return Utf8EncodingNoPrefix.GetBytes(s);
         }
 
         /// <summary>

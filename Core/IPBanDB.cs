@@ -270,7 +270,7 @@ namespace DigitalRuby.IPBan
         /// <param name="transaction">Transaction to rollback</param>
         public void RollbackTransaction(object transaction)
         {
-            if (transaction is IPBanDBTransaction tran)
+            if (transaction is IPBanDBTransaction tran && tran.DBConnection != null)
             {
                 tran.Rollback();
             }

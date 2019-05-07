@@ -333,9 +333,10 @@ namespace DigitalRuby.IPBan
                 CommitTransaction(transaction);
                 ExecuteExternalProcessForBannedIPAddresses(bannedIpAddresses);
             }
-            finally
+            catch (Exception ex)
             {
                 RollbackTransaction(transaction);
+                IPBanLog.Error(ex);
             }
         }
 
@@ -363,6 +364,18 @@ namespace DigitalRuby.IPBan
             return Task.CompletedTask;
         }
 
+        private void ExecuteTask(Task task)
+        {
+            if (MultiThreaded)
+            {
+                task.ConfigureAwait(false).GetAwaiter();
+            }
+            else
+            {
+                task.Wait();
+            }
+        }
+
         private void AddBannedIPAddress(string ipAddress, string source, string userName, List<IPAddressPendingEvent> bannedIpAddresses,
             DateTime dateTime, bool configBlacklisted, int counter, string extraInfo, object transaction)
         {
@@ -378,31 +391,27 @@ namespace DigitalRuby.IPBan
                 return;
             }
 
-            // kick off notifications of ban in the background
-            Task.Run(() =>
+            if (BannedIPAddressHandler != null && System.Net.IPAddress.TryParse(ipAddress, out System.Net.IPAddress ipAddressObj) && !ipAddressObj.IsInternal())
             {
-                if (BannedIPAddressHandler != null && System.Net.IPAddress.TryParse(ipAddress, out System.Net.IPAddress ipAddressObj) && !ipAddressObj.IsInternal())
+                try
                 {
-                    try
-                    {
-                        BannedIPAddressHandler.HandleBannedIPAddress(ipAddress, source, userName, OSName, OSVersion, AssemblyVersion, RequestMaker).ConfigureAwait(false).GetAwaiter();
-                    }
-                    catch
-                    {
-                    }
+                    ExecuteTask(BannedIPAddressHandler.HandleBannedIPAddress(ipAddress, source, userName, OSName, OSVersion, AssemblyVersion, RequestMaker));
                 }
-                if (IPBanDelegate != null)
+                catch
                 {
-                    try
-                    {
-                        IPBanDelegate.IPAddressBanned(ipAddress, source, userName, MachineGuid, OSName, OSVersion, UtcNow, true).ConfigureAwait(false).GetAwaiter();
-                    }
-                    catch (Exception ex)
-                    {
-                        IPBanLog.Info("Error calling ipban delegate with banned ip address: " + ex.ToString());
-                    }
                 }
-            });
+            }
+            if (IPBanDelegate != null)
+            {
+                try
+                {
+                    ExecuteTask(IPBanDelegate.IPAddressBanned(ipAddress, source, userName, MachineGuid, OSName, OSVersion, UtcNow, true));
+                }
+                catch (Exception ex)
+                {
+                    IPBanLog.Info("Error calling ipban delegate with banned ip address: " + ex.ToString());
+                }
+            }
         }
 
         private void ExecuteExternalProcessForBannedIPAddresses(IReadOnlyCollection<IPAddressPendingEvent> bannedIPAddresses)
@@ -878,8 +887,8 @@ namespace DigitalRuby.IPBan
         /// <returns>Task</returns>
         public Task AddIPAddressLogEvents(IEnumerable<IPAddressLogEvent> events)
         {
-            object transaction = BeginTransaction();
             List<IPAddressPendingEvent> bannedIPs = new List<IPAddressPendingEvent>();
+            object transaction = BeginTransaction();
             try
             {
                 foreach (IPAddressLogEvent evt in events)
@@ -901,9 +910,10 @@ namespace DigitalRuby.IPBan
                 }
                 CommitTransaction(transaction);
             }
-            finally
+            catch (Exception ex)
             {
                 RollbackTransaction(transaction);
+                IPBanLog.Error(ex);
             }
             ExecuteExternalProcessForBannedIPAddresses(bannedIPs);
             return Task.CompletedTask;
@@ -1261,6 +1271,7 @@ namespace DigitalRuby.IPBan
             }
             string configFilePath = Path.Combine(directory, configFileName);
             string configFileText = File.ReadAllText(configFilePath);
+            configFileText = configFileText.Replace("<add key=\"UseDefaultBannedIPAddressHandler\" value=\"true\" />", "<add key=\"UseDefaultBannedIPAddressHandler\" value=\"false\" />");
             if (configFileModifier != null)
             {
                 configFileText = configFileModifier(configFileText);
