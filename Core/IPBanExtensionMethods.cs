@@ -600,29 +600,23 @@ namespace DigitalRuby.IPBan
         /// <summary>
         /// Asks for administrator privileges upgrade if the platform supports it, otherwise does nothing
         /// </summary>
+        /// <exception cref="InvalidOperationException">Application is not run as administrator</exception>
         public static void RequireAdministrator()
         {
-            try
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                using (WindowsIdentity identity = WindowsIdentity.GetCurrent())
                 {
-                    using (WindowsIdentity identity = WindowsIdentity.GetCurrent())
+                    WindowsPrincipal principal = new WindowsPrincipal(identity);
+                    if (!principal.IsInRole(WindowsBuiltInRole.Administrator))
                     {
-                        WindowsPrincipal principal = new WindowsPrincipal(identity);
-                        if (!principal.IsInRole(WindowsBuiltInRole.Administrator))
-                        {
-                            throw new InvalidOperationException("Application must be run as administrator");
-                        }
+                        throw new InvalidOperationException("Application must be run as administrator");
                     }
                 }
-                else if (getuid() != 0)
-                {
-                    throw new InvalidOperationException("Application must be run as administrator");
-                }
             }
-            catch (Exception ex)
+            else if (getuid() != 0)
             {
-                throw new ApplicationException("Unable to determine administrator status", ex);
+                throw new InvalidOperationException("Application must be run as administrator");
             }
         }
 
