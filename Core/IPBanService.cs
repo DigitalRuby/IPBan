@@ -685,11 +685,15 @@ namespace DigitalRuby.IPBan
                 }
                 if (MultiThreaded)
                 {
+                    // send enumerator into the firewall, that way the whole db does not go into memory
                     TaskQueue.Add(() => Firewall.BlockIPAddresses(null, ipDB.EnumerateBannedIPAddresses().Where(i => !IsWhitelisted(i)), TaskQueue.GetToken()));
                 }
                 else
                 {
-                    Firewall.BlockIPAddresses(null, ipDB.EnumerateBannedIPAddresses().Where(i => !IsWhitelisted(i))).Sync();
+                    // get array right away, otherwise the firewall implementation may callback multiple times to IsWhitelisted
+                    // this requires all in memory but is only really used in unit / integration tests
+                    string[] ips = ipDB.EnumerateBannedIPAddresses().Where(i => !IsWhitelisted(i)).ToArray();
+                    Firewall.BlockIPAddresses(null, ips).Sync();
                 }
             }
 
