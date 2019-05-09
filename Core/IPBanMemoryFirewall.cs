@@ -15,6 +15,7 @@ namespace DigitalRuby.IPBan
     /// In memory firewall that persists rules to disk. This is not meant to be used directly but rather to be used inside of other firewall implementations.
     /// Use the IsIPAddressBlocked method in your firewall implementation / packet injection / etc.
     /// Also great for unit testing.
+    /// This class is thread safe.
     /// </summary>
     [RequiredOperatingSystemAttribute(null, -99)] // low priority, basically any other firewall is preferred unless this one is explicitly specified in the config
     [CustomName("Memory")]
@@ -154,26 +155,22 @@ namespace DigitalRuby.IPBan
             return RulePrefix + (ruleNamePrefix ?? string.Empty).Trim('_');
         }
 
-        private void AssignIPAddresses(IEnumerable<string> ipAddresses, ref HashSet<uint> v4, ref HashSet<UInt128> v6)
+        private void AssignIPAddresses(IEnumerable<string> ipAddresses, HashSet<uint> v4, HashSet<UInt128> v6)
         {
-            HashSet<uint> newV4 = new HashSet<uint>();
-            HashSet<UInt128> newV6 = new HashSet<UInt128>();
             foreach (string ipAddress in ipAddresses)
             {
                 if (IPAddress.TryParse(ipAddress, out IPAddress ipAddressObj))
                 {
                     if (ipAddressObj.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
                     {
-                        newV4.Add(ipAddressObj.ToUInt32());
+                        v4.Add(ipAddressObj.ToUInt32());
                     }
                     else
                     {
-                        newV6.Add(ipAddressObj.ToUInt128());
+                        v6.Add(ipAddressObj.ToUInt128());
                     }
                 }
             }
-            v4 = newV4;
-            v6 = newV6;
         }
 
         public void Update()
@@ -182,120 +179,168 @@ namespace DigitalRuby.IPBan
 
         public Task<bool> AllowIPAddresses(IEnumerable<string> ipAddresses, CancellationToken cancelToken = default)
         {
-            AssignIPAddresses(ipAddresses, ref allowedIPAddressesV4, ref allowedIPAddressesV6);
+            lock (this)
+            {
+                AssignIPAddresses(ipAddresses, allowedIPAddressesV4, allowedIPAddressesV6);
+            }
             return Task.FromResult<bool>(true);
         }
 
         public Task<bool> BlockIPAddresses(string ruleNamePrefix, IEnumerable<string> ipAddresses, CancellationToken cancelToken = default)
         {
-            // all rules map to the block list
-            AssignIPAddresses(ipAddresses, ref blockedIPAddressesV4, ref blockedIPAddressesV6);
+            lock (this)
+            {
+                AssignIPAddresses(ipAddresses, blockedIPAddressesV4, blockedIPAddressesV6);
+            }
             return Task.FromResult<bool>(true);
+        }
+
+        public Task<bool> BlockIPAddressesDelta(string ruleNamePrefix, IEnumerable<IPBanFirewallIPAddressDelta> ipAddresses, CancellationToken cancelToken = default)
+        {
+            lock (this)
+            {
+                List<IPBanFirewallIPAddressDelta> deltas = new List<IPBanFirewallIPAddressDelta>(ipAddresses);
+                foreach (IPBanFirewallIPAddressDelta delta in deltas)
+                {
+                    if (IPAddress.TryParse(delta.IPAddress, out IPAddress ip))
+                    {
+                        if (delta.Added)
+                        {
+                            if (ip.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
+                            {
+                                blockedIPAddressesV4.Add(ip.ToUInt32());
+                            }
+                            else
+                            {
+                                blockedIPAddressesV6.Add(ip.ToUInt128());
+                            }
+                        }
+                        else if (ip.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
+                        {
+                            blockedIPAddressesV4.Remove(ip.ToUInt32());
+                        }
+                        else
+                        {
+                            blockedIPAddressesV6.Remove(ip.ToUInt128());
+                        }
+                    }
+                }
+            }
+            return Task.FromResult(true);
         }
 
         public Task<bool> BlockIPAddresses(string ruleNamePrefix, IEnumerable<IPAddressRange> ranges, IEnumerable<PortRange> allowedPorts, CancellationToken cancelToken = default)
         {
             // for performance, ranges is assumed to be sorted
-            ruleNamePrefix = ScrubRuleNamePrefix(ruleNamePrefix);
-            List<IPAddressRange> rangesList = new List<IPAddressRange>(ranges);
-            List<PortRange> portList = new List<PortRange>(allowedPorts ?? new PortRange[0]);
-            blockRules[ruleNamePrefix] = new BlockRule(rangesList, portList);
+            lock (this)
+            {
+                ruleNamePrefix = ScrubRuleNamePrefix(ruleNamePrefix);
+                List<IPAddressRange> rangesList = new List<IPAddressRange>(ranges);
+                List<PortRange> portList = new List<PortRange>(allowedPorts ?? new PortRange[0]);
+                blockRules[ruleNamePrefix] = new BlockRule(rangesList, portList);
+            }
             return Task.FromResult<bool>(true);
         }
 
         public bool DeleteRule(string ruleName)
         {
-            return blockRules.TryRemove(ruleName, out _);
+            lock (this)
+            {
+                return blockRules.TryRemove(ruleName, out _);
+            }
         }
 
         public void Dispose()
         {
-            allowedIPAddressesV4 = new HashSet<uint>();
-            allowedIPAddressesV6 = new HashSet<UInt128>();
-            blockedIPAddressesV4 = new HashSet<uint>();
-            blockedIPAddressesV6 = new HashSet<UInt128>();
-            blockRules.Clear();
+            lock (this)
+            {
+                allowedIPAddressesV4.Clear();
+                allowedIPAddressesV6.Clear();
+                blockedIPAddressesV4.Clear();
+                blockedIPAddressesV6.Clear();
+                blockRules.Clear();
+            }
         }
 
         public IEnumerable<string> EnumerateAllowedIPAddresses()
         {
-            foreach (uint ipv4 in allowedIPAddressesV4)
+            lock (this)
             {
-                yield return ipv4.ToIPAddress().ToString();
-            }
-            foreach (UInt128 ipv6 in allowedIPAddressesV6)
-            {
-                yield return ipv6.ToIPAddress().ToString();
-            }
-        }
-
-        public IEnumerable<string> EnumerateBannedIPAddresses()
-        {
-            foreach (uint ipv4 in blockedIPAddressesV4)
-            {
-                if (!allowedIPAddressesV4.Contains(ipv4))
+                foreach (uint ipv4 in allowedIPAddressesV4)
                 {
                     yield return ipv4.ToIPAddress().ToString();
                 }
-            }
-            foreach (UInt128 ipv6 in blockedIPAddressesV6)
-            {
-                if (!allowedIPAddressesV6.Contains(ipv6))
+                foreach (UInt128 ipv6 in allowedIPAddressesV6)
                 {
                     yield return ipv6.ToIPAddress().ToString();
                 }
             }
         }
 
+        public IEnumerable<string> EnumerateBannedIPAddresses()
+        {
+            lock (this)
+            {
+                return blockedIPAddressesV4.Where(i => !allowedIPAddressesV4.Contains(i)).Select(i => i.ToIPAddress().ToString())
+                    .Union(blockedIPAddressesV6.Where(i => !allowedIPAddressesV6.Contains(i)).Select(i => i.ToIPAddress().ToString())).ToArray();
+            }
+        }
+
         public IEnumerable<IPAddressRange> EnumerateIPAddresses(string ruleNamePrefix = null)
         {
-            ruleNamePrefix = ScrubRuleNamePrefix(ruleNamePrefix);
-            if (ruleNamePrefix.StartsWith(RulePrefix + "0", StringComparison.OrdinalIgnoreCase))
+            lock (this)
             {
-                foreach (uint ip in blockedIPAddressesV4)
+                ruleNamePrefix = ScrubRuleNamePrefix(ruleNamePrefix);
+                if (ruleNamePrefix.StartsWith(RulePrefix + "0", StringComparison.OrdinalIgnoreCase))
                 {
-                    yield return new IPAddressRange(ip.ToIPAddress());
+                    foreach (uint ip in blockedIPAddressesV4)
+                    {
+                        yield return new IPAddressRange(ip.ToIPAddress());
+                    }
+                    foreach (UInt128 ip in blockedIPAddressesV6)
+                    {
+                        yield return new IPAddressRange(ip.ToIPAddress());
+                    }
                 }
-                foreach (UInt128 ip in blockedIPAddressesV6)
+                if (ruleNamePrefix.StartsWith(RulePrefix + "1", StringComparison.OrdinalIgnoreCase))
                 {
-                    yield return new IPAddressRange(ip.ToIPAddress());
+                    foreach (uint ip in allowedIPAddressesV4)
+                    {
+                        yield return new IPAddressRange(ip.ToIPAddress());
+                    }
+                    foreach (UInt128 ip in allowedIPAddressesV6)
+                    {
+                        yield return new IPAddressRange(ip.ToIPAddress());
+                    }
                 }
-            }
-            if (ruleNamePrefix.StartsWith(RulePrefix + "1", StringComparison.OrdinalIgnoreCase))
-            {
-                foreach (uint ip in allowedIPAddressesV4)
+                foreach (string key in blockRules.Keys.Where(k => k.StartsWith(ruleNamePrefix, StringComparison.OrdinalIgnoreCase)))
                 {
-                    yield return new IPAddressRange(ip.ToIPAddress());
-                }
-                foreach (UInt128 ip in allowedIPAddressesV6)
-                {
-                    yield return new IPAddressRange(ip.ToIPAddress());
-                }
-            }
-            foreach (string key in blockRules.Keys.Where(k => k.StartsWith(ruleNamePrefix, StringComparison.OrdinalIgnoreCase)))
-            {
-                BlockRule rule = blockRules[key];
-                foreach (IPAddressRange range in rule.EnumerateIPAddresses())
-                {
-                    yield return range;
+                    BlockRule rule = blockRules[key];
+                    foreach (IPAddressRange range in rule.EnumerateIPAddresses())
+                    {
+                        yield return range;
+                    }
                 }
             }
         }
 
         public IEnumerable<string> GetRuleNames(string ruleNamePrefix = null)
         {
-            ruleNamePrefix = ScrubRuleNamePrefix(ruleNamePrefix);
-            if (ruleNamePrefix.StartsWith(RulePrefix + "0", StringComparison.OrdinalIgnoreCase))
+            lock (this)
             {
-                yield return RulePrefix + "0";
-            }
-            if (ruleNamePrefix.StartsWith(RulePrefix + "1", StringComparison.OrdinalIgnoreCase))
-            {
-                yield return RulePrefix + "1";
-            }
-            foreach (string key in blockRules.Keys.Where(k => k.StartsWith(ruleNamePrefix, StringComparison.OrdinalIgnoreCase)))
-            {
-                yield return key;
+                ruleNamePrefix = ScrubRuleNamePrefix(ruleNamePrefix);
+                if (ruleNamePrefix.StartsWith(RulePrefix + "0", StringComparison.OrdinalIgnoreCase))
+                {
+                    yield return RulePrefix + "0";
+                }
+                if (ruleNamePrefix.StartsWith(RulePrefix + "1", StringComparison.OrdinalIgnoreCase))
+                {
+                    yield return RulePrefix + "1";
+                }
+                foreach (string key in blockRules.Keys.Where(k => k.StartsWith(ruleNamePrefix, StringComparison.OrdinalIgnoreCase)))
+                {
+                    yield return key;
+                }
             }
         }
 
@@ -305,11 +350,15 @@ namespace DigitalRuby.IPBan
             {
                 return false;
             }
-            else if (ipAddressObj.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
+
+            lock (this)
             {
-                return allowedIPAddressesV4.Contains(ipAddressObj.ToUInt32());
+                if (ipAddressObj.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
+                {
+                    return allowedIPAddressesV4.Contains(ipAddressObj.ToUInt32());
+                }
+                return allowedIPAddressesV6.Contains(ipAddressObj.ToUInt128());
             }
-            return allowedIPAddressesV6.Contains(ipAddressObj.ToUInt128());
         }
 
         public bool IsIPAddressBlocked(string ipAddress, int port = -1)
@@ -318,41 +367,45 @@ namespace DigitalRuby.IPBan
             {
                 return false;
             }
-            else if (ipAddressObj.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
+
+            lock (this)
             {
-                uint ipv4 = ipAddressObj.ToUInt32();
-                if (allowedIPAddressesV4.Contains(ipv4))
+                if (ipAddressObj.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
                 {
-                    return false;
-                }
-                else if (blockedIPAddressesV4.Contains(ipv4))
-                {
-                    return true;
-                }
-                foreach (BlockRule rule in blockRules.Values)
-                {
-                    if (rule.ShouldBlockV4(ipv4, port))
+                    uint ipv4 = ipAddressObj.ToUInt32();
+                    if (allowedIPAddressesV4.Contains(ipv4))
+                    {
+                        return false;
+                    }
+                    else if (blockedIPAddressesV4.Contains(ipv4))
                     {
                         return true;
                     }
+                    foreach (BlockRule rule in blockRules.Values)
+                    {
+                        if (rule.ShouldBlockV4(ipv4, port))
+                        {
+                            return true;
+                        }
+                    }
                 }
-            }
-            else
-            {
-                UInt128 ipv6 = ipAddressObj.ToUInt128();
-                if (allowedIPAddressesV6.Contains(ipv6))
+                else
                 {
-                    return false;
-                }
-                else if (blockedIPAddressesV6.Contains(ipv6))
-                {
-                    return true;
-                }
-                foreach (BlockRule rule in blockRules.Values)
-                {
-                    if (rule.ShouldBlockV6(ipv6, port))
+                    UInt128 ipv6 = ipAddressObj.ToUInt128();
+                    if (allowedIPAddressesV6.Contains(ipv6))
+                    {
+                        return false;
+                    }
+                    else if (blockedIPAddressesV6.Contains(ipv6))
                     {
                         return true;
+                    }
+                    foreach (BlockRule rule in blockRules.Values)
+                    {
+                        if (rule.ShouldBlockV6(ipv6, port))
+                        {
+                            return true;
+                        }
                     }
                 }
             }
@@ -365,42 +418,45 @@ namespace DigitalRuby.IPBan
             {
                 return true;
             }
-            return blockRules.ContainsKey(ruleName);
+
+            lock (this)
+            {
+                return blockRules.ContainsKey(ruleName);
+            }
         }
 
         public Task UnblockIPAddresses(IEnumerable<string> ipAddresses)
         {
-            // for thread safety we create brand new hash sets, this removes the need to lock during query operations
-            // at the expense of slightly higher CPU bursts
-            HashSet<uint> newBlockedIPAddressesV4 = new HashSet<uint>();
-            HashSet<UInt128> newBlockedIPAddressesV6 = new HashSet<UInt128>();
-            HashSet<uint> existingBlockedIPAddressesV4 = blockedIPAddressesV4;
-            HashSet<UInt128> existingBlockedIPAddressesV6 = blockedIPAddressesV6;
-            foreach (uint ipAddress in existingBlockedIPAddressesV4)
+            lock (this)
             {
-                newBlockedIPAddressesV4.Add(ipAddress);
-            }
-            foreach (UInt128 ipAddress in existingBlockedIPAddressesV6)
-            {
-                newBlockedIPAddressesV6.Add(ipAddress);
-            }
-            foreach (string ipAddress in ipAddresses)
-            {
-                if (IPAddress.TryParse(ipAddress, out IPAddress ipAddressObj))
+                foreach (string ipAddress in ipAddresses)
                 {
-                    if (ipAddressObj.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
+                    if (IPAddress.TryParse(ipAddress, out IPAddress ipAddressObj))
                     {
-                        newBlockedIPAddressesV4.Remove(ipAddressObj.ToUInt32());
-                    }
-                    else
-                    {
-                        newBlockedIPAddressesV6.Remove(ipAddressObj.ToUInt128());
+                        if (ipAddressObj.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
+                        {
+                            blockedIPAddressesV4.Remove(ipAddressObj.ToUInt32());
+                        }
+                        else
+                        {
+                            blockedIPAddressesV6.Remove(ipAddressObj.ToUInt128());
+                        }
                     }
                 }
             }
-            blockedIPAddressesV4 = newBlockedIPAddressesV4;
-            blockedIPAddressesV6 = newBlockedIPAddressesV6;
             return Task.CompletedTask;
+        }
+
+        public void Truncate()
+        {
+            lock (this)
+            {
+                allowedIPAddressesV4.Clear();
+                blockedIPAddressesV4.Clear();
+                allowedIPAddressesV6.Clear();
+                blockedIPAddressesV6.Clear();
+                blockRules.Clear();
+            }
         }
     }
 }

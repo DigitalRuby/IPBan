@@ -53,14 +53,14 @@ namespace DigitalRuby.IPBanTests
             Assert.AreNotEqual(typeof(IPBanMemoryFirewall), firewall.GetType());
 
             // clear all blocks
-            firewall.BlockIPAddresses(null, new string[0]).Sync();
+            firewall.Truncate();
         }
 
         [TearDown]
         public void TestStop()
         {
             // clear all blocks
-            firewall.BlockIPAddresses(null, new string[0]).Sync();
+            firewall.Truncate();
             firewall.Dispose();
         }
 
@@ -150,6 +150,102 @@ namespace DigitalRuby.IPBanTests
             Assert.IsTrue(ip.IsInternal());
             ip = IPAddress.Parse("99.99.99.99");
             Assert.IsFalse(ip.IsInternal());
+        }
+
+        [Test]
+        public void TestBlockDelta()
+        {
+            Random r = new Random();
+            byte[] ipBytes = new byte[4];
+            string[] ips = new string[5000];
+            for (int i = 0; i < ips.Length; i++)
+            {
+                r.NextBytes(ipBytes);
+                ipBytes[0] = 99;
+                string ip = new IPAddress(ipBytes).ToString();
+                if (ips.Contains(ip))
+                {
+                    i--;
+                    continue;
+                }
+                ips[i] = ip;
+            }
+            string[] newIps = new string[10];
+            Array.Sort(ips);
+
+            // make new ip to add, ensure they are not in the list
+            for (int i = 0; i < newIps.Length; i++)
+            {
+                r.NextBytes(ipBytes);
+                ipBytes[0] = 98;
+                string ip = new IPAddress(ipBytes).ToString();
+                newIps[i] = ip;
+            }
+
+            string[] ipsToRemove = new string[] { ips[999], ips[444], ips[0], ips[1000], ips[1444], ips[1999] };
+            string[] ipsToAddExist = new string[] { ips[995], ips[441], ips[54], ips[1200], ips[1344], ips[1599] };
+            Array.Sort(ipsToRemove);
+
+            firewall.BlockIPAddresses(null, ips).Sync();
+            string[] ipsBlocked = firewall.EnumerateIPAddresses(null).Select(i => i.Begin.ToString()).ToArray();
+            Assert.AreEqual(ips.Length, ipsBlocked.Length, "Mismatching count from firewall block and retrieval");
+            Assert.AreEqual(ipsBlocked.Length, new HashSet<string>(ipsBlocked).Count, "Duplicate ip from firewall block and retrieval");
+            Array.Sort(ipsBlocked);
+            Assert.AreEqual(ips, ipsBlocked);
+            firewall.BlockIPAddressesDelta(null, new IPBanFirewallIPAddressDelta[]
+            {
+                // remove 6 that exist
+                new IPBanFirewallIPAddressDelta { IPAddress = ipsToRemove[0] },
+                new IPBanFirewallIPAddressDelta { IPAddress = ipsToRemove[1] },
+                new IPBanFirewallIPAddressDelta { IPAddress = ipsToRemove[2] },
+                new IPBanFirewallIPAddressDelta { IPAddress = ipsToRemove[3] },
+                new IPBanFirewallIPAddressDelta { IPAddress = ipsToRemove[4] },
+                new IPBanFirewallIPAddressDelta { IPAddress = ipsToRemove[5] },
+
+                // remove 1 that does not exist
+                new IPBanFirewallIPAddressDelta { IPAddress = "88.88.88.88" },
+
+                // add 10 new
+                new IPBanFirewallIPAddressDelta { Added = true, IPAddress = newIps[0] },
+                new IPBanFirewallIPAddressDelta { Added = true, IPAddress = newIps[1] },
+                new IPBanFirewallIPAddressDelta { Added = true, IPAddress = newIps[2] },
+                new IPBanFirewallIPAddressDelta { Added = true, IPAddress = newIps[3] },
+                new IPBanFirewallIPAddressDelta { Added = true, IPAddress = newIps[4] },
+                new IPBanFirewallIPAddressDelta { Added = true, IPAddress = newIps[5] },
+                new IPBanFirewallIPAddressDelta { Added = true, IPAddress = newIps[6] },
+                new IPBanFirewallIPAddressDelta { Added = true, IPAddress = newIps[7] },
+                new IPBanFirewallIPAddressDelta { Added = true, IPAddress = newIps[8] },
+                new IPBanFirewallIPAddressDelta { Added = true, IPAddress = newIps[9] }
+            }).Sync();
+
+            foreach (string ip in ipsToRemove)
+            {
+                Assert.IsFalse(firewall.IsIPAddressBlocked(ip), "Failed to remove ip " + ip);
+            }
+            string[] firewallIP = firewall.EnumerateIPAddresses().Select(r2 => r2.Begin.ToString()).ToArray();
+            string[] sentIP = ips.Where(i => !ipsToRemove.Contains(i)).Union(newIps).ToArray();
+            Array.Sort(firewallIP);
+            Array.Sort(sentIP);
+            Assert.AreEqual(sentIP, firewallIP);
+
+            // clear out everything
+            firewall.Truncate();
+
+            // block 1000, on Windows this will cause a rule overflow
+            firewall.BlockIPAddresses(null, ips.Take(1000));
+
+            firewall.BlockIPAddressesDelta(null, new IPBanFirewallIPAddressDelta[]
+            {
+                // add a one-off, on Windows this should cause a rule overflow
+                new IPBanFirewallIPAddressDelta { Added = true, IPAddress = "91.91.91.91" }
+            }).Sync();
+
+            firewallIP = firewall.EnumerateIPAddresses().Select(r2 => r2.Begin.ToString()).ToArray();
+            sentIP = ips.Take(1000).Concat(new string[] { "91.91.91.91" }).ToArray();
+            Array.Sort(firewallIP);
+            Array.Sort(sentIP);
+            Assert.AreEqual(sentIP, firewallIP);
+            Assert.IsTrue(firewall.IsIPAddressBlocked("91.91.91.91"), "Failed to block overflow ip 91.91.91.91");
         }
     }
 }

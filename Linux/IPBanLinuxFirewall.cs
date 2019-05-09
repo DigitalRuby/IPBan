@@ -51,10 +51,8 @@ namespace DigitalRuby.IPBan
         private const int allowRuleMaxCount = 65536;
         private const int blockRuleRangesMaxCount = 4194304;
 
-        private List<uint> bannedIPAddresses;
-        private List<uint> allowedIPAddresses;
-        private string allowRuleName;
-        private string blockRuleName;
+        private HashSet<uint> bannedIPAddresses;
+        private HashSet<uint> allowedIPAddresses;
 
         private string GetSetFileName(string ruleName)
         {
@@ -198,9 +196,9 @@ namespace DigitalRuby.IPBan
             return true;
         }
 
-        private List<uint> LoadIPAddresses(string ruleName, string action, string hashType, int maxCount)
+        private HashSet<uint> LoadIPAddresses(string ruleName, string action, string hashType, int maxCount)
         {
-            List<uint> ipAddresses = new List<uint>();
+            HashSet<uint> ipAddresses = new HashSet<uint>();
 
             try
             {
@@ -251,13 +249,13 @@ namespace DigitalRuby.IPBan
         }
 
         // deleteRule will drop the rule and matching set before creating the rule and set, use this is you don't care to update the rule and set in place
-        private List<uint> UpdateRule(string ruleName, string action, IEnumerable<string> ipAddresses,
-            List<uint> existingIPAddresses, string hashType, int maxCount, bool deleteRule, IEnumerable<PortRange> allowPorts, CancellationToken cancelToken,
+        private HashSet<uint> UpdateRule(string ruleName, string action, IEnumerable<string> ipAddresses,
+            HashSet<uint> existingIPAddresses, string hashType, int maxCount, bool deleteRule, IEnumerable<PortRange> allowPorts, CancellationToken cancelToken,
             out bool result)
         {
             string ipFile = GetSetFileName(ruleName);
             string ipFileTemp = ipFile + ".tmp";
-            List<uint> newIPAddressesUint = new List<uint>();
+            HashSet<uint> newIPAddressesUint = new HashSet<uint>();
             uint value = 0;
 
             // add and remove the appropriate ip addresses from the set
@@ -304,13 +302,12 @@ namespace DigitalRuby.IPBan
                         }
                     }
                 }
-                newIPAddressesUint.Sort();
 
                 // if the rule was deleted, no need to add del entries
                 if (!deleteRule)
                 {
                     // for ip that dropped out, remove from firewall
-                    foreach (uint droppedIP in existingIPAddresses.Where(e => newIPAddressesUint.BinarySearch(e) < 0))
+                    foreach (uint droppedIP in existingIPAddresses.Where(e => newIPAddressesUint.Contains(e)))
                     {
                         writer.WriteLine($"del {ruleName} {droppedIP.ToIPAddress()} -exist");
                     }
@@ -345,12 +342,37 @@ namespace DigitalRuby.IPBan
             return newIPAddressesUint;
         }
 
+        internal static void RemoveAllTablesAndSets()
+        {
+            try
+            {
+                string dir = AppDomain.CurrentDomain.BaseDirectory;
+                foreach (string setFile in Directory.GetFiles(dir, "*.set")
+                    .Union(Directory.GetFiles(dir, "*.tbl")
+                    .Union(Directory.GetFiles(dir, "*.set6"))
+                    .Union(Directory.GetFiles(dir, "*.tbl6"))))
+                {
+                    File.Delete(setFile);
+                }
+            }
+            catch
+            {
+            }
+        }
+
+        private void MigrateOldDefaultRuleNames()
+        {
+            string oldVersionFile = GetSetFileName(RulePrefix + "0");
+            if (File.Exists(oldVersionFile))
+            {
+                RemoveAllTablesAndSets();
+            }
+        }
+
         public IPBanLinuxFirewall(string rulePrefix = null) : base(rulePrefix)
         {
+            MigrateOldDefaultRuleNames();
             firewall6 = new IPBanLinuxFirewall6(RulePrefix + "v6_");
-
-            allowRuleName = RulePrefix + "1";
-            blockRuleName = RulePrefix + "0";
 
             /*
             // restore existing sets from disk
@@ -367,8 +389,8 @@ namespace DigitalRuby.IPBan
                 RunProcess("ipset", true, $"restore < \"{setFile}\"");
             }
 
-            allowedIPAddresses = LoadIPAddresses(allowRuleName, "ACCEPT", "ip", allowRuleMaxCount);
-            bannedIPAddresses = LoadIPAddresses(blockRuleName, "DROP", "ip", blockRuleMaxCount);
+            allowedIPAddresses = LoadIPAddresses(AllowRuleName, "ACCEPT", "ip", allowRuleMaxCount);
+            bannedIPAddresses = LoadIPAddresses(BlockRuleName, "DROP", "ip", blockRuleMaxCount);
 
             // restore existing rules from disk
             string ruleFile = GetTableFileName();
@@ -388,15 +410,8 @@ namespace DigitalRuby.IPBan
 
             try
             {
-                if (string.IsNullOrWhiteSpace(ruleNamePrefix))
-                {
-                    ruleNamePrefix = blockRuleName;
-                }
-                else
-                {
-                    ruleNamePrefix = RulePrefix + ruleNamePrefix;
-                }
-                bannedIPAddresses = UpdateRule(ruleNamePrefix, "DROP", ipAddresses, bannedIPAddresses, "ip", blockRuleMaxCount, false, null, cancelToken, out result);
+                string ruleName = (string.IsNullOrWhiteSpace(ruleNamePrefix) ? BlockRuleName : RulePrefix + ruleNamePrefix);
+                bannedIPAddresses = UpdateRule(ruleName, "DROP", ipAddresses, bannedIPAddresses, "ip", blockRuleMaxCount, false, null, cancelToken, out result);
                 return result;
             }
             catch (Exception ex)
@@ -404,6 +419,37 @@ namespace DigitalRuby.IPBan
                 IPBanLog.Error(ex);
                 return false;
             }
+        }
+
+        public Task<bool> BlockIPAddressesDelta(string ruleNamePrefix, IEnumerable<IPBanFirewallIPAddressDelta> ipAddresses, CancellationToken cancelToken = default)
+        {
+            List<IPBanFirewallIPAddressDelta> deltas = new List<IPBanFirewallIPAddressDelta>(ipAddresses.Where(i => IPAddress.Parse(i.IPAddress).AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork));
+            List<IPBanFirewallIPAddressDelta> delta6 = new List<IPBanFirewallIPAddressDelta>(ipAddresses.Where(i => IPAddress.Parse(i.IPAddress).AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6));
+            string ruleName = (string.IsNullOrWhiteSpace(ruleNamePrefix) ? BlockRuleName : RulePrefix + ruleNamePrefix);
+            bool changed = false;
+            foreach (IPBanFirewallIPAddressDelta delta in deltas)
+            {
+                if (IPAddress.TryParse(delta.IPAddress, out IPAddress ipObj))
+                {
+                    if (delta.Added)
+                    {
+                        changed = bannedIPAddresses.Add(ipObj.ToUInt32());
+                    }
+                    else
+                    {
+                        changed = bannedIPAddresses.Remove(ipObj.ToUInt32());
+                    }
+                }
+            }
+            if (changed)
+            {
+                bannedIPAddresses = UpdateRule(ruleName, "DROP", bannedIPAddresses.Select(b => b.ToIPAddress().ToString()), bannedIPAddresses, "ip", blockRuleMaxCount, false, null, cancelToken, out bool result);
+                if (!result)
+                {
+                    return Task.FromResult(false);
+                }
+            }
+            return firewall6.BlockIPAddressesDelta(ruleNamePrefix, delta6, cancelToken);
         }
 
         public async Task<bool> BlockIPAddresses(string ruleNamePrefix, IEnumerable<IPAddressRange> ranges, IEnumerable<PortRange> allowedPorts, CancellationToken cancelToken = default)
@@ -440,7 +486,7 @@ namespace DigitalRuby.IPBan
             foreach (string ipAddress in ipAddresses)
             {
                 uint ipValue = IPBanFirewallUtility.ParseIPV4(ipAddress);
-                if (ipValue != 0 && !string.IsNullOrWhiteSpace(ipAddress) && RunProcess("ipset", true, $"del {blockRuleName} {ipAddress} -exist") == 0)
+                if (ipValue != 0 && !string.IsNullOrWhiteSpace(ipAddress) && RunProcess("ipset", true, $"del {BlockRuleName} {ipAddress} -exist") == 0)
                 {
                     bannedIPAddresses.Remove(ipValue);
                     changed = true;
@@ -448,7 +494,7 @@ namespace DigitalRuby.IPBan
             }
             if (changed)
             {
-                RunProcess("ipset", true, $"save {blockRuleName} > \"{GetSetFileName(blockRuleName)}\"");
+                RunProcess("ipset", true, $"save {BlockRuleName} > \"{GetSetFileName(BlockRuleName)}\"");
             }
         }
 
@@ -462,7 +508,7 @@ namespace DigitalRuby.IPBan
 
             try
             {
-                allowedIPAddresses = UpdateRule(allowRuleName, "ACCEPT", ipAddresses, allowedIPAddresses, "ip", allowRuleMaxCount, false, null, cancelToken, out result);
+                allowedIPAddresses = UpdateRule(AllowRuleName, "ACCEPT", ipAddresses, allowedIPAddresses, "ip", allowRuleMaxCount, false, null, cancelToken, out result);
                 return result;
             }
             catch (Exception ex)
@@ -583,6 +629,14 @@ namespace DigitalRuby.IPBan
         {
             return allowedIPAddresses.Contains(IPBanFirewallUtility.ParseIPV4(ipAddress)) ||
                 firewall6.IsIPAddressAllowed(ipAddress);
+        }
+
+        public void Truncate()
+        {
+            bannedIPAddresses.Clear();
+            allowedIPAddresses.Clear();
+            RemoveAllTablesAndSets();
+            firewall6.Truncate();
         }
     }
 }

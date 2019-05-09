@@ -465,7 +465,7 @@ namespace DigitalRuby.IPBan
             if (Config.ClearBannedIPAddressesOnRestart)
             {
                 IPBanLog.Warn("Clearing all banned ip addresses on start because ClearBannedIPAddressesOnRestart is set");
-                Firewall.BlockIPAddresses(null, new string[0]).Sync();
+                Firewall.Truncate();
                 ipDB.Truncate(true);
             }
             else
@@ -1292,7 +1292,7 @@ namespace DigitalRuby.IPBan
             service.BannedIPAddressHandler = null; // no external ip handling
             service.Start();
             service.DB.Truncate(true);
-            service.Firewall.BlockIPAddresses(null, new string[0]).Sync();
+            service.Firewall.Truncate();
             return service;
         }
 
@@ -1304,7 +1304,7 @@ namespace DigitalRuby.IPBan
         {
             if (service != null)
             {
-                service.Firewall.BlockIPAddresses(null, new string[0]);
+                service.Firewall.Truncate();
                 service.RunCycle().Sync();
                 service.Dispose();
                 DefaultHttpRequestMaker.DisableLiveRequests = false;

@@ -47,7 +47,7 @@ namespace DigitalRuby.IPBanTests
         {
             service = IPBanService.CreateAndStartIPBanTestService<IPBanService>();
             service.IPBanDelegate = this;
-            service.Firewall.BlockIPAddresses(null, new string[0]);
+            service.Firewall.Truncate();
         }
 
         [TearDown]

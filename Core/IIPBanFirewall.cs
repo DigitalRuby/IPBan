@@ -45,6 +45,15 @@ namespace DigitalRuby.IPBan
         Task<bool> BlockIPAddresses(string ruleNamePrefix, IEnumerable<string> ipAddresses, CancellationToken cancelToken = default);
 
         /// <summary>
+        /// Same as BlockIPAddresses except this is a delta that only adds / removes the necessary ip, all other ip are left alone.
+        /// </summary>
+        /// <param name="ruleNamePrefix">Rule name prefix</param>
+        /// <param name="ipAddresses">IP Addresses (delta)</param>
+        /// <param name="cancelToken">Cancel token</param>
+        /// <returns>True if success, false if error</returns>
+        Task<bool> BlockIPAddressesDelta(string ruleNamePrefix, IEnumerable<IPBanFirewallIPAddressDelta> ipAddresses, CancellationToken cancelToken = default);
+
+        /// <summary>
         /// Creates/updates new rule(s) prefixed by ruleNamePrefix with block rules for all ranges specified. Exceptions are logged.
         /// </summary>
         /// <param name="ruleNamePrefix">Rule name prefix</param>
@@ -99,7 +108,7 @@ namespace DigitalRuby.IPBan
         bool DeleteRule(string ruleName);
 
         /// <summary>
-        /// Gets all banned ip addresses from BlockIPAddresses(list) calls
+        /// Gets all banned ip addresses from BlockIPAddresses(list) calls with null prefix
         /// </summary>
         /// <returns>IEnumerable of all ip addresses</returns>
         IEnumerable<string> EnumerateBannedIPAddresses();
@@ -118,8 +127,38 @@ namespace DigitalRuby.IPBan
         IEnumerable<IPAddressRange> EnumerateIPAddresses(string ruleNamePrefix = null);
 
         /// <summary>
+        /// Remove all rules that IPBan created
+        /// </summary>
+        void Truncate();
+
+        /// <summary>
         /// The rule prefix for the firewall
         /// </summary>
         string RulePrefix { get; }
+    }
+
+    /// <summary>
+    /// Represents an ip address delta operation
+    /// </summary>
+    public struct IPBanFirewallIPAddressDelta
+    {
+        /// <summary>
+        /// True if added, false if removed
+        /// </summary>
+        public bool Added { get; set; }
+
+        /// <summary>
+        /// IPAddress
+        /// </summary>
+        public string IPAddress { get; set; }
+
+        /// <summary>
+        /// ToString
+        /// </summary>
+        /// <returns>String</returns>
+        public override string ToString()
+        {
+            return $"{IPAddress} added = {Added}";
+        }
     }
 }

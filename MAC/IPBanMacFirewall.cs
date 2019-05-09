@@ -54,6 +54,11 @@ namespace DigitalRuby.IPBan
             throw new NotImplementedException();
         }
 
+        public Task<bool> BlockIPAddressesDelta(string ruleNamePrefix, IEnumerable<IPBanFirewallIPAddressDelta> ipAddresses, CancellationToken cancelToken = default)
+        {
+            throw new NotImplementedException();
+        }
+
         public Task<bool> BlockIPAddresses(string ruleNamePrefix, IEnumerable<IPAddressRange> ranges, IEnumerable<PortRange> allowedPorts, CancellationToken cancelToken = default)
         {
             throw new NotImplementedException();
@@ -100,6 +105,11 @@ namespace DigitalRuby.IPBan
         }
 
         public Task UnblockIPAddresses(IEnumerable<string> ipAddresses)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void Truncate()
         {
             throw new NotImplementedException();
         }
