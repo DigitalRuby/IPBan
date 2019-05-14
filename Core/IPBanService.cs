@@ -510,13 +510,13 @@ namespace DigitalRuby.IPBan
                     {
                         if (ipAddress.BanDate != null)
                         {
-                            IPBanLog.Warn("Un-banning whitelisted ip address {0}");
+                            IPBanLog.Warn("Un-banning whitelisted ip address {0}", ipAddress.IPAddress);
                             ipAddressesToUnBan.Add(ipAddress.IPAddress);
                             firewallNeedsBlockedIPAddressesUpdate = true;
                         }
                         else
                         {
-                            IPBanLog.Warn("Forgetting whitelisted ip address {0}");
+                            IPBanLog.Warn("Forgetting whitelisted ip address {0}", ipAddress.IPAddress);
                             ipAddressesToForget.Add(ipAddress.IPAddress);
                         }
                     }
@@ -536,7 +536,7 @@ namespace DigitalRuby.IPBan
                     // if ban duration has expired, un-ban, check this first as these must trigger a firewall update
                     else if (allowBanExpire && ipAddress.BanDate != null && ipAddress.BanDate <= banCutOff)
                     {
-                        IPBanLog.Warn("Un-banning ip address {0}, ban expired");
+                        IPBanLog.Warn("Un-banning ip address {0}, ban expired", ipAddress.IPAddress);
                         ipAddressesToUnBan.Add(ipAddress.IPAddress);
                         firewallNeedsBlockedIPAddressesUpdate = true;
                     }
