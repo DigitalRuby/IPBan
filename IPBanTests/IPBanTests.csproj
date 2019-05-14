@@ -5,9 +5,9 @@
 
     <IsPackable>false</IsPackable>
 
-    <AssemblyVersion>1.4.4.0</AssemblyVersion>
+    <AssemblyVersion>1.4.6.0</AssemblyVersion>
 
-    <FileVersion>1.4.4.0</FileVersion>
+    <FileVersion>1.4.6.0</FileVersion>
 
     <RootNamespace>DigitalRuby.IPBanTests</RootNamespace>
 

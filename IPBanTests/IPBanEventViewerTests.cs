@@ -38,7 +38,7 @@ namespace DigitalRuby.IPBanTests
     [TestFixture]
     public class IPBanEventViewerTests : IIPBanDelegate
     {
-        private readonly Dictionary<string, int> events = new Dictionary<string, int>();
+        private readonly Dictionary<string, int> successEvents = new Dictionary<string, int>();
 
         private IPBanService service;
 
@@ -54,7 +54,7 @@ namespace DigitalRuby.IPBanTests
         public void TearDown()
         {
             IPBanService.DisposeIPBanTestService(service);
-            events.Clear();
+            successEvents.Clear();
         }
 
         /*
@@ -103,7 +103,8 @@ namespace DigitalRuby.IPBanTests
                 @"<Event xmlns='http://schemas.microsoft.com/win/2004/08/events/event'><System><Provider Name='OpenSSH' Guid='{C4B57D35-0636-4BC3-A262-370F249F9802}' /><EventID>4</EventID><Version>0</Version><Level>4</Level><Task>0</Task><Opcode>0</Opcode><Keywords>0x4000000000000000</Keywords><TimeCreated SystemTime='2019-04-13T10:03:30.415041300Z' /><EventRecordID>257875</EventRecordID><Correlation /><Execution ProcessID='5424' ThreadID='6272' /><Channel>OpenSSH/Operational</Channel><Computer>ns524406</Computer><Security UserID='S-1-5-18' /></System><EventData><Data Name='process'>sshd</Data><Data Name='payload'>Failed password for invalid user root from 192.169.217.183 port 43716 ssh2</Data></EventData></Event>",
                 @"<Event xmlns='http://schemas.microsoft.com/win/2004/08/events/event'><System><Provider Name='OpenSSH' Guid='{C4B57D35-0636-4BC3-A262-370F249F9802}' /><EventID>4</EventID><Version>0</Version><Level>4</Level><Task>0</Task><Opcode>0</Opcode><Keywords>0x4000000000000000</Keywords><TimeCreated SystemTime='2018-07-23T09:21:59.867239200Z' /><EventRecordID>1369</EventRecordID><Correlation /><Execution ProcessID='7964' ThreadID='696' /><Channel>OpenSSH/Operational</Channel><Computer>ns524406</Computer><Security UserID='S-1-5-18' /></System><EventData><Data Name='process'>sshd</Data><Data Name='payload'>Did not receive identification string from 70.91.222.121</Data></EventData></Event>",
                 @"<Event xmlns='http://schemas.microsoft.com/win/2004/08/events/event'><System><Provider Name='OpenSSH' Guid='{C4B57D35-0636-4BC3-A262-370F249F9802}' /><EventID>4</EventID><Version>0</Version><Level>4</Level><Task>0</Task><Opcode>0</Opcode><Keywords>0x4000000000000000</Keywords><TimeCreated SystemTime='2018-07-23T09:21:59.867239200Z' /><EventRecordID>1369</EventRecordID><Correlation /><Execution ProcessID='7964' ThreadID='696' /><Channel>OpenSSH/Operational</Channel><Computer>ns524406</Computer><Security UserID='S-1-5-18' /></System><EventData><Data Name='process'>sshd</Data><Data Name='payload'>Disconnected from 188.166.71.236 port 44510 [preauth]</Data></EventData></Event>",
-                @"<Event xmlns='http://schemas.microsoft.com/win/2004/08/events/event'><System><Provider Name='tvnserver' /><EventID Qualifiers='2'>258</EventID><Level>3</Level><Task>0</Task><Keywords>0x80000000000000</Keywords><TimeCreated SystemTime='2019-05-14T14:22:32.337254800Z' /><EventRecordID>9961</EventRecordID><Channel>Application</Channel><Computer>ELITEONE</Computer><Security /></System><EventData><Data>Authentication failed from 104.248.243.148</Data></EventData></Event>"
+                @"<Event xmlns='http://schemas.microsoft.com/win/2004/08/events/event'><System><Provider Name='tvnserver' /><EventID Qualifiers='2'>258</EventID><Level>3</Level><Task>0</Task><Keywords>0x80000000000000</Keywords><TimeCreated SystemTime='2019-05-14T14:22:32.337254800Z' /><EventRecordID>9961</EventRecordID><Channel>Application</Channel><Computer>MyCPU</Computer><Security /></System><EventData><Data>Authentication failed from 104.248.243.148</Data></EventData></Event>",
+                @"<Event xmlns='http://schemas.microsoft.com/win/2004/08/events/event'><System><Provider Name='tvnserver' /><EventID Qualifiers='2'>257</EventID><Level>3</Level><Task>0</Task><Keywords>0x80000000000000</Keywords><TimeCreated SystemTime='2019-05-14T14:22:32.337254800Z' /><EventRecordID>9961</EventRecordID><Channel>Application</Channel><Computer>MyCPU</Computer><Security /></System><EventData><Data>Authentication passed by 24.42.43.14</Data></EventData></Event>"
             };
             for (int i = 0; i < 5; i++)
             {
@@ -145,8 +146,9 @@ namespace DigitalRuby.IPBanTests
                 Assert.Fail("Failed to block ips: " + string.Join(", ", expected.Except(blockedIPAddresses)));
             }
             Assert.AreEqual(expected, blockedIPAddresses);
-            Assert.AreEqual(1, events.Count);
-            Assert.AreEqual(5, events["88.88.88.88_SSH_success_user"]);
+            Assert.AreEqual(2, successEvents.Count);
+            Assert.AreEqual(5, successEvents["88.88.88.88_SSH_success_user"]);
+            Assert.AreEqual(5, successEvents["24.42.43.14_VNC_"]);
         }
 
         void IDisposable.Dispose()
@@ -171,8 +173,8 @@ namespace DigitalRuby.IPBanTests
         Task IIPBanDelegate.LoginAttemptSucceeded(string ip, string source, string userName, string machineGuid, string osName, string osVersion, DateTime timestamp)
         {
             string key = ip + "_" + (source?.ToString()) + "_" + (userName?.ToString());
-            events.TryGetValue(key, out int count);
-            events[key] = ++count;
+            successEvents.TryGetValue(key, out int count);
+            successEvents[key] = ++count;
             return Task.CompletedTask;
         }
 
