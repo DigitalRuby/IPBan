@@ -1151,9 +1151,8 @@ namespace DigitalRuby.IPBan
         {
             // remove ip from database
             DB.DeleteIPAddresses(ipAddresses);
-
-            // remove ip from firewall
-            return Firewall.UnblockIPAddresses(ipAddresses);
+            firewallNeedsBlockedIPAddressesUpdate = true;
+            return Task.CompletedTask;
         }
 
         /// <summary>

@@ -25,6 +25,8 @@ SOFTWARE.
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Net;
 using System.Text;
 
 namespace DigitalRuby.IPBan
@@ -62,7 +64,9 @@ namespace DigitalRuby.IPBan
             {
                 if (File.Exists(textFilePath))
                 {
-                    UnbanIPAddresses(File.ReadLines(textFilePath));
+                    string[] lines = File.ReadLines(textFilePath).Where(l => IPAddress.TryParse(l, out _)).ToArray();
+                    IPBanLog.Warn("Queueing {0} ip addresses to unban from {1} file", lines.Length, textFilePath);
+                    UnbanIPAddresses(lines);
                     File.Delete(textFilePath);
                 }
             }
