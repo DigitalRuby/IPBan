@@ -193,10 +193,10 @@ recreateRule:
             }
         }
 
-        private void CreateBlockRule(IReadOnlyList<string> ipAddresses, int index, int count, string ruleName)
+        private void CreateBlockRule(IReadOnlyList<string> ipAddresses, int index, int count, string ruleName, IEnumerable<PortRange> allowedPorts = null)
         {
             string remoteIpString = CreateRuleStringForIPAddresses(ipAddresses, index, count);
-            GetOrCreateRule(ruleName, remoteIpString, NET_FW_ACTION_.NET_FW_ACTION_BLOCK);
+            GetOrCreateRule(ruleName, remoteIpString, NET_FW_ACTION_.NET_FW_ACTION_BLOCK, allowedPorts);
         }
 
         private void MigrateOldDefaultRuleNames()
@@ -355,7 +355,7 @@ recreateRule:
             MigrateOldDefaultRuleNames();
         }
 
-        public Task<bool> BlockIPAddresses(string ruleNamePrefix, IEnumerable<string> ipAddresses, CancellationToken cancelToken = default)
+        public Task<bool> BlockIPAddresses(string ruleNamePrefix, IEnumerable<string> ipAddresses, IEnumerable<PortRange> allowedPorts = null, CancellationToken cancelToken = default)
         {
             try
             {
@@ -371,7 +371,7 @@ recreateRule:
                     ipAddressesList.Add(ipAddress);
                     if (ipAddressesList.Count == MaxIpAddressesPerRule)
                     {
-                        CreateBlockRule(ipAddressesList, 0, MaxIpAddressesPerRule, prefix + i.ToStringInvariant());
+                        CreateBlockRule(ipAddressesList, 0, MaxIpAddressesPerRule, prefix + i.ToStringInvariant(), allowedPorts);
                         i += MaxIpAddressesPerRule;
                         ipAddressesList.Clear();
                     }
@@ -382,7 +382,7 @@ recreateRule:
                 }
                 if (ipAddressesList.Count != 0)
                 {
-                    CreateBlockRule(ipAddressesList, 0, MaxIpAddressesPerRule, prefix + i.ToStringInvariant());
+                    CreateBlockRule(ipAddressesList, 0, MaxIpAddressesPerRule, prefix + i.ToStringInvariant(), allowedPorts);
                     i += MaxIpAddressesPerRule;
                 }
                 DeleteRules(prefix, i);
@@ -395,7 +395,7 @@ recreateRule:
             }
         }
 
-        public Task<bool> BlockIPAddressesDelta(string ruleNamePrefix, IEnumerable<IPBanFirewallIPAddressDelta> ipAddresses, CancellationToken cancelToken = default)
+        public Task<bool> BlockIPAddressesDelta(string ruleNamePrefix, IEnumerable<IPBanFirewallIPAddressDelta> ipAddresses, IEnumerable<PortRange> allowedPorts = null, CancellationToken cancelToken = default)
         {
             string prefix = (string.IsNullOrWhiteSpace(ruleNamePrefix) ? BlockRulePrefix : RulePrefix + ruleNamePrefix).TrimEnd('_') + "_";
             int ruleIndex;
@@ -465,7 +465,7 @@ recreateRule:
                 if (ruleChanges[i])
                 {
                     string name = (i < rules.Length ? rules[i].Name : prefix + ruleIndex.ToStringInvariant());
-                    GetOrCreateRule(name, string.Join(',', remoteIPAddresses[i]), NET_FW_ACTION_.NET_FW_ACTION_BLOCK);
+                    GetOrCreateRule(name, string.Join(',', remoteIPAddresses[i]), NET_FW_ACTION_.NET_FW_ACTION_BLOCK, allowedPorts);
                 }
                 ruleIndex += MaxIpAddressesPerRule;
             }

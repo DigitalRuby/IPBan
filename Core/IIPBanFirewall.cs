@@ -40,18 +40,20 @@ namespace DigitalRuby.IPBan
         /// </summary>
         /// <param name="ruleNamePrefix">Rule name prefix</param>
         /// <param name="ipAddresses">IP Addresses</param>
+        /// <param name="allowedPorts">Allowed ports, any port not in this list is blocked</param>
         /// <param name="cancelToken">Cancel token</param>
         /// <returns>True if success, false if error</returns>
-        Task<bool> BlockIPAddresses(string ruleNamePrefix, IEnumerable<string> ipAddresses, CancellationToken cancelToken = default);
+        Task<bool> BlockIPAddresses(string ruleNamePrefix, IEnumerable<string> ipAddresses, IEnumerable<PortRange> allowedPorts = null, CancellationToken cancelToken = default);
 
         /// <summary>
         /// Same as BlockIPAddresses except this is a delta that only adds / removes the necessary ip, all other ip are left alone.
         /// </summary>
         /// <param name="ruleNamePrefix">Rule name prefix</param>
         /// <param name="ipAddresses">IP Addresses (delta)</param>
+        /// <param name="allowedPorts">Allowed ports, any port not in this list is blocked</param>
         /// <param name="cancelToken">Cancel token</param>
         /// <returns>True if success, false if error</returns>
-        Task<bool> BlockIPAddressesDelta(string ruleNamePrefix, IEnumerable<IPBanFirewallIPAddressDelta> ipAddresses, CancellationToken cancelToken = default);
+        Task<bool> BlockIPAddressesDelta(string ruleNamePrefix, IEnumerable<IPBanFirewallIPAddressDelta> ipAddresses, IEnumerable<PortRange> allowedPorts = null, CancellationToken cancelToken = default);
 
         /// <summary>
         /// Creates/updates new rule(s) prefixed by ruleNamePrefix with block rules for all ranges specified. Exceptions are logged.

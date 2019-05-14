@@ -689,7 +689,7 @@ namespace DigitalRuby.IPBan
                 if (MultiThreaded)
                 {
                     // send enumerator into the firewall, that way the whole db does not go into memory
-                    TaskQueue.Add(() => Firewall.BlockIPAddresses(null, ipDB.EnumerateBannedIPAddresses().Where(i => !IsWhitelisted(i)), TaskQueue.GetToken()));
+                    TaskQueue.Add(() => Firewall.BlockIPAddresses(null, ipDB.EnumerateBannedIPAddresses().Where(i => !IsWhitelisted(i)), null, TaskQueue.GetToken()));
                 }
                 else
                 {

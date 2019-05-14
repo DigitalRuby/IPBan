@@ -400,9 +400,9 @@ namespace DigitalRuby.IPBan
             }
         }
 
-        public async Task<bool> BlockIPAddresses(string ruleNamePrefix, IEnumerable<string> ipAddresses, CancellationToken cancelToken = default)
+        public async Task<bool> BlockIPAddresses(string ruleNamePrefix, IEnumerable<string> ipAddresses, IEnumerable<PortRange> allowedPorts = null, CancellationToken cancelToken = default)
         {
-            bool result = await firewall6.BlockIPAddresses(ruleNamePrefix, ipAddresses, cancelToken);
+            bool result = await firewall6.BlockIPAddresses(ruleNamePrefix, ipAddresses, allowedPorts, cancelToken);
             if (!result)
             {
                 return false;
@@ -421,7 +421,7 @@ namespace DigitalRuby.IPBan
             }
         }
 
-        public Task<bool> BlockIPAddressesDelta(string ruleNamePrefix, IEnumerable<IPBanFirewallIPAddressDelta> ipAddresses, CancellationToken cancelToken = default)
+        public Task<bool> BlockIPAddressesDelta(string ruleNamePrefix, IEnumerable<IPBanFirewallIPAddressDelta> ipAddresses, IEnumerable<PortRange> allowedPorts = null, CancellationToken cancelToken = default)
         {
             List<IPBanFirewallIPAddressDelta> deltas = new List<IPBanFirewallIPAddressDelta>(ipAddresses.Where(i => IPAddress.Parse(i.IPAddress).AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork));
             List<IPBanFirewallIPAddressDelta> delta6 = new List<IPBanFirewallIPAddressDelta>(ipAddresses.Where(i => IPAddress.Parse(i.IPAddress).AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6));
@@ -449,7 +449,7 @@ namespace DigitalRuby.IPBan
                     return Task.FromResult(false);
                 }
             }
-            return firewall6.BlockIPAddressesDelta(ruleNamePrefix, delta6, cancelToken);
+            return firewall6.BlockIPAddressesDelta(ruleNamePrefix, delta6, allowedPorts, cancelToken);
         }
 
         public async Task<bool> BlockIPAddresses(string ruleNamePrefix, IEnumerable<IPAddressRange> ranges, IEnumerable<PortRange> allowedPorts, CancellationToken cancelToken = default)
