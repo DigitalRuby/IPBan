@@ -523,26 +523,29 @@ namespace DigitalRuby.IPBan
                 }
             }
 
-            // fast query into database for entries that should be deleted due to un-ban or forgetting failed logins
-            foreach (IPBanDB.IPAddressEntry ipAddress in ipDB.EnumerateIPAddresses(failLoginCutOff, banCutOff))
+            if (allowBanExpire || allowFailedLoginExpire)
             {
-                // never un-ban a blacklisted entry
-                if (Config.IsBlackListed(ipAddress.IPAddress) && !Config.IsWhitelisted(ipAddress.IPAddress))
+                // fast query into database for entries that should be deleted due to un-ban or forgetting failed logins
+                foreach (IPBanDB.IPAddressEntry ipAddress in ipDB.EnumerateIPAddresses(failLoginCutOff, banCutOff))
                 {
-                    continue;
-                }
-                // if ban duration has expired, un-ban, check this first as these must trigger a firewall update
-                else if (ipAddress.BanDate != null && ipAddress.BanDate <= banCutOff)
-                {
-                    IPBanLog.Warn("Un-banning ip address {0}, ban expired");
-                    ipAddressesToUnBan.Add(ipAddress.IPAddress);
-                    firewallNeedsBlockedIPAddressesUpdate = true;
-                }
-                // if fail login has expired, remove ip address from db
-                else if (ipAddress.LastFailedLogin <= failLoginCutOff)
-                {
-                    IPBanLog.Warn("Forgetting ip address {0}, time expired", ipAddress.IPAddress);
-                    ipAddressesToForget.Add(ipAddress.IPAddress);
+                    // never un-ban a blacklisted entry
+                    if (Config.IsBlackListed(ipAddress.IPAddress) && !Config.IsWhitelisted(ipAddress.IPAddress))
+                    {
+                        continue;
+                    }
+                    // if ban duration has expired, un-ban, check this first as these must trigger a firewall update
+                    else if (allowBanExpire && ipAddress.BanDate != null && ipAddress.BanDate <= banCutOff)
+                    {
+                        IPBanLog.Warn("Un-banning ip address {0}, ban expired");
+                        ipAddressesToUnBan.Add(ipAddress.IPAddress);
+                        firewallNeedsBlockedIPAddressesUpdate = true;
+                    }
+                    // if fail login has expired, remove ip address from db
+                    else if (allowFailedLoginExpire && ipAddress.LastFailedLogin <= failLoginCutOff)
+                    {
+                        IPBanLog.Warn("Forgetting ip address {0}, time expired", ipAddress.IPAddress);
+                        ipAddressesToForget.Add(ipAddress.IPAddress);
+                    }
                 }
             }
 
