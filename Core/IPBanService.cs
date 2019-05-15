@@ -470,11 +470,22 @@ namespace DigitalRuby.IPBan
             }
             else
             {
-                // make sure all banned ip addresses in the firewall are also in the database
                 DateTime now = UtcNow;
+
+                IPBanLog.Warn("Syncing firewall and {0} database...", IPBanDB.FileName);
+
+                // bring all firewall ip into the database, if they already exist they will be ignored
                 ipDB.SetBannedIPAddresses(Firewall.EnumerateBannedIPAddresses().Select(i => new KeyValuePair<string, DateTime>(i, now)));
 
-                // in case some banned ip are in the database but not in the firewall, force a firewall update
+                // remove any rows where the ip address was going to be removed
+                ipDB.DeleteIPAddresses(IPBanDB.IPAddressState.RemovePending);
+
+                // ensure firewall is up to date with all the correct ip addresses, if any ip are in the db but not in the firewall, they will
+                // get synced up here
+                Firewall.BlockIPAddresses(null, ipDB.EnumerateBannedIPAddresses()).Sync();
+
+                // set firewall update flag, if any deltas are lingering in the db (state = add pending or remove pending) they will get
+                // processed on the next cycle
                 firewallNeedsBlockedIPAddressesUpdate = true;
 
                 // report on initial count
@@ -558,8 +569,11 @@ namespace DigitalRuby.IPBan
                 }
             }
 
-            // now that we are done iterating the ip addresses, we can issue a delete
-            ipDB.DeleteIPAddresses(ipAddressesToUnBan.Union(ipAddressesToForget));
+            // now that we are done iterating the ip addresses, we can issue a delete for forgotten ip
+            ipDB.DeleteIPAddresses(ipAddressesToForget);
+
+            // set ip to remove from firewall as pending deletion
+            ipDB.SetIPAddressesState(ipAddressesToUnBan, IPBanDB.IPAddressState.RemovePending);
         }
 
         private static bool IpAddressIsInRange(string ipAddress, string ipRange)
@@ -682,21 +696,17 @@ namespace DigitalRuby.IPBan
             if (firewallNeedsBlockedIPAddressesUpdate)
             {
                 firewallNeedsBlockedIPAddressesUpdate = false;
-                if (ipDB.GetBannedIPAddressCount() == 0)
-                {
-                    IPBanLog.Warn("Clearing all block firewall rules because {0} is empty", IPBanDB.FileName);
-                }
+                IEnumerable<IPBanFirewallIPAddressDelta> deltas = ipDB.EnumerateIPAddressesDelta(true).Where(i => !i.Added || !IsWhitelisted(i.IPAddress));
                 if (MultiThreaded)
                 {
                     // send enumerator into the firewall, that way the whole db does not go into memory
-                    TaskQueue.Add(() => Firewall.BlockIPAddresses(null, ipDB.EnumerateBannedIPAddresses().Where(i => !IsWhitelisted(i)), null, TaskQueue.GetToken()));
+                    TaskQueue.Add(() => Firewall.BlockIPAddressesDelta(null, deltas, null, TaskQueue.GetToken()));
                 }
                 else
                 {
                     // get array right away, otherwise the firewall implementation may callback multiple times to IsWhitelisted
                     // this requires all in memory but is only really used in unit / integration tests
-                    string[] ips = ipDB.EnumerateBannedIPAddresses().Where(i => !IsWhitelisted(i)).ToArray();
-                    Firewall.BlockIPAddresses(null, ips).Sync();
+                    Firewall.BlockIPAddressesDelta(null, deltas.ToArray()).Sync();
                 }
             }
 
@@ -767,38 +777,41 @@ namespace DigitalRuby.IPBan
             info.Source = (info.Source ?? "?");
             info.UserName = (info.UserName ?? string.Empty);
 
-            IPAddressPendingEvent existing = pendingEvents.FirstOrDefault(p => p.IPAddress == normalizedIPAddress && (p.UserName == null || p.UserName == info.UserName));
-            if (existing == null)
+            lock (pendingEvents)
             {
-                existing = new IPAddressPendingEvent
+                IPAddressPendingEvent existing = pendingEvents.FirstOrDefault(p => p.IPAddress == normalizedIPAddress && (p.UserName == null || p.UserName == info.UserName));
+                if (existing == null)
                 {
-                    IPAddress = normalizedIPAddress,
-                    Source = info.Source,
-                    UserName = info.UserName,
-                    DateTime = UtcNow,
-                    Count = info.Count
-                };
-                pendingEvents.Add(existing);
-            }
-            else
-            {
-                existing.UserName = (existing.UserName ?? info.UserName);
-
-                // if more than n seconds has passed, increment the counter
-                // we don't want to count multiple logs that all map to the same ip address from one failed
-                // attempt to count multiple times if they happen rapidly, if the parsers are parsing the same
-                // failed login that reads many different ways, we don't want to lock out legitimate failed logins
-                if ((UtcNow - existing.DateTime) >= minTimeBetweenEvents)
-                {
-                    // update to the latest timestamp of the failed login
-                    existing.DateTime = UtcNow;
-
-                    // increment counter
-                    existing.Count += info.Count;
+                    existing = new IPAddressPendingEvent
+                    {
+                        IPAddress = normalizedIPAddress,
+                        Source = info.Source,
+                        UserName = info.UserName,
+                        DateTime = UtcNow,
+                        Count = info.Count
+                    };
+                    pendingEvents.Add(existing);
                 }
                 else
                 {
-                    IPBanLog.Debug("Ignoring {0} login from {1}, min time between login attempts has not elapsed", type, existing.IPAddress);
+                    existing.UserName = (existing.UserName ?? info.UserName);
+
+                    // if more than n seconds has passed, increment the counter
+                    // we don't want to count multiple logs that all map to the same ip address from one failed
+                    // attempt to count multiple times if they happen rapidly, if the parsers are parsing the same
+                    // failed login that reads many different ways, we don't want to lock out legitimate failed logins
+                    if ((UtcNow - existing.DateTime) >= minTimeBetweenEvents)
+                    {
+                        // update to the latest timestamp of the failed login
+                        existing.DateTime = UtcNow;
+
+                        // increment counter
+                        existing.Count += info.Count;
+                    }
+                    else
+                    {
+                        IPBanLog.Debug("Ignoring {0} login from {1}, min time between login attempts has not elapsed", type, existing.IPAddress);
+                    }
                 }
             }
         }
@@ -1153,7 +1166,7 @@ namespace DigitalRuby.IPBan
         public Task UnblockIPAddresses(IEnumerable<string> ipAddresses)
         {
             // remove ip from database
-            DB.DeleteIPAddresses(ipAddresses);
+            DB.SetIPAddressesState(ipAddresses, IPBanDB.IPAddressState.RemovePending);
             firewallNeedsBlockedIPAddressesUpdate = true;
             return Task.CompletedTask;
         }

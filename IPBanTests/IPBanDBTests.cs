@@ -38,6 +38,7 @@ namespace DigitalRuby.IPBanTests
         [Test]
         public void TestDB()
         {
+            DateTime now = DateTime.UtcNow;
             using (IPBanDB db = new IPBanDB())
             {
                 db.Truncate(true);
@@ -70,14 +71,14 @@ namespace DigitalRuby.IPBanTests
                 Assert.IsNull(banDate);
                 count = db.SetBannedIPAddresses(new KeyValuePair<string, DateTime>[]
                 {
-                new KeyValuePair<string, DateTime>(ip, dt2),
-                new KeyValuePair<string, DateTime>("5.5.5.5", dt2),
-                new KeyValuePair<string, DateTime>("5.5.5.6", dt2),
-                new KeyValuePair<string, DateTime>("::5.5.5.5", dt2),
-                new KeyValuePair<string, DateTime>("6.6.6.6", dt2),
-                new KeyValuePair<string, DateTime>("11.11.11.11", dt2),
-                new KeyValuePair<string, DateTime>("12.12.12.12", dt2),
-                new KeyValuePair<string, DateTime>("11.11.11.11", dt2)
+                    new KeyValuePair<string, DateTime>(ip, dt2),
+                    new KeyValuePair<string, DateTime>("5.5.5.5", dt2),
+                    new KeyValuePair<string, DateTime>("5.5.5.6", dt2),
+                    new KeyValuePair<string, DateTime>("::5.5.5.5", dt2),
+                    new KeyValuePair<string, DateTime>("6.6.6.6", dt2),
+                    new KeyValuePair<string, DateTime>("11.11.11.11", dt2),
+                    new KeyValuePair<string, DateTime>("12.12.12.12", dt2),
+                    new KeyValuePair<string, DateTime>("11.11.11.11", dt2)
                 });
                 Assert.AreEqual(6, count);
                 count = db.GetBannedIPAddressCount();
@@ -91,8 +92,8 @@ namespace DigitalRuby.IPBanTests
                 }
                 db.SetBannedIPAddresses(new KeyValuePair<string, DateTime>[]
                 {
-                new KeyValuePair<string, DateTime>("5.5.5.5", dt2),
-                new KeyValuePair<string, DateTime>("5.5.5.6", dt2)
+                    new KeyValuePair<string, DateTime>("5.5.5.5", dt2),
+                    new KeyValuePair<string, DateTime>("5.5.5.6", dt2)
                 });
                 count = db.IncrementFailedLoginCount("9.9.9.9", dt2, 1);
                 Assert.AreEqual(1, count);
@@ -108,9 +109,42 @@ namespace DigitalRuby.IPBanTests
                 Assert.AreEqual(7, ipAll.Length);
                 string[] bannedIpAll = db.EnumerateBannedIPAddresses().ToArray();
                 Assert.AreEqual(6, bannedIpAll.Length);
+
+                // ensure deltas work properly
+                Assert.AreEqual(1, db.SetIPAddressesState(new string[] { "5.5.5.5" }, IPBanDB.IPAddressState.RemovePending));
+                IPBanFirewallIPAddressDelta[] deltas = db.EnumerateIPAddressesDelta(false).ToArray();
+                Assert.AreEqual(6, deltas.Length);
+                Assert.AreEqual("10.10.10.10", deltas[0].IPAddress);
+                Assert.AreEqual("11.11.11.11", deltas[1].IPAddress);
+                Assert.AreEqual("12.12.12.12", deltas[2].IPAddress);
+                Assert.AreEqual("5.5.5.5", deltas[3].IPAddress);
+                Assert.AreEqual("5.5.5.6", deltas[4].IPAddress);
+                Assert.AreEqual("6.6.6.6", deltas[5].IPAddress);
+                Assert.IsTrue(deltas[0].Added);
+                Assert.IsTrue(deltas[1].Added);
+                Assert.IsTrue(deltas[2].Added);
+                Assert.IsFalse(deltas[3].Added);
+                Assert.IsTrue(deltas[4].Added);
+                Assert.IsTrue(deltas[5].Added);
+                deltas = db.EnumerateIPAddressesDelta(true).ToArray();
+                Assert.AreEqual(6, deltas.Length);
+                Assert.AreEqual("10.10.10.10", deltas[0].IPAddress);
+                Assert.AreEqual("11.11.11.11", deltas[1].IPAddress);
+                Assert.AreEqual("12.12.12.12", deltas[2].IPAddress);
+                Assert.AreEqual("5.5.5.5", deltas[3].IPAddress);
+                Assert.AreEqual("5.5.5.6", deltas[4].IPAddress);
+                Assert.AreEqual("6.6.6.6", deltas[5].IPAddress);
+                Assert.IsTrue(deltas[0].Added);
+                Assert.IsTrue(deltas[1].Added);
+                Assert.IsTrue(deltas[2].Added);
+                Assert.IsFalse(deltas[3].Added);
+                Assert.IsTrue(deltas[4].Added);
+                Assert.IsTrue(deltas[5].Added);
+                deltas = db.EnumerateIPAddressesDelta(true).ToArray();
+                Assert.AreEqual(0, deltas.Length);
+
                 db.Truncate(true);
                 KeyValuePair<string, DateTime>[] ips = new KeyValuePair<string, DateTime>[65536];
-                DateTime now = IPBanService.UtcNow;
                 int index = 0;
                 for (int i = 0; i < 256; i++)
                 {
@@ -122,7 +156,7 @@ namespace DigitalRuby.IPBanTests
                 count = db.SetBannedIPAddresses(ips);
                 Assert.AreEqual(65536, count);
                 Assert.AreEqual(65536 - 1634, db.EnumerateIPAddresses(null, now.Subtract(TimeSpan.FromMilliseconds(1634.0))).Count());
-                TimeSpan span = (IPBanService.UtcNow - now);
+                TimeSpan span = (DateTime.UtcNow - now);
 
                 // make sure performance is good
                 Assert.Less(span, TimeSpan.FromSeconds(10.0));

@@ -34,6 +34,32 @@ namespace DigitalRuby.IPBan
     public class IPBanDB : IDisposable
     {
         /// <summary>
+        /// State of ip addresses
+        /// </summary>
+        public enum IPAddressState
+        {
+            /// <summary>
+            /// Active and in firewall
+            /// </summary>
+            Active = 0,
+
+            /// <summary>
+            /// Pending add to firewall
+            /// </summary>
+            AddPending = 1,
+
+            /// <summary>
+            /// Pending remove from firewall
+            /// </summary>
+            RemovePending = 2,
+
+            /// <summary>
+            /// Failed login only, no ban yet
+            /// </summary>
+            FailedLogin = 3
+        }
+
+        /// <summary>
         /// An ip address entry in the database
         /// </summary>
         public class IPAddressEntry
@@ -160,7 +186,7 @@ namespace DigitalRuby.IPBan
             }
         }
 
-        private SQLiteDataReader ExecuteReader(string query, SQLiteConnection conn, params object[] param)
+        private SQLiteDataReader ExecuteReader(string query, SQLiteConnection conn, SQLiteTransaction tran, params object[] param)
         {
             bool closeConnection = false;
             if (conn == null)
@@ -171,6 +197,7 @@ namespace DigitalRuby.IPBan
             }
             SQLiteCommand command = conn.CreateCommand();
             command.CommandText = query;
+            command.Transaction = tran;
             for (int i = 0; i < param.Length; i++)
             {
                 command.Parameters.Add(new SQLiteParameter("@Param" + i.ToStringInvariant(), param[i]));
@@ -202,10 +229,10 @@ namespace DigitalRuby.IPBan
             {
                 byte[] ipBytes = ipAddressObj.GetAddressBytes();
                 long timestamp = (long)banDate.UnixTimestampFromDateTimeMilliseconds();
-                int count = ExecuteNonQuery(conn, tran, @"INSERT INTO IPAddresses(IPAddress, IPAddressText, LastFailedLogin, FailedLoginCount, BanDate)
-                    VALUES(@Param0, @Param1, @Param2, 0, @Param2)
+                int count = ExecuteNonQuery(conn, tran, @"INSERT INTO IPAddresses(IPAddress, IPAddressText, LastFailedLogin, FailedLoginCount, BanDate, State)
+                    VALUES(@Param0, @Param1, @Param2, 0, @Param2, @Param3)
                     ON CONFLICT(IPAddress)
-                    DO UPDATE SET BanDate = @Param2 WHERE BanDate IS NULL; ", ipBytes, ipAddress, timestamp);
+                    DO UPDATE SET BanDate = @Param2, State = @Param3 WHERE BanDate IS NULL; ", ipBytes, ipAddress, timestamp, (int)IPAddressState.AddPending);
                 return count;
             }
             return 0;
@@ -220,8 +247,20 @@ namespace DigitalRuby.IPBan
             ExecuteNonQuery("PRAGMA auto_vacuum = INCREMENTAL;");
             ExecuteNonQuery("PRAGMA journal_mode = WAL;");
             ExecuteNonQuery("CREATE TABLE IF NOT EXISTS IPAddresses (IPAddress VARBINARY(16) NOT NULL, IPAddressText VARCHAR(64), LastFailedLogin BIGINT NOT NULL, FailedLoginCount BIGINT NOT NULL, BanDate BIGINT, PRIMARY KEY (IPAddress))");
+            try
+            {
+                ExecuteNonQuery("ALTER TABLE IPAddresses ADD COLUMN State INT NOT NULL DEFAULT 0");
+            }
+            catch
+            {
+                // don't care
+            }
             ExecuteNonQuery("CREATE INDEX IF NOT EXISTS IPAddresses_LastFailedLoginDate ON IPAddresses (LastFailedLogin)");
             ExecuteNonQuery("CREATE INDEX IF NOT EXISTS IPAddresses_BanDate ON IPAddresses (BanDate)");
+            ExecuteNonQuery("CREATE INDEX IF NOT EXISTS IPAddresses_State ON IPAddresses (State)");
+
+            // set to failed login state if no ban date
+            ExecuteNonQuery("UPDATE IPAddresses SET State = 3 WHERE State IN (0, 1) AND BanDate IS NULL");
         }
 
         /// <summary>
@@ -320,17 +359,17 @@ namespace DigitalRuby.IPBan
             {
                 byte[] ipBytes = ipAddressObj.GetAddressBytes();
                 long timestamp = (long)dateTime.UnixTimestampFromDateTimeMilliseconds();
-                string command = @"INSERT INTO IPAddresses(IPAddress, IPAddressText, LastFailedLogin, FailedLoginCount, BanDate)
-                    VALUES (@Param0, @Param1, @Param2, @Param3, NULL)
+                string command = @"INSERT INTO IPAddresses(IPAddress, IPAddressText, LastFailedLogin, FailedLoginCount, BanDate, State)
+                    VALUES (@Param0, @Param1, @Param2, @Param3, NULL, 3)
                     ON CONFLICT(IPAddress)
-                    DO UPDATE SET LastFailedLogin = @Param2, FailedLoginCount = FailedLoginCount + @Param3;
+                    DO UPDATE SET LastFailedLogin = @Param2, FailedLoginCount = FailedLoginCount + @Param3, State = 3;
                     SELECT FailedLoginCount FROM IPAddresses WHERE IPAddress = @Param0;";
                 IPBanDBTransaction tran = transaction as IPBanDBTransaction;
                 if (tran == null)
                 {
                     command = "BEGIN TRANSACTION; " + command + " COMMIT;";
                 }
-                using (SQLiteDataReader reader = ExecuteReader(command, tran?.DBConnection, ipBytes, ipAddress, timestamp, increment))
+                using (SQLiteDataReader reader = ExecuteReader(command, tran?.DBConnection, tran?.DBTransaction, ipBytes, ipAddress, timestamp, increment))
                 {
                     if (reader.Read())
                     {
@@ -351,7 +390,7 @@ namespace DigitalRuby.IPBan
             if (IPAddress.TryParse(ipAddress, out IPAddress ipAddressObj))
             {
                 byte[] ipBytes = ipAddressObj.GetAddressBytes();
-                using (SQLiteDataReader reader = ExecuteReader("SELECT IPAddressText, LastFailedLogin, FailedLoginCount, BanDate FROM IPAddresses WHERE IPAddress = @Param0", null, ipBytes))
+                using (SQLiteDataReader reader = ExecuteReader("SELECT IPAddressText, LastFailedLogin, FailedLoginCount, BanDate FROM IPAddresses WHERE IPAddress = @Param0", null, null, ipBytes))
                 {
                     if (reader.Read())
                     {
@@ -367,6 +406,7 @@ namespace DigitalRuby.IPBan
         /// </summary>
         /// <param name="ipAddress">IP address</param>
         /// <param name="banDate">Ban date</param>
+        /// <param name="state">State</param>
         /// <param name="transaction">Transaction</param>
         /// <returns>True if ban date set, false if it was already set or ip address is not in the database</returns>
         public bool SetBanDate(string ipAddress, DateTime banDate, object transaction = null)
@@ -401,7 +441,7 @@ namespace DigitalRuby.IPBan
             {
                 byte[] ipBytes = ipAddressObj.GetAddressBytes();
                 IPBanDBTransaction tran = transaction as IPBanDBTransaction;
-                using (SQLiteDataReader reader = ExecuteReader("SELECT BanDate FROM IPAddresses WHERE IPAddress = @Param0", tran?.DBConnection, ipBytes))
+                using (SQLiteDataReader reader = ExecuteReader("SELECT BanDate FROM IPAddresses WHERE IPAddress = @Param0", tran?.DBConnection, tran?.DBTransaction, ipBytes))
                 {
                     if (reader.Read())
                     {
@@ -441,7 +481,85 @@ namespace DigitalRuby.IPBan
         }
 
         /// <summary>
-        /// Delete on ip address from the database
+        /// Set state of ip addresses
+        /// </summary>
+        /// <param name="ipAddresses">IP addresses to set state for. Pass null to set the entire database.</param>
+        /// <param name="state">State to set</param>
+        /// <param name="transaction">Transaction</param>
+        /// <returns>Number of rows affected</returns>
+        public int SetIPAddressesState(IEnumerable<string> ipAddresses, IPAddressState state, object transaction = null)
+        {
+            int count = 0;
+            IPBanDBTransaction ipDBTransaction = transaction as IPBanDBTransaction;
+            bool commit = (transaction == null);
+            SQLiteConnection conn = (ipDBTransaction?.DBConnection ?? new SQLiteConnection(connString));
+            if (commit)
+            {
+                conn.Open();
+            }
+            SQLiteTransaction tran = (ipDBTransaction?.DBTransaction ?? conn.BeginTransaction(System.Data.IsolationLevel.ReadCommitted));
+            int stateInt = (int)state;
+            try
+            {
+                if (ipAddresses == null)
+                {
+                    count += ExecuteNonQuery(conn, tran, "UPDATE IPAddresses SET State = @Param0", stateInt);
+                }
+                else
+                {
+                    foreach (string ipAddress in ipAddresses)
+                    {
+                        if (IPAddress.TryParse(ipAddress, out IPAddress ipAddressObj))
+                        {
+                            byte[] ipBytes = ipAddressObj.GetAddressBytes();
+                            count += ExecuteNonQuery(conn, tran, "UPDATE IPAddresses SET State = @Param0 WHERE IPAddress = @Param1", stateInt, ipBytes);
+                        }
+                    }
+                }
+            }
+            finally
+            {
+                if (commit)
+                {
+                    tran.Commit();
+                    tran.Dispose();
+                    conn.Dispose();
+                }
+            }
+            return count;
+        }
+
+        /// <summary>
+        /// Enumerate any pending add or remove operations. When enumeration is complete, any returned ip addresses are either deleted (remove state) or set to active (add state)
+        /// </summary>
+        /// <param name="commit">Whether to commit changes (alter states) when enumeration is complete</param>
+        /// <returns></returns>
+        public IEnumerable<IPBanFirewallIPAddressDelta> EnumerateIPAddressesDelta(bool commit)
+        {
+            using (SQLiteConnection conn = new SQLiteConnection(connString))
+            {
+                conn.Open();
+                using (SQLiteTransaction tran = conn.BeginTransaction(System.Data.IsolationLevel.ReadCommitted))
+                {
+                    using (SQLiteDataReader reader = ExecuteReader("SELECT IPAddressText, State FROM IPAddresses WHERE State IN (1, 2) ORDER BY IPAddressText", conn, tran))
+                    {
+                        while (reader.Read())
+                        {
+                            yield return new IPBanFirewallIPAddressDelta { IPAddress = reader.GetString(0), Added = reader.GetInt32(1) == (int)IPAddressState.AddPending };
+                        }
+                    }
+                    if (commit)
+                    {
+                        ExecuteNonQuery(conn, tran, "UPDATE IPAddresses SET State = @Param0 WHERE State = @Param1; DELETE FROM IPAddresses WHERE State = @Param2;",
+                            (int)IPAddressState.Active, (int)IPAddressState.AddPending, (int)IPAddressState.RemovePending);
+                        tran.Commit();
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Delete an ip address from the database
         /// </summary>
         /// <param name="ipAddress">IP address to delete</param>
         /// <returns>True if deleted, false if not exists</returns>
@@ -477,7 +595,7 @@ namespace DigitalRuby.IPBan
                 FROM IPAddresses
                 WHERE (@Param0 IS NULL AND @Param1 IS NULL) OR (@Param0 IS NOT NULL AND LastFailedLogin <= @Param0) OR (@Param1 IS NOT NULL AND BanDate <= @Param1)
                 ORDER BY IPAddress",
-                null, failLoginCutOffUnix, banCutOffUnix))
+                null, null, failLoginCutOffUnix, banCutOffUnix))
             {
                 while (reader.Read())
                 {
@@ -492,7 +610,7 @@ namespace DigitalRuby.IPBan
         /// <returns>IP addresses with non-null ban dates</returns>
         public IEnumerable<string> EnumerateBannedIPAddresses()
         {
-            using (SQLiteDataReader reader = ExecuteReader("SELECT IPAddressText /*, LastFailedLogin, FailedLoginCount, BanDate */ FROM IPAddresses WHERE BanDate IS NOT NULL ORDER BY IPAddress", null))
+            using (SQLiteDataReader reader = ExecuteReader("SELECT IPAddressText /*, LastFailedLogin, FailedLoginCount, BanDate */ FROM IPAddresses WHERE BanDate IS NOT NULL ORDER BY IPAddress", null, null))
             {
                 while (reader.Read())
                 {
@@ -538,13 +656,23 @@ namespace DigitalRuby.IPBan
             byte[] start = range.Begin.GetAddressBytes();
             byte[] end = range.End.GetAddressBytes();
             using (SQLiteDataReader reader = ExecuteReader("SELECT IPAddressText FROM IPAddresses WHERE IPAddress BETWEEN @Param0 AND @Param1 AND length(IPAddress) = length(@Param0) AND length(IPAddress) = length(@Param1); " +
-                "DELETE FROM IPAddresses WHERE IPAddress BETWEEN @Param0 AND @Param1 AND length(IPAddress) = length(@Param0) AND length(IPAddress) = length(@Param1);", null, start, end))
+                "DELETE FROM IPAddresses WHERE IPAddress BETWEEN @Param0 AND @Param1 AND length(IPAddress) = length(@Param0) AND length(IPAddress) = length(@Param1);", null, null, start, end))
             {
                 while (reader.Read())
                 {
                     yield return reader.GetString(0);
                 }
             }
+        }
+
+        /// <summary>
+        /// Delete ip addresses with a specific state from the database
+        /// </summary>
+        /// <param name="sate">IP address state delete</param>
+        /// <returns>Number of rows modified</returns>
+        public int DeleteIPAddresses(IPAddressState state)
+        {
+            return ExecuteNonQuery("DELETE FROM IPAddresses WHERE State = @Param0", (int)IPAddressState.RemovePending);
         }
     }
 }
