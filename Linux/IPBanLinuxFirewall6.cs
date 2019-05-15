@@ -369,7 +369,7 @@ namespace DigitalRuby.IPBan
                 {
                     ruleNamePrefix = RulePrefix + ruleNamePrefix;
                 }
-                bannedIPAddresses = UpdateRule(ruleNamePrefix, "DROP", ipAddresses, bannedIPAddresses, "ip", blockRuleMaxCount, false, null, cancelToken, out bool result);
+                bannedIPAddresses = UpdateRule(ruleNamePrefix, "DROP", ipAddresses, bannedIPAddresses, "ip", blockRuleMaxCount, false, allowedPorts, cancelToken, out bool result);
                 return Task.FromResult(result);
             }
             catch (Exception ex)
@@ -399,7 +399,7 @@ namespace DigitalRuby.IPBan
             }
             if (changed)
             {
-                bannedIPAddresses = UpdateRule(ruleName, "DROP", bannedIPAddresses.Select(b => b.ToIPAddress().ToString()), bannedIPAddresses, "ip", blockRuleMaxCount, false, null, cancelToken, out bool result);
+                bannedIPAddresses = UpdateRule(ruleName, "DROP", bannedIPAddresses.Select(b => b.ToIPAddress().ToString()), bannedIPAddresses, "ip", blockRuleMaxCount, false, allowedPorts, cancelToken, out bool result);
                 if (!result)
                 {
                     return Task.FromResult(false);
