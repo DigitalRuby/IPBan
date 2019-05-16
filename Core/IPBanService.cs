@@ -307,6 +307,8 @@ namespace DigitalRuby.IPBan
                                 }
                                 else
                                 {
+                                    IPBanLog.Debug("Failed login count {0} >= ban count {1}", newCount, maxFailedLoginAttempts);
+
                                     // if delegate and non-zero count, forward on - count of 0 means it was from external source, like a delegate
                                     if (IPBanDelegate != null && failedLogin.Count > 0)
                                     {
@@ -317,6 +319,8 @@ namespace DigitalRuby.IPBan
                             }
                             else
                             {
+                                IPBanLog.Debug("Failed login count {0} <= ban count {1}", newCount, maxFailedLoginAttempts);
+                                    
                                 // if delegate and non-zero count, forward on - count of 0 means it was from external source, like a delegate
                                 if (IPBanDelegate != null && failedLogin.Count > 0)
                                 {
@@ -829,6 +833,7 @@ namespace DigitalRuby.IPBan
                 {
                     ipAddresses = new List<IPAddressPendingEvent>(pendingFailedLogins);
                     pendingFailedLogins.Clear();
+                    IPBanLog.Debug("{0} pending failed logins", pendingFailedLogins.Count);
                 }
             }
             if (ipAddresses != null)

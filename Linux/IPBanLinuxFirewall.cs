@@ -372,7 +372,7 @@ namespace DigitalRuby.IPBan
         public IPBanLinuxFirewall(string rulePrefix = null) : base(rulePrefix)
         {
             MigrateOldDefaultRuleNames();
-            firewall6 = new IPBanLinuxFirewall6(RulePrefix + "v6_");
+            firewall6 = new IPBanLinuxFirewall6(RulePrefix);
 
             /*
             // restore existing sets from disk
