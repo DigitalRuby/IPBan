@@ -114,22 +114,6 @@ namespace DigitalRuby.IPBan
             }
         }
 
-        private void DeleteFile(string fileName)
-        {
-            for (int i = 0; i < 10; i++)
-            {
-                try
-                {
-                    File.Delete(fileName);
-                    break;
-                }
-                catch
-                {
-                    Task.Delay(20).Wait();
-                }
-            }
-        }
-
         private void SaveTableToDisk()
         {
             // persist table rules, this file is tiny so no need for a temp file and then move
@@ -140,7 +124,10 @@ namespace DigitalRuby.IPBan
         private void RestoreTablesFromDisk()
         {
             string tableFileName = GetTableFileName();
-            RunProcess($"{IpTablesProcess}-restore", true, $"< \"{tableFileName}\"");
+            if (File.Exists(tableFileName))
+            {
+                RunProcess($"{IpTablesProcess}-restore", true, $"< \"{tableFileName}\"");
+            }
         }
 
         protected string GetTableFileName()
