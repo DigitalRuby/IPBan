@@ -32,7 +32,7 @@ using System.Threading.Tasks;
 
 namespace DigitalRuby.IPBan
 {
-    public interface IIPBanFirewall : IUnblockIPAddresses, IUpdater, IDisposable
+    public interface IIPBanFirewall : IUpdater, IDisposable
     {
         /// <summary>
         /// Creates/updates rules to block all the ip addresses, and removes any left-over rules. Exceptions are logged.

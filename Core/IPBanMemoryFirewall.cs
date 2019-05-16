@@ -33,13 +33,13 @@ namespace DigitalRuby.IPBan
             public UInt128 End;
         }
 
-        private class BlockRule : IComparer<IPV4Range>, IComparer<IPV6Range>
+        private class MemoryFirewallRuleRanges : IComparer<IPV4Range>, IComparer<IPV6Range>
         {
             private readonly List<IPV4Range> ipv4 = new List<IPV4Range>();
             private readonly List<IPV6Range> ipv6 = new List<IPV6Range>();
             private readonly List<PortRange> allowPorts;
 
-            public BlockRule(List<IPAddressRange> blockRanges, List<PortRange> allowPorts)
+            public MemoryFirewallRuleRanges(List<IPAddressRange> blockRanges, List<PortRange> allowPorts)
             {
                 foreach (IPAddressRange range in blockRanges)
                 {
@@ -53,7 +53,6 @@ namespace DigitalRuby.IPBan
                     }
                     else
                     {
-                        // conveniently a guid is 16 bytes and provides compare methods :)
                         UInt128 begin = range.Begin.ToUInt128();
                         UInt128 end = range.End.ToUInt128();
                         Debug.Assert(end.CompareTo(begin) >= 0);
@@ -65,7 +64,7 @@ namespace DigitalRuby.IPBan
                 this.allowPorts = allowPorts;
             }
 
-            public bool ShouldBlockV4(uint ipAddress, int port)
+            public bool Contains(uint ipAddress, int port)
             {
                 foreach (PortRange range in allowPorts)
                 {
@@ -77,7 +76,7 @@ namespace DigitalRuby.IPBan
                 return (ipv4.BinarySearch(new IPV4Range { Begin = ipAddress, End = ipAddress }, this) >= 0);
             }
 
-            public bool ShouldBlockV6(UInt128 ipAddress, int port)
+            public bool Contains(UInt128 ipAddress, int port)
             {
                 foreach (PortRange range in allowPorts)
                 {
@@ -141,11 +140,121 @@ namespace DigitalRuby.IPBan
             }
         }
 
-        private HashSet<uint> allowedIPAddressesV4 = new HashSet<uint>();
-        private HashSet<UInt128> allowedIPAddressesV6 = new HashSet<UInt128>();
-        private HashSet<uint> blockedIPAddressesV4 = new HashSet<uint>();
-        private HashSet<UInt128> blockedIPAddressesV6 = new HashSet<UInt128>();
-        private readonly ConcurrentDictionary<string, BlockRule> blockRules = new ConcurrentDictionary<string, BlockRule>();
+        private class MemoryFirewallRule
+        {
+            private readonly HashSet<uint> ipv4 = new HashSet<uint>();
+            private readonly HashSet<UInt128> ipv6 = new HashSet<UInt128>();
+
+            public void SetIPAddresses(IEnumerable<string> ipAddresses, IEnumerable<PortRange> allowPorts)
+            {
+                ipv4.Clear();
+                ipv6.Clear();
+                foreach (string ipAddress in ipAddresses)
+                {
+                    if (IPAddress.TryParse(ipAddress, out IPAddress ipAddressObj))
+                    {
+                        if (ipAddressObj.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
+                        {
+                            ipv4.Add(ipAddressObj.ToUInt32());
+                        }
+                        else
+                        {
+                            ipv6.Add(ipAddressObj.ToUInt128());
+                        }
+                    }
+                }
+            }
+
+            public void AddIPAddressesDelta(IEnumerable<IPBanFirewallIPAddressDelta> deltas, IEnumerable<PortRange> allowPorts)
+            {
+                foreach (IPBanFirewallIPAddressDelta delta in deltas)
+                {
+                    if (IPAddress.TryParse(delta.IPAddress, out IPAddress ipAddressObj))
+                    {
+                        if (delta.Added)
+                        {
+                            if (ipAddressObj.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
+                            {
+                                ipv4.Add(ipAddressObj.ToUInt32());
+                            }
+                            else
+                            {
+                                ipv6.Add(ipAddressObj.ToUInt128());
+                            }
+                        }
+                        else if (ipAddressObj.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
+                        {
+                            ipv4.Remove(ipAddressObj.ToUInt32());
+                        }
+                        else
+                        {
+                            ipv6.Remove(ipAddressObj.ToUInt128());
+                        }
+                    }
+                }
+            }
+
+            public IEnumerable<string> EnumerateIPAddresses()
+            {
+                foreach (uint ipv4UInt in ipv4)
+                {
+                    yield return ipv4UInt.ToIPAddress().ToString();
+                }
+                foreach (UInt128 ipv6UInt128 in ipv6)
+                {
+                    yield return ipv6UInt128.ToIPAddress().ToString();
+                }
+            }
+
+            public IEnumerable<IPAddressRange> EnumerateIPAddressesRanges()
+            {
+                foreach (uint ipv4UInt in ipv4)
+                {
+                    yield return new IPAddressRange(ipv4UInt.ToIPAddress());
+                }
+                foreach (UInt128 ipv6UInt128 in ipv6)
+                {
+                    yield return new IPAddressRange(ipv6UInt128.ToIPAddress());
+                }
+            }
+
+            public bool Remove(uint ipv4UInt)
+            {
+                return ipv4.Remove(ipv4UInt);
+            }
+
+            public bool Remove(UInt128 ipv6UInt128)
+            {
+                return ipv6.Remove(ipv6UInt128);
+            }
+
+            public bool Contains(string ipAddress)
+            {
+                if (IPAddress.TryParse(ipAddress, out IPAddress ipAddressObj))
+                {
+                    if (ipAddressObj.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
+                    {
+                        return ipv4.Contains(ipAddressObj.ToUInt32());
+                    }
+                    return ipv6.Contains(ipAddressObj.ToUInt128());
+                }
+                return false;
+            }
+
+            public bool Contains(uint ipv4UInt)
+            {
+                return ipv4.Contains(ipv4UInt);
+            }
+
+            public bool Contains(UInt128 ipv6UInt128)
+            {
+                return ipv6.Contains(ipv6UInt128);
+            }
+        }
+
+        private readonly Dictionary<string, MemoryFirewallRuleRanges> blockRulesRanges = new Dictionary<string, MemoryFirewallRuleRanges>();
+        private readonly Dictionary<string, MemoryFirewallRule> blockRules = new Dictionary<string, MemoryFirewallRule>();
+        private readonly MemoryFirewallRule allowRule = new MemoryFirewallRule();
 
         public string RulePrefix { get; set; }
 
@@ -153,24 +262,6 @@ namespace DigitalRuby.IPBan
         {
             // in memory firewall does not have a count limit per rule, so remove the trailing underscore if any
             return RulePrefix + (ruleNamePrefix ?? string.Empty).Trim('_');
-        }
-
-        private void AssignIPAddresses(IEnumerable<string> ipAddresses, HashSet<uint> v4, HashSet<UInt128> v6)
-        {
-            foreach (string ipAddress in ipAddresses)
-            {
-                if (IPAddress.TryParse(ipAddress, out IPAddress ipAddressObj))
-                {
-                    if (ipAddressObj.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
-                    {
-                        v4.Add(ipAddressObj.ToUInt32());
-                    }
-                    else
-                    {
-                        v6.Add(ipAddressObj.ToUInt128());
-                    }
-                }
-            }
         }
 
         public void Update()
@@ -181,7 +272,7 @@ namespace DigitalRuby.IPBan
         {
             lock (this)
             {
-                AssignIPAddresses(ipAddresses, allowedIPAddressesV4, allowedIPAddressesV6);
+                allowRule.SetIPAddresses(ipAddresses, null);
             }
             return Task.FromResult<bool>(true);
         }
@@ -190,7 +281,12 @@ namespace DigitalRuby.IPBan
         {
             lock (this)
             {
-                AssignIPAddresses(ipAddresses, blockedIPAddressesV4, blockedIPAddressesV6);
+                string ruleName = ScrubRuleNamePrefix(ruleNamePrefix);
+                if (!blockRules.TryGetValue(ruleName, out MemoryFirewallRule rule))
+                {
+                    blockRules[ruleName] = rule = new MemoryFirewallRule();
+                }
+                rule.SetIPAddresses(ipAddresses, allowedPorts);
             }
             return Task.FromResult<bool>(true);
         }
@@ -199,32 +295,12 @@ namespace DigitalRuby.IPBan
         {
             lock (this)
             {
-                List<IPBanFirewallIPAddressDelta> deltas = new List<IPBanFirewallIPAddressDelta>(ipAddresses);
-                foreach (IPBanFirewallIPAddressDelta delta in deltas)
+                string ruleName = ScrubRuleNamePrefix(ruleNamePrefix);
+                if (!blockRules.TryGetValue(ruleName, out MemoryFirewallRule rule))
                 {
-                    if (IPAddress.TryParse(delta.IPAddress, out IPAddress ip))
-                    {
-                        if (delta.Added)
-                        {
-                            if (ip.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
-                            {
-                                blockedIPAddressesV4.Add(ip.ToUInt32());
-                            }
-                            else
-                            {
-                                blockedIPAddressesV6.Add(ip.ToUInt128());
-                            }
-                        }
-                        else if (ip.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
-                        {
-                            blockedIPAddressesV4.Remove(ip.ToUInt32());
-                        }
-                        else
-                        {
-                            blockedIPAddressesV6.Remove(ip.ToUInt128());
-                        }
-                    }
+                    blockRules[ruleName] = rule = new MemoryFirewallRule();
                 }
+                rule.AddIPAddressesDelta(ipAddresses, allowedPorts);
             }
             return Task.FromResult(true);
         }
@@ -237,7 +313,7 @@ namespace DigitalRuby.IPBan
                 ruleNamePrefix = ScrubRuleNamePrefix(ruleNamePrefix);
                 List<IPAddressRange> rangesList = new List<IPAddressRange>(ranges);
                 List<PortRange> portList = new List<PortRange>(allowedPorts ?? new PortRange[0]);
-                blockRules[ruleNamePrefix] = new BlockRule(rangesList, portList);
+                blockRulesRanges[ruleNamePrefix] = new MemoryFirewallRuleRanges(rangesList, portList);
             }
             return Task.FromResult<bool>(true);
         }
@@ -246,7 +322,7 @@ namespace DigitalRuby.IPBan
         {
             lock (this)
             {
-                return blockRules.TryRemove(ruleName, out _);
+                return blockRules.Remove(ruleName) || blockRulesRanges.Remove(ruleName);
             }
         }
 
@@ -254,11 +330,9 @@ namespace DigitalRuby.IPBan
         {
             lock (this)
             {
-                allowedIPAddressesV4.Clear();
-                allowedIPAddressesV6.Clear();
-                blockedIPAddressesV4.Clear();
-                blockedIPAddressesV6.Clear();
                 blockRules.Clear();
+                blockRulesRanges.Clear();
+                allowRule.SetIPAddresses(new string[0], null);
             }
         }
 
@@ -266,14 +340,7 @@ namespace DigitalRuby.IPBan
         {
             lock (this)
             {
-                foreach (uint ipv4 in allowedIPAddressesV4)
-                {
-                    yield return ipv4.ToIPAddress().ToString();
-                }
-                foreach (UInt128 ipv6 in allowedIPAddressesV6)
-                {
-                    yield return ipv6.ToIPAddress().ToString();
-                }
+                return allowRule.EnumerateIPAddresses();
             }
         }
 
@@ -281,8 +348,16 @@ namespace DigitalRuby.IPBan
         {
             lock (this)
             {
-                return blockedIPAddressesV4.Where(i => !allowedIPAddressesV4.Contains(i)).Select(i => i.ToIPAddress().ToString())
-                    .Union(blockedIPAddressesV6.Where(i => !allowedIPAddressesV6.Contains(i)).Select(i => i.ToIPAddress().ToString())).ToArray();
+                foreach (MemoryFirewallRule rule in blockRules.Values)
+                {
+                    foreach (string ipAddress in rule.EnumerateIPAddresses())
+                    {
+                        if (!allowRule.Contains(ipAddress))
+                        {
+                            yield return ipAddress;
+                        }
+                    }
+                }
             }
         }
 
@@ -290,37 +365,20 @@ namespace DigitalRuby.IPBan
         {
             lock (this)
             {
-                ruleNamePrefix = ScrubRuleNamePrefix(ruleNamePrefix);
-                if (ruleNamePrefix.StartsWith(RulePrefix + "0", StringComparison.OrdinalIgnoreCase))
+                string prefix = ScrubRuleNamePrefix(ruleNamePrefix);
+                if (blockRules.TryGetValue(prefix, out MemoryFirewallRule rule))
                 {
-                    foreach (uint ip in blockedIPAddressesV4)
-                    {
-                        yield return new IPAddressRange(ip.ToIPAddress());
-                    }
-                    foreach (UInt128 ip in blockedIPAddressesV6)
-                    {
-                        yield return new IPAddressRange(ip.ToIPAddress());
-                    }
+                    return rule.EnumerateIPAddressesRanges();
                 }
-                if (ruleNamePrefix.StartsWith(RulePrefix + "1", StringComparison.OrdinalIgnoreCase))
+                else if (blockRulesRanges.TryGetValue(prefix, out MemoryFirewallRuleRanges ruleRanges))
                 {
-                    foreach (uint ip in allowedIPAddressesV4)
-                    {
-                        yield return new IPAddressRange(ip.ToIPAddress());
-                    }
-                    foreach (UInt128 ip in allowedIPAddressesV6)
-                    {
-                        yield return new IPAddressRange(ip.ToIPAddress());
-                    }
+                    return ruleRanges.EnumerateIPAddresses();
                 }
-                foreach (string key in blockRules.Keys.Where(k => k.StartsWith(ruleNamePrefix, StringComparison.OrdinalIgnoreCase)))
+                else if (prefix.StartsWith(RulePrefix + "1", StringComparison.OrdinalIgnoreCase))
                 {
-                    BlockRule rule = blockRules[key];
-                    foreach (IPAddressRange range in rule.EnumerateIPAddresses())
-                    {
-                        yield return range;
-                    }
+                    return allowRule.EnumerateIPAddressesRanges();
                 }
+                return new IPAddressRange[0];
             }
         }
 
@@ -328,36 +386,23 @@ namespace DigitalRuby.IPBan
         {
             lock (this)
             {
-                ruleNamePrefix = ScrubRuleNamePrefix(ruleNamePrefix);
-                if (ruleNamePrefix.StartsWith(RulePrefix + "0", StringComparison.OrdinalIgnoreCase))
-                {
-                    yield return RulePrefix + "0";
-                }
-                if (ruleNamePrefix.StartsWith(RulePrefix + "1", StringComparison.OrdinalIgnoreCase))
-                {
-                    yield return RulePrefix + "1";
-                }
-                foreach (string key in blockRules.Keys.Where(k => k.StartsWith(ruleNamePrefix, StringComparison.OrdinalIgnoreCase)))
+                string prefix = ScrubRuleNamePrefix(ruleNamePrefix);
+                foreach (string key in blockRules.Keys.Union(blockRulesRanges.Keys).Where(k => k.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)))
                 {
                     yield return key;
+                }
+                if (prefix.StartsWith(RulePrefix + "1", StringComparison.OrdinalIgnoreCase))
+                {
+                    yield return RulePrefix + "1";
                 }
             }
         }
 
         public bool IsIPAddressAllowed(string ipAddress)
         {
-            if (!IPAddress.TryParse(ipAddress, out IPAddress ipAddressObj))
-            {
-                return false;
-            }
-
             lock (this)
             {
-                if (ipAddressObj.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
-                {
-                    return allowedIPAddressesV4.Contains(ipAddressObj.ToUInt32());
-                }
-                return allowedIPAddressesV6.Contains(ipAddressObj.ToUInt128());
+                return allowRule.Contains(ipAddress);
             }
         }
 
@@ -373,17 +418,20 @@ namespace DigitalRuby.IPBan
                 if (ipAddressObj.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
                 {
                     uint ipv4 = ipAddressObj.ToUInt32();
-                    if (allowedIPAddressesV4.Contains(ipv4))
+                    if (allowRule.Contains(ipv4))
                     {
                         return false;
                     }
-                    else if (blockedIPAddressesV4.Contains(ipv4))
+                    foreach (MemoryFirewallRule rule in blockRules.Values)
                     {
-                        return true;
+                        if (rule.Contains(ipv4))
+                        {
+                            return true;
+                        }
                     }
-                    foreach (BlockRule rule in blockRules.Values)
+                    foreach (MemoryFirewallRuleRanges rule in blockRulesRanges.Values)
                     {
-                        if (rule.ShouldBlockV4(ipv4, port))
+                        if (rule.Contains(ipv4, port))
                         {
                             return true;
                         }
@@ -392,17 +440,20 @@ namespace DigitalRuby.IPBan
                 else
                 {
                     UInt128 ipv6 = ipAddressObj.ToUInt128();
-                    if (allowedIPAddressesV6.Contains(ipv6))
+                    if (allowRule.Contains(ipv6))
                     {
                         return false;
                     }
-                    else if (blockedIPAddressesV6.Contains(ipv6))
+                    foreach (MemoryFirewallRule rule in blockRules.Values)
                     {
-                        return true;
+                        if (rule.Contains(ipv6))
+                        {
+                            return true;
+                        }
                     }
-                    foreach (BlockRule rule in blockRules.Values)
+                    foreach (MemoryFirewallRuleRanges rule in blockRulesRanges.Values)
                     {
-                        if (rule.ShouldBlockV6(ipv6, port))
+                        if (rule.Contains(ipv6, port))
                         {
                             return true;
                         }
@@ -421,41 +472,17 @@ namespace DigitalRuby.IPBan
 
             lock (this)
             {
-                return blockRules.ContainsKey(ruleName);
+                return blockRulesRanges.ContainsKey(ruleName);
             }
-        }
-
-        public Task UnblockIPAddresses(IEnumerable<string> ipAddresses)
-        {
-            lock (this)
-            {
-                foreach (string ipAddress in ipAddresses)
-                {
-                    if (IPAddress.TryParse(ipAddress, out IPAddress ipAddressObj))
-                    {
-                        if (ipAddressObj.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
-                        {
-                            blockedIPAddressesV4.Remove(ipAddressObj.ToUInt32());
-                        }
-                        else
-                        {
-                            blockedIPAddressesV6.Remove(ipAddressObj.ToUInt128());
-                        }
-                    }
-                }
-            }
-            return Task.CompletedTask;
         }
 
         public void Truncate()
         {
             lock (this)
             {
-                allowedIPAddressesV4.Clear();
-                blockedIPAddressesV4.Clear();
-                allowedIPAddressesV6.Clear();
-                blockedIPAddressesV6.Clear();
                 blockRules.Clear();
+                blockRulesRanges.Clear();
+                allowRule.SetIPAddresses(new string[0], null);
             }
         }
     }

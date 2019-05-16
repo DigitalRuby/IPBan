@@ -783,48 +783,6 @@ recreateRule:
             }
         }
 
-        public Task UnblockIPAddresses(IEnumerable<string> ipAddresses)
-        {
-            try
-            {
-                lock (policy)
-                {
-                    foreach (INetFwRule rule in EnumerateRulesMatchingPrefix(RulePrefix).ToArray())
-                    {
-                        if (rule.Name.StartsWith(AllowRulePrefix))
-                        {
-                            continue;
-                        }
-
-                        string remoteIPs = rule.RemoteAddresses;
-                        foreach (string ipAddress in ipAddresses)
-                        {
-                            remoteIPs = Regex.Replace(remoteIPs, ipAddress.Replace(".", "\\.") + "\\/[^,]+,?", ",", RegexOptions.IgnoreCase);
-                            remoteIPs = remoteIPs.Replace(",,", ",");
-                            remoteIPs = remoteIPs.Trim().Trim(',', '/', ':', '.', ';', '*').Trim();
-                        }
-                        if (remoteIPs != rule.RemoteAddresses)
-                        {
-                            // ensure we don't have a block rule with no ip addresses, this will block the entire world (WTF Microsoft)...
-                            if (string.IsNullOrWhiteSpace(remoteIPs))
-                            {
-                                policy.Rules.Remove(rule.Name);
-                            }
-                            else
-                            {
-                                rule.RemoteAddresses = remoteIPs;
-                            }
-                        }
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                IPBanLog.Error(ex);
-            }
-            return Task.CompletedTask;
-        }
-
         public void Truncate()
         {
             foreach (INetFwRule rule in EnumerateRulesMatchingPrefix(RulePrefix).ToArray())

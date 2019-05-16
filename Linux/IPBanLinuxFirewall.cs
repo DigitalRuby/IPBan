@@ -478,26 +478,6 @@ namespace DigitalRuby.IPBan
             }
         }
 
-        public async Task UnblockIPAddresses(IEnumerable<string> ipAddresses)
-        {
-            await firewall6.UnblockIPAddresses(ipAddresses);
-
-            bool changed = false;
-            foreach (string ipAddress in ipAddresses)
-            {
-                uint ipValue = IPBanFirewallUtility.ParseIPV4(ipAddress);
-                if (ipValue != 0 && !string.IsNullOrWhiteSpace(ipAddress) && RunProcess("ipset", true, $"del {BlockRuleName} {ipAddress} -exist") == 0)
-                {
-                    bannedIPAddresses.Remove(ipValue);
-                    changed = true;
-                }
-            }
-            if (changed)
-            {
-                RunProcess("ipset", true, $"save {BlockRuleName} > \"{GetSetFileName(BlockRuleName)}\"");
-            }
-        }
-
         public async Task<bool> AllowIPAddresses(IEnumerable<string> ipAddresses, CancellationToken cancelToken = default)
         {
             bool result = await firewall6.AllowIPAddresses(ipAddresses, cancelToken);

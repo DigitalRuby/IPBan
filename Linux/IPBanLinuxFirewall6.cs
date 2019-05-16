@@ -428,28 +428,6 @@ namespace DigitalRuby.IPBan
             }
         }
 
-        public Task UnblockIPAddresses(IEnumerable<string> ipAddresses)
-        {
-            bool changed = false;
-            foreach (string ipAddress in ipAddresses)
-            {
-                if (IPAddress.TryParse(ipAddress, out IPAddress ip) && ip.AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6)
-                {
-                    UInt128 ipValue = ip.ToUInt128();
-                    if (ipValue != 0 && !string.IsNullOrWhiteSpace(ipAddress) && RunProcess("ipset", true, $"del {BlockRuleName} {ip} -exist") == 0)
-                    {
-                        bannedIPAddresses.Remove(ipValue);
-                        changed = true;
-                    }
-                }
-            }
-            if (changed)
-            {
-                RunProcess("ipset", true, $"save {BlockRuleName} > \"{GetSetFileName(BlockRuleName)}\"");
-            }
-            return Task.CompletedTask;
-        }
-
         public Task<bool> AllowIPAddresses(IEnumerable<string> ipAddresses, CancellationToken cancelToken = default)
         {
             try

@@ -104,11 +104,6 @@ namespace DigitalRuby.IPBan
             throw new NotImplementedException();
         }
 
-        public Task UnblockIPAddresses(IEnumerable<string> ipAddresses)
-        {
-            throw new NotImplementedException();
-        }
-
         public void Truncate()
         {
             throw new NotImplementedException();
