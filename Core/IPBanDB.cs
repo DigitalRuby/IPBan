@@ -232,7 +232,7 @@ namespace DigitalRuby.IPBan
                 int count = ExecuteNonQuery(conn, tran, @"INSERT INTO IPAddresses(IPAddress, IPAddressText, LastFailedLogin, FailedLoginCount, BanDate, State)
                     VALUES(@Param0, @Param1, @Param2, 0, @Param2, @Param3)
                     ON CONFLICT(IPAddress)
-                    DO UPDATE SET BanDate = @Param2, State = @Param3 WHERE BanDate IS NULL; ", ipBytes, ipAddress, timestamp, (int)IPAddressState.AddPending);
+                    DO UPDATE SET BanDate = IFNULL(BanDate, @Param2), State = @Param3 WHERE BanDate IS NULL OR State <> @Param3; ", ipBytes, ipAddress, timestamp, (int)IPAddressState.AddPending);
                 return count;
             }
             return 0;
