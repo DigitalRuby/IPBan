@@ -328,12 +328,7 @@ namespace DigitalRuby.IPBan
 
         public void Dispose()
         {
-            lock (this)
-            {
-                blockRules.Clear();
-                blockRulesRanges.Clear();
-                allowRule.SetIPAddresses(new string[0], null);
-            }
+            Truncate();
         }
 
         public IEnumerable<string> EnumerateAllowedIPAddresses()
