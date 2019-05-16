@@ -1075,7 +1075,8 @@ namespace DigitalRuby.IPBan
             }
 
             IsRunning = false;
-            TaskQueue.Dispose();
+            IPBanLog.Warn("Stopping task queue...");
+            TaskQueue.Dispose(true);
             GetUrl(UrlType.Stop).Sync();
             try
             {

@@ -158,6 +158,15 @@ namespace DigitalRuby.IPBan
         /// </summary>
         public void Dispose()
         {
+            Dispose(false);
+        }
+
+        /// <summary>
+        /// Dispose of the task queue
+        /// </summary>
+        /// <param name="wait">Whether to wait for task queue to finish pending tasks</param>
+        public void Dispose(bool wait)
+        {
             if (disposed)
             {
                 return;
@@ -166,6 +175,10 @@ namespace DigitalRuby.IPBan
             try
             {
                 disposed = true;
+                if (wait)
+                {
+                    Wait();
+                }
                 SerialTaskQueueGroup[] groups;
                 lock (this)
                 {
