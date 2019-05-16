@@ -54,6 +54,7 @@ namespace DigitalRuby.IPBan
 
             public IPBanLinuxFirewall6(string rulePrefix = null) : base(rulePrefix)
             {
+
             }
         }
 
@@ -63,18 +64,6 @@ namespace DigitalRuby.IPBan
         {
             base.OnDispose();
             firewall6.Dispose();
-        }
-
-        protected internal override void SaveTableToDisk()
-        {
-            base.SaveTableToDisk();
-            firewall6.SaveTableToDisk();
-        }
-
-        protected internal override void RestoreTablesFromDisk()
-        {
-            base.RestoreTablesFromDisk();
-            firewall6.RestoreTablesFromDisk();
         }
 
         protected override void OnInitialize()

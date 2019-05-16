@@ -129,6 +129,19 @@ namespace DigitalRuby.IPBan
             }
         }
 
+        private void SaveTableToDisk()
+        {
+            // persist table rules, this file is tiny so no need for a temp file and then move
+            string tableFileName = GetTableFileName();
+            RunProcess($"{IpTablesProcess}-save", true, $"> \"{tableFileName}\"");
+        }
+
+        private void RestoreTablesFromDisk()
+        {
+            string tableFileName = GetTableFileName();
+            RunProcess($"{IpTablesProcess}-restore", true, $"< \"{tableFileName}\"");
+        }
+
         protected string GetTableFileName()
         {
             return Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ipban" + TableSuffix);
@@ -373,19 +386,6 @@ namespace DigitalRuby.IPBan
             {
                 File.Delete(ipFileTemp);
             }
-        }
-
-        protected internal virtual void SaveTableToDisk()
-        {
-            // persist table rules, this file is tiny so no need for a temp file and then move
-            string tableFileName = GetTableFileName();
-            RunProcess($"{IpTablesProcess}-save", true, $"> \"{tableFileName}\"");
-        }
-
-        protected internal virtual void RestoreTablesFromDisk()
-        {
-            string tableFileName = GetTableFileName();
-            RunProcess($"{IpTablesProcess}-restore", true, $"< \"{tableFileName}\"");
         }
 
         protected override void OnDispose()
