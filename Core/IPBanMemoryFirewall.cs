@@ -261,7 +261,7 @@ namespace DigitalRuby.IPBan
         private string ScrubRuleNamePrefix(string ruleNamePrefix)
         {
             // in memory firewall does not have a count limit per rule, so remove the trailing underscore if any
-            return RulePrefix + (ruleNamePrefix ?? string.Empty).Trim('_');
+            return (RulePrefix + (ruleNamePrefix ?? string.Empty)).Trim('_');
         }
 
         public void Update()
@@ -386,7 +386,8 @@ namespace DigitalRuby.IPBan
                 {
                     yield return key;
                 }
-                if (prefix.StartsWith(RulePrefix + "1", StringComparison.OrdinalIgnoreCase))
+                if (prefix.StartsWith(RulePrefix, StringComparison.OrdinalIgnoreCase) ||
+                    prefix.StartsWith(RulePrefix + "1", StringComparison.OrdinalIgnoreCase))
                 {
                     yield return RulePrefix + "1";
                 }
