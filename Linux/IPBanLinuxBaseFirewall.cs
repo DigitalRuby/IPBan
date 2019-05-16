@@ -40,6 +40,7 @@ namespace DigitalRuby.IPBan
     public abstract class IPBanLinuxBaseFirewall : IPBanBaseFirewall, IIPBanFirewall
     {
         private readonly AddressFamily addressFamily;
+        private DateTime lastUpdate = IPBanService.UtcNow;
 
         protected const int hashSize = 1024;
         protected const int blockRuleMaxCount = 2097152;
@@ -414,6 +415,19 @@ namespace DigitalRuby.IPBan
             OnInitialize();
             RestoreSetsFromDisk();
             RestoreTablesFromDisk();
+        }
+
+        public override void Update()
+        {
+            base.Update();
+
+            // flush all sets to disk one per minute
+            DateTime now = IPBanService.UtcNow;
+            if ((now - lastUpdate) > TimeSpan.FromMinutes(1.0))
+            {
+                lastUpdate = now;
+                SaveSetsToDisk();
+            }
         }
 
         public IEnumerable<string> GetRuleNames(string ruleNamePrefix = null)
