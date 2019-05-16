@@ -286,6 +286,7 @@ recreateRule:
             object[] results = new object[64];
             int count;
             IntPtr bufferLengthPointer = Marshal.AllocCoTaskMem(Marshal.SizeOf(typeof(int)));
+            bool matchAll = (string.IsNullOrWhiteSpace(ruleNamePrefix) || ruleNamePrefix == "*");
             try
             {
                 do
@@ -294,8 +295,7 @@ recreateRule:
                     count = Marshal.ReadInt32(bufferLengthPointer);
                     foreach (object o in results)
                     {
-                        if ((o is INetFwRule rule) &&
-                            (ruleNamePrefix == null || ruleNamePrefix == "*" || rule.Name.StartsWith(ruleNamePrefix, StringComparison.OrdinalIgnoreCase)))
+                        if ((o is INetFwRule rule) && (matchAll || rule.Name.StartsWith(ruleNamePrefix, StringComparison.OrdinalIgnoreCase)))
                         {
                             yield return rule;
                         }
