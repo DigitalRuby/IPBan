@@ -520,20 +520,6 @@ namespace DigitalRuby.IPBan
             }
         }
 
-        public bool RuleExists(string ruleName)
-        {
-            RunProcess("iptables", true, out IReadOnlyList<string> lines, "-L --line-numbers");
-            string ruleNameWithSpaces = " " + ruleName + " ";
-            foreach (string line in lines)
-            {
-                if (line.Contains(ruleNameWithSpaces, StringComparison.OrdinalIgnoreCase))
-                {
-                    return true;
-                }
-            }
-            return firewall6.RuleExists(ruleName);
-        }
-
         public bool DeleteRule(string ruleName)
         {
             RunProcess("iptables", true, out IReadOnlyList<string> lines, "-L --line-numbers");

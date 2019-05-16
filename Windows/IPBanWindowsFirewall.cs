@@ -651,18 +651,6 @@ recreateRule:
             return EnumerateRulesMatchingPrefix(prefix).OrderBy(r => r.Name).Select(r => r.Name);
         }
 
-        public bool RuleExists(string ruleName)
-        {
-            try
-            {
-                return (policy.Rules.Item(ruleName) != null);
-            }
-            catch
-            {
-            }
-            return false;
-        }
-
         public bool DeleteRule(string ruleName)
         {
             try

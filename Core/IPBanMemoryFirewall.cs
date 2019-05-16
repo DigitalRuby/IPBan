@@ -260,6 +260,10 @@ namespace DigitalRuby.IPBan
 
         private string ScrubRuleNamePrefix(string ruleNamePrefix)
         {
+            if (string.IsNullOrWhiteSpace(ruleNamePrefix))
+            {
+                ruleNamePrefix = "Block";
+            }
             // in memory firewall does not have a count limit per rule, so remove the trailing underscore if any
             return (RulePrefix + (ruleNamePrefix ?? string.Empty)).Trim('_');
         }
@@ -369,7 +373,7 @@ namespace DigitalRuby.IPBan
                 {
                     return ruleRanges.EnumerateIPAddresses();
                 }
-                else if (prefix.StartsWith(RulePrefix + "1", StringComparison.OrdinalIgnoreCase))
+                else if (prefix.StartsWith(RulePrefix + "Allow", StringComparison.OrdinalIgnoreCase))
                 {
                     return allowRule.EnumerateIPAddressesRanges();
                 }
@@ -387,9 +391,9 @@ namespace DigitalRuby.IPBan
                     yield return key;
                 }
                 if (prefix.StartsWith(RulePrefix, StringComparison.OrdinalIgnoreCase) ||
-                    prefix.StartsWith(RulePrefix + "1", StringComparison.OrdinalIgnoreCase))
+                    prefix.StartsWith(RulePrefix + "Allow", StringComparison.OrdinalIgnoreCase))
                 {
-                    yield return RulePrefix + "1";
+                    yield return RulePrefix + "Allow";
                 }
             }
         }
@@ -457,19 +461,6 @@ namespace DigitalRuby.IPBan
                 }
             }
             return false;
-        }
-
-        public bool RuleExists(string ruleName)
-        {
-            if (ruleName == RulePrefix + "0")
-            {
-                return true;
-            }
-
-            lock (this)
-            {
-                return blockRulesRanges.ContainsKey(ruleName);
-            }
         }
 
         public void Truncate()

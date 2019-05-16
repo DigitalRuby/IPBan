@@ -96,13 +96,6 @@ namespace DigitalRuby.IPBan
         IEnumerable<string> GetRuleNames(string ruleNamePrefix = null);
 
         /// <summary>
-        /// Check if a rule exists
-        /// </summary>
-        /// <param name="ruleName">Rule name</param>
-        /// <returns>True if rule exists, false otherwise</returns>
-        bool RuleExists(string ruleName);
-
-        /// <summary>
         /// Delete the rule with the specified name
         /// </summary>
         /// <param name="ruleName">Rule name</param>

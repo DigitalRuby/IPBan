@@ -460,20 +460,6 @@ namespace DigitalRuby.IPBan
             }
         }
 
-        public bool RuleExists(string ruleName)
-        {
-            RunProcess("ip6tables", true, out IReadOnlyList<string> lines, "-L --line-numbers");
-            string ruleNameWithSpaces = " " + ruleName + " ";
-            foreach (string line in lines)
-            {
-                if (line.Contains(ruleNameWithSpaces, StringComparison.OrdinalIgnoreCase))
-                {
-                    return true;
-                }
-            }
-            return false;
-        }
-
         public bool DeleteRule(string ruleName)
         {
             RunProcess("ip6tables", true, out IReadOnlyList<string> lines, "-L --line-numbers");

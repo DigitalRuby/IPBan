@@ -69,11 +69,6 @@ namespace DigitalRuby.IPBan
             throw new NotImplementedException();
         }
 
-        public bool RuleExists(string ruleName)
-        {
-            throw new NotImplementedException();
-        }
-
         public bool DeleteRule(string ruleName)
         {
             throw new NotImplementedException();
