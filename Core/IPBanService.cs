@@ -700,17 +700,14 @@ namespace DigitalRuby.IPBan
             if (firewallNeedsBlockedIPAddressesUpdate)
             {
                 firewallNeedsBlockedIPAddressesUpdate = false;
-                IEnumerable<IPBanFirewallIPAddressDelta> deltas = ipDB.EnumerateIPAddressesDelta(true).Where(i => !i.Added || !IsWhitelisted(i.IPAddress));
+                List<IPBanFirewallIPAddressDelta> deltas = ipDB.EnumerateIPAddressesDelta(true).Where(i => !i.Added || !IsWhitelisted(i.IPAddress)).ToList();
                 if (MultiThreaded)
                 {
-                    // send enumerator into the firewall, that way the whole db does not go into memory
                     TaskQueue.Add(() => Firewall.BlockIPAddressesDelta(null, deltas, null, TaskQueue.GetToken()));
                 }
                 else
                 {
-                    // get array right away, otherwise the firewall implementation may callback multiple times to IsWhitelisted
-                    // this requires all in memory but is only really used in unit / integration tests
-                    Firewall.BlockIPAddressesDelta(null, deltas.ToArray()).Sync();
+                    Firewall.BlockIPAddressesDelta(null, deltas).Sync();
                 }
             }
 

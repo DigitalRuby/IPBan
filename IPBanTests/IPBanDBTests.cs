@@ -52,6 +52,10 @@ namespace DigitalRuby.IPBanTests
                 Assert.AreEqual(3, count);
                 Assert.AreEqual(0, db.EnumerateIPAddresses(dt1.AddMinutes(1.0)).Count());
                 Assert.IsTrue(db.SetBanDate(ip, dt2));
+
+                // increment fail login for a ban or ban pending should do nothing
+                Assert.AreEqual(3, db.IncrementFailedLoginCount(ip, dt2.AddSeconds(15.0f), 10));
+
                 Assert.IsFalse(db.SetBanDate(ip, dt2 + TimeSpan.FromDays(1.0))); // no effect
                 IPBanDB.IPAddressEntry e = db.GetIPAddress(ip);
                 Assert.AreEqual(ip, e.IPAddress);
@@ -81,8 +85,6 @@ namespace DigitalRuby.IPBanTests
                     new KeyValuePair<string, DateTime>("11.11.11.11", dt2)
                 });
                 Assert.AreEqual(6, count);
-                count = db.GetBannedIPAddressCount();
-                Assert.AreEqual(7, count);
                 IPAddressRange range = IPAddressRange.Parse("5.5.5.0/24");
                 count = 0;
                 foreach (string ipAddress in db.DeleteIPAddresses(range))
@@ -107,8 +109,6 @@ namespace DigitalRuby.IPBanTests
                 Assert.AreEqual(1, count);
                 IPBanDB.IPAddressEntry[] ipAll = db.EnumerateIPAddresses().ToArray();
                 Assert.AreEqual(7, ipAll.Length);
-                string[] bannedIpAll = db.EnumerateBannedIPAddresses().ToArray();
-                Assert.AreEqual(6, bannedIpAll.Length);
 
                 // ensure deltas work properly
                 Assert.AreEqual(1, db.SetIPAddressesState(new string[] { "5.5.5.5" }, IPBanDB.IPAddressState.RemovePending));
@@ -140,6 +140,8 @@ namespace DigitalRuby.IPBanTests
                 Assert.IsFalse(deltas[3].Added);
                 Assert.IsTrue(deltas[4].Added);
                 Assert.IsTrue(deltas[5].Added);
+                string[] bannedIpAll = db.EnumerateBannedIPAddresses().ToArray();
+                Assert.AreEqual(5, bannedIpAll.Length);
                 deltas = db.EnumerateIPAddressesDelta(true).ToArray();
                 Assert.AreEqual(0, deltas.Length);
 

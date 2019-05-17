@@ -232,7 +232,7 @@ namespace DigitalRuby.IPBan
                 int count = ExecuteNonQuery(conn, tran, @"INSERT INTO IPAddresses(IPAddress, IPAddressText, LastFailedLogin, FailedLoginCount, BanDate, State)
                     VALUES(@Param0, @Param1, @Param2, 0, @Param2, @Param3)
                     ON CONFLICT(IPAddress)
-                    DO UPDATE SET BanDate = IFNULL(BanDate, @Param2), State = @Param3 WHERE BanDate IS NULL OR State <> @Param3; ", ipBytes, ipAddress, timestamp, (int)IPAddressState.AddPending);
+                    DO UPDATE SET BanDate = IFNULL(BanDate, @Param2), State = @Param3 WHERE BanDate IS NULL OR State NOT IN (0, 1); ", ipBytes, ipAddress, timestamp, (int)IPAddressState.AddPending);
                 return count;
             }
             return 0;
@@ -362,7 +362,7 @@ namespace DigitalRuby.IPBan
                 string command = @"INSERT INTO IPAddresses(IPAddress, IPAddressText, LastFailedLogin, FailedLoginCount, BanDate, State)
                     VALUES (@Param0, @Param1, @Param2, @Param3, NULL, 3)
                     ON CONFLICT(IPAddress)
-                    DO UPDATE SET LastFailedLogin = @Param2, FailedLoginCount = FailedLoginCount + @Param3, State = 3;
+                    DO UPDATE SET LastFailedLogin = @Param2, FailedLoginCount = FailedLoginCount + @Param3 WHERE State NOT IN (0, 1);
                     SELECT FailedLoginCount FROM IPAddresses WHERE IPAddress = @Param0;";
                 IPBanDBTransaction tran = transaction as IPBanDBTransaction;
                 if (tran == null)
@@ -610,7 +610,7 @@ namespace DigitalRuby.IPBan
         /// <returns>IP addresses with non-null ban dates</returns>
         public IEnumerable<string> EnumerateBannedIPAddresses()
         {
-            using (SQLiteDataReader reader = ExecuteReader("SELECT IPAddressText /*, LastFailedLogin, FailedLoginCount, BanDate */ FROM IPAddresses WHERE BanDate IS NOT NULL ORDER BY IPAddress", null, null))
+            using (SQLiteDataReader reader = ExecuteReader("SELECT IPAddressText /*, LastFailedLogin, FailedLoginCount, BanDate */ FROM IPAddresses WHERE BanDate IS NOT NULL AND State = 0 ORDER BY IPAddress", null, null))
             {
                 while (reader.Read())
                 {

@@ -422,7 +422,7 @@ recreateRule:
                 remoteIPAddresses.Add(ipSet);
                 ruleChanges.Add(false);
             }
-            List<IPBanFirewallIPAddressDelta> deltas = new List<IPBanFirewallIPAddressDelta>(ipAddresses);
+            List<IPBanFirewallIPAddressDelta> deltas = ipAddresses.ToList();
             deltas.Sort((d1, d2) => d2.Added.CompareTo(d1.Added));
             for (int deltaIndex = deltas.Count - 1; deltaIndex >= 0; deltaIndex--)
             {
@@ -434,7 +434,8 @@ recreateRule:
                     {
                         if (remoteIPAddressesSet.Count < MaxIpAddressesPerRule)
                         {
-                            change = remoteIPAddressesSet.Add(deltas[deltaIndex].IPAddress);
+                            remoteIPAddressesSet.Add(deltas[deltaIndex].IPAddress);
+                            change = true;
                         }
                     }
                     else
