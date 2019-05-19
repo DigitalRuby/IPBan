@@ -38,20 +38,20 @@ namespace DigitalRuby.IPBan
     {
         private static IPBanService service;
 
-        private static void CreateService()
+        private static void CreateService(bool wait)
         {
             if (service != null)
             {
                 service.Dispose();
             }
             service = IPBanService.CreateService<IPBanService>();
-            service.Start();
+            service.Start(wait);
         }
 
         protected override void OnStart(string[] args)
         {
             base.OnStart(args);
-            CreateService();
+            CreateService(false);
         }
 
         protected override void OnStop()
@@ -112,10 +112,7 @@ namespace DigitalRuby.IPBan
 
         public static int RunConsole(string[] args)
         {
-            CreateService();
-            Console.WriteLine("Press ENTER to quit");
-            Console.ReadLine();
-            service.Stop();
+            CreateService(true);
             return 0;
         }
 

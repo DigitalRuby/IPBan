@@ -81,6 +81,7 @@ namespace DigitalRuby.IPBan
         private readonly object configLock = new object();
         private readonly HashSet<IUpdater> updaters = new HashSet<IUpdater>();
         private readonly HashSet<IPBanLogFileScanner> logFilesToParse = new HashSet<IPBanLogFileScanner>();
+        private readonly ManualResetEvent stopEvent = new ManualResetEvent(false);
 
         private HashSet<string> ipAddressesToAllowInFirewall = new HashSet<string>();
         private bool ipAddressesToAllowInFirewallNeedsUpdate;
@@ -869,6 +870,12 @@ namespace DigitalRuby.IPBan
             OSName = IPBanOS.Name + (string.IsNullOrWhiteSpace(IPBanOS.FriendlyName) ? string.Empty : " (" + IPBanOS.FriendlyName + ")");
             OSVersion = IPBanOS.Version;
             ipDB = new IPBanDB();
+            Console.CancelKeyPress += Console_CancelKeyPress;
+        }
+
+        private void Console_CancelKeyPress(object sender, ConsoleCancelEventArgs e)
+        {
+            Stop();
         }
 
         /// <summary>
@@ -1077,21 +1084,16 @@ namespace DigitalRuby.IPBan
             }
 
             IsRunning = false;
-            IPBanLog.Warn("Stopping task queue...");
-            TaskQueue.Dispose(true);
-            GetUrl(UrlType.Stop).Sync();
             try
             {
+                Console.CancelKeyPress -= Console_CancelKeyPress;
+                IPBanLog.Warn("Stopping task queue...");
+                TaskQueue.Dispose(true);
+                GetUrl(UrlType.Stop).Sync();
                 cycleTimer?.Dispose();
                 IPBanDelegate?.Stop();
                 IPBanDelegate?.Dispose();
-            }
-            catch
-            {
-            }
-            IPBanDelegate = null;
-            try
-            {
+                IPBanDelegate = null;
                 lock (updaters)
                 {
                     foreach (IUpdater updater in updaters.ToArray())
@@ -1100,28 +1102,24 @@ namespace DigitalRuby.IPBan
                     }
                     updaters.Clear();
                 }
-            }
-            catch
-            {
-            }
-            try
-            {
                 foreach (IPBanLogFileScanner file in logFilesToParse)
                 {
                     file.Dispose();
                 }
+                ipDB.Dispose();
+                IPBanLog.Warn("Stopped IPBan service");
             }
             catch
             {
             }
-            ipDB.Dispose();
-            IPBanLog.Warn("Stopped IPBan service");
+            stopEvent.Set();
         }
 
         /// <summary>
         /// Initialize and start the service
         /// </summary>
-        public void Start()
+        /// <param name="wait">True to wait for service to stop, false otherwise</param>
+        public void Start(bool wait = false)
         {
             if (IsRunning)
             {
@@ -1149,8 +1147,18 @@ namespace DigitalRuby.IPBan
                 cycleTimer.Elapsed += async (sender, e) => await CycleTimerElapsed(sender, e);
                 cycleTimer.Start();
             }
-            IPBanLog.Warn("IPBan service started and initialized. Operating System: {0}", IPBanOS.OSString());
+            IPBanLog.Warn("IPBan {0} service started and initialized. Operating System: {1}", IPBanOS.Name, IPBanOS.OSString());
             IPBanLog.WriteLogLevels();
+
+            if (wait)
+            {
+                Console.WriteLine("Press ENTER or Ctrl+C to quit");
+                while ((Console.IsInputRedirected || !Console.KeyAvailable || Console.ReadKey().Key != ConsoleKey.Enter) && !stopEvent.WaitOne(100))
+                {
+                    // poll for enter key 10x a second, or if service stopped elsewhere, exit loop
+                }
+                Dispose();
+            }
         }
 
         /// <summary>
@@ -1159,6 +1167,14 @@ namespace DigitalRuby.IPBan
         public void Stop()
         {
             Dispose();
+        }
+
+        /// <summary>
+        /// Wait for service to stop
+        /// </summary>
+        public void Wait()
+        {
+            stopEvent.WaitOne();
         }
 
         /// <summary>

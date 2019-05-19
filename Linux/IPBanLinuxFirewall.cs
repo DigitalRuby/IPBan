@@ -123,18 +123,3 @@ namespace DigitalRuby.IPBan
         }
     }
 }
-
-// https://linuxconfig.org/how-to-setup-ftp-server-on-ubuntu-18-04-bionic-beaver-with-vsftpd
-// ipset create IPBanBlacklist iphash maxelem 1048576
-// ipset destroy IPBanBlacklist // clear everything
-// ipset -A IPBanBlacklist 10.10.10.10
-// ipset -A IPBanBlacklist 10.10.10.11
-// ipset save > file.txt
-// ipset restore < file.txt
-// iptables -A INPUT -m set --match-set IPBanBlacklist dst -j DROP
-// iptables -F // clear all rules - this may break SSH permanently!
-// iptables-save > file.txt
-// iptables-restore < file.txt
-// port ranges? iptables -A INPUT -p tcp -m tcp -m multiport --dports 1:79,81:442,444:65535 -j DROP
-// list rules with line numbers: iptables -L --line-numbers
-// modify rule at line number: iptables -R INPUT 12 -s 5.158.0.0/16 -j DROP

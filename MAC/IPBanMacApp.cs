@@ -34,10 +34,7 @@ namespace DigitalRuby.IPBan
         public static void MacMain(string[] args)
         {
             IPBanService service = IPBanService.CreateService<IPBanService>();
-            service.Start();
-            IPBanLog.Warn("IPBan Mac Service Running, Press Ctrl-C to quit.");
-            ManualResetEvent wait = new ManualResetEvent(false);
-            wait.WaitOne();
+            service.Start(true);
         }
     }
 }
