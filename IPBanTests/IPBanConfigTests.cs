@@ -63,12 +63,12 @@ namespace DigitalRuby.IPBanTests
             const string pathAndMask4 = "C:/IPBanCustomLogs/*.log";
             const string failedRegex1 = @"failed\s+password\s+for\s+(invalid\s+user\s+)?(?<username>.+?\s+)from\s+(?<ipaddress>.+?)\s+port\s+[0-9]+\s+ssh|did\s+not\s+receive\s+identification\s+string\s+from\s+(?<ipaddress>[^\s]+)|connection\s+closed\s+by\s+(invalid\s+user\s+)?(?<username>.+?\s+)?(?<ipaddress>.+?)\s+port\s+[0-9]+\s+\[preauth\]\s*(\(no\s+attempt\s+to\s+login\s+after\s+timeout\))?|disconnected\s+from\s+(invalid\s+user\s+)?(?<username>.+?)\s+(?<ipaddress>.+?)\s+port\s+[0-9]+\s+\[preauth\]|disconnected\s+from\s+(?<ipaddress>.+?)\s+port\s+[0-9]+\s+\[preauth\]|disconnected\s+from\s+authenticating\s+user\s+(?<username>.+?)\s+(?<ipaddress>.+?)\s+port\s+[0-9]+\s+\[preauth\]";
             const string successRegex1 = @"Accepted\s+password\s+for\s+(?<username>.+?)\s+from\s+(?<ipaddress>.+?)\s+port\s+[0-9]+\s+ssh";
-            const string failedRegex2 = @"ipban\sfailed\slogin,\sip\saddress:\s(?<ipaddress>.+?),\ssource:\s(?<source>.+?),\suser:\s(?<username>[^\s,]+)";
-            const string successRegex2 = @"ipban\ssuccess\slogin,\sip\saddress:\s(?<ipaddress>.+?),\ssource:\s(?<source>.+?),\suser:\s(?<username>[^\s,]+)";
+            const string failedRegex2 = @"ipban\sfailed\slogin,\sip\saddress:\s(?<ipaddress>.+?),\ssource:\s(?<source>.+?),\suser:\s?(?<username>[^\s,]+)?";
+            const string successRegex2 = @"ipban\ssuccess\slogin,\sip\saddress:\s(?<ipaddress>.+?),\ssource:\s(?<source>.+?),\suser:\s?(?<username>[^\s,]+)?";
             const string failedRegex3 = @".*?,.*?,.*?,.*?,(?<ipaddress>.+?),(?<username>.+?),.*?AuthFailed";
             const string successRegex3 = @"";
-            const string failedRegex4 = @"ipban\sfailed\slogin,\sip\saddress:\s(?<ipaddress>.+?),\ssource:\s(?<source>.+?),\suser:\s(?<username>[^\s,]+)";
-            const string successRegex4 = @"ipban\ssuccess\slogin,\sip\saddress:\s(?<ipaddress>.+?),\ssource:\s(?<source>.+?),\suser:\s(?<username>[^\s,]+)";
+            const string failedRegex4 = @"ipban\sfailed\slogin,\sip\saddress:\s(?<ipaddress>.+?),\ssource:\s(?<source>.+?),\suser:\s?(?<username>[^\s,]+)?";
+            const string successRegex4 = @"ipban\ssuccess\slogin,\sip\saddress:\s(?<ipaddress>.+?),\ssource:\s(?<source>.+?),\suser:\s?(?<username>[^\s,]+)?";
 
             Assert.AreEqual(4, cfg.LogFilesToParse.Count);
             AssertLogFileToParse(cfg.LogFilesToParse[0], failedRegex1, maxFileSize, pathAndMask1, pingInterval, "Linux", false, "SSH", successRegex1);
@@ -111,7 +111,7 @@ namespace DigitalRuby.IPBanTests
             Assert.NotNull(groups);
             Assert.AreEqual(9, groups.Count);
             AssertEventViewerGroup(groups[0], "0x8010000000000000", minimumWindowsMajorVersion, 0, false, "Security", "RDP", "//EventID", "^(4625|5152)$", "//Data[@Name='IpAddress' or @Name='Workstation' or @Name='SourceAddress']", "(?<ipaddress>.+)");
-            AssertEventViewerGroup(groups[1], "0x80000000000000", minimumWindowsMajorVersion, 0, false, "Application", "IPBanCustom", "//Data", @"ipban\sfailed\slogin,\sip\saddress:\s(?<ipaddress>.+?),\ssource:\s(?<source>.+?),\suser:\s(?<username>[^\s,]+)");
+            AssertEventViewerGroup(groups[1], "0x80000000000000", minimumWindowsMajorVersion, 0, false, "Application", "IPBanCustom", "//Data", @"ipban\sfailed\slogin,\sip\saddress:\s(?<ipaddress>.+?),\ssource:\s(?<source>.+?),\suser:\s?(?<username>[^\s,]+)?");
             AssertEventViewerGroup(groups[2], "0x90000000000000", minimumWindowsMajorVersion, 0, false, "Application", "MSSQL", "//Provider[@Name='MSSQLSERVER']", string.Empty, "//Data", @"(?!(\[CLIENT\s?:|Reason\s?:))(?<username>.+)", "//Data", @"\[CLIENT\s?:\s?(?<ipaddress>.*?)\]");
             AssertEventViewerGroup(groups[3], "0x80000000000000", minimumWindowsMajorVersion, 0, false, "Application", "MySQL", "//Provider[@Name='MySQL']", string.Empty, "//Data", "Access denied for user '?(?<username>.*?)'@'(?<ipaddress>.*?)'");
             AssertEventViewerGroup(groups[4], "0x80000000000000", minimumWindowsMajorVersion, 0, false, "System", "MSExchange", "//Provider[@Name='MSExchangeTransport']", string.Empty, "//Data", "LogonDenied", "//Data", "(?<ipaddress_exact>.+)");
@@ -125,7 +125,7 @@ namespace DigitalRuby.IPBanTests
             Assert.AreEqual(4, groups.Count);
             AssertEventViewerGroup(groups[0], "0x8000000000000000", minimumWindowsMajorVersion, 0, true, "Security", "RDP", "//EventID", "^4624$", "//Data[@Name='IpAddress' or @Name='Workstation' or @Name='SourceAddress']", "(?<ipaddress>.+)");
             AssertEventViewerGroup(groups[1], "0x4000000000000000", minimumWindowsMajorVersion, 0, true, "OpenSSH/Operational", "SSH", "//Data[@Name='payload']", @"Accepted\s+password\s+for\s+(?<username>.+?)\s+from\s+(?<ipaddress>.+?)\s+port\s+[0-9]+\s+ssh");
-            AssertEventViewerGroup(groups[2], "0x80000000000000", minimumWindowsMajorVersion, 0, true, "Application", "IPBanCustom", "//Data", @"ipban\ssuccess\slogin,\sip\saddress:\s(?<ipaddress>.+?),\ssource:\s(?<source>.+?),\suser:\s(?<username>[^\s,]+)");
+            AssertEventViewerGroup(groups[2], "0x80000000000000", minimumWindowsMajorVersion, 0, true, "Application", "IPBanCustom", "//Data", @"ipban\ssuccess\slogin,\sip\saddress:\s(?<ipaddress>.+?),\ssource:\s(?<source>.+?),\suser:\s?(?<username>[^\s,]+)?");
             AssertEventViewerGroup(groups[3], "0x80000000000000", minimumWindowsMajorVersion, 0, true, "Application", "VNC", "//EventID", "^257$", "//Data", @"Authentication\spassed\sby\s(?<ipaddress>.+)");
         }
 
