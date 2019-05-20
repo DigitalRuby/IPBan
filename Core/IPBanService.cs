@@ -341,6 +341,10 @@ namespace DigitalRuby.IPBan
 
         private Task ProcessPendingSuccessfulLogins(IEnumerable<IPAddressPendingEvent> ipAddresses)
         {
+            foreach (IPAddressPendingEvent info in ipAddresses)
+            {
+                IPBanLog.Warn("Login succeeded, address: {0}, user name: {1}, source: {2}", info.IPAddress, info.UserName, info.Source);
+            }
             if (IPBanDelegate != null)
             {
                 return Task.Run(() =>
