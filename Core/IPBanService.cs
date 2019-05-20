@@ -292,7 +292,7 @@ namespace DigitalRuby.IPBan
 
                             DateTime now = failedLogin.DateTime;
 
-                            // check for the target user name for additional blacklisting checks                    
+                            // check for the target user name for additional blacklisting checks
                             bool configBlacklisted = Config.IsBlackListed(ipAddress) ||
                                 Config.IsBlackListed(userName) ||
                                 !Config.IsUserNameWithinMaximumEditDistanceOfUserNameWhitelist(userName);
@@ -506,9 +506,12 @@ namespace DigitalRuby.IPBan
             Firewall = IPBanFirewallUtility.CreateFirewall(Config.FirewallOSAndType, Config.FirewallRulePrefix, Firewall);
             IPBanLog.Warn("Loaded firewall type {0}", Firewall?.GetType());
             AddUpdater(Firewall);
-            if (existing != Firewall)
+            if (existing != Firewall && existing != null)
             {
                 RemoveUpdater(existing);
+
+                // transfer banned ip to new firewall
+                Firewall.BlockIPAddresses(null, ipDB.EnumerateBannedIPAddresses()).Sync();
             }
         }
 
