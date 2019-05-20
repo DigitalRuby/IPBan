@@ -143,7 +143,7 @@ namespace DigitalRuby.IPBan
         {
             try
             {
-                ConfigFilePath = (string.IsNullOrWhiteSpace(ConfigFilePath) ? ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None).FilePath : ConfigFilePath);
+                ConfigFilePath = (!File.Exists(ConfigFilePath) ? Path.Combine(AppDomain.CurrentDomain.BaseDirectory, IPBanService.ConfigFileName) : ConfigFilePath);
                 DateTime lastDateTime = File.GetLastWriteTimeUtc(ConfigFilePath);
                 if (lastDateTime > lastConfigFileDateTime)
                 {

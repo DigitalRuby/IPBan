@@ -547,7 +547,7 @@ namespace DigitalRuby.IPBan {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to FirewallSettings.
+        ///   Looks up a localized string similar to Firewall Settings.
         /// </summary>
         public static string FirewallSettings {
             get {
@@ -566,7 +566,7 @@ namespace DigitalRuby.IPBan {
         
         /// <summary>
         ///   Looks up a localized string similar to Firewall types: Allows setting a type of firewall if not using the default firewall implementation.
-        ///Prefix with OS:ClassName, example: Windows:Windivert,Linux:Default.
+        ///Prefix with OS:ClassName, example: Windows:Custom,Linux:Default.
         /// </summary>
         public static string FirewallTypeTooltip {
             get {

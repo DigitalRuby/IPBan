@@ -271,14 +271,14 @@
     <value>Rule prefix name for firewall rules, must contain only A-Z, 0-9 and _</value>
   </data>
   <data name="FirewallSettings" xml:space="preserve">
-    <value>FirewallSettings</value>
+    <value>Firewall Settings</value>
   </data>
   <data name="FirewallType" xml:space="preserve">
     <value>Firewall Type</value>
   </data>
   <data name="FirewallTypeTooltip" xml:space="preserve">
     <value>Firewall types: Allows setting a type of firewall if not using the default firewall implementation.
-Prefix with OS:ClassName, example: Windows:Windivert,Linux:Default</value>
+Prefix with OS:ClassName, example: Windows:Custom,Linux:Default</value>
   </data>
   <data name="FQDN" xml:space="preserve">
     <value>FQDN</value>
