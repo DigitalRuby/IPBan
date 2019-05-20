@@ -79,7 +79,7 @@ namespace DigitalRuby.IPBan {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Comma separated ports or port ranges to exclude from country bans, naughty list, etc..
+        ///   Looks up a localized string similar to Comma separated ports or port ranges to always allow, regardless of country blocking - i.e. 80, 443..
         /// </summary>
         public static string AllowPortsTooltip {
             get {
@@ -250,7 +250,7 @@ namespace DigitalRuby.IPBan {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Select banned country codes (comma separated). Firewall will be automatically updated with ip addresses from the selected countries..
+        ///   Looks up a localized string similar to Select banned countries. Firewall will be automatically updated with ip address ranges from the selected countries, excluding any whitelisted ip addresses..
         /// </summary>
         public static string CountryBlacklistTooltip {
             get {
@@ -674,7 +674,7 @@ namespace DigitalRuby.IPBan {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Regular expression for more advanced blacklisting.Shortcut: use* to allow any piece of an ip, dns name or user name(i.e. 128.128.128.*). Sample regex that blacklists a few ips: ^(128\.128\.128\.*)|(99\.99\.99\.[0-9])$ More info about regex: http://www.regular-expressions.info/.
+        ///   Looks up a localized string similar to Regular expression for more advanced blacklisting. Shortcut: use* to allow any piece of an ip, dns name or user name(i.e. 128.128.128.*). Sample regex that blacklists a few ips: ^(128\.128\.128\.*)|(99\.99\.99\.[0-9])$ More info about regex: http://www.regular-expressions.info/.
         /// </summary>
         public static string IPBlacklistRegexTooltip {
             get {
