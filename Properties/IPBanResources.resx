@@ -368,7 +368,7 @@ Prefix with OS:ClassName, example: Windows:Custom,Linux:Default</value>
     <value>Minimum Trust Level</value>
   </data>
   <data name="MinimumTrustLevelTooltip" xml:space="preserve">
-    <value>Minimum trust level for universal banned ip sharing (0-10) where 0 is trust all submissions</value>
+    <value>Minimum trust level for recent banned ip sharing (0-10) where 0 is trust all submissions</value>
   </data>
   <data name="NaughtyListInterval" xml:space="preserve">
     <value>Naughty List Interval</value>

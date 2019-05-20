@@ -845,7 +845,7 @@ namespace DigitalRuby.IPBan {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Minimum trust level for universal banned ip sharing (0-10) where 0 is trust all submissions.
+        ///   Looks up a localized string similar to Minimum trust level for recent banned ip sharing (0-10) where 0 is trust all submissions.
         /// </summary>
         public static string MinimumTrustLevelTooltip {
             get {
