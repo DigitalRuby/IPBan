@@ -254,11 +254,6 @@ namespace DigitalRuby.IPBan
             IPBanLog.Info("Blacklist: {0}, Blacklist Regex: {1}", Config.BlackList, Config.BlackListRegex);
         }
 
-        private bool IsWhitelisted(string ipAddress)
-        {
-            return (Config.IsWhitelisted(ipAddress) || (IPBanDelegate != null && IPBanDelegate.IsIPAddressWhitelisted(ipAddress)));
-        }
-
         private async Task ProcessPendingFailedLogins(IEnumerable<IPAddressPendingEvent> ipAddresses)
         {
             List<IPAddressPendingEvent> bannedIpAddresses = new List<IPAddressPendingEvent>();
@@ -1155,6 +1150,16 @@ namespace DigitalRuby.IPBan
         public void Wait()
         {
             stopEvent.WaitOne();
+        }
+
+        /// <summary>
+        /// Check if an ip is whitelisted
+        /// </summary>
+        /// <param name="ipAddress">IP address</param>
+        /// <returns>True if whitelisted, false otherwise</returns>
+        public bool IsWhitelisted(string ipAddress)
+        {
+            return (Config.IsWhitelisted(ipAddress) || (IPBanDelegate != null && IPBanDelegate.IsIPAddressWhitelisted(ipAddress)));
         }
 
         /// <summary>

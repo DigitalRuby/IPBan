@@ -103,6 +103,13 @@ namespace DigitalRuby.IPBan
         bool RemoveUpdater(IUpdater updater);
 
         /// <summary>
+        /// Check if an ip is whitelisted
+        /// </summary>
+        /// <param name="ip">IP address</param>
+        /// <returns>True if whitelisted, false otherwise</returns>
+        bool IsWhitelisted(string ip);
+
+        /// <summary>
         /// Whether the service is running
         /// </summary>
         bool IsRunning { get; }
