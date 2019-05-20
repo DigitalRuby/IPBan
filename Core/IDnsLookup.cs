@@ -75,14 +75,24 @@ namespace DigitalRuby.IPBan
             try
             {
                 IPHostEntry host = Dns.GetHostEntry(Dns.GetHostName());
+                IPAddress local = null;
                 foreach (IPAddress ip in host.AddressList)
                 {
-                    if (ip.IsIPv4MappedToIPv6)
+                    if (local == null || ip.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
                     {
-                        return ip.MapToIPv4();
+                        local = ip;
                     }
-                    return ip;
+                    
                 }
+                if (local == null)
+                {
+                    throw new ApplicationException("Unable to determine local ip address, is the network adapter enabled?");
+                }
+                if (local.IsIPv4MappedToIPv6)
+                {
+                    return local.MapToIPv4();
+                }
+                return local;
             }
             catch
             {

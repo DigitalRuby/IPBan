@@ -497,14 +497,17 @@ namespace DigitalRuby.IPBan
         {
             IIPBanFirewall existing = Firewall;
             Firewall = IPBanFirewallUtility.CreateFirewall(Config.FirewallOSAndType, Config.FirewallRulePrefix, Firewall);
-            IPBanLog.Warn("Loaded firewall type {0}", Firewall?.GetType());
             AddUpdater(Firewall);
-            if (existing != Firewall && existing != null)
+            if (existing != Firewall)
             {
-                RemoveUpdater(existing);
+                IPBanLog.Warn("Loaded firewall type {0}", Firewall.GetType());
+                if (existing != null)
+                {
+                    RemoveUpdater(existing);
 
-                // transfer banned ip to new firewall
-                Firewall.BlockIPAddresses(null, ipDB.EnumerateBannedIPAddresses()).Sync();
+                    // transfer banned ip to new firewall
+                    Firewall.BlockIPAddresses(null, ipDB.EnumerateBannedIPAddresses()).Sync();
+                }
             }
         }
 
