@@ -119,7 +119,7 @@ namespace DigitalRuby.IPBan
         /// <param name="osAndFirewall">Dictionary of string operating system name (Windows, Linux, OSX) and firewall class</param>
         /// <param name="rulePrefix">Rule prefix or null for default</param>
         /// <returns>Firewall</returns>
-        public static IIPBanFirewall CreateFirewall(IReadOnlyDictionary<string, string> osAndFirewall, string rulePrefix = null)
+        public static IIPBanFirewall CreateFirewall(IReadOnlyDictionary<string, string> osAndFirewall, string rulePrefix = null, IIPBanFirewall existing = null)
         {
             bool foundFirewallType = false;
             int priority = int.MinValue;
@@ -179,6 +179,10 @@ namespace DigitalRuby.IPBan
             {
                 string typeString = string.Join(',', osAndFirewall.Select(kv => kv.Key + ":" + kv.Value));
                 throw new ArgumentException("Unable to find firewalls of types: " + typeString + ", osname: " + IPBanOS.Name);
+            }
+            if (existing != null && existing.GetType().Equals(firewallType))
+            {
+                return existing;
             }
             return Activator.CreateInstance(firewallType, new object[] { rulePrefix }) as IIPBanFirewall;
         }

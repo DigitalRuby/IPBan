@@ -155,6 +155,7 @@ namespace DigitalRuby.IPBan
                         whitelistChanged = (Config == null || Config.WhiteList != newConfig.WhiteList || Config.WhiteListRegex != newConfig.WhiteListRegex);
                         Config = newConfig;
                     }
+                    LoadFirewall();
                 }
             }
             catch (Exception ex)
@@ -501,8 +502,14 @@ namespace DigitalRuby.IPBan
 
         private void LoadFirewall()
         {
-            Firewall = IPBanFirewallUtility.CreateFirewall(Config.FirewallOSAndType, Config.FirewallRulePrefix);
+            IIPBanFirewall existing = Firewall;
+            Firewall = IPBanFirewallUtility.CreateFirewall(Config.FirewallOSAndType, Config.FirewallRulePrefix, Firewall);
+            IPBanLog.Warn("Loaded firewall type {0}", Firewall?.GetType());
             AddUpdater(Firewall);
+            if (existing != Firewall)
+            {
+                RemoveUpdater(existing);
+            }
         }
 
         private async Task CheckForExpiredIP()
@@ -1136,7 +1143,6 @@ namespace DigitalRuby.IPBan
             AddUpdater(new IPBanUnblockIPAddressesUpdater(this, Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "unban.txt")));
             AssemblyVersion = IPBanService.GetIPBanAssembly().GetName().Version.ToString();
             ReadAppSettings();
-            LoadFirewall();
             UpdateBannedIPAddressesOnStart();
             LogInitialConfig();
             IPBanDelegate?.Start(this);
