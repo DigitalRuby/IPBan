@@ -385,14 +385,15 @@ namespace DigitalRuby.IPBan
             bannedIpAddresses.Add(new IPAddressPendingEvent { IPAddress = ipAddress, Source = source, UserName = userName });
             ipDB.SetBanDate(ipAddress, dateTime, transaction);
             firewallNeedsBlockedIPAddressesUpdate = true;
-            IPBanLog.Warn(dateTime, "Banning ip address: {0}, user name: {1}, config black listed: {2}, count: {3}, extra info: {4}",
-                ipAddress, userName, configBlacklisted, counter, extraInfo);
 
             // if this is a delegate callback (counter of 0) or no handlers, exit out
             if (counter <= 0 || (BannedIPAddressHandler == null && IPBanDelegate == null))
             {
                 return;
             }
+
+            IPBanLog.Warn(dateTime, "Banning ip address: {0}, user name: {1}, config black listed: {2}, count: {3}, extra info: {4}",
+                ipAddress, userName, configBlacklisted, counter, extraInfo);
 
             if (BannedIPAddressHandler != null && System.Net.IPAddress.TryParse(ipAddress, out System.Net.IPAddress ipAddressObj) && !ipAddressObj.IsInternal())
             {
