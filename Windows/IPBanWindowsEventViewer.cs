@@ -66,7 +66,7 @@ namespace DigitalRuby.IPBan
             }
         }
 
-        private bool AddFailedLoginForEventViewerXml(IPAddressLogEvent info, XmlDocument doc)
+        private bool FindSourceAndUserNameForInfo(IPAddressLogEvent info, XmlDocument doc)
         {
             if (string.IsNullOrWhiteSpace(info.IPAddress))
             {
@@ -287,14 +287,13 @@ namespace DigitalRuby.IPBan
 
             XmlDocument doc = ParseXml(xml);
             IPAddressLogEvent info = ExtractEventViewerXml(doc);
-            if (info != null && info.FoundMatch)
+            if (info != null && info.FoundMatch && (info.Type == IPAddressEventType.FailedLogin || info.Type == IPAddressEventType.SuccessfulLogin))
             {
-                if (info.Type == IPAddressEventType.FailedLogin && !AddFailedLoginForEventViewerXml(info, doc))
+                if (!FindSourceAndUserNameForInfo(info, doc))
                 {
-                    // if fail to add the failed login (bad ip, etc.) exit out
+                    // bad ip address
                     return;
                 }
-                System.Diagnostics.Debug.Assert(info.Type == IPAddressEventType.FailedLogin || info.Type == IPAddressEventType.SuccessfulLogin);
                 service.AddIPAddressLogEvents(new IPAddressLogEvent[] { info });
                 IPBanLog.Debug("Event viewer found: {0}, {1}, {2}, {4}", info.IPAddress, info.Source, info.UserName, info.Type);
             }
