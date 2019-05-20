@@ -479,7 +479,7 @@ Prefix with OS:ClassName, example: Windows:Custom,Linux:Default</value>
     <value>Email Body Template</value>
   </data>
   <data name="SmtpBodyTemplateTooltip" xml:space="preserve">
-    <value>Body template for sent mail. {0} = machine name, {1} = machine ip address, {2} = banned ip address, {3} = remote host name, {4} = city, {5} = region, {6} = country.</value>
+    <value>Body template for sent mail. {0} = machine name, {1} = local ip address, {2} = remote ip address, {3} = remote host name, {4} = city, {5} = region, {6} = country, {7} = event type</value>
   </data>
   <data name="SmtpFrom" xml:space="preserve">
     <value>Send Email As</value>
@@ -505,7 +505,7 @@ Prefix with OS:ClassName, example: Windows:Custom,Linux:Default</value>
     <value>Email Subject Template</value>
   </data>
   <data name="SmtpSubjectTemplateTooltip" xml:space="preserve">
-    <value>Subject template for sent mail. {0} = machine name, {1} = machine ip address, {2} = banned ip address, {3} = remote host name, {4} = city, {5} = region, {6} = country.</value>
+    <value>Subject template for sent mail. {0} = machine name, {1} = local ip address, {2} = remote ip address, {3} = remote host name, {4} = city, {5} = region, {6} = country, {7} = event type</value>
   </data>
   <data name="SmtpTo" xml:space="preserve">
     <value>Send Email To</value>

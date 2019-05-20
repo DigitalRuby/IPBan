@@ -916,7 +916,7 @@ namespace DigitalRuby.IPBan
                             ProcessIPAddressEvent(evt, pendingSuccessfulLogins, Config.MinimumTimeBetweenSuccessfulLoginAttempts, "successful");
                             break;
 
-                        case IPAddressEventType.BlockedIPAddress:
+                        case IPAddressEventType.Blocked:
                             AddBannedIPAddress(evt.IPAddress, evt.Source, evt.UserName, bannedIPs, evt.Timestamp, false, evt.Count, string.Empty, transaction);
                             break;
                     }
@@ -1499,12 +1499,12 @@ namespace DigitalRuby.IPBan
         /// <summary>
         /// Blocked / banned ip address
         /// </summary>
-        BlockedIPAddress = 2,
+        Blocked = 2,
 
         /// <summary>
         /// Unblocked ip address
         /// </summary>
-        UnblockedIPAddress = 3,
+        Unblocked = 3,
 
         /// <summary>
         /// Failed login

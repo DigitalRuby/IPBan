@@ -1214,7 +1214,7 @@ namespace DigitalRuby.IPBan {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Body template for sent mail. {0} = machine name, {1} = machine ip address, {2} = banned ip address, {3} = remote host name, {4} = city, {5} = region, {6} = country..
+        ///   Looks up a localized string similar to Body template for sent mail. {0} = machine name, {1} = local ip address, {2} = remote ip address, {3} = remote host name, {4} = city, {5} = region, {6} = country, {7} = event type.
         /// </summary>
         public static string SmtpBodyTemplateTooltip {
             get {
@@ -1286,7 +1286,7 @@ namespace DigitalRuby.IPBan {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Subject template for sent mail. {0} = machine name, {1} = machine ip address, {2} = banned ip address, {3} = remote host name, {4} = city, {5} = region, {6} = country..
+        ///   Looks up a localized string similar to Subject template for sent mail. {0} = machine name, {1} = local ip address, {2} = remote ip address, {3} = remote host name, {4} = city, {5} = region, {6} = country, {7} = event type.
         /// </summary>
         public static string SmtpSubjectTemplateTooltip {
             get {
