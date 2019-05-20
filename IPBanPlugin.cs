@@ -29,7 +29,7 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
 
-namespace IPBan
+namespace DigitalRuby.IPBan
 {
     /// <summary>
     /// IPBan integration for external applications

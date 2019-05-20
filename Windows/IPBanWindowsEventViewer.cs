@@ -24,6 +24,7 @@ SOFTWARE.
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.Eventing.Reader;
 using System.Globalization;
 using System.IO;

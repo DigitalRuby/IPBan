@@ -1446,6 +1446,11 @@ namespace DigitalRuby.IPBan
         /// </summary>
         public IPBanWindowsEventViewer EventViewer { get; private set; }
 
+        /// <summary>
+        /// Log files to parse
+        /// </summary>
+        public IReadOnlyCollection<IPBanLogFileScanner> LogFilesToParse { get { return logFilesToParse; } }
+
         private static DateTime? utcNow;
         /// <summary>
         /// Allows changing the current date time to facilitate testing of behavior over elapsed times. Set to default(DateTime) to revert to DateTime.UtcNow.
