@@ -142,7 +142,6 @@ namespace DigitalRuby.IPBanTests
                 Assert.IsEmpty(cfg.BlackList);
                 Assert.IsEmpty(cfg.BlackListRegex);
                 Assert.IsFalse(cfg.ClearBannedIPAddressesOnRestart);
-                Assert.IsFalse(cfg.CreateWhitelistFirewallRule);
                 Assert.AreEqual(TimeSpan.FromSeconds(15.0), cfg.CycleTime);
                 Assert.AreEqual(TimeSpan.FromDays(1.0), cfg.ExpireTime);
                 Assert.AreEqual("https://checkip.amazonaws.com/", cfg.ExternalIPAddressUrl);

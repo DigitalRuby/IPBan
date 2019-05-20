@@ -520,11 +520,6 @@ namespace DigitalRuby.IPBan
         public string WhiteList { get { return string.Join(",", whiteList); } }
 
         /// <summary>
-        /// Whether to create a firewall rule to allow all whitelisted ip addresses access to all ports
-        /// </summary>
-        public bool CreateWhitelistFirewallRule { get { return createWhitelistFirewallRule; } }
-
-        /// <summary>
         /// White list regex
         /// </summary>
         public string WhiteListRegex { get { return (whiteListRegex == null ? string.Empty : whiteListRegex.ToString()); } }

@@ -83,8 +83,6 @@ namespace DigitalRuby.IPBan
         private readonly HashSet<IPBanLogFileScanner> logFilesToParse = new HashSet<IPBanLogFileScanner>();
         private readonly ManualResetEvent stopEvent = new ManualResetEvent(false);
 
-        private HashSet<string> ipAddressesToAllowInFirewall = new HashSet<string>();
-        private bool ipAddressesToAllowInFirewallNeedsUpdate;
         private DateTime lastConfigFileDateTime = DateTime.MinValue;
         private bool whitelistChanged;
 
@@ -719,33 +717,6 @@ namespace DigitalRuby.IPBan
                 else
                 {
                     Firewall.BlockIPAddressesDelta(null, deltas).Sync();
-                }
-            }
-
-            // update firewall if needed
-            if (ipAddressesToAllowInFirewallNeedsUpdate)
-            {
-                ipAddressesToAllowInFirewallNeedsUpdate = false;
-
-                // if the config specifies that we should create a whitelist firewall rule, do so
-                if (Config.CreateWhitelistFirewallRule)
-                {
-                    // quickly copy out data in a lock, always lock ipAddressesAndBanDate
-                    string[] ipAddresses = ipAddressesToAllowInFirewall?.ToArray();
-                    ipAddressesToAllowInFirewall = null;
-
-                    if (ipAddresses != null)
-                    {
-                        if (MultiThreaded)
-                        {
-                            TaskQueue.Add(() => Firewall.AllowIPAddresses(ipAddresses, TaskQueue.GetToken()));
-                        }
-                        else
-                        {
-                            // re-create rules for all allowed ip addresses
-                            Firewall.AllowIPAddresses(ipAddresses).Sync();
-                        }
-                    }
                 }
             }
         }
