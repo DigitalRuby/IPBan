@@ -50,56 +50,38 @@ namespace DigitalRuby.IPBan
         }
 
         /// <summary>
-        /// Parse IPV4 only
-        /// </summary>
-        /// <param name="ipString">IP string</param>
-        /// <returns>32 bit value in byte order of CPU, 0 if not an IPV4 ip string</returns>
-        public static uint ParseIPV4(string ipString)
-        {
-            int index = ipString.IndexOfAny(ipV4Delimiters);
-            if (index >= 0)
-            {
-                ipString = ipString.Substring(0, index);
-            }
-            if (IPAddress.TryParse(ipString, out IPAddress ipAddress) && ipAddress.AddressFamily == AddressFamily.InterNetwork)
-            {
-                return ipAddress.ToUInt32();
-            }
-            return 0;
-        }
-
-        /// <summary>
-        /// Parse IPV6 string
-        /// </summary>
-        /// <param name="ipString">IPV6 string</param>
-        /// <returns>128 bit value in byte order of CPU or 0 if parse fail</returns>
-        public static UInt128 ParseIPV6(string ipString)
-        {
-            if (IPAddress.TryParse(ipString, out IPAddress ip) && ip.AddressFamily == AddressFamily.InterNetworkV6)
-            {
-                return ip.ToUInt128();
-            }
-            return 0;
-        }
-
-        /// <summary>
         /// Get a firewall ip address, clean and normalize
         /// </summary>
         /// <param name="ipAddress">IP Address</param>
         /// <param name="normalizedIP">The normalized ip ready to go in the firewall or null if invalid ip address</param>
         /// <returns>True if ip address can go in the firewall, false otherwise</returns>
-        public static bool TryGetFirewallIPAddress(this string ipAddress, out string normalizedIP)
+        public static bool TryNormalizeIPAddress(this string ipAddress, out string normalizedIP)
         {
-            normalizedIP = ipAddress?.Trim();
+            normalizedIP = (ipAddress ?? string.Empty).Trim();
             if (string.IsNullOrWhiteSpace(normalizedIP) ||
+                normalizedIP == "-" ||
                 normalizedIP == "0.0.0.0" ||
                 normalizedIP == "127.0.0.1" ||
                 normalizedIP == "::0" ||
                 normalizedIP == "::1" ||
                 !IPAddressRange.TryParse(normalizedIP, out IPAddressRange range))
             {
-                normalizedIP = null;
-                return false;
+                // try parsing assuming the ip is followed by a port
+                int pos = normalizedIP.LastIndexOf(':');
+                if (pos >= 0)
+                {
+                    normalizedIP = normalizedIP.Substring(0, pos);
+                    if (!IPAddressRange.TryParse(normalizedIP, out range))
+                    {
+                        normalizedIP = null;
+                        return false;
+                    }
+                }
+                else
+                {
+                    normalizedIP = null;
+                    return false;
+                }
             }
             try
             {

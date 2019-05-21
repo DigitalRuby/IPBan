@@ -753,34 +753,35 @@ namespace DigitalRuby.IPBan
             }
         }
 
-        private void ProcessIPAddressEvent(IPAddressLogEvent info, List<IPAddressPendingEvent> pendingEvents, TimeSpan minTimeBetweenEvents, string type)
+        private void ProcessIPAddressEvent(IPAddressLogEvent evt, List<IPAddressPendingEvent> pendingEvents, TimeSpan minTimeBetweenEvents, string type)
         {
-            if (!IPBanFirewallUtility.TryGetFirewallIPAddress(info.IPAddress, out string normalizedIPAddress) || info.Count <= 0)
+            if (evt.Count <= 0)
             {
+                // callback from somewhere else external
                 return;
             }
 
-            info.Source = (info.Source ?? "?");
-            info.UserName = (info.UserName ?? string.Empty);
+            evt.Source = (evt.Source ?? "?");
+            evt.UserName = (evt.UserName ?? string.Empty);
 
             lock (pendingEvents)
             {
-                IPAddressPendingEvent existing = pendingEvents.FirstOrDefault(p => p.IPAddress == normalizedIPAddress && (p.UserName == null || p.UserName == info.UserName));
+                IPAddressPendingEvent existing = pendingEvents.FirstOrDefault(p => p.IPAddress == evt.IPAddress && (p.UserName == null || p.UserName == evt.UserName));
                 if (existing == null)
                 {
                     existing = new IPAddressPendingEvent
                     {
-                        IPAddress = normalizedIPAddress,
-                        Source = info.Source,
-                        UserName = info.UserName,
+                        IPAddress = evt.IPAddress,
+                        Source = evt.Source,
+                        UserName = evt.UserName,
                         DateTime = UtcNow,
-                        Count = info.Count
+                        Count = evt.Count
                     };
                     pendingEvents.Add(existing);
                 }
                 else
                 {
-                    existing.UserName = (existing.UserName ?? info.UserName);
+                    existing.UserName = (existing.UserName ?? evt.UserName);
 
                     // if more than n seconds has passed, increment the counter
                     // we don't want to count multiple logs that all map to the same ip address from one failed
@@ -792,7 +793,7 @@ namespace DigitalRuby.IPBan
                         existing.DateTime = UtcNow;
 
                         // increment counter
-                        existing.Count += info.Count;
+                        existing.Count += evt.Count;
                     }
                     else
                     {
@@ -906,6 +907,11 @@ namespace DigitalRuby.IPBan
             {
                 foreach (IPAddressLogEvent evt in events)
                 {
+                    if (!IPBanFirewallUtility.TryNormalizeIPAddress(evt.IPAddress, out string normalizedIPAddress))
+                    {
+                        continue;
+                    }
+                    evt.IPAddress = normalizedIPAddress;
                     switch (evt.Type)
                     {
                         case IPAddressEventType.FailedLogin:

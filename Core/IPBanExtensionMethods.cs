@@ -483,9 +483,9 @@ namespace DigitalRuby.IPBan
         /// <exception cref="InvalidOperationException">Not an ipv4 address</exception>
         public static uint ToUInt32(this IPAddress ip, bool swap = true)
         {
-            if (ip.AddressFamily != System.Net.Sockets.AddressFamily.InterNetwork)
+            if (ip == null || ip.AddressFamily != System.Net.Sockets.AddressFamily.InterNetwork)
             {
-                throw new InvalidOperationException("Not an ipv4 address");
+                throw new InvalidOperationException(ip?.ToString() + " is not an ipv4 address");
             }
 
             byte[] bytes = ip.GetAddressBytes();
@@ -501,13 +501,32 @@ namespace DigitalRuby.IPBan
         /// </summary>
         /// <param name="ip">IPV6 address</param>
         /// <returns>UInt128</returns>
-        /// <exception cref="ArgumentOutOfRangeException">Not an ipv6 address</exception>
+        /// <exception cref="InvalidOperationException">Not an ipv6 address</exception>
         public static UInt128 ToUInt128(this IPAddress ip)
         {
+            if (ip == null || ip.AddressFamily != System.Net.Sockets.AddressFamily.InterNetworkV6)
+            {
+                throw new InvalidOperationException(ip?.ToString() + " is not an ipv6 address");
+            }
+
             byte[] bytes = ip.GetAddressBytes().Reverse().ToArray();
             ulong l1 = BitConverter.ToUInt64(bytes, 0);
             ulong l2 = BitConverter.ToUInt64(bytes, 8);
             return new UInt128(l2, l1);
+        }
+
+        /// <summary>
+        /// Get an ip address from a string.
+        /// </summary>
+        /// <param name="value">String</param>
+        /// <returns>IPAddress or null if failure</returns>
+        public static IPAddress ToIPAddress(this string value)
+        {
+            if (IPAddress.TryParse(value, out IPAddress ip))
+            {
+                return ip;
+            }
+            return null;
         }
 
         /// <summary>

@@ -78,7 +78,7 @@ namespace DigitalRuby.IPBan
             StringBuilder b = new StringBuilder(count * 16);
             foreach (string ipAddress in ipAddresses.Skip(index).Take(count))
             {
-                if (ipAddress.TryGetFirewallIPAddress(out string firewallIPAddress))
+                if (ipAddress.TryNormalizeIPAddress(out string firewallIPAddress))
                 {
                     b.Append(firewallIPAddress);
                     b.Append(',');

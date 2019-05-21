@@ -101,7 +101,7 @@ namespace DigitalRuby.IPBanTests
             }
             foreach (string origIP in toBlock)
             {
-                if (IPBanFirewallUtility.TryGetFirewallIPAddress(origIP, out string normalizedIP))
+                if (IPBanFirewallUtility.TryNormalizeIPAddress(origIP, out string normalizedIP))
                 {
                     Assert.IsTrue(bannedIP.Contains(normalizedIP));
                 }
@@ -113,16 +113,23 @@ namespace DigitalRuby.IPBanTests
         }
 
         [Test]
-        public void TestIPV4Conversion()
+        public void TestIPConversion()
         {
-            uint value = IPBanFirewallUtility.ParseIPV4("192.168.1.123");
-            Assert.AreEqual(0xc0a8017b, value, "ParseIPV4 fail");
+            uint value = "192.168.1.123".ToIPAddress().ToUInt32();
+            Assert.AreEqual(0xc0a8017b, value);
             string ip = value.ToIPAddress().ToString();
-            Assert.AreEqual("192.168.1.123", ip, "IPV4ToString fail");
-            value = IPBanFirewallUtility.ParseIPV4("192.168.0.0/24");
-            Assert.AreEqual(0xc0a80000, value, "ParseIPV4 fail");
-            ip = value.ToIPAddress().ToString();
-            Assert.AreEqual("192.168.0.0", ip, "IPV4ToString fail");
+            Assert.AreEqual("192.168.1.123", ip);
+            Assert.IsNull("a".ToIPAddress());
+            Assert.IsNull("".ToIPAddress());
+            Assert.IsNull(((string)null).ToIPAddress());
+            Assert.Throws(typeof(InvalidOperationException), () =>
+            {
+                "192.168.1.123".ToIPAddress().ToUInt128();
+            });
+            Assert.Throws(typeof(InvalidOperationException), () =>
+            {
+                "fe80::c872:be03:5c94:4af2".ToIPAddress().ToUInt32();
+            });
         }
 
         [Test]
@@ -246,6 +253,16 @@ namespace DigitalRuby.IPBanTests
             Array.Sort(sentIP);
             Assert.AreEqual(sentIP, firewallIP);
             Assert.IsTrue(firewall.IsIPAddressBlocked("91.91.91.91"), "Failed to block overflow ip 91.91.91.91");
+        }
+
+        [Test]
+        public void TestParseIP()
+        {
+            Assert.IsTrue(IPBanFirewallUtility.TryNormalizeIPAddress("1.1.1.1", out _));
+            Assert.IsTrue(IPBanFirewallUtility.TryNormalizeIPAddress("1.1.1.1:8080", out _));
+            Assert.IsTrue(IPBanFirewallUtility.TryNormalizeIPAddress("1.1.1.1/24", out _)); // fe80::c872:be03:5c94:4af2%8
+            Assert.IsTrue(IPBanFirewallUtility.TryNormalizeIPAddress("fe80::c872:be03:5c94:4af2%8", out _));
+            Assert.IsFalse(IPBanFirewallUtility.TryNormalizeIPAddress("a.1.1.1", out _));
         }
     }
 }
