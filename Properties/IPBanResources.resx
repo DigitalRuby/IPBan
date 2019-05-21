@@ -330,7 +330,7 @@ Prefix with OS:ClassName, example: Windows:Custom,Linux:Default</value>
     <value>IP Whitelist Regex</value>
   </data>
   <data name="IPWhitelistRegexTooltip" xml:space="preserve">
-    <value>Regular expression for more advanced whitelisting.Shortcut: use* to allow any piece of an ip (i.e. 128.128.128.*). Sample regex that whitelists a few ips: ^(128\.128\.128\.*)|(99\.99\.99\.[0-9])$ More info about regex: http://www.regular-expressions.info/</value>
+    <value>Regular expression for more advanced whitelisting. Shortcut: use* to allow any piece of an ip (i.e. 128.128.128.*). Sample regex that whitelists a few ips: ^(128\.128\.128\.*)|(99\.99\.99\.[0-9])$ More info about regex: http://www.regular-expressions.info/</value>
   </data>
   <data name="IPWhitelistTooltip" xml:space="preserve">
     <value>IP addresses to never ban, comma separated</value>
@@ -370,11 +370,11 @@ Prefix with OS:ClassName, example: Windows:Custom,Linux:Default</value>
   <data name="MinimumTrustLevelTooltip" xml:space="preserve">
     <value>Minimum trust level for recent banned ip sharing (0-10) where 0 is trust all submissions</value>
   </data>
-  <data name="NaughtyListInterval" xml:space="preserve">
-    <value>Naughty List Interval</value>
+  <data name="NaughtyListCount" xml:space="preserve">
+    <value>Naughty List Count</value>
   </data>
-  <data name="NaughtyListIntervalTooltip" xml:space="preserve">
-    <value>Naughty list interval in x,y format. X = 24 hour of day (0 to 23). Y = max count, i.e. 4,10000.</value>
+  <data name="NaughtyListCountTooltip" xml:space="preserve">
+    <value>Naughty list max count, set to 0 to disable</value>
   </data>
   <data name="Notes" xml:space="preserve">
     <value>Notes</value>
@@ -437,7 +437,7 @@ Prefix with OS:ClassName, example: Windows:Custom,Linux:Default</value>
     <value>Recent List Count</value>
   </data>
   <data name="RecentListCountTooltip" xml:space="preserve">
-    <value>Max count of the recent global blacklist</value>
+    <value>Recent list max count, set to 0 to disable</value>
   </data>
   <data name="RecentSuccessLogins" xml:space="preserve">
     <value>Recent Successful Logins</value>

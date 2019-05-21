@@ -710,7 +710,7 @@ namespace DigitalRuby.IPBan {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Regular expression for more advanced whitelisting.Shortcut: use* to allow any piece of an ip (i.e. 128.128.128.*). Sample regex that whitelists a few ips: ^(128\.128\.128\.*)|(99\.99\.99\.[0-9])$ More info about regex: http://www.regular-expressions.info/.
+        ///   Looks up a localized string similar to Regular expression for more advanced whitelisting. Shortcut: use* to allow any piece of an ip (i.e. 128.128.128.*). Sample regex that whitelists a few ips: ^(128\.128\.128\.*)|(99\.99\.99\.[0-9])$ More info about regex: http://www.regular-expressions.info/.
         /// </summary>
         public static string IPWhitelistRegexTooltip {
             get {
@@ -854,20 +854,20 @@ namespace DigitalRuby.IPBan {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Naughty List Interval.
+        ///   Looks up a localized string similar to Naughty List Count.
         /// </summary>
-        public static string NaughtyListInterval {
+        public static string NaughtyListCount {
             get {
-                return ResourceManager.GetString("NaughtyListInterval", resourceCulture);
+                return ResourceManager.GetString("NaughtyListCount", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Naughty list interval in x,y format. X = 24 hour of day (0 to 23). Y = max count, i.e. 4,10000..
+        ///   Looks up a localized string similar to Naughty list max count, set to 0 to disable.
         /// </summary>
-        public static string NaughtyListIntervalTooltip {
+        public static string NaughtyListCountTooltip {
             get {
-                return ResourceManager.GetString("NaughtyListIntervalTooltip", resourceCulture);
+                return ResourceManager.GetString("NaughtyListCountTooltip", resourceCulture);
             }
         }
         
@@ -1088,7 +1088,7 @@ namespace DigitalRuby.IPBan {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Max count of the recent global blacklist.
+        ///   Looks up a localized string similar to Recent list max count, set to 0 to disable.
         /// </summary>
         public static string RecentListCountTooltip {
             get {
