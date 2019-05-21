@@ -119,6 +119,10 @@ namespace DigitalRuby.IPBanTests
             Assert.AreEqual(0xc0a8017b, value);
             string ip = value.ToIPAddress().ToString();
             Assert.AreEqual("192.168.1.123", ip);
+            UInt128 value2 = "fe80::c872:be03:5c94:4af2".ToIPAddress().ToUInt128();
+            Assert.AreEqual((UInt128)System.Numerics.BigInteger.Parse("338288524927261089668462712717925698290"), value2);
+            string ip2 = value2.ToIPAddress().ToString();
+            Assert.AreEqual("fe80::c872:be03:5c94:4af2", ip2);
             Assert.IsNull("a".ToIPAddress());
             Assert.IsNull("".ToIPAddress());
             Assert.IsNull(((string)null).ToIPAddress());
