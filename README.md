@@ -23,7 +23,7 @@ Please visit <a href='https://ipban.com'>https://ipban.com</a> for additional up
 - Unban ip addresses easily by placing an unban.txt file into the service folder with each ip address on a line to unban.
 - See the app.config file for a complete list of options, each property is well documented. There are lots of them.
 - Works with ipv4 and ipv6 on all platforms.
-- 
+
 **Download**
 
 - Official download link is https://www.digitalruby.com/download/ipban-software-download/.
