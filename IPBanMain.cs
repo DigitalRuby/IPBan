@@ -35,30 +35,30 @@ namespace DigitalRuby.IPBan
     {
         public static int Main(string[] args)
         {
-            IPBanExtensionMethods.RequireAdministrator();
+            return MainService<IPBanService>(args);
+        }
 
-            if (args.Length != 0 && args[0].Equals("info", StringComparison.OrdinalIgnoreCase))
+        public static int MainService<T>(string[] args) where T : IPBanService
+        {
+            IPBanService service = IPBanService.CreateService<T>();
+            return MainService(args, (_args) =>
             {
-                IPBanLog.Warn("System info: {0}", IPBanOS.OSString());
-            }
-            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                service.Start();
+            }, () =>
             {
-                IPBanWindowsApp.WindowsMain(args);
-            }
-            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                service.Stop();
+            }, (_timeout) =>
             {
-                IPBanLinuxApp.LinuxMain(args);
-            }
-            else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                return service.Wait(_timeout);
+            });
+        }
+
+        public static int MainService(string[] args, Action<string[]> start, Action stop, Func<int, bool> stopped, bool requireAdministrator = true)
+        {
+            using (IPBanServiceRunner runner = new IPBanServiceRunner(args, start, stop, stopped))
             {
-                throw new PlatformNotSupportedException("Mac OSX is not yet supported, but may be in the future.");
-                //IPBanMacApp.MacMain(args);
+                return runner.Run(requireAdministrator);
             }
-            else
-            {
-                throw new PlatformNotSupportedException();
-            }
-            return 0;
         }
     }
 }

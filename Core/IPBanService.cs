@@ -855,12 +855,6 @@ namespace DigitalRuby.IPBan
             OSName = IPBanOS.Name + (string.IsNullOrWhiteSpace(IPBanOS.FriendlyName) ? string.Empty : " (" + IPBanOS.FriendlyName + ")");
             OSVersion = IPBanOS.Version;
             ipDB = new IPBanDB();
-            Console.CancelKeyPress += Console_CancelKeyPress;
-        }
-
-        private void Console_CancelKeyPress(object sender, ConsoleCancelEventArgs e)
-        {
-            Stop();
         }
 
         /// <summary>
@@ -1076,7 +1070,6 @@ namespace DigitalRuby.IPBan
             IsRunning = false;
             try
             {
-                Console.CancelKeyPress -= Console_CancelKeyPress;
                 IPBanLog.Warn("Stopping task queue...");
                 TaskQueue.Dispose(true);
                 GetUrl(UrlType.Stop).Sync();
@@ -1108,8 +1101,7 @@ namespace DigitalRuby.IPBan
         /// <summary>
         /// Initialize and start the service
         /// </summary>
-        /// <param name="wait">True to wait for service to stop, false otherwise</param>
-        public void Start(bool wait = false)
+        public void Start()
         {
             if (IsRunning)
             {
@@ -1138,16 +1130,6 @@ namespace DigitalRuby.IPBan
             }
             IPBanLog.Warn("IPBan {0} service started and initialized. Operating System: {1}", IPBanOS.Name, IPBanOS.OSString());
             IPBanLog.WriteLogLevels();
-
-            if (wait)
-            {
-                Console.WriteLine("Press ENTER or Ctrl+C to quit");
-                while ((Console.IsInputRedirected || !Console.KeyAvailable || Console.ReadKey().Key != ConsoleKey.Enter) && !stopEvent.WaitOne(100))
-                {
-                    // poll for enter key 10x a second, or if service stopped elsewhere, exit loop
-                }
-                Dispose();
-            }
         }
 
         /// <summary>
@@ -1161,9 +1143,11 @@ namespace DigitalRuby.IPBan
         /// <summary>
         /// Wait for service to stop
         /// </summary>
-        public void Wait()
+        /// <param name="timeoutMilliseconds">Timeout in milliseconds</param>
+        /// <returns>True if service stopped, false otherwise</returns>
+        public bool Wait(int timeoutMilliseconds)
         {
-            stopEvent.WaitOne();
+            return stopEvent.WaitOne(timeoutMilliseconds);
         }
 
         /// <summary>

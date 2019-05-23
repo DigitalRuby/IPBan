@@ -248,7 +248,7 @@ namespace DigitalRuby.IPBan
             }
             ExecuteNonQuery("PRAGMA auto_vacuum = INCREMENTAL;");
             ExecuteNonQuery("PRAGMA journal_mode = WAL;");
-            ExecuteNonQuery("CREATE TABLE IF NOT EXISTS IPAddresses (IPAddress VARBINARY(16) NOT NULL, IPAddressText VARCHAR(64), LastFailedLogin BIGINT NOT NULL, FailedLoginCount BIGINT NOT NULL, BanDate BIGINT, PRIMARY KEY (IPAddress))");
+            ExecuteNonQuery("CREATE TABLE IF NOT EXISTS IPAddresses (IPAddress VARBINARY(16) NOT NULL, IPAddressText VARCHAR(64) NOT NULL, LastFailedLogin BIGINT NOT NULL, FailedLoginCount BIGINT NOT NULL, BanDate BIGINT, PRIMARY KEY (IPAddress))");
             try
             {
                 ExecuteNonQuery("ALTER TABLE IPAddresses ADD COLUMN State INT NOT NULL DEFAULT 0");
