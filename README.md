@@ -48,6 +48,7 @@ auditpol /set /category:"Account Logon" /success:enable /failure:enable
 ```
 sc create IPBAN type= own start= auto binPath= c:\path\to\service\DigitalRuby.IPBan.exe DisplayName= IPBAN
 sc description IPBAN "Automatically builds firewall rules for abusive login attempts: https://github.com/DigitalRuby/IPBan"
+sc start IPBAN
 ```
 The service needs file system, event viewer and firewall access, so please run as SYSTEM to ensure permissions.  Running "sc" as described above in an elevated command prompt will install the service using the local SYSTEM account.
 - To run as a console app, simply run DigitalRuby.IPBan.exe and watch console output.
