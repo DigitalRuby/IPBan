@@ -617,7 +617,7 @@ namespace DigitalRuby.IPBan
         public static extern uint getuid();
 
         /// <summary>
-        /// Asks for administrator privileges upgrade if the platform supports it, otherwise does nothing
+        /// Throw an exception if the process is not running as administrator (Windows) or root (Linux).
         /// </summary>
         /// <exception cref="InvalidOperationException">Application is not run as administrator</exception>
         public static void RequireAdministrator()
@@ -635,7 +635,7 @@ namespace DigitalRuby.IPBan
             }
             else if (getuid() != 0)
             {
-                throw new InvalidOperationException("Application must be run as administrator");
+                throw new InvalidOperationException("Application must be run as root");
             }
         }
 
