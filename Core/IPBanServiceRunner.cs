@@ -79,23 +79,39 @@ namespace DigitalRuby.IPBan
                 }
             }
 
-            public IPBanWindowsServiceRunner(IPBanServiceRunner runner)
+            public IPBanWindowsServiceRunner(IPBanServiceRunner runner, string[] args)
             {
                 runner.ThrowIfNull();
-                this.runner = runner;
-                CanShutdown = false;
-                CanStop = CanHandleSessionChangeEvent = CanHandlePowerEvent = true;
-                var acceptedCommandsField = typeof(ServiceBase).GetField("acceptedCommands", BindingFlags.Instance | BindingFlags.NonPublic);
-                if (acceptedCommandsField != null)
+                try
                 {
-                    int acceptedCommands = (int)acceptedCommandsField.GetValue(this);
-                    acceptedCommands |= 0x00000100; // SERVICE_ACCEPT_PRESHUTDOWN;
-                    acceptedCommandsField.SetValue(this, acceptedCommands);
+                    this.runner = runner;
+                    CanShutdown = false;
+                    CanStop = CanHandleSessionChangeEvent = CanHandlePowerEvent = true;
+                    var acceptedCommandsField = typeof(ServiceBase).GetField("acceptedCommands", BindingFlags.Instance | BindingFlags.NonPublic);
+                    if (acceptedCommandsField != null)
+                    {
+                        int acceptedCommands = (int)acceptedCommandsField.GetValue(this);
+                        acceptedCommands |= 0x00000100; // SERVICE_ACCEPT_PRESHUTDOWN;
+                        acceptedCommandsField.SetValue(this, acceptedCommands);
+                    }
+                    Directory.SetCurrentDirectory(AppDomain.CurrentDomain.BaseDirectory);
+                    System.ServiceProcess.ServiceBase[] ServicesToRun = new System.ServiceProcess.ServiceBase[] { this };
+                    System.ServiceProcess.ServiceBase.Run(ServicesToRun);
+                    IPBanLog.Warn("Running as a Windows service");
                 }
-                Directory.SetCurrentDirectory(AppDomain.CurrentDomain.BaseDirectory);
-                System.ServiceProcess.ServiceBase[] ServicesToRun = new System.ServiceProcess.ServiceBase[] { this };
-                IPBanLog.Warn("Running as a Windows service");
-                System.ServiceProcess.ServiceBase.Run(ServicesToRun);
+                catch
+                {
+                    // if anything fails, fallback to running as a console app
+                    try
+                    {
+                        Dispose();
+                    }
+                    catch
+                    {
+                    }
+                    IPBanLog.Warn("Failed to run as Windows service, fallback to running as console app");
+                    runner.RunConsoleService(args);
+                }
             }
         }
 
@@ -109,7 +125,7 @@ namespace DigitalRuby.IPBan
             if (Console.IsInputRedirected)
             {
                 // create and start using Windows service APIs
-                windowsService = new IPBanWindowsServiceRunner(this);
+                windowsService = new IPBanWindowsServiceRunner(this, args);
             }
             else
             {
