@@ -29,6 +29,7 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.ServiceProcess;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace DigitalRuby.IPBan
 {
@@ -84,6 +85,7 @@ namespace DigitalRuby.IPBan
                 runner.ThrowIfNull();
                 try
                 {
+                    IPBanLog.Warn("Running as a Windows service");
                     this.runner = runner;
                     CanShutdown = false;
                     CanStop = CanHandleSessionChangeEvent = CanHandlePowerEvent = true;
@@ -97,7 +99,6 @@ namespace DigitalRuby.IPBan
                     Directory.SetCurrentDirectory(AppDomain.CurrentDomain.BaseDirectory);
                     System.ServiceProcess.ServiceBase[] ServicesToRun = new System.ServiceProcess.ServiceBase[] { this };
                     System.ServiceProcess.ServiceBase.Run(ServicesToRun);
-                    IPBanLog.Warn("Running as a Windows service");
                 }
                 catch
                 {
@@ -179,7 +180,7 @@ namespace DigitalRuby.IPBan
         /// </summary>
         /// <param name="requireAdministrator">True to require administrator, false otherwise</param>
         /// <returns>Exit code</returns>
-        public int Run(bool requireAdministrator = true)
+        public Task<int> RunAsync(bool requireAdministrator = true)
         {
             if (requireAdministrator)
             {
@@ -206,7 +207,7 @@ namespace DigitalRuby.IPBan
             {
                 throw new PlatformNotSupportedException();
             }
-            return 0;
+            return Task.FromResult(0);
         }
 
         /// <summary>

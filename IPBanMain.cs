@@ -28,17 +28,18 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace DigitalRuby.IPBan
 {
     public static class IPBanMain
     {
-        public static int Main(string[] args)
+        public static async Task<int> Main(string[] args)
         {
-            return MainService<IPBanService>(args);
+            return await MainService<IPBanService>(args);
         }
 
-        public static int MainService<T>(string[] args) where T : IPBanService
+        public static Task<int> MainService<T>(string[] args) where T : IPBanService
         {
             IPBanService service = IPBanService.CreateService<T>();
             return MainService(args, (_args) =>
@@ -53,11 +54,11 @@ namespace DigitalRuby.IPBan
             });
         }
 
-        public static int MainService(string[] args, Action<string[]> start, Action stop, Func<int, bool> stopped, bool requireAdministrator = true)
+        public static Task<int> MainService(string[] args, Action<string[]> start, Action stop, Func<int, bool> stopped, bool requireAdministrator = true)
         {
             using (IPBanServiceRunner runner = new IPBanServiceRunner(args, start, stop, stopped))
             {
-                return runner.Run(requireAdministrator);
+                return runner.RunAsync(requireAdministrator);
             }
         }
     }
