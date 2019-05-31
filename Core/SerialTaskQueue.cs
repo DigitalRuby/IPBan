@@ -203,7 +203,7 @@ namespace DigitalRuby.IPBan
         /// <returns>True if added, false if the queue is or has been disposed</returns>
         public bool Add(Func<Task> action, string name = "")
         {
-            if (disposed || name == null)
+            if (disposed || name == null || action == null)
             {
                 return false;
             }
@@ -219,7 +219,17 @@ namespace DigitalRuby.IPBan
             {
                 return false;
             }
-            group.Add(action);
+            group.Add(async () =>
+            {
+                try
+                {
+                    await action();
+                }
+                catch (Exception ex)
+                {
+                    IPBanLog.Error(ex);
+                }
+            });
             return true;
         }
 
