@@ -1279,11 +1279,23 @@ namespace DigitalRuby.IPBan
                 .Union(Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory, "*.tbl"))
                 .Union(Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory, "*.set6"))
                 .Union(Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory, "*.tbl6"))
-                .Union(Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory, "*.sqlite"))
+                .Union(Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory, "*.sqlite*"))
                 .Union(Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory, "*journal*")))
             {
-                File.Delete(file);
+                for (int i = 0; i < 10; i++)
+                {
+                    try
+                    {
+                        File.Delete(file);
+                        break;
+                    }
+                    catch
+                    {
+                        Thread.Sleep(1000);
+                    }
+                }
             }
+
             if (string.IsNullOrWhiteSpace(directory))
             {
                 Assembly a = IPBanService.GetIPBanAssembly();
