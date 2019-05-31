@@ -65,7 +65,6 @@ namespace DigitalRuby.IPBan
         private readonly HashSet<string> whiteList = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         private readonly bool clearBannedIPAddressesOnRestart;
         private readonly HashSet<string> userNameWhitelist = new HashSet<string>(StringComparer.Ordinal);
-        private readonly bool createWhitelistFirewallRule;
         private readonly int userNameWhitelistMaximumEditDistance = 2;
         private readonly int failedLoginAttemptsBeforeBanUserNameWhitelist = 20;
         private readonly Dictionary<string, string> osAndFirewallType = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
@@ -97,7 +96,6 @@ namespace DigitalRuby.IPBan
             GetConfig<TimeSpan>("CycleTime", ref cycleTime);
             GetConfig<TimeSpan>("MinimumTimeBetweenFailedLoginAttempts", ref minimumTimeBetweenFailedLoginAttempts);
             GetConfig<string>("FirewallRulePrefix", ref firewallRulePrefix);
-            GetConfig<bool>("CreateWhitelistFirewallRule", ref createWhitelistFirewallRule);
 
             string whiteListString = GetConfig<string>("Whitelist", string.Empty);
             string whiteListRegexString = GetConfig<string>("WhitelistRegex", string.Empty);
