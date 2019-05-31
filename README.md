@@ -26,7 +26,8 @@ Please visit <a href='https://ipban.com'>https://ipban.com</a> for additional up
 
 **Download**
 
-- Official download link is https://www.digitalruby.com/download/ipban-software-download/.
+- Official download link is: https://github.com/DigitalRuby/IPBan/releases
+- Legacy download link: https://www.digitalruby.com/download/ipban-software-download/.
 
 **Windows**
 - For Windows, IPBan is supported on Windows Server 2008 or equivalent or newer (Server 2012+ recommended). Windows XP and Server 2003 are NOT supported.
