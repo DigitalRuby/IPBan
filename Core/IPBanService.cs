@@ -714,6 +714,7 @@ namespace DigitalRuby.IPBan
                 firewallNeedsBlockedIPAddressesUpdate = false;
                 List<IPBanFirewallIPAddressDelta> deltas = ipDB.EnumerateIPAddressesDelta(true).Where(i => !i.Added || !IsWhitelisted(i.IPAddress)).ToList();
                 IPBanLog.Warn("Updating firewall with {0} entries...", deltas.Count);
+                IPBanLog.Debug("Firewall entries updated: {0}", string.Join(',', deltas.Select(d => d.IPAddress)));
                 if (MultiThreaded)
                 {
                     TaskQueue.Add(() => Firewall.BlockIPAddressesDelta(null, deltas, null, TaskQueue.GetToken()));
