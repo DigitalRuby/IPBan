@@ -27,7 +27,7 @@ namespace DigitalRuby.IPBanTests
             f.BlockIPAddresses("TestRule", new IPAddressRange[] { range }, new PortRange[0]);
             string[] banned = f.EnumerateBannedIPAddresses().ToArray();
             IPAddressRange[] banned2 = f.EnumerateIPAddresses("TestRule").ToArray();
-
+            Assert.AreEqual(0, f.GetRuleNames("CB").Count());
             Assert.IsTrue(f.IsIPAddressAllowed(allowIP));
             Assert.IsFalse(f.IsIPAddressBlocked(allowIP));
             Assert.IsFalse(f.IsIPAddressBlocked(otherIP));

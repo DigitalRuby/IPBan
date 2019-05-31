@@ -145,10 +145,18 @@ namespace DigitalRuby.IPBan
             }
         }
 
-        public string GetQueryString(int id = 1)
+        public void AppendQueryString(StringBuilder builder, int id = 1)
         {
             ulong keywordsDecimal = ulong.Parse(Keywords.Substring(2), NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture);
-            return "<Query Id='" + id.ToString(CultureInfo.InvariantCulture) + "' Path='" + Path + "'><Select Path='" + Path + "'>*[System[(band(Keywords," + keywordsDecimal.ToString() + "))]]</Select></Query>";
+            builder.Append("<Query Id='");
+            builder.Append(id.ToStringInvariant());
+            builder.Append("' Path='");
+            builder.Append(Path);
+            builder.Append("'><Select Path='");
+            builder.Append(Path);
+            builder.Append("'>*[System[(band(Keywords,");
+            builder.Append(keywordsDecimal.ToStringInvariant());
+            builder.Append("))]]</Select></Query>");
         }
 
         public void SetExpressionsFromExpressionsText()

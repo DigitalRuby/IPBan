@@ -1297,7 +1297,6 @@ namespace DigitalRuby.IPBan
             string configFilePath = Path.Combine(directory, configFileName);
             string configFileText = File.ReadAllText(configFilePath);
             configFilePath += ".tmp";
-            configFileText = configFileText.Replace("<add key=\"UseDefaultBannedIPAddressHandler\" value=\"true\" />", "<add key=\"UseDefaultBannedIPAddressHandler\" value=\"false\" />");
             if (configFileModifier != null)
             {
                 configFileText = configFileModifier(configFileText);

@@ -256,7 +256,7 @@ namespace DigitalRuby.IPBan
         private readonly Dictionary<string, MemoryFirewallRule> blockRules = new Dictionary<string, MemoryFirewallRule>();
         private readonly MemoryFirewallRule allowRule = new MemoryFirewallRule();
 
-        public string RulePrefix { get; set; }
+        public string RulePrefix { get; set; } = "IPBan_";
 
         private string ScrubRuleNamePrefix(string ruleNamePrefix)
         {
@@ -390,8 +390,8 @@ namespace DigitalRuby.IPBan
                 {
                     yield return key;
                 }
-                if (prefix.StartsWith(RulePrefix, StringComparison.OrdinalIgnoreCase) ||
-                    prefix.StartsWith(RulePrefix + "Allow", StringComparison.OrdinalIgnoreCase))
+                if (RulePrefix.StartsWith(prefix, StringComparison.OrdinalIgnoreCase) ||
+                    RulePrefix.StartsWith(prefix + "Allow", StringComparison.OrdinalIgnoreCase))
                 {
                     yield return RulePrefix + "Allow";
                 }

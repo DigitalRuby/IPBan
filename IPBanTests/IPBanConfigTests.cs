@@ -152,7 +152,7 @@ namespace DigitalRuby.IPBanTests
                 Assert.AreEqual("IPBan_", cfg.FirewallRulePrefix);
                 Assert.AreEqual(TimeSpan.FromSeconds(1.0), cfg.MinimumTimeBetweenFailedLoginAttempts);
                 Assert.IsEmpty(cfg.ProcessToRunOnBan);
-                Assert.IsFalse(cfg.UseDefaultBannedIPAddressHandler); // the create and start test service forces this false, it is true otherwise in production by default
+                Assert.IsTrue(cfg.UseDefaultBannedIPAddressHandler);
                 Assert.IsEmpty(cfg.UserNameWhitelist);
                 Assert.IsEmpty(cfg.WhiteList);
                 Assert.IsEmpty(cfg.WhiteListRegex);

@@ -28,6 +28,7 @@ using System.Diagnostics;
 using System.Diagnostics.Eventing.Reader;
 using System.Globalization;
 using System.IO;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Xml;
@@ -228,8 +229,8 @@ namespace DigitalRuby.IPBan
                 return null;
             }
 
+            StringBuilder queryString = new StringBuilder("<QueryList>");
             int id = 0;
-            string queryString = "<QueryList>";
             HashSet<string> logNames = new HashSet<string>(System.Diagnostics.Eventing.Reader.EventLogSession.GlobalSession.GetLogNames());
             foreach (EventViewerExpressionGroup group in service.Config.WindowsEventViewerExpressionsToBlock.Groups)
             {
@@ -241,12 +242,12 @@ namespace DigitalRuby.IPBan
                 }
                 else
                 {
-                    queryString += group.GetQueryString(++id);
+                    group.AppendQueryString(queryString, ++id);
                 }
             }
-            queryString += "</QueryList>";
+            queryString.Append("</QueryList>");
 
-            return queryString;
+            return queryString.Length < 32 ? null : queryString.ToString();
         }
 
         private void SetupEventLogWatcher()
@@ -255,7 +256,7 @@ namespace DigitalRuby.IPBan
             {
                 List<string> ignored = new List<string>();
                 string queryString = GetEventLogQueryString(ignored);
-                if (queryString != previousQueryString)
+                if (queryString != null && queryString != previousQueryString)
                 {
                     IPBanLog.Warn("Event viewer query string: {0}", queryString);
                     foreach (string path in ignored)
