@@ -166,7 +166,7 @@ namespace DigitalRuby.IPBan
         /// <param name="stopped">Func to return bool if internal service has been stopped, can be null. Parameter is timeout. Should return true if stopped, false if not.</param>
         public IPBanServiceRunner(string[] args, Action<string[]> start, Action stop, Func<int, bool> stopped)
         {
-            this.args = args;
+            this.args = args ?? new string[0];
             start.ThrowIfNull();
             stop.ThrowIfNull();
             this.start = start;
