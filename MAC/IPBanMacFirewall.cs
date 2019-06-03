@@ -89,7 +89,7 @@ namespace DigitalRuby.IPBan
             throw new NotImplementedException();
         }
 
-        public bool IsIPAddressBlocked(string ipAddress, int port = -1)
+        public bool IsIPAddressBlocked(string ipAddress, out string ruleName, int port = -1)
         {
             throw new NotImplementedException();
         }

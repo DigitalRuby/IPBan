@@ -406,8 +406,10 @@ namespace DigitalRuby.IPBan
             }
         }
 
-        public bool IsIPAddressBlocked(string ipAddress, int port = -1)
+        public bool IsIPAddressBlocked(string ipAddress, out string ruleName, int port = -1)
         {
+            ruleName = null;
+
             if (!IPAddress.TryParse(ipAddress, out IPAddress ipAddressObj))
             {
                 return false;
@@ -422,17 +424,19 @@ namespace DigitalRuby.IPBan
                     {
                         return false;
                     }
-                    foreach (MemoryFirewallRule rule in blockRules.Values)
+                    foreach (KeyValuePair<string, MemoryFirewallRule> rule in blockRules)
                     {
-                        if (rule.Contains(ipv4))
+                        if (rule.Value.Contains(ipv4))
                         {
+                            ruleName = rule.Key;
                             return true;
                         }
                     }
-                    foreach (MemoryFirewallRuleRanges rule in blockRulesRanges.Values)
+                    foreach (KeyValuePair<string, MemoryFirewallRuleRanges> rule in blockRulesRanges)
                     {
-                        if (rule.Contains(ipv4, port))
+                        if (rule.Value.Contains(ipv4, port))
                         {
+                            ruleName = rule.Key;
                             return true;
                         }
                     }
@@ -444,17 +448,19 @@ namespace DigitalRuby.IPBan
                     {
                         return false;
                     }
-                    foreach (MemoryFirewallRule rule in blockRules.Values)
+                    foreach(KeyValuePair<string, MemoryFirewallRule> rule in blockRules)
                     {
-                        if (rule.Contains(ipv6))
+                        if (rule.Value.Contains(ipv6))
                         {
+                            ruleName = rule.Key;
                             return true;
                         }
                     }
-                    foreach (MemoryFirewallRuleRanges rule in blockRulesRanges.Values)
+                    foreach (KeyValuePair<string, MemoryFirewallRuleRanges> rule in blockRulesRanges)
                     {
-                        if (rule.Contains(ipv6, port))
+                        if (rule.Value.Contains(ipv6, port))
                         {
+                            ruleName = rule.Key;
                             return true;
                         }
                     }

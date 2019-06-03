@@ -570,18 +570,20 @@ recreateRule:
             }
         }
 
-        public bool IsIPAddressBlocked(string ipAddress, int port = -1)
+        public bool IsIPAddressBlocked(string ipAddress, out string ruleName, int port = -1)
         {
+            ruleName = null;
+
             try
             {
                 lock (policy)
                 {
                     for (int i = 0; ; i += MaxIpAddressesPerRule)
                     {
-                        string ruleName = BlockRulePrefix + i.ToString(CultureInfo.InvariantCulture);
+                        string firewallRuleName = BlockRulePrefix + i.ToString(CultureInfo.InvariantCulture);
                         try
                         {
-                            INetFwRule rule = policy.Rules.Item(ruleName);
+                            INetFwRule rule = policy.Rules.Item(firewallRuleName);
                             if (rule == null)
                             {
                                 // no more rules to check
@@ -592,6 +594,7 @@ recreateRule:
                                 HashSet<string> set = new HashSet<string>(rule.RemoteAddresses.Split(',').Select(i2 => IPAddressRange.Parse(i2).Begin.ToString()));
                                 if (set.Contains(ipAddress))
                                 {
+                                    ruleName = firewallRuleName;
                                     return true;
                                 }
                             }

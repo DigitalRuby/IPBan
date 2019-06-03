@@ -71,16 +71,16 @@ namespace DigitalRuby.IPBanTests
 
         private void AssertFailedLogins()
         {
-            Assert.IsTrue(service.Firewall.IsIPAddressBlocked(ip1));
-            Assert.IsTrue(service.Firewall.IsIPAddressBlocked(ip2));
+            Assert.IsTrue(service.Firewall.IsIPAddressBlocked(ip1, out _));
+            Assert.IsTrue(service.Firewall.IsIPAddressBlocked(ip2, out _));
             Assert.AreEqual(info1.Count, service.DB.GetIPAddress(ip1).FailedLoginCount);
             Assert.AreEqual(info2.Count, service.DB.GetIPAddress(ip2).FailedLoginCount);
         }
 
         private void AssertNoFailedLogins()
         {
-            Assert.IsFalse(service.Firewall.IsIPAddressBlocked(ip1));
-            Assert.IsFalse(service.Firewall.IsIPAddressBlocked(ip2));
+            Assert.IsFalse(service.Firewall.IsIPAddressBlocked(ip1, out _));
+            Assert.IsFalse(service.Firewall.IsIPAddressBlocked(ip2, out _));
         }
 
         private void AssertNoIPInDB()
@@ -167,7 +167,7 @@ namespace DigitalRuby.IPBanTests
                 IPBanService.UtcNow += TimeSpan.FromMinutes(5.0);
             }
             service.RunCycle().Sync();
-            Assert.IsTrue(service.Firewall.IsIPAddressBlocked("88.88.88.88"));
+            Assert.IsTrue(service.Firewall.IsIPAddressBlocked("88.88.88.88", out _));
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             {
@@ -205,7 +205,7 @@ namespace DigitalRuby.IPBanTests
                 }
                 try
                 {
-                    Assert.IsTrue(service.Firewall.IsIPAddressBlocked("99.99.99.99"));
+                    Assert.IsTrue(service.Firewall.IsIPAddressBlocked("99.99.99.99", out _));
                 }
                 finally
                 {

@@ -302,7 +302,7 @@ namespace DigitalRuby.IPBan
                                 }
                                 else
                                 {
-                                    IPBanLog.Debug("Failed login count {0} >= ban count {1}", newCount, maxFailedLoginAttempts);
+                                    IPBanLog.Debug("Failed login count {0} >= ban count {1}{2}", newCount, maxFailedLoginAttempts, (configBlacklisted ? " config blacklisted" : string.Empty));
 
                                     // if delegate and non-zero count, forward on - count of 0 means it was from external source, like a delegate
                                     if (IPBanDelegate != null && failedLogin.Count > 0)

@@ -68,7 +68,7 @@ namespace DigitalRuby.IPBanTests
         public void TestBlock()
         {
             firewall.BlockIPAddresses(null, new string[] { "99.99.99.99" }).Sync();
-            Assert.IsTrue(firewall.IsIPAddressBlocked("99.99.99.99"));
+            Assert.IsTrue(firewall.IsIPAddressBlocked("99.99.99.99", out _));
         }
 
         [Test]
@@ -231,7 +231,7 @@ namespace DigitalRuby.IPBanTests
 
             foreach (string ip in ipsToRemove)
             {
-                Assert.IsFalse(firewall.IsIPAddressBlocked(ip), "Failed to remove ip " + ip);
+                Assert.IsFalse(firewall.IsIPAddressBlocked(ip, out _), "Failed to remove ip " + ip);
             }
             string[] firewallIP = firewall.EnumerateIPAddresses().Select(r2 => r2.Begin.ToString()).ToArray();
             string[] sentIP = ips.Where(i => !ipsToRemove.Contains(i)).Union(newIps).ToArray();
@@ -256,7 +256,7 @@ namespace DigitalRuby.IPBanTests
             Array.Sort(firewallIP);
             Array.Sort(sentIP);
             Assert.AreEqual(sentIP, firewallIP);
-            Assert.IsTrue(firewall.IsIPAddressBlocked("91.91.91.91"), "Failed to block overflow ip 91.91.91.91");
+            Assert.IsTrue(firewall.IsIPAddressBlocked("91.91.91.91", out _), "Failed to block overflow ip 91.91.91.91");
         }
 
         [Test]

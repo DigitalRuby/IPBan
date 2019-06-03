@@ -92,8 +92,8 @@ namespace DigitalRuby.IPBanTests
             AssertEvent("IPAddressBanned_99.99.99.99_RDP_test_user_True", 1);
             AssertEvent("IPAddressBanned_99.99.99.98_SSH_test_user2_True", 1);
 
-            Assert.IsTrue(service.Firewall.IsIPAddressBlocked("99.99.99.98"));
-            Assert.IsTrue(service.Firewall.IsIPAddressBlocked("99.99.99.99"));
+            Assert.IsTrue(service.Firewall.IsIPAddressBlocked("99.99.99.98", out _));
+            Assert.IsTrue(service.Firewall.IsIPAddressBlocked("99.99.99.99", out _));
         }
 
         [Test]

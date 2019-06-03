@@ -547,8 +547,9 @@ namespace DigitalRuby.IPBan
             }
         }
 
-        public bool IsIPAddressBlocked(string ipAddress, int port = -1)
+        public bool IsIPAddressBlocked(string ipAddress, out string ruleName, int port = -1)
         {
+            ruleName = null;
             return EnumerateBannedIPAddresses().ToArray().Contains(ipAddress);
         }
 
@@ -563,15 +564,15 @@ namespace DigitalRuby.IPBan
             try
             {
                 RunProcess("ipset", true, $"save > \"{tempFile}\"");
-                bool inDelete = true;
+                bool inBlockRule = true;
                 foreach (string line in File.ReadLines(tempFile))
                 {
                     string[] pieces = line.Split(' ');
                     if (pieces.Length > 1 && pieces[0].Equals("create", StringComparison.OrdinalIgnoreCase))
                     {
-                        inDelete = (!pieces[1].Equals(AllowRuleName));
+                        inBlockRule = (!pieces[1].Equals(AllowRuleName));
                     }
-                    else if (inDelete && pieces.Length > 2 && pieces[0] == "add")
+                    else if (inBlockRule && pieces.Length > 2 && pieces[0] == "add")
                     {
                         yield return pieces[2];
                     }
