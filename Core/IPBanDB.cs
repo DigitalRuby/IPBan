@@ -91,7 +91,7 @@ namespace DigitalRuby.IPBan
             {
                 DBConnection = new SQLiteConnection(connString);
                 DBConnection.Open();
-                DBTransaction = DBConnection.BeginTransaction(System.Data.IsolationLevel.ReadCommitted);
+                DBTransaction = DBConnection.BeginTransaction(transactionLevel);
             }
 
             public void Dispose()
@@ -127,6 +127,8 @@ namespace DigitalRuby.IPBan
         /// IPBan database file name, not including directory
         /// </summary>
         public const string FileName = "ipban.sqlite";
+
+        private const System.Data.IsolationLevel transactionLevel = System.Data.IsolationLevel.Serializable;
 
         // note that an ip that has a block count may not yet be in the ipAddressesAndBanDate dictionary
         // for locking, always use ipAddressesAndBanDate
@@ -195,14 +197,16 @@ namespace DigitalRuby.IPBan
                 conn.Open();
                 closeConnection = true;
             }
-            SQLiteCommand command = conn.CreateCommand();
-            command.CommandText = query;
-            command.Transaction = tran;
-            for (int i = 0; i < param.Length; i++)
+            using (SQLiteCommand command = conn.CreateCommand())
             {
-                command.Parameters.Add(new SQLiteParameter("@Param" + i.ToStringInvariant(), param[i]));
+                command.CommandText = query;
+                command.Transaction = tran;
+                for (int i = 0; i < param.Length; i++)
+                {
+                    command.Parameters.Add(new SQLiteParameter("@Param" + i.ToStringInvariant(), param[i]));
+                }
+                return command.ExecuteReader((closeConnection ? System.Data.CommandBehavior.CloseConnection : System.Data.CommandBehavior.Default));
             }
-            return command.ExecuteReader((closeConnection ? System.Data.CommandBehavior.CloseConnection : System.Data.CommandBehavior.Default));
         }
 
         private IPAddressEntry ParseIPAddressEntry(SQLiteDataReader reader)
@@ -369,10 +373,6 @@ namespace DigitalRuby.IPBan
                     DO UPDATE SET LastFailedLogin = @Param2, FailedLoginCount = FailedLoginCount + @Param3 WHERE State = 3;
                     SELECT FailedLoginCount FROM IPAddresses WHERE IPAddress = @Param0;";
                 IPBanDBTransaction tran = transaction as IPBanDBTransaction;
-                if (tran == null)
-                {
-                    command = "BEGIN TRANSACTION; " + command + " COMMIT;";
-                }
                 using (SQLiteDataReader reader = ExecuteReader(command, tran?.DBConnection, tran?.DBTransaction, ipBytes, ipAddress, timestamp, increment))
                 {
                     if (reader.Read())
@@ -472,7 +472,7 @@ namespace DigitalRuby.IPBan
             using (SQLiteConnection conn = new SQLiteConnection(connString))
             {
                 conn.Open();
-                using (SQLiteTransaction tran = conn.BeginTransaction(System.Data.IsolationLevel.ReadCommitted))
+                using (SQLiteTransaction tran = conn.BeginTransaction(transactionLevel))
                 {
                     foreach (KeyValuePair<string, DateTime> ipAddress in ipAddresses)
                     {
@@ -501,7 +501,7 @@ namespace DigitalRuby.IPBan
             {
                 conn.Open();
             }
-            SQLiteTransaction tran = (ipDBTransaction?.DBTransaction ?? conn.BeginTransaction(System.Data.IsolationLevel.ReadCommitted));
+            SQLiteTransaction tran = (ipDBTransaction?.DBTransaction ?? conn.BeginTransaction(transactionLevel));
             int stateInt = (int)state;
             try
             {
@@ -543,7 +543,7 @@ namespace DigitalRuby.IPBan
             using (SQLiteConnection conn = new SQLiteConnection(connString))
             {
                 conn.Open();
-                using (SQLiteTransaction tran = conn.BeginTransaction(System.Data.IsolationLevel.ReadCommitted))
+                using (SQLiteTransaction tran = conn.BeginTransaction(transactionLevel))
                 {
                     using (SQLiteDataReader reader = ExecuteReader("SELECT IPAddressText, State FROM IPAddresses WHERE State IN (1, 2) ORDER BY IPAddressText", conn, tran))
                     {
@@ -635,7 +635,7 @@ namespace DigitalRuby.IPBan
             using (SQLiteConnection conn = new SQLiteConnection(connString))
             {
                 conn.Open();
-                using (SQLiteTransaction tran = conn.BeginTransaction(System.Data.IsolationLevel.ReadCommitted))
+                using (SQLiteTransaction tran = conn.BeginTransaction(transactionLevel))
                 {
                     foreach (string ipAddress in ipAddresses)
                     {

@@ -47,7 +47,7 @@ using System.Web;
 
 namespace DigitalRuby.IPBan
 {
-    public class IPBanService : IIPBanService
+    public class IPBanService : IIPBanService, IBannedIPAddressHandler
     {
         private enum UrlType
         {
@@ -1262,6 +1262,12 @@ namespace DigitalRuby.IPBan
             }
         }
 
+        Task IBannedIPAddressHandler.HandleBannedIPAddress(string ipAddress, string source, string userName, string osName, string osVersion, string assemblyVersion, IHttpRequestMaker requestMaker)
+        {
+            // do nothing
+            return Task.CompletedTask;
+        }
+
         /// <summary>
         /// Create a test IPBanService
         /// </summary>
@@ -1319,7 +1325,7 @@ namespace DigitalRuby.IPBan
             service.ConfigFilePath = configFilePath;
             service.MultiThreaded = false;
             service.ManualCycle = true;
-            service.BannedIPAddressHandler = null; // no external ip handling
+            service.BannedIPAddressHandler = service;
             service.Start();
             service.DB.Truncate(true);
             service.Firewall.Truncate();
@@ -1337,7 +1343,6 @@ namespace DigitalRuby.IPBan
                 service.Firewall.Truncate();
                 service.RunCycle().Sync();
                 service.Dispose();
-                DefaultHttpRequestMaker.DisableLiveRequests = false;
                 IPBanService.UtcNow = default;
             }
         }
@@ -1471,6 +1476,7 @@ namespace DigitalRuby.IPBan
         /// File name to write ip addresses to (one per line) to unblock the ip addresses in the file
         /// </summary>
         public string UnblockIPAddressesFileName { get; } = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "unban.txt");
+        string IBannedIPAddressHandler.BaseUrl { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
     }
 
     /// <summary>
