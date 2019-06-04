@@ -710,7 +710,7 @@ namespace DigitalRuby.IPBan {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Regular expression for more advanced whitelisting. Shortcut: use* to allow any piece of an ip (i.e. 128.128.128.*). Sample regex that whitelists a few ips: ^(128\.128\.128\.*)|(99\.99\.99\.[0-9])$ More info about regex: http://www.regular-expressions.info/.
+        ///   Looks up a localized string similar to Regular expression for more advanced whitelisting. Shortcut: use * to allow any piece of an ip (i.e. 128.128.128.*). Sample regex that whitelists a few ips: ^(128\.128\.128\.*)|(99\.99\.99\.[0-9])$ More info about regex: http://www.regular-expressions.info/.
         /// </summary>
         public static string IPWhitelistRegexTooltip {
             get {
