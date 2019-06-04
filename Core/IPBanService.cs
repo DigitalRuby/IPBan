@@ -1552,7 +1552,7 @@ namespace DigitalRuby.IPBan
         UnblockedIPAddress = 4,
 
         /// <summary>
-        /// Failed login
+        /// Failed login of matched user name
         /// </summary>
         FailedLogin = 8,
     }
