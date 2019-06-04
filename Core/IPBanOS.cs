@@ -78,6 +78,10 @@ namespace DigitalRuby.IPBan
         /// </summary>
         public static string Description { get; private set; }
 
+        private static readonly bool isWindows;
+        private static readonly bool isLinux;
+        private static readonly string processVerb;
+
         private static string ExtractRegex(string input, string regex, string defaultValue)
         {
             Match m = Regex.Match(input, regex, RegexOptions.IgnoreCase | RegexOptions.Multiline);
@@ -122,6 +126,7 @@ namespace DigitalRuby.IPBan
                 // attempt to get detailed version info
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
                 {
+                    isLinux = true;
                     string tempFile = Path.GetTempFileName();
                     Process.Start("/bin/bash", "-c \"cat /etc/*release* > " + tempFile + "\"").WaitForExit();
                     System.Threading.Tasks.Task.Delay(100); // wait a small bit for file to really be closed
@@ -148,6 +153,8 @@ namespace DigitalRuby.IPBan
                 }
                 else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 {
+                    isWindows = true;
+                    processVerb = "runas";
                     Name = IPBanOS.Windows;
                     string tempFile = Path.GetTempFileName();
 
@@ -231,7 +238,8 @@ namespace DigitalRuby.IPBan
         /// <param name="program">Program to run</param>
         /// <param name="args">Arguments</param>
         /// <param name="allowedExitCode">Allowed exit codes, if empty not checked, otherwise a mismatch will throw an exception.</param>
-        public static void StartProcessAndWait(string program, string args, params int[] allowedExitCode)
+        /// <returns>Standard out</returns>
+        public static string StartProcessAndWait(string program, string args, params int[] allowedExitCode)
         {
             IPBanLog.Info($"Executing process {program} {args}...");
 
@@ -242,7 +250,8 @@ namespace DigitalRuby.IPBan
                     CreateNoWindow = true,
                     UseShellExecute = false,
                     WindowStyle = ProcessWindowStyle.Hidden,
-                    Verb = "runas"
+                    RedirectStandardOutput = true,
+                    Verb = processVerb
                 }
             };
             p.Start();
@@ -254,6 +263,84 @@ namespace DigitalRuby.IPBan
             {
                 throw new ApplicationException($"Program {program} {args}: failed with exit code {p.ExitCode}");
             }
+            return p.StandardOutput.ReadToEnd();
+        }
+
+        /// <summary>
+        /// Check if a user name exists on the local machine
+        /// </summary>
+        /// <param name="userName">User name to check</param>
+        /// <returns>True if user name exists, false otherwise</returns>
+        public static bool UserNameExists(string userName)
+        {
+            if (string.IsNullOrWhiteSpace(userName))
+            {
+                return false;
+            }
+            userName = userName.Trim();
+
+            try
+            {
+                if (isWindows)
+                {
+                    // Windows: WMI
+                    SelectQuery query = new SelectQuery("Win32_UserAccount");
+                    ManagementObjectSearcher searcher = new ManagementObjectSearcher(query);
+                    foreach (ManagementObject user in searcher.Get())
+                    {
+                        if (user["Disabled"] == null || user["Disabled"].Equals(false))
+                        {
+                            string possibleMatch = user["Name"]?.ToString();
+                            if (possibleMatch != null && possibleMatch.Equals(userName, StringComparison.OrdinalIgnoreCase))
+                            {
+                                return true;
+                            }
+                        }
+                    }
+                }
+                else if (isLinux)
+                {
+                    // Linux: /etc/passwd
+                    if (File.Exists("/etc/passwd"))
+                    {
+                        HashSet<string> enabledUsers = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                        string[] lines;
+                        if (File.Exists("/etc/shadow"))
+                        {
+                            lines = File.ReadAllLines("/etc/shadow");
+                            // example line:
+                            // root:!$1$Fp$SSSuo3L.xA5s/kMEEIloU1:18049:0:99999:7:::
+                            foreach (string[] pieces in lines.Select(l => l.Split(':')).Where(p => p.Length == 9))
+                            {
+                                string pwdHash = pieces[1].Trim();
+                                if (pwdHash.Length != 0 && pwdHash[0] != '*' && pwdHash[0] != '!')
+                                {
+                                    enabledUsers.Add(pieces[0]);
+                                }
+                            }
+                        }
+
+                        lines = File.ReadAllLines("/etc/passwd");
+                        // example line:
+                        // root:x:0:0:root:/root:/bin/bash
+                        foreach (string[] pieces in lines.Select(l => l.Split(':')).Where(p => p.Length == 7))
+                        {
+                            if (!pieces[6].Contains("nologin", StringComparison.OrdinalIgnoreCase) && !pieces[6].Contains("/bin/false") &&
+                                pieces[0].Trim().Equals(userName, StringComparison.OrdinalIgnoreCase) && enabledUsers.Contains(userName))
+                            {
+                                return true;
+                            }
+                        }
+                    }
+                }
+                // TODO: MAC
+            }
+            catch (Exception ex)
+            {
+                IPBanLog.Error(ex);
+            }
+
+            return false;
         }
     }
 
