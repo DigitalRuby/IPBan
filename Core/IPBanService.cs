@@ -1186,11 +1186,10 @@ namespace DigitalRuby.IPBan
         /// <returns>Replaced url</returns>
         public string ReplaceUrl(string url)
         {
-            Assembly a = IPBanService.GetIPBanAssembly();
             return url.Replace("###IPADDRESS###", LocalIPAddressString.UrlEncode())
                 .Replace("###REMOTEIPADDRESS###", RemoteIPAddressString.UrlEncode())
                 .Replace("###MACHINENAME###", FQDN.UrlEncode())
-                .Replace("###VERSION###", a.GetName().Version.ToString().UrlEncode())
+                .Replace("###VERSION###", Version.UrlEncode())
                 .Replace("###GUID###", MachineGuid.UrlEncode())
                 .Replace("###OSNAME###", OSName.UrlEncode())
                 .Replace("###OSVERSION###", OSVersion.UrlEncode());
@@ -1410,6 +1409,11 @@ namespace DigitalRuby.IPBan
         /// Fully qualified domain name
         /// </summary>
         public string FQDN { get; private set; }
+
+        /// <summary>
+        /// Version of the software
+        /// </summary>
+        public string Version { get; private set; } = Assembly.GetEntryAssembly().GetName().Version.ToString();
 
         /// <summary>
         /// Machine guid, null/empty for none
