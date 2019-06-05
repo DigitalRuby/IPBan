@@ -202,7 +202,7 @@ recreateRule:
         private void MigrateOldDefaultRuleNames()
         {
             // migrate old default rule names to new names
-            INetFwRule rule = null;
+            INetFwRule rule;
             for (int i = 0; ; i += MaxIpAddressesPerRule)
             {
                 lock (policy)
