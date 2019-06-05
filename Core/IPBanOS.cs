@@ -325,7 +325,7 @@ namespace DigitalRuby.IPBan
                         // root:x:0:0:root:/root:/bin/bash
                         foreach (string[] pieces in lines.Select(l => l.Split(':')).Where(p => p.Length == 7))
                         {
-                            if (!pieces[6].Contains("nologin", StringComparison.OrdinalIgnoreCase) && !pieces[6].Contains("/bin/false") &&
+                            if (pieces[6].IndexOf("nologin", StringComparison.OrdinalIgnoreCase) < 0 && !pieces[6].Contains("/bin/false") &&
                                 pieces[0].Trim().Equals(userName, StringComparison.OrdinalIgnoreCase) && enabledUsers.Contains(userName))
                             {
                                 return true;

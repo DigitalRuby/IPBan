@@ -90,7 +90,7 @@ namespace DigitalRuby.IPBan
 
         public Task<byte[]> MakeRequestAsync(Uri uri, string postJson = null, IEnumerable<KeyValuePair<string, object>> headers = null)
         {
-            if (uri.Host.Contains("localhost", StringComparison.OrdinalIgnoreCase) || uri.Host.Contains("127.0.0.1") || uri.Host.Contains("::1"))
+            if (uri.Host.IndexOf("localhost", StringComparison.OrdinalIgnoreCase) >= 0 || uri.Host.Contains("127.0.0.1") || uri.Host.Contains("::1"))
             {
                 Interlocked.Increment(ref localRequestCount);
             }

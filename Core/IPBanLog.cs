@@ -165,7 +165,7 @@ namespace DigitalRuby.IPBan
                         string logLevel = "Warn";
                         foreach (Assembly a in AppDomain.CurrentDomain.GetAssemblies())
                         {
-                            if (a.FullName.Contains("nunit.framework", StringComparison.OrdinalIgnoreCase))
+                            if (a.FullName.IndexOf("nunit.framework", StringComparison.OrdinalIgnoreCase) >= 0)
                             {
                                 logLevel = "Trace";
                                 break;
