@@ -66,6 +66,20 @@ namespace DigitalRuby.IPBan
     /// </summary>
     public class DefaultHttpRequestMaker : IHttpRequestMaker
     {
+        private class WebClientWithTimeout : WebClient
+        {
+            protected override WebRequest GetWebRequest(Uri uri)
+            {
+                WebRequest w = base.GetWebRequest(uri);
+                w.Timeout = 5000;
+                if (w is HttpWebRequest req)
+                {
+                    req.ReadWriteTimeout = 5000;
+                }
+                return w;
+            }
+        }
+
         /// <summary>
         /// Singleton of DefaultHttpRequestMaker
         /// </summary>
@@ -102,7 +116,7 @@ namespace DigitalRuby.IPBan
             {
                 Interlocked.Increment(ref liveRequestCount);
             }
-            using (WebClient client = new WebClient())
+            using (WebClient client = new WebClientWithTimeout())
             {
                 Assembly versionAssembly = Assembly.GetEntryAssembly();
                 if (versionAssembly == null)
