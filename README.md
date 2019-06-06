@@ -6,7 +6,7 @@ IPBan Service
 
 <a href="https://email.digitalruby.com/SubscribeInitial/IPBan">Sign up for the IPBan Mailing List</a>
 
-Please visit <a href='https://ipban.com'>https://ipban.com</a> for additional updates, news, additional software and more.
+Please visit <a href='https://ipban.com'>https://ipban.com</a> to learn about IPBan Pro, the best way to secure your Windows and Linux servers from botnets, brute force attacks and hackers.
 
 **Requirements**
 - IPBan requires .NET core 2.2 SDK to build and debug code. For an IDE, I suggest Visual Studio Community 2017 (2019+ recommended) for Windows or MAC, or VS code for Linux. All are free. You can build a self contained executable to eliminate the need for dotnet core on the server machine, or just download the precompiled binaries.
