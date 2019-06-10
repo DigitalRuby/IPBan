@@ -109,6 +109,7 @@ namespace DigitalRuby.IPBan
 
         private void Initialize()
         {
+            SQLitePCL.Batteries.Init();
             ExecuteNonQuery("PRAGMA auto_vacuum = INCREMENTAL;");
             ExecuteNonQuery("PRAGMA journal_mode=WAL;");
             ExecuteNonQuery("CREATE TABLE IF NOT EXISTS Strings (String VARCHAR(64), PRIMARY KEY (String))");
