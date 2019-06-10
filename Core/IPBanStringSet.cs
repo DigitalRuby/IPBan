@@ -1,4 +1,4 @@
-﻿/*
+﻿﻿/*
 MIT License
 
 Copyright (c) 2019 Digital Ruby, LLC - https://www.digitalruby.com
@@ -24,10 +24,11 @@ SOFTWARE.
 
 using System;
 using System.Collections.Generic;
-using System.Data.SQLite;
 using System.IO;
 using System.Net;
 using System.Text;
+
+using Microsoft.Data.Sqlite;
 
 namespace DigitalRuby.IPBan
 {
@@ -45,24 +46,24 @@ namespace DigitalRuby.IPBan
             return ExecuteNonQuery(null, null, cmdText, param);
         }
 
-        private int ExecuteNonQuery(SQLiteConnection conn, SQLiteTransaction tran, string cmdText, params object[] param)
+        private int ExecuteNonQuery(SqliteConnection conn, SqliteTransaction tran, string cmdText, params object[] param)
         {
             bool closeConn = false;
             if (conn == null)
             {
-                conn = new SQLiteConnection(connString);
+                conn = new SqliteConnection(connString);
                 conn.Open();
                 closeConn = true;
             }
             try
             {
-                using (SQLiteCommand command = conn.CreateCommand())
+                using (SqliteCommand command = conn.CreateCommand())
                 {
                     command.CommandText = cmdText;
                     command.Transaction = tran;
                     for (int i = 0; i < param.Length; i++)
                     {
-                        command.Parameters.Add(new SQLiteParameter("@Param" + i, param[i]));
+                        command.Parameters.Add(new SqliteParameter("@Param" + i, param[i] ?? DBNull.Value));
                     }
                     return command.ExecuteNonQuery();
                 }
@@ -78,40 +79,36 @@ namespace DigitalRuby.IPBan
 
         private T ExecuteScalar<T>(string cmdText, params object[] param)
         {
-            using (SQLiteConnection connection = new SQLiteConnection(connString))
+            using (SqliteConnection connection = new SqliteConnection(connString))
             {
                 connection.Open();
-                using (SQLiteCommand command = connection.CreateCommand())
+                using (SqliteCommand command = connection.CreateCommand())
                 {
                     command.CommandText = cmdText;
                     for (int i = 0; i < param.Length; i++)
                     {
-                        command.Parameters.Add(new SQLiteParameter("@Param" + i, param[i]));
+                        command.Parameters.Add(new SqliteParameter("@Param" + i, param[i] ?? DBNull.Value));
                     }
                     return (T)Convert.ChangeType(command.ExecuteScalar(), typeof(T));
                 }
             }
         }
 
-        private SQLiteDataReader ExecuteReader(string query, params object[] param)
+        private SqliteDataReader ExecuteReader(string query, params object[] param)
         {
-            SQLiteConnection connection = new SQLiteConnection(connString);
+            SqliteConnection connection = new SqliteConnection(connString);
             connection.Open();
-            SQLiteCommand command = connection.CreateCommand();
+            SqliteCommand command = connection.CreateCommand();
             command.CommandText = query;
             for (int i = 0; i < param.Length; i++)
             {
-                command.Parameters.Add(new SQLiteParameter("@Param" + i.ToStringInvariant(), param[i]));
+                command.Parameters.Add(new SqliteParameter("@Param" + i.ToStringInvariant(), param[i] ?? DBNull.Value));
             }
             return command.ExecuteReader(System.Data.CommandBehavior.CloseConnection);
         }
 
         private void Initialize()
         {
-            if (!File.Exists(dbPath))
-            {
-                SQLiteConnection.CreateFile(dbPath);
-            }
             ExecuteNonQuery("PRAGMA auto_vacuum = INCREMENTAL;");
             ExecuteNonQuery("PRAGMA journal_mode=WAL;");
             ExecuteNonQuery("CREATE TABLE IF NOT EXISTS Strings (String VARCHAR(64), PRIMARY KEY (String))");
@@ -126,7 +123,7 @@ namespace DigitalRuby.IPBan
         {
             this.autoDelete = autoDelete;
             dbPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, name + ".sqlite");
-            connString = "Data Source=" + dbPath + ";Version=3;";
+            connString = "Data Source=" + dbPath;
             Initialize();
         }
 
@@ -135,7 +132,6 @@ namespace DigitalRuby.IPBan
         /// </summary>
         public void Dispose()
         {
-            SQLiteConnection.ClearAllPools();
             GC.Collect();
             GC.WaitForPendingFinalizers();
             if (autoDelete)
@@ -198,7 +194,7 @@ namespace DigitalRuby.IPBan
         /// <returns>Strings</returns>
         public IEnumerable<string> Enumerate()
         {
-            using (SQLiteDataReader reader = ExecuteReader("SELECT String FROM Strings ORDER BY String"))
+            using (SqliteDataReader reader = ExecuteReader("SELECT String FROM Strings ORDER BY String"))
             {
                 while (reader.Read())
                 {
@@ -215,10 +211,10 @@ namespace DigitalRuby.IPBan
         public int AddMany(IEnumerable<string> texts)
         {
             int count = 0;
-            using (SQLiteConnection conn = new SQLiteConnection(connString))
+            using (SqliteConnection conn = new SqliteConnection(connString))
             {
                 conn.Open();
-                using (SQLiteTransaction tran = conn.BeginTransaction(System.Data.IsolationLevel.ReadCommitted))
+                using (SqliteTransaction tran = conn.BeginTransaction(System.Data.IsolationLevel.ReadCommitted))
                 {
                     foreach (string text in texts)
                     {
@@ -238,10 +234,10 @@ namespace DigitalRuby.IPBan
         public int DeleteMany(IEnumerable<string> texts)
         {
             int count = 0;
-            using (SQLiteConnection conn = new SQLiteConnection(connString))
+            using (SqliteConnection conn = new SqliteConnection(connString))
             {
                 conn.Open();
-                using (SQLiteTransaction tran = conn.BeginTransaction(System.Data.IsolationLevel.ReadCommitted))
+                using (SqliteTransaction tran = conn.BeginTransaction(System.Data.IsolationLevel.ReadCommitted))
                 {
                     foreach (string text in texts)
                     {
