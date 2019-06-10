@@ -2,15 +2,11 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp2.2</TargetFramework>
-
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <IsPackable>false</IsPackable>
-
     <AssemblyVersion>1.4.7.0</AssemblyVersion>
-
     <FileVersion>1.4.7.0</FileVersion>
-
     <RootNamespace>DigitalRuby.IPBanTests</RootNamespace>
-
     <AssemblyName>DigitalRuby.IPBanTests</AssemblyName>
   </PropertyGroup>
 

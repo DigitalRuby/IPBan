@@ -3,6 +3,7 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp2.2</TargetFramework>
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <AssemblyVersion>1.4.7.0</AssemblyVersion>
     <FileVersion>1.4.7.0</FileVersion>
     <PackageVersion>1.4.7.0</PackageVersion>
@@ -16,6 +17,8 @@
     <StartupObject></StartupObject>
     <TrimUnusedDependencies>true</TrimUnusedDependencies>
     <TargetLatestRuntimePatch>true</TargetLatestRuntimePatch>
+    <RuntimeIdentifier>win-x86</RuntimeIdentifier>
+    <RuntimeIdentifiers>win-x86;win-x64;linux-x64</RuntimeIdentifiers>
     <PackageId>DigitalRuby.IPBan</PackageId>
     <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
     <PackageProjectUrl>https://github.com/DigitalRuby/IPBan</PackageProjectUrl>

@@ -678,4 +678,16 @@ Prefix with OS:ClassName, example: Windows:Custom,Linux:Default</value>
   <data name="UseDefaultBannedIPAddressHandlerTooltip" xml:space="preserve">
     <value>Whether to use the default banned ip address handler. Turn off to disable default handling such as sharing anonymously the banned ip address to the global banned ip address database.</value>
   </data>
+  <data name="CountryListEntryCount" xml:space="preserve">
+    <value>{0} ranges in the country block list</value>
+    <comment>{0} is a number</comment>
+  </data>
+  <data name="NaughtyListEntryCount" xml:space="preserve">
+    <value>{0} ip addresses in the naughty list</value>
+    <comment>{0} is a number</comment>
+  </data>
+  <data name="RecentListEntryCount" xml:space="preserve">
+    <value>{0} ip addresses in the recent list</value>
+    <comment>{0} is a number</comment>
+  </data>
 </root>

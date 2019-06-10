@@ -259,6 +259,15 @@ namespace DigitalRuby.IPBan {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to {0} ranges in the country block list.
+        /// </summary>
+        public static string CountryListEntryCount {
+            get {
+                return ResourceManager.GetString("CountryListEntryCount", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Create Whitelist Firewall Rule.
         /// </summary>
         public static string CreateWhitelistFirewallRule {
@@ -872,6 +881,15 @@ namespace DigitalRuby.IPBan {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to {0} ip addresses in the naughty list.
+        /// </summary>
+        public static string NaughtyListEntryCount {
+            get {
+                return ResourceManager.GetString("NaughtyListEntryCount", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Notes.
         /// </summary>
         public static string Notes {
@@ -1093,6 +1111,15 @@ namespace DigitalRuby.IPBan {
         public static string RecentListCountTooltip {
             get {
                 return ResourceManager.GetString("RecentListCountTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} ip addresses in the recent list.
+        /// </summary>
+        public static string RecentListEntryCount {
+            get {
+                return ResourceManager.GetString("RecentListEntryCount", resourceCulture);
             }
         }
         
