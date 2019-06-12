@@ -86,7 +86,7 @@ Description=IPBan Service
 After=network.target
 
 [Service]
-ExecStart=/etc/ipban/DigitalRuby.IPBan
+ExecStart=/opt/ipban/DigitalRuby.IPBan
 Restart=on-failure
 
 [Install]
