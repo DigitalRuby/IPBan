@@ -752,6 +752,7 @@ namespace DigitalRuby.IPBan
                 {
                     try
                     {
+                        cycleTimer.Interval = Config.CycleTime.TotalMilliseconds;
                         cycleTimer.Start();
                     }
                     catch
