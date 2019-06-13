@@ -675,7 +675,7 @@ namespace DigitalRuby.IPBan
                         // if the update url sends bytes, we assume a software update, and run the result as an .exe
                         if (bytes.Length != 0)
                         {
-                            string tempFile = Path.Combine(Path.GetTempPath(), "IPBanServiceUpdate.exe");
+                            string tempFile = Path.Combine(IPBanOS.TempFolder, "IPBanServiceUpdate.exe");
                             File.WriteAllBytes(tempFile, bytes);
 
                             // however you are doing the update, you must allow -c and -d parameters

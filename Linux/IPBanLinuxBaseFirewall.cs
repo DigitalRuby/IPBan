@@ -237,7 +237,7 @@ namespace DigitalRuby.IPBan
         protected bool UpdateRule(string ruleName, string action, IEnumerable<string> ipAddresses, string hashType, int maxCount,
             IEnumerable<PortRange> allowPorts, CancellationToken cancelToken)
         {
-            string ipFileTemp = Path.GetTempFileName();
+            string ipFileTemp = IPBanOS.GetTempFileName();
             try
             {
                 // add and remove the appropriate ip addresses from the set
@@ -304,7 +304,7 @@ namespace DigitalRuby.IPBan
         protected bool UpdateRuleDelta(string ruleName, string action, IEnumerable<IPBanFirewallIPAddressDelta> deltas, string hashType,
             int maxCount, bool deleteRule, IEnumerable<PortRange> allowPorts, CancellationToken cancelToken)
         {
-            string ipFileTemp = Path.GetTempFileName();
+            string ipFileTemp = IPBanOS.GetTempFileName();
             try
             {
                 // add and remove the appropriate ip addresses from the set
@@ -522,7 +522,7 @@ namespace DigitalRuby.IPBan
 
         public IEnumerable<IPAddressRange> EnumerateIPAddresses(string ruleNamePrefix = null)
         {
-            string tempFile = Path.GetTempFileName();
+            string tempFile = IPBanOS.GetTempFileName();
             try
             {
                 string prefix = RulePrefix + (ruleNamePrefix ?? string.Empty);
@@ -560,7 +560,7 @@ namespace DigitalRuby.IPBan
 
         public IEnumerable<string> EnumerateBannedIPAddresses()
         {
-            string tempFile = Path.GetTempFileName();
+            string tempFile = IPBanOS.GetTempFileName();
             try
             {
                 RunProcess("ipset", true, $"save > \"{tempFile}\"");
@@ -586,7 +586,7 @@ namespace DigitalRuby.IPBan
 
         public IEnumerable<string> EnumerateAllowedIPAddresses()
         {
-            string tempFile = Path.GetTempFileName();
+            string tempFile = IPBanOS.GetTempFileName();
             try
             {
                 RunProcess("ipset", true, $"save > \"{tempFile}\"");

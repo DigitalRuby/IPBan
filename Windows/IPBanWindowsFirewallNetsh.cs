@@ -91,7 +91,7 @@ namespace DigitalRuby.IPBan
         public bool CreateRules(IReadOnlyList<string> ipAddresses)
         {
             string subRuleName;
-            string scriptFileName = Path.GetTempFileName();
+            string scriptFileName = IPBanOS.GetTempFileName();
             Directory.CreateDirectory(Path.GetDirectoryName(scriptFileName));
             using (StreamWriter writer = File.CreateText(scriptFileName))
             {
@@ -112,7 +112,7 @@ namespace DigitalRuby.IPBan
 
         public bool DeleteRules(int startIndex = 0)
         {
-            string scriptFileName = Path.GetTempFileName();
+            string scriptFileName = IPBanOS.GetTempFileName();
             Directory.CreateDirectory(Path.GetDirectoryName(scriptFileName));
             using (StreamWriter writer = File.CreateText(scriptFileName))
             {

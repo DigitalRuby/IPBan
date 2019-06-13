@@ -17,8 +17,6 @@
     <StartupObject></StartupObject>
     <TrimUnusedDependencies>true</TrimUnusedDependencies>
     <TargetLatestRuntimePatch>true</TargetLatestRuntimePatch>
-    <RuntimeIdentifier>win-x86</RuntimeIdentifier>
-    <RuntimeIdentifiers>win-x86;win-x64;linux-x64</RuntimeIdentifiers>
     <PackageId>DigitalRuby.IPBan</PackageId>
     <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
     <PackageProjectUrl>https://github.com/DigitalRuby/IPBan</PackageProjectUrl>

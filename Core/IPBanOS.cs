@@ -81,6 +81,7 @@ namespace DigitalRuby.IPBan
         private static readonly bool isWindows;
         private static readonly bool isLinux;
         private static readonly string processVerb;
+        private static readonly string tempFolder;
 
         private static string ExtractRegex(string input, string regex, string defaultValue)
         {
@@ -118,6 +119,20 @@ namespace DigitalRuby.IPBan
         {
             try
             {
+                tempFolder = Path.GetTempPath();
+                if (string.IsNullOrWhiteSpace(tempFolder))
+                {
+                    if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                    {
+                        tempFolder = "c:\\temp";
+                    }
+                    else
+                    {
+                        tempFolder = "/tmp";
+                    }
+                }
+                Directory.CreateDirectory(tempFolder);
+
                 // start off with built in version info, this is not as detailed or nice as we like,
                 //  so we try some other ways to get more detailed information
                 Version = Environment.OSVersion.VersionString;
@@ -127,7 +142,7 @@ namespace DigitalRuby.IPBan
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
                 {
                     isLinux = true;
-                    string tempFile = Path.GetTempFileName();
+                    string tempFile = IPBanOS.GetTempFileName();
                     Process.Start("/bin/bash", "-c \"cat /etc/*release* > " + tempFile + "\"").WaitForExit();
                     System.Threading.Tasks.Task.Delay(100); // wait a small bit for file to really be closed
                     string versionText = File.ReadAllText(tempFile).Trim();
@@ -156,7 +171,7 @@ namespace DigitalRuby.IPBan
                     isWindows = true;
                     processVerb = "runas";
                     Name = IPBanOS.Windows;
-                    string tempFile = Path.GetTempFileName();
+                    string tempFile = IPBanOS.GetTempFileName();
 
                     // .net core WMI has a strange bug where WMI will not initialize on some systems
                     // since this is the only place where WMI is used, we can just work-around it
@@ -342,6 +357,19 @@ namespace DigitalRuby.IPBan
 
             return false;
         }
+
+        /// <summary>
+        /// Generate a new temporary file using TempFolder
+        /// </summary>
+        public static string GetTempFileName()
+        {
+            return Path.Combine(tempFolder, Guid.NewGuid().ToString("N") + ".tmp");
+        }
+
+        /// <summary>
+        /// Get the current temp foldre path
+        /// </summary>
+        public static string TempFolder { get { return tempFolder; } }
     }
 
     /// <summary>
