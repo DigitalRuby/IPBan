@@ -155,7 +155,7 @@ namespace DigitalRuby.IPBanTests
             }
         }
 
-        Task IIPAddressEventHandler.AddIPAddressLogEvents(IEnumerable<IPAddressLogEvent> events)
+        void IIPAddressEventHandler.AddIPAddressLogEvents(IEnumerable<IPAddressLogEvent> events)
         {
             foreach (IPAddressLogEvent evt in events)
             {
@@ -172,7 +172,6 @@ namespace DigitalRuby.IPBanTests
                     throw new InvalidOperationException("Unexpected ip address event " + evt);
                 }
             }
-            return Task.CompletedTask;
         }
     }
 }

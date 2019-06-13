@@ -73,6 +73,7 @@ namespace DigitalRuby.IPBan
         // batch failed logins every cycle
         private readonly List<IPAddressPendingEvent> pendingFailedLogins = new List<IPAddressPendingEvent>();
         private readonly List<IPAddressPendingEvent> pendingSuccessfulLogins = new List<IPAddressPendingEvent>();
+        private readonly List<IPAddressLogEvent> pendingLogEvents = new List<IPAddressLogEvent>();
 
         // note that an ip that has a block count may not yet be in the ipAddressesAndBanDate dictionary
         // for locking, always use ipAddressesAndBanDate
@@ -387,8 +388,10 @@ namespace DigitalRuby.IPBan
             DateTime dateTime, bool configBlacklisted, int counter, string extraInfo, object transaction)
         {
             bannedIpAddresses.Add(new IPAddressPendingEvent { IPAddress = ipAddress, Source = source, UserName = userName });
-            ipDB.SetBanDate(ipAddress, dateTime, transaction);
-            firewallNeedsBlockedIPAddressesUpdate = true;
+            if (ipDB.SetBanDate(ipAddress, dateTime, transaction))
+            {
+                firewallNeedsBlockedIPAddressesUpdate = true;
+            }
 
             // if this is a delegate callback (counter of 0) or no handlers, exit out
             if (counter <= 0 || (BannedIPAddressHandler == null && IPBanDelegate == null))
@@ -814,6 +817,8 @@ namespace DigitalRuby.IPBan
         /// </summary>
         private async Task ProcessPendingFailedLogins()
         {
+            ProcessPendingLogEvents();
+
             // make a quick copy of pending ip addresses so we don't lock it for very long
             List<IPAddressPendingEvent> ipAddresses = null;
             lock (pendingFailedLogins)
@@ -851,6 +856,52 @@ namespace DigitalRuby.IPBan
             {
                 await ProcessPendingSuccessfulLogins(ipAddresses);
             }
+        }
+
+        private void ProcessPendingLogEvents()
+        {
+            // get copy of pending log events quickly in a lock and clear list
+            List<IPAddressLogEvent> events;
+            lock (pendingLogEvents)
+            {
+                events = new List<IPAddressLogEvent>(pendingLogEvents);
+                pendingLogEvents.Clear();
+            }
+
+            List<IPAddressPendingEvent> bannedIPs = new List<IPAddressPendingEvent>();
+            object transaction = BeginTransaction();
+            try
+            {
+                foreach (IPAddressLogEvent evt in events)
+                {
+                    if (!IPBanFirewallUtility.TryNormalizeIPAddress(evt.IPAddress, out string normalizedIPAddress))
+                    {
+                        continue;
+                    }
+                    evt.IPAddress = normalizedIPAddress;
+                    switch (evt.Type)
+                    {
+                        case IPAddressEventType.FailedLogin:
+                            ProcessIPAddressEvent(evt, pendingFailedLogins, Config.MinimumTimeBetweenFailedLoginAttempts, "failed");
+                            break;
+
+                        case IPAddressEventType.SuccessfulLogin:
+                            ProcessIPAddressEvent(evt, pendingSuccessfulLogins, Config.MinimumTimeBetweenSuccessfulLoginAttempts, "successful");
+                            break;
+
+                        case IPAddressEventType.Blocked:
+                            AddBannedIPAddress(evt.IPAddress, evt.Source, evt.UserName, bannedIPs, evt.Timestamp, false, evt.Count, string.Empty, transaction);
+                            break;
+                    }
+                }
+                CommitTransaction(transaction);
+            }
+            catch (Exception ex)
+            {
+                RollbackTransaction(transaction);
+                IPBanLog.Error(ex);
+            }
+            ExecuteExternalProcessForBannedIPAddresses(bannedIPs);
         }
 
         /// <summary>
@@ -898,44 +949,12 @@ namespace DigitalRuby.IPBan
         /// Add an ip address log event
         /// </summary>
         /// <param name="events">IP address events</param>
-        /// <returns>Task</returns>
-        public Task AddIPAddressLogEvents(IEnumerable<IPAddressLogEvent> events)
+        public void AddIPAddressLogEvents(IEnumerable<IPAddressLogEvent> events)
         {
-            List<IPAddressPendingEvent> bannedIPs = new List<IPAddressPendingEvent>();
-            object transaction = BeginTransaction();
-            try
+            lock (pendingLogEvents)
             {
-                foreach (IPAddressLogEvent evt in events)
-                {
-                    if (!IPBanFirewallUtility.TryNormalizeIPAddress(evt.IPAddress, out string normalizedIPAddress))
-                    {
-                        continue;
-                    }
-                    evt.IPAddress = normalizedIPAddress;
-                    switch (evt.Type)
-                    {
-                        case IPAddressEventType.FailedLogin:
-                            ProcessIPAddressEvent(evt, pendingFailedLogins, Config.MinimumTimeBetweenFailedLoginAttempts, "failed");
-                            break;
-
-                        case IPAddressEventType.SuccessfulLogin:
-                            ProcessIPAddressEvent(evt, pendingSuccessfulLogins, Config.MinimumTimeBetweenSuccessfulLoginAttempts, "successful");
-                            break;
-
-                        case IPAddressEventType.Blocked:
-                            AddBannedIPAddress(evt.IPAddress, evt.Source, evt.UserName, bannedIPs, evt.Timestamp, false, evt.Count, string.Empty, transaction);
-                            break;
-                    }
-                }
-                CommitTransaction(transaction);
+                pendingLogEvents.AddRange(events);
             }
-            catch (Exception ex)
-            {
-                RollbackTransaction(transaction);
-                IPBanLog.Error(ex);
-            }
-            ExecuteExternalProcessForBannedIPAddresses(bannedIPs);
-            return Task.CompletedTask;
         }
 
         /// <summary>
@@ -1329,6 +1348,7 @@ namespace DigitalRuby.IPBan
             service.MultiThreaded = false;
             service.ManualCycle = true;
             service.BannedIPAddressHandler = service;
+            service.Version = "1.1.1.1";
             service.Start();
             service.DB.Truncate(true);
             service.Firewall.Truncate();
