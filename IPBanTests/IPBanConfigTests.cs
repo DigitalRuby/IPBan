@@ -57,24 +57,49 @@ namespace DigitalRuby.IPBanTests
         {
             const int maxFileSize = 16777216;
             const int pingInterval = 10000;
-            const string pathAndMask1 = "/var/log/auth*.log\n/var/log/secure*";
-            const string pathAndMask2 = "/var/log/ipbancustom*.log";
-            const string pathAndMask3 = "C:/Program Files/Microsoft/Exchange Server/*.log";
-            const string pathAndMask4 = "C:/IPBanCustomLogs/*.log";
-            const string failedRegex1 = @"failed\s+password\s+for\s+(invalid\s+user\s+)?(?<username>.+?\s+)from\s+(?<ipaddress>.+?)\s+port\s+[0-9]+\s+ssh|did\s+not\s+receive\s+identification\s+string\s+from\s+(?<ipaddress>[^\s]+)|connection\s+closed\s+by\s+(invalid\s+user\s+)?(?<username>.+?\s+)?(?<ipaddress>.+?)\s+port\s+[0-9]+\s+\[preauth\]\s*(\(no\s+attempt\s+to\s+login\s+after\s+timeout\))?|disconnected\s+from\s+(invalid\s+user\s+)?(?<username>.+?)\s+(?<ipaddress>.+?)\s+port\s+[0-9]+\s+\[preauth\]|disconnected\s+from\s+(?<ipaddress>.+?)\s+port\s+[0-9]+\s+\[preauth\]|disconnected\s+from\s+authenticating\s+user\s+(?<username>.+?)\s+(?<ipaddress>.+?)\s+port\s+[0-9]+\s+\[preauth\]";
-            const string successRegex1 = @"Accepted\s+password\s+for\s+(?<username>.+?)\s+from\s+(?<ipaddress>.+?)\s+port\s+[0-9]+\s+ssh";
-            const string failedRegex2 = @"ipban\sfailed\slogin,\sip\saddress:\s(?<ipaddress>.+?),\ssource:\s(?<source>.+?),\suser:\s?(?<username>[^\s,]+)?";
-            const string successRegex2 = @"ipban\ssuccess\slogin,\sip\saddress:\s(?<ipaddress>.+?),\ssource:\s(?<source>.+?),\suser:\s?(?<username>[^\s,]+)?";
-            const string failedRegex3 = @".*?,.*?,.*?,.*?,(?<ipaddress>.+?),(?<username>.+?),.*?AuthFailed";
-            const string successRegex3 = @"";
-            const string failedRegex4 = @"ipban\sfailed\slogin,\sip\saddress:\s(?<ipaddress>.+?),\ssource:\s(?<source>.+?),\suser:\s?(?<username>[^\s,]+)?";
-            const string successRegex4 = @"ipban\ssuccess\slogin,\sip\saddress:\s(?<ipaddress>.+?),\ssource:\s(?<source>.+?),\suser:\s?(?<username>[^\s,]+)?";
 
-            Assert.AreEqual(4, cfg.LogFilesToParse.Count);
-            AssertLogFileToParse(cfg.LogFilesToParse[0], failedRegex1, maxFileSize, pathAndMask1, pingInterval, "Linux", false, "SSH", successRegex1);
-            AssertLogFileToParse(cfg.LogFilesToParse[1], failedRegex2, maxFileSize, pathAndMask2, pingInterval, "Linux", false, "IPBanCustom", successRegex2);
-            AssertLogFileToParse(cfg.LogFilesToParse[2], failedRegex3, maxFileSize, pathAndMask3, pingInterval, "Windows", true, "MSExchange", successRegex3);
-            AssertLogFileToParse(cfg.LogFilesToParse[3], failedRegex4, maxFileSize, pathAndMask4, pingInterval, "Windows", true, "IPBanCustom", successRegex4);
+            // path and mask, fail expression, success expression, platform regex, recursive, source
+            object[] logFileData = new object[]
+            {
+                "/var/log/auth*.log\n/var/log/secure*",
+                @"failed\s+password\s+for\s+(invalid\s+user\s+)?(?<username>.+?\s+)from\s+(?<ipaddress>.+?)\s+port\s+[0-9]+\s+ssh|did\s+not\s+receive\s+identification\s+string\s+from\s+(?<ipaddress>[^\s]+)|connection\s+closed\s+by\s+(invalid\s+user\s+)?(?<username>.+?\s+)?(?<ipaddress>.+?)\s+port\s+[0-9]+\s+\[preauth\]\s*(\(no\s+attempt\s+to\s+login\s+after\s+timeout\))?|disconnected\s+from\s+(invalid\s+user\s+)?(?<username>.+?)\s+(?<ipaddress>.+?)\s+port\s+[0-9]+\s+\[preauth\]|disconnected\s+from\s+(?<ipaddress>.+?)\s+port\s+[0-9]+\s+\[preauth\]|disconnected\s+from\s+authenticating\s+user\s+(?<username>.+?)\s+(?<ipaddress>.+?)\s+port\s+[0-9]+\s+\[preauth\]",
+                @"Accepted\s+password\s+for\s+(?<username>.+?)\s+from\s+(?<ipaddress>.+?)\s+port\s+[0-9]+\s+ssh",
+                "Linux", false, "SSH",
+
+                "/var/log/ipbancustom*.log",
+                @"ipban\sfailed\slogin,\sip\saddress:\s(?<ipaddress>.+?),\ssource:\s(?<source>.+?),\suser:\s?(?<username>[^\s,]+)?",
+                @"ipban\ssuccess\slogin,\sip\saddress:\s(?<ipaddress>.+?),\ssource:\s(?<source>.+?),\suser:\s?(?<username>[^\s,]+)?",
+                "Linux", false, "IPBanCustom",
+
+                "C:/Program Files/Microsoft/Exchange Server/*.log",
+                @".*?,.*?,.*?,.*?,(?<ipaddress>.+?),(?<username>.+?),.*?AuthFailed",
+                @"",
+                "Windows", true, "MSExchange",
+
+                "C:/Program Files/Smarter Tools/Smarter Mail/*.log\nC:/ Program Files(x86) / Smarter Tools / Smarter Mail/*.log\nC:/SmarterMail/logs/*.log\nC:/Smarter Mail/logs/*.log",
+                @"\[(?<ipaddress>[^\]]+)\](\[.*?\]\s+)?((The domain given in the blocking rule EHLO command violates an EHLO SMTP\.\s*Any authentication attempts or RCPT commands will be rejected)|IP blocked by brute force abuse detection rule)",
+                @"",
+                "Windows", true, "SmarterMail",
+
+                "C:/IPBanCustomLogs/*.log",
+                @"ipban\sfailed\slogin,\sip\saddress:\s(?<ipaddress>.+?),\ssource:\s(?<source>.+?),\suser:\s?(?<username>[^\s,]+)?",
+                @"ipban\ssuccess\slogin,\sip\saddress:\s(?<ipaddress>.+?),\ssource:\s(?<source>.+?),\suser:\s?(?<username>[^\s,]+)?",
+                "Windows", true, "IPBanCustom"
+            };
+
+            Assert.AreEqual(logFileData.Length / 6, cfg.LogFilesToParse.Count);
+            for (int i = 0; i < logFileData.Length; i += 6)
+            {
+                AssertLogFileToParse(cfg.LogFilesToParse[i / 6],
+                    (string)logFileData[i + 1],
+                    maxFileSize,
+                    (string)logFileData[i],
+                    pingInterval,
+                    (string)logFileData[i + 3],
+                    (bool)logFileData[i + 4],
+                    (string)logFileData[i + 5],
+                    (string)logFileData[i + 2]);
+            }
         }
 
         private void AssertEventViewerGroup(EventViewerExpressionGroup group, string keywords, int windowsMinimumMajorVersion, int windowsMinimumMinorVersion,
