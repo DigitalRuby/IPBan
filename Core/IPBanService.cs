@@ -869,6 +869,7 @@ namespace DigitalRuby.IPBan
                 pendingLogEvents.Clear();
             }
 
+            List<string> unbannedIPs = new List<string>();
             List<IPAddressPendingEvent> bannedIPs = new List<IPAddressPendingEvent>();
             object transaction = BeginTransaction();
             try
@@ -893,6 +894,10 @@ namespace DigitalRuby.IPBan
                         case IPAddressEventType.Blocked:
                             AddBannedIPAddress(evt.IPAddress, evt.Source, evt.UserName, bannedIPs, evt.Timestamp, false, evt.Count, string.Empty, transaction);
                             break;
+
+                        case IPAddressEventType.Unblocked:
+                            unbannedIPs.Add(evt.IPAddress);
+                            break;
                     }
                 }
                 CommitTransaction(transaction);
@@ -903,6 +908,7 @@ namespace DigitalRuby.IPBan
                 IPBanLog.Error(ex);
             }
             ExecuteExternalProcessForBannedIPAddresses(bannedIPs);
+            UnblockIPAddresses(unbannedIPs);
         }
 
         /// <summary>

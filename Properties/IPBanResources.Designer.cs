@@ -1475,6 +1475,24 @@ namespace DigitalRuby.IPBan {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Unban.
+        /// </summary>
+        public static string Unban {
+            get {
+                return ResourceManager.GetString("Unban", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unban IPAddresses.
+        /// </summary>
+        public static string UnbanIPAddresses {
+            get {
+                return ResourceManager.GetString("UnbanIPAddresses", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to An unexpected error has ocurred. Please email support@digitalruby.com for help..
         /// </summary>
         public static string UnexpectedError {
