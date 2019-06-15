@@ -268,6 +268,11 @@ namespace DigitalRuby.IPBan
             return (RulePrefix + (ruleNamePrefix ?? string.Empty)).Trim('_');
         }
 
+        public IPBanMemoryFirewall(string rulePrefix = null)
+        {
+            RulePrefix = (string.IsNullOrWhiteSpace(rulePrefix) ? RulePrefix : rulePrefix);
+        }
+
         public void Update()
         {
         }

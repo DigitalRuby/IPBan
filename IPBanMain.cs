@@ -36,21 +36,27 @@ namespace DigitalRuby.IPBan
     {
         public static async Task<int> Main(string[] args)
         {
-            return await MainService<IPBanService>(args);
+            return await MainService<IPBanService>(args, out _);
         }
 
         public static Task<int> MainService<T>(string[] args) where T : IPBanService
         {
-            IPBanService service = IPBanService.CreateService<T>();
+            return MainService<T>(args, out _);
+        }
+
+        public static Task<int> MainService<T>(string[] args, out T service) where T : IPBanService
+        {
+            T _service = IPBanService.CreateService<T>();
+            service = _service;
             return MainService(args, (_args) =>
             {
-                service.Start();
+                _service.Start();
             }, () =>
             {
-                service.Stop();
+                _service.Stop();
             }, (_timeout) =>
             {
-                return service.Wait(_timeout);
+                return _service.Wait(_timeout);
             });
         }
 

@@ -69,16 +69,12 @@ namespace DigitalRuby.IPBan
         private System.Timers.Timer cycleTimer;
         private bool firewallNeedsBlockedIPAddressesUpdate;
         private bool gotStartUrl;
+        private IPBanDB ipDB;
 
         // batch failed logins every cycle
         private readonly List<IPAddressPendingEvent> pendingFailedLogins = new List<IPAddressPendingEvent>();
         private readonly List<IPAddressPendingEvent> pendingSuccessfulLogins = new List<IPAddressPendingEvent>();
         private readonly List<IPAddressLogEvent> pendingLogEvents = new List<IPAddressLogEvent>();
-
-        // note that an ip that has a block count may not yet be in the ipAddressesAndBanDate dictionary
-        // for locking, always use ipAddressesAndBanDate
-        private readonly IPBanDB ipDB;
-
         private readonly object configLock = new object();
         private readonly HashSet<IUpdater> updaters = new HashSet<IUpdater>();
         private readonly HashSet<IPBanLogFileScanner> logFilesToParse = new HashSet<IPBanLogFileScanner>();
@@ -908,7 +904,10 @@ namespace DigitalRuby.IPBan
                 IPBanLog.Error(ex);
             }
             ExecuteExternalProcessForBannedIPAddresses(bannedIPs);
-            UnblockIPAddresses(unbannedIPs);
+            if (unbannedIPs.Count != 0)
+            {
+                UnblockIPAddresses(unbannedIPs);
+            }
         }
 
         /// <summary>
@@ -918,7 +917,6 @@ namespace DigitalRuby.IPBan
         {
             OSName = IPBanOS.Name + (string.IsNullOrWhiteSpace(IPBanOS.FriendlyName) ? string.Empty : " (" + IPBanOS.FriendlyName + ")");
             OSVersion = IPBanOS.Version;
-            ipDB = new IPBanDB();
         }
 
         /// <summary>
@@ -1121,7 +1119,7 @@ namespace DigitalRuby.IPBan
                 {
                     file.Dispose();
                 }
-                ipDB.Dispose();
+                ipDB?.Dispose();
                 IPBanLog.Warn("Stopped IPBan service");
             }
             catch
@@ -1140,7 +1138,8 @@ namespace DigitalRuby.IPBan
                 return;
             }
 
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            ipDB = new IPBanDB(DatabasePath);
+            if (UseWindowsEventViewer && RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 // attach Windows event viewer to the service
                 EventViewer = new IPBanWindowsEventViewer(this);
@@ -1423,29 +1422,34 @@ namespace DigitalRuby.IPBan
         public IPBanConfig Config { get; private set; }
 
         /// <summary>
+        /// Version of the software
+        /// </summary>
+        public string Version { get; set; } = Assembly.GetEntryAssembly().GetName().Version.ToString();
+
+        /// <summary>
         /// Local ip address
         /// </summary>
-        public string LocalIPAddressString { get; private set; }
+        public string LocalIPAddressString { get; set; }
 
         /// <summary>
         /// Remote ip address
         /// </summary>
-        public string RemoteIPAddressString { get; private set; }
+        public string RemoteIPAddressString { get; set; }
 
         /// <summary>
         /// Fully qualified domain name
         /// </summary>
-        public string FQDN { get; private set; }
-
-        /// <summary>
-        /// Version of the software
-        /// </summary>
-        public string Version { get; private set; } = Assembly.GetEntryAssembly().GetName().Version.ToString();
+        public string FQDN { get; set; }
 
         /// <summary>
         /// Machine guid, null/empty for none
         /// </summary>
         public string MachineGuid { get; set; }
+
+        /// <summary>
+        /// Override the sqlite database path, leave null for default
+        /// </summary>
+        public string DatabasePath { get; set; }
 
         /// <summary>
         /// External delegate to allow external config, whitelist, blacklist, etc.
@@ -1481,6 +1485,11 @@ namespace DigitalRuby.IPBan
         /// Event viewer (null if not on Windows)
         /// </summary>
         public IPBanWindowsEventViewer EventViewer { get; private set; }
+
+        /// <summary>
+        /// Whether to link up to the Windows event viewer on Start
+        /// </summary>
+        public bool UseWindowsEventViewer { get; set; } = true;
 
         /// <summary>
         /// Log files to parse

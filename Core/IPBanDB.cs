@@ -92,6 +92,16 @@ namespace DigitalRuby.IPBan
             {
                 DBConnection = new SqliteConnection(connString);
                 DBConnection.Open();
+                using (SqliteCommand command = DBConnection.CreateCommand())
+                {
+                    command.CommandText = "PRAGMA auto_vacuum = INCREMENTAL;";
+                    command.ExecuteNonQuery();
+                }
+                using (SqliteCommand command = DBConnection.CreateCommand())
+                {
+                    command.CommandText = "PRAGMA journal_mode = WAL;";
+                    command.ExecuteNonQuery();
+                }
                 DBTransaction = DBConnection.BeginTransaction(transactionLevel);
             }
 
@@ -130,10 +140,6 @@ namespace DigitalRuby.IPBan
         public const string FileName = "ipban.sqlite";
 
         private const System.Data.IsolationLevel transactionLevel = System.Data.IsolationLevel.Serializable;
-
-        // note that an ip that has a block count may not yet be in the ipAddressesAndBanDate dictionary
-        // for locking, always use ipAddressesAndBanDate
-        private readonly string dbPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, FileName);
         private readonly string connString;
 
         private int ExecuteNonQuery(string cmdText, params object[] param)
@@ -147,7 +153,7 @@ namespace DigitalRuby.IPBan
             if (conn == null)
             {
                 conn = new SqliteConnection(connString);
-                conn.Open();
+                OpenConnection(conn);
                 closeConn = true;
             }
             try
@@ -174,10 +180,10 @@ namespace DigitalRuby.IPBan
 
         private T ExecuteScalar<T>(string cmdText, params object[] param)
         {
-            using (SqliteConnection connection = new SqliteConnection(connString))
+            using (SqliteConnection conn = new SqliteConnection(connString))
             {
-                connection.Open();
-                using (SqliteCommand command = connection.CreateCommand())
+                OpenConnection(conn);
+                using (SqliteCommand command = conn.CreateCommand())
                 {
                     command.CommandText = cmdText;
                     for (int i = 0; i < param.Length; i++)
@@ -195,7 +201,7 @@ namespace DigitalRuby.IPBan
             if (conn == null)
             {
                 conn = new SqliteConnection(connString);
-                conn.Open();
+                OpenConnection(conn);
                 closeConnection = true;
             }
             SqliteCommand command = conn.CreateCommand();
@@ -206,6 +212,13 @@ namespace DigitalRuby.IPBan
                 command.Parameters.Add(new SqliteParameter("@Param" + i.ToStringInvariant(), param[i] ?? DBNull.Value));
             }
             return command.ExecuteReader((closeConnection ? System.Data.CommandBehavior.CloseConnection : System.Data.CommandBehavior.Default));
+        }
+
+        private void OpenConnection(SqliteConnection conn)
+        {
+            conn.Open();
+            ExecuteNonQuery(conn, null, "PRAGMA auto_vacuum = INCREMENTAL;");
+            ExecuteNonQuery(conn, null, "PRAGMA journal_mode = WAL;");
         }
 
         private IPAddressEntry ParseIPAddressEntry(SqliteDataReader reader)
@@ -245,6 +258,7 @@ namespace DigitalRuby.IPBan
 
         private void Initialize()
         {
+            IPBanLog.Info("Initializing IPBan database at {0}", connString);
             SQLitePCL.Batteries.Init();
             ExecuteNonQuery("PRAGMA auto_vacuum = INCREMENTAL;");
             ExecuteNonQuery("PRAGMA journal_mode = WAL;");
@@ -268,8 +282,9 @@ namespace DigitalRuby.IPBan
         /// <summary>
         /// Constructor
         /// </summary>
-        public IPBanDB()
+        public IPBanDB(string dbPath = null)
         {
+            dbPath = (string.IsNullOrWhiteSpace(dbPath) ? Path.Combine(AppDomain.CurrentDomain.BaseDirectory, FileName) : dbPath);
             connString = "Data Source=" + dbPath;
             Initialize();
         }
@@ -466,7 +481,7 @@ namespace DigitalRuby.IPBan
             int count = 0;
             using (SqliteConnection conn = new SqliteConnection(connString))
             {
-                conn.Open();
+                OpenConnection(conn);
                 using (SqliteTransaction tran = conn.BeginTransaction(transactionLevel))
                 {
                     foreach (KeyValuePair<string, DateTime> ipAddress in ipAddresses)
@@ -494,7 +509,7 @@ namespace DigitalRuby.IPBan
             SqliteConnection conn = (ipDBTransaction?.DBConnection ?? new SqliteConnection(connString));
             if (commit)
             {
-                conn.Open();
+                OpenConnection(conn);
             }
             SqliteTransaction tran = (ipDBTransaction?.DBTransaction ?? conn.BeginTransaction(transactionLevel));
             int stateInt = (int)state;
@@ -537,7 +552,7 @@ namespace DigitalRuby.IPBan
         {
             using (SqliteConnection conn = new SqliteConnection(connString))
             {
-                conn.Open();
+                OpenConnection(conn);
                 using (SqliteTransaction tran = conn.BeginTransaction(transactionLevel))
                 {
                     using (SqliteDataReader reader = ExecuteReader("SELECT IPAddressText, State FROM IPAddresses WHERE State IN (1, 2) ORDER BY IPAddressText", conn, tran))
@@ -629,7 +644,7 @@ namespace DigitalRuby.IPBan
 
             using (SqliteConnection conn = new SqliteConnection(connString))
             {
-                conn.Open();
+                OpenConnection(conn);
                 using (SqliteTransaction tran = conn.BeginTransaction(transactionLevel))
                 {
                     foreach (string ipAddress in ipAddresses)
