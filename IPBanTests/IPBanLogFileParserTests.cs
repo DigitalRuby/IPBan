@@ -155,6 +155,44 @@ namespace DigitalRuby.IPBanTests
             }
         }
 
+        [Test]
+        public void TestLogFileParserMaskReplace()
+        {
+            string pathAndMask = Path.Combine(tempPath, "log-{year}-{month}-{day}.txt");
+            using (IPBanLogFileScanner scanner = new IPBanIPAddressLogFileScanner(this, TestDnsLookup.Instance,
+                source: "SSH",
+                pathAndMask: pathAndMask,
+                recursive: false,
+                regexFailure: "fail, ip: (?<ipaddress>.+), user: (?<username>.*?)",
+                regexSuccess: "success, ip: (?<ipaddress>.+), user: (?<username>.*?)",
+                pingIntervalMilliseconds: 0))
+            {
+                string filePath = Path.Combine(tempPath, "log-2019-05-05.txt");
+                IPBanService.UtcNow = new DateTime(2019, 5, 5, 1, 1, 1, DateTimeKind.Utc);
+                File.WriteAllText(filePath, string.Empty);
+                scanner.PingFiles();
+                File.AppendAllText(filePath, "fail, ip: 99.99.99.99, user: testuser\n");
+                File.AppendAllText(filePath, "success, ip: 98.99.99.99, user: testuser\n");
+                scanner.PingFiles();
+                Assert.AreEqual(1, failedIPAddresses.Count, "Did not find all expected ip addresses");
+                Assert.AreEqual("99.99.99.99", failedIPAddresses[0].IPAddress);
+                Assert.AreEqual(1, successIPAddresses.Count, "Did not find all expected ip addresses");
+                Assert.AreEqual("98.99.99.99", successIPAddresses[0].IPAddress);
+
+                // move date to non-match on log file
+                IPBanService.UtcNow = new DateTime(2019, 6, 5, 1, 1, 1, DateTimeKind.Utc);
+                File.AppendAllText(filePath, "fail, ip: 97.99.99.99, user: testuser\n");
+                File.AppendAllText(filePath, "success, ip: 96.99.99.99, user: testuser\n");
+                scanner.PingFiles();
+
+                // should be no change in parsing as file should have dropped out
+                Assert.AreEqual(1, failedIPAddresses.Count, "Did not find all expected ip addresses");
+                Assert.AreEqual("99.99.99.99", failedIPAddresses[0].IPAddress);
+                Assert.AreEqual(1, successIPAddresses.Count, "Did not find all expected ip addresses");
+                Assert.AreEqual("98.99.99.99", successIPAddresses[0].IPAddress);
+            }
+        }
+
         void IIPAddressEventHandler.AddIPAddressLogEvents(IEnumerable<IPAddressLogEvent> events)
         {
             foreach (IPAddressLogEvent evt in events)
