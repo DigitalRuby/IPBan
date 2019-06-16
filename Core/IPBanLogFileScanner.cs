@@ -269,6 +269,12 @@ namespace DigitalRuby.IPBan
             }
         }
 
+        private string ReplaceLogFile(string logFile)
+        {
+            DateTime now = DateTime.Now;
+            return logFile.Replace("{year}", now.Year.ToString("0000")).Replace("{month}", now.Month.ToString("00")).Replace("{day}", now.Day.ToString("00"));
+        }
+
         private HashSet<WatchedFile> GetCurrentWatchedFiles()
         {
             HashSet<WatchedFile> watchedFilesCopy = new HashSet<WatchedFile>();
@@ -278,7 +284,7 @@ namespace DigitalRuby.IPBan
                 // read in existing files that match the mask in the directory being watched
                 if (Directory.Exists(directoryToWatch))
                 {
-                    foreach (string file in Directory.EnumerateFiles(directoryToWatch, fileMask, SearchOption.TopDirectoryOnly))
+                    foreach (string file in Directory.EnumerateFiles(directoryToWatch, ReplaceLogFile(fileMask), SearchOption.TopDirectoryOnly))
                     {
                         watchedFilesCopy.Add(new WatchedFile(file, new FileInfo(file).Length));
                     }
@@ -346,7 +352,7 @@ namespace DigitalRuby.IPBan
 
             if (countBeforeNewline == maxCountBeforeNewline)
             {
-                throw new InvalidOperationException($"Log file '{fileMask}' may not be a plain text new line delimited file");
+                throw new InvalidOperationException($"Log file '{file.FileName}' may not be a plain text new line delimited file");
             }
 
             if (lastNewlinePos > -1)
