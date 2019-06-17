@@ -269,11 +269,11 @@ namespace DigitalRuby.IPBan
             }
         }
 
-        private string ReplaceLogFile(string logFile)
+        private string ReplacePathVars(string path)
         {
             DateTime nowUtc = IPBanService.UtcNow;
             DateTime nowLocal = nowUtc.ToLocalTime();
-            return logFile.Replace("{year}", nowUtc.Year.ToString("0000")).Replace("{month}", nowUtc.Month.ToString("00")).Replace("{day}", nowUtc.Day.ToString("00"))
+            return path.Replace("{year}", nowUtc.Year.ToString("0000")).Replace("{month}", nowUtc.Month.ToString("00")).Replace("{day}", nowUtc.Day.ToString("00"))
                 .Replace("{year-local}", nowLocal.Year.ToString("0000")).Replace("{month-local}", nowLocal.Month.ToString("00")).Replace("{day-local}", nowLocal.Day.ToString("00")); ;
         }
 
@@ -286,8 +286,9 @@ namespace DigitalRuby.IPBan
                 // read in existing files that match the mask in the directory being watched
                 if (Directory.Exists(directoryToWatch))
                 {
-                    string replacedFileMask = ReplaceLogFile(fileMask);
-                    foreach (string file in Directory.EnumerateFiles(directoryToWatch, replacedFileMask, SearchOption.TopDirectoryOnly))
+                    string replacedDirectory = ReplacePathVars(directoryToWatch);
+                    string replacedFileMask = ReplacePathVars(fileMask);
+                    foreach (string file in Directory.EnumerateFiles(replacedDirectory, replacedFileMask, SearchOption.TopDirectoryOnly))
                     {
                         watchedFilesCopy.Add(new WatchedFile(file, new FileInfo(file).Length));
                     }
