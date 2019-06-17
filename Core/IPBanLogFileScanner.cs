@@ -79,8 +79,9 @@ namespace DigitalRuby.IPBan
         /// <param name="pingIntervalMilliseconds">Ping interval in milliseconds, less than 1 for manual ping required</param>
         public IPBanLogFileScanner(string pathAndMask, bool recursive, long maxFileSizeBytes = 0, int pingIntervalMilliseconds = 0)
         {
+            PathAndMask = pathAndMask?.Trim();
+            PathAndMask.ThrowIfNullOrEmpty(nameof(pathAndMask), "Must pass a non-empty path and mask to log file scanner");
             this.maxFileSize = maxFileSizeBytes;
-            PathAndMask = pathAndMask;
             directoryToWatch = Path.GetDirectoryName(pathAndMask);
             fileMask = Path.GetFileName(pathAndMask);
             if (pingIntervalMilliseconds > 0)

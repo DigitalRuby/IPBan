@@ -100,7 +100,7 @@ namespace DigitalRuby.IPBan
             // remove existing log files that are no longer in config
             foreach (IPBanLogFileScanner file in logFilesToParse.ToArray())
             {
-                if (newConfig.LogFilesToParse.FirstOrDefault(f => f.PathAndMask.Split('\n').Contains(file.PathAndMask)) == null)
+                if (newConfig.LogFilesToParse.FirstOrDefault(f => f.PathsAndMasks.Contains(file.PathAndMask)) == null)
                 {
                     file.Dispose();
                     logFilesToParse.Remove(file);

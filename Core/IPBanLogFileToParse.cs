@@ -121,6 +121,25 @@ namespace DigitalRuby.IPBan
         {
             return string.Format("Path/mask: {0}, platform: {1}", PathAndMask, PlatformRegex);
         }
+
+        /// <summary>
+        /// Get an array of each individual path/mask
+        /// </summary>
+        public string[] PathsAndMasks
+        {
+            get
+            {
+                List<string> list = new List<string>();
+                foreach (string s in PathAndMask.Split('\n'))
+                {
+                    if (!string.IsNullOrWhiteSpace(s))
+                    {
+                        list.Add(s.Trim());
+                    }
+                }
+                return list.ToArray();
+            }
+        }
     }
 
     /// <summary>

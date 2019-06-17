@@ -196,6 +196,20 @@ namespace DigitalRuby.IPBan
         }
 
         /// <summary>
+        /// Throw ArgumentNullException if obj is null
+        /// </summary>
+        /// <param name="obj">Object</param>
+        /// <param name="name">Parameter name</param>
+        /// <param name="message">Message</param>
+        public static void ThrowIfNullOrEmpty(this string obj, string name = null, string message = null)
+        {
+            if (obj == null)
+            {
+                throw new ArgumentNullException(name ?? string.Empty, message);
+            }
+        }
+
+        /// <summary>
         /// Convert an object to string using invariant culture
         /// </summary>
         /// <param name="obj">Object</param>
