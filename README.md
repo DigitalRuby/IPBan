@@ -11,7 +11,7 @@ Please visit <a href='https://ipban.com'>https://ipban.com</a> to learn about IP
 **Requirements**
 - IPBan requires .NET core 2.2 SDK to build and debug code. For an IDE, I suggest Visual Studio Community 2017 (2019+ recommended) for Windows or MAC, or VS code for Linux. All are free. You can build a self contained executable to eliminate the need for dotnet core on the server machine, or just download the precompiled binaries.
 - Running and/or debugging code requires that you run your IDE or terminal as administrator or root.
-- Officially supported platforms: Windows 8.1 or newer (x86, x64), Windows Server 2012 or newer (x86, x64), Linux Ubuntu 16.04+ or equivelant (x64).
+- Officially supported platforms: Windows 8.1 or newer (x86, x64), Windows Server 2008 or newer (x86, x64), Linux Ubuntu 16.04+ or equivelant (x64).
 - Mac OS X not supported at this time.
 
 **Features**
@@ -30,7 +30,7 @@ Please visit <a href='https://ipban.com'>https://ipban.com</a> to learn about IP
 - Legacy download link: https://www.digitalruby.com/download/ipban-software-download/.
 
 **Windows**
-- For Windows, IPBan is supported on Windows Server 2008 or equivalent or newer (Server 2012+ recommended). Windows XP and Server 2003 are NOT supported.
+- For Windows, IPBan is supported on Windows Server 2008 or equivalent or newer (Server 2012+ recommended). Windows Server 2008 does a poor job of logging ip addresses. Windows XP and Server 2003 are NOT supported.
 - Extract the IPBan.zip (inside is IPBanWindows.zip) file to a place on your computer. Right click on all the extracted files and select properties. Make sure to select "unblock" if the option is available.  You can use the [Unblock-File](https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.utility/unblock-file?view=powershell-6) utility with an **elevated** PowerShell to unblock all files in the IPBan directory:
 ```
 dir C:\path\to\ipban | Unblock-File
