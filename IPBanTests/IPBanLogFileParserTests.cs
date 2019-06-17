@@ -193,6 +193,35 @@ namespace DigitalRuby.IPBanTests
             }
         }
 
+        [Test]
+        public void TestLogFileCustomSource()
+        {
+            string fullPath = Path.Combine(tempPath, "test1.txt");
+            using (IPBanLogFileScanner scanner = new IPBanIPAddressLogFileScanner(this, TestDnsLookup.Instance,
+                source: "SSH",
+                pathAndMask: pathAndMask,
+                recursive: false,
+                regexFailure: "(?<source_ssh1>SSH1 (?<ipaddress>.+))|(?<source_ssh2>SSH2 (?<ipaddress>.+))|(?<source_ssh4>SSH4 (?<ipaddress>.+))|(SSH Default (?<ipaddress>.+))",
+                regexSuccess: null,
+                pingIntervalMilliseconds: 0))
+            {
+                File.WriteAllText(fullPath, string.Empty);
+                scanner.PingFiles();
+                File.AppendAllText(fullPath, "SSH1 97.97.97.97\n");
+                File.AppendAllText(fullPath, "SSH2 98.97.97.97\n");
+                File.AppendAllText(fullPath, "SSH3 99.97.97.97\n"); // fail
+                File.AppendAllText(fullPath, "SSH Default 100.97.97.97\n");
+                scanner.PingFiles();
+                Assert.AreEqual(3, failedIPAddresses.Count, "Did not find all expected ip addresses");
+                Assert.AreEqual("97.97.97.97", failedIPAddresses[0].IPAddress);
+                Assert.AreEqual("ssh1", failedIPAddresses[0].Source);
+                Assert.AreEqual("98.97.97.97", failedIPAddresses[1].IPAddress);
+                Assert.AreEqual("ssh2", failedIPAddresses[1].Source);
+                Assert.AreEqual("100.97.97.97", failedIPAddresses[2].IPAddress);
+                Assert.AreEqual("SSH", failedIPAddresses[2].Source);
+            }
+        }
+
         void IIPAddressEventHandler.AddIPAddressLogEvents(IEnumerable<IPAddressLogEvent> events)
         {
             foreach (IPAddressLogEvent evt in events)

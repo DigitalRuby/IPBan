@@ -963,7 +963,7 @@ namespace DigitalRuby.IPBan
         }
 
         /// <summary>
-        /// Get an ip address and user name out of text using regex
+        /// Get an ip address and user name out of text using regex. Regex may contain groups named source_[sourcename] to override the source.
         /// </summary>
         /// <param name="dns">Dns lookup to resolve ip addresses</param>
         /// <param name="regex">Regex</param>
@@ -973,6 +973,7 @@ namespace DigitalRuby.IPBan
         /// <returns>True if a regex match was found, false otherwise</returns>
         public static IPAddressLogEvent GetIPAddressInfoFromRegex(IDnsLookup dns, Regex regex, string text)
         {
+            const string customSourcePrefix = "source_";
             bool foundMatch = false;
             string userName = null;
             string ipAddress = null;
@@ -1002,6 +1003,16 @@ namespace DigitalRuby.IPBan
                 if (sourceGroup != null && sourceGroup.Success)
                 {
                     source = (source ?? sourceGroup.Value.Trim('\'', '\"', '(', ')', '[', ']', '{', '}', ' ', '\r', '\n'));
+                }
+                if (string.IsNullOrWhiteSpace(source))
+                {
+                    foreach (Group group in m.Groups)
+                    {
+                        if (group.Success && group.Name != null && group.Name.StartsWith(customSourcePrefix))
+                        {
+                            source = group.Name.Substring(customSourcePrefix.Length);
+                        }
+                    }
                 }
 
                 // check if the regex had an ipadddress group
