@@ -764,6 +764,33 @@ namespace DigitalRuby.IPBan {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Login.
+        /// </summary>
+        public static string Login {
+            get {
+                return ResourceManager.GetString("Login", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Login failed.
+        /// </summary>
+        public static string LoginFailed {
+            get {
+                return ResourceManager.GetString("LoginFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Logout.
+        /// </summary>
+        public static string Logout {
+            get {
+                return ResourceManager.GetString("Logout", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Log Parsing.
         /// </summary>
         public static string LogParsing {
@@ -1160,6 +1187,15 @@ namespace DigitalRuby.IPBan {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Remember Me.
+        /// </summary>
+        public static string RememberMe {
+            get {
+                return ResourceManager.GetString("RememberMe", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Remote Host.
         /// </summary>
         public static string RemoteHost {
@@ -1525,6 +1561,15 @@ namespace DigitalRuby.IPBan {
         public static string UserName {
             get {
                 return ResourceManager.GetString("UserName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to User name or password is empty.
+        /// </summary>
+        public static string UsernameOrPasswordIsBlank {
+            get {
+                return ResourceManager.GetString("UsernameOrPasswordIsBlank", resourceCulture);
             }
         }
         

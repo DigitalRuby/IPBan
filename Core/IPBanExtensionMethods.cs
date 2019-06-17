@@ -22,6 +22,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+#region Imports
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -32,6 +34,7 @@ using System.Net;
 using System.Runtime.InteropServices;
 using System.Runtime.Serialization;
 using System.Security;
+using System.Security.Cryptography;
 using System.Security.Principal;
 using System.Text;
 using System.Threading;
@@ -40,6 +43,8 @@ using System.Web;
 using System.Xml;
 using System.Xml.Serialization;
 using System.Xml.XPath;
+
+#endregion Imports
 
 namespace DigitalRuby.IPBan
 {
@@ -374,6 +379,20 @@ namespace DigitalRuby.IPBan
                 return null;
             }
             return Utf8EncodingNoPrefix.GetBytes(s);
+        }
+
+        /// <summary>
+        /// Get a sha256 hex string from a string
+        /// </summary>
+        /// <param name="s">String</param>
+        /// <returns>Sha-256 hex string</returns>
+        public static string ToSHA256String(this string s)
+        {
+            s = (s ?? string.Empty);
+            using (SHA256Managed hasher = new SHA256Managed())
+            {
+                return BitConverter.ToString(hasher.ComputeHash(Encoding.UTF8.GetBytes(s))).Replace("-", string.Empty);
+            }
         }
 
         /// <summary>

@@ -697,4 +697,19 @@ Prefix with OS:ClassName, example: Windows:Custom,Linux:Default</value>
     <value>Unban</value>
     <comment>i.e. unban an ip address</comment>
   </data>
+  <data name="LoginFailed" xml:space="preserve">
+    <value>Login failed</value>
+  </data>
+  <data name="UsernameOrPasswordIsBlank" xml:space="preserve">
+    <value>User name or password is empty</value>
+  </data>
+  <data name="Login" xml:space="preserve">
+    <value>Login</value>
+  </data>
+  <data name="Logout" xml:space="preserve">
+    <value>Logout</value>
+  </data>
+  <data name="RememberMe" xml:space="preserve">
+    <value>Remember Me</value>
+  </data>
 </root>
