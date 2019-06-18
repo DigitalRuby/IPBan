@@ -25,6 +25,7 @@ SOFTWARE.
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -188,6 +189,11 @@ namespace DigitalRuby.IPBan
         /// Whether the service is multi-threaded
         /// </summary>
         bool MultiThreaded { get; }
+
+        /// <summary>
+        /// Authorization
+        /// </summary>
+        SecureString Authorization { get; }
     }
 
     /// <summary>

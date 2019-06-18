@@ -31,17 +31,14 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Reflection;
+using System.Runtime.InteropServices;
+using System.Security;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
-using System.Text.RegularExpressions;
-using System.Reflection;
-using System.Configuration;
-using System.Runtime.InteropServices;
-using System.Net.Http;
-using System.Security.Cryptography;
-using System.Web;
 
 #endregion Imports
 
@@ -661,7 +658,8 @@ namespace DigitalRuby.IPBan
                 url = ReplaceUrl(url);
                 try
                 {
-                    byte[] bytes = await RequestMaker.MakeRequestAsync(new Uri(url));
+                    KeyValuePair<string, object>[] headers = (Authorization == null ? null : new KeyValuePair<string, object>[] { new KeyValuePair<string, object>("Authorization", Authorization) });
+                    byte[] bytes = await RequestMaker.MakeRequestAsync(new Uri(url), headers: headers);
                     if (urlType == UrlType.Start)
                     {
                         gotStartUrl = true;
@@ -1526,6 +1524,11 @@ namespace DigitalRuby.IPBan
         /// IPBan database
         /// </summary>
         public IPBanDB DB { get { return ipDB; } }
+
+        /// <summary>
+        /// Authorization header for requests
+        /// </summary>
+        public SecureString Authorization { get; set; }
 
         /// <summary>
         /// File name to write ip addresses to (one per line) to unblock the ip addresses in the file
