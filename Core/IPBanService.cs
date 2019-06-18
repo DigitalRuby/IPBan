@@ -309,7 +309,7 @@ namespace DigitalRuby.IPBan
                             else
                             {
                                 IPBanLog.Debug("Failed login count {0} <= ban count {1}", newCount, maxFailedLoginAttempts);
-                                if (IPBanOS.UserNameExists(userName))
+                                if (IPBanOS.UserIsActive(userName))
                                 {
                                     IPBanLog.Warn("Login failed for known active user {0}", userName);
                                 }

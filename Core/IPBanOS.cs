@@ -282,11 +282,11 @@ namespace DigitalRuby.IPBan
         }
 
         /// <summary>
-        /// Check if a user name exists on the local machine
+        /// Check if a user name is active on the local machine
         /// </summary>
         /// <param name="userName">User name to check</param>
-        /// <returns>True if user name exists, false otherwise</returns>
-        public static bool UserNameExists(string userName)
+        /// <returns>True if user name is active, false otherwise</returns>
+        public static bool UserIsActive(string userName)
         {
             if (string.IsNullOrWhiteSpace(userName))
             {
@@ -318,7 +318,7 @@ namespace DigitalRuby.IPBan
                     // Linux: /etc/passwd
                     if (File.Exists("/etc/passwd"))
                     {
-                        HashSet<string> enabledUsers = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                        bool enabled = false;
                         string[] lines;
                         if (File.Exists("/etc/shadow"))
                         {
@@ -327,23 +327,39 @@ namespace DigitalRuby.IPBan
                             // root:!$1$Fp$SSSuo3L.xA5s/kMEEIloU1:18049:0:99999:7:::
                             foreach (string[] pieces in lines.Select(l => l.Split(':')).Where(p => p.Length == 9))
                             {
-                                string pwdHash = pieces[1].Trim();
-                                if (pwdHash.Length != 0 && pwdHash[0] != '*' && pwdHash[0] != '!')
+                                string checkUserName = pieces[0].Trim();
+                                if (checkUserName.Equals(userName))
                                 {
-                                    enabledUsers.Add(pieces[0]);
+                                    string pwdHash = pieces[1].Trim();
+                                    if (pwdHash.Length != 0 && pwdHash[0] != '*' && pwdHash[0] != '!')
+                                    {
+                                        enabled = true;
+                                        break;
+                                    }
+                                    else
+                                    {
+                                        return false;
+                                    }
                                 }
                             }
                         }
 
-                        lines = File.ReadAllLines("/etc/passwd");
-                        // example line:
-                        // root:x:0:0:root:/root:/bin/bash
-                        foreach (string[] pieces in lines.Select(l => l.Split(':')).Where(p => p.Length == 7))
+                        if (enabled)
                         {
-                            if (pieces[6].IndexOf("nologin", StringComparison.OrdinalIgnoreCase) < 0 && !pieces[6].Contains("/bin/false") &&
-                                pieces[0].Trim().Equals(userName, StringComparison.OrdinalIgnoreCase) && enabledUsers.Contains(userName))
+                            // user is OK in shadow file, check passwd file
+                            lines = File.ReadAllLines("/etc/passwd");
+                            // example line:
+                            // root:x:0:0:root:/root:/bin/bash
+                            foreach (string[] pieces in lines.Select(l => l.Split(':')).Where(p => p.Length == 7))
                             {
-                                return true;
+                                // x means shadow file is where the password is at
+                                string checkUserName = pieces[0].Trim();
+                                string nologin = pieces[6];
+                                if (checkUserName.Equals(userName) && nologin.IndexOf("nologin", StringComparison.OrdinalIgnoreCase) < 0 &&
+                                    !nologin.Contains("/bin/false"))
+                                {
+                                    return true;
+                                }
                             }
                         }
                     }
