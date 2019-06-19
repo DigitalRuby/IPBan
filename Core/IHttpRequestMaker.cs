@@ -71,10 +71,10 @@ namespace DigitalRuby.IPBan
             protected override WebRequest GetWebRequest(Uri uri)
             {
                 WebRequest w = base.GetWebRequest(uri);
-                w.Timeout = 5000;
+                w.Timeout = 30000;
                 if (w is HttpWebRequest req)
                 {
-                    req.ReadWriteTimeout = 5000;
+                    req.ReadWriteTimeout = 30000;
                 }
                 return w;
             }

@@ -715,4 +715,7 @@ Prefix with OS:ClassName, example: Windows:Custom,Linux:Default</value>
   <data name="AutoRefresh" xml:space="preserve">
     <value>Auto Refresh</value>
   </data>
+  <data name="PleaseWait" xml:space="preserve">
+    <value>Please Wait…</value>
+  </data>
 </root>
