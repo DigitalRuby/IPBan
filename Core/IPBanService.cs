@@ -63,6 +63,8 @@ namespace DigitalRuby.IPBan
             public int Count { get; set; }
         }
 
+        private static readonly object configLock = new object();
+
         private System.Timers.Timer cycleTimer;
         private bool firewallNeedsBlockedIPAddressesUpdate;
         private bool gotStartUrl;
@@ -72,7 +74,6 @@ namespace DigitalRuby.IPBan
         private readonly List<IPAddressPendingEvent> pendingFailedLogins = new List<IPAddressPendingEvent>();
         private readonly List<IPAddressPendingEvent> pendingSuccessfulLogins = new List<IPAddressPendingEvent>();
         private readonly List<IPAddressLogEvent> pendingLogEvents = new List<IPAddressLogEvent>();
-        private readonly object configLock = new object();
         private readonly HashSet<IUpdater> updaters = new HashSet<IUpdater>();
         private readonly HashSet<IPBanLogFileScanner> logFilesToParse = new HashSet<IPBanLogFileScanner>();
         private readonly ManualResetEvent stopEvent = new ManualResetEvent(false);

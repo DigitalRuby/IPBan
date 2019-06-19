@@ -88,10 +88,12 @@ namespace DigitalRuby.IPBan
 
         private class IPBanDBTransaction : IDisposable
         {
-            public IPBanDBTransaction(string connString)
+            private readonly bool disposeConnection;
+
+            public IPBanDBTransaction(SqliteConnection conn, bool disposeConnection)
             {
-                DBConnection = new SqliteConnection(connString);
-                DBConnection.Open();
+                DBConnection = conn;
+                this.disposeConnection = disposeConnection;
                 using (SqliteCommand command = DBConnection.CreateCommand())
                 {
                     command.CommandText = "PRAGMA auto_vacuum = INCREMENTAL;";
@@ -115,7 +117,10 @@ namespace DigitalRuby.IPBan
                 }
                 if (DBConnection != null)
                 {
-                    DBConnection.Dispose();
+                    if (disposeConnection)
+                    {
+                        DBConnection.Dispose();
+                    }
                     DBConnection = null;
                 }
             }
@@ -141,6 +146,7 @@ namespace DigitalRuby.IPBan
 
         private const System.Data.IsolationLevel transactionLevel = System.Data.IsolationLevel.Serializable;
         private readonly string connString;
+        private readonly SqliteConnection memoryConnection;
 
         private int ExecuteNonQuery(string cmdText, params object[] param)
         {
@@ -152,7 +158,7 @@ namespace DigitalRuby.IPBan
             bool closeConn = false;
             if (conn == null)
             {
-                conn = new SqliteConnection(connString);
+                conn = CreateConnection();
                 OpenConnection(conn);
                 closeConn = true;
             }
@@ -173,14 +179,15 @@ namespace DigitalRuby.IPBan
             {
                 if (closeConn)
                 {
-                    conn.Close();
+                    CloseConnection(conn);
                 }
             }
         }
 
         private T ExecuteScalar<T>(string cmdText, params object[] param)
         {
-            using (SqliteConnection conn = new SqliteConnection(connString))
+            SqliteConnection conn = CreateConnection();
+            try
             {
                 OpenConnection(conn);
                 using (SqliteCommand command = conn.CreateCommand())
@@ -193,6 +200,10 @@ namespace DigitalRuby.IPBan
                     return (T)Convert.ChangeType(command.ExecuteScalar(), typeof(T));
                 }
             }
+            finally
+            {
+                CloseConnection(conn);
+            }
         }
 
         private SqliteDataReader ExecuteReader(string query, SqliteConnection conn, SqliteTransaction tran, params object[] param)
@@ -200,7 +211,7 @@ namespace DigitalRuby.IPBan
             bool closeConnection = false;
             if (conn == null)
             {
-                conn = new SqliteConnection(connString);
+                conn = CreateConnection();
                 OpenConnection(conn);
                 closeConnection = true;
             }
@@ -211,14 +222,30 @@ namespace DigitalRuby.IPBan
             {
                 command.Parameters.Add(new SqliteParameter("@Param" + i.ToStringInvariant(), param[i] ?? DBNull.Value));
             }
-            return command.ExecuteReader((closeConnection ? System.Data.CommandBehavior.CloseConnection : System.Data.CommandBehavior.Default));
+            return command.ExecuteReader((closeConnection && conn != memoryConnection ? System.Data.CommandBehavior.CloseConnection : System.Data.CommandBehavior.Default));
+        }
+
+        private SqliteConnection CreateConnection()
+        {
+            return (memoryConnection ?? new SqliteConnection(connString));
         }
 
         private void OpenConnection(SqliteConnection conn)
         {
-            conn.Open();
-            ExecuteNonQuery(conn, null, "PRAGMA auto_vacuum = INCREMENTAL;");
-            ExecuteNonQuery(conn, null, "PRAGMA journal_mode = WAL;");
+            if (conn != memoryConnection)
+            {
+                conn.Open();
+                ExecuteNonQuery(conn, null, "PRAGMA auto_vacuum = INCREMENTAL;");
+                ExecuteNonQuery(conn, null, "PRAGMA journal_mode = WAL;");
+            }
+        }
+
+        private void CloseConnection(SqliteConnection conn)
+        {
+            if (conn != memoryConnection)
+            {
+                conn.Close();
+            }
         }
 
         private IPAddressEntry ParseIPAddressEntry(SqliteDataReader reader)
@@ -286,6 +313,11 @@ namespace DigitalRuby.IPBan
         {
             dbPath = (string.IsNullOrWhiteSpace(dbPath) ? Path.Combine(AppDomain.CurrentDomain.BaseDirectory, FileName) : dbPath);
             connString = "Data Source=" + dbPath;
+            if (dbPath.Equals(":memory:"))
+            {
+                memoryConnection = new SqliteConnection(connString);
+                memoryConnection.Open();
+            }
             Initialize();
         }
 
@@ -296,6 +328,7 @@ namespace DigitalRuby.IPBan
         {
             GC.Collect();
             GC.WaitForPendingFinalizers();
+            memoryConnection?.Dispose();
         }
 
         /// <summary>
@@ -304,7 +337,9 @@ namespace DigitalRuby.IPBan
         /// <returns>Transaction</returns>
         public object BeginTransaction()
         {
-            return new IPBanDBTransaction(connString);
+            SqliteConnection conn = CreateConnection();
+            OpenConnection(conn);
+            return new IPBanDBTransaction(conn, conn != memoryConnection);
         }
 
         /// <summary>
@@ -479,7 +514,8 @@ namespace DigitalRuby.IPBan
         public int SetBannedIPAddresses(IEnumerable<KeyValuePair<string, DateTime>> ipAddresses)
         {
             int count = 0;
-            using (SqliteConnection conn = new SqliteConnection(connString))
+            SqliteConnection conn = CreateConnection();
+            try
             {
                 OpenConnection(conn);
                 using (SqliteTransaction tran = conn.BeginTransaction(transactionLevel))
@@ -490,6 +526,10 @@ namespace DigitalRuby.IPBan
                     }
                     tran.Commit();
                 }
+            }
+            finally
+            {
+                CloseConnection(conn);
             }
             return count;
         }
@@ -506,7 +546,7 @@ namespace DigitalRuby.IPBan
             int count = 0;
             IPBanDBTransaction ipDBTransaction = transaction as IPBanDBTransaction;
             bool commit = (transaction == null);
-            SqliteConnection conn = (ipDBTransaction?.DBConnection ?? new SqliteConnection(connString));
+            SqliteConnection conn = (ipDBTransaction?.DBConnection ?? CreateConnection());
             if (commit)
             {
                 OpenConnection(conn);
@@ -537,7 +577,7 @@ namespace DigitalRuby.IPBan
                 {
                     tran.Commit();
                     tran.Dispose();
-                    conn.Dispose();
+                    CloseConnection(conn);
                 }
             }
             return count;
@@ -550,7 +590,8 @@ namespace DigitalRuby.IPBan
         /// <returns></returns>
         public IEnumerable<IPBanFirewallIPAddressDelta> EnumerateIPAddressesDelta(bool commit)
         {
-            using (SqliteConnection conn = new SqliteConnection(connString))
+            SqliteConnection conn = CreateConnection();
+            try
             {
                 OpenConnection(conn);
                 using (SqliteTransaction tran = conn.BeginTransaction(transactionLevel))
@@ -569,6 +610,10 @@ namespace DigitalRuby.IPBan
                         tran.Commit();
                     }
                 }
+            }
+            finally
+            {
+                CloseConnection(conn);
             }
         }
 
@@ -642,7 +687,8 @@ namespace DigitalRuby.IPBan
         {
             int count = 0;
 
-            using (SqliteConnection conn = new SqliteConnection(connString))
+            SqliteConnection conn = CreateConnection();
+            try
             {
                 OpenConnection(conn);
                 using (SqliteTransaction tran = conn.BeginTransaction(transactionLevel))
@@ -656,6 +702,10 @@ namespace DigitalRuby.IPBan
                     }
                     tran.Commit();
                 }
+            }
+            finally
+            {
+                CloseConnection(conn);
             }
             return count;
         }
