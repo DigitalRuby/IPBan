@@ -46,7 +46,7 @@ namespace DigitalRuby.IPBan
 {
     public class IPBanService : IIPBanService, IBannedIPAddressHandler
     {
-        private enum UrlType
+        protected enum UrlType
         {
             Start,
             Update,
@@ -585,11 +585,17 @@ namespace DigitalRuby.IPBan
                 }
             }
 
-            // now that we are done iterating the ip addresses, we can issue a delete for forgotten ip
-            ipDB.DeleteIPAddresses(ipAddressesToForget);
+            if (ipAddressesToForget.Count != 0)
+            {
+                // now that we are done iterating the ip addresses, we can issue a delete for forgotten ip
+                ipDB.DeleteIPAddresses(ipAddressesToForget);
+            }
 
-            // set ip to remove from firewall as pending deletion
-            ipDB.SetIPAddressesState(ipAddressesToUnBan, IPBanDB.IPAddressState.RemovePending);
+            if (ipAddressesToUnBan.Count != 0)
+            {
+                // set ip to remove from firewall as pending deletion
+                ipDB.SetIPAddressesState(ipAddressesToUnBan, IPBanDB.IPAddressState.RemovePending);
+            }
         }
 
         private static bool IpAddressIsInRange(string ipAddress, string ipRange)
@@ -633,7 +639,7 @@ namespace DigitalRuby.IPBan
             }
         }
 
-        private async Task GetUrl(UrlType urlType)
+        protected virtual async Task GetUrl(UrlType urlType)
         {
             if ((urlType == UrlType.Start && gotStartUrl) || string.IsNullOrWhiteSpace(LocalIPAddressString) || string.IsNullOrWhiteSpace(FQDN))
             {
@@ -718,7 +724,7 @@ namespace DigitalRuby.IPBan
                 IPBanLog.Debug("Firewall entries updated: {0}", string.Join(',', deltas.Select(d => d.IPAddress)));
                 if (MultiThreaded)
                 {
-                    TaskQueue.Add(() => Firewall.BlockIPAddressesDelta(null, deltas, null, TaskQueue.GetToken()));
+                    TaskQueue.Add((token) => Firewall.BlockIPAddressesDelta(null, deltas, null, token));
                 }
                 else
                 {
@@ -1163,7 +1169,10 @@ namespace DigitalRuby.IPBan
             IPBanDelegate?.Start(this);
             if (!ManualCycle)
             {
-                RunCycle().Sync(); // run one cycle right away
+                if (RunFirstCycleRightAway)
+                {
+                    RunCycle().Sync(); // run one cycle right away
+                }
                 cycleTimer = new System.Timers.Timer(Config.CycleTime.TotalMilliseconds);
                 cycleTimer.Elapsed += async (sender, e) => await CycleTimerElapsed(sender, e);
                 cycleTimer.Start();
@@ -1529,6 +1538,11 @@ namespace DigitalRuby.IPBan
         /// Authorization header for requests
         /// </summary>
         public SecureString Authorization { get; set; }
+
+        /// <summary>
+        /// Whether to run the first cycle in the Start method or wait for the timer to elapse.
+        /// </summary>
+        public bool RunFirstCycleRightAway { get; set; } = true;
 
         /// <summary>
         /// File name to write ip addresses to (one per line) to unblock the ip addresses in the file

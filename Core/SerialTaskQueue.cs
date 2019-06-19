@@ -42,7 +42,7 @@ namespace DigitalRuby.IPBan
         /// </summary>
         private class SerialTaskQueueGroup : IDisposable
         {
-            private readonly BlockingCollection<Func<Task>> taskQueue = new BlockingCollection<Func<Task>>();
+            private readonly BlockingCollection<Func<CancellationToken, Task>> taskQueue = new BlockingCollection<Func<CancellationToken, Task>>();
             private readonly Task taskQueueRunner;
             private readonly CancellationTokenSource taskQueueRunnerCancel = new CancellationTokenSource();
             private readonly AutoResetEvent taskEmptyEvent = new AutoResetEvent(false);
@@ -81,7 +81,7 @@ namespace DigitalRuby.IPBan
             /// </summary>
             /// <param name="action"></param>
             /// <returns>True if added, false if the queue is or has been disposed</returns>
-            public bool Add(Func<Task> action)
+            public bool Add(Func<CancellationToken, Task> action)
             {
                 if (!taskQueueRunnerCancel.IsCancellationRequested)
                 {
@@ -112,20 +112,24 @@ namespace DigitalRuby.IPBan
 
             private Task StartQueue()
             {
-                return Task.Run(() =>
+                return Task.Run(async () =>
                 {
                     try
                     {
-                        while (taskQueue.TryTake(out Func<Task> runner, -1, taskQueueRunnerCancel.Token))
+                        while (true)
                         {
                             try
                             {
-                                Task task = runner();
-                                task.Wait(-1, taskQueueRunnerCancel.Token);
-                                if (taskQueue.Count == 0)
+                                while (taskQueue.TryTake(out Func<CancellationToken, Task> runner))
                                 {
-                                    taskEmptyEvent.Set();
+                                    await runner(taskQueueRunnerCancel.Token);
+                                    if (taskQueueRunnerCancel.IsCancellationRequested || taskQueue.Count == 0)
+                                    {
+                                        taskEmptyEvent.Set();
+                                        break;
+                                    }
                                 }
+                                await Task.Delay(100);
                             }
                             catch (OperationCanceledException)
                             {
@@ -201,7 +205,7 @@ namespace DigitalRuby.IPBan
         /// <param name="action"></param>
         /// <param name="name">Queue name or empty string for default</param>
         /// <returns>True if added, false if the queue is or has been disposed</returns>
-        public bool Add(Func<Task> action, string name = "")
+        public bool Add(Func<CancellationToken, Task> action, string name = "")
         {
             if (disposed || name == null || action == null)
             {
@@ -219,11 +223,11 @@ namespace DigitalRuby.IPBan
             {
                 return false;
             }
-            group.Add(async () =>
+            group.Add(async (token) =>
             {
                 try
                 {
-                    await action();
+                    await action(token);
                 }
                 catch (Exception ex)
                 {

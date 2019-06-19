@@ -712,4 +712,7 @@ Prefix with OS:ClassName, example: Windows:Custom,Linux:Default</value>
   <data name="RememberMe" xml:space="preserve">
     <value>Remember Me</value>
   </data>
+  <data name="AutoRefresh" xml:space="preserve">
+    <value>Auto Refresh</value>
+  </data>
 </root>
