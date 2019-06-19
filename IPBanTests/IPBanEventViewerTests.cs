@@ -185,11 +185,6 @@ namespace DigitalRuby.IPBanTests
             
         }
 
-        void IIPBanDelegate.Stop()
-        {
-            
-        }
-
         void IIPBanDelegate.Update()
         {
         }

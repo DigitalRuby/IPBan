@@ -77,6 +77,8 @@ namespace DigitalRuby.IPBan
         private readonly HashSet<IUpdater> updaters = new HashSet<IUpdater>();
         private readonly HashSet<IPBanLogFileScanner> logFilesToParse = new HashSet<IPBanLogFileScanner>();
         private readonly ManualResetEvent stopEvent = new ManualResetEvent(false);
+        private readonly AsyncQueue<Func<CancellationToken, Task>> firewallQueue = new AsyncQueue<Func<CancellationToken, Task>>();
+        private readonly CancellationTokenSource firewallQueueCancel = new CancellationTokenSource();
 
         private DateTime lastConfigFileDateTime = DateTime.MinValue;
         private bool whitelistChanged;
@@ -90,6 +92,18 @@ namespace DigitalRuby.IPBan
             else
             {
                 action.Invoke();
+            }
+        }
+
+        private async Task FirewallTask()
+        {
+            KeyValuePair<bool, Func<CancellationToken, Task>> nextAction;
+            while (!firewallQueueCancel.IsCancellationRequested && (nextAction = await firewallQueue.TryDequeueAsync(firewallQueueCancel.Token)).Key)
+            {
+                if (nextAction.Value != null)
+                {
+                    await nextAction.Value?.Invoke(firewallQueueCancel.Token);
+                }
             }
         }
 
@@ -725,7 +739,7 @@ namespace DigitalRuby.IPBan
                 IPBanLog.Debug("Firewall entries updated: {0}", string.Join(',', deltas.Select(d => d.IPAddress)));
                 if (MultiThreaded)
                 {
-                    TaskQueue.Add((token) => Firewall.BlockIPAddressesDelta(null, deltas, null, token));
+                    RunFirewallTask((token) => Firewall.BlockIPAddressesDelta(null, deltas, null, token));
                 }
                 else
                 {
@@ -1116,11 +1130,9 @@ namespace DigitalRuby.IPBan
             IsRunning = false;
             try
             {
-                IPBanLog.Warn("Stopping task queue...");
-                TaskQueue.Dispose(true);
+                firewallQueueCancel.Cancel();
                 GetUrl(UrlType.Stop).Sync();
                 cycleTimer?.Dispose();
-                IPBanDelegate?.Stop();
                 IPBanDelegate?.Dispose();
                 IPBanDelegate = null;
                 lock (updaters)
@@ -1154,14 +1166,14 @@ namespace DigitalRuby.IPBan
                 return;
             }
 
+            IsRunning = true;
+            Task.Run(FirewallTask);
             ipDB = new IPBanDB(DatabasePath);
             if (UseWindowsEventViewer && RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 // attach Windows event viewer to the service
                 EventViewer = new IPBanWindowsEventViewer(this);
             }
-
-            IsRunning = true;
             AddUpdater(new IPBanUnblockIPAddressesUpdater(this, Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "unban.txt")));
             AssemblyVersion = IPBanService.GetIPBanAssembly().GetName().Version.ToString();
             ReadAppSettings();
@@ -1309,6 +1321,22 @@ namespace DigitalRuby.IPBan
             }
         }
 
+        /// <summary>
+        /// Run a task on the firewall queue
+        /// </summary>
+        /// <param name="action">Action to run</param>
+        public void RunFirewallTask(Func<CancellationToken, Task> action)
+        {
+            if (MultiThreaded)
+            {
+                firewallQueue.Enqueue(action);
+            }
+            else
+            {
+                action.Invoke(firewallQueueCancel.Token).Sync();
+            }
+        }
+
         Task IBannedIPAddressHandler.HandleBannedIPAddress(string ipAddress, string source, string userName, string osName, string osVersion, string assemblyVersion, IHttpRequestMaker requestMaker)
         {
             // do nothing
@@ -1429,11 +1457,6 @@ namespace DigitalRuby.IPBan
         /// Extra handler for banned ip addresses (optional)
         /// </summary>
         public IBannedIPAddressHandler BannedIPAddressHandler { get; set; } = new DefaultBannedIPAddressHandler();
-
-        /// <summary>
-        /// Serial task queue
-        /// </summary>
-        public SerialTaskQueue TaskQueue { get; } = new SerialTaskQueue();
 
         /// <summary>
         /// Configuration

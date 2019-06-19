@@ -107,11 +107,6 @@ namespace DigitalRuby.IPBanTests
             AddEvent(nameof(IIPBanDelegate.Start));
         }
 
-        void IIPBanDelegate.Stop()
-        {
-            AddEvent(nameof(IIPBanDelegate.Stop));
-        }
-
         void IIPBanDelegate.Update()
         {
             AddEvent(nameof(IIPBanDelegate.Update));

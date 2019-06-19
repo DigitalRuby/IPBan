@@ -28,6 +28,7 @@ using System.Linq;
 using System.Security;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace DigitalRuby.IPBan
@@ -104,6 +105,12 @@ namespace DigitalRuby.IPBan
         bool RemoveUpdater(IUpdater updater);
 
         /// <summary>
+        /// Run an action on the firewall queue
+        /// </summary>
+        /// <param name="action">Action to run on the firewall queue</param>
+        void RunFirewallTask(Func<CancellationToken, Task> action);
+
+        /// <summary>
         /// Check if an ip is whitelisted
         /// </summary>
         /// <param name="ip">IP address</param>
@@ -171,11 +178,6 @@ namespace DigitalRuby.IPBan
         IIPBanDelegate IPBanDelegate { get; }
 
         /// <summary>
-        /// Serial task queue
-        /// </summary>
-        SerialTaskQueue TaskQueue { get; }
-
-        /// <summary>
         /// Operating system name
         /// </summary>
         string OSName { get; }
@@ -202,15 +204,10 @@ namespace DigitalRuby.IPBan
     public interface IIPBanDelegate : IDisposable
     {
         /// <summary>
-        /// Start
+        /// Start - call only once. Dispose to stop.
         /// </summary>
         /// <param name="service">The service this delegate is attached to</param>
         void Start(IIPBanService service);
-
-        /// <summary>
-        /// Stop
-        /// </summary>
-        void Stop();
 
         /// <summary>
         /// Update, do housekeeping, etc.
