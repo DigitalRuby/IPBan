@@ -1,7 +1,9 @@
-﻿using System.Collections.Concurrent;
+﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Threading.Tasks.Dataflow;
 
 namespace DigitalRuby.IPBan
 {
@@ -11,8 +13,7 @@ namespace DigitalRuby.IPBan
     /// <typeparam name="T">Type of object in the queue</typeparam>
     public class AsyncQueue<T>
     {
-        private readonly SemaphoreSlim semaphore = new SemaphoreSlim(0);
-        private readonly ConcurrentQueue<T> queue = new ConcurrentQueue<T>();
+        private readonly BufferBlock<T> queue = new BufferBlock<T>();
 
         /// <summary>
         /// Add an item to the queue, causing TryDequeueAsync to return an item
@@ -20,8 +21,7 @@ namespace DigitalRuby.IPBan
         /// <param name="item"></param>
         public void Enqueue(T item)
         {
-            queue.Enqueue(item);
-            semaphore.Release();
+            queue.Post(item);
         }
 
         /// <summary>
@@ -30,13 +30,10 @@ namespace DigitalRuby.IPBan
         /// <param name="source">Source</param>
         public void EnqueueRange(IEnumerable<T> source)
         {
-            var count = 0;
             foreach (var item in source)
             {
-                queue.Enqueue(item);
-                count++;
+                queue.Post(item);
             }
-            semaphore.Release(count);
         }
 
         /// <summary>
@@ -46,23 +43,26 @@ namespace DigitalRuby.IPBan
         /// <returns>Key value pair, key is true if item was dequeued, false otherwise. Value is the item or default(T) if not success</returns>
         public Task<KeyValuePair<bool, T>> TryDequeueAsync(CancellationToken cancellationToken = default)
         {
-            return TryDequeueAsync(Timeout.Infinite, cancellationToken);
+            return TryDequeueAsync(Timeout.InfiniteTimeSpan, cancellationToken);
         }
 
         /// <summary>
         /// Attempt to dequeue an item asynchronously
         /// </summary>
-        /// <param name="timeoutMilliseconds">Timeout in milliseconds</param>
+        /// <param name="timeout">Timeout, Timeout.InfiniteTimeSpan for none</param>
         /// <param name="cancellationToken"></param>
         /// <returns>Key value pair, key is true if item was dequeued, false otherwise. Value is the item or default(T) if not success</returns>
-        public async Task<KeyValuePair<bool, T>> TryDequeueAsync(int timeoutMilliseconds, CancellationToken cancellationToken = default)
+        public async Task<KeyValuePair<bool, T>> TryDequeueAsync(TimeSpan timeout, CancellationToken cancellationToken = default)
         {
-            bool waitResult = await semaphore.WaitAsync(timeoutMilliseconds, cancellationToken);
-            if (waitResult && queue.TryDequeue(out T item))
+            try
             {
-                return new KeyValuePair<bool, T>(true, item);
+                T result = await queue.ReceiveAsync(timeout, cancellationToken);
+                return new KeyValuePair<bool, T>(true, result);
             }
-            return new KeyValuePair<bool, T>(false, default);
+            catch
+            {
+                return new KeyValuePair<bool, T>(false, default);
+            }
         }
 
         /// <summary>

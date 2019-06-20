@@ -41,12 +41,13 @@ namespace DigitalRuby.IPBanTests
         [Test]
         public void TestEnqueueDequeue()
         {
+            TimeSpan timeout = TimeSpan.FromMilliseconds(1.0);
             AsyncQueue<int> queue = new AsyncQueue<int>();
             queue.Enqueue(1);
             queue.EnqueueRange(new int[] { 2, 3 });
-            Assert.AreEqual(1, queue.TryDequeueAsync(1).Sync().Value);
-            Assert.AreEqual(2, queue.TryDequeueAsync(1).Sync().Value);
-            Assert.AreEqual(3, queue.TryDequeueAsync(1).Sync().Value);
+            Assert.AreEqual(1, queue.TryDequeueAsync(timeout).Sync().Value);
+            Assert.AreEqual(2, queue.TryDequeueAsync(timeout).Sync().Value);
+            Assert.AreEqual(3, queue.TryDequeueAsync(timeout).Sync().Value);
         }
 
         [Test]
@@ -61,11 +62,12 @@ namespace DigitalRuby.IPBanTests
             {
                 Task task = Task.Run(async () =>
                 {
+                    int value;
                     try
                     {
-                        while ((await queue.TryDequeueAsync(cancelToken.Token)).Value == 99)
+                        while ((value = (await queue.TryDequeueAsync(cancelToken.Token)).Value) > 0)
                         {
-                            Interlocked.Increment(ref count);
+                            Interlocked.Add(ref count, value);
                         }
                     }
                     catch (OperationCanceledException)
@@ -75,9 +77,9 @@ namespace DigitalRuby.IPBanTests
                 tasks.Add(task);
             }
 
-            for (int i = 0; i < 1000; i++)
+            for (int i = 1; i <= 1000; i++)
             {
-                queue.Enqueue(99);
+                queue.Enqueue(i);
             }
 
             for (int i = 0; i < 10 && count != 1000; i++)
@@ -87,7 +89,7 @@ namespace DigitalRuby.IPBanTests
 
             cancelToken.Cancel();
             Assert.IsTrue(Task.WhenAll(tasks.ToArray()).Wait(1000));
-            Assert.AreEqual(1000, count);
+            Assert.AreEqual(500500, count); // sum of 1 to 1000
         }
     }
 }
