@@ -102,7 +102,14 @@ namespace DigitalRuby.IPBan
                 KeyValuePair<bool, Func<CancellationToken, Task>> nextAction = await queue.TryDequeueAsync(firewallQueueCancel.Token);
                 if (nextAction.Key && nextAction.Value != null)
                 {
-                    await nextAction.Value.Invoke(firewallQueueCancel.Token);
+                    try
+                    {
+                        await nextAction.Value.Invoke(firewallQueueCancel.Token);
+                    }
+                    catch (Exception ex)
+                    {
+                        IPBanLog.Error(ex);
+                    }
                 }
             }
         }
