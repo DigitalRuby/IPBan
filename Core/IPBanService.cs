@@ -63,7 +63,7 @@ namespace DigitalRuby.IPBan
             public int Count { get; set; }
         }
 
-        private static readonly object configLock = new object();
+        private static readonly ReaderWriterLock configLock = new ReaderWriterLock();
 
         private System.Timers.Timer cycleTimer;
         private bool firewallNeedsBlockedIPAddressesUpdate;
@@ -77,7 +77,7 @@ namespace DigitalRuby.IPBan
         private readonly HashSet<IUpdater> updaters = new HashSet<IUpdater>();
         private readonly HashSet<IPBanLogFileScanner> logFilesToParse = new HashSet<IPBanLogFileScanner>();
         private readonly ManualResetEvent stopEvent = new ManualResetEvent(false);
-        private readonly AsyncQueue<Func<CancellationToken, Task>> firewallQueue = new AsyncQueue<Func<CancellationToken, Task>>();
+        private readonly Dictionary<string, AsyncQueue<Func<CancellationToken, Task>>> firewallQueue = new Dictionary<string, AsyncQueue<Func<CancellationToken, Task>>>();
         private readonly CancellationTokenSource firewallQueueCancel = new CancellationTokenSource();
 
         private DateTime lastConfigFileDateTime = DateTime.MinValue;
@@ -95,14 +95,14 @@ namespace DigitalRuby.IPBan
             }
         }
 
-        private async Task FirewallTask()
+        private async Task FirewallTask(AsyncQueue<Func<CancellationToken, Task>> queue)
         {
-            KeyValuePair<bool, Func<CancellationToken, Task>> nextAction;
-            while (!firewallQueueCancel.IsCancellationRequested && (nextAction = await firewallQueue.TryDequeueAsync(firewallQueueCancel.Token)).Key)
+            while (!firewallQueueCancel.IsCancellationRequested)
             {
-                if (nextAction.Value != null)
+                KeyValuePair<bool, Func<CancellationToken, Task>> nextAction = await queue.TryDequeueAsync(firewallQueueCancel.Token);
+                if (nextAction.Key && nextAction.Value != null)
                 {
-                    await nextAction.Value?.Invoke(firewallQueueCancel.Token);
+                    await nextAction.Value.Invoke(firewallQueueCancel.Token);
                 }
             }
         }
@@ -155,12 +155,17 @@ namespace DigitalRuby.IPBan
                 if (lastDateTime > lastConfigFileDateTime)
                 {
                     lastConfigFileDateTime = lastDateTime;
-                    lock (configLock)
+                    configLock.AcquireReaderLock(Timeout.Infinite);
+                    try
                     {
                         IPBanConfig newConfig = IPBanConfig.LoadFromFile(ConfigFilePath, DnsLookup);
                         UpdateLogFiles(newConfig);
                         whitelistChanged = (Config == null || Config.WhiteList != newConfig.WhiteList || Config.WhiteListRegex != newConfig.WhiteListRegex);
                         Config = newConfig;
+                    }
+                    finally
+                    {
+                        configLock.ReleaseReaderLock();
                     }
                     LoadFirewall();
                 }
@@ -739,7 +744,7 @@ namespace DigitalRuby.IPBan
                 IPBanLog.Debug("Firewall entries updated: {0}", string.Join(',', deltas.Select(d => d.IPAddress)));
                 if (MultiThreaded)
                 {
-                    RunFirewallTask((token) => Firewall.BlockIPAddressesDelta(null, deltas, null, token));
+                    RunFirewallTask((token) => Firewall.BlockIPAddressesDelta(null, deltas, null, token), "Default");
                 }
                 else
                 {
@@ -1101,15 +1106,31 @@ namespace DigitalRuby.IPBan
                 {
                     doc.Load(xmlReader);
                 }
-                lock (configLock)
+                configLock.AcquireReaderLock(Timeout.Infinite);
+                try
                 {
                     string text = File.ReadAllText(ConfigFilePath);
 
                     // if the file changed, update it
                     if (text != xml)
                     {
-                        File.WriteAllText(ConfigFilePath, xml);
+                        LockCookie cookie = configLock.UpgradeToWriterLock(Timeout.Infinite);
+                        try
+                        {
+                            if (text != xml)
+                            {
+                                File.WriteAllText(ConfigFilePath, xml);
+                            }
+                        }
+                        finally
+                        {
+                            configLock.DowngradeFromWriterLock(ref cookie);
+                        }
                     }
+                }
+                finally
+                {
+                    configLock.ReleaseReaderLock();
                 }
             }
             catch
@@ -1167,7 +1188,6 @@ namespace DigitalRuby.IPBan
             }
 
             IsRunning = true;
-            Task.Run(FirewallTask);
             ipDB = new IPBanDB(DatabasePath);
             if (UseWindowsEventViewer && RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
@@ -1325,11 +1345,25 @@ namespace DigitalRuby.IPBan
         /// Run a task on the firewall queue
         /// </summary>
         /// <param name="action">Action to run</param>
-        public void RunFirewallTask(Func<CancellationToken, Task> action)
+        /// <param name="queueName">Queue name</param>
+        public void RunFirewallTask(Func<CancellationToken, Task> action, string queueName)
         {
             if (MultiThreaded)
             {
-                firewallQueue.Enqueue(action);
+                if (!firewallQueueCancel.IsCancellationRequested)
+                {
+                    queueName = (string.IsNullOrWhiteSpace(queueName) ? "Default" : queueName);
+                    AsyncQueue<Func<CancellationToken, Task>> queue;
+                    lock (firewallQueue)
+                    {
+                        if (!firewallQueue.TryGetValue(queueName, out queue))
+                        {
+                            firewallQueue[queueName] = queue = new AsyncQueue<Func<CancellationToken, Task>>();
+                            Task.Run(() => FirewallTask(queue));
+                        }
+                    }
+                    queue.Enqueue(action);
+                }
             }
             else
             {

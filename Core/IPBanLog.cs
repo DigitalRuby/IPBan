@@ -507,14 +507,7 @@ namespace DigitalRuby.IPBan
         /// <param name="args">Format args</param>
         private static void Write(IPBan.LogLevel level, string text, params object[] args)
         {
-            try
-            {
-                //timeSource.CurrentTime = IPBanService.UtcNow;
-                logger?.Log(GetNLogLevel(level), text, args);
-            }
-            catch
-            {
-            }
+            Write(level, IPBanService.UtcNow, text, args);
         }
 
         /// <summary>

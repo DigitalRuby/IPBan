@@ -108,7 +108,8 @@ namespace DigitalRuby.IPBan
         /// Run an action on the firewall queue
         /// </summary>
         /// <param name="action">Action to run on the firewall queue</param>
-        void RunFirewallTask(Func<CancellationToken, Task> action);
+        /// <param name="name">Queue name</param>
+        void RunFirewallTask(Func<CancellationToken, Task> action, string name);
 
         /// <summary>
         /// Check if an ip is whitelisted
