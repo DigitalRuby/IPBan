@@ -274,11 +274,12 @@ namespace DigitalRuby.IPBan
             {
                 p.Kill();
             }
+            string output = p.StandardOutput.ReadToEnd();
             if (allowedExitCode.Length != 0 && Array.IndexOf(allowedExitCode, p.ExitCode) < 0)
             {
-                throw new ApplicationException($"Program {program} {args}: failed with exit code {p.ExitCode}");
+                throw new ApplicationException($"Program {program} {args}: failed with exit code {p.ExitCode}, output: {output}");
             }
-            return p.StandardOutput.ReadToEnd();
+            return output;
         }
 
         /// <summary>
