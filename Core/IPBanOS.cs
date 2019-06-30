@@ -273,7 +273,7 @@ namespace DigitalRuby.IPBan
         {
             IPBanLog.Info($"Executing process {program} {args}...");
 
-            var p = new Process
+            var process = new Process
             {
                 StartInfo = new ProcessStartInfo(program, args)
                 {
@@ -286,7 +286,7 @@ namespace DigitalRuby.IPBan
                 }
             };
             StringBuilder output = new StringBuilder();
-            p.OutputDataReceived += (object sender, DataReceivedEventArgs e) =>
+            process.OutputDataReceived += (object sender, DataReceivedEventArgs e) =>
             {
                 lock (output)
                 {
@@ -294,7 +294,7 @@ namespace DigitalRuby.IPBan
                     output.AppendLine(e.Data);
                 }
             };
-            p.ErrorDataReceived += (object sender, DataReceivedEventArgs e) =>
+            process.ErrorDataReceived += (object sender, DataReceivedEventArgs e) =>
             {
                 lock (output)
                 {
@@ -302,20 +302,20 @@ namespace DigitalRuby.IPBan
                     output.AppendLine(e.Data);
                 }
             };
-            p.Start();
-            p.BeginOutputReadLine();
-            p.BeginErrorReadLine();
-            if (!p.WaitForExit(timeoutMilliseconds))
+            process.Start();
+            process.BeginOutputReadLine();
+            process.BeginErrorReadLine();
+            if (!process.WaitForExit(timeoutMilliseconds))
             {
                 lock (output)
                 {
                     output.Append("[ERR]: Terminating process due to 60 second timeout");
                 }
-                p.Kill();
+                process.Kill();
             }
-            if (allowedExitCodes.Length != 0 && Array.IndexOf(allowedExitCodes, p.ExitCode) < 0)
+            if (allowedExitCodes.Length != 0 && Array.IndexOf(allowedExitCodes, process.ExitCode) < 0)
             {
-                throw new ApplicationException($"Program {program} {args}: failed with exit code {p.ExitCode}, output: {output}");
+                throw new ApplicationException($"Program {program} {args}: failed with exit code {process.ExitCode}, output: {output}");
             }
             return output.ToString();
         }
