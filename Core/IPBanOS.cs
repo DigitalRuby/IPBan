@@ -248,7 +248,7 @@ namespace DigitalRuby.IPBan
         }
 
         /// <summary>
-        /// Easy way to execute processes. Timeout to complete is 30 seconds.
+        /// Easy way to execute processes. Timeout to complete is 60 seconds, after that process is killed.
         /// </summary>
         /// <param name="program">Program to run</param>
         /// <param name="args">Arguments</param>
@@ -266,20 +266,48 @@ namespace DigitalRuby.IPBan
                     UseShellExecute = false,
                     WindowStyle = ProcessWindowStyle.Hidden,
                     RedirectStandardOutput = true,
+                    RedirectStandardError = true,
                     Verb = processVerb
                 }
             };
-            p.Start();
-            if (!p.WaitForExit(30000))
+            StringBuilder output = new StringBuilder();
+            p.OutputDataReceived += (object sender, DataReceivedEventArgs e) =>
             {
+                lock (output)
+                {
+                    output.Append("[OUT]: ");
+                    output.AppendLine(e.Data);
+                }
+            };
+            p.ErrorDataReceived += (object sender, DataReceivedEventArgs e) =>
+            {
+                lock (output)
+                {
+                    output.Append("[ERR]: ");
+                    output.AppendLine(e.Data);
+                }
+            };
+            p.Start();
+            p.BeginOutputReadLine();
+            p.BeginErrorReadLine();
+            if (!p.WaitForExit(60000))
+            {
+                lock (output)
+                {
+                    output.Append("[ERR]: Terminating process due to 60 second timeout");
+                }
                 p.Kill();
             }
-            string output = p.StandardOutput.ReadToEnd();
             if (allowedExitCode.Length != 0 && Array.IndexOf(allowedExitCode, p.ExitCode) < 0)
             {
                 throw new ApplicationException($"Program {program} {args}: failed with exit code {p.ExitCode}, output: {output}");
             }
-            return output;
+            return output.ToString();
+        }
+
+        private static void P_OutputDataReceived(object sender, DataReceivedEventArgs e)
+        {
+            throw new NotImplementedException();
         }
 
         /// <summary>
