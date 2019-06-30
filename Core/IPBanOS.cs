@@ -248,13 +248,28 @@ namespace DigitalRuby.IPBan
         }
 
         /// <summary>
-        /// Easy way to execute processes. Timeout to complete is 60 seconds, after that process is killed.
+        /// Easy way to execute processes. If the process has not finished after 60 seconds, it is forced killed.
         /// </summary>
         /// <param name="program">Program to run</param>
         /// <param name="args">Arguments</param>
-        /// <param name="allowedExitCode">Allowed exit codes, if empty not checked, otherwise a mismatch will throw an exception.</param>
-        /// <returns>Standard out</returns>
-        public static string StartProcessAndWait(string program, string args, params int[] allowedExitCode)
+        /// <param name="allowedExitCodes">Allowed exit codes, if null or empty it is not checked, otherwise a mismatch will throw an exception.</param>
+        /// <returns>Output</returns>
+        /// <exception cref="ApplicationException">Exit code did not match allowed exit codes</exception>
+        public static string StartProcessAndWait(string program, string args, params int[] allowedExitCodes)
+        {
+            return StartProcessAndWait(60000, program, args, allowedExitCodes);
+        }
+
+        /// <summary>
+        /// Easy way to execute processes. If the process has not finished after timeoutMilliseconds, it is forced killed.
+        /// </summary>
+        /// <param name="timeoutMilliseconds">Timeout in milliseconds</param>
+        /// <param name="program">Program to run</param>
+        /// <param name="args">Arguments</param>
+        /// <param name="allowedExitCodes">Allowed exit codes, if null or empty it is not checked, otherwise a mismatch will throw an exception.</param>
+        /// <returns>Output</returns>
+        /// <exception cref="ApplicationException">Exit code did not match allowed exit codes</exception>
+        public static string StartProcessAndWait(int timeoutMilliseconds, string program, string args, params int[] allowedExitCodes)
         {
             IPBanLog.Info($"Executing process {program} {args}...");
 
@@ -290,7 +305,7 @@ namespace DigitalRuby.IPBan
             p.Start();
             p.BeginOutputReadLine();
             p.BeginErrorReadLine();
-            if (!p.WaitForExit(60000))
+            if (!p.WaitForExit(timeoutMilliseconds))
             {
                 lock (output)
                 {
@@ -298,7 +313,7 @@ namespace DigitalRuby.IPBan
                 }
                 p.Kill();
             }
-            if (allowedExitCode.Length != 0 && Array.IndexOf(allowedExitCode, p.ExitCode) < 0)
+            if (allowedExitCodes.Length != 0 && Array.IndexOf(allowedExitCodes, p.ExitCode) < 0)
             {
                 throw new ApplicationException($"Program {program} {args}: failed with exit code {p.ExitCode}, output: {output}");
             }
