@@ -320,11 +320,6 @@ namespace DigitalRuby.IPBan
             return output.ToString();
         }
 
-        private static void P_OutputDataReceived(object sender, DataReceivedEventArgs e)
-        {
-            throw new NotImplementedException();
-        }
-
         /// <summary>
         /// Check if a user name is active on the local machine
         /// </summary>
