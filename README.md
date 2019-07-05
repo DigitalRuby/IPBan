@@ -58,7 +58,7 @@ Get-WmiObject win32_service -Filter "name='IPBAN'"
 Start-Service IPBAN
 ```
 
-The service needs file system, event viewer and firewall access, so please run as SYSTEM to ensure permissions.  Running "sc" as described above in an elevated command prompt will install the service using the local SYSTEM account.
+- The service needs file system, event viewer and firewall access, so running as a privileged account is required.
 - To run as a console app, simply run DigitalRuby.IPBan.exe and watch console output.
 - On some Windows versions, NLA will default to on. This may lock you out of remote desktop, so turn this option off if needed.
 - On Windows Small Business Server 2011 (and probably earlier) and Windows Server running Exchange, with installed PowerShell v.2 that does not know Unblock-File command, and newer version can’t be installed (as some scripts for managing OWA stop working correctly). Easier way is to manually unblock downloaded ZIP file and then unzip content.
