@@ -81,7 +81,7 @@ sudo apt-get update
 ```
 - mkdir /opt/ipban
 - Extract the IPBan.zip file (inside is IPBanLinux.zip) folder and use SSH to copy files to /opt/ipban. Plenty of free SSH GUI out there if you want that.
-- chmod +x ./opt/ipban/DigitalRuby.IPBan (makes sure the DigitalRuby.IPBan executable has execute permissions)
+- chmod +x /opt/ipban/DigitalRuby.IPBan (makes sure the DigitalRuby.IPBan executable has execute permissions)
 - Create service:
 ```
 sudo nano /lib/systemd/system/ipban.service
