@@ -51,6 +51,13 @@ sc create IPBAN type= own start= auto binPath= c:\path\to\service\DigitalRuby.IP
 sc description IPBAN "Automatically builds firewall rules for abusive login attempts: https://github.com/DigitalRuby/IPBan"
 sc start IPBAN
 ```
+or with Powershell use the command [New-Service](https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.management/new-service) and run the following in an elevated powershell window:
+```powershell
+New-Service -Name "IPBAN" -BinaryPathName "c:\path\to\service\DigitalRuby.IPBan.exe" -StartupType automatic -DisplayName "IPBAN" -Description "Automatically builds firewall rules for abusive login attempts: https://github.com/DigitalRuby/IPBan"
+Get-WmiObject win32_service -Filter "name='IPBAN'"
+Start-Service IPBAN
+```
+
 The service needs file system, event viewer and firewall access, so please run as SYSTEM to ensure permissions.  Running "sc" as described above in an elevated command prompt will install the service using the local SYSTEM account.
 - To run as a console app, simply run DigitalRuby.IPBan.exe and watch console output.
 - On some Windows versions, NLA will default to on. This may lock you out of remote desktop, so turn this option off if needed.
