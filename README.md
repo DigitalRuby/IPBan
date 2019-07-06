@@ -108,6 +108,11 @@ sudo systemctl start ipban
 systemctl status ipban
 ```
 
+Ensure service starts backup on reboot:
+```
+sudo systemctl enable ipban
+```
+
 **Analytics**
 
 To disable anonymously sending banned ip addresses to the global ipban database, set UseDefaultBannedIPAddressHandler to false in the config file.
