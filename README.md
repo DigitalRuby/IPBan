@@ -105,12 +105,8 @@ WantedBy=multi-user.target
 sudo systemctl daemon-reload 
 sudo systemctl enable ipban
 sudo systemctl start ipban
-systemctl status ipban
-```
-
-Ensure service starts backup on reboot:
-```
 sudo systemctl enable ipban
+systemctl status ipban
 ```
 
 **Analytics**
