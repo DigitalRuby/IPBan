@@ -225,11 +225,7 @@ namespace DigitalRuby.IPBan
                 // if the file changed, update it
                 if (text != xml)
                 {
-                    // compare again in case text was updated before write lock was acquired
-                    if (text != xml)
-                    {
-                        await File.WriteAllTextAsync(ConfigFilePath, xml);
-                    }
+                    await File.WriteAllTextAsync(ConfigFilePath, xml);
                 }
             }
             finally
