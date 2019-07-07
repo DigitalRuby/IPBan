@@ -1232,6 +1232,15 @@ namespace DigitalRuby.IPBan {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Reset Failed Login Count on Unban.
+        /// </summary>
+        public static string ResetFailedLoginCountForUnbannedIPAddresses {
+            get {
+                return ResourceManager.GetString("ResetFailedLoginCountForUnbannedIPAddresses", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Resolve IP Address.
         /// </summary>
         public static string ResolveIPAddress {

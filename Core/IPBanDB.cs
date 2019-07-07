@@ -57,7 +57,13 @@ namespace DigitalRuby.IPBan
             /// <summary>
             /// Failed login only, no ban yet
             /// </summary>
-            FailedLogin = 3
+            FailedLogin = 3,
+
+            /// <summary>
+            /// Remove from firewall is pending, but ip address should stay in database as a failed login
+            /// This is used for tiered ban times where ip addresses can be banned for longer and longer times
+            /// </summary>
+            RemovePendingBecomeFailedLogin = 4
         }
 
         /// <summary>
@@ -81,9 +87,19 @@ namespace DigitalRuby.IPBan
             public int FailedLoginCount { get; set; }
 
             /// <summary>
-            /// Ban date, null if not yet banned
+            /// Ban start date, null if not banned
             /// </summary>
-            public DateTime? BanDate { get; set; }
+            public DateTime? BanStartDate { get; set; }
+
+            /// <summary>
+            /// Ban end date, null if not banned
+            /// </summary>
+            public DateTime? BanEndDate { get; set; }
+
+            /// <summary>
+            /// IP address state
+            /// </summary>
+            public IPAddressState State { get; set; }
         }
 
         private class IPBanDBTransaction : IDisposable
@@ -107,29 +123,49 @@ namespace DigitalRuby.IPBan
                 DBTransaction = DBConnection.BeginTransaction(transactionLevel);
             }
 
+            ~IPBanDBTransaction()
+            {
+                Rollback();
+                Dispose();
+            }
+
+            /// <summary>
+            /// Close transaction and connection. If transaction has not been rolled back, it is committed
+            /// </summary>
             public void Dispose()
             {
-                if (DBTransaction != null)
+                try
                 {
-                    DBTransaction.Commit();
-                    DBTransaction.Dispose();
-                    DBTransaction = null;
-                }
-                if (DBConnection != null)
-                {
-                    if (disposeConnection)
+                    if (DBTransaction != null)
                     {
-                        DBConnection.Dispose();
+                        DBTransaction.Commit();
+                        DBTransaction.Dispose();
+                        DBTransaction = null;
                     }
-                    DBConnection = null;
+                    if (DBConnection != null)
+                    {
+                        if (disposeConnection)
+                        {
+                            DBConnection.Dispose();
+                        }
+                        DBConnection = null;
+                    }
+                }
+                catch
+                {
+                    // don't care
                 }
             }
 
+            /// <summary>
+            /// Rollback the transaction then calls Dispose
+            /// </summary>
             public void Rollback()
             {
                 if (DBTransaction != null)
                 {
                     DBTransaction.Rollback();
+                    DBTransaction.Dispose();
                     DBTransaction = null;
                 }
                 Dispose();
@@ -151,6 +187,18 @@ namespace DigitalRuby.IPBan
         private int ExecuteNonQuery(string cmdText, params object[] param)
         {
             return ExecuteNonQuery(null, null, cmdText, param);
+        }
+
+        private int ExecuteNonQueryIgnoreExceptions(string cmdText, params object[] param)
+        {
+            try
+            {
+                return ExecuteNonQuery(cmdText, param);
+            }
+            catch
+            {
+                return 0;
+            }
         }
 
         private int ExecuteNonQuery(SqliteConnection conn, SqliteTransaction tran, string cmdText, params object[] param)
@@ -186,13 +234,24 @@ namespace DigitalRuby.IPBan
 
         private T ExecuteScalar<T>(string cmdText, params object[] param)
         {
-            SqliteConnection conn = CreateConnection();
+            return ExecuteScalar<T>(null, null, cmdText, param);
+        }
+
+        private T ExecuteScalar<T>(SqliteConnection conn, SqliteTransaction tran, string cmdText, params object[] param)
+        {
+            bool closeConn = false;
+            if (conn == null)
+            {
+                conn = CreateConnection();
+                OpenConnection(conn);
+                closeConn = true;
+            }
             try
             {
-                OpenConnection(conn);
                 using (SqliteCommand command = conn.CreateCommand())
                 {
                     command.CommandText = cmdText;
+                    command.Transaction = tran;
                     for (int i = 0; i < param.Length; i++)
                     {
                         command.Parameters.Add(new SqliteParameter("@Param" + i, param[i] ?? DBNull.Value));
@@ -202,7 +261,10 @@ namespace DigitalRuby.IPBan
             }
             finally
             {
-                CloseConnection(conn);
+                if (closeConn)
+                {
+                    CloseConnection(conn);
+                }
             }
         }
 
@@ -254,33 +316,46 @@ namespace DigitalRuby.IPBan
             long lastFailedLogin = reader.GetInt64(1);
             long failedLoginCount = reader.GetInt64(2);
             object banDateObj = reader.GetValue(3);
+            IPAddressState state = (IPAddressState)(int)reader.GetInt32(4);
+            object banEndDateObj = reader.GetValue(5);
             long banDateLong = (banDateObj == null || banDateObj == DBNull.Value ? 0 : Convert.ToInt64(banDateObj));
+            long banEndDateLong = (banEndDateObj == null || banEndDateObj == DBNull.Value ? 0 : Convert.ToInt64(banEndDateObj));
             DateTime? banDate = (banDateLong == 0 ? (DateTime?)null : IPBanExtensionMethods.UnixTimeStampToDateTimeMilliseconds(banDateLong));
+            DateTime? banEndDate = (banDateLong == 0 ? (DateTime?)null : IPBanExtensionMethods.UnixTimeStampToDateTimeMilliseconds(banEndDateLong));
             DateTime lastFailedLoginDt = IPBanExtensionMethods.UnixTimeStampToDateTimeMilliseconds(lastFailedLogin);
             return new IPAddressEntry
             {
                 IPAddress = ipAddress,
                 LastFailedLogin = lastFailedLoginDt,
                 FailedLoginCount = (int)failedLoginCount,
-                BanDate = banDate
+                BanStartDate = banDate,
+                State = state,
+                BanEndDate = banEndDate
             };
         }
 
-        private int SetBanDateInternal(string ipAddress, DateTime banDate, SqliteConnection conn, SqliteTransaction tran)
+        private int SetBanDateInternal(IPAddress ipAddressObj, DateTime banDate, DateTime banEndDate, DateTime now, SqliteConnection conn, SqliteTransaction tran)
         {
-            if (IPAddress.TryParse(ipAddress, out IPAddress ipAddressObj))
+            if (ipAddressObj == null)
             {
-                byte[] ipBytes = ipAddressObj.GetAddressBytes();
-                long timestamp = (long)banDate.UnixTimestampFromDateTimeMilliseconds();
-                // insert with a ban date (state 1 = add pending)
-                // if already have a row, only update it if state is 3 (failed login only, no ban bending)
-                int count = ExecuteNonQuery(conn, tran, @"INSERT INTO IPAddresses(IPAddress, IPAddressText, LastFailedLogin, FailedLoginCount, BanDate, State)
-                    VALUES(@Param0, @Param1, @Param2, 0, @Param2, 1)
-                    ON CONFLICT(IPAddress)
-                    DO UPDATE SET BanDate = @Param2, State = 1 WHERE BanDate IS NULL AND State = 3; ", ipBytes, ipAddress, timestamp);
-                return count;
+                return 0;
             }
-            return 0;
+
+            string ipAddress = ipAddressObj.ToString();
+            byte[] ipBytes = ipAddressObj.GetAddressBytes();
+            long timestampBegin = (long)banDate.UnixTimestampFromDateTimeMilliseconds();
+            long timestampEnd = (long)banEndDate.UnixTimestampFromDateTimeMilliseconds();
+            long currentTimestamp = (long)now.UnixTimestampFromDateTimeMilliseconds();
+                
+            // if the ip address already exists, it can be updated provided that the state is not in a pending remove state (2) and
+            // there is no ban end date yet or the ban end date has expired
+            // state will stay at 0 if it was 0 else it will become 1 which means the ban is pending, state 0 means ban is already active in firewall
+            int count = ExecuteNonQuery(conn, tran, @"INSERT INTO IPAddresses(IPAddress, IPAddressText, LastFailedLogin, FailedLoginCount, BanDate, State, BanEndDate)
+                VALUES(@Param0, @Param1, @Param2, 0, @Param2, 1, @Param3)
+                ON CONFLICT(IPAddress)
+                DO UPDATE SET BanDate = @Param2, State = CASE WHEN State = 0 THEN 0 ELSE 1 END, BanEndDate = @Param3 WHERE State <> 2 AND (BanEndDate IS NULL OR BanEndDate <= @Param4); ",
+                ipBytes, ipAddress, timestampBegin, timestampEnd, currentTimestamp);
+            return count;
         }
 
         private void Initialize()
@@ -289,17 +364,12 @@ namespace DigitalRuby.IPBan
             SQLitePCL.Batteries.Init();
             ExecuteNonQuery("PRAGMA auto_vacuum = INCREMENTAL;");
             ExecuteNonQuery("PRAGMA journal_mode = WAL;");
-            ExecuteNonQuery("CREATE TABLE IF NOT EXISTS IPAddresses (IPAddress VARBINARY(16) NOT NULL, IPAddressText VARCHAR(64) NOT NULL, LastFailedLogin BIGINT NOT NULL, FailedLoginCount BIGINT NOT NULL, BanDate BIGINT, PRIMARY KEY (IPAddress))");
-            try
-            {
-                ExecuteNonQuery("ALTER TABLE IPAddresses ADD COLUMN State INT NOT NULL DEFAULT 0");
-            }
-            catch
-            {
-                // don't care
-            }
+            ExecuteNonQuery("CREATE TABLE IF NOT EXISTS IPAddresses (IPAddress VARBINARY(16) NOT NULL, IPAddressText VARCHAR(64) NOT NULL, LastFailedLogin BIGINT NOT NULL, FailedLoginCount BIGINT NOT NULL, BanDate BIGINT NULL, PRIMARY KEY (IPAddress))");
+            ExecuteNonQueryIgnoreExceptions("ALTER TABLE IPAddresses ADD COLUMN State INT NOT NULL DEFAULT 0");
+            ExecuteNonQueryIgnoreExceptions("ALTER TABLE IPAddresses ADD COLUMN BanEndDate BIGINT NULL");
             ExecuteNonQuery("CREATE INDEX IF NOT EXISTS IPAddresses_LastFailedLoginDate ON IPAddresses (LastFailedLogin)");
             ExecuteNonQuery("CREATE INDEX IF NOT EXISTS IPAddresses_BanDate ON IPAddresses (BanDate)");
+            ExecuteNonQuery("CREATE INDEX IF NOT EXISTS IPAddresses_BanEndDate ON IPAddresses (BanEndDate)");
             ExecuteNonQuery("CREATE INDEX IF NOT EXISTS IPAddresses_State ON IPAddresses (State)");
 
             // set to failed login state if no ban date
@@ -410,6 +480,7 @@ namespace DigitalRuby.IPBan
             {
                 byte[] ipBytes = ipAddressObj.GetAddressBytes();
                 long timestamp = (long)dateTime.UnixTimestampFromDateTimeMilliseconds();
+                IPBanDBTransaction tran = transaction as IPBanDBTransaction;
 
                 // only increment failed login for new rows or for existing rows with state 3 (failed login only, no ban bending)
                 string command = @"INSERT INTO IPAddresses(IPAddress, IPAddressText, LastFailedLogin, FailedLoginCount, BanDate, State)
@@ -417,121 +488,156 @@ namespace DigitalRuby.IPBan
                     ON CONFLICT(IPAddress)
                     DO UPDATE SET LastFailedLogin = @Param2, FailedLoginCount = FailedLoginCount + @Param3 WHERE State = 3;
                     SELECT FailedLoginCount FROM IPAddresses WHERE IPAddress = @Param0;";
-                IPBanDBTransaction tran = transaction as IPBanDBTransaction;
-                using (SqliteDataReader reader = ExecuteReader(command, tran?.DBConnection, tran?.DBTransaction, ipBytes, ipAddress, timestamp, increment))
-                {
-                    if (reader.Read())
-                    {
-                        return (int)reader.GetInt64(0);
-                    }
-                }
+                return ExecuteScalar<int>(tran?.DBConnection, tran?.DBTransaction, command, ipBytes, ipAddress, timestamp, increment);
             }
             return 0;
         }
 
         /// <summary>
-        /// Get ip address info from the database
+        /// Get ip address entry from the database
         /// </summary>
         /// <param name="ipAddress">IP address to lookup</param>
-        /// <returns>IP address info or null if not found</returns>
-        public IPAddressEntry GetIPAddress(string ipAddress)
+        /// <param name="entry">IP address entry or default if not found</param>
+        /// <returns>True if ip address found, false if not</returns>
+        public bool TryGetIPAddress(string ipAddress, out IPAddressEntry entry, object transaction = null)
         {
             if (IPAddress.TryParse(ipAddress, out IPAddress ipAddressObj))
             {
                 byte[] ipBytes = ipAddressObj.GetAddressBytes();
-                using (SqliteDataReader reader = ExecuteReader("SELECT IPAddressText, LastFailedLogin, FailedLoginCount, BanDate FROM IPAddresses WHERE IPAddress = @Param0", null, null, ipBytes))
+                IPBanDBTransaction tran = transaction as IPBanDBTransaction;
+                using (SqliteDataReader reader = ExecuteReader("SELECT IPAddressText, LastFailedLogin, FailedLoginCount, BanDate, State, BanEndDate FROM IPAddresses WHERE IPAddress = @Param0",
+                    tran?.DBConnection, tran?.DBTransaction, ipBytes))
                 {
                     if (reader.Read())
                     {
-                        return ParseIPAddressEntry(reader);
+                        entry = ParseIPAddressEntry(reader);
+                        return true;
                     }
                 }
             }
-            return null;
+            entry = null;
+            return false;
         }
 
         /// <summary>
-        /// Set ban date for an ip address. If the ip address exists, the ban date will be set only if the existing ban date is null.
+        /// Set ban date for an ip address. If the ip address exists, the ban date will be set only if the existing ban date is expired.
         /// </summary>
         /// <param name="ipAddress">IP address</param>
-        /// <param name="banDate">Ban date</param>
+        /// <param name="banStartDate">Ban start date</param>
+        /// <param name="banEndDate">Ban end date</param>
+        /// <param name="now">Current date/time</param>
         /// <param name="state">State</param>
         /// <param name="transaction">Transaction</param>
         /// <returns>True if ban date set, false if it was already set or ip address is not in the database</returns>
-        public bool SetBanDate(string ipAddress, DateTime banDate, object transaction = null)
+        public bool SetBanDates(string ipAddress, DateTime banStartDate, DateTime banEndDate, DateTime now, object transaction = null)
         {
             if (IPAddress.TryParse(ipAddress, out IPAddress ipAddressObj))
             {
-                byte[] ipBytes = ipAddressObj.GetAddressBytes();
-                long timestamp = (long)banDate.UnixTimestampFromDateTimeMilliseconds();
-                int count;
-                if (transaction is IPBanDBTransaction tran)
-                {
-                    count = SetBanDateInternal(ipAddress, banDate, tran.DBConnection, tran.DBTransaction);
-                }
-                else
-                {
-                    count = SetBanDateInternal(ipAddress, banDate, null, null);
-                }
+                IPBanDBTransaction tran = transaction as IPBanDBTransaction;
+                int count = SetBanDateInternal(ipAddressObj, banStartDate, banEndDate, now, tran?.DBConnection, tran?.DBTransaction);
                 return (count != 0);
             }
             return false;
         }
 
         /// <summary>
-        /// Get the ban date for an ip address
+        /// Get the ban date and ban end date for an ip address
         /// </summary>
         /// <param name="ipAddress">IP address</param>
+        /// <param name="banDates">Ban dates, default if not found</param>
         /// <param name="transaction">Transaction</param>
-        /// <returns>Ban date or null if not banned or not in the database</returns>
-        public DateTime? GetBanDate(string ipAddress, object transaction = null)
+        /// <returns>Ban date. Key and/or value will ber null if not banned or not in the database</returns>
+        public bool TryGetBanDates(string ipAddress, out KeyValuePair<DateTime?, DateTime?> banDates, object transaction = null)
         {
             if (IPAddress.TryParse(ipAddress, out IPAddress ipAddressObj))
             {
                 byte[] ipBytes = ipAddressObj.GetAddressBytes();
                 IPBanDBTransaction tran = transaction as IPBanDBTransaction;
-                using (SqliteDataReader reader = ExecuteReader("SELECT BanDate FROM IPAddresses WHERE IPAddress = @Param0", tran?.DBConnection, tran?.DBTransaction, ipBytes))
+                using (SqliteDataReader reader = ExecuteReader("SELECT BanDate, BanEndDate FROM IPAddresses WHERE IPAddress = @Param0", tran?.DBConnection, tran?.DBTransaction, ipBytes))
                 {
                     if (reader.Read())
                     {
+                        DateTime? banDate = null;
+                        DateTime? banEndDate = null;
                         object val = reader.GetValue(0);
+                        object val2 = reader.GetValue(1);
                         if (val != null && val != DBNull.Value)
                         {
-                            return IPBanExtensionMethods.UnixTimeStampToDateTimeMilliseconds((long)val);
+                            banDate = IPBanExtensionMethods.UnixTimeStampToDateTimeMilliseconds((long)val);
                         }
+                        if (val2 != null && val2 != DBNull.Value)
+                        {
+                            banEndDate = IPBanExtensionMethods.UnixTimeStampToDateTimeMilliseconds((long)val2);
+                        }
+                        banDates = new KeyValuePair<DateTime?, DateTime?>(banDate, banEndDate);
+                        return true;
                     }
                 }
             }
-            return null;
+            banDates = new KeyValuePair<DateTime?, DateTime?>(null, null);
+            return false;
         }
 
         /// <summary>
         /// Set banned ip addresses. If the ip address is not in the database, it will be added,
-        /// otherwise it will be updated with the ban date if the existing ban date is null.
+        /// otherwise it will be updated with the ban date if the existing ban date is expired.
         /// </summary>
-        /// <param name="ipAddresses">IP addresses and ban dates to set as banned</param>
+        /// <param name="ipAddresses">IP addresses, ban date and ban end dates to set as banned</param>
+        /// <param name="now">Current date/time</param>
+        /// <param name="transaction">Transaction</param>
         /// <returns>Count of newly banned ip addresses</returns>
-        public int SetBannedIPAddresses(IEnumerable<KeyValuePair<string, DateTime>> ipAddresses)
+        public int SetBannedIPAddresses(IEnumerable<Tuple<string, DateTime, DateTime>> ipAddresses, DateTime now, object transaction = null)
         {
             int count = 0;
-            SqliteConnection conn = CreateConnection();
+            IPBanDBTransaction tran = transaction as IPBanDBTransaction;
+            bool commit = (tran == null);
+            tran = (tran ?? BeginTransaction() as IPBanDBTransaction);
             try
             {
-                OpenConnection(conn);
-                using (SqliteTransaction tran = conn.BeginTransaction(transactionLevel))
+                foreach (Tuple<string, DateTime, DateTime> ipAddress in ipAddresses)
                 {
-                    foreach (KeyValuePair<string, DateTime> ipAddress in ipAddresses)
+                    if (IPAddress.TryParse(ipAddress.Item1, out IPAddress ipAddressObj))
                     {
-                        count += SetBanDateInternal(ipAddress.Key, ipAddress.Value, conn, tran);
+                        count += SetBanDateInternal(ipAddressObj, ipAddress.Item2, ipAddress.Item3, now, tran.DBConnection, tran.DBTransaction);
                     }
-                    tran.Commit();
                 }
+            }
+            catch
+            {
+                if (commit)
+                {
+                    RollbackTransaction(tran);
+                }
+                throw;
             }
             finally
             {
-                CloseConnection(conn);
+                if (commit)
+                {
+                    CommitTransaction(tran);
+                }
             }
             return count;
+        }
+
+        /// <summary>
+        /// Get an ip address state
+        /// </summary>
+        /// <param name="ipAddress">IP address</param>
+        /// <param name="state">Receives ip address state or default if not found</param>
+        /// <param name="transaction">Transaction</param>
+        /// <returns>True if ip address found, false otherwise</returns>
+        public bool TryGetIPAddressState(string ipAddress, out IPAddressState state, object transaction = null)
+        {
+            if (IPAddress.TryParse(ipAddress, out IPAddress ipAddressObj))
+            {
+                IPBanDBTransaction tran = transaction as IPBanDBTransaction;
+                byte[] ipBytes = ipAddressObj.GetAddressBytes();
+                state = (IPAddressState)ExecuteScalar<int>(tran?.DBConnection, tran?.DBTransaction, "SELECT State FROM IPAddresses WHERE IPAddress = @Param0", ipBytes);
+                return true;
+            }
+            state = IPAddressState.Active;
+            return false;
         }
 
         /// <summary>
@@ -543,77 +649,124 @@ namespace DigitalRuby.IPBan
         /// <returns>Number of rows affected</returns>
         public int SetIPAddressesState(IEnumerable<string> ipAddresses, IPAddressState state, object transaction = null)
         {
-            int count = 0;
-            IPBanDBTransaction ipDBTransaction = transaction as IPBanDBTransaction;
-            bool commit = (transaction == null);
-            SqliteConnection conn = (ipDBTransaction?.DBConnection ?? CreateConnection());
-            if (commit)
+            if (ipAddresses == null)
             {
-                OpenConnection(conn);
+                return 0;
             }
-            SqliteTransaction tran = (ipDBTransaction?.DBTransaction ?? conn.BeginTransaction(transactionLevel));
+
+            int count = 0;
             int stateInt = (int)state;
+            IPBanDBTransaction tran = transaction as IPBanDBTransaction;
+            bool commit = (transaction == null);
+            tran = (tran ?? BeginTransaction() as IPBanDBTransaction);
             try
             {
-                if (ipAddresses == null)
+                foreach (string ipAddress in ipAddresses)
                 {
-                    count += ExecuteNonQuery(conn, tran, "UPDATE IPAddresses SET State = @Param0", stateInt);
-                }
-                else
-                {
-                    foreach (string ipAddress in ipAddresses)
+                    if (IPAddress.TryParse(ipAddress, out IPAddress ipAddressObj))
                     {
-                        if (IPAddress.TryParse(ipAddress, out IPAddress ipAddressObj))
-                        {
-                            byte[] ipBytes = ipAddressObj.GetAddressBytes();
-                            count += ExecuteNonQuery(conn, tran, "UPDATE IPAddresses SET State = @Param0 WHERE IPAddress = @Param1", stateInt, ipBytes);
-                        }
+                        byte[] ipBytes = ipAddressObj.GetAddressBytes();
+                        count += ExecuteNonQuery(tran.DBConnection, tran.DBTransaction, "UPDATE IPAddresses SET State = @Param0 WHERE IPAddress = @Param1", stateInt, ipBytes);
                     }
                 }
+            }
+            catch
+            {
+                if (commit)
+                {
+                    RollbackTransaction(tran);
+                }
+                throw;
             }
             finally
             {
                 if (commit)
                 {
-                    tran.Commit();
-                    tran.Dispose();
-                    CloseConnection(conn);
+                    CommitTransaction(tran);
                 }
             }
             return count;
         }
 
         /// <summary>
-        /// Enumerate any pending add or remove operations. When enumeration is complete, any returned ip addresses are either deleted (remove state) or set to active (add state)
+        /// Enumerate any pending add or remove operations. When enumeration is complete, any returned ip addresses are either deleted (remove state), set to active (add state)
+        /// or set to failed login state (ban expired set as failed login).
         /// </summary>
-        /// <param name="commit">Whether to commit changes (alter states) when enumeration is complete</param>
+        /// <param name="commit">Whether to commit changes (alter states and delete pending removals) when enumeration is complete</param>
+        /// <param name="resetFailedLoginCount">Whether to reset failed login count to 0 for un-banned ip addresses</param>
+        /// <param name="transaction">Transaction</param>
         /// <returns></returns>
-        public IEnumerable<IPBanFirewallIPAddressDelta> EnumerateIPAddressesDelta(bool commit)
+        public IEnumerable<IPBanFirewallIPAddressDelta> EnumerateIPAddressesDeltaAndUpdateState(bool commit, bool resetFailedLoginCount = true, object transaction = null)
         {
-            SqliteConnection conn = CreateConnection();
+            string ipAddress;
+            bool added;
+            IPBanDBTransaction tran = transaction as IPBanDBTransaction;
+            bool dispose = (tran == null);
+            tran = (tran ?? BeginTransaction() as IPBanDBTransaction);
+            SqliteDataReader reader;
+
+            // C# can't yield inside a try/catch, so we have to split it up
             try
             {
-                OpenConnection(conn);
-                using (SqliteTransaction tran = conn.BeginTransaction(transactionLevel))
+                // select ip in add pending, remove pending, or remove pending become failed login state
+                reader = ExecuteReader("SELECT IPAddressText, State FROM IPAddresses WHERE State IN (1, 2, 4) ORDER BY IPAddressText", tran.DBConnection, tran.DBTransaction);
+            }
+            catch
+            {
+                RollbackTransaction(tran);
+                throw;
+            }
+
+            while (true)
+            {
+                try
                 {
-                    using (SqliteDataReader reader = ExecuteReader("SELECT IPAddressText, State FROM IPAddresses WHERE State IN (1, 2) ORDER BY IPAddressText", conn, tran))
+                    if (!reader.Read())
                     {
-                        while (reader.Read())
-                        {
-                            yield return new IPBanFirewallIPAddressDelta { IPAddress = reader.GetString(0), Added = reader.GetInt32(1) == (int)IPAddressState.AddPending };
-                        }
+                        break;
                     }
-                    if (commit)
-                    {
-                        ExecuteNonQuery(conn, tran, "UPDATE IPAddresses SET State = @Param0 WHERE State = @Param1; DELETE FROM IPAddresses WHERE State = @Param2;",
-                            (int)IPAddressState.Active, (int)IPAddressState.AddPending, (int)IPAddressState.RemovePending);
-                        tran.Commit();
-                    }
+                    ipAddress = reader.GetString(0);
+                    added = (reader.GetInt32(1) == (int)IPAddressState.AddPending);
+                }
+                catch
+                {
+                    RollbackTransaction(tran);
+                    throw;
+                }
+
+                // if add pending, this is an add, otherwise it is a remove
+                yield return new IPBanFirewallIPAddressDelta { IPAddress = ipAddress, Added = added };
+            }
+
+            try
+            {
+                if (commit)
+                {
+                    // add pending (1) becomes active (0)
+                    // remove pending no delete (4) becomes failed login (3)
+                    // remove pending (2) is deleted entirely
+                    ExecuteNonQuery(tran.DBConnection, tran.DBTransaction,
+                        @"UPDATE IPAddresses SET FailedLoginCount = CASE WHEN @Param0 = 1 THEN 0 ELSE FailedLoginCount END, State = CASE WHEN State = 1 THEN 0 WHEN State = 4 THEN 3 ELSE State END WHERE State IN (1, 4);
+                        DELETE FROM IPAddresses WHERE State = 2;", resetFailedLoginCount);
+                }
+            }
+            catch
+            {
+                if (commit)
+                {
+                    RollbackTransaction(tran);
                 }
             }
             finally
             {
-                CloseConnection(conn);
+                if (commit)
+                {
+                    CommitTransaction(tran);
+                }
+                else if (dispose)
+                {
+                    RollbackTransaction(tran);
+                }
             }
         }
 
@@ -621,13 +774,15 @@ namespace DigitalRuby.IPBan
         /// Delete an ip address from the database
         /// </summary>
         /// <param name="ipAddress">IP address to delete</param>
+        /// <param name="transaction">Transaction</param>
         /// <returns>True if deleted, false if not exists</returns>
-        public bool DeleteIPAddress(string ipAddress)
+        public bool DeleteIPAddress(string ipAddress, object transaction = null)
         {
             if (IPAddress.TryParse(ipAddress, out IPAddress ipAddressObj))
             {
+                IPBanDBTransaction ipDBTransaction = transaction as IPBanDBTransaction;
                 byte[] ipBytes = ipAddressObj.GetAddressBytes();
-                return (ExecuteNonQuery("DELETE FROM IPAddresses WHERE IPAddress = @Param0", ipBytes) != 0);
+                return (ExecuteNonQuery(ipDBTransaction?.DBConnection, ipDBTransaction?.DBTransaction, "DELETE FROM IPAddresses WHERE IPAddress = @Param0", ipBytes) != 0);
             }
             return false;
         }
@@ -635,10 +790,11 @@ namespace DigitalRuby.IPBan
         /// <summary>
         /// Get all ip addresses
         /// </summary>
-        /// <param name="cutOff">Fail login cut off, only return entries with last failed login before this timestamp, null to not query this</param>
-        /// <param name="banCutOff">Ban cut off, only return entries with a ban before this timestamp, null to not query this</param>
+        /// <param name="failLoginCutOff">Fail login cut off, only return entries with last failed login before this timestamp, null to not query this</param>
+        /// <param name="banCutOff">Ban cut off date, only return entries with ban end date less than or equal to this, null to not query this</param>
+        /// <param name="transaction">Transaction</param>
         /// <returns>IP addresses that match the query</returns>
-        public IEnumerable<IPAddressEntry> EnumerateIPAddresses(DateTime? failLoginCutOff = null, DateTime? banCutOff = null)
+        public IEnumerable<IPAddressEntry> EnumerateIPAddresses(DateTime? failLoginCutOff = null, DateTime? banCutOff = null, object transaction = null)
         {
             long? failLoginCutOffUnix = null;
             long? banCutOffUnix = null;
@@ -650,11 +806,12 @@ namespace DigitalRuby.IPBan
             {
                 banCutOffUnix = (long)banCutOff.Value.UnixTimestampFromDateTimeMilliseconds();
             }
-            using (SqliteDataReader reader = ExecuteReader(@"SELECT IPAddressText, LastFailedLogin, FailedLoginCount, BanDate
+            IPBanDBTransaction tran = transaction as IPBanDBTransaction;
+            using (SqliteDataReader reader = ExecuteReader(@"SELECT IPAddressText, LastFailedLogin, FailedLoginCount, BanDate, State, BanEndDate
                 FROM IPAddresses
-                WHERE (@Param0 IS NULL AND @Param1 IS NULL) OR (@Param0 IS NOT NULL AND LastFailedLogin <= @Param0) OR (@Param1 IS NOT NULL AND BanDate <= @Param1)
+                WHERE (@Param0 IS NULL AND @Param1 IS NULL) OR (@Param0 IS NOT NULL AND LastFailedLogin <= @Param0) OR (@Param1 IS NOT NULL AND BanEndDate <= @Param1)
                 ORDER BY IPAddress",
-                null, null, failLoginCutOffUnix, banCutOffUnix))
+                tran?.DBConnection, tran?.DBTransaction, failLoginCutOffUnix, banCutOffUnix))
             {
                 while (reader.Read())
                 {
@@ -730,13 +887,12 @@ namespace DigitalRuby.IPBan
         }
 
         /// <summary>
-        /// Delete ip addresses with a specific state from the database
+        /// Delete ip addresses that are pending deletion from the database
         /// </summary>
-        /// <param name="sate">IP address state delete</param>
         /// <returns>Number of rows modified</returns>
-        public int DeleteIPAddresses(IPAddressState state)
+        public int DeletePendingRemoveIPAddresses()
         {
-            return ExecuteNonQuery("DELETE FROM IPAddresses WHERE State = @Param0", (int)IPAddressState.RemovePending);
+            return ExecuteNonQuery("DELETE FROM IPAddresses WHERE State = 2");
         }
     }
 }

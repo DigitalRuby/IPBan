@@ -73,8 +73,10 @@ namespace DigitalRuby.IPBanTests
         {
             Assert.IsTrue(service.Firewall.IsIPAddressBlocked(ip1, out _));
             Assert.IsTrue(service.Firewall.IsIPAddressBlocked(ip2, out _));
-            Assert.AreEqual(info1.Count, service.DB.GetIPAddress(ip1).FailedLoginCount);
-            Assert.AreEqual(info2.Count, service.DB.GetIPAddress(ip2).FailedLoginCount);
+            Assert.IsTrue(service.DB.TryGetIPAddress(ip1, out IPBanDB.IPAddressEntry e1));
+            Assert.IsTrue(service.DB.TryGetIPAddress(ip2, out IPBanDB.IPAddressEntry e2));
+            Assert.AreEqual(info1.Count, e1.FailedLoginCount);
+            Assert.AreEqual(info2.Count, e2.FailedLoginCount);
         }
 
         private void AssertNoFailedLogins()
@@ -85,8 +87,8 @@ namespace DigitalRuby.IPBanTests
 
         private void AssertNoIPInDB()
         {
-            Assert.IsNull(service.DB.GetIPAddress(ip1));
-            Assert.IsNull(service.DB.GetIPAddress(ip2));
+            Assert.IsFalse(service.DB.TryGetIPAddress(ip1, out _));
+            Assert.IsFalse(service.DB.TryGetIPAddress(ip2, out _));
         }
 
         [Test]
@@ -155,7 +157,9 @@ namespace DigitalRuby.IPBanTests
             {
                 IPBanPlugin.IPBanLoginFailed("SSH", "User1", "88.88.88.88");
                 service.RunCycle().Sync();
-                for (int j = 0; j < 10 && service.DB.GetIPAddress("88.88.88.88")?.FailedLoginCount != i + 1; j++)
+
+                // attempt to read failed logins, if they do not match, sleep a bit and try again
+                for (int j = 0; j < 10 && (!service.DB.TryGetIPAddress("88.88.88.88", out IPBanDB.IPAddressEntry e) || e.FailedLoginCount != i + 1); j++)
                 {
                     System.Threading.Thread.Sleep(100);
                     foreach (IPBanLogFileScanner toParse in service.LogFilesToParse)
@@ -196,7 +200,9 @@ namespace DigitalRuby.IPBanTests
                     {
                         toParse.PingFiles();
                     }
-                    for (int j = 0; j < 10 && service.DB.GetIPAddress("99.99.99.99")?.FailedLoginCount != i + 1; j++)
+
+                    // attempt to read failed logins, if they do not match, sleep a bit and try again
+                    for (int j = 0; j < 10 && (!service.DB.TryGetIPAddress("99.99.99.99", out IPBanDB.IPAddressEntry e) || e.FailedLoginCount != i + 1); j++)
                     {
                         System.Threading.Thread.Sleep(100);
                         service.RunCycle().Sync();

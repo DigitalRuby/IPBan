@@ -718,4 +718,7 @@ Prefix with OS:ClassName, example: Windows:Custom,Linux:Default</value>
   <data name="PleaseWait" xml:space="preserve">
     <value>Please Wait…</value>
   </data>
+  <data name="ResetFailedLoginCountForUnbannedIPAddresses" xml:space="preserve">
+    <value>Reset Failed Login Count on Unban</value>
+  </data>
 </root>

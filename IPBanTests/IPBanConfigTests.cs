@@ -164,7 +164,8 @@ namespace DigitalRuby.IPBanTests
             {
                 IPBanConfig cfg = service.Config;
                 Assert.IsNotNull(cfg);
-                Assert.AreEqual(TimeSpan.FromDays(1.0), cfg.BanTime);
+                Assert.AreEqual(TimeSpan.FromDays(1.0), cfg.BanTimes.First());
+                Assert.AreEqual(1, cfg.BanTimes.Length);
                 Assert.IsEmpty(cfg.BlackList);
                 Assert.IsEmpty(cfg.BlackListRegex);
                 Assert.IsFalse(cfg.ClearBannedIPAddressesOnRestart);
@@ -178,6 +179,7 @@ namespace DigitalRuby.IPBanTests
                 Assert.AreEqual("IPBan_", cfg.FirewallRulePrefix);
                 Assert.AreEqual(TimeSpan.FromSeconds(1.0), cfg.MinimumTimeBetweenFailedLoginAttempts);
                 Assert.IsEmpty(cfg.ProcessToRunOnBan);
+                Assert.IsFalse(cfg.ResetFailedLoginCountForUnbannedIPAddresses);
                 Assert.IsTrue(cfg.UseDefaultBannedIPAddressHandler);
                 Assert.IsEmpty(cfg.UserNameWhitelist);
                 Assert.IsEmpty(cfg.WhiteList);

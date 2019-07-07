@@ -47,19 +47,17 @@ namespace DigitalRuby.IPBan
     /// </summary>
     public class IPBanConfig
     {
-        private readonly Dictionary<string, string> appSettings = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-        private EventViewerExpressionsToBlock expressionsFailure;
-        private EventViewerExpressionsToNotify expressionsSuccess;
-        private Regex whiteListRegex;
-        private Regex blackListRegex;
+        private static readonly TimeSpan[] emptyTimeSpanArray = new TimeSpan[] { TimeSpan.Zero };
 
+        private readonly Dictionary<string, string> appSettings = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         private readonly IPBanLogFileToParse[] logFiles;
-        private readonly TimeSpan banTime = TimeSpan.FromDays(1.0d);
+        private readonly TimeSpan[] banTimes = new TimeSpan[] { TimeSpan.FromDays(1.0d) };
         private readonly TimeSpan expireTime = TimeSpan.FromDays(1.0d);
         private readonly TimeSpan cycleTime = TimeSpan.FromMinutes(1.0d);
         private readonly TimeSpan minimumTimeBetweenFailedLoginAttempts = TimeSpan.FromSeconds(5.0);
         private readonly TimeSpan minimumTimeBetweenSuccessfulLoginAttempts = TimeSpan.FromSeconds(5.0);
         private readonly int failedLoginAttemptsBeforeBan = 5;
+        private readonly bool resetFailedLoginCountForUnbannedIPAddresses;
         private readonly string firewallRulePrefix = "IPBan_";
         private readonly HashSet<string> blackList = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         private readonly HashSet<string> whiteList = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -77,6 +75,11 @@ namespace DigitalRuby.IPBan
         private readonly string externalIPAddressUrl;
         private readonly IDnsLookup dns;
 
+        private EventViewerExpressionsToBlock expressionsFailure;
+        private EventViewerExpressionsToNotify expressionsSuccess;
+        private Regex whiteListRegex;
+        private Regex blackListRegex;
+
         private IPBanConfig(string xml, IDnsLookup dns)
         {
             this.dns = dns;
@@ -90,7 +93,8 @@ namespace DigitalRuby.IPBan
             }
 
             GetConfig<int>("FailedLoginAttemptsBeforeBan", ref failedLoginAttemptsBeforeBan);
-            GetConfig<TimeSpan>("BanTime", ref banTime);
+            GetConfig<bool>("ResetFailedLoginCountForUnbannedIPAddresses", ref resetFailedLoginCountForUnbannedIPAddresses);
+            GetConfigArray<TimeSpan>("BanTime", ref banTimes, emptyTimeSpanArray);
             GetConfig<bool>("ClearBannedIPAddressesOnRestart", ref clearBannedIPAddressesOnRestart);
             GetConfig<TimeSpan>("ExpireTime", ref expireTime);
             GetConfig<TimeSpan>("CycleTime", ref cycleTime);
@@ -317,8 +321,9 @@ namespace DigitalRuby.IPBan
                 var converter = TypeDescriptor.GetConverter(typeof(T));
                 return (T)converter.ConvertFromInvariantString(appSettings[key]);
             }
-            catch
+            catch (Exception ex)
             {
+                IPBanLog.Error(ex, "Error deserializing appSettings key {0}", key);
                 return defaultValue;
             }
         }
@@ -334,10 +339,51 @@ namespace DigitalRuby.IPBan
             try
             {
                 var converter = TypeDescriptor.GetConverter(typeof(T));
-                value = (T)converter.ConvertFromInvariantString(appSettings[key]);
+                if (appSettings.ContainsKey(key))
+                {
+                    value = (T)converter.ConvertFromInvariantString(appSettings[key]);
+                }
             }
-            catch
+            catch (Exception ex)
             {
+                IPBanLog.Error(ex, "Error deserializing appSettings key {0}", key);
+            }
+        }
+
+        /// <summary>
+        /// Set a field / variable from configuration manager app settings. If null or not found, nothing is changed.
+        /// </summary>
+        /// <typeparam name="T">Type of value to set</typeparam>
+        /// <param name="key">Key</param>
+        /// <param name="value">Value</param>
+        /// <param name="defaultValue">Default value if array was empty</param>
+        public void GetConfigArray<T>(string key, ref T[] value, T[] defaultValue)
+        {
+            try
+            {
+                var converter = TypeDescriptor.GetConverter(typeof(T));
+                string[] items = (appSettings[key] ?? string.Empty).Split('|', ';', ',');
+                List<T> list = new List<T>();
+                foreach (string item in items)
+                {
+                    string normalizedItem = item.Trim();
+                    if (normalizedItem.Length != 0)
+                    {
+                        list.Add((T)converter.ConvertFromInvariantString(normalizedItem));
+                    }
+                }
+                if (list.Count == 0)
+                {
+                    value = (defaultValue ?? list.ToArray());
+                }
+                else
+                {
+                    value = list.ToArray();
+                }
+            }
+            catch (Exception ex)
+            {
+                IPBanLog.Error(ex, "Error deserializing appSettings key {0}", key);
             }
         }
 
@@ -453,9 +499,16 @@ namespace DigitalRuby.IPBan
         public int FailedLoginAttemptsBeforeBan { get { return failedLoginAttemptsBeforeBan; } }
 
         /// <summary>
-        /// Length of time to ban an ip address
+        /// Length of time to ban an ip address, each unban and reban moves to the next TimeSpan in the array, until the last which then
+        /// drops the ip address out of the ban list and starts over at the first TimeSpan in the array.
+        /// This array will always have at least one value.
         /// </summary>
-        public TimeSpan BanTime { get { return banTime; } }
+        public TimeSpan[] BanTimes { get { return banTimes; } }
+
+        /// <summary>
+        /// Whether to reset failed login count to 0 when an ip address is unbanned and using multiple BanTimes
+        /// </summary>
+        public bool ResetFailedLoginCountForUnbannedIPAddresses { get { return resetFailedLoginCountForUnbannedIPAddresses; } }
 
         /// <summary>
         /// The duration after the last failed login attempt that the count is reset back to 0.

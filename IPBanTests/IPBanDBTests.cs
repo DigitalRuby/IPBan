@@ -45,45 +45,46 @@ namespace DigitalRuby.IPBanTests
                 const string ip = "10.10.10.10";
                 DateTime dt1 = new DateTime(2018, 1, 1, 1, 1, 1, 1, DateTimeKind.Utc);
                 DateTime dt2 = new DateTime(2019, 1, 1, 1, 1, 1, 1, DateTimeKind.Utc);
+                DateTime dt3 = new DateTime(2020, 1, 1, 1, 1, 1, 1, DateTimeKind.Utc);
+                DateTime dt4 = new DateTime(2021, 1, 1, 1, 1, 1, 1, DateTimeKind.Utc);
                 int count = db.IncrementFailedLoginCount(ip, dt1, 1);
                 Assert.AreEqual(1, count);
                 Assert.AreEqual(1, db.EnumerateIPAddresses(dt1.AddMinutes(1.0)).Count());
                 count = db.IncrementFailedLoginCount(ip, dt2, 2);
                 Assert.AreEqual(3, count);
                 Assert.AreEqual(0, db.EnumerateIPAddresses(dt1.AddMinutes(1.0)).Count());
-                Assert.IsTrue(db.SetBanDate(ip, dt2));
+                Assert.IsTrue(db.SetBanDates(ip, dt2, dt3, now));
 
                 // increment fail login for a ban or ban pending should do nothing
                 Assert.AreEqual(3, db.IncrementFailedLoginCount(ip, dt2.AddSeconds(15.0f), 10));
 
-                Assert.IsFalse(db.SetBanDate(ip, dt2 + TimeSpan.FromDays(1.0))); // no effect
-                IPBanDB.IPAddressEntry e = db.GetIPAddress(ip);
+                Assert.IsFalse(db.SetBanDates(ip, dt2 + TimeSpan.FromDays(1.0), dt4, now)); // no effect
+                Assert.IsTrue(db.TryGetIPAddress(ip, out IPBanDB.IPAddressEntry e));
                 Assert.AreEqual(ip, e.IPAddress);
                 Assert.AreEqual(dt2, e.LastFailedLogin);
                 Assert.AreEqual(3, e.FailedLoginCount);
-                Assert.AreEqual(dt2, e.BanDate);
+                Assert.AreEqual(dt2, e.BanStartDate);
                 count = db.IncrementFailedLoginCount("5.5.5.5", dt1, 2);
                 Assert.AreEqual(2, count);
                 count = db.GetIPAddressCount();
                 Assert.AreEqual(2, count);
                 count = db.GetBannedIPAddressCount();
                 Assert.AreEqual(1, count);
-                DateTime? banDate = db.GetBanDate(ip);
-                Assert.IsNotNull(banDate);
-                Assert.AreEqual(dt2, banDate);
-                banDate = db.GetBanDate("5.5.5.5");
-                Assert.IsNull(banDate);
-                count = db.SetBannedIPAddresses(new KeyValuePair<string, DateTime>[]
+                Assert.IsTrue(db.TryGetBanDates(ip, out KeyValuePair<DateTime?, DateTime?> banDate));
+                Assert.AreEqual(dt2, banDate.Key);
+                Assert.AreEqual(dt3, banDate.Value);
+                Assert.IsTrue(db.TryGetBanDates("5.5.5.5", out banDate));
+                count = db.SetBannedIPAddresses(new Tuple<string, DateTime, DateTime>[]
                 {
-                    new KeyValuePair<string, DateTime>(ip, dt2),
-                    new KeyValuePair<string, DateTime>("5.5.5.5", dt2),
-                    new KeyValuePair<string, DateTime>("5.5.5.6", dt2),
-                    new KeyValuePair<string, DateTime>("::5.5.5.5", dt2),
-                    new KeyValuePair<string, DateTime>("6.6.6.6", dt2),
-                    new KeyValuePair<string, DateTime>("11.11.11.11", dt2),
-                    new KeyValuePair<string, DateTime>("12.12.12.12", dt2),
-                    new KeyValuePair<string, DateTime>("11.11.11.11", dt2)
-                });
+                    new Tuple<string, DateTime, DateTime>(ip, dt2, dt3),
+                    new Tuple<string, DateTime, DateTime>("5.5.5.5", dt2, dt3),
+                    new Tuple<string, DateTime, DateTime>("5.5.5.6", dt2, dt3),
+                    new Tuple<string, DateTime, DateTime>("::5.5.5.5", dt2, dt3),
+                    new Tuple<string, DateTime, DateTime>("6.6.6.6", dt2, dt3),
+                    new Tuple<string, DateTime, DateTime>("11.11.11.11", dt2, dt3),
+                    new Tuple<string, DateTime, DateTime>("12.12.12.12", dt2, dt3),
+                    new Tuple<string, DateTime, DateTime>("11.11.11.11", dt2, dt3)
+                }, now);
                 Assert.AreEqual(6, count);
                 IPAddressRange range = IPAddressRange.Parse("5.5.5.0/24");
                 count = 0;
@@ -92,11 +93,11 @@ namespace DigitalRuby.IPBanTests
                     Assert.IsTrue(ipAddress == "5.5.5.5" || ipAddress == "5.5.5.6");
                     count++;
                 }
-                db.SetBannedIPAddresses(new KeyValuePair<string, DateTime>[]
+                db.SetBannedIPAddresses(new Tuple<string, DateTime, DateTime>[]
                 {
-                    new KeyValuePair<string, DateTime>("5.5.5.5", dt2),
-                    new KeyValuePair<string, DateTime>("5.5.5.6", dt2)
-                });
+                    new Tuple<string, DateTime, DateTime>("5.5.5.5", dt2, dt3),
+                    new Tuple<string, DateTime, DateTime>("5.5.5.6", dt2, dt3)
+                }, now);
                 count = db.IncrementFailedLoginCount("9.9.9.9", dt2, 1);
                 Assert.AreEqual(1, count);
                 count = 0;
@@ -112,7 +113,7 @@ namespace DigitalRuby.IPBanTests
 
                 // ensure deltas work properly
                 Assert.AreEqual(1, db.SetIPAddressesState(new string[] { "5.5.5.5" }, IPBanDB.IPAddressState.RemovePending));
-                IPBanFirewallIPAddressDelta[] deltas = db.EnumerateIPAddressesDelta(false).ToArray();
+                IPBanFirewallIPAddressDelta[] deltas = db.EnumerateIPAddressesDeltaAndUpdateState(false).ToArray();
                 Assert.AreEqual(6, deltas.Length);
                 Assert.AreEqual("10.10.10.10", deltas[0].IPAddress);
                 Assert.AreEqual("11.11.11.11", deltas[1].IPAddress);
@@ -126,7 +127,7 @@ namespace DigitalRuby.IPBanTests
                 Assert.IsFalse(deltas[3].Added);
                 Assert.IsTrue(deltas[4].Added);
                 Assert.IsTrue(deltas[5].Added);
-                deltas = db.EnumerateIPAddressesDelta(true).ToArray();
+                deltas = db.EnumerateIPAddressesDeltaAndUpdateState(true).ToArray();
                 Assert.AreEqual(6, deltas.Length);
                 Assert.AreEqual("10.10.10.10", deltas[0].IPAddress);
                 Assert.AreEqual("11.11.11.11", deltas[1].IPAddress);
@@ -142,22 +143,25 @@ namespace DigitalRuby.IPBanTests
                 Assert.IsTrue(deltas[5].Added);
                 string[] bannedIpAll = db.EnumerateBannedIPAddresses().ToArray();
                 Assert.AreEqual(5, bannedIpAll.Length);
-                deltas = db.EnumerateIPAddressesDelta(true).ToArray();
+                deltas = db.EnumerateIPAddressesDeltaAndUpdateState(true).ToArray();
                 Assert.AreEqual(0, deltas.Length);
 
                 db.Truncate(true);
-                KeyValuePair<string, DateTime>[] ips = new KeyValuePair<string, DateTime>[65536];
+                DateTime banStart = now;
+                Tuple<string, DateTime, DateTime>[] ips = new Tuple<string, DateTime, DateTime>[65536];
                 int index = 0;
                 for (int i = 0; i < 256; i++)
                 {
                     for (int j = 0; j < 256; j++)
                     {
-                        ips[index++] = new KeyValuePair<string, DateTime>("255." + i + ".255." + j, (now = now.AddMilliseconds(1)));
+                        ips[index++] = new Tuple<string, DateTime, DateTime>("255." + i + ".255." + j, banStart, (now = now.AddMilliseconds(1)));
                     }
                 }
-                count = db.SetBannedIPAddresses(ips);
+                count = db.SetBannedIPAddresses(ips, now);
                 Assert.AreEqual(65536, count);
-                Assert.AreEqual(65536 - 1634, db.EnumerateIPAddresses(null, now.Subtract(TimeSpan.FromMilliseconds(1634.0))).Count());
+                DateTime cutOff = now - TimeSpan.FromMilliseconds(1634.0);
+                IPBanDB.IPAddressEntry[] entries = db.EnumerateIPAddresses(null, cutOff).ToArray();
+                Assert.AreEqual(65536 - 1634, entries.Length);
                 TimeSpan span = (DateTime.UtcNow - now);
 
                 // make sure performance is good

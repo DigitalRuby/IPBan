@@ -183,7 +183,7 @@ namespace DigitalRuby.IPBan
 
                 if (Config == null)
                 {
-                    throw new ApplicationException("Configuration failed to load, make sure to unblock all the files. Right click each file, select properties and then unblock.", ex);
+                    throw new ApplicationException("Configuration failed to load, make sure to check for XML errors or unblock all the files.", ex);
                 }
             }
 
@@ -316,8 +316,8 @@ namespace DigitalRuby.IPBan
                             // if the ip address is black listed or the ip address has reached the maximum failed login attempts before ban, ban the ip address
                             if (configBlacklisted || newCount >= maxFailedLoginAttempts)
                             {
-                                bool alreadyBanned = (ipDB.GetBanDate(ipAddress, transaction) != null);
-                                if (alreadyBanned)
+                                if (ipDB.TryGetIPAddressState(ipAddress, out IPBanDB.IPAddressState state, transaction) &&
+                                    (state == IPBanDB.IPAddressState.Active || state == IPBanDB.IPAddressState.AddPending))
                                 {
                                     IPBanLog.Warn(now, "IP {0}, {1}, {2} ban pending.", ipAddress, userName, source);
                                 }
@@ -405,10 +405,26 @@ namespace DigitalRuby.IPBan
         }
 
         private void AddBannedIPAddress(string ipAddress, string source, string userName, List<IPAddressPendingEvent> bannedIpAddresses,
-            DateTime dateTime, bool configBlacklisted, int counter, string extraInfo, object transaction)
+            DateTime startBanDate, bool configBlacklisted, int counter, string extraInfo, object transaction)
         {
+            TimeSpan[] banTimes = Config.BanTimes;
+            DateTime banEndDate = startBanDate + banTimes.First();
+            if (banTimes.Length > 1 && ipDB.TryGetIPAddress(ipAddress, out IPBanDB.IPAddressEntry ipEntry, transaction) && ipEntry.BanStartDate != null && ipEntry.BanEndDate != null)
+            {
+                // find the next ban time in the array
+                TimeSpan span = ipEntry.BanEndDate.Value - ipEntry.BanStartDate.Value;
+                for (int i = 0; i < banTimes.Length; i++)
+                {
+                    if (span < banTimes[i] || banTimes[i].Ticks <= 0)
+                    {
+                        // ban for 1 year if ticks less than 1
+                        banEndDate = startBanDate + (banTimes[i].Ticks <= 0 ? TimeSpan.FromHours(24.0 * 365.0) : banTimes[i]);
+                        break;
+                    }
+                }
+            }
             bannedIpAddresses.Add(new IPAddressPendingEvent { IPAddress = ipAddress, Source = source, UserName = userName });
-            if (ipDB.SetBanDate(ipAddress, dateTime, transaction))
+            if (ipDB.SetBanDates(ipAddress, startBanDate, banEndDate, UtcNow, transaction))
             {
                 firewallNeedsBlockedIPAddressesUpdate = true;
             }
@@ -419,7 +435,7 @@ namespace DigitalRuby.IPBan
                 return;
             }
 
-            IPBanLog.Warn(dateTime, "Banning ip address: {0}, user name: {1}, config black listed: {2}, count: {3}, extra info: {4}",
+            IPBanLog.Warn(startBanDate, "Banning ip address: {0}, user name: {1}, config black listed: {2}, count: {3}, extra info: {4}",
                 ipAddress, userName, configBlacklisted, counter, extraInfo);
 
             if (BannedIPAddressHandler != null && System.Net.IPAddress.TryParse(ipAddress, out System.Net.IPAddress ipAddressObj) && !ipAddressObj.IsInternal())
@@ -502,14 +518,15 @@ namespace DigitalRuby.IPBan
             else
             {
                 DateTime now = UtcNow;
+                DateTime banEnd = now + Config.BanTimes.First();
 
                 IPBanLog.Warn("Syncing firewall and {0} database...", IPBanDB.FileName);
 
                 // bring all firewall ip into the database, if they already exist they will be ignored
-                ipDB.SetBannedIPAddresses(Firewall.EnumerateBannedIPAddresses().Select(i => new KeyValuePair<string, DateTime>(i, now)));
+                ipDB.SetBannedIPAddresses(Firewall.EnumerateBannedIPAddresses().Select(i => new Tuple<string, DateTime, DateTime>(i, now, banEnd)), UtcNow);
 
                 // remove any rows where the ip address was going to be removed
-                ipDB.DeleteIPAddresses(IPBanDB.IPAddressState.RemovePending);
+                ipDB.DeletePendingRemoveIPAddresses();
 
                 // ensure firewall is up to date with all the correct ip addresses, if any ip are in the db but not in the firewall, they will
                 // get synced up here
@@ -543,85 +560,122 @@ namespace DigitalRuby.IPBan
             }
         }
 
-        private async Task CheckForExpiredIP()
+        private void HandleWhitelistChanged(object transaction, HashSet<string> unbanList)
         {
-            HashSet<string> ipAddressesToUnBan = new HashSet<string>();
-            HashSet<string> ipAddressesToForget = new HashSet<string>();
-            DateTime now = UtcNow;
-            DateTime failLoginCutOff = (now - Config.ExpireTime);
-            DateTime banCutOff = (now - Config.BanTime);
-            bool allowBanExpire = (Config.BanTime.TotalMilliseconds > 0.0);
-            bool allowFailedLoginExpire = (Config.ExpireTime.TotalMilliseconds > 0.0);
-
             // if the whitelist changed, we have no choice but to loop the entire db to remove ip
             // this should not happen very often so not a problem
             if (whitelistChanged)
             {
                 whitelistChanged = false;
-                foreach (IPBanDB.IPAddressEntry ipAddress in ipDB.EnumerateIPAddresses())
+                foreach (IPBanDB.IPAddressEntry ipAddress in ipDB.EnumerateIPAddresses(null, null, transaction))
                 {
                     if (IsWhitelisted(ipAddress.IPAddress))
                     {
-                        if (ipAddress.BanDate != null)
+                        if (ipAddress.State == IPBanDB.IPAddressState.Active)
                         {
                             IPBanLog.Warn("Un-banning whitelisted ip address {0}", ipAddress.IPAddress);
-                            ipAddressesToUnBan.Add(ipAddress.IPAddress);
+                            unbanList?.Add(ipAddress.IPAddress);
+                            DB.SetIPAddressesState(new string[] { ipAddress.IPAddress }, IPBanDB.IPAddressState.RemovePending, transaction);
                             firewallNeedsBlockedIPAddressesUpdate = true;
                         }
                         else
                         {
                             IPBanLog.Warn("Forgetting whitelisted ip address {0}", ipAddress.IPAddress);
-                            ipAddressesToForget.Add(ipAddress.IPAddress);
+                            DB.DeleteIPAddress(ipAddress.IPAddress, transaction);
                         }
                     }
                 }
             }
+        }
 
-            if (allowBanExpire || allowFailedLoginExpire)
+        private void HandleExpiredLoginsAndBans(DateTime failLoginCutOff, DateTime banCutOff, bool allowBanExpire, bool allowFailedLoginExpire,
+            object transaction, HashSet<string> unbanList)
+        {
+            TimeSpan[] banTimes = Config.BanTimes;
+
+            // fast query into database for entries that should be deleted due to un-ban or forgetting failed logins
+            foreach (IPBanDB.IPAddressEntry ipAddress in ipDB.EnumerateIPAddresses(failLoginCutOff, banCutOff, transaction))
             {
-                // fast query into database for entries that should be deleted due to un-ban or forgetting failed logins
-                foreach (IPBanDB.IPAddressEntry ipAddress in ipDB.EnumerateIPAddresses(failLoginCutOff, banCutOff))
+                // never un-ban a blacklisted entry
+                if (Config.IsBlackListed(ipAddress.IPAddress) && !Config.IsWhitelisted(ipAddress.IPAddress))
                 {
-                    // never un-ban a blacklisted entry
-                    if (Config.IsBlackListed(ipAddress.IPAddress) && !Config.IsWhitelisted(ipAddress.IPAddress))
+                    continue;
+                }
+                // if ban duration has expired, un-ban, check this first as these must trigger a firewall update
+                else if (allowBanExpire && ipAddress.State == IPBanDB.IPAddressState.Active && ipAddress.BanStartDate != null && ipAddress.BanEndDate != null)
+                {
+                    // check gap of ban end date vs ban date and see where we are in the ban times, if we have gone beyond the last ban time,
+                    // we need to unban the ip address and remove from db, otherwise the ban end date needs to be increased to the next ban interval and
+                    // the ip address needs to be unbanned but turn back into a failed login
+                    TimeSpan span = ipAddress.BanEndDate.Value - ipAddress.BanStartDate.Value;
+                    int i = banTimes.Length;
+                    firewallNeedsBlockedIPAddressesUpdate = true;
+                    unbanList?.Add(ipAddress.IPAddress);
+
+                    // if more than one ban time, we have tiered ban times where the ban time increases 
+                    if (banTimes.Length > 1)
                     {
-                        continue;
+                        for (i = 0; i < banTimes.Length; i++)
+                        {
+                            if (span < banTimes[i] || banTimes[i].Ticks <= 0)
+                            {
+                                // this is the next span to ban
+                                break;
+                            }
+                        }
                     }
-                    // if ban duration has expired, un-ban, check this first as these must trigger a firewall update
-                    else if (allowBanExpire && ipAddress.BanDate != null && ipAddress.BanDate <= banCutOff)
+                    if (i < banTimes.Length)
+                    {
+                        IPBanLog.Warn("Preparing ip address {0} for next ban time {1}", ipAddress.IPAddress, banTimes[i]);
+                        ipDB.SetIPAddressesState(new string[] { ipAddress.IPAddress }, IPBanDB.IPAddressState.RemovePendingBecomeFailedLogin, transaction);
+                    }
+                    else
                     {
                         IPBanLog.Warn("Un-banning ip address {0}, ban expired", ipAddress.IPAddress);
-                        ipAddressesToUnBan.Add(ipAddress.IPAddress);
-                        firewallNeedsBlockedIPAddressesUpdate = true;
-                    }
-                    // if fail login has expired, remove ip address from db
-                    else if (allowFailedLoginExpire && ipAddress.LastFailedLogin <= failLoginCutOff)
-                    {
-                        IPBanLog.Warn("Forgetting ip address {0}, time expired", ipAddress.IPAddress);
-                        ipAddressesToForget.Add(ipAddress.IPAddress);
+                        ipDB.SetIPAddressesState(new string[] { ipAddress.IPAddress }, IPBanDB.IPAddressState.RemovePending, transaction);
                     }
                 }
-            }
-
-            if (IPBanDelegate != null)
-            {
-                // notify delegate of ip addresses to unban
-                foreach (string ip in ipAddressesToUnBan)
+                // if fail login has expired, remove ip address from db
+                else if (allowFailedLoginExpire && ipAddress.State == IPBanDB.IPAddressState.FailedLogin)
                 {
-                    await IPBanDelegate.IPAddressBanned(ip, null, null, MachineGuid, OSName, OSVersion, UtcNow, false);
+                    IPBanLog.Warn("Forgetting failed login ip address {0}, time expired", ipAddress.IPAddress);
+                    DB.DeleteIPAddress(ipAddress.IPAddress, transaction);
                 }
             }
+        }
 
-            if (ipAddressesToForget.Count != 0)
+        private async Task UpdateExpiredIPAddressStates()
+        {
+            HashSet<string> unbanIPAddressesToNotifyDelegate = (IPBanDelegate == null ? null : new HashSet<string>());
+            DateTime now = UtcNow;
+            DateTime failLoginCutOff = (now - Config.ExpireTime);
+            DateTime banCutOff = now;
+            bool allowBanExpire = (Config.BanTimes.First().Ticks > 0);
+            bool allowFailedLoginExpire = (Config.ExpireTime.Ticks > 0);
+            object transaction = DB.BeginTransaction();
+
+            try
             {
-                // now that we are done iterating the ip addresses, we can issue a delete for forgotten ip
-                ipDB.DeleteIPAddresses(ipAddressesToForget);
+                HandleWhitelistChanged(transaction, unbanIPAddressesToNotifyDelegate);
+                HandleExpiredLoginsAndBans(failLoginCutOff, banCutOff, allowBanExpire, allowFailedLoginExpire, transaction, unbanIPAddressesToNotifyDelegate);
+                ipDB.CommitTransaction(transaction);
+
+                // notify delegate of all unbanned ip addresses
+                if (IPBanDelegate != null)
+                {
+                    foreach (string ip in unbanIPAddressesToNotifyDelegate)
+                    {
+                        await IPBanDelegate.IPAddressBanned(ip, null, null, MachineGuid, OSName, OSVersion, UtcNow, false);
+                    }
+                }
             }
-
-            if (ipAddressesToUnBan.Count != 0)
+            catch (Exception ex)
             {
-                // set ip to remove from firewall as pending deletion
-                ipDB.SetIPAddressesState(ipAddressesToUnBan, IPBanDB.IPAddressState.RemovePending);
+                IPBanLog.Error(ex);
+                DB.RollbackTransaction(transaction);
+            }
+            finally
+            {
             }
         }
 
@@ -746,7 +800,7 @@ namespace DigitalRuby.IPBan
             if (firewallNeedsBlockedIPAddressesUpdate)
             {
                 firewallNeedsBlockedIPAddressesUpdate = false;
-                List<IPBanFirewallIPAddressDelta> deltas = ipDB.EnumerateIPAddressesDelta(true).Where(i => !i.Added || !IsWhitelisted(i.IPAddress)).ToList();
+                List<IPBanFirewallIPAddressDelta> deltas = ipDB.EnumerateIPAddressesDeltaAndUpdateState(true, Config.ResetFailedLoginCountForUnbannedIPAddresses).Where(i => !i.Added || !IsWhitelisted(i.IPAddress)).ToList();
                 IPBanLog.Warn("Updating firewall with {0} entries...", deltas.Count);
                 IPBanLog.Debug("Firewall entries updated: {0}", string.Join(',', deltas.Select(d => d.IPAddress)));
                 if (MultiThreaded)
@@ -896,7 +950,6 @@ namespace DigitalRuby.IPBan
                 pendingLogEvents.Clear();
             }
 
-            List<string> unbannedIPs = new List<string>();
             List<IPAddressPendingEvent> bannedIPs = new List<IPAddressPendingEvent>();
             object transaction = BeginTransaction();
             try
@@ -923,7 +976,7 @@ namespace DigitalRuby.IPBan
                             break;
 
                         case IPAddressEventType.Unblocked:
-                            unbannedIPs.Add(evt.IPAddress);
+                            DB.SetIPAddressesState(new string[] { evt.IPAddress }, IPBanDB.IPAddressState.RemovePending, transaction);
                             break;
                     }
                 }
@@ -935,10 +988,6 @@ namespace DigitalRuby.IPBan
                 IPBanLog.Error(ex);
             }
             ExecuteExternalProcessForBannedIPAddresses(bannedIPs);
-            if (unbannedIPs.Count != 0)
-            {
-                UnblockIPAddresses(unbannedIPs);
-            }
         }
 
         /// <summary>
@@ -976,7 +1025,7 @@ namespace DigitalRuby.IPBan
             ReadAppSettings();
             UpdateDelegate();
             UpdateUpdaters();
-            await CheckForExpiredIP(); // remove failed logins or bans that have expired
+            await UpdateExpiredIPAddressStates();
             await ProcessPendingFailedLogins();
             await ProcessPendingSuccessfulLogins();
         }
