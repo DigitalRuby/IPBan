@@ -107,9 +107,10 @@ namespace DigitalRuby.IPBanTests
             AddEvent(nameof(IIPBanDelegate.Start));
         }
 
-        void IIPBanDelegate.Update()
+        Task IIPBanDelegate.Update()
         {
             AddEvent(nameof(IIPBanDelegate.Update));
+            return Task.CompletedTask;
         }
 
         Task IIPBanDelegate.IPAddressBanned(string ip, string source, string userName, string machineGuid, string osName, string osVersion, DateTime timestamp, bool banned)

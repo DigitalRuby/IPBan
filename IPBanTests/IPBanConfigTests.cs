@@ -188,7 +188,7 @@ namespace DigitalRuby.IPBanTests
                 AssertLogFilesToParse(cfg);
                 AssertEventViewer(cfg);
 
-                IPBanConfig prod = IPBanConfig.LoadFromFile(service.ConfigFilePath.Replace(".tmp", string.Empty), null);
+                IPBanConfig prod = IPBanConfig.LoadFromFileAsync(service.ConfigFilePath.Replace(".tmp", string.Empty), null).Sync();
                 Assert.IsTrue(prod.UseDefaultBannedIPAddressHandler);
             }
             finally

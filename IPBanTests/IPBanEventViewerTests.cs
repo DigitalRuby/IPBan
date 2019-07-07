@@ -185,8 +185,9 @@ namespace DigitalRuby.IPBanTests
             
         }
 
-        void IIPBanDelegate.Update()
+        Task IIPBanDelegate.Update()
         {
+            return Task.CompletedTask;
         }
 
         event Action IIPBanDelegate.WhitelistChanged

@@ -25,6 +25,7 @@ SOFTWARE.
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace DigitalRuby.IPBan
 {
@@ -96,8 +97,13 @@ namespace DigitalRuby.IPBan
             }
         }
 
-        public virtual void Update()
+        /// <summary>
+        /// Update firewall, perform housekeeping, etc.
+        /// </summary>
+        /// <returns></returns>
+        public virtual Task Update()
         {
+            return Task.CompletedTask;
         }
 
         /// <summary>

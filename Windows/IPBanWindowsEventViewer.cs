@@ -51,9 +51,10 @@ namespace DigitalRuby.IPBan
             Update();
         }
 
-        public void Update()
+        public Task Update()
         {
             SetupEventLogWatcher();
+            return Task.CompletedTask;
         }
 
         public void Dispose()

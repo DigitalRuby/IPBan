@@ -28,8 +28,9 @@ namespace DigitalRuby.IPBan
             RulePrefix = (string.IsNullOrWhiteSpace(rulePrefix) ? RulePrefix : rulePrefix);
         }
 
-        public void Update()
+        public Task Update()
         {
+            return Task.CompletedTask;
         }
 
         public Task<bool> AllowIPAddresses(IEnumerable<string> ipAddresses, CancellationToken cancelToken = default)

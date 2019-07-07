@@ -35,6 +35,7 @@ using System.Net;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Serialization;
 
@@ -394,14 +395,15 @@ namespace DigitalRuby.IPBan
         /// <param name="service">Service</param>
         /// <param name="dns">Dns lookup for resolving ip addresses</param>
         /// <returns>IPBanConfig</returns>
-        public static IPBanConfig LoadFromFile(string configFilePath, IDnsLookup dns)
+        public static async Task<IPBanConfig> LoadFromFileAsync(string configFilePath, IDnsLookup dns)
         {
             configFilePath = (File.Exists(configFilePath) ? configFilePath : ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None).FilePath);
             if (!File.Exists(configFilePath))
             {
                 throw new FileNotFoundException("Unable to find config file " + configFilePath);
             }
-            return LoadFromXml(File.ReadAllText(configFilePath), dns);
+            string xml = await File.ReadAllTextAsync(configFilePath);
+            return LoadFromXml(xml, dns);
         }
 
         /// <summary>

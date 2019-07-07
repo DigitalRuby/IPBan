@@ -73,7 +73,8 @@ namespace DigitalRuby.IPBan
         /// Update config file with new xml
         /// </summary>
         /// <param name="xml">New config file xml</param>
-        void UpdateConfig(string xml);
+        /// <returns>Task</returns>
+        Task UpdateConfig(string xml);
 
         /// <summary>
         /// Replace place-holders in url with values from this service
@@ -213,7 +214,7 @@ namespace DigitalRuby.IPBan
         /// <summary>
         /// Update, do housekeeping, etc.
         /// </summary>
-        void Update();
+        Task Update();
 
         /// <summary>
         /// Notify when an ip is banned

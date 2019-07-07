@@ -404,7 +404,7 @@ namespace DigitalRuby.IPBan
             RestoreTablesFromDisk();
         }
 
-        public override void Update()
+        public override Task Update()
         {
             base.Update();
 
@@ -415,6 +415,8 @@ namespace DigitalRuby.IPBan
                 lastUpdate = now;
                 SaveSetsToDisk();
             }
+
+            return Task.CompletedTask;
         }
 
         public IEnumerable<string> GetRuleNames(string ruleNamePrefix = null)

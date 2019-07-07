@@ -28,6 +28,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace DigitalRuby.IPBan
 {
@@ -58,13 +59,13 @@ namespace DigitalRuby.IPBan
         /// <summary>
         /// Update - if the text file path exists, all ip addresses from each line will be unbanned
         /// </summary>
-        public void Update()
+        public async Task Update()
         {
             try
             {
                 if (File.Exists(textFilePath))
                 {
-                    string[] lines = File.ReadLines(textFilePath).Where(l => IPAddress.TryParse(l, out _)).ToArray();
+                    string[] lines = (await File.ReadAllLinesAsync(textFilePath)).Where(l => IPAddress.TryParse(l, out _)).ToArray();
                     IPBanLog.Warn("Queueing {0} ip addresses to unban from {1} file", lines.Length, textFilePath);
                     UnbanIPAddresses(lines);
                     File.Delete(textFilePath);
