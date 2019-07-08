@@ -721,4 +721,8 @@ Prefix with OS:ClassName, example: Windows:Custom,Linux:Default</value>
   <data name="ResetFailedLoginCountForUnbannedIPAddresses" xml:space="preserve">
     <value>Reset Failed Login Count on Unban</value>
   </data>
+  <data name="Details" xml:space="preserve">
+    <value>Details</value>
+    <comment>Details of an ip address such as city, country, etc.</comment>
+  </data>
 </root>
