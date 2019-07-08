@@ -483,8 +483,8 @@ namespace DigitalRuby.IPBan
                 IPBanDBTransaction tran = transaction as IPBanDBTransaction;
 
                 // only increment failed login for new rows or for existing rows with state 3 (failed login only, no ban bending)
-                string command = @"INSERT INTO IPAddresses(IPAddress, IPAddressText, LastFailedLogin, FailedLoginCount, BanDate, State)
-                    VALUES (@Param0, @Param1, @Param2, @Param3, NULL, 3)
+                string command = @"INSERT INTO IPAddresses(IPAddress, IPAddressText, LastFailedLogin, FailedLoginCount, BanDate, State, BanEndDate)
+                    VALUES (@Param0, @Param1, @Param2, @Param3, NULL, 3, NULL)
                     ON CONFLICT(IPAddress)
                     DO UPDATE SET LastFailedLogin = @Param2, FailedLoginCount = FailedLoginCount + @Param3 WHERE State = 3;
                     SELECT FailedLoginCount FROM IPAddresses WHERE IPAddress = @Param0;";
@@ -693,10 +693,11 @@ namespace DigitalRuby.IPBan
         /// or set to failed login state (ban expired set as failed login).
         /// </summary>
         /// <param name="commit">Whether to commit changes (alter states and delete pending removals) when enumeration is complete</param>
+        /// <param name="now">Current date/time</param>
         /// <param name="resetFailedLoginCount">Whether to reset failed login count to 0 for un-banned ip addresses</param>
         /// <param name="transaction">Transaction</param>
         /// <returns></returns>
-        public IEnumerable<IPBanFirewallIPAddressDelta> EnumerateIPAddressesDeltaAndUpdateState(bool commit, bool resetFailedLoginCount = true, object transaction = null)
+        public IEnumerable<IPBanFirewallIPAddressDelta> EnumerateIPAddressesDeltaAndUpdateState(bool commit, DateTime now, bool resetFailedLoginCount = true, object transaction = null)
         {
             string ipAddress;
             bool added;
@@ -745,9 +746,13 @@ namespace DigitalRuby.IPBan
                     // add pending (1) becomes active (0)
                     // remove pending no delete (4) becomes failed login (3)
                     // remove pending (2) is deleted entirely
+                    // last failed login is set to current date/time if state goes from 4 to 3
+                    long timestamp = (long)now.UnixTimestampFromDateTimeMilliseconds();
                     ExecuteNonQuery(tran.DBConnection, tran.DBTransaction,
-                        @"UPDATE IPAddresses SET FailedLoginCount = CASE WHEN @Param0 = 1 THEN 0 ELSE FailedLoginCount END, State = CASE WHEN State = 1 THEN 0 WHEN State = 4 THEN 3 ELSE State END WHERE State IN (1, 4);
-                        DELETE FROM IPAddresses WHERE State = 2;", resetFailedLoginCount);
+                        @"UPDATE IPAddresses SET FailedLoginCount = CASE WHEN @Param0 = 1 THEN 0 ELSE FailedLoginCount END,
+                        LastFailedLogin = CASE WHEN State = 4 THEN @Param1 ELSE LastFailedLogin END,
+                        State = CASE WHEN State = 1 THEN 0 WHEN State = 4 THEN 3 ELSE State END WHERE State IN (1, 4);
+                        DELETE FROM IPAddresses WHERE State = 2;", resetFailedLoginCount, timestamp);
                 }
             }
             catch
@@ -756,6 +761,7 @@ namespace DigitalRuby.IPBan
                 {
                     RollbackTransaction(tran);
                 }
+                throw;
             }
             finally
             {
@@ -809,7 +815,7 @@ namespace DigitalRuby.IPBan
             IPBanDBTransaction tran = transaction as IPBanDBTransaction;
             using (SqliteDataReader reader = ExecuteReader(@"SELECT IPAddressText, LastFailedLogin, FailedLoginCount, BanDate, State, BanEndDate
                 FROM IPAddresses
-                WHERE (@Param0 IS NULL AND @Param1 IS NULL) OR (@Param0 IS NOT NULL AND LastFailedLogin <= @Param0) OR (@Param1 IS NOT NULL AND BanEndDate <= @Param1)
+                WHERE (@Param0 IS NULL AND @Param1 IS NULL) OR (@Param0 IS NOT NULL AND State = 3 AND LastFailedLogin <= @Param0) OR (@Param1 IS NOT NULL AND State IN (0, 1) AND BanEndDate <= @Param1)
                 ORDER BY IPAddress",
                 tran?.DBConnection, tran?.DBTransaction, failLoginCutOffUnix, banCutOffUnix))
             {

@@ -113,7 +113,7 @@ namespace DigitalRuby.IPBanTests
 
                 // ensure deltas work properly
                 Assert.AreEqual(1, db.SetIPAddressesState(new string[] { "5.5.5.5" }, IPBanDB.IPAddressState.RemovePending));
-                IPBanFirewallIPAddressDelta[] deltas = db.EnumerateIPAddressesDeltaAndUpdateState(false).ToArray();
+                IPBanFirewallIPAddressDelta[] deltas = db.EnumerateIPAddressesDeltaAndUpdateState(false, now).ToArray();
                 Assert.AreEqual(6, deltas.Length);
                 Assert.AreEqual("10.10.10.10", deltas[0].IPAddress);
                 Assert.AreEqual("11.11.11.11", deltas[1].IPAddress);
@@ -127,7 +127,7 @@ namespace DigitalRuby.IPBanTests
                 Assert.IsFalse(deltas[3].Added);
                 Assert.IsTrue(deltas[4].Added);
                 Assert.IsTrue(deltas[5].Added);
-                deltas = db.EnumerateIPAddressesDeltaAndUpdateState(true).ToArray();
+                deltas = db.EnumerateIPAddressesDeltaAndUpdateState(true, now).ToArray();
                 Assert.AreEqual(6, deltas.Length);
                 Assert.AreEqual("10.10.10.10", deltas[0].IPAddress);
                 Assert.AreEqual("11.11.11.11", deltas[1].IPAddress);
@@ -143,7 +143,7 @@ namespace DigitalRuby.IPBanTests
                 Assert.IsTrue(deltas[5].Added);
                 string[] bannedIpAll = db.EnumerateBannedIPAddresses().ToArray();
                 Assert.AreEqual(5, bannedIpAll.Length);
-                deltas = db.EnumerateIPAddressesDeltaAndUpdateState(true).ToArray();
+                deltas = db.EnumerateIPAddressesDeltaAndUpdateState(true, now).ToArray();
                 Assert.AreEqual(0, deltas.Length);
 
                 db.Truncate(true);

@@ -496,6 +496,20 @@ namespace DigitalRuby.IPBan
         }
 
         /// <summary>
+        /// Change an app settings - no XML encoding is done, so ensure your key and new value are already encoded
+        /// </summary>
+        /// <param name="config">Entire XML config</param>
+        /// <param name="key">App setting key to look for</param>
+        /// <param name="newValue">Replacement value</param>
+        /// <returns>Modified config or the config passed in if not found</returns>
+        public static string ChangeConfigAppSetting(string config, string key, string newValue)
+        {
+            string find = $@"\<add key=""{key}"" value=""[^""]*"" *\/\>";
+            string replace = $@"<add key=""{key}"" value=""{newValue}"" />";
+            return Regex.Replace(config, find, replace, RegexOptions.IgnoreCase);
+        }
+
+        /// <summary>
         /// Number of failed login attempts before a ban is initiated
         /// </summary>
         public int FailedLoginAttemptsBeforeBan { get { return failedLoginAttemptsBeforeBan; } }

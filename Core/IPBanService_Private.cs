@@ -616,12 +616,10 @@ namespace DigitalRuby.IPBan
             bool allowBanExpire = (Config.BanTimes.First().Ticks > 0);
             bool allowFailedLoginExpire = (Config.ExpireTime.Ticks > 0);
             object transaction = DB.BeginTransaction();
-
             try
             {
                 HandleWhitelistChanged(transaction, unbanIPAddressesToNotifyDelegate);
                 HandleExpiredLoginsAndBans(failLoginCutOff, banCutOff, allowBanExpire, allowFailedLoginExpire, transaction, unbanIPAddressesToNotifyDelegate);
-                ipDB.CommitTransaction(transaction);
 
                 // notify delegate of all unbanned ip addresses
                 if (IPBanDelegate != null)
@@ -639,6 +637,7 @@ namespace DigitalRuby.IPBan
             }
             finally
             {
+                DB.CommitTransaction(transaction);
             }
         }
 
@@ -763,7 +762,7 @@ namespace DigitalRuby.IPBan
             if (firewallNeedsBlockedIPAddressesUpdate)
             {
                 firewallNeedsBlockedIPAddressesUpdate = false;
-                List<IPBanFirewallIPAddressDelta> deltas = ipDB.EnumerateIPAddressesDeltaAndUpdateState(true, Config.ResetFailedLoginCountForUnbannedIPAddresses).Where(i => !i.Added || !IsWhitelisted(i.IPAddress)).ToList();
+                List<IPBanFirewallIPAddressDelta> deltas = ipDB.EnumerateIPAddressesDeltaAndUpdateState(true, UtcNow, Config.ResetFailedLoginCountForUnbannedIPAddresses).Where(i => !i.Added || !IsWhitelisted(i.IPAddress)).ToList();
                 IPBanLog.Warn("Updating firewall with {0} entries...", deltas.Count);
                 IPBanLog.Debug("Firewall entries updated: {0}", string.Join(',', deltas.Select(d => d.IPAddress)));
                 if (MultiThreaded)
