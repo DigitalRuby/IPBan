@@ -103,7 +103,6 @@ WantedBy=multi-user.target
 - Start the service:
 ```
 sudo systemctl daemon-reload 
-sudo systemctl enable ipban
 sudo systemctl start ipban
 sudo systemctl enable ipban
 systemctl status ipban
