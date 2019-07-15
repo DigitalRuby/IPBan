@@ -40,9 +40,9 @@ namespace DigitalRuby.IPBanTests
         private const string ip1 = "99.99.99.99";
         private const string ip2 = "99.99.99.98";
         private const string ip3 = "99.99.99.97";
-        private static readonly IPAddressLogEvent info1 = new IPAddressLogEvent { Count = 98, IPAddress = ip1, Source = "RDP", UserName = "test_user", Type = IPAddressEventType.FailedLogin };
-        private static readonly IPAddressLogEvent info2 = new IPAddressLogEvent { Count = 99, IPAddress = ip2, Source = "SSH", UserName = "test_user2", Type = IPAddressEventType.FailedLogin };
-        private static readonly IPAddressLogEvent info3 = new IPAddressLogEvent { Count = 97, IPAddress = ip3, Source = "SSH", UserName = "test_user3", Type = IPAddressEventType.SuccessfulLogin };
+        private static readonly IPAddressLogEvent info1 = new IPAddressLogEvent(ip1, "test_user", "RDP", 98, IPAddressEventType.FailedLogin);
+        private static readonly IPAddressLogEvent info2 = new IPAddressLogEvent(ip2, "test_user2", "SSH", 99, IPAddressEventType.FailedLogin);
+        private static readonly IPAddressLogEvent info3 = new IPAddressLogEvent(ip3, "test_user3", "SSH", 97, IPAddressEventType.SuccessfulLogin);
 
         private readonly Dictionary<string, int> events = new Dictionary<string, int>();
         private IPBanService service;

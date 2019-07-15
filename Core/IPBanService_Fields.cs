@@ -54,8 +54,9 @@ namespace DigitalRuby.IPBan
         private IPBanDB ipDB;
 
         // batch failed logins every cycle
-        private readonly List<IPAddressPendingEvent> pendingFailedLogins = new List<IPAddressPendingEvent>();
-        private readonly List<IPAddressPendingEvent> pendingSuccessfulLogins = new List<IPAddressPendingEvent>();
+        private readonly List<IPAddressLogEvent> pendingBans = new List<IPAddressLogEvent>();
+        private readonly List<IPAddressLogEvent> pendingFailedLogins = new List<IPAddressLogEvent>();
+        private readonly List<IPAddressLogEvent> pendingSuccessfulLogins = new List<IPAddressLogEvent>();
         private readonly List<IPAddressLogEvent> pendingLogEvents = new List<IPAddressLogEvent>();
         private readonly HashSet<IUpdater> updaters = new HashSet<IUpdater>();
         private readonly HashSet<IPBanLogFileScanner> logFilesToParse = new HashSet<IPBanLogFileScanner>();
@@ -211,6 +212,11 @@ namespace DigitalRuby.IPBan
         /// Whether to run the first cycle in the Start method or wait for the timer to elapse.
         /// </summary>
         public bool RunFirstCycleRightAway { get; set; } = true;
+
+        /// <summary>
+        /// File name to write ip addresses to (one per line) to block the ip addresses in the file. Can comma separate each line and the second line will be a source of the ban.
+        /// </summary>
+        public string BlockIPAddressesFileName { get; } = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ban.txt");
 
         /// <summary>
         /// File name to write ip addresses to (one per line) to unblock the ip addresses in the file

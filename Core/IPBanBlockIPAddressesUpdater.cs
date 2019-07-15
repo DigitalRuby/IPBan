@@ -32,7 +32,7 @@ using System.Threading.Tasks;
 
 namespace DigitalRuby.IPBan
 {
-    public class IPBanUnblockIPAddressesUpdater : IUpdater
+    public class IPBanBlockIPAddressesUpdater : IUpdater
     {
         private IIPAddressEventHandler service;
         private readonly string textFilePath;
@@ -42,7 +42,7 @@ namespace DigitalRuby.IPBan
         /// </summary>
         /// <param name="service">Service</param>
         /// <param name="textFilePath">Path to text file to unban ip addresses from or null to require manual unban call</param>
-        public IPBanUnblockIPAddressesUpdater(IIPAddressEventHandler service, string textFilePath)
+        public IPBanBlockIPAddressesUpdater(IIPAddressEventHandler service, string textFilePath)
         {
             service.ThrowIfNull();
             this.service = service;
@@ -66,8 +66,19 @@ namespace DigitalRuby.IPBan
                 if (File.Exists(textFilePath))
                 {
                     string[] lines = (await File.ReadAllLinesAsync(textFilePath)).Where(l => IPAddress.TryParse(l, out _)).ToArray();
-                    IPBanLog.Warn("Queueing {0} ip addresses to unban from {1} file", lines.Length, textFilePath);
-                    UnblockIPAddresses(lines);
+                    IPBanLog.Warn("Queueing {0} ip addresses to ban from {1} file", lines.Length, textFilePath);
+                    List<IPAddressLogEvent> bans = new List<IPAddressLogEvent>();
+                    foreach (string[] pieces in lines.Select(l => l.Split(',')))
+                    {
+                        if (pieces.Length < 1)
+                        {
+                            continue;
+                        }
+                        string ipAddress = pieces[0];
+                        string source = (pieces.Length < 2 ? "Block" : pieces[1]);
+                        bans.Add(new IPAddressLogEvent(ipAddress, string.Empty, source, 1, IPAddressEventType.Blocked));
+                    }
+                    service.AddIPAddressLogEvents(bans);
                     File.Delete(textFilePath);
                 }
             }
@@ -75,15 +86,6 @@ namespace DigitalRuby.IPBan
             {
                 IPBanLog.Error(ex);
             }
-        }
-
-        /// <summary>
-        /// Unblock ip addresses
-        /// </summary>
-        /// <param name="ipAddresses">IP addresses to unban</param>
-        public void UnblockIPAddresses(IEnumerable<string> ipAddresses)
-        {
-            service.AddIPAddressLogEvents(ipAddresses.Select(i => new IPAddressLogEvent(i, string.Empty, "Unblock", 1, IPAddressEventType.Unblocked)));
         }
     }
 }

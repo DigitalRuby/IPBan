@@ -541,29 +541,23 @@ namespace DigitalRuby.IPBan
     public class IPAddressLogEvent
     {
         /// <summary>
-        /// Default constructor
-        /// </summary>
-        public IPAddressLogEvent() { }
-
-        /// <summary>
         /// Constructor
         /// </summary>
-        /// <param name="foundMatch">Whether a match was found</param>
         /// <param name="ipAddress">IP address</param>
         /// <param name="userName">User name</param>
         /// <param name="source">Source</param>
         /// <param name="count">How many messages were aggregated, 1 for no aggregation</param>
         /// <param name="type">Event type</param>
         /// <param name="timestamp">Timestamp of the event, default for current timestamp</param>
-        public IPAddressLogEvent(bool foundMatch, string ipAddress, string userName, string source, int count, IPAddressEventType type, DateTime timestamp = default)
+        public IPAddressLogEvent(string ipAddress, string userName, string source, int count, IPAddressEventType type, DateTime timestamp = default)
         {
-            FoundMatch = foundMatch;
             IPAddress = ipAddress;
             UserName = userName;
             Source = source;
             Count = count;
             Type = type;
             Timestamp = (timestamp == default ? IPBanService.UtcNow : timestamp);
+            FoundMatch = true;
         }
 
         /// <summary>

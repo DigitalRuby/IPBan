@@ -42,9 +42,9 @@ namespace DigitalRuby.IPBanTests
         private const string ip1 = "99.99.99.97";
         private const string ip2 = "99.99.99.98";
         private const string ip3 = "99.99.99.99";
-        private static readonly IPAddressLogEvent info1 = new IPAddressLogEvent { Count = 98, IPAddress = ip1, Source = "RDP", UserName = "test_user", Type = IPAddressEventType.FailedLogin };
-        private static readonly IPAddressLogEvent info2 = new IPAddressLogEvent { Count = 99, IPAddress = ip2, Source = "SSH", UserName = "test_user2", Type = IPAddressEventType.FailedLogin };
-        private static readonly IPAddressLogEvent info3 = new IPAddressLogEvent { Count = 1, IPAddress = ip1, Source = "RDP", UserName = "test_user", Type = IPAddressEventType.FailedLogin };
+        private static readonly IPAddressLogEvent info1 = new IPAddressLogEvent(ip1, "test_user", "RDP", 98, IPAddressEventType.FailedLogin);
+        private static readonly IPAddressLogEvent info2 = new IPAddressLogEvent(ip2, "test_user2", "SSH", 99, IPAddressEventType.FailedLogin);
+        private static readonly IPAddressLogEvent info3 = new IPAddressLogEvent(ip1, "test_user", "RDP", 1, IPAddressEventType.FailedLogin);
 
         private IPBanService service;
 
@@ -65,18 +65,13 @@ namespace DigitalRuby.IPBanTests
 
         private void AddFailedLogins(int count = -1)
         {
-            if (count > 0)
+            int count1 = (count < 0 ? info1.Count : count);
+            int count2 = (count < 0 ? info2.Count : count);
+            service.AddIPAddressLogEvents(new IPAddressLogEvent[]
             {
-                service.AddIPAddressLogEvents(new IPAddressLogEvent[]
-                {
-                    new IPAddressLogEvent { Count = count, FoundMatch = info1.FoundMatch, IPAddress = info1.IPAddress, Source = info1.Source, Timestamp= info1.Timestamp, Type = info1.Type, UserName = info1.UserName },
-                    new IPAddressLogEvent { Count = count, FoundMatch = info2.FoundMatch, IPAddress = info2.IPAddress, Source = info2.Source, Timestamp= info2.Timestamp, Type = info2.Type, UserName = info2.UserName }
-                });
-            }
-            else
-            {
-                service.AddIPAddressLogEvents(new IPAddressLogEvent[] { info1, info2 });
-            }
+                new IPAddressLogEvent(info1.IPAddress, info1.UserName, info1.Source, count1, info1.Type),
+                new IPAddressLogEvent(info2.IPAddress, info2.UserName, info2.Source, count2, info2.Type)
+            });
             service.RunCycle().Sync();
         }
 
@@ -143,6 +138,26 @@ namespace DigitalRuby.IPBanTests
         }
 
         [Test]
+        public void TestBlockIPAddresesBlockFile()
+        {
+            // put an ban.txt file in path, service should pick it up and ban the ip addresses
+            File.WriteAllLines(service.BlockIPAddressesFileName, new string[] { ip1, ip2 });
+            service.RunCycle().Sync();
+            AssertIPAddressesAreBanned(0, 0);
+        }
+
+        [Test]
+        public void TestBlockIPAddressesMethodCall()
+        {
+            service.AddIPAddressLogEvents(new IPAddressLogEvent[] { new IPAddressLogEvent(ip1, string.Empty, string.Empty, 1, IPAddressEventType.Blocked),
+                new IPAddressLogEvent(ip2, string.Empty, string.Empty, 1, IPAddressEventType.Blocked) });
+
+            // this should block the ip addresses
+            service.RunCycle().Sync();
+            AssertIPAddressesAreBanned(0, 0);
+        }
+
+        [Test]
         public void TestUnblockIPAddresesUnblockFile()
         {
             AddFailedLogins();
@@ -164,9 +179,10 @@ namespace DigitalRuby.IPBanTests
             AddFailedLogins();
             AssertIPAddressesAreBanned();
 
-            service.UnblockIPAddresses(new string[] { ip1, ip2 });
+            service.AddIPAddressLogEvents(new IPAddressLogEvent[] { new IPAddressLogEvent(ip1, string.Empty, string.Empty, 1, IPAddressEventType.Unblocked),
+                new IPAddressLogEvent(ip2, string.Empty, string.Empty, 1, IPAddressEventType.Unblocked) });
 
-            // this should un ban the ip addresses
+            // this should unblock the ip addresses
             service.RunCycle().Sync();
 
             AssertIPAddressesAreNotBanned();

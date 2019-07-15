@@ -46,22 +46,9 @@ namespace DigitalRuby.IPBan
     }
 
     /// <summary>
-    /// Unban ip addresses interface
-    /// </summary>
-    public interface IUnblockIPAddresses
-    {
-        /// <summary>
-        /// Unban ip addresses
-        /// </summary>
-        /// <param name="ipAddresses">IP addresses to unban</param>
-        /// <returns>Task</returns>
-        Task UnblockIPAddresses(IEnumerable<string> ipAddresses);
-    }
-
-    /// <summary>
     /// IPBan service interface
     /// </summary>
-    public interface IIPBanService : IIPAddressEventHandler, IUnblockIPAddresses, IDisposable
+    public interface IIPBanService : IIPAddressEventHandler, IDisposable
     {
         /// <summary>
         /// Manually run regular processing - useful if testing

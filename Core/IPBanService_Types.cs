@@ -53,15 +53,6 @@ namespace DigitalRuby.IPBan
             Stop,
             Config
         }
-
-        private class IPAddressPendingEvent
-        {
-            public string IPAddress { get; set; }
-            public string Source { get; set; }
-            public string UserName { get; set; }
-            public DateTime DateTime { get; set; }
-            public int Count { get; set; }
-        }
     }
 
     /// <summary>

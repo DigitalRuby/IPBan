@@ -82,8 +82,11 @@ namespace DigitalRuby.IPBan
             await UpdateDelegate();
             await UpdateUpdaters();
             await UpdateExpiredIPAddressStates();
+            await ProcessPendingLogEvents();
             await ProcessPendingFailedLogins();
+            await ProcessPendingBans();
             await ProcessPendingSuccessfulLogins();
+            await UpdateFirewall();
         }
 
         /// <summary>
@@ -201,7 +204,7 @@ namespace DigitalRuby.IPBan
                 }
             }
 
-            return new IPAddressLogEvent(foundMatch, ipAddress, userName, source, repeatCount, IPAddressEventType.FailedLogin);
+            return new IPAddressLogEvent(ipAddress, userName, source, repeatCount, IPAddressEventType.FailedLogin) { FoundMatch = foundMatch };
         }
 
         /// <summary>
@@ -293,6 +296,7 @@ namespace DigitalRuby.IPBan
                     EventViewer = new IPBanWindowsEventViewer(this);
                 }
                 AddUpdater(new IPBanUnblockIPAddressesUpdater(this, Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "unban.txt")));
+                AddUpdater(new IPBanBlockIPAddressesUpdater(this, Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ban.txt")));
                 AssemblyVersion = IPBanService.GetIPBanAssembly().GetName().Version.ToString();
                 ReadAppSettings().Sync();
                 UpdateBannedIPAddressesOnStart();
@@ -343,19 +347,6 @@ namespace DigitalRuby.IPBan
         public bool IsWhitelisted(string ipAddress)
         {
             return (Config.IsWhitelisted(ipAddress) || (IPBanDelegate != null && IPBanDelegate.IsIPAddressWhitelisted(ipAddress)));
-        }
-
-        /// <summary>
-        /// Unban ip addresses
-        /// </summary>
-        /// <param name="ipAddresses">IP addresses to unban</param>
-        /// <returns>Task</returns>
-        public Task UnblockIPAddresses(IEnumerable<string> ipAddresses)
-        {
-            // remove ip from database
-            DB.SetIPAddressesState(ipAddresses, IPBanDB.IPAddressState.RemovePending);
-            firewallNeedsBlockedIPAddressesUpdate = true;
-            return Task.CompletedTask;
         }
 
         /// <summary>
