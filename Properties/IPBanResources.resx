@@ -725,4 +725,7 @@ Prefix with OS:ClassName, example: Windows:Custom,Linux:Default</value>
     <value>Details</value>
     <comment>Details of an ip address such as city, country, etc.</comment>
   </data>
+  <data name="IPAddressEvents" xml:space="preserve">
+    <value>IP Address Events</value>
+  </data>
 </root>

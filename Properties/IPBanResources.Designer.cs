@@ -665,6 +665,15 @@ namespace DigitalRuby.IPBan {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to IP Address Events.
+        /// </summary>
+        public static string IPAddressEvents {
+            get {
+                return ResourceManager.GetString("IPAddressEvents", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to 60E555E4ADFE4AAB9DAE61E0D57ADD7E.
         /// </summary>
         public static string IPBanKey1 {

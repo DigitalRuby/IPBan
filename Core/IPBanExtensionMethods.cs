@@ -267,6 +267,20 @@ namespace DigitalRuby.IPBan
         }
 
         /// <summary>
+        /// Attempt to parse a long
+        /// </summary>
+        /// <param name="text">Text</param>
+        /// <returns>Parsed long or 0 if failure</returns>
+        public static long ToLongInvariant(this string text)
+        {
+            if (long.TryParse(text, NumberStyles.None, CultureInfo.InvariantCulture, out long value))
+            {
+                return value;
+            }
+            return 0;
+        }
+
+        /// <summary>
         /// Write 7 bit encoded int
         /// </summary>
         /// <param name="writer">BinaryWriter</param>
