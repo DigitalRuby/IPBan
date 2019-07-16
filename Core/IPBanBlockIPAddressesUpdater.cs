@@ -41,7 +41,7 @@ namespace DigitalRuby.IPBan
         /// Constructor
         /// </summary>
         /// <param name="service">Service</param>
-        /// <param name="textFilePath">Path to text file to unban ip addresses from or null to require manual unban call</param>
+        /// <param name="textFilePath">Path to text file to ban ip addresses from</param>
         public IPBanBlockIPAddressesUpdater(IIPAddressEventHandler service, string textFilePath)
         {
             service.ThrowIfNull();
@@ -57,7 +57,7 @@ namespace DigitalRuby.IPBan
         }
 
         /// <summary>
-        /// Update - if the text file path exists, all ip addresses from each line will be unbanned
+        /// Update - if the text file path exists, all ip addresses from each line will be banned
         /// </summary>
         public async Task Update()
         {
