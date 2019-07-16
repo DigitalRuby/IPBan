@@ -4,9 +4,9 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp2.2</TargetFramework>
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <AssemblyVersion>1.4.8.0</AssemblyVersion>
-    <FileVersion>1.4.8.0</FileVersion>
-    <PackageVersion>1.4.8.0</PackageVersion>
+    <AssemblyVersion>1.4.9.0</AssemblyVersion>
+    <FileVersion>1.4.9.0</FileVersion>
+    <PackageVersion>1.4.9.0</PackageVersion>
     <Company>Digital Ruby, LLC</Company>
     <Authors>jjxtra</Authors>
     <Copyright>(c) 2010 Digital Ruby, LLC</Copyright>
@@ -24,7 +24,7 @@
     <RepositoryType>git</RepositoryType>
     <Description>Ban ip addresses based on failed login attempts.</Description>
     <Summary>Allow auto-banning ip addresses based on failed logins and rules. Can read event viewer or log files. Windows and Linux supported. Includes firewall API.</Summary>
-    <PackageReleaseNotes>Bug fixes and performance improvements</PackageReleaseNotes>
+    <PackageReleaseNotes>Allow ban.txt file to ban ip addresses externally, one per line</PackageReleaseNotes>
     <DebugType>portable</DebugType>
     <LangVersion>latest</LangVersion>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
