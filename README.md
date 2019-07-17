@@ -49,6 +49,7 @@ auditpol /set /category:"Account Logon" /success:enable /failure:enable
 ```
 sc create IPBAN type= own start= auto binPath= c:\path\to\service\DigitalRuby.IPBan.exe DisplayName= IPBAN
 sc description IPBAN "Automatically builds firewall rules for abusive login attempts: https://github.com/DigitalRuby/IPBan"
+sc config IPBAN depend= EventLog
 sc start IPBAN
 ```
 or with Powershell use the command [New-Service](https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.management/new-service) and run the following in an elevated powershell window:
