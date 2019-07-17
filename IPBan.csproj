@@ -44,6 +44,10 @@
     <None Remove="IPBanTests\**" />
     <None Remove="packages\**" />
     <None Remove="package\**" />
+    <None Remove="README.md" />
+    <Content Include="README.md">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <None Include="LICENSE.md" Link="LICENSE.md" Pack="true" PackagePath="" />
   </ItemGroup>
 
