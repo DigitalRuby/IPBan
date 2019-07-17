@@ -50,7 +50,8 @@ namespace DigitalRuby.IPBan
             service = _service;
             return MainService(args, (_args) =>
             {
-                _service.Start();
+                // kick off start in background thread, make sure service starts up in a timely manner
+                Task.Run(() => _service.Start());
             }, () =>
             {
                 _service.Stop();
