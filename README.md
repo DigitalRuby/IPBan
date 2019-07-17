@@ -47,9 +47,8 @@ auditpol /set /category:"Account Logon" /success:enable /failure:enable
 - For Windows Server 2008 or equivalent, you should disable NTLM logins and only allow NTLM2 logins. On Windows Server 2008, there is no way to get the ip address of NTLM logins. Use secpol -> local policies -> security options -> network security restrict ntlm incoming ntlm traffic -> deny all accounts.
 - To install as a Windows service use the [sc command](https://docs.microsoft.com/en-us/windows-server/administration/windows-commands/sc-create) and run the following in an elevated command window:
 ```
-sc create IPBAN type= own start= auto binPath= c:\path\to\service\DigitalRuby.IPBan.exe DisplayName= IPBAN
+sc create IPBAN type= own start= delayed-auto binPath= c:\path\to\service\DigitalRuby.IPBan.exe DisplayName= IPBAN depend= EventLog
 sc description IPBAN "Automatically builds firewall rules for abusive login attempts: https://github.com/DigitalRuby/IPBan"
-sc config IPBAN depend= EventLog
 sc start IPBAN
 ```
 or with Powershell use the command [New-Service](https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.management/new-service) and run the following in an elevated powershell window:
@@ -57,8 +56,9 @@ or with Powershell use the command [New-Service](https://docs.microsoft.com/en-u
 New-Service -Name "IPBAN" -BinaryPathName "c:\path\to\service\DigitalRuby.IPBan.exe" -StartupType automatic -DisplayName "IPBAN" -Description "Automatically builds firewall rules for abusive login attempts: https://github.com/DigitalRuby/IPBan" -DependsOn EventLog
 Get-WmiObject win32_service -Filter "name='IPBAN'"
 Start-Service IPBAN
+sc.exe config IPBAN start= delayed-auto
 ```
-
+- On Windows, the service MUST be set to start as delayed automatic, otherwise the service will crash upon machine reboot.
 - The service needs file system, event viewer and firewall access, so running as a privileged account is required.
 - To run as a console app, simply run DigitalRuby.IPBan.exe and watch console output.
 - On some Windows versions, NLA will default to on. This may lock you out of remote desktop, so turn this option off if needed.

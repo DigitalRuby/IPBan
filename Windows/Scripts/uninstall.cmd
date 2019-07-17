@@ -1,2 +1,2 @@
-sc stop IpBan
-sc delete IpBan
+sc.exe stop IPBAN
+sc.exe delete IPBAN

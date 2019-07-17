@@ -4,9 +4,9 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp2.2</TargetFramework>
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <AssemblyVersion>1.4.9.0</AssemblyVersion>
-    <FileVersion>1.4.9.0</FileVersion>
-    <PackageVersion>1.4.9.0</PackageVersion>
+    <AssemblyVersion>1.5.0.0</AssemblyVersion>
+    <FileVersion>1.5.0.0</FileVersion>
+    <PackageVersion>1.5.0.0</PackageVersion>
     <Company>Digital Ruby, LLC</Company>
     <Authors>jjxtra</Authors>
     <Copyright>(c) 2010 Digital Ruby, LLC</Copyright>
@@ -24,7 +24,7 @@
     <RepositoryType>git</RepositoryType>
     <Description>Ban ip addresses based on failed login attempts.</Description>
     <Summary>Allow auto-banning ip addresses based on failed logins and rules. Can read event viewer or log files. Windows and Linux supported. Includes firewall API.</Summary>
-    <PackageReleaseNotes>Allow ban.txt file to ban ip addresses externally, one per line</PackageReleaseNotes>
+    <PackageReleaseNotes>Fix service app crash on reboot of machine on Windows, requires setting startup type to delayed-auto</PackageReleaseNotes>
     <DebugType>portable</DebugType>
     <LangVersion>latest</LangVersion>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
@@ -48,13 +48,13 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Data.Sqlite" Version="2.2.4" />
-    <PackageReference Include="Microsoft.Data.Sqlite.Core" Version="2.2.4" />
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="2.2.6" />
+    <PackageReference Include="Microsoft.Data.Sqlite.Core" Version="2.2.6" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="2.2.0" />
     <PackageReference Include="Microsoft.Packaging.Tools.Trimming" Version="1.1.0-preview1-26619-01" />
     <PackageReference Include="Microsoft.Windows.Compatibility" Version="2.1.1" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.2" />
-    <PackageReference Include="NLog" Version="4.6.5" />
+    <PackageReference Include="NLog" Version="4.6.6" />
   </ItemGroup>
 
   <ItemGroup>
