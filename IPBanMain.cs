@@ -46,28 +46,18 @@ namespace DigitalRuby.IPBan
 
         public static Task<int> MainService<T>(string[] args, out T service) where T : IPBanService
         {
-            try
+            T _service = IPBanService.CreateService<T>();
+            service = _service;
+            return MainService(args, (_args) =>
             {
-                T _service = IPBanService.CreateService<T>();
-                service = _service;
-                return MainService(args, (_args) =>
-                {
-                    _service.Start();
-                }, () =>
-                {
-                    _service.Stop();
-                }, (_timeout) =>
-                {
-                    return _service.Wait(_timeout);
-                });
-            }
-            catch (Exception ex)
+                _service.Start();
+            }, () =>
             {
-                Console.WriteLine("Fatal error starting service: {0}", ex);
-                System.IO.File.WriteAllText(System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "startup_fail.txt"), ex.ToString());
-                service = null;
-                return Task.FromResult(-1);
-            }
+                _service.Stop();
+            }, (_timeout) =>
+            {
+                return _service.Wait(_timeout);
+            });
         }
 
         public static Task<int> MainService(string[] args, Action<string[]> start, Action stop, Func<int, bool> stopped, bool requireAdministrator = true)
