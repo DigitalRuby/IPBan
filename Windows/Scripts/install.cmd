@@ -1,2 +1,2 @@
-sc.exe create IPBAN type= own start= delayed-auto binPath= %~dp0DigitalRuby.IPBan.exe DisplayName= "IPBan Service" depend= EventLog
+sc.exe create IPBAN type= own start= delayed-auto binPath= %~dp0DigitalRuby.IPBan.exe DisplayName= "IPBan Service"
 sc.exe description IPBAN "Automatically builds firewall rules for abusive login attempts: https://github.com/DigitalRuby/IPBan"
