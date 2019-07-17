@@ -46,25 +46,44 @@ namespace DigitalRuby.IPBan
 
         public static Task<int> MainService<T>(string[] args, out T service) where T : IPBanService
         {
-            T _service = IPBanService.CreateService<T>();
-            service = _service;
-            return MainService(args, (_args) =>
+            try
             {
-                _service.Start();
-            }, () =>
+                T _service = IPBanService.CreateService<T>();
+                service = _service;
+                return MainService(args, (_args) =>
+                {
+                    _service.Start();
+                }, () =>
+                {
+                    _service.Stop();
+                }, (_timeout) =>
+                {
+                    return _service.Wait(_timeout);
+                });
+            }
+            catch (Exception ex)
             {
-                _service.Stop();
-            }, (_timeout) =>
-            {
-                return _service.Wait(_timeout);
-            });
+                Console.WriteLine("Fatal error starting service: {0}", ex);
+                System.IO.File.WriteAllText(System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "startup_fail.txt"), ex.ToString());
+                service = null;
+                return Task.FromResult(-1);
+            }
         }
 
         public static Task<int> MainService(string[] args, Action<string[]> start, Action stop, Func<int, bool> stopped, bool requireAdministrator = true)
         {
-            using (IPBanServiceRunner runner = new IPBanServiceRunner(args, start, stop, stopped))
+            try
             {
-                return runner.RunAsync(requireAdministrator);
+                using (IPBanServiceRunner runner = new IPBanServiceRunner(args, start, stop, stopped))
+                {
+                    return runner.RunAsync(requireAdministrator);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Fatal error starting service: {0}", ex);
+                System.IO.File.WriteAllText(System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "startup_fail.txt"), ex.ToString());
+                return Task.FromResult(-1);
             }
         }
     }

@@ -290,11 +290,7 @@ namespace DigitalRuby.IPBan
             {
                 IsRunning = true;
                 ipDB = new IPBanDB(DatabasePath);
-                if (UseWindowsEventViewer && RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                {
-                    // attach Windows event viewer to the service
-                    EventViewer = new IPBanWindowsEventViewer(this);
-                }
+                AddWindowsEventViewer();
                 AddUpdater(new IPBanUnblockIPAddressesUpdater(this, Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "unban.txt")));
                 AddUpdater(new IPBanBlockIPAddressesUpdater(this, Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ban.txt")));
                 AssemblyVersion = IPBanService.GetIPBanAssembly().GetName().Version.ToString();
@@ -336,7 +332,14 @@ namespace DigitalRuby.IPBan
         /// <returns>True if service stopped, false otherwise</returns>
         public bool Wait(int timeoutMilliseconds)
         {
-            return stopEvent.WaitOne(timeoutMilliseconds);
+            try
+            {
+                return stopEvent.WaitOne(timeoutMilliseconds);
+            }
+            catch
+            {
+                return true;
+            }
         }
 
         /// <summary>

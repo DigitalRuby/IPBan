@@ -999,5 +999,14 @@ namespace DigitalRuby.IPBan
             ExecuteExternalProcessForBannedIPAddresses(bannedIPs);
             return Task.CompletedTask;
         }
+
+        private void AddWindowsEventViewer()
+        {
+            if (UseWindowsEventViewer && RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                // attach Windows event viewer to the service
+                EventViewer = new IPBanWindowsEventViewer(this);
+            }
+        }
     }
 }
