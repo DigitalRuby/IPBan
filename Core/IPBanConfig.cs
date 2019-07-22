@@ -77,10 +77,10 @@ namespace DigitalRuby.IPBan
         private readonly string externalIPAddressUrl;
         private readonly IDnsLookup dns;
 
-        private EventViewerExpressionsToBlock expressionsFailure;
-        private EventViewerExpressionsToNotify expressionsSuccess;
-        private Regex whiteListRegex;
-        private Regex blackListRegex;
+        private readonly EventViewerExpressionsToBlock expressionsFailure;
+        private readonly EventViewerExpressionsToNotify expressionsSuccess;
+        private readonly Regex whiteListRegex;
+        private readonly Regex blackListRegex;
 
         private IPBanConfig(string xml, IDnsLookup dns)
         {
@@ -466,7 +466,7 @@ namespace DigitalRuby.IPBan
         {
             return !string.IsNullOrWhiteSpace(ipAddress) &&
                 (whiteList.Contains(ipAddress) ||
-                !IPAddress.TryParse(ipAddress, out IPAddress ip) ||
+                !IPAddress.TryParse(ipAddress, out _) ||
                 (whiteListRegex != null && whiteListRegex.IsMatch(ipAddress)));
         }
 
