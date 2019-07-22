@@ -19,7 +19,7 @@ namespace DigitalRuby.IPBan {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     public class IPBanResources {
@@ -133,7 +133,7 @@ namespace DigitalRuby.IPBan {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The duration of time to ban an ip address(DD:HH:MM:SS) - 00:00:00:00 for forever.
+        ///   Looks up a localized string similar to The duration of time to ban an ip address. Format is DD:HH:MM:SS. Use 00:00:00:00 for max ban duration (30 days). Must be at least one minute..
         /// </summary>
         public static string BanTimeTooltip {
             get {
@@ -304,7 +304,7 @@ namespace DigitalRuby.IPBan {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The time between cycles to do house-keeping such as un-banning ip addresses, reloading config, etc. (DD:HH:MM:SS).
+        ///   Looks up a localized string similar to The time between cycles to do house-keeping such as un-banning ip addresses, reloading config, etc. Will be clamped between 5 and 60 seconds. Format is DD:HH:MM:SS..
         /// </summary>
         public static string CycleTimeTooltip {
             get {
@@ -475,7 +475,7 @@ namespace DigitalRuby.IPBan {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The duration after the last failed login attempt that the ip is forgotten(count reset back to 0). Set to 00:00:00:00 to never forget an ip. (DD:HH:MM:SS).
+        ///   Looks up a localized string similar to The duration after the last failed login attempt that the ip is forgotten(count reset back to 0). Set to 00:00:00:00 to use max duration (30 days). Format is DD:HH:MM:SS..
         /// </summary>
         public static string ExpireTimeTooltip {
             get {
@@ -890,7 +890,7 @@ namespace DigitalRuby.IPBan {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The minimum time between failed login attempts for an ip address to increment the ban counter (DD:HH:MM:SS).
+        ///   Looks up a localized string similar to The minimum time between failed login attempts for an ip address to increment the ban counter. Format is DD:HH:MM:SS. Will be clamped to 0 and 15 seconds..
         /// </summary>
         public static string MinimumTimeBetweenFailedLoginAttemptsTooltip {
             get {

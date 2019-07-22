@@ -142,7 +142,7 @@
     <value>Ban Time</value>
   </data>
   <data name="BanTimeTooltip" xml:space="preserve">
-    <value>The duration of time to ban an ip address(DD:HH:MM:SS) - 00:00:00:00 for forever</value>
+    <value>The duration of time to ban an ip address. Format is DD:HH:MM:SS. Use 00:00:00:00 for max ban duration (30 days). Must be at least one minute.</value>
   </data>
   <data name="BaseUrl" xml:space="preserve">
     <value>Base Url</value>
@@ -202,7 +202,7 @@
     <value>Cycle Time</value>
   </data>
   <data name="CycleTimeTooltip" xml:space="preserve">
-    <value>The time between cycles to do house-keeping such as un-banning ip addresses, reloading config, etc. (DD:HH:MM:SS)</value>
+    <value>The time between cycles to do house-keeping such as un-banning ip addresses, reloading config, etc. Will be clamped between 5 and 60 seconds. Format is DD:HH:MM:SS.</value>
   </data>
   <data name="Delete" xml:space="preserve">
     <value>Delete</value>
@@ -244,7 +244,7 @@
     <value>Expire Time</value>
   </data>
   <data name="ExpireTimeTooltip" xml:space="preserve">
-    <value>The duration after the last failed login attempt that the ip is forgotten(count reset back to 0). Set to 00:00:00:00 to never forget an ip. (DD:HH:MM:SS)</value>
+    <value>The duration after the last failed login attempt that the ip is forgotten(count reset back to 0). Set to 00:00:00:00 to use max duration (30 days). Format is DD:HH:MM:SS.</value>
   </data>
   <data name="FailedLoginAttempts" xml:space="preserve">
     <value>Failed login attempts</value>
@@ -362,7 +362,7 @@ Prefix with OS:ClassName, example: Windows:Custom,Linux:Default</value>
     <value>Min Time Between Failed Logins</value>
   </data>
   <data name="MinimumTimeBetweenFailedLoginAttemptsTooltip" xml:space="preserve">
-    <value>The minimum time between failed login attempts for an ip address to increment the ban counter (DD:HH:MM:SS)</value>
+    <value>The minimum time between failed login attempts for an ip address to increment the ban counter. Format is DD:HH:MM:SS. Will be clamped to 0 and 15 seconds.</value>
   </data>
   <data name="MinimumTrustLevel" xml:space="preserve">
     <value>Minimum Trust Level</value>

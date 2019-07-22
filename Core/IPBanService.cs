@@ -64,8 +64,9 @@ namespace DigitalRuby.IPBan
             Type typeOfT = typeof(T);
 
             // if any derived class of IPBanService, use that
+            List<Type> allTypes = IPBanExtensionMethods.GetAllTypes();
             var q =
-                from type in AppDomain.CurrentDomain.GetAssemblies().SelectMany(a => a.GetTypes())
+                from type in allTypes
                 where typeOfT.IsAssignableFrom(type)
                 select type;
             Type instanceType = (q.FirstOrDefault() ?? typeof(IPBanService));

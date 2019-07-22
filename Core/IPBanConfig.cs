@@ -49,6 +49,7 @@ namespace DigitalRuby.IPBan
     public class IPBanConfig
     {
         private static readonly TimeSpan[] emptyTimeSpanArray = new TimeSpan[] { TimeSpan.Zero };
+        private static readonly IPBanLogFileToParse[] emptyLogFilesToParseArray = new IPBanLogFileToParse[0];
 
         private readonly Dictionary<string, string> appSettings = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         private readonly IPBanLogFileToParse[] logFiles;
@@ -93,13 +94,17 @@ namespace DigitalRuby.IPBan
                 appSettings[node.Attributes["key"].Value] = node.Attributes["value"].Value;
             }
 
-            GetConfig<int>("FailedLoginAttemptsBeforeBan", ref failedLoginAttemptsBeforeBan);
+            GetConfig<int>("FailedLoginAttemptsBeforeBan", ref failedLoginAttemptsBeforeBan, 1, 50);
             GetConfig<bool>("ResetFailedLoginCountForUnbannedIPAddresses", ref resetFailedLoginCountForUnbannedIPAddresses);
             GetConfigArray<TimeSpan>("BanTime", ref banTimes, emptyTimeSpanArray);
+            for (int i = 0; i < banTimes.Length; i++)
+            {
+                banTimes[i] = banTimes[i].Clamp(TimeSpan.FromMinutes(1.0), TimeSpan.FromDays(30.0));
+            }
             GetConfig<bool>("ClearBannedIPAddressesOnRestart", ref clearBannedIPAddressesOnRestart);
-            GetConfig<TimeSpan>("ExpireTime", ref expireTime);
-            GetConfig<TimeSpan>("CycleTime", ref cycleTime);
-            GetConfig<TimeSpan>("MinimumTimeBetweenFailedLoginAttempts", ref minimumTimeBetweenFailedLoginAttempts);
+            GetConfig<TimeSpan>("ExpireTime", ref expireTime, TimeSpan.FromMinutes(1.0), TimeSpan.FromDays(30.0));
+            GetConfig<TimeSpan>("CycleTime", ref cycleTime, TimeSpan.FromSeconds(5.0), TimeSpan.FromMinutes(1.0), false);
+            GetConfig<TimeSpan>("MinimumTimeBetweenFailedLoginAttempts", ref minimumTimeBetweenFailedLoginAttempts, TimeSpan.Zero, TimeSpan.FromSeconds(15.0), false);
             GetConfig<string>("FirewallRulePrefix", ref firewallRulePrefix);
 
             string whiteListString = GetConfig<string>("Whitelist", string.Empty);
@@ -141,8 +146,14 @@ namespace DigitalRuby.IPBan
             }
             try
             {
-                IPBanLogFilesToParse logFilesToParse = new XmlSerializer(typeof(IPBanLogFilesToParse)).Deserialize(new XmlNodeReader(doc.SelectSingleNode("//LogFilesToParse"))) as IPBanLogFilesToParse;
-                logFiles = (logFilesToParse == null ? new IPBanLogFileToParse[0] : logFilesToParse.LogFiles);
+                if (new XmlSerializer(typeof(IPBanLogFilesToParse)).Deserialize(new XmlNodeReader(doc.SelectSingleNode("//LogFilesToParse"))) is IPBanLogFilesToParse logFilesToParse)
+                {
+                    logFiles = logFilesToParse.LogFiles;
+                }
+                else
+                {
+                    logFiles = emptyLogFilesToParseArray;
+                }
             }
             catch (Exception ex)
             {
@@ -348,6 +359,34 @@ namespace DigitalRuby.IPBan
             catch (Exception ex)
             {
                 IPBanLog.Error(ex, "Error deserializing appSettings key {0}", key);
+            }
+        }
+
+        /// <summary>
+        /// Get a value from configuration manager app settings
+        /// </summary>
+        /// <typeparam name="T">Type of value to get</typeparam>
+        /// <param name="key">Key</param>
+        /// <param name="value">Value to set</param>
+        /// <param name="minValue">Min value</param>
+        /// <param name="maxValue">Max value</param>
+        /// <param name="clampSmallTimeSpan">Whether to clamp small timespan to max value</param>
+        /// <returns>Value</returns>
+        public void GetConfig<T>(string key, ref T value, T? minValue = null, T? maxValue = null, bool clampSmallTimeSpan = true) where T : struct, IComparable<T>
+        {
+            try
+            {
+                var converter = TypeDescriptor.GetConverter(typeof(T));
+                value = (T)converter.ConvertFromInvariantString(appSettings[key]);
+            }
+            catch (Exception ex)
+            {
+                IPBanLog.Error(ex, "Error deserializing appSettings key {0}", key);
+            }
+
+            if (minValue != null && maxValue != null)
+            {
+                value = value.Clamp(minValue.Value, maxValue.Value, clampSmallTimeSpan);
             }
         }
 

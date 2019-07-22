@@ -31,6 +31,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Runtime.Serialization;
 using System.Security;
@@ -613,6 +614,74 @@ namespace DigitalRuby.IPBan
                 finalBytes = bytes2.Concat(bytes1).ToArray();
             }
             return new IPAddress(finalBytes);
+        }
+
+        /// <summary>
+        /// Clamp a timespan, if out of bounds it will be clamped. If timespan is less than 1 second, it will be set to timeMax.
+        /// </summary>
+        /// <param name="value">Value to clamp</param>
+        /// <param name="timeMin">Min value</param>
+        /// <param name="timeMax">Max value</param>
+        /// <returns>Clamped value or value if not clamped</returns>
+        public static TimeSpan Clamp(this TimeSpan value, TimeSpan timeMin, TimeSpan timeMax)
+        {
+            if (value.TotalSeconds < 1.0 || value > timeMax)
+            {
+                value = timeMax;
+            }
+            else if (value < timeMin)
+            {
+                value = timeMin;
+            }
+            return value;
+        }
+
+        /// <summary>
+        /// Generic clamp method. If clampTimeSpanToMax and typeof(T) is TimeSpan, any value less than 1 second will become max.
+        /// </summary>
+        /// <typeparam name="T">Type</typeparam>
+        /// <param name="val">Value</param>
+        /// <param name="min">Min value</param>
+        /// <param name="max">Max value</param>
+        /// <param name="clampSmallTimeSpanToMax">Whether to clamp small timespan to max value.</param>
+        /// <returns>Clamped value</returns>
+        public static T Clamp<T>(this T val, T min, T max, bool clampSmallTimeSpanToMax = false) where T : IComparable<T>
+        {
+            if (clampSmallTimeSpanToMax && typeof(T) == typeof(TimeSpan) && ((TimeSpan)(object)val).TotalSeconds < 1.0)
+            {
+                return (T)(object)max;
+            }
+            else if (val.CompareTo(min) < 0)
+            {
+                return min;
+            }
+            else if (val.CompareTo(max) > 0)
+            {
+                return max;
+            }
+            return val;
+        }
+
+        /// <summary>
+        /// Get all types from all assemblies
+        /// </summary>
+        /// <returns>List of all types</returns>
+        public static List<Type> GetAllTypes()
+        {
+            Assembly[] assemblies = AppDomain.CurrentDomain.GetAssemblies();
+            List<Type> allTypes = new List<Type>();
+            foreach (Assembly assembly in assemblies)
+            {
+                try
+                {
+                    // some assemblys throw in unit tests in VS 2019, bug in MSFT...
+                    allTypes.AddRange(assembly.GetTypes());
+                }
+                catch
+                {
+                }
+            }
+            return allTypes;
         }
 
         /// <summary>

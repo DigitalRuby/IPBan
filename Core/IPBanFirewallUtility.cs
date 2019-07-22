@@ -108,10 +108,9 @@ namespace DigitalRuby.IPBan
                 bool foundFirewallType = false;
                 int priority = int.MinValue;
                 Type firewallType = typeof(IIPBanFirewall);
-                Assembly[] assemblies = AppDomain.CurrentDomain.GetAssemblies().ToArray();
-                Type[] types = assemblies.SelectMany(a => a.GetTypes()).ToArray();
+                List<Type> allTypes = IPBanExtensionMethods.GetAllTypes();
                 var q =
-                    from fwType in types
+                    from fwType in allTypes
                     where fwType.IsPublic &&
                         fwType != firewallType &&
                         firewallType.IsAssignableFrom(fwType) &&
