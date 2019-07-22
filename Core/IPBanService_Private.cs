@@ -412,10 +412,10 @@ namespace DigitalRuby.IPBan
                 TimeSpan span = ipEntry.BanEndDate.Value - ipEntry.BanStartDate.Value;
                 for (int i = 0; i < banTimes.Length; i++)
                 {
-                    if (span < banTimes[i] || banTimes[i].Ticks <= 0)
+                    if (span < banTimes[i])
                     {
                         // ban for 1 year if ticks less than 1
-                        banEndDate = startBanDate + (banTimes[i].Ticks <= 0 ? TimeSpan.FromHours(24.0 * 365.0) : banTimes[i]);
+                        banEndDate = startBanDate + banTimes[i];
                         break;
                     }
                 }
@@ -585,8 +585,7 @@ namespace DigitalRuby.IPBan
             }
         }
 
-        private void HandleExpiredLoginsAndBans(DateTime failLoginCutOff, DateTime banCutOff, bool allowBanExpire, bool allowFailedLoginExpire,
-            object transaction, HashSet<string> unbanList)
+        private void HandleExpiredLoginsAndBans(DateTime failLoginCutOff, DateTime banCutOff, object transaction, HashSet<string> unbanList)
         {
             TimeSpan[] banTimes = Config.BanTimes;
 
@@ -599,7 +598,7 @@ namespace DigitalRuby.IPBan
                     continue;
                 }
                 // if ban duration has expired, un-ban, check this first as these must trigger a firewall update
-                else if (allowBanExpire && ipAddress.State == IPBanDB.IPAddressState.Active && ipAddress.BanStartDate != null && ipAddress.BanEndDate != null)
+                else if (ipAddress.State == IPBanDB.IPAddressState.Active && ipAddress.BanStartDate != null && ipAddress.BanEndDate != null)
                 {
                     // check gap of ban end date vs ban date and see where we are in the ban times, if we have gone beyond the last ban time,
                     // we need to unban the ip address and remove from db, otherwise the ban end date needs to be increased to the next ban interval and
@@ -614,7 +613,7 @@ namespace DigitalRuby.IPBan
                     {
                         for (i = 0; i < banTimes.Length; i++)
                         {
-                            if (span < banTimes[i] || banTimes[i].Ticks <= 0)
+                            if (span < banTimes[i])
                             {
                                 // this is the next span to ban
                                 break;
@@ -633,7 +632,7 @@ namespace DigitalRuby.IPBan
                     }
                 }
                 // if fail login has expired, remove ip address from db
-                else if (allowFailedLoginExpire && ipAddress.State == IPBanDB.IPAddressState.FailedLogin)
+                else if (ipAddress.State == IPBanDB.IPAddressState.FailedLogin)
                 {
                     IPBanLog.Warn("Forgetting failed login ip address {0}, time expired", ipAddress.IPAddress);
                     DB.DeleteIPAddress(ipAddress.IPAddress, transaction);
@@ -647,13 +646,11 @@ namespace DigitalRuby.IPBan
             DateTime now = UtcNow;
             DateTime failLoginCutOff = (now - Config.ExpireTime);
             DateTime banCutOff = now;
-            bool allowBanExpire = (Config.BanTimes.First().Ticks > 0);
-            bool allowFailedLoginExpire = (Config.ExpireTime.Ticks > 0);
             object transaction = DB.BeginTransaction();
             try
             {
                 HandleWhitelistChanged(transaction, unbanIPAddressesToNotifyDelegate);
-                HandleExpiredLoginsAndBans(failLoginCutOff, banCutOff, allowBanExpire, allowFailedLoginExpire, transaction, unbanIPAddressesToNotifyDelegate);
+                HandleExpiredLoginsAndBans(failLoginCutOff, banCutOff, transaction, unbanIPAddressesToNotifyDelegate);
 
                 // notify delegate of all unbanned ip addresses
                 if (IPBanDelegate != null)
