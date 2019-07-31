@@ -15,13 +15,12 @@ Please visit <a href='https://ipban.com'>https://ipban.com</a> to learn about IP
 - Mac OS X not supported at this time.
 
 **Features**
-- Auto ban ip addresses on Windows and Linux by detecting failed logins from event viewer and/or log files (SSH, FTP, SMTP, etc.)
+- Auto ban ip addresses on Windows and Linux by detecting failed logins from event viewer and/or log files. Watched applications include RDP, SSH, Windows MySQL & SQL Server and VNC. More can easily be added.
 - Highly configurable, many options to determine failed login count threshold, time to ban, etc.
 - Make sure to check out the DigitalRuby.IPBan.dll.config file for configuration options, each option is documented with comments.
 - Banning happens basically instantly for event viewer. For log files, you can set how often it polls for changes.
 - Very fast - I've optimized and tuned this code since 2012. The bottleneck is pretty much always the firewall implementation, not this code.
 - Unban ip addresses easily by placing an unban.txt file into the service folder with each ip address on a line to unban.
-- See the app.config file for a complete list of options, each property is well documented. There are lots of them.
 - Works with ipv4 and ipv6 on all platforms.
 
 **Download**
