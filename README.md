@@ -29,7 +29,7 @@ Please visit <a href='https://ipban.com'>https://ipban.com</a> to learn about IP
 - Legacy download link: https://www.digitalruby.com/download/ipban-software-download/.
 
 **Windows**
-- For Windows, IPBan is supported on Windows Server 2008 or equivalent or newer (Server 2012+ recommended). Windows Server 2008 does a poor job of logging ip addresses. Windows XP and Server 2003 are NOT supported.
+- For Windows, IPBan is supported on Windows Server 2012 or equivalent or newer. Windows Server 2008 does a poor job of logging ip addresses and is end of life. Windows XP and Server 2003 are NOT supported.
 - Extract the IPBan.zip (inside is IPBanWindows.zip) file to a place on your computer. Right click on all the extracted files and select properties. Make sure to select "unblock" if the option is available.  You can use the [Unblock-File](https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.utility/unblock-file?view=powershell-6) utility with an **elevated** PowerShell to unblock all files in the IPBan directory:
 ```
 dir C:\path\to\ipban | Unblock-File
@@ -43,12 +43,12 @@ auditpol /set /category:"Logon/Logoff" /success:enable /failure:enable
 auditpol /set /category:"Account Logon" /success:enable /failure:enable
 ```
 
-- For Windows Server 2008 or equivalent, you should disable NTLM logins and only allow NTLM2 logins. On Windows Server 2008, there is no way to get the ip address of NTLM logins. Use secpol -> local policies -> security options -> network security restrict ntlm incoming ntlm traffic -> deny all accounts.
+- It is highly recommended to disable NTLM logins and only allow NTLM2 logins. Use secpol -> local policies -> security options -> network security restrict ntlm incoming ntlm traffic -> deny all accounts.
 - To install as a Windows service use the [sc command](https://docs.microsoft.com/en-us/windows-server/administration/windows-commands/sc-create) and run the following in an elevated command window:
 ```
-sc create IPBAN type= own start= delayed-auto binPath= c:\path\to\service\DigitalRuby.IPBan.exe DisplayName= IPBAN
-sc description IPBAN "Automatically builds firewall rules for abusive login attempts: https://github.com/DigitalRuby/IPBan"
-sc start IPBAN
+sc.exe create IPBAN type= own start= delayed-auto binPath= c:\path\to\service\DigitalRuby.IPBan.exe DisplayName= IPBAN
+sc.exe description IPBAN "Automatically builds firewall rules for abusive login attempts: https://github.com/DigitalRuby/IPBan"
+sc.exe start IPBAN
 ```
 or with Powershell use the command [New-Service](https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.management/new-service) and run the following in an elevated powershell window:
 ```powershell
@@ -71,7 +71,7 @@ sc.exe config IPBAN start= delayed-auto
 	- This shell script runs vscode as root:
 	- sudo mount -t vboxsf ipban ~/Desktop/ipban # only needed if you are in a Virtual Box VM and have setup a shared folder to Windows
 	- sudo code --user-data-dir="/tmp/vscode-root"
-- IPBan is currently supported on all Linux that have iptables and ipset installed.
+- IPBan is currently supported on Ubuntu and Debian Linux that have iptables and ipset installed.
 - SSH into your server as root. If using another admin account name, substitute all root user instances with your account name.
 - Install dependencies:
 ```
