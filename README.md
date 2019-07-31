@@ -15,7 +15,7 @@ Please visit <a href='https://ipban.com'>https://ipban.com</a> to learn about IP
 - Mac OS X not supported at this time.
 
 **Features**
-- Auto ban ip addresses on Windows and Linux by detecting failed logins from event viewer and/or log files. Watched applications include RDP, SSH, VNC and Windows only MySQL, SQL Server and MS Exchange. More applications can easily be added via config file.
+- Auto ban ip addresses on Windows and Linux by detecting failed logins from event viewer and/or log files. On Linux, SSH is watched by default. On Windows, RDP, OpenSSH, VNC, MySQL, SQL Server and Exchange are watched. More applications can easily be added via config file.
 - Highly configurable, many options to determine failed login count threshold, time to ban, etc.
 - Make sure to check out the DigitalRuby.IPBan.dll.config file for configuration options, each option is documented with comments.
 - Banning happens basically instantly for event viewer. For log files, you can set how often it polls for changes.
