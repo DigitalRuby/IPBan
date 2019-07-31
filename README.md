@@ -22,6 +22,7 @@ Please visit <a href='https://ipban.com'>https://ipban.com</a> to learn about IP
 - Very fast - I've optimized and tuned this code since 2012. The bottleneck is pretty much always the firewall implementation, not this code.
 - Unban ip addresses easily by placing an unban.txt file into the service folder with each ip address on a line to unban.
 - Works with ipv4 and ipv6 on all platforms.
+- Please visit the wiki at https://github.com/DigitalRuby/IPBan/wiki for lots more documentation.
 
 **Download**
 
