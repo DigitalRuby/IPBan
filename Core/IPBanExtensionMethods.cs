@@ -288,7 +288,7 @@ namespace DigitalRuby.IPBan
         /// <param name="value">Value</param>
         public static void Write7BitEncodedInt32(this BinaryWriter writer, int value)
         {
-            // Write out an int 7 bits at a time.  The high bit of the byte,
+            // Write out an Int32 7 bits at a time.  The high bit of the byte,
             // when on, tells reader to continue reading more bytes.
             uint v = (uint)value;   // support negative numbers
             while (v >= 0x80)
@@ -321,6 +321,51 @@ namespace DigitalRuby.IPBan
                 // ReadByte handles end of stream cases for us.
                 b = reader.ReadByte();
                 count |= (b & 0x7F) << shift;
+                shift += 7;
+            } while ((b & 0x80) != 0);
+            return count;
+        }
+
+        /// <summary>
+        /// Write 7 bit encoded long
+        /// </summary>
+        /// <param name="writer">BinaryWriter</param>
+        /// <param name="value">Value</param>
+        public static void Write7BitEncodedInt64(this BinaryWriter writer, long value)
+        {
+            // Write out an Int64 7 bits at a time.  The high bit of the byte,
+            // when on, tells reader to continue reading more bytes.
+            ulong v = (ulong)value;   // support negative numbers
+            while (v >= 0x80)
+            {
+                writer.Write((byte)(v | 0x80));
+                v >>= 7;
+            }
+            writer.Write((byte)v);
+        }
+
+        /// <summary>
+        /// Read 7 bit encoded long
+        /// </summary>
+        /// <param name="reader">BinaryReader</param>
+        /// <returns>Value</returns>
+        public static long Read7BitEncodedInt64(this BinaryReader reader)
+        {
+            // Read out an Int64 7 bits at a time.  The high bit
+            // of the byte when on means to continue reading more bytes.
+            long count = 0;
+            int shift = 0;
+            byte b;
+            do
+            {
+                // Check for a corrupted stream.  Read a max of 10 bytes.
+                // In a future version, add a DataFormatException.
+                if (shift == 10 * 7)  // 10 bytes max per Int64 shift += 7
+                    throw new FormatException();
+
+                // ReadByte handles end of stream cases for us.
+                b = reader.ReadByte();
+                count |= ((long)(b & 0x7F) << shift);
                 shift += 7;
             } while ((b & 0x80) != 0);
             return count;
@@ -519,6 +564,31 @@ namespace DigitalRuby.IPBan
             }
 
             // Any other IP address is not Unique Local Address (ULA)
+            return false;
+        }
+
+        /// <summary>
+        /// Gets whether the ip address is local host
+        /// </summary>
+        /// <param name="ip">IP address</param>
+        /// <returns>True if localhost, false if not</returns>
+        public static bool IsLocalHost(this IPAddress ip)
+        {
+            if (ip != null)
+            {
+                byte[] bytes = ip.GetAddressBytes();
+                if (bytes.Length == 4)
+                {
+                    return (bytes[0] == 127 && bytes[1] == 0 && bytes[2] == 0 && bytes[3] == 1);
+                }
+                else if (bytes.Length == 16)
+                {
+                    return (bytes[0] == 0 && bytes[1] == 0 && bytes[2] == 0 && bytes[3] == 0 &&
+                        bytes[4] == 0 && bytes[5] == 0 && bytes[6] == 0 && bytes[7] == 0 &&
+                        bytes[8] == 0 && bytes[9] == 0 && bytes[10] == 0 && bytes[11] == 0 &&
+                        bytes[12] == 0 && bytes[13] == 0 && bytes[14] == 0 && bytes[15] == 1);
+                }
+            }
             return false;
         }
 
