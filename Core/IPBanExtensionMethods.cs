@@ -478,7 +478,17 @@ namespace DigitalRuby.IPBan
         /// </summary>
         /// <param name="unixTimeStampSeconds">Unix epoch in milliseconds</param>
         /// <returns>UTC DateTime</returns>
-        public static DateTime UnixTimeStampToDateTimeMilliseconds(this double unixTimeStampMilliseconds)
+        public static DateTime ToDateTimeUnixMilliseconds(this double unixTimeStampMilliseconds)
+        {
+            return unixEpoch.AddMilliseconds(unixTimeStampMilliseconds);
+        }
+
+        /// <summary>
+        /// Get a UTC date time from a unix epoch in milliseconds
+        /// </summary>
+        /// <param name="unixTimeStampSeconds">Unix epoch in milliseconds</param>
+        /// <returns>UTC DateTime</returns>
+        public static DateTime ToDateTimeUnixMilliseconds(this long unixTimeStampMilliseconds)
         {
             return unixEpoch.AddMilliseconds(unixTimeStampMilliseconds);
         }
@@ -488,13 +498,27 @@ namespace DigitalRuby.IPBan
         /// </summary>
         /// <param name="dt">DateTime</param>
         /// <returns>Unix timestamp in milliseconds</returns>
-        public static double UnixTimestampFromDateTimeMilliseconds(this DateTime dt)
+        public static double ToUnixMilliseconds(this DateTime dt)
         {
             if (dt.Kind != DateTimeKind.Utc)
             {
                 dt = dt.ToUniversalTime();
             }
             return (dt - unixEpoch).TotalMilliseconds;
+        }
+
+        /// <summary>
+        /// Get a unix timestamp in milliseconds from a DateTime
+        /// </summary>
+        /// <param name="dt">DateTime</param>
+        /// <returns>Unix timestamp in milliseconds</returns>
+        public static long ToUnixMillisecondsLong(this DateTime dt)
+        {
+            if (dt.Kind != DateTimeKind.Utc)
+            {
+                dt = dt.ToUniversalTime();
+            }
+            return (long)(dt - unixEpoch).TotalMilliseconds;
         }
 
         /// <summary>

@@ -320,9 +320,9 @@ namespace DigitalRuby.IPBan
             object banEndDateObj = reader.GetValue(5);
             long banDateLong = (banDateObj == null || banDateObj == DBNull.Value ? 0 : Convert.ToInt64(banDateObj));
             long banEndDateLong = (banEndDateObj == null || banEndDateObj == DBNull.Value ? 0 : Convert.ToInt64(banEndDateObj));
-            DateTime? banDate = (banDateLong == 0 ? (DateTime?)null : IPBanExtensionMethods.UnixTimeStampToDateTimeMilliseconds(banDateLong));
-            DateTime? banEndDate = (banDateLong == 0 ? (DateTime?)null : IPBanExtensionMethods.UnixTimeStampToDateTimeMilliseconds(banEndDateLong));
-            DateTime lastFailedLoginDt = IPBanExtensionMethods.UnixTimeStampToDateTimeMilliseconds(lastFailedLogin);
+            DateTime? banDate = (banDateLong == 0 ? (DateTime?)null : banDateLong.ToDateTimeUnixMilliseconds());
+            DateTime? banEndDate = (banDateLong == 0 ? (DateTime?)null : banEndDateLong.ToDateTimeUnixMilliseconds());
+            DateTime lastFailedLoginDt = lastFailedLogin.ToDateTimeUnixMilliseconds();
             return new IPAddressEntry
             {
                 IPAddress = ipAddress,
@@ -343,9 +343,9 @@ namespace DigitalRuby.IPBan
 
             string ipAddress = ipAddressObj.ToString();
             byte[] ipBytes = ipAddressObj.GetAddressBytes();
-            long timestampBegin = (long)banDate.UnixTimestampFromDateTimeMilliseconds();
-            long timestampEnd = (long)banEndDate.UnixTimestampFromDateTimeMilliseconds();
-            long currentTimestamp = (long)now.UnixTimestampFromDateTimeMilliseconds();
+            long timestampBegin = banDate.ToUnixMillisecondsLong();
+            long timestampEnd = banEndDate.ToUnixMillisecondsLong();
+            long currentTimestamp = now.ToUnixMillisecondsLong();
                 
             // if the ip address already exists, it can be updated provided that the state is not in a pending remove state (2) and
             // there is no ban end date yet or the ban end date has expired
@@ -479,7 +479,7 @@ namespace DigitalRuby.IPBan
             if (IPAddress.TryParse(ipAddress, out IPAddress ipAddressObj))
             {
                 byte[] ipBytes = ipAddressObj.GetAddressBytes();
-                long timestamp = (long)dateTime.UnixTimestampFromDateTimeMilliseconds();
+                long timestamp = dateTime.ToUnixMillisecondsLong();
                 IPBanDBTransaction tran = transaction as IPBanDBTransaction;
 
                 // only increment failed login for new rows or for existing rows with state 3 (failed login only, no ban bending)
@@ -563,11 +563,11 @@ namespace DigitalRuby.IPBan
                         object val2 = reader.GetValue(1);
                         if (val != null && val != DBNull.Value)
                         {
-                            banDate = IPBanExtensionMethods.UnixTimeStampToDateTimeMilliseconds((long)val);
+                            banDate = ((long)val).ToDateTimeUnixMilliseconds();
                         }
                         if (val2 != null && val2 != DBNull.Value)
                         {
-                            banEndDate = IPBanExtensionMethods.UnixTimeStampToDateTimeMilliseconds((long)val2);
+                            banEndDate = ((long)val2).ToDateTimeUnixMilliseconds();
                         }
                         banDates = new KeyValuePair<DateTime?, DateTime?>(banDate, banEndDate);
                         return true;
@@ -747,7 +747,7 @@ namespace DigitalRuby.IPBan
                     // remove pending no delete (4) becomes failed login (3)
                     // remove pending (2) is deleted entirely
                     // last failed login is set to current date/time if state goes from 4 to 3
-                    long timestamp = (long)now.UnixTimestampFromDateTimeMilliseconds();
+                    long timestamp = now.ToUnixMillisecondsLong();
                     ExecuteNonQuery(tran.DBConnection, tran.DBTransaction,
                         @"UPDATE IPAddresses SET FailedLoginCount = CASE WHEN @Param0 = 1 THEN 0 ELSE FailedLoginCount END,
                         LastFailedLogin = CASE WHEN State = 4 THEN @Param1 ELSE LastFailedLogin END,
@@ -806,11 +806,11 @@ namespace DigitalRuby.IPBan
             long? banCutOffUnix = null;
             if (failLoginCutOff != null)
             {
-                failLoginCutOffUnix = (long)failLoginCutOff.Value.UnixTimestampFromDateTimeMilliseconds();
+                failLoginCutOffUnix = failLoginCutOff.Value.ToUnixMillisecondsLong();
             }
             if (banCutOff != null)
             {
-                banCutOffUnix = (long)banCutOff.Value.UnixTimestampFromDateTimeMilliseconds();
+                banCutOffUnix = banCutOff.Value.ToUnixMillisecondsLong();
             }
             IPBanDBTransaction tran = transaction as IPBanDBTransaction;
             using (SqliteDataReader reader = ExecuteReader(@"SELECT IPAddressText, LastFailedLogin, FailedLoginCount, BanDate, State, BanEndDate
