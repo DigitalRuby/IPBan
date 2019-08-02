@@ -494,7 +494,7 @@ namespace DigitalRuby.IPBan
         }
 
         /// <summary>
-        /// Get a unix timestamp in milliseconds from a DateTime
+        /// Get a unix timestamp in milliseconds from a DateTime - the DateTime will be converted to universal time before conversion if needed.
         /// </summary>
         /// <param name="dt">DateTime</param>
         /// <returns>Unix timestamp in milliseconds</returns>
@@ -508,7 +508,7 @@ namespace DigitalRuby.IPBan
         }
 
         /// <summary>
-        /// Get a unix timestamp in milliseconds from a DateTime
+        /// Get a unix timestamp in milliseconds from a DateTime - the DateTime will be converted to universal time before conversion if needed.
         /// </summary>
         /// <param name="dt">DateTime</param>
         /// <returns>Unix timestamp in milliseconds</returns>
