@@ -114,6 +114,8 @@ namespace DigitalRuby.IPBan
                 // we must match on keywords
                 foreach (EventViewerExpressionGroup group in service.Config.WindowsEventViewerGetGroupsMatchingKeywords(keywordsULONG))
                 {
+                    string userName = null;
+                    string source = null;
                     foreach (EventViewerExpression expression in group.Expressions)
                     {
                         // find all the nodes, try and get an ip from any of them, all must match
@@ -151,6 +153,8 @@ namespace DigitalRuby.IPBan
                                     {
                                         throw new InvalidDataException("Conflicting expressions in event viewer, both failed and success logins matched keywords " + group.Keywords);
                                     }
+                                    userName = (userName ?? info.UserName);
+                                    source = (source ?? info.Source);
                                     break;
                                 }
                             }
@@ -165,10 +169,10 @@ namespace DigitalRuby.IPBan
                             }
                         }
                     }
-
                     if (info != null && info.FoundMatch && info.IPAddress != null)
                     {
-                        info.Source = info.Source ?? group.Source;
+                        info.UserName = (info.UserName ?? userName);
+                        info.Source = info.Source ?? source ?? group.Source;
                         break;
                     }
                     info = null; // set null for next attempt
@@ -283,7 +287,8 @@ namespace DigitalRuby.IPBan
         /// Process event viewer XML
         /// </summary>
         /// <param name="xml">XML</param>
-        public void ProcessEventViewerXml(string xml)
+        /// <returns>Log event or null if fail to parse/process</returns>
+        public IPAddressLogEvent ProcessEventViewerXml(string xml)
         {
             IPBanLog.Debug("Processing event viewer xml: {0}", xml);
 
@@ -294,11 +299,12 @@ namespace DigitalRuby.IPBan
                 if (!FindSourceAndUserNameForInfo(info, doc))
                 {
                     // bad ip address
-                    return;
+                    return null;
                 }
                 service.AddIPAddressLogEvents(new IPAddressLogEvent[] { info });
                 IPBanLog.Debug("Event viewer found: {0}, {1}, {2}, {4}", info.IPAddress, info.Source, info.UserName, info.Type);
             }
+            return info;
         }
     }
 }
