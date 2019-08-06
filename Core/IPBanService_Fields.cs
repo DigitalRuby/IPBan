@@ -46,8 +46,6 @@ namespace DigitalRuby.IPBan
 {
     public partial class IPBanService
     {
-        private static readonly SemaphoreSlim configLock = new SemaphoreSlim(1, 1);
-
         private System.Timers.Timer cycleTimer;
         private bool firewallNeedsBlockedIPAddressesUpdate;
         private bool gotStartUrl;
@@ -64,9 +62,12 @@ namespace DigitalRuby.IPBan
         private readonly Dictionary<string, AsyncQueue<Func<CancellationToken, Task>>> firewallQueue = new Dictionary<string, AsyncQueue<Func<CancellationToken, Task>>>();
         private readonly CancellationTokenSource firewallQueueCancel = new CancellationTokenSource();
 
-        private DateTime lastConfigFileDateTime = DateTime.MinValue;
         private bool whitelistChanged;
 
+        /// <summary>
+        /// IPBan Assembly
+        /// </summary>
+        public static Assembly IPBanAssembly { get; } = typeof(IPBanService).Assembly;
 
         /// <summary>
         /// Config file name
@@ -76,7 +77,11 @@ namespace DigitalRuby.IPBan
         /// <summary>
         /// Config file path
         /// </summary>
-        public string ConfigFilePath { get; set; }
+        public string ConfigFilePath
+        {
+            get { return ConfigReaderWriter.Path; }
+            set { ConfigReaderWriter.Path = value; }
+        }
 
         /// <summary>
         /// Http request maker, defaults to DefaultHttpRequestMaker
@@ -107,6 +112,11 @@ namespace DigitalRuby.IPBan
         /// Configuration
         /// </summary>
         public IPBanConfig Config { get; private set; }
+
+        /// <summary>
+        /// Config reader/writer
+        /// </summary>
+        public IPBanConfigReaderWriter ConfigReaderWriter { get; } = new IPBanConfigReaderWriter();
 
         /// <summary>
         /// Version of the software

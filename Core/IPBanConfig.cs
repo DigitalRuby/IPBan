@@ -428,24 +428,6 @@ namespace DigitalRuby.IPBan
         }
 
         /// <summary>
-        /// Load IPBan config from file
-        /// </summary>
-        /// <param name="configFilePath">Config file path</param>
-        /// <param name="service">Service</param>
-        /// <param name="dns">Dns lookup for resolving ip addresses</param>
-        /// <returns>IPBanConfig</returns>
-        public static async Task<IPBanConfig> LoadFromFileAsync(string configFilePath, IDnsLookup dns)
-        {
-            configFilePath = (File.Exists(configFilePath) ? configFilePath : ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None).FilePath);
-            if (!File.Exists(configFilePath))
-            {
-                throw new FileNotFoundException("Unable to find config file " + configFilePath);
-            }
-            string xml = await File.ReadAllTextAsync(configFilePath);
-            return LoadFromXml(xml, dns);
-        }
-
-        /// <summary>
         /// Load IPBan config from XML
         /// </summary>
         /// <param name="xml">XML string</param>

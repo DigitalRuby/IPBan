@@ -121,22 +121,13 @@ namespace DigitalRuby.IPBan
             try
             {
                 ConfigFilePath = (!File.Exists(ConfigFilePath) ? Path.Combine(AppDomain.CurrentDomain.BaseDirectory, IPBanService.ConfigFileName) : ConfigFilePath);
-                DateTime lastDateTime = File.GetLastWriteTimeUtc(ConfigFilePath);
-                if (lastDateTime > lastConfigFileDateTime)
+                string newXml = await ConfigReaderWriter.CheckForConfigChange();
+                if (!string.IsNullOrWhiteSpace(newXml))
                 {
-                    lastConfigFileDateTime = lastDateTime;
-                    await configLock.WaitAsync(firewallQueueCancel.Token);
-                    try
-                    {
-                        IPBanConfig newConfig = await IPBanConfig.LoadFromFileAsync(ConfigFilePath, DnsLookup);
-                        UpdateLogFiles(newConfig);
-                        whitelistChanged = (Config == null || Config.WhiteList != newConfig.WhiteList || Config.WhiteListRegex != newConfig.WhiteListRegex);
-                        Config = newConfig;
-                    }
-                    finally
-                    {
-                        configLock.Release();
-                    }
+                    IPBanConfig newConfig = IPBanConfig.LoadFromXml(newXml, DnsLookup);
+                    UpdateLogFiles(newConfig);
+                    whitelistChanged = (Config == null || Config.WhiteList != newConfig.WhiteList || Config.WhiteListRegex != newConfig.WhiteListRegex);
+                    Config = newConfig;
                     LoadFirewall();
                 }
             }
@@ -230,12 +221,6 @@ namespace DigitalRuby.IPBan
 
             // request new config file
             await GetUrl(UrlType.Config);
-        }
-
-        private void LogInitialConfig()
-        {
-            IPBanLog.Info("Whitelist: {0}, Whitelist Regex: {1}", Config.WhiteList, Config.WhiteListRegex);
-            IPBanLog.Info("Blacklist: {0}, Blacklist Regex: {1}", Config.BlackList, Config.BlackListRegex);
         }
 
         private async Task ProcessPendingFailedLogins(IReadOnlyList<IPAddressLogEvent> ipAddresses)

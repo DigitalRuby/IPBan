@@ -221,21 +221,7 @@ namespace DigitalRuby.IPBan
             {
                 doc.Load(xmlReader);
             }
-            await configLock.WaitAsync(firewallQueueCancel.Token);
-            try
-            {
-                string text = await File.ReadAllTextAsync(ConfigFilePath);
-
-                // if the file changed, update it
-                if (text != xml)
-                {
-                    await File.WriteAllTextAsync(ConfigFilePath, xml);
-                }
-            }
-            finally
-            {
-                configLock.Release();
-            }
+            await ConfigReaderWriter.WriteConfigAsync(xml);
         }
 
         /// <summary>
@@ -294,10 +280,9 @@ namespace DigitalRuby.IPBan
                 AddWindowsEventViewer();
                 AddUpdater(new IPBanUnblockIPAddressesUpdater(this, Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "unban.txt")));
                 AddUpdater(new IPBanBlockIPAddressesUpdater(this, Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ban.txt")));
-                AssemblyVersion = IPBanService.GetIPBanAssembly().GetName().Version.ToString();
+                AssemblyVersion = IPBanService.IPBanAssembly.GetName().Version.ToString();
                 ReadAppSettings().Sync();
                 UpdateBannedIPAddressesOnStart();
-                LogInitialConfig();
                 IPBanDelegate?.Start(this);
                 if (!ManualCycle)
                 {
@@ -375,15 +360,6 @@ namespace DigitalRuby.IPBan
         public IEnumerable<IPBanDB.IPAddressEntry> FailedLoginAttempts
         {
             get { return ipDB.EnumerateIPAddresses(); }
-        }
-
-        /// <summary>
-        /// Get the IPBan assembly
-        /// </summary>
-        /// <returns>IPBan assembly</returns>
-        public static Assembly GetIPBanAssembly()
-        {
-            return typeof(IPBanService).Assembly;
         }
 
         /// <summary>
@@ -511,12 +487,10 @@ namespace DigitalRuby.IPBan
 
             if (string.IsNullOrWhiteSpace(directory))
             {
-                Assembly a = IPBanService.GetIPBanAssembly();
-                directory = Path.GetDirectoryName(a.Location);
+                directory = Path.GetDirectoryName(IPBanAssembly.Location);
             }
             if (string.IsNullOrWhiteSpace(configFileName))
             {
-                Assembly a = IPBanService.GetIPBanAssembly();
                 configFileName = IPBanService.ConfigFileName;
             }
             string configFilePath = Path.Combine(directory, configFileName);
