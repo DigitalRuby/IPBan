@@ -4,13 +4,13 @@
 //
 
 using System;
-using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
-using System.Net;
-using System.Text.RegularExpressions;
 using System.ComponentModel;
 using System.Globalization;
+using System.Linq;
+using System.Net;
+using System.Text.RegularExpressions;
 
 #if NET45
 using System.Runtime.Serialization;

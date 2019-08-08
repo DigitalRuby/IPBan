@@ -22,16 +22,13 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+using DigitalRuby.IPBan;
+using NUnit.Framework;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
-
-using DigitalRuby.IPBan;
-
-using NUnit.Framework;
 
 namespace DigitalRuby.IPBanTests
 {
@@ -231,7 +228,7 @@ namespace DigitalRuby.IPBanTests
                 // pretend enough time has passed to not batch the login attempts
                 IPBanService.UtcNow += TimeSpan.FromSeconds(10.0);
             }
-            
+
             string[] blockedIPAddresses = service.Firewall.EnumerateBannedIPAddresses().ToArray();
             string[] expected = new string[]
             {
@@ -295,7 +292,7 @@ namespace DigitalRuby.IPBanTests
 
         void IIPBanDelegate.Start(IIPBanService service)
         {
-            
+
         }
 
         Task IIPBanDelegate.Update()

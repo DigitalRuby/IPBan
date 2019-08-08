@@ -23,15 +23,13 @@ SOFTWARE.
 */
 
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
+using System.Management;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
-
-using System.Management;
-using System.Linq;
 
 namespace DigitalRuby.IPBan
 {
@@ -237,7 +235,7 @@ namespace DigitalRuby.IPBan
                 IPBanLog.Error(ex);
             }
         }
-        
+
         /// <summary>
         /// Get a string representing the operating system
         /// </summary>

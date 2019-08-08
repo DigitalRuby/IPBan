@@ -27,15 +27,11 @@ SOFTWARE.
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Configuration;
-using System.Globalization;
-using System.IO;
 using System.Linq;
 using System.Net;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Serialization;
 
@@ -551,7 +547,7 @@ namespace DigitalRuby.IPBan
         /// The duration after the last failed login attempt that the count is reset back to 0.
         /// </summary>
         public TimeSpan ExpireTime { get { return expireTime; } }
-        
+
         /// <summary>
         /// Interval of time to do house-keeping chores like un-banning ip addresses
         /// </summary>

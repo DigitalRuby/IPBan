@@ -3576,7 +3576,7 @@ namespace System.Diagnostics.Eventing.Reader
                 using (eventMetadataEnum)
                 {
                     EventLogHandle handle2;
-                    Label_0020:
+                Label_0020:
                     handle2 = handle2 = NativeWrapper.EvtNextEventMetadata(eventMetadataEnum, 0);
                     if (handle2 != null)
                     {
@@ -4005,7 +4005,7 @@ namespace System.Diagnostics.Eventing.Reader
                     {
                         displayName = NativeWrapper.EvtFormatMessage(providerHandle, (uint)num5);
                     }
-                    Label_01BA:
+                Label_01BA:
                     switch (opcode)
                     {
                         case ObjectTypeName.Level:
@@ -5774,15 +5774,15 @@ namespace System.Diagnostics.Eventing.Reader
                 }
                 propertyValue.Bool = 0;
                 goto Label_0183;
-                Label_0146:
+            Label_0146:
                 propertyValue.Bool = 0;
                 goto Label_0183;
-                Label_016B:
+            Label_016B:
                 propertyValue.Bool = 0;
                 goto Label_0183;
-                Label_017B:
+            Label_017B:
                 propertyValue.Type = 0;
-                Label_0183:
+            Label_0183:
                 flag = UnsafeNativeMethods.EvtSetChannelConfigProperty(handle, enumType, 0, ref propertyValue);
                 var errorCode = Marshal.GetLastWin32Error();
                 if (!flag)

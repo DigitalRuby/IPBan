@@ -1,4 +1,4 @@
-﻿﻿/*
+﻿/*
 MIT License
 
 Copyright (c) 2019 Digital Ruby, LLC - https://www.digitalruby.com
@@ -22,13 +22,10 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+using Microsoft.Data.Sqlite;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Net;
-using System.Text;
-
-using Microsoft.Data.Sqlite;
 
 namespace DigitalRuby.IPBan
 {

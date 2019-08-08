@@ -24,19 +24,13 @@ SOFTWARE.
 
 #region Imports
 
-using System;
+using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Configuration;
 using System.Globalization;
-using System.IO;
-using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Xml;
 using System.Xml.Serialization;
-
-using Newtonsoft.Json;
 
 #endregion Imports
 
@@ -140,7 +134,7 @@ namespace DigitalRuby.IPBan
                 if (value.StartsWith("0x"))
                 {
                     value = value.Substring(2);
-                }                    
+                }
                 KeywordsULONG = ulong.Parse(value, NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture);
             }
         }

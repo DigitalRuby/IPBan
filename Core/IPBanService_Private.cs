@@ -27,18 +27,14 @@ SOFTWARE.
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net;
-using System.Reflection;
 using System.Runtime.InteropServices;
-using System.Security;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Xml;
 
 #endregion Imports
 
@@ -288,7 +284,7 @@ namespace DigitalRuby.IPBan
                                 {
                                     IPBanLog.Warn("Login failed for known active user {0}", userName);
                                 }
-                                    
+
                                 // if delegate and non-zero count, forward on - count of 0 means it was from external source, like a delegate
                                 if (IPBanDelegate != null && failedLogin.Count > 0)
                                 {

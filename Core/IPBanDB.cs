@@ -22,13 +22,11 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+using Microsoft.Data.Sqlite;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
-using System.Text;
-
-using Microsoft.Data.Sqlite;
 
 namespace DigitalRuby.IPBan
 {
@@ -346,7 +344,7 @@ namespace DigitalRuby.IPBan
             long timestampBegin = banDate.ToUnixMillisecondsLong();
             long timestampEnd = banEndDate.ToUnixMillisecondsLong();
             long currentTimestamp = now.ToUnixMillisecondsLong();
-                
+
             // if the ip address already exists, it can be updated provided that the state is not in a pending remove state (2) and
             // there is no ban end date yet or the ban end date has expired
             // state will stay at 0 if it was 0 else it will become 1 which means the ban is pending, state 0 means ban is already active in firewall

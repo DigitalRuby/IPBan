@@ -22,16 +22,10 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-using System;
+using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Configuration;
-using System.IO;
-using System.Text;
-using System.Xml;
 using System.Xml.Serialization;
-
-using Newtonsoft.Json;
 
 namespace DigitalRuby.IPBan
 {

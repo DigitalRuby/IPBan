@@ -24,19 +24,17 @@ SOFTWARE.
 
 #region Imports
 
+using NetFwTypeLib;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Net;
-using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-
-using NetFwTypeLib;
 
 #endregion Imports
 
@@ -101,7 +99,7 @@ namespace DigitalRuby.IPBan
 
             lock (policy)
             {
-recreateRule:
+            recreateRule:
                 INetFwRule rule = null;
                 try
                 {
