@@ -116,8 +116,9 @@ namespace DigitalRuby.IPBan
 
         private readonly string[] args;
         private readonly Action<string[]> start;
-        private readonly Action stop;
         private readonly Func<int, bool> stopped;
+
+        private Action stop;
 
         private void RunWindowsService(string[] args)
         {
@@ -171,6 +172,7 @@ namespace DigitalRuby.IPBan
             this.stop = stop;
             this.stopped = stopped;
             Console.CancelKeyPress += Console_CancelKeyPress;
+            AppDomain.CurrentDomain.ProcessExit += (o, e) => Dispose();
         }
 
         /// <summary>
@@ -215,7 +217,9 @@ namespace DigitalRuby.IPBan
         {
             Console.CancelKeyPress -= Console_CancelKeyPress;
             windowsService?.Stop();
-            stop.Invoke();
+            windowsService = null;
+            stop?.Invoke();
+            stop = null;
         }
     }
 }
