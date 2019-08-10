@@ -151,6 +151,11 @@ namespace DigitalRuby.IPBan
             RunConsoleService(args);
         }
 
+        private void AppDomainExit(object sender, EventArgs e)
+        {
+            Dispose();
+        }
+
         private void Console_CancelKeyPress(object sender, ConsoleCancelEventArgs e)
         {
             Dispose();
@@ -172,7 +177,7 @@ namespace DigitalRuby.IPBan
             this.stop = stop;
             this.stopped = stopped;
             Console.CancelKeyPress += Console_CancelKeyPress;
-            AppDomain.CurrentDomain.ProcessExit += (o, e) => Dispose();
+            AppDomain.CurrentDomain.ProcessExit += AppDomainExit;
         }
 
         /// <summary>
@@ -215,6 +220,7 @@ namespace DigitalRuby.IPBan
         /// </summary>
         public void Dispose()
         {
+            AppDomain.CurrentDomain.ProcessExit -= AppDomainExit;
             Console.CancelKeyPress -= Console_CancelKeyPress;
             windowsService?.Stop();
             windowsService = null;
