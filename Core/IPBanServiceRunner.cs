@@ -42,7 +42,7 @@ namespace DigitalRuby.IPBan
             protected override void OnStart(string[] args)
             {
                 base.OnStart(args);
-                runner.start.Invoke(args);
+                runner.start.Invoke(args).Sync();
             }
 
             protected override void OnStop()
@@ -136,7 +136,7 @@ namespace DigitalRuby.IPBan
         private void RunConsoleService(string[] args)
         {
             // setup the service
-            start.Invoke(args);
+            start.Invoke(args).Sync();
 
             // wait for ENTER or CTRL+C to be pressed, or for the service to stop some other way
             Console.WriteLine("Press ENTER or Ctrl+C to quit");

@@ -67,8 +67,8 @@ namespace DigitalRuby.IPBan
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Fatal error starting service: {0}", ex);
                 System.IO.File.WriteAllText(System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "startup_fail.txt"), ex.ToString());
+                IPBanLog.Fatal("Fatal error starting service", ex);
                 return Task.FromResult(-1);
             }
         }
