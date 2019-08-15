@@ -115,7 +115,7 @@ namespace DigitalRuby.IPBan
         }
 
         private readonly string[] args;
-        private readonly Action<string[]> start;
+        private readonly Func<string[], Task> start;
         private readonly Func<int, bool> stopped;
 
         private Action stop;
@@ -168,7 +168,7 @@ namespace DigitalRuby.IPBan
         /// <param name="start">Start action, params are command line args. This should start the internal service.</param>
         /// <param name="stop">Stop action, this should stop the internal service.</param>
         /// <param name="stopped">Func to return bool if internal service has been stopped, can be null. Parameter is timeout. Should return true if stopped, false if not.</param>
-        public IPBanServiceRunner(string[] args, Action<string[]> start, Action stop, Func<int, bool> stopped)
+        public IPBanServiceRunner(string[] args, Func<string[], Task> start, Action stop, Func<int, bool> stopped)
         {
             this.args = args ?? new string[0];
             start.ThrowIfNull();

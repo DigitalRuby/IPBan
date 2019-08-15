@@ -46,7 +46,7 @@ namespace DigitalRuby.IPBan
             return MainService(args, (_args) =>
             {
                 // kick off start in background thread, make sure service starts up in a timely manner
-                Task.Run(() => _service.Start());
+                return Task.Run(() => _service.Start());
             }, () =>
             {
                 _service.Stop();
@@ -56,7 +56,7 @@ namespace DigitalRuby.IPBan
             });
         }
 
-        public static Task<int> MainService(string[] args, Action<string[]> start, Action stop, Func<int, bool> stopped, bool requireAdministrator = true)
+        public static Task<int> MainService(string[] args, Func<string[], Task> start, Action stop, Func<int, bool> stopped, bool requireAdministrator = true)
         {
             try
             {
