@@ -41,8 +41,8 @@ namespace DigitalRuby.IPBan
 
             protected override void OnStart(string[] args)
             {
+                runner.start.Invoke(args).GetAwaiter();
                 base.OnStart(args);
-                runner.start.Invoke(args).Sync();
             }
 
             protected override void OnStop()
