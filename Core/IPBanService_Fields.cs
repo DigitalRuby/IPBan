@@ -50,7 +50,7 @@ namespace DigitalRuby.IPBan
         private readonly List<IPAddressLogEvent> pendingLogEvents = new List<IPAddressLogEvent>();
         private readonly HashSet<IUpdater> updaters = new HashSet<IUpdater>();
         private readonly HashSet<IPBanLogFileScanner> logFilesToParse = new HashSet<IPBanLogFileScanner>();
-        private readonly ManualResetEvent stopEvent = new ManualResetEvent(false);
+        private readonly SemaphoreSlim stopEvent = new SemaphoreSlim(0, 1);
         private readonly Dictionary<string, AsyncQueue<Func<CancellationToken, Task>>> firewallQueue = new Dictionary<string, AsyncQueue<Func<CancellationToken, Task>>>();
         private readonly CancellationTokenSource firewallQueueCancel = new CancellationTokenSource();
 

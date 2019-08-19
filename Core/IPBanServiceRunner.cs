@@ -105,60 +105,55 @@ namespace DigitalRuby.IPBan
                         acceptedCommandsField.SetValue(this, acceptedCommands);
                     }
                     Directory.SetCurrentDirectory(AppDomain.CurrentDomain.BaseDirectory);
-                    System.ServiceProcess.ServiceBase[] ServicesToRun = new System.ServiceProcess.ServiceBase[] { this };
-                    System.ServiceProcess.ServiceBase.Run(ServicesToRun);
                 }
-                catch
+                catch (Exception ex)
                 {
-                    // if anything fails, fallback to running as a console app
-                    try
-                    {
-                        Dispose();
-                    }
-                    catch
-                    {
-                    }
-                    IPBanLog.Warn("Failed to run as Windows service, fallback to running as console app");
-                    runner.RunConsoleService(args);
+                    IPBanLog.Error(ex);
                 }
+            }
+
+            public Task Run()
+            {
+                System.ServiceProcess.ServiceBase[] ServicesToRun = new System.ServiceProcess.ServiceBase[] { this };
+                System.ServiceProcess.ServiceBase.Run(ServicesToRun);
+                return Task.CompletedTask;
             }
         }
 
         private readonly string[] args;
         private readonly Func<string[], Task> start;
-        private readonly Func<int, bool> stopped;
 
         private Action stop;
 
-        private void RunWindowsService(string[] args)
+        private async Task RunWindowsService(string[] args)
         {
             if (Console.IsInputRedirected)
             {
                 // create and start using Windows service APIs
                 windowsService = new IPBanWindowsServiceRunner(this, args);
+                await windowsService.Run();
             }
             else
             {
-                RunConsoleService(args);
+                await RunConsoleService(args);
             }
         }
 
-        private void RunConsoleService(string[] args)
+        private async Task RunConsoleService(string[] args)
         {
-            // setup the service
-            start.Invoke(args).Sync();
-
-            // wait for ENTER or CTRL+C to be pressed, or for the service to stop some other way
-            Console.WriteLine("Press ENTER or Ctrl+C to quit");
-            while ((Console.IsInputRedirected || !Console.KeyAvailable || Console.ReadKey().Key != ConsoleKey.Enter) && (stopped == null || !stopped.Invoke(500))) { }
-
-            // stop and cleanup
-            Dispose();
+            try
+            {
+                await start.Invoke(args);
+            }
+            catch (Exception ex)
+            {
+                IPBanLog.Error(ex);
+            }
         }
 
-        private void RunLinuxService(string[] args)
+        private async Task RunLinuxService(string[] args)
         {
-            RunConsoleService(args);
+            await RunConsoleService(args);
         }
 
         private void AppDomainExit(object sender, EventArgs e)
@@ -177,15 +172,13 @@ namespace DigitalRuby.IPBan
         /// <param name="args">Command line args</param>
         /// <param name="start">Start action, params are command line args. This should start the internal service.</param>
         /// <param name="stop">Stop action, this should stop the internal service.</param>
-        /// <param name="stopped">Func to return bool if internal service has been stopped, can be null. Parameter is timeout. Should return true if stopped, false if not.</param>
-        public IPBanServiceRunner(string[] args, Func<string[], Task> start, Action stop, Func<int, bool> stopped)
+        public IPBanServiceRunner(string[] args, Func<string[], Task> start, Action stop)
         {
             this.args = args ?? new string[0];
             start.ThrowIfNull();
             stop.ThrowIfNull();
             this.start = start;
             this.stop = stop;
-            this.stopped = stopped;
             Console.CancelKeyPress += Console_CancelKeyPress;
             AppDomain.CurrentDomain.ProcessExit += AppDomainExit;
         }
@@ -195,7 +188,7 @@ namespace DigitalRuby.IPBan
         /// </summary>
         /// <param name="requireAdministrator">True to require administrator, false otherwise</param>
         /// <returns>Exit code</returns>
-        public Task<int> RunAsync(bool requireAdministrator = true)
+        public async Task RunAsync(bool requireAdministrator = true)
         {
             if (requireAdministrator)
             {
@@ -208,21 +201,16 @@ namespace DigitalRuby.IPBan
             }
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                RunWindowsService(args);
+                await RunWindowsService(args);
             }
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             {
-                RunLinuxService(args);
-            }
-            else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-            {
-                throw new PlatformNotSupportedException("Mac OSX is not yet supported, but may be in the future.");
+                await RunLinuxService(args);
             }
             else
             {
                 throw new PlatformNotSupportedException();
             }
-            return Task.FromResult(0);
         }
 
         /// <summary>
@@ -230,12 +218,18 @@ namespace DigitalRuby.IPBan
         /// </summary>
         public void Dispose()
         {
-            AppDomain.CurrentDomain.ProcessExit -= AppDomainExit;
-            Console.CancelKeyPress -= Console_CancelKeyPress;
-            windowsService?.Stop();
+            IPBanWindowsServiceRunner runner = windowsService;
             windowsService = null;
-            stop?.Invoke();
+            if (runner != null)
+            {
+                runner.Stop();
+            }
+            Action stopper = stop;
             stop = null;
+            if (stopper != null)
+            {
+                stopper.Invoke();
+            }
         }
     }
 }

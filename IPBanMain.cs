@@ -23,53 +23,61 @@ SOFTWARE.
 */
 
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace DigitalRuby.IPBan
 {
     public static class IPBanMain
     {
-        public static async Task<int> Main(string[] args)
+        /// <summary>
+        /// IPBan main method
+        /// </summary>
+        /// <param name="args">Args</param>
+        /// <returns>Task</returns>
+        public static async Task Main(string[] args)
         {
-            return await MainService<IPBanService>(args, out _);
-        }
-
-        public static Task<int> MainService<T>(string[] args) where T : IPBanService
-        {
-            return MainService<T>(args, out _);
-        }
-
-        public static Task<int> MainService<T>(string[] args, out T service) where T : IPBanService
-        {
-            T _service = IPBanService.CreateService<T>();
-            service = _service;
-            return MainService(args, (_args) =>
+            await MainService<IPBanService>(args, () =>
             {
-                // kick off start in background thread, make sure service starts up in a timely manner
-                return Task.Run(() => _service.Start());
-            }, () =>
-            {
-                _service.Stop();
-            }, (_timeout) =>
-            {
-                return _service.Wait(_timeout);
+                // TODO: IPBan service does not use .NET hosting infrastructure, so send out the message manually, revisit this in the future using host builder
+                if (Environment.UserInteractive)
+                {
+                    Console.WriteLine("IPBan service started, press Ctrl+C to exit");
+                }
             });
         }
 
-        public static Task<int> MainService(string[] args, Func<string[], Task> start, Action stop, Func<int, bool> stopped, bool requireAdministrator = true)
+        public static async Task MainService<T>(string[] args, Action started = null) where T : IPBanService
+        {
+            T _service = IPBanService.CreateService<T>();
+            await MainService(args, async (_args) =>
+            {
+                // kick off start in background thread, make sure service starts up in a timely manner
+                await _service.StartAsync();
+                started?.Invoke();
+
+                // wait for service to end
+                await _service.WaitAsync(Timeout.Infinite);
+            }, () =>
+            {
+                // stop the service, will cause any WaitAsync to exit
+                _service.Stop();
+            });
+        }
+
+        public static async Task MainService(string[] args, Func<string[], Task> start, Action stop, bool requireAdministrator = true)
         {
             try
             {
-                using (IPBanServiceRunner runner = new IPBanServiceRunner(args, start, stop, stopped))
+                using (IPBanServiceRunner runner = new IPBanServiceRunner(args, start, stop))
                 {
-                    return runner.RunAsync(requireAdministrator);
+                    await runner.RunAsync(requireAdministrator);
                 }
             }
             catch (Exception ex)
             {
                 System.IO.File.WriteAllText(System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "startup_fail.txt"), ex.ToString());
                 IPBanLog.Fatal("Fatal error starting service", ex);
-                return Task.FromResult(-1);
             }
         }
     }

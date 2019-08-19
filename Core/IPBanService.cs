@@ -253,16 +253,16 @@ namespace DigitalRuby.IPBan
                 ipDB?.Dispose();
                 IPBanLog.Warn("Stopped IPBan service");
             }
-            catch
+            finally
             {
+                stopEvent.Release();
             }
-            stopEvent.Set();
         }
 
         /// <summary>
         /// Initialize and start the service
         /// </summary>
-        public void Start()
+        public async Task StartAsync()
         {
             if (IsRunning)
             {
@@ -277,14 +277,14 @@ namespace DigitalRuby.IPBan
                 AddUpdater(new IPBanUnblockIPAddressesUpdater(this, Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "unban.txt")));
                 AddUpdater(new IPBanBlockIPAddressesUpdater(this, Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ban.txt")));
                 AssemblyVersion = IPBanService.IPBanAssembly.GetName().Version.ToString();
-                ReadAppSettings().Sync();
+                await ReadAppSettings();
                 UpdateBannedIPAddressesOnStart();
                 IPBanDelegate?.Start(this);
                 if (!ManualCycle)
                 {
                     if (RunFirstCycleRightAway)
                     {
-                        RunCycle().Sync(); // run one cycle right away
+                        await RunCycle(); // run one cycle right away
                     }
                     cycleTimer = new System.Timers.Timer(Config.CycleTime.TotalMilliseconds);
                     cycleTimer.Elapsed += async (sender, e) => await CycleTimerElapsed(sender, e);
@@ -312,16 +312,9 @@ namespace DigitalRuby.IPBan
         /// </summary>
         /// <param name="timeoutMilliseconds">Timeout in milliseconds</param>
         /// <returns>True if service stopped, false otherwise</returns>
-        public bool Wait(int timeoutMilliseconds)
+        public Task<bool> WaitAsync(int timeoutMilliseconds)
         {
-            try
-            {
-                return stopEvent.WaitOne(timeoutMilliseconds);
-            }
-            catch
-            {
-                return true;
-            }
+            return stopEvent.WaitAsync(timeoutMilliseconds);
         }
 
         /// <summary>
@@ -504,7 +497,7 @@ namespace DigitalRuby.IPBan
             service.ManualCycle = true;
             service.BannedIPAddressHandler = service;
             service.Version = "1.1.1.1";
-            service.Start();
+            service.StartAsync().Sync();
             service.DB.Truncate(true);
             service.Firewall.Truncate();
             return service;
