@@ -732,6 +732,6 @@ Prefix with OS:ClassName, example: Windows:Custom,Linux:Default</value>
     <value>Firewall Rules</value>
   </data>
   <data name="FirewallRulesTooltip" xml:space="preserve">
-    <value>Extra firewall rules, one per line. Great way to persist firewall rules. Format is 'rule-name;allow or block;ip list (comma spearated);allowed port list (comma separated),platform regex'. The name should be kept to 16 or less chars.</value>
+    <value>Extra firewall rules, one per line. Great way to persist firewall rules. Format is 'rule-name;allow or block;ip list (comma spearated);allowed port list (comma separated);platform regex'. The name should be kept to 16 or less chars.</value>
   </data>
 </root>

@@ -583,7 +583,7 @@ namespace DigitalRuby.IPBan {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Extra firewall rules, one per line. Great way to persist firewall rules. Format is &apos;rule-name;allow or block;ip list (comma spearated);allowed port list (comma separated),platform regex&apos;. The name should be kept to 16 or less chars..
+        ///   Looks up a localized string similar to Extra firewall rules, one per line. Great way to persist firewall rules. Format is &apos;rule-name;allow or block;ip list (comma spearated);allowed port list (comma separated);platform regex&apos;. The name should be kept to 16 or less chars..
         /// </summary>
         public static string FirewallRulesTooltip {
             get {
