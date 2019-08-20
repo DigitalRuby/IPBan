@@ -24,6 +24,8 @@ SOFTWARE.
 
 using System;
 using System.Collections.Generic;
+using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -33,9 +35,9 @@ namespace DigitalRuby.IPBan
     {
         /// <summary>
         /// Creates/updates rules to block all the ip addresses, and removes any left-over rules. Exceptions are logged.
-        /// Pass an empty list to remove all blocked ip addresses.
+        /// Pass an empty list to remove all blocked ip addresses for the ruleNamePrefix.
         /// </summary>
-        /// <param name="ruleNamePrefix">Rule name prefix</param>
+        /// <param name="ruleNamePrefix">Rule name prefix, can be null for the default block rule</param>
         /// <param name="ipAddresses">IP Addresses</param>
         /// <param name="allowedPorts">Allowed ports, any port not in this list is blocked</param>
         /// <param name="cancelToken">Cancel token</param>
@@ -45,7 +47,7 @@ namespace DigitalRuby.IPBan
         /// <summary>
         /// Same as BlockIPAddresses except this is a delta that only adds / removes the necessary ip, all other ip are left alone.
         /// </summary>
-        /// <param name="ruleNamePrefix">Rule name prefix</param>
+        /// <param name="ruleNamePrefix">Rule name prefix, required</param>
         /// <param name="ipAddresses">IP Addresses (delta)</param>
         /// <param name="allowedPorts">Allowed ports, any port not in this list is blocked</param>
         /// <param name="cancelToken">Cancel token</param>
@@ -55,7 +57,7 @@ namespace DigitalRuby.IPBan
         /// <summary>
         /// Creates/updates new rule(s) prefixed by ruleNamePrefix with block rules for all ranges specified. Exceptions are logged.
         /// </summary>
-        /// <param name="ruleNamePrefix">Rule name prefix</param>
+        /// <param name="ruleNamePrefix">Rule name prefix, required</param>
         /// <param name="ranges">Ranges to block</param>
         /// <param name="allowedPorts">Allowed ports, any port not in this list is blocked</param>
         /// <param name="cancelToken">Cancel token</param>
@@ -71,6 +73,17 @@ namespace DigitalRuby.IPBan
         Task<bool> AllowIPAddresses(IEnumerable<string> ipAddresses, CancellationToken cancelToken = default);
 
         /// <summary>
+        /// Creates/updates rules to allow all the ip addresses, and removes any left-over rules. Exceptions are logged.
+        /// Pass an empty list to remove all allowed ip addresses for the ruleNamePrefix.
+        /// </summary>
+        /// <param name="ruleNamePrefix">Rule name prefix, required</param>
+        /// <param name="ipAddresses">IP Addresses or ranges</param>
+        /// <param name="allowedPorts">Allowed ports, any port not in this list is blocked</param>
+        /// <param name="cancelToken">Cancel token</param>
+        /// <returns>True if success, false if error</returns>
+        Task<bool> AllowIPAddresses(string ruleNamePrefix, IEnumerable<IPAddressRange> ipAddresses, IEnumerable<PortRange> allowedPorts = null, CancellationToken cancelToken = default);
+        
+        /// <summary>
         /// Checks if an ip address is blocked in the firewall
         /// </summary>
         /// <param name="ipAddress">IP Address</param>
@@ -83,8 +96,9 @@ namespace DigitalRuby.IPBan
         /// Checks if an ip address is explicitly allowed in the firewall
         /// </summary>
         /// <param name="ipAddress">IP Address</param>
+        /// <param name="port">Optional port, -1 to not check the port. Not all firewalls will check the port.</param>
         /// <returns>True if explicitly allowed, false if not</returns>
-        bool IsIPAddressAllowed(string ipAddress);
+        bool IsIPAddressAllowed(string ipAddress, int port = -1);
 
         /// <summary>
         /// Get all rules with the specified rule name prefix
@@ -153,5 +167,74 @@ namespace DigitalRuby.IPBan
         {
             return $"{IPAddress} added = {Added}";
         }
+    }
+
+    /// <summary>
+    /// Represents a firewall rule
+    /// </summary>
+    public class IPBanFirewallRule
+    {
+        /// <summary>
+        /// Rule name
+        /// </summary>
+        public string Name { get; set; }
+        
+        /// <summary>
+        /// True to block, false to allow
+        /// </summary>
+        public bool Block { get; set; }
+
+        /// <summary>
+        /// IP address ranges to block
+        /// </summary>
+        public IReadOnlyList<IPAddressRange> IPAddressRanges { get; set; }
+
+        /// <summary>
+        /// Port ranges to allow
+        /// </summary>
+        public IReadOnlyList<PortRange> AllowPortRanges { get; set; }
+
+        /// <summary>
+        /// Platform regex
+        /// </summary>
+        public Regex PlatformRegex { get; set; }
+
+        /// <summary>
+        /// ToString
+        /// </summary>
+        /// <returns>String</returns>
+        public override string ToString()
+        {
+            // name
+            StringBuilder b = new StringBuilder(Name);
+            b.Append(';');
+
+            b.Append(Block ? "block" : "allow");
+            b.Append(';');
+
+            // ip ranges
+            foreach (IPAddressRange range in IPAddressRanges)
+            {
+                b.Append(range.ToCidrString());
+                b.Append(',');
+            }
+            b.Length--;
+            b.Append(';');
+
+            // allow port ranges
+            foreach (PortRange range in AllowPortRanges)
+            {
+                b.Append(range);
+                b.Append(',');
+            }
+            b.Length--;
+            b.Append(';');
+
+            // platform regex
+            b.Append(PlatformRegex.ToString());
+
+            return b.ToString();
+        }
+
     }
 }

@@ -736,19 +736,21 @@ namespace DigitalRuby.IPBan
         }
 
         /// <summary>
-        /// Convert port range to string implicit
+        /// Convert port range to string implicitly.
         /// </summary>
         /// <param name="range">Port range</param>
+        /// <returns>String</returns>
         public static implicit operator string(PortRange range)
         {
             return range.ToString();
         }
 
         /// <summary>
-        /// Convert port range to string implicit
+        /// Parse a port range from a string. If parsing fails, min port will be -1.
         /// </summary>
-        /// <param name="s">Port range string</param>
-        public static implicit operator PortRange(string s)
+        /// <param name="s">String</param>
+        /// <returns>PortRange</returns>
+        public static PortRange Parse(string s)
         {
             if (string.IsNullOrWhiteSpace(s))
             {
@@ -769,6 +771,16 @@ namespace DigitalRuby.IPBan
                 return new PortRange(int.Parse(pieces[0], CultureInfo.InvariantCulture));
             }
             return new PortRange(int.Parse(pieces[0], CultureInfo.InvariantCulture), int.Parse(pieces[1], CultureInfo.InvariantCulture));
+        }
+
+        /// <summary>
+        /// Parse port range from string implicitly. If parsing fails, min port will be -1.
+        /// </summary>
+        /// <param name="s">Port range string</param>
+        /// <returns>PortRange</returns>
+        public static implicit operator PortRange(string s)
+        {
+            return Parse(s);
         }
     }
 }

@@ -31,6 +31,11 @@ namespace DigitalRuby.IPBan
             return Task.FromResult(true);
         }
 
+        public Task<bool> AllowIPAddresses(string ruleNamePrefix, IEnumerable<IPAddressRange> ipAddresses, IEnumerable<PortRange> allowedPorts = null, CancellationToken cancelToken = default)
+        {
+            return Task.FromResult(true);
+        }
+
         public Task<bool> BlockIPAddresses(string ruleNamePrefix, IEnumerable<string> ipAddresses, IEnumerable<PortRange> allowedPorts = null, CancellationToken cancelToken = default)
         {
             return Task.FromResult(true);
@@ -84,6 +89,11 @@ namespace DigitalRuby.IPBan
         {
             ruleName = null;
             return false;
+        }
+
+        public bool IsIPAddressAllowed(string ipAddress, int port = -1)
+        {
+            throw new System.NotImplementedException();
         }
 
         public void Truncate()

@@ -23,6 +23,7 @@ SOFTWARE.
 */
 
 using System;
+using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
@@ -50,10 +51,17 @@ namespace DigitalRuby.IPBan
         /// </summary>
         public static LocalMachineExternalIPAddressLookupDefault Instance { get; } = new LocalMachineExternalIPAddressLookupDefault();
 
+        /// <summary>
+        /// Get external ip address of the local machine.
+        /// The url should the ip address in text format, and may contain comma separated ip addresses, in which case the last value will be used.
+        /// </summary>
+        /// <param name="requestMaker">Request maker</param>
+        /// <param name="url">Url</param>
+        /// <returns>IP address</returns>
         public async Task<System.Net.IPAddress> LookupExternalIPAddressAsync(IHttpRequestMaker requestMaker, string url)
         {
             byte[] bytes = await requestMaker.MakeRequestAsync(new Uri(url));
-            string ipString = Encoding.UTF8.GetString(bytes).Trim();
+            string ipString = Encoding.UTF8.GetString(bytes).Split(',').Last().Trim();
             if (System.Net.IPAddress.TryParse(ipString, out System.Net.IPAddress ipAddress))
             {
                 if (ipAddress.IsIPv4MappedToIPv6)

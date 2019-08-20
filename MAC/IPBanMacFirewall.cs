@@ -43,6 +43,11 @@ namespace DigitalRuby.IPBan
             throw new NotImplementedException();
         }
 
+        public Task<bool> AllowIPAddresses(string ruleNamePrefix, IEnumerable<IPAddressRange> ipAddresses, IEnumerable<PortRange> allowedPorts = null, CancellationToken cancelToken = default)
+        {
+            throw new NotImplementedException();
+        }
+
         public Task<bool> BlockIPAddresses(string ruleNamePrefix, IEnumerable<string> ipAddresses, IEnumerable<PortRange> allowedPorts = null, CancellationToken cancelToken = default)
         {
             throw new NotImplementedException();
@@ -78,7 +83,7 @@ namespace DigitalRuby.IPBan
             throw new NotImplementedException();
         }
 
-        public bool IsIPAddressAllowed(string ipAddress)
+        public bool IsIPAddressAllowed(string ipAddress, int port = -1)
         {
             throw new NotImplementedException();
         }

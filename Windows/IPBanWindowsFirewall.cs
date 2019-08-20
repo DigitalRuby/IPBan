@@ -161,7 +161,7 @@ namespace DigitalRuby.IPBan
                                 }
                             }
                         }
-                        rule.RemoteAddresses = remoteIPAddresses;
+                        rule.RemoteAddresses = (remoteIPAddresses == "0.0.0.0/0,::/0" ? "*" : remoteIPAddresses);
                     }
                     catch (Exception ex)
                     {
@@ -171,7 +171,7 @@ namespace DigitalRuby.IPBan
                     }
                 }
 
-                if (emptyIPAddressString || string.IsNullOrWhiteSpace(rule.RemoteAddresses) || rule.RemoteAddresses == "*")
+                if (emptyIPAddressString || string.IsNullOrWhiteSpace(rule.RemoteAddresses) || (rule.RemoteAddresses == "*" && remoteIPAddresses != "0.0.0.0/0,::/0"))
                 {
                     // if no ip addresses, remove the rule as it will allow or block everything with an empty RemoteAddresses string
                     try
@@ -195,6 +195,12 @@ namespace DigitalRuby.IPBan
         {
             string remoteIpString = CreateRuleStringForIPAddresses(ipAddresses, index, count);
             GetOrCreateRule(ruleName, remoteIpString, NET_FW_ACTION_.NET_FW_ACTION_BLOCK, allowedPorts);
+        }
+
+        private void CreateAllowRule(IReadOnlyList<string> ipAddresses, int index, int count, string ruleName, IEnumerable<PortRange> allowedPorts = null)
+        {
+            string remoteIpString = CreateRuleStringForIPAddresses(ipAddresses, index, count);
+            GetOrCreateRule(ruleName, remoteIpString, NET_FW_ACTION_.NET_FW_ACTION_ALLOW, allowedPorts);
         }
 
         private void MigrateOldDefaultRuleNames()
@@ -348,16 +354,11 @@ namespace DigitalRuby.IPBan
             */
         }
 
-        public IPBanWindowsFirewall(string rulePrefix = null) : base(rulePrefix)
-        {
-            MigrateOldDefaultRuleNames();
-        }
-
-        public Task<bool> BlockIPAddresses(string ruleNamePrefix, IEnumerable<string> ipAddresses, IEnumerable<PortRange> allowedPorts = null, CancellationToken cancelToken = default)
+        private Task<bool> BlockOrAllowIPAddresses(string ruleNamePrefix, bool block, IEnumerable<string> ipAddresses, IEnumerable<PortRange> allowedPorts = null, CancellationToken cancelToken = default)
         {
             try
             {
-                string prefix = (string.IsNullOrWhiteSpace(ruleNamePrefix) ? BlockRulePrefix : RulePrefix + ruleNamePrefix).TrimEnd('_') + "_";
+                string prefix = ruleNamePrefix.TrimEnd('_') + "_";
                 int i = 0;
                 List<string> ipAddressesList = new List<string>();
                 foreach (string ipAddress in ipAddresses)
@@ -369,7 +370,14 @@ namespace DigitalRuby.IPBan
                     ipAddressesList.Add(ipAddress);
                     if (ipAddressesList.Count == MaxIpAddressesPerRule)
                     {
-                        CreateBlockRule(ipAddressesList, 0, MaxIpAddressesPerRule, prefix + i.ToStringInvariant(), allowedPorts);
+                        if (block)
+                        {
+                            CreateBlockRule(ipAddressesList, 0, MaxIpAddressesPerRule, prefix + i.ToStringInvariant(), allowedPorts);
+                        }
+                        else
+                        {
+                            CreateAllowRule(ipAddressesList, 0, MaxIpAddressesPerRule, prefix + i.ToStringInvariant(), allowedPorts);
+                        }
                         i += MaxIpAddressesPerRule;
                         ipAddressesList.Clear();
                     }
@@ -380,7 +388,14 @@ namespace DigitalRuby.IPBan
                 }
                 if (ipAddressesList.Count != 0)
                 {
-                    CreateBlockRule(ipAddressesList, 0, MaxIpAddressesPerRule, prefix + i.ToStringInvariant(), allowedPorts);
+                    if (block)
+                    {
+                        CreateBlockRule(ipAddressesList, 0, MaxIpAddressesPerRule, prefix + i.ToStringInvariant(), allowedPorts);
+                    }
+                    else
+                    {
+                        CreateAllowRule(ipAddressesList, 0, MaxIpAddressesPerRule, prefix + i.ToStringInvariant(), allowedPorts);
+                    }
                     i += MaxIpAddressesPerRule;
                 }
                 DeleteRules(prefix, i);
@@ -391,6 +406,17 @@ namespace DigitalRuby.IPBan
                 IPBanLog.Error(ex);
                 return Task.FromResult(false);
             }
+        }
+
+
+        public IPBanWindowsFirewall(string rulePrefix = null) : base(rulePrefix)
+        {
+            MigrateOldDefaultRuleNames();
+        }
+
+        public Task<bool> BlockIPAddresses(string ruleNamePrefix, IEnumerable<string> ipAddresses, IEnumerable<PortRange> allowedPorts = null, CancellationToken cancelToken = default)
+        {
+            return BlockOrAllowIPAddresses(BlockRulePrefix, true, ipAddresses, allowedPorts, cancelToken);
         }
 
         public Task<bool> BlockIPAddressesDelta(string ruleNamePrefix, IEnumerable<IPBanFirewallIPAddressDelta> ipAddresses, IEnumerable<PortRange> allowedPorts = null, CancellationToken cancelToken = default)
@@ -474,98 +500,19 @@ namespace DigitalRuby.IPBan
 
         public Task<bool> BlockIPAddresses(string ruleNamePrefix, IEnumerable<IPAddressRange> ranges, IEnumerable<PortRange> allowedPorts, CancellationToken cancelToken = default)
         {
-            try
-            {
-                string prefix = (string.IsNullOrWhiteSpace(ruleNamePrefix) ? RangeRulePrefix : RulePrefix + ruleNamePrefix).TrimEnd('_') + "_";
-
-                // recreate rules
-                int counter = 0;
-                int index = 0;
-                StringBuilder ipList = new StringBuilder();
-                foreach (IPAddressRange range in ranges)
-                {
-                    if (cancelToken.IsCancellationRequested)
-                    {
-                        throw new OperationCanceledException(cancelToken);
-                    }
-                    ipList.Append(range.ToCidrString());
-                    ipList.Append(',');
-                    if (++counter == MaxIpAddressesPerRule)
-                    {
-                        ipList.Length--; // remove ending comma
-                        GetOrCreateRule(prefix + index.ToString(CultureInfo.InvariantCulture), ipList.ToString(), NET_FW_ACTION_.NET_FW_ACTION_BLOCK, allowedPorts);
-                        counter = 0;
-                        index += MaxIpAddressesPerRule;
-                        ipList.Clear();
-                    }
-                }
-                if (cancelToken.IsCancellationRequested)
-                {
-                    throw new OperationCanceledException(cancelToken);
-                }
-
-                // create rule for any leftover ip addresses
-                if (ipList.Length > 1)
-                {
-                    ipList.Length--; // remove ending comma
-                    GetOrCreateRule(prefix + index.ToString(CultureInfo.InvariantCulture), ipList.ToString(), NET_FW_ACTION_.NET_FW_ACTION_BLOCK, allowedPorts);
-                    index += MaxIpAddressesPerRule;
-                }
-
-                // delete any leftover rules
-                DeleteRules(prefix, index);
-                return Task.FromResult(true);
-            }
-            catch (Exception ex)
-            {
-                IPBanLog.Error(ex);
-                return Task.FromResult(false);
-            }
+            ruleNamePrefix.ThrowIfNullOrEmpty();
+            return BlockOrAllowIPAddresses(RulePrefix + ruleNamePrefix, true, ranges.Select(i => i.ToCidrString()), allowedPorts, cancelToken);
         }
 
         public Task<bool> AllowIPAddresses(IEnumerable<string> ipAddresses, CancellationToken cancelToken = default)
         {
-            try
-            {
-                List<string> ipAddressesList = new List<string>();
-                int i = 0;
-                foreach (string ipAddress in ipAddresses)
-                {
-                    if (cancelToken.IsCancellationRequested)
-                    {
-                        throw new OperationCanceledException();
-                    }
-                    ipAddressesList.Add(ipAddress);
-                    if (ipAddressesList.Count == MaxIpAddressesPerRule)
-                    {
-                        string remoteIP = CreateRuleStringForIPAddresses(ipAddressesList, i, MaxIpAddressesPerRule);
-                        GetOrCreateRule(AllowRulePrefix + i.ToString(CultureInfo.InvariantCulture), remoteIP, NET_FW_ACTION_.NET_FW_ACTION_ALLOW);
-                        i += MaxIpAddressesPerRule;
-                        ipAddressesList.Clear();
-                    }
-                }
-                if (cancelToken.IsCancellationRequested)
-                {
-                    throw new OperationCanceledException();
-                }
-                if (ipAddressesList.Count != 0)
-                {
-                    string remoteIP = CreateRuleStringForIPAddresses(ipAddressesList, i, MaxIpAddressesPerRule);
-                    GetOrCreateRule(AllowRulePrefix + i.ToString(CultureInfo.InvariantCulture), remoteIP, NET_FW_ACTION_.NET_FW_ACTION_ALLOW);
-                    i += MaxIpAddressesPerRule;
-                }
-                if (cancelToken.IsCancellationRequested)
-                {
-                    throw new OperationCanceledException();
-                }
-                DeleteRules(AllowRulePrefix, i);
-                return Task.FromResult<bool>(true);
-            }
-            catch (Exception ex)
-            {
-                IPBanLog.Error(ex);
-                return Task.FromResult<bool>(false);
-            }
+            return BlockOrAllowIPAddresses(AllowRulePrefix, false, ipAddresses, null, cancelToken);
+        }
+
+        public Task<bool> AllowIPAddresses(string ruleNamePrefix, IEnumerable<IPAddressRange> ipAddresses, IEnumerable<PortRange> allowedPorts = null, CancellationToken cancelToken = default)
+        {
+            ruleNamePrefix.ThrowIfNullOrEmpty();
+            return BlockOrAllowIPAddresses(RulePrefix + ruleNamePrefix, false, ipAddresses.Select(i => i.ToCidrString()), allowedPorts, cancelToken);
         }
 
         public bool IsIPAddressBlocked(string ipAddress, out string ruleName, int port = -1)
@@ -612,7 +559,7 @@ namespace DigitalRuby.IPBan
             return false;
         }
 
-        public bool IsIPAddressAllowed(string ipAddress)
+        public bool IsIPAddressAllowed(string ipAddress, int port = -1)
         {
             try
             {

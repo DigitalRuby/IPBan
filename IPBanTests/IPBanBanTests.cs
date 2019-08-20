@@ -22,12 +22,16 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-using DigitalRuby.IPBan;
-using NUnit.Framework;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
+
+using DigitalRuby.IPBan;
+
+using NUnit.Framework;
 
 namespace DigitalRuby.IPBanTests
 {
@@ -266,6 +270,44 @@ namespace DigitalRuby.IPBanTests
                         appLog.Clear();
                     }
                 }
+            }
+        }
+
+        [Test]
+        public void TestExtraFirewallRules()
+        {
+            string config = File.ReadAllText(service.ConfigFilePath);
+            string newConfig = IPBanConfig.ChangeConfigAppSetting(config, "FirewallRules", @"
+                ReddisAllowIP;allow;10.0.0.1,10.0.0.2,192.168.1.168/24;6379;.
+                WebOnly;block;0.0.0.0/0,::/0;22,80,443,3389;^(?:(?!Windows).)+$
+            ");
+            File.WriteAllText(service.ConfigFilePath, newConfig);
+            service.RunCycle().Sync();
+            List<string> rules = service.Firewall.GetRuleNames().ToList();
+            string reddisRule = service.Firewall.RulePrefix + "EXTRA_ReddisAllowIP";
+            string webRule = service.Firewall.RulePrefix + "EXTRA_WebOnly";
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                // on Windows, block is the default, so only the allow rules should show up
+                Assert.IsTrue(rules.Exists((s) => s.StartsWith(reddisRule)));
+                Assert.IsFalse(rules.Exists((s) => s.StartsWith(webRule)));
+                Assert.AreEqual(1, service.Config.ExtraRules.Count);
+                IPBanFirewallRule rule1 = service.Config.ExtraRules[0];
+                string regexString = rule1.ToString();
+                Assert.AreEqual("EXTRA_ReddisAllowIP;allow;10.0.0.1/32,10.0.0.2/32,192.168.1.0/24;6379;.", regexString);
+            }
+            else
+            {
+                // on Linux, both rules are needed
+                Assert.AreEqual(2, service.Config.ExtraRules.Count);
+                Assert.IsTrue(rules.Exists((s) => s.StartsWith(reddisRule)));
+                Assert.IsTrue(rules.Exists((s) => s.StartsWith(webRule)));
+                IPBanFirewallRule rule1 = service.Config.ExtraRules[0];
+                IPBanFirewallRule rule2 = service.Config.ExtraRules[1];
+                string regexString1 = rule1.ToString();
+                string regexString2 = rule2.ToString();
+                Assert.AreEqual("EXTRA_ReddisAllowIP;allow;10.0.0.1/32,10.0.0.2/32,192.168.1.0/24;6379;.", regexString1);
+                Assert.AreEqual("EXTRA_WebOnly;block;0.0.0.0/0,::/0;22,80,443,3389;^(?:(?!Windows).)+$", regexString2);
             }
         }
 

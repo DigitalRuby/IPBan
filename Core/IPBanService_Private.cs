@@ -120,11 +120,12 @@ namespace DigitalRuby.IPBan
                 string newXml = await ConfigReaderWriter.CheckForConfigChange();
                 if (!string.IsNullOrWhiteSpace(newXml))
                 {
+                    IPBanConfig oldConfig = Config;
                     IPBanConfig newConfig = IPBanConfig.LoadFromXml(newXml, DnsLookup);
                     UpdateLogFiles(newConfig);
                     whitelistChanged = (Config == null || Config.WhiteList != newConfig.WhiteList || Config.WhiteListRegex != newConfig.WhiteListRegex);
                     Config = newConfig;
-                    LoadFirewall();
+                    LoadFirewall(oldConfig);
                 }
             }
             catch (Exception ex)
@@ -193,6 +194,7 @@ namespace DigitalRuby.IPBan
                 }
                 catch
                 {
+                    // sometimes dns will fail, there is nothing that can be done, don't bother logging
                 }
             }
 
@@ -206,6 +208,7 @@ namespace DigitalRuby.IPBan
                 }
                 catch
                 {
+                    // sometimes ip check url will fail, there is nothing that can be done, don't bother logging
                 }
             }
 
@@ -520,7 +523,7 @@ namespace DigitalRuby.IPBan
             }
         }
 
-        private void LoadFirewall()
+        private void LoadFirewall(IPBanConfig oldConfig)
         {
             IIPBanFirewall existing = Firewall;
             Firewall = IPBanFirewallUtility.CreateFirewall(Config.FirewallOSAndType, Config.FirewallRulePrefix, Firewall);
@@ -534,6 +537,46 @@ namespace DigitalRuby.IPBan
 
                     // transfer banned ip to new firewall
                     Firewall.BlockIPAddresses(null, ipDB.EnumerateBannedIPAddresses()).Sync();
+                }
+            }
+
+            if (oldConfig == null)
+            {
+                // clear out all previous custom rules
+                foreach (string rule in Firewall.GetRuleNames(Firewall.RulePrefix + "EXTRA_").ToArray())
+                {
+                    Firewall.DeleteRule(rule);
+                }
+            }
+            else
+            {
+                // check for updated / new / removed block rules
+                List<string> deleteList = new List<string>(oldConfig.ExtraRules.Select(r => r.Name));
+
+                // cleanup rules that are no longer in the config
+                foreach (string newRule in Config.ExtraRules.Select(r => r.Name))
+                {
+                    deleteList.Remove(newRule);
+                }
+                foreach (string rule in deleteList)
+                {
+                    foreach (string ruleName in Firewall.GetRuleNames(rule).ToArray())
+                    {
+                        Firewall.DeleteRule(ruleName);
+                    }
+                }
+            }
+
+            // add/update new rules
+            foreach (IPBanFirewallRule rule in Config.ExtraRules)
+            {
+                if (rule.Block)
+                {
+                    Firewall.BlockIPAddresses(rule.Name, rule.IPAddressRanges, rule.AllowPortRanges);
+                }
+                else
+                {
+                    Firewall.AllowIPAddresses(rule.Name, rule.IPAddressRanges, rule.AllowPortRanges);
                 }
             }
         }

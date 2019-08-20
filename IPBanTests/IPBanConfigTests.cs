@@ -180,6 +180,7 @@ namespace DigitalRuby.IPBanTests
                 Assert.IsEmpty(cfg.UserNameWhitelist);
                 Assert.IsEmpty(cfg.WhiteList);
                 Assert.IsEmpty(cfg.WhiteListRegex);
+                Assert.AreEqual(0, cfg.ExtraRules.Count);
 
                 AssertLogFilesToParse(cfg);
                 AssertEventViewer(cfg);

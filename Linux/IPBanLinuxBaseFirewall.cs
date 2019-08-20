@@ -488,15 +488,11 @@ namespace DigitalRuby.IPBan
 
         public virtual Task<bool> BlockIPAddresses(string ruleNamePrefix, IEnumerable<IPAddressRange> ranges, IEnumerable<PortRange> allowedPorts, CancellationToken cancelToken = default)
         {
-            if (string.IsNullOrWhiteSpace(ruleNamePrefix))
-            {
-                return Task.FromResult(false);
-            }
+            ruleNamePrefix.ThrowIfNullOrEmpty();
 
             try
             {
-                string ruleName = RulePrefix + RuleSuffix + ruleNamePrefix;
-                return Task.FromResult(UpdateRule(ruleName, "DROP", ranges.Select(r => r.ToCidrString()), "net", blockRuleRangesMaxCount, allowedPorts, cancelToken));
+                return Task.FromResult(UpdateRule(RulePrefix + ruleNamePrefix, "DROP", ranges.Select(r => r.ToCidrString()), "net", blockRuleRangesMaxCount, allowedPorts, cancelToken));
             }
             catch (Exception ex)
             {
@@ -510,6 +506,20 @@ namespace DigitalRuby.IPBan
             try
             {
                 return Task.FromResult(UpdateRule(AllowRuleName, "ACCEPT", ipAddresses, "ip", allowRuleMaxCount, null, cancelToken));
+            }
+            catch (Exception ex)
+            {
+                IPBanLog.Error(ex);
+                return Task.FromResult(false);
+            }
+        }
+
+        public virtual Task<bool> AllowIPAddresses(string ruleNamePrefix, IEnumerable<IPAddressRange> ipAddresses, IEnumerable<PortRange> allowedPorts = null, CancellationToken cancelToken = default)
+        {
+            try
+            {
+                ruleNamePrefix.ThrowIfNullOrEmpty();
+                return Task.FromResult(UpdateRule(RulePrefix + ruleNamePrefix, "ACCEPT", ipAddresses.Select(r => r.ToCidrString()), "ip", blockRuleMaxCount, allowedPorts, cancelToken));
             }
             catch (Exception ex)
             {
@@ -551,7 +561,7 @@ namespace DigitalRuby.IPBan
             return EnumerateBannedIPAddresses().ToArray().Contains(ipAddress);
         }
 
-        public bool IsIPAddressAllowed(string ipAddress)
+        public bool IsIPAddressAllowed(string ipAddress, int port = -1)
         {
             return EnumerateAllowedIPAddresses().ToArray().Contains(ipAddress);
         }

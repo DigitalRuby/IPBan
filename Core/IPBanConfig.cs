@@ -72,6 +72,7 @@ namespace DigitalRuby.IPBan
         private readonly string getUrlConfig;
         private readonly string externalIPAddressUrl;
         private readonly IDnsLookup dns;
+        private readonly List<IPBanFirewallRule> extraRules = new List<IPBanFirewallRule>();
 
         private readonly EventViewerExpressionsToBlock expressionsFailure;
         private readonly EventViewerExpressionsToNotify expressionsSuccess;
@@ -186,6 +187,9 @@ namespace DigitalRuby.IPBan
             GetConfig<string>("GetUrlStop", ref getUrlStop);
             GetConfig<string>("GetUrlConfig", ref getUrlConfig);
             GetConfig<string>("ExternalIPAddressUrl", ref externalIPAddressUrl);
+
+            // parse firewall block rules, one per line
+            ParseFirewallBlockRules();
         }
 
         private void PopulateList(HashSet<string> set, ref Regex regex, string setValue, string regexValue)
@@ -231,6 +235,36 @@ namespace DigitalRuby.IPBan
             if (!string.IsNullOrWhiteSpace(regexValue))
             {
                 regex = ParseRegex(regexValue);
+            }
+        }
+
+        private void ParseFirewallBlockRules()
+        {
+            string firewallBlockRuleString = null;
+            GetConfig<string>("FirewallRules", ref firewallBlockRuleString);
+            IEnumerable<string> firewallBlockRuleList = firewallBlockRuleString.Trim().Split('\n').Select(s => s.Trim()).Where(s => s.Length != 0);
+            foreach (string firewallBlockRule in firewallBlockRuleList)
+            {
+                string[] pieces = firewallBlockRule.Split(';');
+                if (pieces.Length == 5)
+                {
+                    IPBanFirewallRule firewallBlockRuleObj = new IPBanFirewallRule
+                    {
+                        Block = (pieces[1].Equals("block", StringComparison.OrdinalIgnoreCase)),
+                        IPAddressRanges = pieces[2].Split(',').Select(p => IPAddressRange.Parse(p)).ToList(),
+                        Name = "EXTRA_" + pieces[0].Trim(),
+                        AllowPortRanges = pieces[3].Split(',').Select(p => PortRange.Parse(p)).Where(p => p.MinPort >= 0).ToList(),
+                        PlatformRegex = new Regex(pieces[4].Replace('*', '.'), RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)
+                    };
+                    if (firewallBlockRuleObj.PlatformRegex.IsMatch(IPBanOS.Name))
+                    {
+                        extraRules.Add(firewallBlockRuleObj);
+                    }
+                }
+                else
+                {
+                    IPBanLog.Warn("Firewall block rule entry should have 3 comma separated pieces: name;ips;ports. Invalid entry: {0}", firewallBlockRule);
+                }
             }
         }
 
@@ -632,6 +666,11 @@ namespace DigitalRuby.IPBan
         /// Whether to use the default banned ip address handler
         /// </summary>
         public bool UseDefaultBannedIPAddressHandler { get { return useDefaultBannedIPAddressHandler; } }
+
+        /// <summary>
+        /// List of extra block rules to create
+        /// </summary>
+        public IReadOnlyList<IPBanFirewallRule> ExtraRules { get { return extraRules; } }
 
         /// <summary>
         /// A url to get when the service updates, empty for none. See ReplaceUrl of IPBanService for place-holders.

@@ -35,10 +35,12 @@ namespace DigitalRuby.IPBan
 
         protected string AllowRulePrefix { get; private set; }
         protected string BlockRulePrefix { get; private set; }
-        protected string RangeRulePrefix { get; private set; }
         protected string AllowRuleName { get; private set; }
         protected string BlockRuleName { get; private set; }
-        protected string RangeRuleName { get; private set; }
+
+        /// <summary>
+        /// Override in derived class to add additional rule string after the prefix
+        /// </summary>
         protected virtual string RuleSuffix => string.Empty;
 
         protected virtual void OnDispose()
@@ -68,10 +70,8 @@ namespace DigitalRuby.IPBan
             RulePrefix += RuleSuffix;
             AllowRulePrefix = RulePrefix + "Allow_";
             BlockRulePrefix = RulePrefix + "Block_";
-            RangeRulePrefix = RulePrefix + "Range_";
             AllowRuleName = AllowRulePrefix + "0";
             BlockRuleName = BlockRulePrefix + "0";
-            RangeRuleName = RangeRulePrefix + "0";
         }
 
         /// <summary>
