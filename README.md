@@ -8,6 +8,8 @@ IPBan Service
 
 Please visit <a href='https://ipban.com'>https://ipban.com</a> to learn about IPBan Pro, the best way to secure your Windows and Linux servers from botnets, brute force attacks and hackers.
 
+You can also visit the ipban discord at https://discord.gg/sHCUHH3 to chat with me or other IPBan users.
+
 **Requirements**
 - IPBan requires .NET core 2.2 SDK to build and debug code. For an IDE, I suggest Visual Studio Community 2017 (2019+ recommended) for Windows, or VS code for Linux. All are free. You can build a self contained executable to eliminate the need for dotnet core on the server machine, or just download the precompiled binaries.
 - Running and/or debugging code requires that you run your IDE or terminal as administrator or root.
