@@ -242,6 +242,11 @@ namespace DigitalRuby.IPBan
         {
             string firewallBlockRuleString = null;
             GetConfig<string>("FirewallRules", ref firewallBlockRuleString);
+            firewallBlockRuleString = (firewallBlockRuleString ?? string.Empty).Trim();
+            if (firewallBlockRuleString.Length == 0)
+            {
+                return;
+            }
             IEnumerable<string> firewallBlockRuleList = firewallBlockRuleString.Trim().Split('\n').Select(s => s.Trim()).Where(s => s.Length != 0);
             foreach (string firewallBlockRule in firewallBlockRuleList)
             {

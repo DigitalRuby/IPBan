@@ -19,7 +19,7 @@ namespace DigitalRuby.IPBan {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     public class IPBanResources {
@@ -570,6 +570,24 @@ namespace DigitalRuby.IPBan {
         public static string FirewallRulePrefixTooltip {
             get {
                 return ResourceManager.GetString("FirewallRulePrefixTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Firewall Rules.
+        /// </summary>
+        public static string FirewallRules {
+            get {
+                return ResourceManager.GetString("FirewallRules", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Extra firewall rules, one per line. Great way to persist firewall rules. Format is &apos;rule-name;allow or block;ip list (comma spearated);allowed port list (comma separated),platform regex&apos;. The name should be kept to 16 or less chars..
+        /// </summary>
+        public static string FirewallRulesTooltip {
+            get {
+                return ResourceManager.GetString("FirewallRulesTooltip", resourceCulture);
             }
         }
         
