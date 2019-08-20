@@ -29,6 +29,11 @@ Please visit <a href='https://ipban.com'>https://ipban.com</a> to learn about IP
 - Official download link is: https://github.com/DigitalRuby/IPBan/releases
 - Legacy download link: https://www.digitalruby.com/download/ipban-software-download/.
 
+Install
+------
+
+Please note that for IPBan Pro, you can find install instructions at https://ipban.com/Docs/Install. These install instructions are for the free IPBan version.
+
 **Windows**
 - For Windows, IPBan is supported on Windows Server 2012 or equivalent or newer. Windows Server 2008 does a poor job of logging ip addresses and is end of life. Windows XP and Server 2003 are NOT supported.
 - Extract the IPBan.zip (inside is IPBanWindows.zip) file to a place on your computer. Right click on all the extracted files and select properties. Make sure to select "unblock" if the option is available.  You can use the [Unblock-File](https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.utility/unblock-file?view=powershell-6) utility with an **elevated** PowerShell to unblock all files in the IPBan directory:
