@@ -115,6 +115,9 @@ sudo systemctl enable ipban
 systemctl status ipban
 ```
 
+Other Information
+------
+
 **Analytics**
 
 To disable anonymously sending banned ip addresses to the global ipban database, set UseDefaultBannedIPAddressHandler to false in the config file.
