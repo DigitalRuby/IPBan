@@ -190,7 +190,7 @@
     <value>24 hour start (local time), day of month to send out country blacklist to clients, i.e. 3,28</value>
   </data>
   <data name="CountryBlacklistTooltip" xml:space="preserve">
-    <value>Select banned countries. Firewall will be automatically updated with ip address ranges from the selected countries, excluding any whitelisted ip addresses.</value>
+    <value>Select banned countries. The firewall will be updated with the first failed login from an ip address in the range of any blocked country, excluding any whitelisted ip addresses.</value>
   </data>
   <data name="CreateWhitelistFirewallRule" xml:space="preserve">
     <value>Create Whitelist Firewall Rule</value>

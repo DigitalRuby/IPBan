@@ -259,7 +259,7 @@ namespace DigitalRuby.IPBan {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Select banned countries. Firewall will be automatically updated with ip address ranges from the selected countries, excluding any whitelisted ip addresses..
+        ///   Looks up a localized string similar to Select banned countries. The firewall will be updated with the first failed login from an ip address in the range of any blocked country, excluding any whitelisted ip addresses..
         /// </summary>
         public static string CountryBlacklistTooltip {
             get {
