@@ -737,7 +737,7 @@ namespace DigitalRuby.IPBan {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Comma separated list of ip addresses OR DNS names OR user names to always ban and NEVER unban.
+        ///   Looks up a localized string similar to IP addresses, cidr masks, dns names or user names to always ban and never unban. Comma separated..
         /// </summary>
         public static string IPBlacklistTooltip {
             get {
@@ -773,7 +773,7 @@ namespace DigitalRuby.IPBan {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to IP addresses to never ban, comma separated.
+        ///   Looks up a localized string similar to IP addresses, cidr masks or dns names to never ban. Comma separated.
         /// </summary>
         public static string IPWhitelistTooltip {
             get {

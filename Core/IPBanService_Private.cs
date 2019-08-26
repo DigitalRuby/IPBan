@@ -254,15 +254,19 @@ namespace DigitalRuby.IPBan
                             DateTime now = failedLogin.Timestamp;
 
                             // check for the target user name for additional blacklisting checks
-                            bool configBlacklisted = Config.IsBlackListed(ipAddress) ||
-                                Config.IsBlackListed(userName) ||
-                                !Config.IsUserNameWithinMaximumEditDistanceOfUserNameWhitelist(userName);
+                            bool ipBlacklisted = Config.IsBlackListed(ipAddress);
+                            bool userBlacklisted = (ipBlacklisted ? false : Config.IsBlackListed(userName));
+                            bool editDistanceBlacklisted = (ipBlacklisted || userBlacklisted ? false : !Config.IsUserNameWithinMaximumEditDistanceOfUserNameWhitelist(userName));
+                            bool configBlacklisted = ipBlacklisted || userBlacklisted || editDistanceBlacklisted;
                             int newCount = ipDB.IncrementFailedLoginCount(ipAddress, UtcNow, failedLogin.Count, transaction);
+
                             IPBanLog.Warn(now, "Login failure: {0}, {1}, {2}, {3}", ipAddress, userName, source, newCount);
 
                             // if the ip address is black listed or the ip address has reached the maximum failed login attempts before ban, ban the ip address
                             if (configBlacklisted || newCount >= maxFailedLoginAttempts)
                             {
+                                IPBanLog.Info("IP blacklisted: {0}, user name blacklisted: {1}, user name edit distance blacklisted: {2}", ipBlacklisted, userBlacklisted, editDistanceBlacklisted);
+
                                 if (ipDB.TryGetIPAddressState(ipAddress, out IPBanDB.IPAddressState state, transaction) &&
                                     (state == IPBanDB.IPAddressState.Active || state == IPBanDB.IPAddressState.AddPending))
                                 {
@@ -619,6 +623,7 @@ namespace DigitalRuby.IPBan
                 // never un-ban a blacklisted entry
                 if (Config.IsBlackListed(ipAddress.IPAddress) && !Config.IsWhitelisted(ipAddress.IPAddress))
                 {
+                    IPBanLog.Debug("Not unbanning blacklisted ip {0}", ipAddress.IPAddress);
                     continue;
                 }
                 // if ban duration has expired, un-ban, check this first as these must trigger a firewall update
