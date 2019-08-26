@@ -279,7 +279,7 @@ namespace DigitalRuby.IPBanTests
             string config = File.ReadAllText(service.ConfigFilePath);
             string newConfig = IPBanConfig.ChangeConfigAppSetting(config, "FirewallRules", @"
                 ReddisAllowIP;allow;10.0.0.1,10.0.0.2,192.168.1.168/24;6379;.
-                WebOnly;block;0.0.0.0/0,::/0;22,80,443,3389;^(?:(?!Windows).)+$
+                WebOnly;block;0.0.0.0/1,128.0.0.0/1,::/1,8000::/1;22,80,443,3389;^(?:(?!Windows).)+$
             ");
             File.WriteAllText(service.ConfigFilePath, newConfig);
             service.RunCycle().Sync();
@@ -307,7 +307,7 @@ namespace DigitalRuby.IPBanTests
                 string regexString1 = rule1.ToString();
                 string regexString2 = rule2.ToString();
                 Assert.AreEqual("EXTRA_ReddisAllowIP;allow;10.0.0.1/32,10.0.0.2/32,192.168.1.0/24;6379;.", regexString1);
-                Assert.AreEqual("EXTRA_WebOnly;block;0.0.0.0/0,::/0;22,80,443,3389;^(?:(?!Windows).)+$", regexString2);
+                Assert.AreEqual("EXTRA_WebOnly;block;0.0.0.0/1,128.0.0.0/1,::/1,8000::/1;22,80,443,3389;^(?:(?!Windows).)+$", regexString2);
             }
         }
 

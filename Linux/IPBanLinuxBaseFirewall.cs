@@ -42,6 +42,8 @@ namespace DigitalRuby.IPBan
         protected const int blockRuleMaxCount = 2097152;
         protected const int allowRuleMaxCount = 8192;
         protected const int blockRuleRangesMaxCount = 4194304;
+        protected const string hashTypeSingleIP = "ip";
+        protected const string hashTypeCidrMask = "net";
 
         protected virtual bool IsIPV4 => true;
         protected virtual string INetFamily => "inet";
@@ -196,7 +198,7 @@ namespace DigitalRuby.IPBan
             {
                 string portList = (action == "DROP" ? IPBanFirewallUtility.GetPortRangeStringBlockExcept(allowedPorts) :
                      IPBanFirewallUtility.GetPortRangeStringAllow(allowedPorts));
-                portString = " -m multiport --dports " + portList.Replace('-', ':') + " "; // iptables uses ':' instead of '-' for range
+                portString = " -m multiport -p tcp --dports " + portList.Replace('-', ':') + " "; // iptables uses ':' instead of '-' for range
             }
             string ruleNameWithSpaces = " " + ruleName + " ";
             foreach (string line in lines)
@@ -261,7 +263,7 @@ namespace DigitalRuby.IPBan
                         {
                             try
                             {
-                                if (range.Begin.Equals(range.End))
+                                if (hashType != hashTypeCidrMask || range.Begin.Equals(range.End))
                                 {
                                     writer.WriteLine($"add {ruleName} {range.Begin} -exist");
                                 }
@@ -463,7 +465,7 @@ namespace DigitalRuby.IPBan
             try
             {
                 string ruleName = (string.IsNullOrWhiteSpace(ruleNamePrefix) ? BlockRuleName : RulePrefix + ruleNamePrefix);
-                return Task.FromResult(UpdateRule(ruleName, "DROP", ipAddresses, "ip", blockRuleMaxCount, allowedPorts, cancelToken));
+                return Task.FromResult(UpdateRule(ruleName, "DROP", ipAddresses, hashTypeSingleIP, blockRuleMaxCount, allowedPorts, cancelToken));
             }
             catch (Exception ex)
             {
@@ -477,7 +479,7 @@ namespace DigitalRuby.IPBan
             try
             {
                 string ruleName = (string.IsNullOrWhiteSpace(ruleNamePrefix) ? BlockRuleName : RulePrefix + ruleNamePrefix);
-                return Task.FromResult(UpdateRuleDelta(ruleName, "DROP", deltas, "ip", blockRuleMaxCount, false, allowedPorts, cancelToken));
+                return Task.FromResult(UpdateRuleDelta(ruleName, "DROP", deltas, hashTypeSingleIP, blockRuleMaxCount, false, allowedPorts, cancelToken));
             }
             catch (Exception ex)
             {
@@ -492,7 +494,7 @@ namespace DigitalRuby.IPBan
 
             try
             {
-                return Task.FromResult(UpdateRule(RulePrefix + ruleNamePrefix, "DROP", ranges.Select(r => r.ToCidrString()), "net", blockRuleRangesMaxCount, allowedPorts, cancelToken));
+                return Task.FromResult(UpdateRule(RulePrefix + ruleNamePrefix, "DROP", ranges.Select(r => r.ToCidrString()), hashTypeCidrMask, blockRuleRangesMaxCount, allowedPorts, cancelToken));
             }
             catch (Exception ex)
             {
@@ -505,7 +507,7 @@ namespace DigitalRuby.IPBan
         {
             try
             {
-                return Task.FromResult(UpdateRule(AllowRuleName, "ACCEPT", ipAddresses, "ip", allowRuleMaxCount, null, cancelToken));
+                return Task.FromResult(UpdateRule(AllowRuleName, "ACCEPT", ipAddresses, hashTypeSingleIP, allowRuleMaxCount, null, cancelToken));
             }
             catch (Exception ex)
             {
@@ -519,7 +521,7 @@ namespace DigitalRuby.IPBan
             try
             {
                 ruleNamePrefix.ThrowIfNullOrEmpty();
-                return Task.FromResult(UpdateRule(RulePrefix + ruleNamePrefix, "ACCEPT", ipAddresses.Select(r => r.ToCidrString()), "ip", blockRuleMaxCount, allowedPorts, cancelToken));
+                return Task.FromResult(UpdateRule(RulePrefix + ruleNamePrefix, "ACCEPT", ipAddresses.Select(r => r.ToCidrString()), hashTypeCidrMask, blockRuleMaxCount, allowedPorts, cancelToken));
             }
             catch (Exception ex)
             {
