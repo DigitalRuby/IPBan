@@ -43,7 +43,7 @@ namespace DigitalRuby.IPBan
             protected override string INetFamily => "inet6";
             protected override string SetSuffix => ".set6";
             protected override string TableSuffix => ".tbl6";
-            protected override string IpTablesProcess => "ip6tables";
+            protected override string IpTablesProcess => ip6TablesProcess;
             protected override string RuleSuffix => "6_";
 
             public IPBanLinuxFirewall6(string rulePrefix = null) : base(rulePrefix)
@@ -114,6 +114,24 @@ namespace DigitalRuby.IPBan
                 result = firewall6.AllowIPAddresses(ipv6, cancelToken).Sync();
             }
             return Task.FromResult(result);
+        }
+
+        public override Task<bool> AllowIPAddresses(string ruleNamePrefix, IEnumerable<IPAddressRange> ipAddresses, IEnumerable<PortRange> allowedPorts = null, CancellationToken cancelToken = default)
+        {
+            IEnumerable<IPAddressRange> ipv4 = ipAddresses.Where(i => IPAddressRange.TryParse(i, out IPAddressRange obj) && obj.Begin.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork);
+            IEnumerable<IPAddressRange> ipv6 = ipAddresses.Where(i => IPAddressRange.TryParse(i, out IPAddressRange obj) && obj.Begin.AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6);
+            bool result = base.AllowIPAddresses(ruleNamePrefix, ipv4, allowedPorts, cancelToken).Sync();
+            if (result)
+            {
+                result = firewall6.AllowIPAddresses(ruleNamePrefix, ipv6, allowedPorts, cancelToken).Sync();
+            }
+            return Task.FromResult(result);
+        }
+
+        public override void Truncate()
+        {
+            base.Truncate();
+            firewall6.Truncate();
         }
     }
 }

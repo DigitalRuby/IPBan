@@ -44,6 +44,7 @@ namespace DigitalRuby.IPBan
         protected const int blockRuleRangesMaxCount = 4194304;
         protected const string hashTypeSingleIP = "ip";
         protected const string hashTypeCidrMask = "net";
+        protected const string ip6TablesProcess = "ip6tables";
 
         protected virtual bool IsIPV4 => true;
         protected virtual string INetFamily => "inet";
@@ -69,6 +70,7 @@ namespace DigitalRuby.IPBan
                     File.Delete(setFile);
                 }
                 RunProcess(IpTablesProcess, true, "-F");
+                RunProcess(ip6TablesProcess, true, "-F");
                 RunProcess("ipset", true, "destroy");
             }
             catch
