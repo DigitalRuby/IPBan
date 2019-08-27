@@ -787,7 +787,7 @@ namespace DigitalRuby.IPBan
             try
             {
                 // append ipv4 first, then the ipv6 then the remote ip
-                System.Net.IPAddress[] ips = await dns.GetHostAddressesAsync(Dns.GetHostName());
+                System.Net.IPAddress[] ips = await dns.GetHostAddressesAsync(dns.GetHostName());
                 foreach (System.Net.IPAddress ip in ips)
                 {
                     if (ip.AddressFamily == addressFamily)

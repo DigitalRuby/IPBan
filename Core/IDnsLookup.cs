@@ -46,6 +46,12 @@ namespace DigitalRuby.IPBan
         /// <param name="hostNameOrAddress">Host name or ip address</param>
         /// <returns>IP addresses</returns>
         Task<IPAddress[]> GetHostAddressesAsync(string hostNameOrAddress);
+
+        /// <summary>
+        /// Get host name of local machine
+        /// </summary>
+        /// <returns>Host name of local machine</returns>
+        string GetHostName();
     }
 
     /// <summary>
@@ -66,6 +72,11 @@ namespace DigitalRuby.IPBan
         public Task<IPHostEntry> GetHostEntryAsync(string hostNameOrAddress)
         {
             return Dns.GetHostEntryAsync(hostNameOrAddress);
+        }
+
+        public string GetHostName()
+        {
+            return Dns.GetHostName();
         }
 
         public static IPAddress GetLocalIPAddress()
@@ -118,6 +129,11 @@ namespace DigitalRuby.IPBan
         Task<System.Net.IPAddress[]> IDnsLookup.GetHostAddressesAsync(string hostNameOrAddress)
         {
             return Task.FromResult(new System.Net.IPAddress[1] { System.Net.IPAddress.Parse("10.10.10.10") });
+        }
+
+        string IDnsLookup.GetHostName()
+        {
+            return Dns.GetHostName();
         }
     }
 }

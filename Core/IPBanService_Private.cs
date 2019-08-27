@@ -177,7 +177,7 @@ namespace DigitalRuby.IPBan
                 string serverName = System.Environment.MachineName;
                 try
                 {
-                    FQDN = System.Net.Dns.GetHostEntry(serverName).HostName;
+                    FQDN = (await DnsLookup.GetHostEntryAsync(serverName)).HostName;
                 }
                 catch
                 {
@@ -189,7 +189,7 @@ namespace DigitalRuby.IPBan
             {
                 try
                 {
-                    LocalIPAddressString = DnsLookup.GetLocalIPAddress().Sync()?.ToString();
+                    LocalIPAddressString = (await DnsLookup.GetLocalIPAddress())?.ToString();
                     IPBanLog.Info("Local ip address: {0}", LocalIPAddressString);
                 }
                 catch
