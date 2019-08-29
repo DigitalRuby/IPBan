@@ -115,8 +115,9 @@ sudo systemctl daemon-reload
 sudo systemctl start ipban
 sudo systemctl enable ipban
 systemctl status ipban
+
 # modify config file how you like, add your ip addresses to the Whitelist property, etc.
-nano /opt/ipban/DigitalRuby.IPBan.dll.config
+sudo nano /opt/ipban/DigitalRuby.IPBan.dll.config
 ```
 
 Other Information
