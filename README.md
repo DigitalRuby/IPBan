@@ -102,6 +102,7 @@ Description=IPBan Service
 After=network.target
 
 [Service]
+WorkingDirectory=/opt/ipban
 ExecStart=/opt/ipban/DigitalRuby.IPBan
 Restart=on-failure
 
