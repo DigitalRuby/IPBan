@@ -440,5 +440,45 @@ namespace DigitalRuby.IPBanTests
         {
             TestMultipleBanTimespans(false);
         }
+
+        [Test]
+        public void TestIPWhitelist()
+        {
+            const string whitelist = "192.168.0.0/16";
+
+            string config = File.ReadAllText(service.ConfigFilePath);
+            string newConfig = IPBanConfig.ChangeConfigAppSetting(config, "Whitelist", whitelist);
+            File.WriteAllText(service.ConfigFilePath, newConfig);
+            try
+            {
+                // load new config
+                service.RunCycle().Sync();
+
+                string banIP = "99.99.99.99";
+                string noBanIP = "192.168.99.99";
+
+                service.AddIPAddressLogEvents(new IPAddressLogEvent[]
+                {
+                    // should be banned
+                    new IPAddressLogEvent(banIP, "user1", "RDP", 999, IPAddressEventType.FailedLogin),
+
+                    // whitelisted
+                    new IPAddressLogEvent(noBanIP, "user2", "RDP", 999, IPAddressEventType.FailedLogin),
+                });
+
+                // process failed logins
+                service.RunCycle().Sync();
+
+                Assert.IsTrue(service.Firewall.IsIPAddressBlocked(banIP, out _));
+                Assert.IsFalse(service.Firewall.IsIPAddressBlocked(noBanIP, out _));
+                Assert.IsTrue(service.DB.TryGetIPAddress(banIP, out IPBanDB.IPAddressEntry e1));
+                Assert.IsFalse(service.DB.TryGetIPAddress(noBanIP, out IPBanDB.IPAddressEntry e2));
+            }
+            finally
+            {
+                // restore config
+                File.WriteAllText(service.ConfigFilePath, config);
+            }
+        }
     }
 }
