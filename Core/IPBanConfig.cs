@@ -46,6 +46,7 @@ namespace DigitalRuby.IPBan
     {
         private static readonly TimeSpan[] emptyTimeSpanArray = new TimeSpan[] { TimeSpan.Zero };
         private static readonly IPBanLogFileToParse[] emptyLogFilesToParseArray = new IPBanLogFileToParse[0];
+        private static readonly TimeSpan maxBanTimeSpan = TimeSpan.FromDays(90.0);
 
         private readonly Dictionary<string, string> appSettings = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         private readonly IPBanLogFileToParse[] logFiles;
@@ -97,10 +98,10 @@ namespace DigitalRuby.IPBan
             GetConfigArray<TimeSpan>("BanTime", ref banTimes, emptyTimeSpanArray);
             for (int i = 0; i < banTimes.Length; i++)
             {
-                banTimes[i] = banTimes[i].Clamp(TimeSpan.FromMinutes(1.0), TimeSpan.FromDays(30.0));
+                banTimes[i] = banTimes[i].Clamp(TimeSpan.FromMinutes(1.0), maxBanTimeSpan);
             }
             GetConfig<bool>("ClearBannedIPAddressesOnRestart", ref clearBannedIPAddressesOnRestart);
-            GetConfig<TimeSpan>("ExpireTime", ref expireTime, TimeSpan.FromMinutes(1.0), TimeSpan.FromDays(30.0));
+            GetConfig<TimeSpan>("ExpireTime", ref expireTime, TimeSpan.FromMinutes(1.0), maxBanTimeSpan);
             GetConfig<TimeSpan>("CycleTime", ref cycleTime, TimeSpan.FromSeconds(5.0), TimeSpan.FromMinutes(1.0), false);
             GetConfig<TimeSpan>("MinimumTimeBetweenFailedLoginAttempts", ref minimumTimeBetweenFailedLoginAttempts, TimeSpan.Zero, TimeSpan.FromSeconds(15.0), false);
             GetConfig<string>("FirewallRulePrefix", ref firewallRulePrefix);
