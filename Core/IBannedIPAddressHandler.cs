@@ -23,6 +23,9 @@ SOFTWARE.
 */
 
 using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.Security;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
@@ -30,7 +33,7 @@ using System.Threading.Tasks;
 namespace DigitalRuby.IPBan
 {
     /// <summary>
-    /// Handle for banned ip addresses
+    /// Handler interface for banned ip addresses
     /// </summary>
     public interface IBannedIPAddressHandler
     {
@@ -52,6 +55,11 @@ namespace DigitalRuby.IPBan
         /// Base url for any http requests that need to be made
         /// </summary>
         string BaseUrl { get; set; }
+
+        /// <summary>
+        /// Public API key
+        /// </summary>
+        SecureString PublicAPIKey { get; set; }
     }
 
     /// <summary>
@@ -80,12 +88,28 @@ namespace DigitalRuby.IPBan
                 }
 
                 // submit url to ipban public database so that everyone can benefit from an aggregated list of banned ip addresses
-                string timestamp = IPBanService.UtcNow.ToString("o");
+                DateTime now = IPBanService.UtcNow;
+                string timestamp = now.ToString("o");
                 string url = $"/IPSubmitBanned?ip={ipAddress.UrlEncode()}&osname={osName.UrlEncode()}&osversion={osVersion.UrlEncode()}&source={source.UrlEncode()}&timestamp={timestamp.UrlEncode()}&userName={userName.UrlEncode()}&version={assemblyVersion.UrlEncode()}";
                 string hash = Convert.ToBase64String(new SHA256Managed().ComputeHash(Encoding.UTF8.GetBytes(url + IPBanResources.IPBanKey1)));
                 url += "&hash=" + hash.UrlEncode();
                 url = BaseUrl + url;
-                return requestMaker.MakeRequestAsync(new Uri(url));
+                string timestampUnix = now.ToUnixMillisecondsLong().ToString(CultureInfo.InvariantCulture);
+                List<KeyValuePair<string, object>> headers;
+                if (PublicAPIKey != null && PublicAPIKey.Length != 0)
+                {
+                    // send api key and timestamp
+                    headers = new List<KeyValuePair<string, object>>
+                    {
+                        new KeyValuePair<string, object>("X-IPBAN-API-KEY", PublicAPIKey.ToUnsecureString()),
+                        new KeyValuePair<string, object>("X-IPBAN-TIMESTAMP", timestampUnix)
+                    };
+                }
+                else
+                {
+                    headers = null;
+                }
+                return requestMaker.MakeRequestAsync(new Uri(url), headers: headers);
             }
             catch
             {
@@ -93,5 +117,10 @@ namespace DigitalRuby.IPBan
                 return Task.CompletedTask;
             }
         }
+
+        /// <summary>
+        /// Public API key
+        /// </summary>
+        public SecureString PublicAPIKey { get; set; }
     }
 }

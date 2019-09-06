@@ -431,6 +431,7 @@ namespace DigitalRuby.IPBan
                 }
                 catch
                 {
+                    // eat exception, delicious
                 }
             }
             if (IPBanDelegate != null)

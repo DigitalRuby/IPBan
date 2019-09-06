@@ -434,6 +434,17 @@ namespace DigitalRuby.IPBan
             }
         }
 
+        /// <summary>
+        /// Does nothing
+        /// </summary>
+        /// <param name="ipAddress">N/A</param>
+        /// <param name="source">N/A</param>
+        /// <param name="userName">N/A</param>
+        /// <param name="osName">N/A</param>
+        /// <param name="osVersion">N/A</param>
+        /// <param name="assemblyVersion">N/A</param>
+        /// <param name="requestMaker">N/A</param>
+        /// <returns>Completed task</returns>
         Task IBannedIPAddressHandler.HandleBannedIPAddress(string ipAddress, string source, string userName, string osName, string osVersion, string assemblyVersion, IHttpRequestMaker requestMaker)
         {
             // do nothing
@@ -441,13 +452,19 @@ namespace DigitalRuby.IPBan
         }
 
         /// <summary>
+        /// Does nothing
+        /// </summary>
+        System.Security.SecureString IBannedIPAddressHandler.PublicAPIKey { get; set; }
+
+        /// <summary>
         /// Create a test IPBanService
         /// </summary>
         /// <param name="directory">Root directory</param>
         /// <param name="configFileName">Config file name</param>
+        /// <param name="defaultBannedIPAddressHandlerUrl">Url for banned ip handling or null to not handle banned ip</param>
         /// <param name="configFileModifier">Change config file (param are file text, returns new file text)</param>
         /// <returns>Service</returns>
-        public static T CreateAndStartIPBanTestService<T>(string directory = null, string configFileName = null,
+        public static T CreateAndStartIPBanTestService<T>(string directory = null, string configFileName = null, string defaultBannedIPAddressHandlerUrl = null,
             Func<string, string> configFileModifier = null) where T : IPBanService
         {
             DefaultHttpRequestMaker.DisableLiveRequests = true;
@@ -495,7 +512,14 @@ namespace DigitalRuby.IPBan
             service.ConfigFilePath = configFilePath;
             service.MultiThreaded = false;
             service.ManualCycle = true;
-            service.BannedIPAddressHandler = service;
+            if (defaultBannedIPAddressHandlerUrl == null)
+            {
+                service.BannedIPAddressHandler = service;
+            }
+            else
+            {
+                service.BannedIPAddressHandler = new DefaultBannedIPAddressHandler { BaseUrl = defaultBannedIPAddressHandlerUrl };
+            }
             service.Version = "1.1.1.1";
             service.StartAsync().Sync();
             service.DB.Truncate(true);
