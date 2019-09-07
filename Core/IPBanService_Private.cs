@@ -414,7 +414,7 @@ namespace DigitalRuby.IPBan
                 firewallNeedsBlockedIPAddressesUpdate = true;
             }
 
-            // if this is a delegate callback (counter of 0) or no handlers, exit out
+            // if this is a delegate callback (counter of 0), exit out - we don't want to run handlers or processes for shared banned ip addresses
             if (counter <= 0)
             {
                 return;
@@ -434,6 +434,7 @@ namespace DigitalRuby.IPBan
                     // eat exception, delicious
                 }
             }
+
             if (IPBanDelegate != null)
             {
                 try
