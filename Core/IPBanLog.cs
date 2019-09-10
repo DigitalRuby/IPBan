@@ -515,6 +515,16 @@ namespace DigitalRuby.IPBan
         {
             try
             {
+
+#if DEBUG
+
+                if (level == LogLevel.Error || level == LogLevel.Critical || level == LogLevel.Fatal)
+                {
+                    System.Diagnostics.Debugger.Break();
+                }
+
+#endif
+
                 //timeSource.CurrentTime = ts;
                 logger?.Log(GetNLogLevel(level), text, args);
             }
