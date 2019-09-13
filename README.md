@@ -94,7 +94,7 @@ sudo chmod +x /opt/ipban/DigitalRuby.IPBan (makes sure the DigitalRuby.IPBan exe
 
 - Create service:
 ```shell
-sudo cat > /lib/systemd/system/ipban.service
+sudo cat > /lib/systemd/system/ipban.service <<"END.OF.TEMPLATE"
 
 [Unit]
 Description=IPBan Service
@@ -107,8 +107,9 @@ Restart=on-failure
 
 [Install]
 WantedBy=multi-user.target
+END.OF.TEMPLATE
+
 ```
-- Press Ctrl-D to commit changes
 - Start the service:
 ```shell
 sudo systemctl daemon-reload; sudo systemctl start ipban; sudo systemctl enable ipban; systemctl status ipban;
