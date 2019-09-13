@@ -83,20 +83,18 @@ sc.exe config IPBAN start= delayed-auto
 - IPBan is currently supported on Ubuntu and Debian Linux that have iptables and ipset installed.
 - SSH into your server as root. If using another admin account name, substitute all root user instances with your account name.
 - Install dependencies:
+```shell
+sudo apt-get install -q -y iptables; sudo apt-get install -q -y ipset; sudo apt-get -q -y update; sudo mkdir /opt/ipban;
+
+# Extract the IPBan.zip file (inside is IPBanLinux.zip) folder and use SSH to copy files to /opt/ipban. Plenty of free SSH GUI out there if you want that.
+
+sudo chmod +x /opt/ipban/DigitalRuby.IPBan (makes sure the DigitalRuby.IPBan executable has execute permissions)
 ```
-sudo apt-get install iptables
-sudo apt-get install ipset
-sudo apt-get update
-```
-- mkdir /opt/ipban
-- Extract the IPBan.zip file (inside is IPBanLinux.zip) folder and use SSH to copy files to /opt/ipban. Plenty of free SSH GUI out there if you want that.
-- chmod +x /opt/ipban/DigitalRuby.IPBan (makes sure the DigitalRuby.IPBan executable has execute permissions)
+
 - Create service:
-```
-sudo nano /lib/systemd/system/ipban.service
-```
-- Paste in these contents:
-```
+```shell
+sudo cat > /lib/systemd/system/ipban.service
+
 [Unit]
 Description=IPBan Service
 After=network.target
@@ -109,15 +107,12 @@ Restart=on-failure
 [Install]
 WantedBy=multi-user.target
 ```
-- Save service file (Ctrl-X)
+- Press Ctrl-D
 - Start the service:
 ```
-sudo systemctl daemon-reload 
-sudo systemctl start ipban
-sudo systemctl enable ipban
-systemctl status ipban
+sudo systemctl daemon-reload; sudo systemctl start ipban; sudo systemctl enable ipban; systemctl status ipban;
 
-# modify config file how you like, add your ip addresses to the Whitelist property, etc.
+# modify config file how you like, add your ip addresses to the Whitelist property, etc., config will reload automatically
 sudo nano /opt/ipban/DigitalRuby.IPBan.dll.config
 ```
 
