@@ -85,9 +85,10 @@ sc.exe config IPBAN start= delayed-auto
 - Install dependencies:
 ```shell
 sudo apt-get install -q -y iptables; sudo apt-get install -q -y ipset; sudo apt-get -q -y update; sudo mkdir /opt/ipban;
+```
 
-# Extract the IPBan.zip file (inside is IPBanLinux.zip) folder and use SSH to copy files to /opt/ipban. Plenty of free SSH GUI out there if you want that.
-
+- Extract the IPBan.zip file (inside is IPBanLinux.zip) folder and use SSH to copy files to /opt/ipban. Plenty of free SSH GUI out there if you want that.
+```shell
 sudo chmod +x /opt/ipban/DigitalRuby.IPBan (makes sure the DigitalRuby.IPBan executable has execute permissions)
 ```
 
