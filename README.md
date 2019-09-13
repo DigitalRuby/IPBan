@@ -108,12 +108,14 @@ Restart=on-failure
 [Install]
 WantedBy=multi-user.target
 ```
-- Press Ctrl-D
+- Press Ctrl-D to commit changes
 - Start the service:
-```
+```shell
 sudo systemctl daemon-reload; sudo systemctl start ipban; sudo systemctl enable ipban; systemctl status ipban;
+```
 
-# modify config file how you like, add your ip addresses to the Whitelist property, etc., config will reload automatically
+- Change config file as desired, changes will be picked up automatically, press Ctrl-X to save.
+```shell
 sudo nano /opt/ipban/DigitalRuby.IPBan.dll.config
 ```
 
