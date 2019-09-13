@@ -92,7 +92,7 @@ sudo apt-get install -q -y iptables; sudo apt-get install -q -y ipset; sudo apt-
 sudo chmod +x /opt/ipban/DigitalRuby.IPBan (makes sure the DigitalRuby.IPBan executable has execute permissions)
 ```
 
-- Create service:
+- Create service (make sure to copy the last blank line, or you have to press ENTER manually):
 ```shell
 sudo cat > /lib/systemd/system/ipban.service <<"END.OF.TEMPLATE"
 
@@ -108,7 +108,7 @@ Restart=on-failure
 [Install]
 WantedBy=multi-user.target
 END.OF.TEMPLATE
-
+  
 ```
 - Start the service:
 ```shell
