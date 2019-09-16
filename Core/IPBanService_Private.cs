@@ -189,7 +189,7 @@ namespace DigitalRuby.IPBan
             {
                 try
                 {
-                    LocalIPAddressString = (await DnsLookup.GetLocalIPAddress())?.ToString();
+                    LocalIPAddressString = (await DnsLookup.GetLocalIPAddresses()).FirstOrDefault()?.ToString();
                     IPBanLog.Info("Local ip address: {0}", LocalIPAddressString);
                 }
                 catch

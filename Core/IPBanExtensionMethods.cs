@@ -179,6 +179,7 @@ namespace DigitalRuby.IPBan
 
         private static readonly DateTime unixEpoch = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
         private static readonly XmlSerializerNamespaces emptyXmlNs = new XmlSerializerNamespaces();
+        private static readonly System.Net.IPAddress[] localHostIP = new System.Net.IPAddress[] { System.Net.IPAddress.Parse("127.0.0.1"), System.Net.IPAddress.Parse("::1") };
 
         static IPBanExtensionMethods()
         {
@@ -777,37 +778,23 @@ namespace DigitalRuby.IPBan
         }
 
         /// <summary>
-        /// Get the local ip address of the local machine
+        /// Get the local ip addresses of the local machine
         /// </summary>
         /// <param name="dns">Dns lookup</param>
-        /// <param name="addressFamily">Desired address family</param>
-        /// <returns>Local ip address or null if unable to determine. If no address family match, falls back to an ipv6 attempt.</returns>
-        public static async Task<System.Net.IPAddress> GetLocalIPAddress(this IDnsLookup dns, System.Net.Sockets.AddressFamily addressFamily = System.Net.Sockets.AddressFamily.InterNetwork)
+        /// <param name="addressFamily">Desired address family or null for all</param>
+        /// <returns>Local ip address or empty array if unable to determine. If no address family match, falls back to an ipv6 attempt.</returns>
+        public static async Task<System.Net.IPAddress[]> GetLocalIPAddresses(this IDnsLookup dns, System.Net.Sockets.AddressFamily? addressFamily = System.Net.Sockets.AddressFamily.InterNetwork)
         {
             try
             {
                 // append ipv4 first, then the ipv6 then the remote ip
-                System.Net.IPAddress[] ips = await dns.GetHostAddressesAsync(dns.GetHostName());
-                foreach (System.Net.IPAddress ip in ips)
-                {
-                    if (ip.AddressFamily == addressFamily)
-                    {
-                        return ip;
-                    }
-                }
-                foreach (System.Net.IPAddress ip in ips)
-                {
-                    if (ip.AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6)
-                    {
-                        return ip;
-                    }
-                }
+                return (await dns.GetHostAddressesAsync(dns.GetHostName())).Union(localHostIP).Where(i => addressFamily == null || i.AddressFamily == addressFamily).ToArray();
             }
             catch
             {
 
             }
-            return null;
+            return new System.Net.IPAddress[0];
         }
 
         /// <summary>
