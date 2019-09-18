@@ -591,6 +591,30 @@ namespace DigitalRuby.IPBan
         }
 
         /// <summary>
+        /// Check if two ip are equal, using MapToIPv6 if needed
+        /// </summary>
+        /// <param name="ipAddress">IP address</param>
+        /// <param name="other">Other ip address</param>
+        /// <returns>True if ip are equal or equal, false otherwise</returns>
+        public static bool EqualsWithMapToIPv6(this System.Net.IPAddress ipAddress, System.Net.IPAddress other)
+        {
+            if (ipAddress.Equals(other))
+            {
+                return true;
+            }
+            try
+            {
+                IPAddress ipv6 = (ipAddress.IsLocalHost() ? IPAddress.Parse("::1") : ipAddress.MapToIPv6());
+                IPAddress otherIPV6 = (other.IsLocalHost() ? IPAddress.Parse("::1") : other.MapToIPv6());
+                return ipv6.Equals(otherIPV6);
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        /// <summary>
         /// Gets whether the ip address is local host
         /// </summary>
         /// <param name="ip">IP address</param>
