@@ -520,7 +520,7 @@ namespace DigitalRuby.IPBan
 
                 if (level == LogLevel.Error || level == LogLevel.Critical || level == LogLevel.Fatal)
                 {
-                    System.Diagnostics.Debugger.Break();
+                    // System.Diagnostics.Debugger.Break();
                 }
 
 #endif
