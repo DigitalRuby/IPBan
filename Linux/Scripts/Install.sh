@@ -12,7 +12,7 @@ sudo apt-get install -q -y iptables; sudo apt-get install -q -y ipset; sudo apt-
 # download latest release and extract to /opt/ipban
 sudo wget https://github.com/DigitalRuby/IPBan/releases/download/1.5.0.0/IPBan_1_5_0_0.zip; unzip *.zip; unzip IPBan-Linux-x64.zip; rm *.zip;
 
-# allow execute permissions for /opt/ipban/DigitalRuby/IPBan
+# allow execute permissions for /opt/ipban/DigitalRuby.IPBan
 sudo chmod +x /opt/ipban/DigitalRuby.IPBan
 
 # install service to run the executable
