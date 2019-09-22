@@ -1,7 +1,7 @@
 # Current Version: 1.5.0.0
 
-# run entire script from url
-# sudo bash <(wget -qO- https://raw.githubusercontent.com/DigitalRuby/IPBan/master/Linux/Scripts/Install.sh)
+# run entire script from url, do sudo -i first
+# bash <(wget -qO- https://raw.githubusercontent.com/DigitalRuby/IPBan/master/Linux/Scripts/Install.sh)
 
 # install unzipper
 sudo apt-get -q -y install unzip
