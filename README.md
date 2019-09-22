@@ -78,47 +78,15 @@ sc.exe config IPBAN start= delayed-auto
 
 - Build and run and debug code with Visual Studio code
 	- This shell script runs vscode as root:
-	- sudo mount -t vboxsf ipban ~/Desktop/ipban # only needed if you are in a Virtual Box VM and have setup a shared folder to Windows
-	- sudo code --user-data-dir="/tmp/vscode-root"
+	- `sudo mount -t vboxsf ipban ~/Desktop/ipban` # only needed if you are in a Virtual Box VM and have setup a shared folder to Windows
+	- `sudo code --user-data-dir="/tmp/vscode-root"`
 - IPBan is currently supported on Ubuntu and Debian Linux that have iptables and ipset installed.
 - SSH into your server as root. If using another admin account name, substitute all root user instances with your account name.
-- Install dependencies:
-```shell
-sudo apt-get install -q -y iptables; sudo apt-get install -q -y ipset; sudo apt-get -q -y update; sudo mkdir /opt/ipban;
+- Easy one click install:
 ```
-
-- Extract the IPBan.zip file (inside is IPBanLinux.zip) folder and use SSH to copy files to /opt/ipban. Plenty of free SSH GUI out there if you want that.
-```shell
-sudo chmod +x /opt/ipban/DigitalRuby.IPBan (makes sure the DigitalRuby.IPBan executable has execute permissions)
+sudo -i; bash <(wget -qO- https://raw.githubusercontent.com/DigitalRuby/IPBan/master/Linux/Scripts/Install.sh)
 ```
-
-- Create service (make sure to copy the last blank line, or you have to press ENTER manually):
-```shell
-sudo cat > /lib/systemd/system/ipban.service <<"END.OF.TEMPLATE"
-
-[Unit]
-Description=IPBan Service
-After=network.target
-
-[Service]
-WorkingDirectory=/opt/ipban
-ExecStart=/opt/ipban/DigitalRuby.IPBan
-Restart=on-failure
-
-[Install]
-WantedBy=multi-user.target
-END.OF.TEMPLATE
-  
-```
-- Start the service:
-```shell
-sudo systemctl daemon-reload; sudo systemctl start ipban; sudo systemctl enable ipban; systemctl status ipban;
-```
-
 - Change config file as desired, changes will be picked up automatically, press Ctrl-X to save.
-```shell
-sudo nano /opt/ipban/DigitalRuby.IPBan.dll.config
-```
 
 Other Information
 ------
