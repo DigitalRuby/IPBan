@@ -81,7 +81,6 @@ sc.exe config IPBAN start= delayed-auto
 	- `sudo mount -t vboxsf ipban ~/Desktop/ipban` # only needed if you are in a Virtual Box VM and have setup a shared folder to Windows
 	- `sudo code --user-data-dir="/tmp/vscode-root"`
 - IPBan is currently supported on Ubuntu 16.04 or newer and Debian 9 or newer. IPSet and IPTables are required and installed automatically if needed.
-- SSH into your server as root. If using another admin account name, substitute all root user instances with your account name.
 - Easy one click install:
 ```
 sudo -i; bash <(wget -qO- https://raw.githubusercontent.com/DigitalRuby/IPBan/master/Linux/Scripts/Install.sh)
