@@ -277,7 +277,7 @@ namespace System.Diagnostics.Eventing.Reader
         /// </param>
         protected EventBookmark(SerializationInfo info, StreamingContext context)
         {
-            if (info == null)
+            if (info is null)
                 throw new ArgumentNullException(nameof(info));
             BookmarkText = info.GetString("BookmarkText");
         }
@@ -296,7 +296,7 @@ namespace System.Diagnostics.Eventing.Reader
         [SecurityCritical, SecurityPermission(SecurityAction.LinkDemand, Flags = SecurityPermissionFlag.SerializationFormatter)]
         protected virtual void GetObjectData(SerializationInfo info, StreamingContext context)
         {
-            if (info == null)
+            if (info is null)
                 throw new ArgumentNullException(nameof(info));
             info.AddValue("BookmarkText", BookmarkText);
         }
@@ -824,7 +824,7 @@ namespace System.Diagnostics.Eventing.Reader
         [SecurityCritical, SecurityPermission(SecurityAction.LinkDemand, Flags = SecurityPermissionFlag.SerializationFormatter)]
         public override void GetObjectData(SerializationInfo info, StreamingContext context)
         {
-            if (info == null)
+            if (info is null)
             {
                 throw new ArgumentNullException(nameof(info));
             }
@@ -1152,7 +1152,7 @@ namespace System.Diagnostics.Eventing.Reader
         {
             string[] strArray;
             EventLogPermissionHolder.GetEventLogPermission().Demand();
-            if (propertyQueries == null)
+            if (propertyQueries is null)
             {
                 throw new ArgumentNullException(nameof(propertyQueries));
             }
@@ -1283,9 +1283,9 @@ namespace System.Diagnostics.Eventing.Reader
             Session = EventLogSession.GlobalSession;
             Path = path;
             ThePathType = pathType;
-            if (query == null)
+            if (query is null)
             {
-                if (path == null)
+                if (path is null)
                 {
                     throw new ArgumentNullException(nameof(path));
                 }
@@ -1375,7 +1375,7 @@ namespace System.Diagnostics.Eventing.Reader
         [SecurityCritical]
         public EventLogReader(EventLogQuery eventQuery, EventBookmark bookmark)
         {
-            if (eventQuery == null)
+            if (eventQuery is null)
             {
                 throw new ArgumentNullException(nameof(eventQuery));
             }
@@ -1552,7 +1552,7 @@ namespace System.Diagnostics.Eventing.Reader
         [SecurityCritical]
         public void Seek(EventBookmark bookmark, long offset)
         {
-            if (bookmark == null)
+            if (bookmark is null)
             {
                 throw new ArgumentNullException(nameof(bookmark));
             }
@@ -1815,7 +1815,7 @@ namespace System.Diagnostics.Eventing.Reader
                 }
                 lock (syncObject)
                 {
-                    if (containerChannel == null)
+                    if (containerChannel is null)
                     {
                         containerChannel = (string)NativeWrapper.EvtGetEventInfo(Handle, UnsafeNativeMethods.EvtEventPropertyId.EvtEventPath);
                     }
@@ -1875,7 +1875,7 @@ namespace System.Diagnostics.Eventing.Reader
                 }
                 lock (syncObject)
                 {
-                    if (keywordsNames == null)
+                    if (keywordsNames is null)
                     {
                         keywordsNames = cachedMetadataInformation.GetKeywordDisplayNames(ProviderName, Handle);
                     }
@@ -1957,7 +1957,7 @@ namespace System.Diagnostics.Eventing.Reader
                 }
                 lock (syncObject)
                 {
-                    if (matchedQueryIds == null)
+                    if (matchedQueryIds is null)
                     {
                         matchedQueryIds = (int[])NativeWrapper.EvtGetEventInfo(Handle, UnsafeNativeMethods.EvtEventPropertyId.EvtEventQueryIDs);
                     }
@@ -2195,7 +2195,7 @@ namespace System.Diagnostics.Eventing.Reader
         /// <returns>Returns a string that contains the event message in the current locale.</returns>
         public override string FormatDescription(IEnumerable<object> values)
         {
-            if (values == null)
+            if (values is null)
             {
                 return FormatDescription();
             }
@@ -2236,7 +2236,7 @@ namespace System.Diagnostics.Eventing.Reader
         }
 
         [SecurityCritical]
-        internal static EventLogHandle GetBookmarkHandleFromBookmark(EventBookmark bookmark) => bookmark == null ? EventLogHandle.Zero : NativeWrapper.EvtCreateBookmark(bookmark.BookmarkText);
+        internal static EventLogHandle GetBookmarkHandleFromBookmark(EventBookmark bookmark) => bookmark is null ? EventLogHandle.Zero : NativeWrapper.EvtCreateBookmark(bookmark.BookmarkText);
 
         internal void PrepareSystemData()
         {
@@ -2331,7 +2331,7 @@ namespace System.Diagnostics.Eventing.Reader
             renderContextHandleUser = EventLogHandle.Zero;
             Handle = EventLogHandle.Zero;
             EventLogPermissionHolder.GetEventLogPermission().Demand();
-            if (server == null)
+            if (server is null)
             {
                 server = "localhost";
             }
@@ -2387,7 +2387,7 @@ namespace System.Diagnostics.Eventing.Reader
         /// <exception cref="System.ArgumentNullException">logName</exception>
         public void ClearLog(string logName, string backupPath)
         {
-            if (logName == null)
+            if (logName is null)
             {
                 throw new ArgumentNullException(nameof(logName));
             }
@@ -2433,11 +2433,11 @@ namespace System.Diagnostics.Eventing.Reader
         public void ExportLog(string path, PathType pathType, string query, string targetFilePath, bool tolerateQueryErrors)
         {
             UnsafeNativeMethods.EvtExportLogFlags evtExportLogChannelPath;
-            if (path == null)
+            if (path is null)
             {
                 throw new ArgumentNullException(nameof(path));
             }
-            if (targetFilePath == null)
+            if (targetFilePath is null)
             {
                 throw new ArgumentNullException(nameof(targetFilePath));
             }
@@ -2494,7 +2494,7 @@ namespace System.Diagnostics.Eventing.Reader
         /// <param name="targetCultureInfo">The culture that specifies which language that the exported event messages will be in.</param>
         public void ExportLogAndMessages(string path, PathType pathType, string query, string targetFilePath, bool tolerateQueryErrors, CultureInfo targetCultureInfo)
         {
-            if (targetCultureInfo == null)
+            if (targetCultureInfo is null)
             {
                 targetCultureInfo = CultureInfo.CurrentCulture;
             }
@@ -2513,7 +2513,7 @@ namespace System.Diagnostics.Eventing.Reader
         /// <exception cref="System.ArgumentNullException">logName</exception>
         public EventLogInformation GetLogInformation(string logName, PathType pathType)
         {
-            if (logName == null)
+            if (logName is null)
             {
                 throw new ArgumentNullException(nameof(logName));
             }
@@ -3520,11 +3520,11 @@ namespace System.Diagnostics.Eventing.Reader
             Handle = EventLogHandle.Zero;
             defaultProviderHandle = EventLogHandle.Zero;
             EventLogPermissionHolder.GetEventLogPermission().Demand();
-            if (targetCultureInfo == null)
+            if (targetCultureInfo is null)
             {
                 targetCultureInfo = CultureInfo.CurrentCulture;
             }
-            if (session == null)
+            if (session is null)
             {
                 session = EventLogSession.GlobalSession;
             }
@@ -3714,7 +3714,7 @@ namespace System.Diagnostics.Eventing.Reader
                             {
                                 str2 = NativeWrapper.EvtFormatMessage(Handle, (uint)num5);
                             }
-                            if (str2 == null && flag)
+                            if (str2 is null && flag)
                             {
                                 if (string.Compare(strA, "Application", StringComparison.OrdinalIgnoreCase) == 0)
                                 {
@@ -3840,7 +3840,7 @@ namespace System.Diagnostics.Eventing.Reader
 
         internal string FindStandardKeywordDisplayName(string name, long value)
         {
-            if (standardKeywords == null)
+            if (standardKeywords is null)
             {
                 standardKeywords = (List<EventKeyword>)GetProviderListProperty(defaultProviderHandle, UnsafeNativeMethods.EvtPublisherMetadataPropertyId.EvtPublisherMetadataKeywords);
             }
@@ -3856,7 +3856,7 @@ namespace System.Diagnostics.Eventing.Reader
 
         internal string FindStandardLevelDisplayName(string name, uint value)
         {
-            if (standardLevels == null)
+            if (standardLevels is null)
             {
                 standardLevels = (List<EventLevel>)GetProviderListProperty(defaultProviderHandle, UnsafeNativeMethods.EvtPublisherMetadataPropertyId.EvtPublisherMetadataLevels);
             }
@@ -3872,7 +3872,7 @@ namespace System.Diagnostics.Eventing.Reader
 
         internal string FindStandardOpcodeDisplayName(string name, uint value)
         {
-            if (standardOpcodes == null)
+            if (standardOpcodes is null)
             {
                 standardOpcodes = (List<EventOpcode>)GetProviderListProperty(defaultProviderHandle, UnsafeNativeMethods.EvtPublisherMetadataPropertyId.EvtPublisherMetadataOpcodes);
             }
@@ -3888,7 +3888,7 @@ namespace System.Diagnostics.Eventing.Reader
 
         internal string FindStandardTaskDisplayName(string name, uint value)
         {
-            if (standardTasks == null)
+            if (standardTasks is null)
             {
                 standardTasks = (List<EventTask>)GetProviderListProperty(defaultProviderHandle, UnsafeNativeMethods.EvtPublisherMetadataPropertyId.EvtPublisherMetadataTasks);
             }
@@ -5709,7 +5709,7 @@ namespace System.Diagnostics.Eventing.Reader
             using (handle2)
             {
                 bool flag;
-                if (val == null)
+                if (val is null)
                 {
                     goto Label_017B;
                 }

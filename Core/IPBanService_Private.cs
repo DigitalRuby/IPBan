@@ -78,7 +78,7 @@ namespace DigitalRuby.IPBan
             // remove existing log files that are no longer in config
             foreach (IPBanLogFileScanner file in logFilesToParse.ToArray())
             {
-                if (newConfig.LogFilesToParse.FirstOrDefault(f => f.PathsAndMasks.Contains(file.PathAndMask)) == null)
+                if (newConfig.LogFilesToParse.FirstOrDefault(f => f.PathsAndMasks.Contains(file.PathAndMask)) is null)
                 {
                     file.Dispose();
                     logFilesToParse.Remove(file);
@@ -93,7 +93,7 @@ namespace DigitalRuby.IPBan
                     if (pathAndMask.Length != 0)
                     {
                         // if we don't have this log file and the platform matches, add it
-                        if (logFilesToParse.FirstOrDefault(f => f.PathAndMask == pathAndMask) == null &&
+                        if (logFilesToParse.FirstOrDefault(f => f.PathAndMask == pathAndMask) is null &&
                             !string.IsNullOrWhiteSpace(newFile.PlatformRegex) &&
                             Regex.IsMatch(IPBanOS.Description, newFile.PlatformRegex.ToString().Trim(), RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))
                         {
@@ -123,7 +123,7 @@ namespace DigitalRuby.IPBan
                     IPBanConfig oldConfig = Config;
                     IPBanConfig newConfig = IPBanConfig.LoadFromXml(newXml, DnsLookup);
                     UpdateLogFiles(newConfig);
-                    whitelistChanged = (Config == null || Config.WhiteList != newConfig.WhiteList || Config.WhiteListRegex != newConfig.WhiteListRegex);
+                    whitelistChanged = (Config is null || Config.WhiteList != newConfig.WhiteList || Config.WhiteListRegex != newConfig.WhiteListRegex);
                     Config = newConfig;
                     LoadFirewall(oldConfig);
                 }
@@ -132,14 +132,14 @@ namespace DigitalRuby.IPBan
             {
                 IPBanLog.Error(ex);
 
-                if (Config == null)
+                if (Config is null)
                 {
                     throw new ApplicationException("Configuration failed to load, make sure to check for XML errors or unblock all the files.", ex);
                 }
             }
 
             // set or unset default banned ip address handler based on config
-            if (Config.UseDefaultBannedIPAddressHandler && BannedIPAddressHandler == null)
+            if (Config.UseDefaultBannedIPAddressHandler && BannedIPAddressHandler is null)
             {
                 BannedIPAddressHandler = new DefaultBannedIPAddressHandler();
             }
@@ -546,7 +546,7 @@ namespace DigitalRuby.IPBan
                 }
             }
 
-            if (oldConfig == null)
+            if (oldConfig is null)
             {
                 // clear out all previous custom rules
                 foreach (string rule in Firewall.GetRuleNames(Firewall.RulePrefix + "EXTRA_").ToArray())
@@ -673,7 +673,7 @@ namespace DigitalRuby.IPBan
 
         private async Task UpdateExpiredIPAddressStates()
         {
-            HashSet<string> unbanIPAddressesToNotifyDelegate = (IPBanDelegate == null ? null : new HashSet<string>());
+            HashSet<string> unbanIPAddressesToNotifyDelegate = (IPBanDelegate is null ? null : new HashSet<string>());
             DateTime now = UtcNow;
             DateTime failLoginCutOff = (now - Config.ExpireTime);
             DateTime banCutOff = now;
@@ -726,7 +726,7 @@ namespace DigitalRuby.IPBan
 
         private async Task UpdateDelegate()
         {
-            if (IPBanDelegate == null)
+            if (IPBanDelegate is null)
             {
                 return;
             }
@@ -769,7 +769,7 @@ namespace DigitalRuby.IPBan
                 url = ReplaceUrl(url);
                 try
                 {
-                    KeyValuePair<string, object>[] headers = (Authorization == null ? null : new KeyValuePair<string, object>[] { new KeyValuePair<string, object>("Authorization", Authorization) });
+                    KeyValuePair<string, object>[] headers = (Authorization is null ? null : new KeyValuePair<string, object>[] { new KeyValuePair<string, object>("Authorization", Authorization) });
                     byte[] bytes = await RequestMaker.MakeRequestAsync(new Uri(url), headers: headers);
                     if (urlType == UrlType.Start)
                     {
@@ -883,8 +883,8 @@ namespace DigitalRuby.IPBan
 
             lock (pendingEvents)
             {
-                IPAddressLogEvent existing = pendingEvents.FirstOrDefault(p => p.IPAddress == newEvent.IPAddress && (p.UserName == null || p.UserName == newEvent.UserName));
-                if (existing == null)
+                IPAddressLogEvent existing = pendingEvents.FirstOrDefault(p => p.IPAddress == newEvent.IPAddress && (p.UserName is null || p.UserName == newEvent.UserName));
+                if (existing is null)
                 {
                     pendingEvents.Add(newEvent);
                 }

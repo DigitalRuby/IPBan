@@ -655,7 +655,7 @@ namespace DigitalRuby.IPBan
         /// <summary>
         /// Black list regex
         /// </summary>
-        public string BlackListRegex { get { return (blackListRegex == null ? string.Empty : blackListRegex.ToString()); } }
+        public string BlackListRegex { get { return (blackListRegex is null ? string.Empty : blackListRegex.ToString()); } }
 
         /// <summary>
         /// White list of ips as a comma separated string
@@ -665,7 +665,7 @@ namespace DigitalRuby.IPBan
         /// <summary>
         /// White list regex
         /// </summary>
-        public string WhiteListRegex { get { return (whiteListRegex == null ? string.Empty : whiteListRegex.ToString()); } }
+        public string WhiteListRegex { get { return (whiteListRegex is null ? string.Empty : whiteListRegex.ToString()); } }
 
         /// <summary>
         /// White list user names. Any user name found not in the list is banned.

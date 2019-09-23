@@ -202,7 +202,7 @@ namespace DigitalRuby.IPBan
         private int ExecuteNonQuery(SqliteConnection conn, SqliteTransaction tran, string cmdText, params object[] param)
         {
             bool closeConn = false;
-            if (conn == null)
+            if (conn is null)
             {
                 conn = CreateConnection();
                 OpenConnection(conn);
@@ -238,7 +238,7 @@ namespace DigitalRuby.IPBan
         private T ExecuteScalar<T>(SqliteConnection conn, SqliteTransaction tran, string cmdText, params object[] param)
         {
             bool closeConn = false;
-            if (conn == null)
+            if (conn is null)
             {
                 conn = CreateConnection();
                 OpenConnection(conn);
@@ -269,7 +269,7 @@ namespace DigitalRuby.IPBan
         private SqliteDataReader ExecuteReader(string query, SqliteConnection conn, SqliteTransaction tran, params object[] param)
         {
             bool closeConnection = false;
-            if (conn == null)
+            if (conn is null)
             {
                 conn = CreateConnection();
                 OpenConnection(conn);
@@ -316,8 +316,8 @@ namespace DigitalRuby.IPBan
             object banDateObj = reader.GetValue(3);
             IPAddressState state = (IPAddressState)(int)reader.GetInt32(4);
             object banEndDateObj = reader.GetValue(5);
-            long banDateLong = (banDateObj == null || banDateObj == DBNull.Value ? 0 : Convert.ToInt64(banDateObj));
-            long banEndDateLong = (banEndDateObj == null || banEndDateObj == DBNull.Value ? 0 : Convert.ToInt64(banEndDateObj));
+            long banDateLong = (banDateObj is null || banDateObj == DBNull.Value ? 0 : Convert.ToInt64(banDateObj));
+            long banEndDateLong = (banEndDateObj is null || banEndDateObj == DBNull.Value ? 0 : Convert.ToInt64(banEndDateObj));
             DateTime? banDate = (banDateLong == 0 ? (DateTime?)null : banDateLong.ToDateTimeUnixMilliseconds());
             DateTime? banEndDate = (banDateLong == 0 ? (DateTime?)null : banEndDateLong.ToDateTimeUnixMilliseconds());
             DateTime lastFailedLoginDt = lastFailedLogin.ToDateTimeUnixMilliseconds();
@@ -334,7 +334,7 @@ namespace DigitalRuby.IPBan
 
         private int SetBanDateInternal(IPAddress ipAddressObj, DateTime banDate, DateTime banEndDate, DateTime now, SqliteConnection conn, SqliteTransaction tran)
         {
-            if (ipAddressObj == null)
+            if (ipAddressObj is null)
             {
                 return 0;
             }
@@ -588,7 +588,7 @@ namespace DigitalRuby.IPBan
         {
             int count = 0;
             IPBanDBTransaction tran = transaction as IPBanDBTransaction;
-            bool commit = (tran == null);
+            bool commit = (tran is null);
             tran = (tran ?? BeginTransaction() as IPBanDBTransaction);
             try
             {
@@ -647,7 +647,7 @@ namespace DigitalRuby.IPBan
         /// <returns>Number of rows affected</returns>
         public int SetIPAddressesState(IEnumerable<string> ipAddresses, IPAddressState state, object transaction = null)
         {
-            if (ipAddresses == null)
+            if (ipAddresses is null)
             {
                 return 0;
             }
@@ -655,7 +655,7 @@ namespace DigitalRuby.IPBan
             int count = 0;
             int stateInt = (int)state;
             IPBanDBTransaction tran = transaction as IPBanDBTransaction;
-            bool commit = (transaction == null);
+            bool commit = (transaction is null);
             tran = (tran ?? BeginTransaction() as IPBanDBTransaction);
             try
             {
@@ -700,7 +700,7 @@ namespace DigitalRuby.IPBan
             string ipAddress;
             bool added;
             IPBanDBTransaction tran = transaction as IPBanDBTransaction;
-            bool dispose = (tran == null);
+            bool dispose = (tran is null);
             tran = (tran ?? BeginTransaction() as IPBanDBTransaction);
             SqliteDataReader reader;
 

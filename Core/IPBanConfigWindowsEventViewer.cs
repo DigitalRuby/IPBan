@@ -155,7 +155,7 @@ namespace DigitalRuby.IPBan
 
         public void SetExpressionsFromExpressionsText()
         {
-            if (ExpressionsText == null)
+            if (ExpressionsText is null)
             {
                 return;
             }

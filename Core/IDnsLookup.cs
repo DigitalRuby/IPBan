@@ -87,13 +87,13 @@ namespace DigitalRuby.IPBan
                 IPAddress local = null;
                 foreach (IPAddress ip in host.AddressList)
                 {
-                    if (local == null || ip.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
+                    if (local is null || ip.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
                     {
                         local = ip;
                     }
 
                 }
-                if (local == null)
+                if (local is null)
                 {
                     throw new ApplicationException("Unable to determine local ip address, is the network adapter enabled?");
                 }

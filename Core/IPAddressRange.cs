@@ -116,8 +116,8 @@ namespace DigitalRuby.IPBan
 
             public static bool LtE(byte[] A, byte[] B, int offset = 0)
             {
-                if (A == null) throw new ArgumentNullException(nameof(A));
-                if (B == null) throw new ArgumentNullException(nameof(B));
+                if (A is null) throw new ArgumentNullException(nameof(A));
+                if (B is null) throw new ArgumentNullException(nameof(B));
                 if (offset < 0) throw new ArgumentException("offset must be greater than or equal 0.", nameof(offset));
                 if (A.Length <= offset || B.Length <= offset) throw new ArgumentException("offset must be less than length of A and B.", nameof(offset));
 
@@ -137,8 +137,8 @@ namespace DigitalRuby.IPBan
 
             public static bool GtE(byte[] A, byte[] B, int offset = 0)
             {
-                if (A == null) throw new ArgumentNullException(nameof(A));
-                if (B == null) throw new ArgumentNullException(nameof(B));
+                if (A is null) throw new ArgumentNullException(nameof(A));
+                if (B is null) throw new ArgumentNullException(nameof(B));
                 if (offset < 0) throw new ArgumentException("offset must be greater than or equal 0.", nameof(offset));
                 if (A.Length <= offset || B.Length <= offset) throw new ArgumentException("offset must be less than length of A and B.", nameof(offset));
 
@@ -158,7 +158,7 @@ namespace DigitalRuby.IPBan
 
             public static bool IsEqual(byte[] A, byte[] B)
             {
-                if (A == null || B == null) { return false; }
+                if (A is null || B is null) { return false; }
                 if (A.Length != B.Length) { return false; }
                 return A.Zip(B, (a, b) => a == b).All(x => x == true);
             }
@@ -184,7 +184,7 @@ namespace DigitalRuby.IPBan
             /// <returns></returns>
             public static int? GetBitMaskLength(byte[] bytes)
             {
-                if (bytes == null) throw new ArgumentNullException(nameof(bytes));
+                if (bytes is null) throw new ArgumentNullException(nameof(bytes));
 
                 var bitLength = 0;
                 var idx = 0;
@@ -217,7 +217,7 @@ namespace DigitalRuby.IPBan
 
             public static byte[] Increment(byte[] bytes)
             {
-                if (bytes == null) throw new ArgumentNullException(nameof(bytes));
+                if (bytes is null) throw new ArgumentNullException(nameof(bytes));
 
                 var incrementIndex = Array.FindLastIndex(bytes, x => x < byte.MaxValue);
                 if (incrementIndex < 0) throw new OverflowException();
@@ -230,7 +230,7 @@ namespace DigitalRuby.IPBan
 
             public static byte[] Decrement(byte[] bytes)
             {
-                if (bytes == null) throw new ArgumentNullException(nameof(bytes));
+                if (bytes is null) throw new ArgumentNullException(nameof(bytes));
                 if (bytes.All(x => x == byte.MinValue)) throw new OverflowException();
 
                 byte[] result = new byte[bytes.Length];
@@ -281,7 +281,7 @@ namespace DigitalRuby.IPBan
         /// <param name="singleAddress"></param>
         public IPAddressRange(IPAddress singleAddress)
         {
-            if (singleAddress == null)
+            if (singleAddress is null)
                 throw new ArgumentNullException(nameof(singleAddress));
 
             Begin = End = singleAddress;
@@ -294,10 +294,10 @@ namespace DigitalRuby.IPBan
         /// </summary>
         public IPAddressRange(IPAddress begin, IPAddress end)
         {
-            if (begin == null)
+            if (begin is null)
                 throw new ArgumentNullException(nameof(begin));
 
-            if (end == null)
+            if (end is null)
                 throw new ArgumentNullException(nameof(end));
 
             Begin = new IPAddress(begin.GetAddressBytes());
@@ -319,7 +319,7 @@ namespace DigitalRuby.IPBan
         /// <param name="maskLength"></param>
         public IPAddressRange(IPAddress baseAddress, int maskLength)
         {
-            if (baseAddress == null)
+            if (baseAddress is null)
                 throw new ArgumentNullException(nameof(baseAddress));
 
             var baseAdrBytes = baseAddress.GetAddressBytes();
@@ -347,7 +347,7 @@ namespace DigitalRuby.IPBan
 
         public virtual void GetObjectData(SerializationInfo info, StreamingContext context)
         {
-            if (info == null) throw new ArgumentNullException(nameof(info));
+            if (info is null) throw new ArgumentNullException(nameof(info));
 
             info.AddValue("Begin", this.Begin != null ? this.Begin.ToString() : "");
             info.AddValue("End", this.End != null ? this.End.ToString() : "");
@@ -361,7 +361,7 @@ namespace DigitalRuby.IPBan
         /// <returns>True if ipaddress is in this range, false otherwise</returns>
         public bool Contains(IPAddress ipaddress)
         {
-            if (ipaddress == null)
+            if (ipaddress is null)
                 throw new ArgumentNullException(nameof(ipaddress));
 
             if (ipaddress.AddressFamily != this.Begin.AddressFamily) return false;
@@ -378,7 +378,7 @@ namespace DigitalRuby.IPBan
 
         public bool Contains(IPAddressRange range)
         {
-            if (range == null)
+            if (range is null)
                 throw new ArgumentNullException(nameof(range));
 
             if (this.Begin.AddressFamily != range.Begin.AddressFamily) return false;
@@ -396,7 +396,7 @@ namespace DigitalRuby.IPBan
 
         public static IPAddressRange Parse(string ipRangeString)
         {
-            if (ipRangeString == null) throw new ArgumentNullException(nameof(ipRangeString));
+            if (ipRangeString is null) throw new ArgumentNullException(nameof(ipRangeString));
 
             // trim white spaces.
             ipRangeString = ipRangeString.Trim();
@@ -503,11 +503,11 @@ namespace DigitalRuby.IPBan
         /// <returns></returns>
         public static int SubnetMaskLength(IPAddress subnetMask)
         {
-            if (subnetMask == null)
+            if (subnetMask is null)
                 throw new ArgumentNullException(nameof(subnetMask));
 
             var length = Bits.GetBitMaskLength(subnetMask.GetAddressBytes());
-            if (length == null) throw new ArgumentException("Not a valid subnet mask", "subnetMask");
+            if (length is null) throw new ArgumentException("Not a valid subnet mask", "subnetMask");
             return length.Value;
         }
 
@@ -541,15 +541,15 @@ namespace DigitalRuby.IPBan
         /// <returns>True if equal, false otherwise</returns>
         public override bool Equals(object obj)
         {
-            if (obj == null || !(obj is IPAddressRange other))
+            if (obj is null || !(obj is IPAddressRange other))
             {
                 return false;
             }
-            else if (Begin == null && other.Begin == null && End == null && other.End == null)
+            else if (Begin is null && other.Begin is null && End is null && other.End is null)
             {
                 return true;
             }
-            else if (Begin == null || End == null)
+            else if (Begin is null || End is null)
             {
                 return false;
             }
@@ -562,7 +562,7 @@ namespace DigitalRuby.IPBan
         /// <returns>Hash code</returns>
         public override int GetHashCode()
         {
-            return (Begin == null ? 0 : Begin.GetHashCode()) + (End == null ? 0 : End.GetHashCode());
+            return (Begin is null ? 0 : Begin.GetHashCode()) + (End is null ? 0 : End.GetHashCode());
         }
 
         /// <summary>

@@ -116,10 +116,10 @@ namespace DigitalRuby.IPBan
             using (WebClient client = new WebClientWithTimeout())
             {
                 Assembly versionAssembly = Assembly.GetEntryAssembly();
-                if (versionAssembly == null)
+                if (versionAssembly is null)
                 {
                     versionAssembly = Assembly.GetAssembly(Type.GetType("IPBanService"));
-                    if (versionAssembly == null)
+                    if (versionAssembly is null)
                     {
                         versionAssembly = GetType().Assembly;
                     }

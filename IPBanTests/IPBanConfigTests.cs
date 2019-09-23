@@ -116,7 +116,7 @@ namespace DigitalRuby.IPBanTests
                 int groupIndex = i / 2;
                 Regex regex = IPBanConfig.ParseRegex(group.Expressions[groupIndex].Regex);
                 Assert.AreEqual(expressions[i++], group.Expressions[groupIndex].XPath?.Trim());
-                Assert.AreEqual(expressions[i++], (regex == null ? string.Empty : regex.ToString()));
+                Assert.AreEqual(expressions[i++], (regex is null ? string.Empty : regex.ToString()));
             }
         }
 

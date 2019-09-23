@@ -340,7 +340,7 @@ namespace DigitalRuby.IPBan
                     ManagementObjectSearcher searcher = new ManagementObjectSearcher(query);
                     foreach (ManagementObject user in searcher.Get())
                     {
-                        if (user["Disabled"] == null || user["Disabled"].Equals(false))
+                        if (user["Disabled"] is null || user["Disabled"].Equals(false))
                         {
                             string possibleMatch = user["Name"]?.ToString();
                             if (possibleMatch != null && possibleMatch.Equals(userName, StringComparison.OrdinalIgnoreCase))
@@ -447,7 +447,7 @@ namespace DigitalRuby.IPBan
         /// </summary>
         public bool IsValid
         {
-            get { return RequiredOS == null || RequiredOS.Equals(IPBanOS.Name, StringComparison.OrdinalIgnoreCase); }
+            get { return RequiredOS is null || RequiredOS.Equals(IPBanOS.Name, StringComparison.OrdinalIgnoreCase); }
         }
 
         /// <summary>

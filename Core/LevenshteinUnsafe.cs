@@ -37,7 +37,7 @@ namespace DigitalRuby.IPBan
         /// <returns>Difference. 0 complete match. -1 if either value1 or value2 is null, -2 if value2 is too large.</returns>
         public static unsafe int Distance(string value1, string value2)
         {
-            if (value1 == null || value2 == null)
+            if (value1 is null || value2 is null)
             {
                 return -1;
             }

@@ -238,7 +238,7 @@ namespace DigitalRuby.IPBan
         /// </remarks>
         public static UInt128 Parse(string value, NumberStyles style, IFormatProvider provider)
         {
-            if (value == null)
+            if (value is null)
                 throw new ArgumentNullException("value");
             if ((style & NumberStyles.HexNumber) == NumberStyles.HexNumber)
                 value = "0" + value;

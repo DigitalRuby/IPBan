@@ -152,7 +152,7 @@ namespace DigitalRuby.IPBan
                         }
                     }
                 }
-                if (firewallType == null)
+                if (firewallType is null)
                 {
                     throw new ArgumentException("Firewall is null, at least one type should implement IIPBanFirewall");
                 }
@@ -181,9 +181,9 @@ namespace DigitalRuby.IPBan
         /// <returns>CompareTo result (negative less than, 0 equal, 1 greater than)</returns>
         public static int CompareTo(this IPAddress ip1, IPAddress ip2)
         {
-            if (ip1 == null)
+            if (ip1 is null)
             {
-                return (ip2 == null ? 0 : -1);
+                return (ip2 is null ? 0 : -1);
             }
 
             byte[] bytes1 = ip1.GetAddressBytes();
@@ -267,7 +267,7 @@ namespace DigitalRuby.IPBan
         /// <returns>Port range string to block (i.e. 0-79,81-442,444-65535)</returns>
         public static string GetPortRangeStringBlockExcept(IEnumerable<PortRange> portRanges)
         {
-            if (portRanges == null)
+            if (portRanges is null)
             {
                 return null;
             }
@@ -346,13 +346,13 @@ namespace DigitalRuby.IPBan
         public static IEnumerable<IPAddressRange> FilterRanges(this IEnumerable<IPAddressRange> ranges, IEnumerable<IPAddressRange> filter)
         {
             // if null ranges we are done
-            if (ranges == null)
+            if (ranges is null)
             {
                 yield break;
             }
 
             // if null filter, return ranges as is
-            else if (filter == null)
+            else if (filter is null)
             {
                 foreach (IPAddressRange range in ranges.OrderBy(r => r))
                 {
@@ -375,7 +375,7 @@ namespace DigitalRuby.IPBan
                 while (true)
                 {
                     // if no more filter, just continue returning ranges as is
-                    if (currentFilter == null)
+                    if (currentFilter is null)
                     {
                         yield return currentRange;
                         if (!rangeEnum.MoveNext())

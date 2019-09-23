@@ -151,7 +151,7 @@ namespace DigitalRuby.IPBan
                 {
                     // if no config, exception is thrown that is OK
                 }
-                if (factory == null || factory.Configuration.AllTargets.Count == 0)
+                if (factory is null || factory.Configuration.AllTargets.Count == 0)
                 {
                     string nlogConfigPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "nlog.config");
                     if (!File.Exists(nlogConfigPath))

@@ -109,7 +109,7 @@ namespace DigitalRuby.IPBan
                 {
                     // ignore exception, assume does not exist
                 }
-                if (rule == null)
+                if (rule is null)
                 {
                     rule = Activator.CreateInstance(ruleType) as INetFwRule;
                     rule.Name = ruleName;
@@ -223,7 +223,7 @@ namespace DigitalRuby.IPBan
                         {
                             // not exist, that is OK
                         }
-                        if (rule == null)
+                        if (rule is null)
                         {
                             // migrate IPBan_0 style to IPBan_Block_0 style
                             rule = policy.Rules.Item("IPBan_" + i.ToString(CultureInfo.InvariantCulture));
@@ -529,7 +529,7 @@ namespace DigitalRuby.IPBan
                         try
                         {
                             INetFwRule rule = policy.Rules.Item(firewallRuleName);
-                            if (rule == null)
+                            if (rule is null)
                             {
                                 // no more rules to check
                                 break;
@@ -571,7 +571,7 @@ namespace DigitalRuby.IPBan
                         try
                         {
                             INetFwRule rule = policy.Rules.Item(ruleName);
-                            if (rule == null)
+                            if (rule is null)
                             {
                                 break;
                             }
@@ -625,7 +625,7 @@ namespace DigitalRuby.IPBan
                 try
                 {
                     rule = policy.Rules.Item(ruleName);
-                    if (rule == null)
+                    if (rule is null)
                     {
                         break;
                     }
@@ -659,7 +659,7 @@ namespace DigitalRuby.IPBan
                 try
                 {
                     rule = policy.Rules.Item(AllowRulePrefix + i.ToString(CultureInfo.InvariantCulture));
-                    if (rule == null)
+                    if (rule is null)
                     {
                         break;
                     }

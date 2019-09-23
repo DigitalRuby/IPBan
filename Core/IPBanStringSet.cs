@@ -46,7 +46,7 @@ namespace DigitalRuby.IPBan
         private int ExecuteNonQuery(SqliteConnection conn, SqliteTransaction tran, string cmdText, params object[] param)
         {
             bool closeConn = false;
-            if (conn == null)
+            if (conn is null)
             {
                 conn = new SqliteConnection(connString);
                 conn.Open();

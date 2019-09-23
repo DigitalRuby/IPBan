@@ -219,7 +219,7 @@ namespace DigitalRuby.IPBanTests
                 foreach (KeyValuePair<string, string> xml in xmlTestStrings)
                 {
                     IPAddressLogEvent result = service.EventViewer.ProcessEventViewerXml(xml.Key);
-                    string expectedInfo = (result == null ? "x" : ((result.IPAddress ?? string.Empty) + "," + (result.UserName ?? string.Empty) + "," +
+                    string expectedInfo = (result is null ? "x" : ((result.IPAddress ?? string.Empty) + "," + (result.UserName ?? string.Empty) + "," +
                         (result.Source ?? string.Empty) + "," + (result.Type == IPAddressEventType.FailedLogin ? "0" : (result.Type == IPAddressEventType.SuccessfulLogin ? "1" : "2"))));
                     Assert.AreEqual(xml.Value, expectedInfo);
                 }

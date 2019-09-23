@@ -194,7 +194,7 @@ namespace DigitalRuby.IPBan
         /// <param name="message">Message</param>
         public static void ThrowIfNull(this object obj, string name = null, string message = null)
         {
-            if (obj == null)
+            if (obj is null)
             {
                 throw new ArgumentNullException(name ?? string.Empty, message);
             }
@@ -208,7 +208,7 @@ namespace DigitalRuby.IPBan
         /// <param name="message">Message</param>
         public static void ThrowIfNullOrEmpty(this string obj, string name = null, string message = null)
         {
-            if (obj == null)
+            if (obj is null)
             {
                 throw new ArgumentNullException(name ?? string.Empty, message);
             }
@@ -242,7 +242,7 @@ namespace DigitalRuby.IPBan
         /// <returns>Xml fragment or null if obj is null</returns>
         public static string ToStringXml(this object obj)
         {
-            if (obj == null)
+            if (obj is null)
             {
                 return null;
             }
@@ -377,7 +377,7 @@ namespace DigitalRuby.IPBan
         /// <returns>Non-secure string</returns>
         public static string ToUnsecureString(this SecureString s)
         {
-            if (s == null)
+            if (s is null)
             {
                 return null;
             }
@@ -400,7 +400,7 @@ namespace DigitalRuby.IPBan
         /// <returns>Binary data</returns>
         public static byte[] ToUnsecureBytes(this SecureString s)
         {
-            if (s == null)
+            if (s is null)
             {
                 return null;
             }
@@ -414,7 +414,7 @@ namespace DigitalRuby.IPBan
         /// <returns>SecureString</returns>
         public static SecureString ToSecureString(this string unsecure)
         {
-            if (unsecure == null)
+            if (unsecure is null)
             {
                 return null;
             }
@@ -433,7 +433,7 @@ namespace DigitalRuby.IPBan
         /// <returns>UTF8 bytes or null if s is null</returns>
         public static byte[] ToBytesUTF8(this string s)
         {
-            if (s == null)
+            if (s is null)
             {
                 return null;
             }
@@ -461,7 +461,7 @@ namespace DigitalRuby.IPBan
         /// <returns>Http header value string</returns>
         public static string ToHttpHeaderString(this object obj)
         {
-            if (obj == null)
+            if (obj is null)
             {
                 return string.Empty;
             }
@@ -648,7 +648,7 @@ namespace DigitalRuby.IPBan
         /// <exception cref="InvalidOperationException">Not an ipv4 address</exception>
         public static uint ToUInt32(this IPAddress ip, bool swap = true)
         {
-            if (ip == null || ip.AddressFamily != System.Net.Sockets.AddressFamily.InterNetwork)
+            if (ip is null || ip.AddressFamily != System.Net.Sockets.AddressFamily.InterNetwork)
             {
                 throw new InvalidOperationException(ip?.ToString() + " is not an ipv4 address");
             }
@@ -669,7 +669,7 @@ namespace DigitalRuby.IPBan
         /// <exception cref="InvalidOperationException">Not an ipv6 address</exception>
         public static UInt128 ToUInt128(this IPAddress ip)
         {
-            if (ip == null || ip.AddressFamily != System.Net.Sockets.AddressFamily.InterNetworkV6)
+            if (ip is null || ip.AddressFamily != System.Net.Sockets.AddressFamily.InterNetworkV6)
             {
                 throw new InvalidOperationException(ip?.ToString() + " is not an ipv6 address");
             }
@@ -812,7 +812,7 @@ namespace DigitalRuby.IPBan
             try
             {
                 // append ipv4 first, then the ipv6 then the remote ip
-                return (await dns.GetHostAddressesAsync(dns.GetHostName())).Union(localHostIP).Where(i => addressFamily == null || i.AddressFamily == addressFamily).ToArray();
+                return (await dns.GetHostAddressesAsync(dns.GetHostName())).Union(localHostIP).Where(i => addressFamily is null || i.AddressFamily == addressFamily).ToArray();
             }
             catch
             {

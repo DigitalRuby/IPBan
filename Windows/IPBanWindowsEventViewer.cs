@@ -84,7 +84,7 @@ namespace DigitalRuby.IPBan
             if (string.IsNullOrWhiteSpace(info.UserName))
             {
                 XmlNode userNameNode = doc.SelectSingleNode("//Data[@Name='TargetUserName']");
-                if (userNameNode == null)
+                if (userNameNode is null)
                 {
                     userNameNode = doc.SelectSingleNode("//TargetUserName");
                 }
@@ -228,7 +228,7 @@ namespace DigitalRuby.IPBan
 
         private string GetEventLogQueryString(List<string> ignored)
         {
-            if (service.Config == null)
+            if (service.Config is null)
             {
                 return null;
             }

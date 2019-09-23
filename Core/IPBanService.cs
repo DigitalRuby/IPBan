@@ -153,7 +153,7 @@ namespace DigitalRuby.IPBan
 
                 // check if the regex had an ipadddress group
                 Group ipAddressGroup = m.Groups["ipaddress"];
-                if (ipAddressGroup == null)
+                if (ipAddressGroup is null)
                 {
                     ipAddressGroup = m.Groups["ipaddress_exact"];
                 }
@@ -512,7 +512,7 @@ namespace DigitalRuby.IPBan
             service.ConfigFilePath = configFilePath;
             service.MultiThreaded = false;
             service.ManualCycle = true;
-            if (defaultBannedIPAddressHandlerUrl == null)
+            if (defaultBannedIPAddressHandlerUrl is null)
             {
                 service.BannedIPAddressHandler = service;
             }

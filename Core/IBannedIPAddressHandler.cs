@@ -75,7 +75,7 @@ namespace DigitalRuby.IPBan
         /// <inheritdoc />
         public Task HandleBannedIPAddress(string ipAddress, string source, string userName, string osName, string osVersion, string assemblyVersion, IHttpRequestMaker requestMaker)
         {
-            if (requestMaker == null)
+            if (requestMaker is null)
             {
                 return Task.CompletedTask;
             }
