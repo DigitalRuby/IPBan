@@ -6,7 +6,7 @@ strategy:
         linux:
             imageName: 'ubuntu-16.04'
         windows:
-            imageName: 'vs2017-win2016'
+            imageName: 'vs2019-win2016'
 
 pool:
     vmImage: $(imageName)
@@ -15,6 +15,10 @@ variables:
     buildConfiguration: 'Release'
 
 steps:
+    - task: UseDotNet@2
+      displayName: 'Use dotnet sdk 3.0'
+      inputs:
+      version: 3.0
     - script: sudo apt-get install iptables
       displayName: 'Install iptables on Linux'
       condition: contains( variables['Agent.OS'], 'Linux' )
