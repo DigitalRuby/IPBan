@@ -210,14 +210,16 @@ namespace DigitalRuby.IPBan
             }
             try
             {
-                using SqliteCommand command = conn.CreateCommand();
-                command.CommandText = cmdText;
-                command.Transaction = tran;
-                for (int i = 0; i < param.Length; i++)
+                using (SqliteCommand command = conn.CreateCommand())
                 {
-                    command.Parameters.Add(new SqliteParameter("@Param" + i, param[i] ?? DBNull.Value));
+                    command.CommandText = cmdText;
+                    command.Transaction = tran;
+                    for (int i = 0; i < param.Length; i++)
+                    {
+                        command.Parameters.Add(new SqliteParameter("@Param" + i, param[i] ?? DBNull.Value));
+                    }
+                    return command.ExecuteNonQuery();
                 }
-                return command.ExecuteNonQuery();
             }
             finally
             {
@@ -244,14 +246,16 @@ namespace DigitalRuby.IPBan
             }
             try
             {
-                using SqliteCommand command = conn.CreateCommand();
-                command.CommandText = cmdText;
-                command.Transaction = tran;
-                for (int i = 0; i < param.Length; i++)
+                using (SqliteCommand command = conn.CreateCommand())
                 {
-                    command.Parameters.Add(new SqliteParameter("@Param" + i, param[i] ?? DBNull.Value));
+                    command.CommandText = cmdText;
+                    command.Transaction = tran;
+                    for (int i = 0; i < param.Length; i++)
+                    {
+                        command.Parameters.Add(new SqliteParameter("@Param" + i, param[i] ?? DBNull.Value));
+                    }
+                    return (T)Convert.ChangeType(command.ExecuteScalar(), typeof(T));
                 }
-                return (T)Convert.ChangeType(command.ExecuteScalar(), typeof(T));
             }
             finally
             {
@@ -267,9 +271,7 @@ namespace DigitalRuby.IPBan
             bool closeConnection = false;
             if (conn is null)
             {
-#pragma warning disable IDE0068 // Use recommended dispose pattern
                 conn = CreateConnection();
-#pragma warning restore IDE0068 // Use recommended dispose pattern
                 OpenConnection(conn);
                 closeConnection = true;
             }
@@ -357,6 +359,7 @@ namespace DigitalRuby.IPBan
         private void Initialize()
         {
             IPBanLog.Info("Initializing IPBan database at {0}", connString);
+            SQLitePCL.Batteries.Init();
             ExecuteNonQuery("PRAGMA auto_vacuum = INCREMENTAL;");
             ExecuteNonQuery("PRAGMA journal_mode = WAL;");
             ExecuteNonQuery("CREATE TABLE IF NOT EXISTS IPAddresses (IPAddress VARBINARY(16) NOT NULL, IPAddressText VARCHAR(64) NOT NULL, LastFailedLogin BIGINT NOT NULL, FailedLoginCount BIGINT NOT NULL, BanDate BIGINT NULL, PRIMARY KEY (IPAddress))");
@@ -371,6 +374,9 @@ namespace DigitalRuby.IPBan
             ExecuteNonQuery("UPDATE IPAddresses SET State = 3 WHERE State IN (0, 1) AND BanDate IS NULL");
         }
 
+        /// <summary>
+        /// Static constructor
+        /// </summary>
         static IPBanDB()
         {
             SQLitePCL.Batteries.Init();
@@ -379,7 +385,7 @@ namespace DigitalRuby.IPBan
                 try
                 {
                     // net core 3, fails to load sqlite dll without a delay
-                    using SqliteCommand tmp = new SqliteCommand();
+                    using (SqliteCommand tmp = new SqliteCommand()) { }
                     break;
                 }
                 catch
@@ -518,12 +524,14 @@ namespace DigitalRuby.IPBan
             {
                 byte[] ipBytes = ipAddressObj.GetAddressBytes();
                 IPBanDBTransaction tran = transaction as IPBanDBTransaction;
-                using SqliteDataReader reader = ExecuteReader("SELECT IPAddressText, LastFailedLogin, FailedLoginCount, BanDate, State, BanEndDate FROM IPAddresses WHERE IPAddress = @Param0",
-                    tran?.DBConnection, tran?.DBTransaction, ipBytes);
-                if (reader.Read())
+                using (SqliteDataReader reader = ExecuteReader("SELECT IPAddressText, LastFailedLogin, FailedLoginCount, BanDate, State, BanEndDate FROM IPAddresses WHERE IPAddress = @Param0",
+                    tran?.DBConnection, tran?.DBTransaction, ipBytes))
                 {
-                    entry = ParseIPAddressEntry(reader);
-                    return true;
+                    if (reader.Read())
+                    {
+                        entry = ParseIPAddressEntry(reader);
+                        return true;
+                    }
                 }
             }
             entry = null;
@@ -564,23 +572,25 @@ namespace DigitalRuby.IPBan
             {
                 byte[] ipBytes = ipAddressObj.GetAddressBytes();
                 IPBanDBTransaction tran = transaction as IPBanDBTransaction;
-                using SqliteDataReader reader = ExecuteReader("SELECT BanDate, BanEndDate FROM IPAddresses WHERE IPAddress = @Param0", tran?.DBConnection, tran?.DBTransaction, ipBytes);
-                if (reader.Read())
+                using (SqliteDataReader reader = ExecuteReader("SELECT BanDate, BanEndDate FROM IPAddresses WHERE IPAddress = @Param0", tran?.DBConnection, tran?.DBTransaction, ipBytes))
                 {
-                    DateTime? banDate = null;
-                    DateTime? banEndDate = null;
-                    object val = reader.GetValue(0);
-                    object val2 = reader.GetValue(1);
-                    if (val != null && val != DBNull.Value)
+                    if (reader.Read())
                     {
-                        banDate = ((long)val).ToDateTimeUnixMilliseconds();
+                        DateTime? banDate = null;
+                        DateTime? banEndDate = null;
+                        object val = reader.GetValue(0);
+                        object val2 = reader.GetValue(1);
+                        if (val != null && val != DBNull.Value)
+                        {
+                            banDate = ((long)val).ToDateTimeUnixMilliseconds();
+                        }
+                        if (val2 != null && val2 != DBNull.Value)
+                        {
+                            banEndDate = ((long)val2).ToDateTimeUnixMilliseconds();
+                        }
+                        banDates = new KeyValuePair<DateTime?, DateTime?>(banDate, banEndDate);
+                        return true;
                     }
-                    if (val2 != null && val2 != DBNull.Value)
-                    {
-                        banEndDate = ((long)val2).ToDateTimeUnixMilliseconds();
-                    }
-                    banDates = new KeyValuePair<DateTime?, DateTime?>(banDate, banEndDate);
-                    return true;
                 }
             }
             banDates = new KeyValuePair<DateTime?, DateTime?>(null, null);
@@ -712,9 +722,7 @@ namespace DigitalRuby.IPBan
             bool added;
             IPBanDBTransaction tran = transaction as IPBanDBTransaction;
             bool dispose = (tran is null);
-#pragma warning disable IDE0068 // Use recommended dispose pattern
-            tran ??= BeginTransaction() as IPBanDBTransaction;
-#pragma warning restore IDE0068 // Use recommended dispose pattern
+            tran = (tran ?? BeginTransaction() as IPBanDBTransaction);
             SqliteDataReader reader;
 
             // C# can't yield inside a try/catch, so we have to split it up
@@ -824,14 +832,16 @@ namespace DigitalRuby.IPBan
                 banCutOffUnix = banCutOff.Value.ToUnixMillisecondsLong();
             }
             IPBanDBTransaction tran = transaction as IPBanDBTransaction;
-            using SqliteDataReader reader = ExecuteReader(@"SELECT IPAddressText, LastFailedLogin, FailedLoginCount, BanDate, State, BanEndDate
+            using (SqliteDataReader reader = ExecuteReader(@"SELECT IPAddressText, LastFailedLogin, FailedLoginCount, BanDate, State, BanEndDate
                 FROM IPAddresses
                 WHERE (@Param0 IS NULL AND @Param1 IS NULL) OR (@Param0 IS NOT NULL AND State = 3 AND LastFailedLogin <= @Param0) OR (@Param1 IS NOT NULL AND State IN (0, 1) AND BanEndDate <= @Param1)
                 ORDER BY IPAddress",
-                tran?.DBConnection, tran?.DBTransaction, failLoginCutOffUnix, banCutOffUnix);
-            while (reader.Read())
+                tran?.DBConnection, tran?.DBTransaction, failLoginCutOffUnix, banCutOffUnix))
             {
-                yield return ParseIPAddressEntry(reader);
+                while (reader.Read())
+                {
+                    yield return ParseIPAddressEntry(reader);
+                }
             }
         }
 
@@ -841,10 +851,12 @@ namespace DigitalRuby.IPBan
         /// <returns>IP addresses with non-null ban dates</returns>
         public IEnumerable<string> EnumerateBannedIPAddresses()
         {
-            using SqliteDataReader reader = ExecuteReader("SELECT IPAddressText FROM IPAddresses WHERE BanDate IS NOT NULL AND State = 0 ORDER BY IPAddress", null, null);
-            while (reader.Read())
+            using (SqliteDataReader reader = ExecuteReader("SELECT IPAddressText FROM IPAddresses WHERE BanDate IS NOT NULL AND State = 0 ORDER BY IPAddress", null, null))
             {
-                yield return reader.GetString(0);// ParseIPAddressEntry(reader);
+                while (reader.Read())
+                {
+                    yield return reader.GetString(0);// ParseIPAddressEntry(reader);
+                }
             }
         }
 
@@ -861,15 +873,17 @@ namespace DigitalRuby.IPBan
             try
             {
                 OpenConnection(conn);
-                using SqliteTransaction tran = conn.BeginTransaction(transactionLevel);
-                foreach (string ipAddress in ipAddresses)
+                using (SqliteTransaction tran = conn.BeginTransaction(transactionLevel))
                 {
-                    if (IPAddress.TryParse(ipAddress, out IPAddress ipAddressObj))
+                    foreach (string ipAddress in ipAddresses)
                     {
-                        count += ExecuteNonQuery(conn, tran, "DELETE FROM IPAddresses WHERE IPAddress = @Param0", ipAddressObj.GetAddressBytes());
+                        if (IPAddress.TryParse(ipAddress, out IPAddress ipAddressObj))
+                        {
+                            count += ExecuteNonQuery(conn, tran, "DELETE FROM IPAddresses WHERE IPAddress = @Param0", ipAddressObj.GetAddressBytes());
+                        }
                     }
+                    tran.Commit();
                 }
-                tran.Commit();
             }
             finally
             {
@@ -887,11 +901,13 @@ namespace DigitalRuby.IPBan
         {
             byte[] start = range.Begin.GetAddressBytes();
             byte[] end = range.End.GetAddressBytes();
-            using SqliteDataReader reader = ExecuteReader("SELECT IPAddressText FROM IPAddresses WHERE IPAddress BETWEEN @Param0 AND @Param1 AND length(IPAddress) = length(@Param0) AND length(IPAddress) = length(@Param1); " +
-                "DELETE FROM IPAddresses WHERE IPAddress BETWEEN @Param0 AND @Param1 AND length(IPAddress) = length(@Param0) AND length(IPAddress) = length(@Param1);", null, null, start, end);
-            while (reader.Read())
+            using (SqliteDataReader reader = ExecuteReader("SELECT IPAddressText FROM IPAddresses WHERE IPAddress BETWEEN @Param0 AND @Param1 AND length(IPAddress) = length(@Param0) AND length(IPAddress) = length(@Param1); " +
+                "DELETE FROM IPAddresses WHERE IPAddress BETWEEN @Param0 AND @Param1 AND length(IPAddress) = length(@Param0) AND length(IPAddress) = length(@Param1);", null, null, start, end))
             {
-                yield return reader.GetString(0);
+                while (reader.Read())
+                {
+                    yield return reader.GetString(0);
+                }
             }
         }
 
