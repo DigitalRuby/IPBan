@@ -15,10 +15,6 @@ variables:
     buildConfiguration: 'Release'
 
 steps:
-    - task: UseDotNet@2
-      displayName: 'Use dotnet sdk 3.0'
-      inputs:
-      version: 3.0
     - script: sudo apt-get install iptables
       displayName: 'Install iptables on Linux'
       condition: contains( variables['Agent.OS'], 'Linux' )
