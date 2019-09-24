@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp2.2</TargetFramework>
+    <TargetFrameworks>netcoreapp2.2;netcoreapp3.0</TargetFrameworks>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <IsPackable>false</IsPackable>
     <AssemblyVersion>1.5.1.0</AssemblyVersion>

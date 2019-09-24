@@ -359,7 +359,6 @@ namespace DigitalRuby.IPBan
         private void Initialize()
         {
             IPBanLog.Info("Initializing IPBan database at {0}", connString);
-            SQLitePCL.Batteries.Init();
             ExecuteNonQuery("PRAGMA auto_vacuum = INCREMENTAL;");
             ExecuteNonQuery("PRAGMA journal_mode = WAL;");
             ExecuteNonQuery("CREATE TABLE IF NOT EXISTS IPAddresses (IPAddress VARBINARY(16) NOT NULL, IPAddressText VARCHAR(64) NOT NULL, LastFailedLogin BIGINT NOT NULL, FailedLoginCount BIGINT NOT NULL, BanDate BIGINT NULL, PRIMARY KEY (IPAddress))");
@@ -372,6 +371,24 @@ namespace DigitalRuby.IPBan
 
             // set to failed login state if no ban date
             ExecuteNonQuery("UPDATE IPAddresses SET State = 3 WHERE State IN (0, 1) AND BanDate IS NULL");
+        }
+
+        static IPBanDB()
+        {
+            SQLitePCL.Batteries.Init();
+            for (int i = 0; i < 10; i++)
+            {
+                try
+                {
+                    // net core 3, fails to load sqlite dll without a delay
+                    using (SqliteCommand tmp = new SqliteCommand()) { }
+                    break;
+                }
+                catch
+                {
+                    System.Threading.Thread.Sleep(500);
+                }
+            }
         }
 
         /// <summary>
