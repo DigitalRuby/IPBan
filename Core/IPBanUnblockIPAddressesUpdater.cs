@@ -67,7 +67,7 @@ namespace DigitalRuby.IPBan
                     string[] lines = (await File.ReadAllLinesAsync(textFilePath)).Where(l => IPAddress.TryParse(l, out _)).ToArray();
                     IPBanLog.Warn("Queueing {0} ip addresses to unban from {1} file", lines.Length, textFilePath);
                     UnblockIPAddresses(lines);
-                    File.Delete(textFilePath);
+                    IPBanExtensionMethods.FileDeleteWithRetry(textFilePath);
                 }
             }
             catch (Exception ex)

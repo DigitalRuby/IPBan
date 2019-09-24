@@ -64,7 +64,7 @@ namespace DigitalRuby.IPBan
             };
             Process p = Process.Start(info);
             p.WaitForExit();
-            File.Delete(scriptFileName);
+            IPBanExtensionMethods.FileDeleteWithRetry(scriptFileName);
         }
 
         private void WriteDeleteRules(StreamWriter writer, bool writeHeader)

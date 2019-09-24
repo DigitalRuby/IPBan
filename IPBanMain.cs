@@ -76,7 +76,7 @@ namespace DigitalRuby.IPBan
             }
             catch (Exception ex)
             {
-                System.IO.File.WriteAllText(System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "startup_fail.txt"), ex.ToString());
+                IPBanExtensionMethods.FileWriteAllTextWithRetry(System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "startup_fail.txt"), ex.ToString());
                 IPBanLog.Fatal("Fatal error starting service", ex);
             }
         }

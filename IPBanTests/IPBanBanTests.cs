@@ -28,7 +28,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
-
+using System.Threading.Tasks;
 using DigitalRuby.IPBan;
 
 using NUnit.Framework;
@@ -223,7 +223,8 @@ namespace DigitalRuby.IPBanTests
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             {
-                File.Delete($"/var/log/ipbancustom_{IPBanPlugin.ProcessName}.log");
+                string toDelete = $"/var/log/ipbancustom_{IPBanPlugin.ProcessName}.log";
+                IPBanExtensionMethods.FileDeleteWithRetry(toDelete);
             }
 
             // by default, Windows plugin goes to event viewer, we want to also make sure custom log files work on Windows
@@ -232,7 +233,7 @@ namespace DigitalRuby.IPBanTests
                 // prime log file to parse
                 string file = @"C:/IPBanCustomLogs/ipbancustom_test.log";
                 Directory.CreateDirectory(Path.GetDirectoryName(file));
-                File.WriteAllText(file, "awerfoajwerp jaeowr paojwer " + Environment.NewLine);
+                IPBanExtensionMethods.FileWriteAllTextWithRetry(file, "awerfoajwerp jaeowr paojwer " + Environment.NewLine);
                 service.RunCycle().Sync();
                 System.Threading.Thread.Sleep(100);
                 foreach (IPBanLogFileScanner toParse in service.LogFilesToParse)
@@ -263,7 +264,7 @@ namespace DigitalRuby.IPBanTests
                 }
                 finally
                 {
-                    File.Delete(file);
+                    IPBanExtensionMethods.FileDeleteWithRetry(file);
                     Directory.Delete(Path.GetDirectoryName(file));
                     using (EventLog appLog = new EventLog("Application", System.Environment.MachineName))
                     {
@@ -274,15 +275,15 @@ namespace DigitalRuby.IPBanTests
         }
 
         [Test]
-        public void TestExtraFirewallRules()
+        public async Task TestExtraFirewallRules()
         {
-            string config = File.ReadAllText(service.ConfigFilePath);
+            string config = await service.ReadConfigAsync();
             string newConfig = IPBanConfig.ChangeConfigAppSetting(config, "FirewallRules", @"
                 ReddisAllowIP;allow;10.0.0.1,10.0.0.2,192.168.1.168/24;6379;.
                 WebOnly;block;0.0.0.0/1,128.0.0.0/1,::/1,8000::/1;22,80,443,3389;^(?:(?!Windows).)+$
             ");
-            File.WriteAllText(service.ConfigFilePath, newConfig);
-            service.RunCycle().Sync();
+            await service.WriteConfigAsync(newConfig);
+            await service.RunCycle();
             List<string> rules = service.Firewall.GetRuleNames().ToList();
             string reddisRule = service.Firewall.RulePrefix + "EXTRA_ReddisAllowIP";
             string webRule = service.Firewall.RulePrefix + "EXTRA_WebOnly";
@@ -311,15 +312,15 @@ namespace DigitalRuby.IPBanTests
             }
         }
 
-        private void TestMultipleBanTimespans(bool resetFailedLogin)
+        private async Task TestMultipleBanTimespansAsync(bool resetFailedLogin)
         {
-            string config = File.ReadAllText(service.ConfigFilePath);
+            string config = await service.ReadConfigAsync();
             string newConfig = IPBanConfig.ChangeConfigAppSetting(config, "BanTime", "00:00:01:00,00:00:02:00,00:00:03:00");
             newConfig = IPBanConfig.ChangeConfigAppSetting(newConfig, "ResetFailedLoginCountForUnbannedIPAddresses", resetFailedLogin.ToString());
-            File.WriteAllText(service.ConfigFilePath, newConfig);
+            await service.WriteConfigAsync(newConfig);
             try
             {
-                service.RunCycle().Sync();
+                await service.RunCycle();
                 Assert.AreEqual(3, service.Config.BanTimes.Length);
                 Assert.AreEqual(resetFailedLogin, service.Config.ResetFailedLoginCountForUnbannedIPAddresses);
                 for (int i = 1; i <= 3; i++)
@@ -331,7 +332,7 @@ namespace DigitalRuby.IPBanTests
                 {
                     // forget all the bans, but they should still be in the database due to the multiple timespans as failed logins
                     IPBanService.UtcNow += TimeSpan.FromDays(14.0);
-                    service.RunCycle().Sync();
+                    await service.RunCycle();
 
                     if (i < 3)
                     {
@@ -425,30 +426,30 @@ namespace DigitalRuby.IPBanTests
             finally
             {
                 // restore config
-                File.WriteAllText(service.ConfigFilePath, config);
+                await service.WriteConfigAsync(config);
             }
         }
 
         [Test]
-        public void TestMultipleBanTimespansResetFailedLoginCount()
+        public Task TestMultipleBanTimespansResetFailedLoginCount()
         {
-            TestMultipleBanTimespans(true);
+            return TestMultipleBanTimespansAsync(true);
         }
 
         [Test]
-        public void TestMultipleBanTimespansNoResetFailedLoginCount()
+        public Task TestMultipleBanTimespansNoResetFailedLoginCount()
         {
-            TestMultipleBanTimespans(false);
+            return TestMultipleBanTimespansAsync(false);
         }
 
         [Test]
-        public void TestIPWhitelist()
+        public async Task TestIPWhitelist()
         {
             const string whitelist = "192.168.0.0/16";
 
-            string config = File.ReadAllText(service.ConfigFilePath);
+            string config = await service.ReadConfigAsync();
             string newConfig = IPBanConfig.ChangeConfigAppSetting(config, "Whitelist", whitelist);
-            File.WriteAllText(service.ConfigFilePath, newConfig);
+            await service.WriteConfigAsync(newConfig);
             try
             {
                 // load new config
@@ -477,7 +478,7 @@ namespace DigitalRuby.IPBanTests
             finally
             {
                 // restore config
-                File.WriteAllText(service.ConfigFilePath, config);
+                await service.WriteConfigAsync(config);
             }
         }
     }

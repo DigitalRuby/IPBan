@@ -67,7 +67,7 @@ namespace DigitalRuby.IPBan
                     .Union(Directory.GetFiles(dir, "*.set6"))
                     .Union(Directory.GetFiles(dir, "*.tbl6"))))
                 {
-                    File.Delete(setFile);
+                    IPBanExtensionMethods.FileDeleteWithRetry(setFile);
                 }
                 RunProcess(IpTablesProcess, true, "-F");
                 RunProcess(ip6TablesProcess, true, "-F");
@@ -296,7 +296,7 @@ namespace DigitalRuby.IPBan
             }
             finally
             {
-                File.Delete(ipFileTemp);
+                IPBanExtensionMethods.FileDeleteWithRetry(ipFileTemp);
             }
         }
 
@@ -372,7 +372,7 @@ namespace DigitalRuby.IPBan
             }
             finally
             {
-                File.Delete(ipFileTemp);
+                IPBanExtensionMethods.FileDeleteWithRetry(ipFileTemp);
             }
         }
 
@@ -555,7 +555,7 @@ namespace DigitalRuby.IPBan
             }
             finally
             {
-                File.Delete(tempFile);
+                IPBanExtensionMethods.FileDeleteWithRetry(tempFile);
             }
         }
 
@@ -592,7 +592,7 @@ namespace DigitalRuby.IPBan
             }
             finally
             {
-                File.Delete(tempFile);
+                IPBanExtensionMethods.FileDeleteWithRetry(tempFile);
             }
         }
 
@@ -618,7 +618,7 @@ namespace DigitalRuby.IPBan
             }
             finally
             {
-                File.Delete(tempFile);
+                IPBanExtensionMethods.FileDeleteWithRetry(tempFile);
             }
         }
 

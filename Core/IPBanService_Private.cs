@@ -792,7 +792,7 @@ namespace DigitalRuby.IPBan
                     }
                     else if (urlType == UrlType.Config && bytes.Length != 0)
                     {
-                        await UpdateConfig(Encoding.UTF8.GetString(bytes));
+                        await WriteConfigAsync(Encoding.UTF8.GetString(bytes));
                     }
                 }
                 catch (Exception ex)

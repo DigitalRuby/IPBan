@@ -832,8 +832,12 @@ namespace DigitalRuby.IPBan
             return new LockedEnumerable<T>(obj);
         }
 
+#pragma warning disable IDE1006
+
         [DllImport("libc")]
         public static extern uint getuid();
+
+#pragma warning restore IDE1006
 
         /// <summary>
         /// Throw an exception if the process is not running as administrator (Windows) or root (Linux).
@@ -856,6 +860,93 @@ namespace DigitalRuby.IPBan
             {
                 throw new InvalidOperationException("Application must be run as root");
             }
+        }
+
+        /// <summary>
+        /// Delete a file with retry
+        /// </summary>
+        /// <param name="path">Path to delete</param>
+        /// <param name="millisecondsBetweenRetry">Milliseconds between each retry</param>
+        /// <param name="retryCount">Retry count</param>
+        public static void FileDeleteWithRetry(string path, int millisecondsBetweenRetry = 200, int retryCount = 10)
+        {
+            Exception lastError = null;
+            for (int i = 0; i < retryCount; i++)
+            {
+                try
+                {
+                    if (File.Exists(path))
+                    {
+                        File.Delete(path);
+                    }
+                    return;
+                }
+                catch (Exception ex)
+                {
+                    lastError = ex;
+                    System.Threading.Thread.Sleep(millisecondsBetweenRetry);
+                }
+            }
+            throw lastError;
+        }
+
+        /// <summary>
+        /// Write all file text with retry
+        /// </summary>
+        /// <param name="fileName">File name</param>
+        /// <param name="text">Text</param>
+        /// <param name="millisecondsBetweenRetry">Milliseconds between each retry</param>
+        /// <param name="retryCount">Retry count</param>
+        public static void FileWriteAllTextWithRetry(string fileName, string text, int millisecondsBetweenRetry = 200, int retryCount = 10)
+        {
+            Exception lastError = null;
+            string fullPath = Path.GetFullPath(fileName);
+            string dirName = Path.GetDirectoryName(fullPath);
+            Directory.CreateDirectory(dirName);
+            for (int i = 0; i < retryCount; i++)
+            {
+                try
+                {
+                    File.WriteAllText(fileName, text, Utf8EncodingNoPrefix);
+                    return;
+                }
+                catch (Exception ex)
+                {
+                    lastError = ex;
+                    System.Threading.Thread.Sleep(millisecondsBetweenRetry);
+                }
+            }
+            throw lastError;
+        }
+
+        /// <summary>
+        /// Write all file text with retry
+        /// </summary>
+        /// <param name="fileName">File name</param>
+        /// <param name="text">Text</param>
+        /// <param name="millisecondsBetweenRetry">Milliseconds between each retry</param>
+        /// <param name="retryCount">Retry count</param>
+        /// <returns>Task</returns>
+        public static async Task FileWriteAllTextWithRetryAsync(string fileName, string text, int millisecondsBetweenRetry = 200, int retryCount = 10)
+        {
+            Exception lastError = null;
+            string fullPath = Path.GetFullPath(fileName);
+            string dirName = Path.GetDirectoryName(fullPath);
+            Directory.CreateDirectory(dirName);
+            for (int i = 0; i < retryCount; i++)
+            {
+                try
+                {
+                    await File.WriteAllTextAsync(fileName, text, Utf8EncodingNoPrefix);
+                    return;
+                }
+                catch (Exception ex)
+                {
+                    lastError = ex;
+                    await Task.Delay(millisecondsBetweenRetry);
+                }
+            }
+            throw lastError;
         }
 
         /// <summary>

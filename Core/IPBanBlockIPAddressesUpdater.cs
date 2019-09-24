@@ -78,7 +78,7 @@ namespace DigitalRuby.IPBan
                         bans.Add(new IPAddressLogEvent(ipAddress, string.Empty, source, 1, IPAddressEventType.Blocked));
                     }
                     service.AddIPAddressLogEvents(bans);
-                    File.Delete(textFilePath);
+                    IPBanExtensionMethods.FileDeleteWithRetry(textFilePath);
                 }
             }
             catch (Exception ex)

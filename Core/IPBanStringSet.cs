@@ -134,7 +134,7 @@ namespace DigitalRuby.IPBan
             GC.WaitForPendingFinalizers();
             if (autoDelete)
             {
-                File.Delete(dbPath);
+                IPBanExtensionMethods.FileDeleteWithRetry(dbPath);
             }
         }
 

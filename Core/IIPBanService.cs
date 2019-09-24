@@ -58,7 +58,13 @@ namespace DigitalRuby.IPBan
         /// </summary>
         /// <param name="xml">New config file xml</param>
         /// <returns>Task</returns>
-        Task UpdateConfig(string xml);
+        Task WriteConfigAsync(string xml);
+
+        /// <summary>
+        /// Read configuration
+        /// </summary>
+        /// <returns>Task with xml config</returns>
+        Task<string> ReadConfigAsync();
 
         /// <summary>
         /// Replace place-holders in url with values from this service

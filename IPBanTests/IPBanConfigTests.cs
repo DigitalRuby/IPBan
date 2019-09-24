@@ -22,14 +22,17 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-using DigitalRuby.IPBan;
-using NUnit.Framework;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
+
+using DigitalRuby.IPBan;
+
+using NUnit.Framework;
 
 namespace DigitalRuby.IPBanTests
 {
@@ -152,7 +155,7 @@ namespace DigitalRuby.IPBanTests
         }
 
         [Test]
-        public void TestDefaultConfig()
+        public async Task TestDefaultConfig()
         {
             // ensure config file is read properly
             IPBanService service = IPBanService.CreateAndStartIPBanTestService<IPBanService>();
@@ -184,7 +187,7 @@ namespace DigitalRuby.IPBanTests
 
                 AssertLogFilesToParse(cfg);
                 AssertEventViewer(cfg);
-                string xml = File.ReadAllText(service.ConfigFilePath.Replace(".tmp", string.Empty));
+                string xml = await service.ReadConfigAsync();
                 IPBanConfig prod = IPBanConfig.LoadFromXml(xml, null);
                 Assert.IsTrue(prod.UseDefaultBannedIPAddressHandler);
             }

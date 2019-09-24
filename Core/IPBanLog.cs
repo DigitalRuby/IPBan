@@ -180,7 +180,7 @@ namespace DigitalRuby.IPBan
     <logger name=""*"" minlevel=""{logLevel}"" writeTo=""console""/>
   </rules>
 </nlog>";
-                        File.WriteAllText(nlogConfigPath, defaultNLogConfig);
+                        IPBanExtensionMethods.FileWriteAllTextWithRetry(nlogConfigPath, defaultNLogConfig);
                     }
                     if (File.Exists(nlogConfigPath))
                     {

@@ -144,7 +144,7 @@ namespace DigitalRuby.IPBan
                     Process.Start("/bin/bash", "-c \"cat /etc/*release* > " + tempFile + "\"").WaitForExit();
                     System.Threading.Tasks.Task.Delay(100); // wait a small bit for file to really be closed
                     string versionText = File.ReadAllText(tempFile).Trim();
-                    File.Delete(tempFile);
+                    IPBanExtensionMethods.FileDeleteWithRetry(tempFile);
                     if (string.IsNullOrWhiteSpace(versionText))
                     {
                         IPBanLog.Error(new IOException("Unable to load os version from /etc/*release* ..."));
@@ -183,7 +183,7 @@ namespace DigitalRuby.IPBan
                             try
                             {
                                 string[] lines = File.ReadAllLines(tempFile);
-                                File.Delete(tempFile);
+                                IPBanExtensionMethods.FileDeleteWithRetry(tempFile);
                                 if (lines.Length > 1)
                                 {
                                     int versionIndex = lines[0].IndexOf("Version");

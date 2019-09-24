@@ -132,7 +132,7 @@ namespace DigitalRuby.IPBanTests
 
                 writer.Close();
 
-                File.Delete(fullPath);
+                IPBanExtensionMethods.FileDeleteWithRetry(fullPath);
 
                 writer = new StreamWriter(CreateFile(fullPath), Encoding.UTF8)
                 {
@@ -165,7 +165,7 @@ namespace DigitalRuby.IPBanTests
             {
                 string filePath = Path.Combine(tempPath, "log-2019-05-05.txt");
                 IPBanService.UtcNow = new DateTime(2019, 5, 5, 1, 1, 1, DateTimeKind.Utc);
-                File.WriteAllText(filePath, string.Empty);
+                IPBanExtensionMethods.FileWriteAllTextWithRetry(filePath, string.Empty);
                 scanner.PingFiles();
                 File.AppendAllText(filePath, "fail, ip: 99.99.99.99, user: testuser\n");
                 File.AppendAllText(filePath, "success, ip: 98.99.99.99, user: testuser\n");
@@ -201,7 +201,7 @@ namespace DigitalRuby.IPBanTests
                 regexSuccess: null,
                 pingIntervalMilliseconds: 0))
             {
-                File.WriteAllText(fullPath, string.Empty);
+                IPBanExtensionMethods.FileWriteAllTextWithRetry(fullPath, string.Empty);
                 scanner.PingFiles();
                 File.AppendAllText(fullPath, "SSH1 97.97.97.97\n");
                 File.AppendAllText(fullPath, "SSH2 98.97.97.97\n");

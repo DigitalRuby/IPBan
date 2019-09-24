@@ -209,7 +209,7 @@ namespace DigitalRuby.IPBan
         /// </summary>
         /// <param name="xml">Xml of the new config file</param>
         /// <returns>Task</returns>
-        public async Task UpdateConfig(string xml)
+        public async Task WriteConfigAsync(string xml)
         {
             // Ensure valid xml before writing the file
             XmlDocument doc = new XmlDocument();
@@ -218,6 +218,15 @@ namespace DigitalRuby.IPBan
                 doc.Load(xmlReader);
             }
             await ConfigReaderWriter.WriteConfigAsync(xml);
+        }
+
+        /// <summary>
+        /// Read configuration
+        /// </summary>
+        /// <returns>Configuration xml</returns>
+        public Task<string> ReadConfigAsync()
+        {
+            return ConfigReaderWriter.ReadConfigAsync();
         }
 
         /// <summary>
@@ -477,18 +486,7 @@ namespace DigitalRuby.IPBan
                 .Union(Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory, "*.sqlite*"))
                 .Union(Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory, "*journal*")))
             {
-                for (int i = 0; i < 10; i++)
-                {
-                    try
-                    {
-                        File.Delete(file);
-                        break;
-                    }
-                    catch
-                    {
-                        Thread.Sleep(1000);
-                    }
-                }
+                IPBanExtensionMethods.FileDeleteWithRetry(file, 1000);
             }
 
             if (string.IsNullOrWhiteSpace(directory))
@@ -506,7 +504,7 @@ namespace DigitalRuby.IPBan
             {
                 configFileText = configFileModifier(configFileText);
             }
-            File.WriteAllText(configFilePath, configFileText);
+            IPBanExtensionMethods.FileWriteAllTextWithRetry(configFilePath, configFileText);
             T service = IPBanService.CreateService<T>() as T;
             service.ExternalIPAddressLookup = LocalMachineExternalIPAddressLookupTest.Instance;
             service.ConfigFilePath = configFilePath;
