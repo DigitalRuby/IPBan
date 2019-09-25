@@ -30,7 +30,7 @@ using System.Net;
 
 namespace DigitalRuby.IPBan
 {
-    public class IPBanDB : IDisposable
+    public class IPBanDB : SqliteDB
     {
         /// <summary>
         /// State of ip addresses
@@ -100,213 +100,10 @@ namespace DigitalRuby.IPBan
             public IPAddressState State { get; set; }
         }
 
-        private class IPBanDBTransaction : IDisposable
-        {
-            private readonly bool disposeConnection;
-
-            public IPBanDBTransaction(SqliteConnection conn, bool disposeConnection)
-            {
-                DBConnection = conn;
-                this.disposeConnection = disposeConnection;
-                using (SqliteCommand command = DBConnection.CreateCommand())
-                {
-                    command.CommandText = "PRAGMA auto_vacuum = INCREMENTAL;";
-                    command.ExecuteNonQuery();
-                }
-                using (SqliteCommand command = DBConnection.CreateCommand())
-                {
-                    command.CommandText = "PRAGMA journal_mode = WAL;";
-                    command.ExecuteNonQuery();
-                }
-                DBTransaction = DBConnection.BeginTransaction(transactionLevel);
-            }
-
-            ~IPBanDBTransaction()
-            {
-                Rollback();
-                Dispose();
-            }
-
-            /// <summary>
-            /// Close transaction and connection. If transaction has not been rolled back, it is committed
-            /// </summary>
-            public void Dispose()
-            {
-                try
-                {
-                    if (DBTransaction != null)
-                    {
-                        DBTransaction.Commit();
-                        DBTransaction.Dispose();
-                        DBTransaction = null;
-                    }
-                    if (DBConnection != null)
-                    {
-                        if (disposeConnection)
-                        {
-                            DBConnection.Dispose();
-                        }
-                        DBConnection = null;
-                    }
-                }
-                catch
-                {
-                    // don't care
-                }
-            }
-
-            /// <summary>
-            /// Rollback the transaction then calls Dispose
-            /// </summary>
-            public void Rollback()
-            {
-                if (DBTransaction != null)
-                {
-                    DBTransaction.Rollback();
-                    DBTransaction.Dispose();
-                    DBTransaction = null;
-                }
-                Dispose();
-            }
-
-            public SqliteConnection DBConnection { get; private set; }
-            public SqliteTransaction DBTransaction { get; private set; }
-        }
-
         /// <summary>
         /// IPBan database file name, not including directory
         /// </summary>
         public const string FileName = "ipban.sqlite";
-
-        private const System.Data.IsolationLevel transactionLevel = System.Data.IsolationLevel.Serializable;
-        private readonly string connString;
-        private readonly SqliteConnection memoryConnection;
-
-        private int ExecuteNonQuery(string cmdText, params object[] param)
-        {
-            return ExecuteNonQuery(null, null, cmdText, param);
-        }
-
-        private int ExecuteNonQueryIgnoreExceptions(string cmdText, params object[] param)
-        {
-            try
-            {
-                return ExecuteNonQuery(cmdText, param);
-            }
-            catch
-            {
-                return 0;
-            }
-        }
-
-        private int ExecuteNonQuery(SqliteConnection conn, SqliteTransaction tran, string cmdText, params object[] param)
-        {
-            bool closeConn = false;
-            if (conn is null)
-            {
-                conn = CreateConnection();
-                OpenConnection(conn);
-                closeConn = true;
-            }
-            try
-            {
-                using (SqliteCommand command = conn.CreateCommand())
-                {
-                    command.CommandText = cmdText;
-                    command.Transaction = tran;
-                    for (int i = 0; i < param.Length; i++)
-                    {
-                        command.Parameters.Add(new SqliteParameter("@Param" + i, param[i] ?? DBNull.Value));
-                    }
-                    return command.ExecuteNonQuery();
-                }
-            }
-            finally
-            {
-                if (closeConn)
-                {
-                    CloseConnection(conn);
-                }
-            }
-        }
-
-        private T ExecuteScalar<T>(string cmdText, params object[] param)
-        {
-            return ExecuteScalar<T>(null, null, cmdText, param);
-        }
-
-        private T ExecuteScalar<T>(SqliteConnection conn, SqliteTransaction tran, string cmdText, params object[] param)
-        {
-            bool closeConn = false;
-            if (conn is null)
-            {
-                conn = CreateConnection();
-                OpenConnection(conn);
-                closeConn = true;
-            }
-            try
-            {
-                using (SqliteCommand command = conn.CreateCommand())
-                {
-                    command.CommandText = cmdText;
-                    command.Transaction = tran;
-                    for (int i = 0; i < param.Length; i++)
-                    {
-                        command.Parameters.Add(new SqliteParameter("@Param" + i, param[i] ?? DBNull.Value));
-                    }
-                    return (T)Convert.ChangeType(command.ExecuteScalar(), typeof(T));
-                }
-            }
-            finally
-            {
-                if (closeConn)
-                {
-                    CloseConnection(conn);
-                }
-            }
-        }
-
-        private SqliteDataReader ExecuteReader(string query, SqliteConnection conn, SqliteTransaction tran, params object[] param)
-        {
-            bool closeConnection = false;
-            if (conn is null)
-            {
-                conn = CreateConnection();
-                OpenConnection(conn);
-                closeConnection = true;
-            }
-            SqliteCommand command = conn.CreateCommand();
-            command.CommandText = query;
-            command.Transaction = tran;
-            for (int i = 0; i < param.Length; i++)
-            {
-                command.Parameters.Add(new SqliteParameter("@Param" + i.ToStringInvariant(), param[i] ?? DBNull.Value));
-            }
-            return command.ExecuteReader((closeConnection && conn != memoryConnection ? System.Data.CommandBehavior.CloseConnection : System.Data.CommandBehavior.Default));
-        }
-
-        private SqliteConnection CreateConnection()
-        {
-            return (memoryConnection ?? new SqliteConnection(connString));
-        }
-
-        private void OpenConnection(SqliteConnection conn)
-        {
-            if (conn != memoryConnection)
-            {
-                conn.Open();
-                ExecuteNonQuery(conn, null, "PRAGMA auto_vacuum = INCREMENTAL;");
-                ExecuteNonQuery(conn, null, "PRAGMA journal_mode = WAL;");
-            }
-        }
-
-        private void CloseConnection(SqliteConnection conn)
-        {
-            if (conn != memoryConnection)
-            {
-                conn.Close();
-            }
-        }
 
         private IPAddressEntry ParseIPAddressEntry(SqliteDataReader reader)
         {
@@ -348,18 +145,18 @@ namespace DigitalRuby.IPBan
             // if the ip address already exists, it can be updated provided that the state is not in a pending remove state (2) and
             // there is no ban end date yet or the ban end date has expired
             // state will stay at 0 if it was 0 else it will become 1 which means the ban is pending, state 0 means ban is already active in firewall
-            int count = ExecuteNonQuery(conn, tran, @"INSERT INTO IPAddresses(IPAddress, IPAddressText, LastFailedLogin, FailedLoginCount, BanDate, State, BanEndDate)
+            int count = ExecuteNonQuery(@"INSERT INTO IPAddresses(IPAddress, IPAddressText, LastFailedLogin, FailedLoginCount, BanDate, State, BanEndDate)
                 VALUES(@Param0, @Param1, @Param2, 0, @Param2, 1, @Param3)
                 ON CONFLICT(IPAddress)
                 DO UPDATE SET BanDate = @Param2, State = CASE WHEN State = 0 THEN 0 ELSE 1 END, BanEndDate = @Param3 WHERE State <> 2 AND (BanEndDate IS NULL OR BanEndDate <= @Param4); ",
-                ipBytes, ipAddress, timestampBegin, timestampEnd, currentTimestamp);
+                conn, tran, ipBytes, ipAddress, timestampBegin, timestampEnd, currentTimestamp);
             return count;
         }
 
-        private void Initialize()
+        protected override void OnInitialize()
         {
-            IPBanLog.Info("Initializing IPBan database at {0}", connString);
-            SQLitePCL.Batteries.Init();
+            base.OnInitialize();
+            IPBanLog.Info("Initializing IPBan database at {0}", ConnectionString);
             ExecuteNonQuery("PRAGMA auto_vacuum = INCREMENTAL;");
             ExecuteNonQuery("PRAGMA journal_mode = WAL;");
             ExecuteNonQuery("CREATE TABLE IF NOT EXISTS IPAddresses (IPAddress VARBINARY(16) NOT NULL, IPAddressText VARCHAR(64) NOT NULL, LastFailedLogin BIGINT NOT NULL, FailedLoginCount BIGINT NOT NULL, BanDate BIGINT NULL, PRIMARY KEY (IPAddress))");
@@ -375,85 +172,9 @@ namespace DigitalRuby.IPBan
         }
 
         /// <summary>
-        /// Static constructor
-        /// </summary>
-        static IPBanDB()
-        {
-            SQLitePCL.Batteries.Init();
-            for (int i = 0; i < 10; i++)
-            {
-                try
-                {
-                    // net core 3, fails to load sqlite dll without a delay
-                    using (SqliteCommand tmp = new SqliteCommand()) { }
-                    break;
-                }
-                catch
-                {
-                    System.Threading.Thread.Sleep(500);
-                }
-            }
-        }
-
-        /// <summary>
         /// Constructor
         /// </summary>
-        public IPBanDB(string dbPath = null)
-        {
-            dbPath = (string.IsNullOrWhiteSpace(dbPath) ? Path.Combine(AppDomain.CurrentDomain.BaseDirectory, FileName) : dbPath);
-            connString = "Data Source=" + dbPath;
-            if (dbPath.Equals(":memory:"))
-            {
-                memoryConnection = new SqliteConnection(connString);
-                memoryConnection.Open();
-            }
-            Initialize();
-        }
-
-        /// <summary>
-        /// Dispose of all resources, does not delete the database file
-        /// </summary>
-        public void Dispose()
-        {
-            GC.Collect();
-            GC.WaitForPendingFinalizers();
-            memoryConnection?.Dispose();
-        }
-
-        /// <summary>
-        /// Begin a transaction
-        /// </summary>
-        /// <returns>Transaction</returns>
-        public object BeginTransaction()
-        {
-            SqliteConnection conn = CreateConnection();
-            OpenConnection(conn);
-            return new IPBanDBTransaction(conn, conn != memoryConnection);
-        }
-
-        /// <summary>
-        /// Commit a transaction
-        /// </summary>
-        /// <param name="transaction">Transaction</param>
-        public void CommitTransaction(object transaction)
-        {
-            if (transaction is IPBanDBTransaction tran)
-            {
-                tran.Dispose();
-            }
-        }
-
-        /// <summary>
-        /// Rollback a transaction. If the transaction is already commited, nothing happens.
-        /// </summary>
-        /// <param name="transaction">Transaction to rollback</param>
-        public void RollbackTransaction(object transaction)
-        {
-            if (transaction is IPBanDBTransaction tran && tran.DBConnection != null)
-            {
-                tran.Rollback();
-            }
-        }
+        public IPBanDB(string dbPath = null) : base(dbPath ?? FileName) { }
 
         /// <summary>
         /// Delete all data from the database but keep the database file
@@ -499,7 +220,7 @@ namespace DigitalRuby.IPBan
             {
                 byte[] ipBytes = ipAddressObj.GetAddressBytes();
                 long timestamp = dateTime.ToUnixMillisecondsLong();
-                IPBanDBTransaction tran = transaction as IPBanDBTransaction;
+                SqliteDBTransaction tran = transaction as SqliteDBTransaction;
 
                 // only increment failed login for new rows or for existing rows with state 3 (failed login only, no ban bending)
                 string command = @"INSERT INTO IPAddresses(IPAddress, IPAddressText, LastFailedLogin, FailedLoginCount, BanDate, State, BanEndDate)
@@ -507,7 +228,7 @@ namespace DigitalRuby.IPBan
                     ON CONFLICT(IPAddress)
                     DO UPDATE SET LastFailedLogin = @Param2, FailedLoginCount = FailedLoginCount + @Param3 WHERE State = 3;
                     SELECT FailedLoginCount FROM IPAddresses WHERE IPAddress = @Param0;";
-                return ExecuteScalar<int>(tran?.DBConnection, tran?.DBTransaction, command, ipBytes, ipAddress, timestamp, increment);
+                return ExecuteScalar<int>(command, tran?.DBConnection, tran?.DBTransaction, ipBytes, ipAddress, timestamp, increment);
             }
             return 0;
         }
@@ -523,7 +244,7 @@ namespace DigitalRuby.IPBan
             if (IPAddress.TryParse(ipAddress, out IPAddress ipAddressObj))
             {
                 byte[] ipBytes = ipAddressObj.GetAddressBytes();
-                IPBanDBTransaction tran = transaction as IPBanDBTransaction;
+                SqliteDBTransaction tran = transaction as SqliteDBTransaction;
                 using (SqliteDataReader reader = ExecuteReader("SELECT IPAddressText, LastFailedLogin, FailedLoginCount, BanDate, State, BanEndDate FROM IPAddresses WHERE IPAddress = @Param0",
                     tran?.DBConnection, tran?.DBTransaction, ipBytes))
                 {
@@ -552,7 +273,7 @@ namespace DigitalRuby.IPBan
         {
             if (IPAddress.TryParse(ipAddress, out IPAddress ipAddressObj))
             {
-                IPBanDBTransaction tran = transaction as IPBanDBTransaction;
+                SqliteDBTransaction tran = transaction as SqliteDBTransaction;
                 int count = SetBanDateInternal(ipAddressObj, banStartDate, banEndDate, now, tran?.DBConnection, tran?.DBTransaction);
                 return (count != 0);
             }
@@ -571,7 +292,7 @@ namespace DigitalRuby.IPBan
             if (IPAddress.TryParse(ipAddress, out IPAddress ipAddressObj))
             {
                 byte[] ipBytes = ipAddressObj.GetAddressBytes();
-                IPBanDBTransaction tran = transaction as IPBanDBTransaction;
+                SqliteDBTransaction tran = transaction as SqliteDBTransaction;
                 using (SqliteDataReader reader = ExecuteReader("SELECT BanDate, BanEndDate FROM IPAddresses WHERE IPAddress = @Param0", tran?.DBConnection, tran?.DBTransaction, ipBytes))
                 {
                     if (reader.Read())
@@ -608,9 +329,9 @@ namespace DigitalRuby.IPBan
         public int SetBannedIPAddresses(IEnumerable<Tuple<string, DateTime, DateTime>> ipAddresses, DateTime now, object transaction = null)
         {
             int count = 0;
-            IPBanDBTransaction tran = transaction as IPBanDBTransaction;
+            SqliteDBTransaction tran = transaction as SqliteDBTransaction;
             bool commit = (tran is null);
-            tran = (tran ?? BeginTransaction() as IPBanDBTransaction);
+            tran = (tran ?? BeginTransaction() as SqliteDBTransaction);
             try
             {
                 foreach (Tuple<string, DateTime, DateTime> ipAddress in ipAddresses)
@@ -650,9 +371,9 @@ namespace DigitalRuby.IPBan
         {
             if (IPAddress.TryParse(ipAddress, out IPAddress ipAddressObj))
             {
-                IPBanDBTransaction tran = transaction as IPBanDBTransaction;
+                SqliteDBTransaction tran = transaction as SqliteDBTransaction;
                 byte[] ipBytes = ipAddressObj.GetAddressBytes();
-                state = (IPAddressState)ExecuteScalar<int>(tran?.DBConnection, tran?.DBTransaction, "SELECT State FROM IPAddresses WHERE IPAddress = @Param0", ipBytes);
+                state = (IPAddressState)ExecuteScalar<int>("SELECT State FROM IPAddresses WHERE IPAddress = @Param0", tran?.DBConnection, tran?.DBTransaction, ipBytes);
                 return true;
             }
             state = IPAddressState.Active;
@@ -675,9 +396,9 @@ namespace DigitalRuby.IPBan
 
             int count = 0;
             int stateInt = (int)state;
-            IPBanDBTransaction tran = transaction as IPBanDBTransaction;
+            SqliteDBTransaction tran = transaction as SqliteDBTransaction;
             bool commit = (transaction is null);
-            tran = (tran ?? BeginTransaction() as IPBanDBTransaction);
+            tran = (tran ?? BeginTransaction() as SqliteDBTransaction);
             try
             {
                 foreach (string ipAddress in ipAddresses)
@@ -685,7 +406,7 @@ namespace DigitalRuby.IPBan
                     if (IPAddress.TryParse(ipAddress, out IPAddress ipAddressObj))
                     {
                         byte[] ipBytes = ipAddressObj.GetAddressBytes();
-                        count += ExecuteNonQuery(tran.DBConnection, tran.DBTransaction, "UPDATE IPAddresses SET State = @Param0 WHERE IPAddress = @Param1", stateInt, ipBytes);
+                        count += ExecuteNonQuery("UPDATE IPAddresses SET State = @Param0 WHERE IPAddress = @Param1", tran.DBConnection, tran.DBTransaction, stateInt, ipBytes);
                     }
                 }
             }
@@ -720,9 +441,9 @@ namespace DigitalRuby.IPBan
         {
             string ipAddress;
             bool added;
-            IPBanDBTransaction tran = transaction as IPBanDBTransaction;
+            SqliteDBTransaction tran = transaction as SqliteDBTransaction;
             bool dispose = (tran is null);
-            tran = (tran ?? BeginTransaction() as IPBanDBTransaction);
+            tran = (tran ?? BeginTransaction() as SqliteDBTransaction);
             SqliteDataReader reader;
 
             // C# can't yield inside a try/catch, so we have to split it up
@@ -767,11 +488,10 @@ namespace DigitalRuby.IPBan
                     // remove pending (2) is deleted entirely
                     // last failed login is set to current date/time if state goes from 4 to 3
                     long timestamp = now.ToUnixMillisecondsLong();
-                    ExecuteNonQuery(tran.DBConnection, tran.DBTransaction,
-                        @"UPDATE IPAddresses SET FailedLoginCount = CASE WHEN @Param0 = 1 THEN 0 ELSE FailedLoginCount END,
+                    ExecuteNonQuery(@"UPDATE IPAddresses SET FailedLoginCount = CASE WHEN @Param0 = 1 THEN 0 ELSE FailedLoginCount END,
                         LastFailedLogin = CASE WHEN State = 4 THEN @Param1 ELSE LastFailedLogin END,
                         State = CASE WHEN State = 1 THEN 0 WHEN State = 4 THEN 3 ELSE State END WHERE State IN (1, 4);
-                        DELETE FROM IPAddresses WHERE State = 2;", resetFailedLoginCount, timestamp);
+                        DELETE FROM IPAddresses WHERE State = 2;", tran.DBConnection, tran.DBTransaction, resetFailedLoginCount, timestamp);
                 }
             }
             catch
@@ -805,9 +525,9 @@ namespace DigitalRuby.IPBan
         {
             if (IPAddress.TryParse(ipAddress, out IPAddress ipAddressObj))
             {
-                IPBanDBTransaction ipDBTransaction = transaction as IPBanDBTransaction;
+                SqliteDBTransaction ipDBTransaction = transaction as SqliteDBTransaction;
                 byte[] ipBytes = ipAddressObj.GetAddressBytes();
-                return (ExecuteNonQuery(ipDBTransaction?.DBConnection, ipDBTransaction?.DBTransaction, "DELETE FROM IPAddresses WHERE IPAddress = @Param0", ipBytes) != 0);
+                return (ExecuteNonQuery("DELETE FROM IPAddresses WHERE IPAddress = @Param0", ipDBTransaction?.DBConnection, ipDBTransaction?.DBTransaction, ipBytes) != 0);
             }
             return false;
         }
@@ -831,7 +551,7 @@ namespace DigitalRuby.IPBan
             {
                 banCutOffUnix = banCutOff.Value.ToUnixMillisecondsLong();
             }
-            IPBanDBTransaction tran = transaction as IPBanDBTransaction;
+            SqliteDBTransaction tran = transaction as SqliteDBTransaction;
             using (SqliteDataReader reader = ExecuteReader(@"SELECT IPAddressText, LastFailedLogin, FailedLoginCount, BanDate, State, BanEndDate
                 FROM IPAddresses
                 WHERE (@Param0 IS NULL AND @Param1 IS NULL) OR (@Param0 IS NOT NULL AND State = 3 AND LastFailedLogin <= @Param0) OR (@Param1 IS NOT NULL AND State IN (0, 1) AND BanEndDate <= @Param1)
@@ -873,13 +593,13 @@ namespace DigitalRuby.IPBan
             try
             {
                 OpenConnection(conn);
-                using (SqliteTransaction tran = conn.BeginTransaction(transactionLevel))
+                using (SqliteTransaction tran = conn.BeginTransaction(TransactionLevel))
                 {
                     foreach (string ipAddress in ipAddresses)
                     {
                         if (IPAddress.TryParse(ipAddress, out IPAddress ipAddressObj))
                         {
-                            count += ExecuteNonQuery(conn, tran, "DELETE FROM IPAddresses WHERE IPAddress = @Param0", ipAddressObj.GetAddressBytes());
+                            count += ExecuteNonQuery("DELETE FROM IPAddresses WHERE IPAddress = @Param0", conn, tran, ipAddressObj.GetAddressBytes());
                         }
                     }
                     tran.Commit();
