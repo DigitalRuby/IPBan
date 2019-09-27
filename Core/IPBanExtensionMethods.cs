@@ -807,7 +807,7 @@ namespace DigitalRuby.IPBan
         /// <param name="dns">Dns lookup</param>
         /// <param name="addressFamily">Desired address family or null for all</param>
         /// <returns>Local ip address or empty array if unable to determine. If no address family match, falls back to an ipv6 attempt.</returns>
-        public static async Task<System.Net.IPAddress[]> GetLocalIPAddresses(this IDnsLookup dns, System.Net.Sockets.AddressFamily? addressFamily = System.Net.Sockets.AddressFamily.InterNetwork)
+        public static async Task<System.Net.IPAddress[]> GetLocalIPAddressesAsync(this IDnsLookup dns, System.Net.Sockets.AddressFamily? addressFamily = System.Net.Sockets.AddressFamily.InterNetwork)
         {
             try
             {

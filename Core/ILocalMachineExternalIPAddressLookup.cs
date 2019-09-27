@@ -31,36 +31,55 @@ using System.Threading.Tasks;
 namespace DigitalRuby.IPBan
 {
     /// <summary>
-    /// Look up external ip address for this machine
+    /// Look up external ip address for this machine using http get
     /// </summary>
     public interface ILocalMachineExternalIPAddressLookup
     {
         /// <summary>
         /// Get the external ip address of this machine
         /// </summary>
-        /// <param name="requestMaker">Request maker</param>
-        /// <param name="url">Url to resolve with</param>
+        /// <param name="requestMaker">Request maker or null for default</param>
+        /// <param name="url">Url to resolve with or null for default</param>
         /// <returns>External ip address</returns>
-        Task<System.Net.IPAddress> LookupExternalIPAddressAsync(IHttpRequestMaker requestMaker, string url);
+        Task<System.Net.IPAddress> LookupExternalIPAddressAsync(IHttpRequestMaker requestMaker = null, string url = null);
     }
 
+    /// <summary>
+    /// Look up external ip address for this machine using http get
+    /// </summary>
     public class LocalMachineExternalIPAddressLookupDefault : ILocalMachineExternalIPAddressLookup
     {
         /// <summary>
         /// Singleton of LocalMachineExternalIPAddressLookupDefault
         /// </summary>
-        public static LocalMachineExternalIPAddressLookupDefault Instance { get; } = new LocalMachineExternalIPAddressLookupDefault();
+        public static LocalMachineExternalIPAddressLookupDefault Instance { get; } = new LocalMachineExternalIPAddressLookupDefault(new DefaultHttpRequestMaker());
+
+        private readonly IHttpRequestMaker requestMaker;
+
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="requestMaker">Request maker</param>
+        public LocalMachineExternalIPAddressLookupDefault(IHttpRequestMaker requestMaker)
+        {
+            requestMaker.ThrowIfNull();
+            this.requestMaker = requestMaker;
+        }
 
         /// <summary>
         /// Get external ip address of the local machine.
         /// The url should the ip address in text format, and may contain comma separated ip addresses, in which case the last value will be used.
         /// </summary>
-        /// <param name="requestMaker">Request maker</param>
-        /// <param name="url">Url</param>
+        /// <param name="requestMaker">Request maker or null for default</param>
+        /// <param name="url">Url or null for default</param>
         /// <returns>IP address</returns>
-        public async Task<System.Net.IPAddress> LookupExternalIPAddressAsync(IHttpRequestMaker requestMaker, string url)
+        public async Task<System.Net.IPAddress> LookupExternalIPAddressAsync(IHttpRequestMaker requestMaker = null, string url = null)
         {
-            byte[] bytes = await requestMaker.MakeRequestAsync(new Uri(url));
+            if (string.IsNullOrWhiteSpace(url))
+            {
+                url = "https://checkip.amazonaws.com";
+            }
+            byte[] bytes = await (requestMaker ?? this.requestMaker).MakeRequestAsync(new Uri(url));
             string ipString = Encoding.UTF8.GetString(bytes).Split(',').Last().Trim();
             if (System.Net.IPAddress.TryParse(ipString, out System.Net.IPAddress ipAddress))
             {
@@ -87,7 +106,13 @@ namespace DigitalRuby.IPBan
         /// </summary>
         public static LocalMachineExternalIPAddressLookupTest Instance { get; } = new LocalMachineExternalIPAddressLookupTest();
 
-        public Task<IPAddress> LookupExternalIPAddressAsync(IHttpRequestMaker requestMaker, string url)
+        /// <summary>
+        /// Just returns loopback ip
+        /// </summary>
+        /// <param name="requestMaker">N/A</param>
+        /// <param name="url">N/A</param>
+        /// <returns>Loopback ip</returns>
+        public Task<IPAddress> LookupExternalIPAddressAsync(IHttpRequestMaker requestMaker = null, string url = null)
         {
             return Task.FromResult(System.Net.IPAddress.Loopback);
         }
