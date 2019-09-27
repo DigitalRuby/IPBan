@@ -950,6 +950,68 @@ namespace DigitalRuby.IPBan
         }
 
         /// <summary>
+        /// Get a System.Type from a string, searching loaded and referenced assemblies if needed
+        /// </summary>
+        /// <param name="typeString"></param>
+        /// <returns>System.Type or null if none found</returns>
+        public static Type GetTypeFromString(string typeString)
+        {
+            Type type = Type.GetType(typeString);
+            if (type != null)
+            {
+                return type;
+            }
+
+            Assembly[] assemblies = AppDomain.CurrentDomain.GetAssemblies();
+            foreach (Assembly assembly in assemblies)
+            {
+                type = assembly.GetType(typeString);
+                if (type != null)
+                {
+                    return type;
+                }
+            }
+            List<Assembly> loadedAssemblies = assemblies.ToList();
+            foreach (Assembly assembly in assemblies)
+            {
+                foreach (AssemblyName referencedAssemblyName in assembly.GetReferencedAssemblies())
+                {
+                    if (!loadedAssemblies.All(x => x.GetName() != referencedAssemblyName))
+                    {
+                        try
+                        {
+                            Assembly referencedAssembly = Assembly.Load(referencedAssemblyName);
+                            type = referencedAssembly.GetType(typeString);
+                            if (type != null)
+                            {
+                                return type;
+                            }
+                            loadedAssemblies.Add(referencedAssembly);
+                        }
+                        catch
+                        {
+                            // We will ignore this, because the Type might still be in one of the other Assemblies.
+                        }
+                    }
+                }
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Check if type is an anonymous type
+        /// </summary>
+        /// <param name="type">Type</param>
+        /// <returns>True if anonymous type, false otherwise</returns>
+        public static bool IsAnonymousType(this Type type)
+        {
+            return (type != null && Attribute.IsDefined(type, typeof(System.Runtime.CompilerServices.CompilerGeneratedAttribute), false) &&
+                type.IsGenericType && type.Name.Contains("AnonymousType", StringComparison.OrdinalIgnoreCase) &&
+                (type.Name.StartsWith("<>") || type.Name.StartsWith("VB$", StringComparison.OrdinalIgnoreCase)) &&
+                type.Attributes.HasFlag(TypeAttributes.NotPublic));
+        }
+
+        /// <summary>
         /// Make a task execute synchronously
         /// </summary>
         /// <param name="task">Task</param>
