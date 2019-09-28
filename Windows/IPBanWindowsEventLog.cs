@@ -4,6 +4,8 @@
  * assemblies.
  * ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
 
+ #if NEEDS_EVENT_LOG_TYPES
+
 using Microsoft.Win32.SafeHandles;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -6158,3 +6160,5 @@ namespace System.Diagnostics.Eventing.Reader
         }
     }
 }
+
+ #endif
