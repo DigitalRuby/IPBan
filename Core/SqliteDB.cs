@@ -9,6 +9,8 @@ namespace DigitalRuby.IPBan
 {
     public abstract class SqliteDB : IDisposable
     {
+        private readonly string additionalPragmas;
+
         /// <summary>
         /// Wraps a transaction
         /// </summary>
@@ -20,16 +22,6 @@ namespace DigitalRuby.IPBan
             {
                 DBConnection = conn;
                 this.disposeConnection = disposeConnection;
-                using (SqliteCommand command = DBConnection.CreateCommand())
-                {
-                    command.CommandText = "PRAGMA auto_vacuum = INCREMENTAL;";
-                    command.ExecuteNonQuery();
-                }
-                using (SqliteCommand command = DBConnection.CreateCommand())
-                {
-                    command.CommandText = "PRAGMA journal_mode = WAL;";
-                    command.ExecuteNonQuery();
-                }
                 DBTransaction = DBConnection.BeginTransaction(TransactionLevel);
             }
 
@@ -274,8 +266,7 @@ namespace DigitalRuby.IPBan
             if (conn != InMemoryConnection)
             {
                 conn.Open();
-                ExecuteNonQuery("PRAGMA auto_vacuum = INCREMENTAL;", conn, null);
-                ExecuteNonQuery("PRAGMA journal_mode = WAL;", conn, null);
+                ExecuteNonQuery($"PRAGMA auto_vacuum = INCREMENTAL; PRAGMA journal_mode = WAL; PRAGMA busy_timeout = 30000; PRAGMA synchronous = NORMAL; PRAGMA foreign_keys = ON; PRAGMA temp_store = MEMORY; {additionalPragmas}", conn, (SqliteTransaction)null);
             }
         }
 
@@ -296,8 +287,7 @@ namespace DigitalRuby.IPBan
         /// </summary>
         protected virtual void OnInitialize()
         {
-            ExecuteNonQuery("PRAGMA auto_vacuum = INCREMENTAL;");
-            ExecuteNonQuery("PRAGMA journal_mode = WAL;");
+
         }
 
         /// <summary>
@@ -324,20 +314,22 @@ namespace DigitalRuby.IPBan
         /// <summary>
         /// Constructor
         /// </summary>
-        /// <param name="dbPath">Database full path or just the file name. Can use </param>
-        public SqliteDB(string dbPath)
+        /// <param name="dbPath">Database full path or just the file name. Can use SqliteDB.DbPathInMemory for in memory db.</param>
+        /// <param name="additionalPragmas">Pragma statements for new connection (semi-colon delimited), or null for none</param>
+        public SqliteDB(string dbPath, string additionalPragmas = null)
         {
             if (dbPath == DbPathInMemory)
             {
-                InMemoryConnection = new SqliteConnection(ConnectionString = ("Data Source=" + dbPath));
+                InMemoryConnection = new SqliteConnection(ConnectionString = ($"Data Source={dbPath}"));
                 InMemoryConnection.Open();
             }
             else
             {
                 dbPath.ThrowIfNullOrEmpty(nameof(dbPath));
                 dbPath = (Path.IsPathRooted(dbPath) ? dbPath : Path.Combine(AppDomain.CurrentDomain.BaseDirectory, dbPath));
-                ConnectionString = "Data Source=" + dbPath;
+                ConnectionString = $"Data Source={dbPath}";
             }
+            this.additionalPragmas = (additionalPragmas ?? string.Empty).Trim();
             OnInitialize();
         }
 
