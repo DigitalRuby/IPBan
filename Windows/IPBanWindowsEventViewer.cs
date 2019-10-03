@@ -301,7 +301,7 @@ namespace DigitalRuby.IPBan
                     return null;
                 }
                 service.AddIPAddressLogEvents(new IPAddressLogEvent[] { info });
-                IPBanLog.Debug("Event viewer found: {0}, {1}, {2}, {4}", info.IPAddress, info.Source, info.UserName, info.Type);
+                IPBanLog.Debug("Event viewer found: {0}, {1}, {2}, {3}", info.IPAddress, info.Source, info.UserName, info.Type);
             }
             return info;
         }
