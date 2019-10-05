@@ -1,16 +1,15 @@
-# Current Version: 1.5.0.0
+VERSION_DOTS="1.5.1.0"
+VERSION_UNDERSCORES=${VERSION_DOTS//./_}
+FILE_NAME="IPBan-Linux-x64_$VERSION_UNDERSCORES.zip"
 
 # run entire script from url, do sudo -i first
 # sudo -i; bash <(wget -qO- https://raw.githubusercontent.com/DigitalRuby/IPBan/master/Linux/Scripts/Install.sh)
 
-# install unzipper
-sudo apt-get -q -y install unzip
-
-# install iptables and ipset, make folder /opt/ipban
-sudo apt-get install -q -y iptables; sudo apt-get install -q -y ipset; sudo apt-get -q -y update; sudo mkdir /opt/ipban; cd /opt/ipban;
+# install unzipper, install iptables and ipset, make folder /opt/ipban
+sudo apt-get -q -y install unzip; sudo apt-get install -q -y iptables; sudo apt-get install -q -y ipset; sudo apt-get -q -y update; sudo mkdir /opt/ipban; cd /opt/ipban;
 
 # download latest release and extract to /opt/ipban
-sudo wget https://github.com/DigitalRuby/IPBan/releases/download/1.5.0.0/IPBan_1_5_0_0.zip; unzip *.zip; unzip IPBan-Linux-x64.zip; rm *.zip;
+sudo wget https://github.com/DigitalRuby/IPBan/releases/download/$VERSION_DOTS/$FILE_NAME; unzip $FILE_NAME; rm $FILE_NAME;
 
 # allow execute permissions for /opt/ipban/DigitalRuby.IPBan
 sudo chmod +x /opt/ipban/DigitalRuby.IPBan
