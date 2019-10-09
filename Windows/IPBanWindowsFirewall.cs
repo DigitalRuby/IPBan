@@ -276,7 +276,7 @@ namespace DigitalRuby.IPBan
             }
             catch (Exception ex)
             {
-                IPBanLog.Error(ex);
+                IPBanLog.Error("Error deleting rules", ex);
                 return false;
             }
         }

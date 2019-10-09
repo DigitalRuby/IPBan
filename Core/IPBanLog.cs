@@ -29,6 +29,7 @@ using System;
 using System.Configuration;
 using System.IO;
 using System.Reflection;
+using System.Text;
 
 #endregion Imports
 
@@ -201,6 +202,21 @@ namespace DigitalRuby.IPBan
             }
         }
 
+        private static string FormatException(Exception ex)
+        {
+            StringBuilder b = new StringBuilder();
+            while (ex != null)
+            {
+                b.AppendFormat(ex.ToString());
+                if (ex.InnerException != null)
+                {
+                    b.AppendLine("---");
+                }
+                ex = ex.InnerException;
+            }
+            return b.ToString();
+        }
+
         /// <summary>
         /// Log current log levels
         /// </summary>
@@ -266,7 +282,7 @@ namespace DigitalRuby.IPBan
         /// <param name="ex">Error</param>
         public static void Fatal(Exception ex)
         {
-            Write(LogLevel.Fatal, IPBanService.UtcNow, "Exception: " + ex.ToString());
+            Write(LogLevel.Fatal, IPBanService.UtcNow, "Fatal Exception: " + FormatException(ex));
         }
 
         /// <summary>
@@ -276,7 +292,7 @@ namespace DigitalRuby.IPBan
         /// <param name="ex">Error</param>
         public static void Fatal(string text, Exception ex)
         {
-            Write(LogLevel.Fatal, IPBanService.UtcNow, text + ": " + ex.ToString());
+            Write(LogLevel.Fatal, IPBanService.UtcNow, text + ": " + FormatException(ex));
         }
 
         /// <summary>
@@ -287,7 +303,7 @@ namespace DigitalRuby.IPBan
         /// <param name="args">Format args</param>
         public static void Fatal(Exception ex, string text, params object[] args)
         {
-            Write(LogLevel.Fatal, IPBanService.UtcNow, string.Format(text, args) + ": " + ex.ToString());
+            Write(LogLevel.Fatal, IPBanService.UtcNow, string.Format(text, args) + ": " + FormatException(ex));
         }
 
         /// <summary>
@@ -299,7 +315,7 @@ namespace DigitalRuby.IPBan
         /// <param name="args">Format args</param>
         public static void Fatal(Exception ex, DateTime ts, string text, params object[] args)
         {
-            Write(LogLevel.Fatal, ts, string.Format(text, args) + ": " + ex.ToString());
+            Write(LogLevel.Fatal, ts, string.Format(text, args) + ": " + FormatException(ex));
         }
 
         /// <summary>
@@ -318,7 +334,7 @@ namespace DigitalRuby.IPBan
         /// <param name="ex">Error</param>
         public static void Critical(Exception ex)
         {
-            Write(LogLevel.Critical, IPBanService.UtcNow, "Exception: " + ex.ToString());
+            Write(LogLevel.Critical, IPBanService.UtcNow, "Critical Exception: " + FormatException(ex));
         }
 
         /// <summary>
@@ -328,7 +344,7 @@ namespace DigitalRuby.IPBan
         /// <param name="ex">Error</param>
         public static void Critical(string text, Exception ex)
         {
-            Write(LogLevel.Critical, IPBanService.UtcNow, text + ": " + ex.ToString());
+            Write(LogLevel.Critical, IPBanService.UtcNow, text + ": " + FormatException(ex));
         }
 
         /// <summary>
@@ -339,7 +355,7 @@ namespace DigitalRuby.IPBan
         /// <param name="args">Format args</param>
         public static void Critical(Exception ex, string text, params object[] args)
         {
-            Write(LogLevel.Critical, IPBanService.UtcNow, string.Format(text, args) + ": " + ex.ToString());
+            Write(LogLevel.Critical, IPBanService.UtcNow, string.Format(text, args) + ": " + FormatException(ex));
         }
 
         /// <summary>
@@ -352,7 +368,7 @@ namespace DigitalRuby.IPBan
         public static void Critical(Exception ex, DateTime ts, string text, params object[] args)
         {
             text = (string.IsNullOrWhiteSpace(text) ? string.Empty : string.Format(text, args) + " : ");
-            Write(LogLevel.Critical, ts, text + ex.ToString());
+            Write(LogLevel.Critical, ts, text + FormatException(ex));
         }
 
         /// <summary>
@@ -371,7 +387,7 @@ namespace DigitalRuby.IPBan
         /// <param name="ex">Error</param>
         public static void Error(Exception ex)
         {
-            Write(LogLevel.Error, IPBanService.UtcNow, "Exception: " + ex.ToString());
+            Write(LogLevel.Error, IPBanService.UtcNow, "Error Exception: " + FormatException(ex));
         }
 
         /// <summary>
@@ -381,7 +397,7 @@ namespace DigitalRuby.IPBan
         /// <param name="ex">Error</param>
         public static void Error(string text, Exception ex)
         {
-            Write(LogLevel.Error, IPBanService.UtcNow, text + ": " + ex.ToString());
+            Write(LogLevel.Error, IPBanService.UtcNow, text + ": " + FormatException(ex));
         }
 
         /// <summary>
@@ -392,7 +408,7 @@ namespace DigitalRuby.IPBan
         /// <param name="args">Format args</param>
         public static void Error(Exception ex, string text, params object[] args)
         {
-            Write(LogLevel.Error, IPBanService.UtcNow, string.Format(text, args) + ": " + ex.ToString());
+            Write(LogLevel.Error, IPBanService.UtcNow, string.Format(text, args) + ": " + FormatException(ex));
         }
 
         /// <summary>
@@ -405,7 +421,7 @@ namespace DigitalRuby.IPBan
         public static void Error(Exception ex, DateTime ts, string text, params object[] args)
         {
             text = (string.IsNullOrWhiteSpace(text) ? string.Empty : string.Format(text, args) + " : ");
-            Write(LogLevel.Error, ts, text + ex.ToString());
+            Write(LogLevel.Error, ts, text + FormatException(ex));
         }
 
         /// <summary>

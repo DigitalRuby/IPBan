@@ -232,7 +232,7 @@ namespace DigitalRuby.IPBan
             }
             catch (Exception ex)
             {
-                IPBanLog.Error(ex);
+                IPBanLog.Error("Error determining platform info", ex);
             }
         }
 
@@ -405,7 +405,7 @@ namespace DigitalRuby.IPBan
             }
             catch (Exception ex)
             {
-                IPBanLog.Error(ex);
+                IPBanLog.Error("Error determining if user is active", ex);
             }
 
             return false;
