@@ -219,6 +219,11 @@ namespace DigitalRuby.IPBanTests
                     @"<Event xmlns='http://schemas.microsoft.com/win/2004/08/events/event'><System><Provider Name='MSSQLSERVER'/><EventID Qualifiers='49152'>18456</EventID><Level>0</Level><Task>4</Task><Keywords>0x90000000000000</Keywords><TimeCreated SystemTime='2019-10-03T14:58:10.000000000Z'/><EventRecordID>252736</EventRecordID><Channel>Application</Channel><Computer>MyComputer</Computer><Security/></System><EventData><Data>U$er_Name,To Be-Found !</Data><Data> Raison : impossible de trouver une connexion correspondant au nom fourni.</Data><Data> [CLIENT : 10.20.30.40]</Data><Binary>184800000E000000090000004E0053003500320034003400300036000000070000006D00610073007400650072000000</Binary></EventData></Event>",
                     "10.20.30.40,U$er_Name,To Be-Found !,MSSQL,0"
                 ),
+                new KeyValuePair<string, string>
+                (
+                    @"<Event xmlns='http://schemas.microsoft.com/win/2004/08/events/event'><System><Provider Name='MSSQL$SQLEXPRESS'/><EventID Qualifiers='49152'>18456</EventID><Level>0</Level><Task>4</Task><Keywords>0x90000000000000</Keywords><TimeCreated SystemTime='2019-10-09T13:49:38.389639000Z'/><EventRecordID>599309</EventRecordID><Channel>Application</Channel><Computer>MyComputer</Computer><Security/></System><EventData><Data>sa</Data><Data> Raison : le mot de passe ne correspond pas à la connexion spécifiée.</Data><Data> [CLIENT : 10.0.0.1]</Data><Binary>184800000E000000090000004E0053003500320034003400300036000000070000006D00610073007400650072000000</Binary></EventData></Event>",
+                    "10.0.0.1,sa,MSSQL,0"
+                ),
             };
             for (int i = 0; i < 5; i++)
             {
@@ -239,6 +244,7 @@ namespace DigitalRuby.IPBanTests
             string[] expected = new string[]
             {
                 "1.2.3.4",
+                "10.0.0.1",
                 "10.20.30.40",
                 "37.140.141.29",
                 "37.191.115.2",
