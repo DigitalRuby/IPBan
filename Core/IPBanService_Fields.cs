@@ -40,7 +40,6 @@ namespace DigitalRuby.IPBan
     {
         private System.Timers.Timer cycleTimer;
         private bool firewallNeedsBlockedIPAddressesUpdate;
-        private bool gotStartUrl;
         private IPBanDB ipDB;
 
         // batch failed logins every cycle
@@ -55,6 +54,11 @@ namespace DigitalRuby.IPBan
         private readonly CancellationTokenSource firewallQueueCancel = new CancellationTokenSource();
 
         private bool whitelistChanged;
+
+        /// <summary>
+        /// Whether start url has been gotten
+        /// </summary>
+        protected bool GotStartUrl { get; set; }
 
         /// <summary>
         /// IPBan Assembly
@@ -224,6 +228,5 @@ namespace DigitalRuby.IPBan
         /// File name to write ip addresses to (one per line) to unblock the ip addresses in the file
         /// </summary>
         public string UnblockIPAddressesFileName { get; } = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "unban.txt");
-        string IBannedIPAddressHandler.BaseUrl { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
     }
 }

@@ -40,7 +40,7 @@ using System.Xml;
 
 namespace DigitalRuby.IPBan
 {
-    public partial class IPBanService : IIPBanService, IBannedIPAddressHandler
+    public partial class IPBanService : IIPBanService
     {
         /// <summary>
         /// Constructor
@@ -444,28 +444,6 @@ namespace DigitalRuby.IPBan
         }
 
         /// <summary>
-        /// Does nothing
-        /// </summary>
-        /// <param name="ipAddress">N/A</param>
-        /// <param name="source">N/A</param>
-        /// <param name="userName">N/A</param>
-        /// <param name="osName">N/A</param>
-        /// <param name="osVersion">N/A</param>
-        /// <param name="assemblyVersion">N/A</param>
-        /// <param name="requestMaker">N/A</param>
-        /// <returns>Completed task</returns>
-        Task IBannedIPAddressHandler.HandleBannedIPAddress(string ipAddress, string source, string userName, string osName, string osVersion, string assemblyVersion, IHttpRequestMaker requestMaker)
-        {
-            // do nothing
-            return Task.CompletedTask;
-        }
-
-        /// <summary>
-        /// Does nothing
-        /// </summary>
-        System.Security.SecureString IBannedIPAddressHandler.PublicAPIKey { get; set; }
-
-        /// <summary>
         /// Create a test IPBanService
         /// </summary>
         /// <param name="directory">Root directory</param>
@@ -512,7 +490,7 @@ namespace DigitalRuby.IPBan
             service.ManualCycle = true;
             if (defaultBannedIPAddressHandlerUrl is null)
             {
-                service.BannedIPAddressHandler = service;
+                service.BannedIPAddressHandler = NullBannedIPAddressHandler.Instance;
             }
             else
             {

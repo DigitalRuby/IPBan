@@ -123,4 +123,42 @@ namespace DigitalRuby.IPBan
         /// </summary>
         public SecureString PublicAPIKey { get; set; }
     }
+
+    /// <summary>
+    /// Null banned ip address handler, does nothing
+    /// </summary>
+    public class NullBannedIPAddressHandler : IBannedIPAddressHandler
+    {
+        /// <summary>
+        /// Not implemented
+        /// </summary>
+        string IBannedIPAddressHandler.BaseUrl { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+
+        /// <summary>
+        /// Not implemented
+        /// </summary>
+        SecureString IBannedIPAddressHandler.PublicAPIKey { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+
+        /// <summary>
+        /// Does nothing
+        /// </summary>
+        /// <param name="ipAddress">N/A</param>
+        /// <param name="source">N/A</param>
+        /// <param name="userName">N/A</param>
+        /// <param name="osName">N/A</param>
+        /// <param name="osVersion">N/A</param>
+        /// <param name="assemblyVersion">N/A</param>
+        /// <param name="requestMaker">N/A</param>
+        /// <returns>Completed task</returns>
+        Task IBannedIPAddressHandler.HandleBannedIPAddress(string ipAddress, string source, string userName, string osName, string osVersion, string assemblyVersion, IHttpRequestMaker requestMaker)
+        {
+            // do nothing
+            return Task.CompletedTask;
+        }
+
+        /// <summary>
+        /// Singleton instance
+        /// </summary>
+        public static NullBannedIPAddressHandler Instance { get; } = new NullBannedIPAddressHandler();
+    }
 }

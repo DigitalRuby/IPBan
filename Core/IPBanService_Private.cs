@@ -212,12 +212,6 @@ namespace DigitalRuby.IPBan
                 }
             }
 
-            // hit start url if first time, if not first time will be ignored
-            await GetUrl(UrlType.Start);
-
-            // send update
-            await GetUrl(UrlType.Update);
-
             // request new config file
             await GetUrl(UrlType.Config);
         }
@@ -726,7 +720,8 @@ namespace DigitalRuby.IPBan
 
         private async Task UpdateDelegate()
         {
-            if (IPBanDelegate is null)
+            IIPBanDelegate delg = IPBanDelegate;
+            if (delg is null)
             {
                 return;
             }
@@ -734,9 +729,9 @@ namespace DigitalRuby.IPBan
             try
             {
                 // ensure we are notified of whitelist updates
-                IPBanDelegate.WhitelistChanged -= WhitelistChangedFromDelegate;
-                IPBanDelegate.WhitelistChanged += WhitelistChangedFromDelegate;
-                await IPBanDelegate.Update();
+                delg.WhitelistChanged -= WhitelistChangedFromDelegate;
+                delg.WhitelistChanged += WhitelistChangedFromDelegate;
+                await delg.Update();
             }
             catch (Exception ex)
             {
@@ -744,15 +739,15 @@ namespace DigitalRuby.IPBan
             }
         }
 
-        protected virtual async Task GetUrl(UrlType urlType)
+        protected virtual async Task<bool> GetUrl(UrlType urlType)
         {
-            if ((urlType == UrlType.Start && gotStartUrl) || string.IsNullOrWhiteSpace(LocalIPAddressString) || string.IsNullOrWhiteSpace(FQDN))
+            if ((urlType == UrlType.Start && GotStartUrl) || string.IsNullOrWhiteSpace(LocalIPAddressString) || string.IsNullOrWhiteSpace(FQDN))
             {
-                return;
+                return false;
             }
             else if (urlType == UrlType.Stop)
             {
-                gotStartUrl = false;
+                GotStartUrl = false;
             }
             string url;
             switch (urlType)
@@ -761,7 +756,7 @@ namespace DigitalRuby.IPBan
                 case UrlType.Stop: url = Config.GetUrlStop; break;
                 case UrlType.Update: url = Config.GetUrlUpdate; break;
                 case UrlType.Config: url = Config.GetUrlConfig; break;
-                default: return;
+                default: return false;
             }
 
             if (!string.IsNullOrWhiteSpace(url))
@@ -773,7 +768,7 @@ namespace DigitalRuby.IPBan
                     byte[] bytes = await RequestMaker.MakeRequestAsync(new Uri(url), headers: headers);
                     if (urlType == UrlType.Start)
                     {
-                        gotStartUrl = true;
+                        GotStartUrl = true;
                     }
                     else if (urlType == UrlType.Update)
                     {
@@ -800,10 +795,18 @@ namespace DigitalRuby.IPBan
                     IPBanLog.Error(ex, "Error getting url of type {0} at {1}", urlType, url);
                 }
             }
+            return true;
         }
 
         private async Task UpdateUpdaters()
         {
+            // hit start url if first time, if not first time will be ignored
+            if (!(await GetUrl(UrlType.Start)))
+            {
+                // send update
+                await GetUrl(UrlType.Update);
+            }
+
             List<IUpdater> updatersTemp;
 
             // lock only long enough to copy the updaters
