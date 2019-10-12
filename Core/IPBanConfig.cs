@@ -203,33 +203,49 @@ namespace DigitalRuby.IPBan
 
             if (!string.IsNullOrWhiteSpace(setValue))
             {
-                foreach (string v in setValue.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
+                foreach (string entry in setValue.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(e => e.Trim()))
                 {
-                    string ipOrDns = v.Trim();
-                    if (ipOrDns != "0.0.0.0" && ipOrDns != "::0" && ipOrDns != "127.0.0.1" && ipOrDns != "::1")
+                    if (entry != "0.0.0.0" && entry != "::0" && entry != "127.0.0.1" && entry != "::1" && entry != "localhost")
                     {
                         try
                         {
-                            if (IPAddressRange.TryParse(ipOrDns, out IPAddressRange range))
+                            if (IPAddressRange.TryParse(entry, out IPAddressRange range))
                             {
                                 if (range.Begin.Equals(range.End))
                                 {
-                                    set.Add(ipOrDns);
+                                    set.Add(entry);
                                 }
                                 else if (!ranges.Contains(range))
                                 {
                                     ranges.Add(range);
                                 }
                             }
-                            else if (dns != null)
+                            else
                             {
-                                IPAddress[] addresses = dns.GetHostEntryAsync(ipOrDns).Sync().AddressList;
-                                if (addresses != null)
+                                if (dns != null)
                                 {
-                                    foreach (IPAddress adr in addresses)
+                                    try
                                     {
-                                        set.Add(adr.ToString());
+                                        // add entries for each ip address that matches the dns entry
+                                        IPAddress[] addresses = dns.GetHostEntryAsync(entry).Sync().AddressList;
+                                        if (addresses != null)
+                                        {
+                                            foreach (IPAddress adr in addresses)
+                                            {
+                                                set.Add(adr.ToString());
+                                            }
+                                        }
                                     }
+                                    catch
+                                    {
+                                        // eat exception, nothing we can do, just add the entry itself
+                                        set.Add(entry);
+                                    }
+                                }
+                                else
+                                {
+                                    // add the entry itself
+                                    set.Add(entry);
                                 }
                             }
                         }
