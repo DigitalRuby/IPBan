@@ -24,13 +24,14 @@ SOFTWARE.
 
 #region Imports
 
-using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Globalization;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml.Serialization;
+
+using Newtonsoft.Json;
 
 #endregion Imports
 

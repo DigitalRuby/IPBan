@@ -802,6 +802,32 @@ namespace DigitalRuby.IPBan
         }
 
         /// <summary>
+        /// Get all assemblies with at least one class matching a type
+        /// </summary>
+        /// <param name="type">Type to match</param>
+        /// <returns>Assemblies with that type</returns>
+        public static IEnumerable<Assembly> GetAssembliesWithType(Type type)
+        {
+            foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
+            {
+                Type[] types;
+                try
+                {
+                    types = assembly.GetTypes();
+                }
+                catch
+                {
+                    // some assemblys throw in unit tests in VS 2019, bug in MSFT...
+                    continue;
+                }
+                if (types.Any(t => t.IsSubclassOf(type)))
+                {
+                    yield return assembly;
+                }
+            }
+        }
+
+        /// <summary>
         /// Get the local ip addresses of the local machine
         /// </summary>
         /// <param name="dns">Dns lookup</param>

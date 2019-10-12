@@ -158,14 +158,6 @@ namespace DigitalRuby.IPBan
                     if (!File.Exists(nlogConfigPath))
                     {
                         string logLevel = "Warn";
-                        foreach (Assembly a in AppDomain.CurrentDomain.GetAssemblies())
-                        {
-                            if (a.FullName.IndexOf("nunit.framework", StringComparison.OrdinalIgnoreCase) >= 0)
-                            {
-                                logLevel = "Trace";
-                                break;
-                            }
-                        }
 
                         Console.WriteLine("Creating default nlog.config file");
 

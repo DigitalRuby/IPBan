@@ -281,7 +281,7 @@ namespace DigitalRuby.IPBan
             try
             {
                 IsRunning = true;
-                ipDB = new IPBanDB(DatabasePath);
+                ipDB = new IPBanDB(DatabasePath ?? "ipban.sqlite");
                 AddWindowsEventViewer();
                 AddUpdater(new IPBanUnblockIPAddressesUpdater(this, Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "unban.txt")));
                 AddUpdater(new IPBanBlockIPAddressesUpdater(this, Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ban.txt")));
@@ -461,7 +461,9 @@ namespace DigitalRuby.IPBan
                 .Union(Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory, "*.tbl"))
                 .Union(Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory, "*.set6"))
                 .Union(Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory, "*.tbl6"))
-                .Union(Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory, "*.sqlite*"))
+                .Union(Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory, "*.sqlite"))
+                .Union(Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory, "*.sqlite-wal"))
+                .Union(Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory, "*.sqlite-shm"))
                 .Union(Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory, "*journal*")))
             {
                 IPBanExtensionMethods.FileDeleteWithRetry(file, 1000);

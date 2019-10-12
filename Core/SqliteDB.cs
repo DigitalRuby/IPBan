@@ -295,18 +295,16 @@ namespace DigitalRuby.IPBan
         /// </summary>
         static SqliteDB()
         {
-            SQLitePCL.Batteries.Init();
             for (int i = 0; i < 10; i++)
             {
                 try
                 {
-                    // net core 3, fails to load sqlite dll without a delay
-                    using (SqliteCommand tmp = new SqliteCommand()) { }
+                    SQLitePCL.Batteries.Init();
                     break;
                 }
                 catch
                 {
-                    System.Threading.Thread.Sleep(500);
+                    System.Threading.Thread.Sleep(100);
                 }
             }
         }
