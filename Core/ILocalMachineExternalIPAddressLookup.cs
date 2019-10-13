@@ -52,7 +52,7 @@ namespace DigitalRuby.IPBan
         /// <summary>
         /// Singleton of LocalMachineExternalIPAddressLookupDefault
         /// </summary>
-        public static LocalMachineExternalIPAddressLookupDefault Instance { get; } = new LocalMachineExternalIPAddressLookupDefault(new DefaultHttpRequestMaker());
+        public static LocalMachineExternalIPAddressLookupDefault Instance { get; } = new LocalMachineExternalIPAddressLookupDefault(DefaultHttpRequestMaker.Instance);
 
         private readonly IHttpRequestMaker requestMaker;
 
