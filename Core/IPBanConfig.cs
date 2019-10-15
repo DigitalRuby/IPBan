@@ -67,6 +67,7 @@ namespace DigitalRuby.IPBan
         private readonly bool clearBannedIPAddressesOnRestart;
         private readonly HashSet<string> userNameWhitelist = new HashSet<string>(StringComparer.Ordinal);
         private readonly int userNameWhitelistMaximumEditDistance = 2;
+        private readonly Regex userNameWhitelistRegex;
         private readonly int failedLoginAttemptsBeforeBanUserNameWhitelist = 20;
         private readonly Dictionary<string, string> osAndFirewallType = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         private readonly string processToRunOnBan;
@@ -181,6 +182,11 @@ namespace DigitalRuby.IPBan
                 {
                     userNameWhitelist.Add(userNameTrimmed);
                 }
+            }
+            string userNameWhiteListRegexString = GetConfig<string>("UserNameWhiteListRegex", string.Empty);
+            if (!string.IsNullOrWhiteSpace(userNameWhiteListRegexString))
+            {
+                userNameWhitelistRegex = new Regex(userNameWhiteListRegexString, RegexOptions.IgnoreCase | RegexOptions.CultureInvariant | RegexOptions.Singleline);
             }
             GetConfig<int>("UserNameWhiteListMinimumEditDistance", ref userNameWhitelistMaximumEditDistance);
             GetConfig<int>("FailedLoginAttemptsBeforeBanUserNameWhitelist", ref failedLoginAttemptsBeforeBanUserNameWhitelist);
@@ -551,6 +557,21 @@ namespace DigitalRuby.IPBan
         }
 
         /// <summary>
+        /// Check if a user name fails the user name whitelist regex. If the regex is empty, method returns false.
+        /// </summary>
+        /// <param name="userName">User name</param>
+        /// <returns>True if failed the regex, false otherwise</returns>
+        public bool UserNameFailsUserNameWhitelistRegex(string userName)
+        {
+            if (userNameWhitelistRegex is null)
+            {
+                return false;
+            }
+            userName = userName.Normalize().Trim();
+            return !userNameWhitelistRegex.IsMatch(userName);
+        }
+
+        /// <summary>
         /// Checks if a user name is within the maximum edit distance for the user name whitelist.
         /// If userName is null or empty this method returns true.
         /// If the user name whitelist is empty, this method returns true.
@@ -687,6 +708,11 @@ namespace DigitalRuby.IPBan
         /// White list user names. Any user name found not in the list is banned.
         /// </summary>
         public IReadOnlyCollection<string> UserNameWhitelist { get { return userNameWhitelist; } }
+
+        /// <summary>
+        /// User name whitelist regex, or empty if not set.
+        /// </summary>
+        public string UserNameWhitelistRegex {  get { return (userNameWhitelistRegex is null ? string.Empty : userNameWhitelistRegex.ToString()); } }
 
         /// <summary>
         /// Number of failed logins before banning a user name in the user name whitelist

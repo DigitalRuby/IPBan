@@ -734,4 +734,10 @@ Prefix with OS:ClassName, example: Windows:Custom,Linux:Default</value>
   <data name="FirewallRulesTooltip" xml:space="preserve">
     <value>Extra firewall rules, one per line. Great way to persist firewall rules. Format is 'rule-name;allow or block;ip list (comma spearated);allowed port list (comma separated);platform regex'. The name should be kept to 16 or less chars.</value>
   </data>
+  <data name="UserNameWhitelistRegex" xml:space="preserve">
+    <value>User Name Whitelist Regex</value>
+  </data>
+  <data name="UserNameWhitelistRegexTooltip" xml:space="preserve">
+    <value>If set, any user name that fails this regex will result in an immediate ban of the ip address.</value>
+  </data>
 </root>

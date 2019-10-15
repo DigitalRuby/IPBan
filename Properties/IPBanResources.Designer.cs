@@ -1673,6 +1673,24 @@ namespace DigitalRuby.IPBan {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to User Name Whitelist Regex.
+        /// </summary>
+        public static string UserNameWhitelistRegex {
+            get {
+                return ResourceManager.GetString("UserNameWhitelistRegex", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to If set, any user name that fails this regex will result in an immediate ban of the ip address..
+        /// </summary>
+        public static string UserNameWhitelistRegexTooltip {
+            get {
+                return ResourceManager.GetString("UserNameWhitelistRegexTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Comma separated list of user names that are allowed. UserNameWhiteListMinimumEditDistance is checked for user names not in the list to determine whether a failed user name should be banned. Case is ignored. Empty user names are always allowed. *** IMPORTANT*** This can represent an attack vector by a hacker. If they know you are using DigitalRuby.IPBan and they don&apos;t get locked out right away, they might know they are somewhat close to the right user name. Make sure your passwords are complex enough and thi [rest of string was truncated]&quot;;.
         /// </summary>
         public static string UserNameWhitelistTooltip {

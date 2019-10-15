@@ -236,7 +236,7 @@ namespace DigitalRuby.IPBan
                         else
                         {
                             int maxFailedLoginAttempts;
-                            if (Config.IsUserNameWhitelisted(userName))
+                            if (Config.IsWhitelisted(userName))
                             {
                                 maxFailedLoginAttempts = Config.FailedLoginAttemptsBeforeBanUserNameWhitelist;
                             }
@@ -250,8 +250,9 @@ namespace DigitalRuby.IPBan
                             // check for the target user name for additional blacklisting checks
                             bool ipBlacklisted = Config.IsBlackListed(ipAddress);
                             bool userBlacklisted = (ipBlacklisted ? false : Config.IsBlackListed(userName));
-                            bool editDistanceBlacklisted = (ipBlacklisted || userBlacklisted ? false : !Config.IsUserNameWithinMaximumEditDistanceOfUserNameWhitelist(userName));
-                            bool configBlacklisted = ipBlacklisted || userBlacklisted || editDistanceBlacklisted;
+                            bool userFailsWhitelistRegex = (userBlacklisted ? false : Config.UserNameFailsUserNameWhitelistRegex(userName));
+                            bool editDistanceBlacklisted = (ipBlacklisted || userBlacklisted || userFailsWhitelistRegex ? false : !Config.IsUserNameWithinMaximumEditDistanceOfUserNameWhitelist(userName));
+                            bool configBlacklisted = ipBlacklisted || userBlacklisted || userFailsWhitelistRegex || editDistanceBlacklisted;
                             int newCount = ipDB.IncrementFailedLoginCount(ipAddress, UtcNow, failedLogin.Count, transaction);
 
                             IPBanLog.Warn(now, "Login failure: {0}, {1}, {2}, {3}", ipAddress, userName, source, newCount);
@@ -259,7 +260,8 @@ namespace DigitalRuby.IPBan
                             // if the ip address is black listed or the ip address has reached the maximum failed login attempts before ban, ban the ip address
                             if (configBlacklisted || newCount >= maxFailedLoginAttempts)
                             {
-                                IPBanLog.Info("IP blacklisted: {0}, user name blacklisted: {1}, user name edit distance blacklisted: {2}", ipBlacklisted, userBlacklisted, editDistanceBlacklisted);
+                                IPBanLog.Info("IP blacklisted: {0}, user name blacklisted: {1}, fails user name white list regex: {2}, user name edit distance blacklisted: {3}",
+                                    ipBlacklisted, userBlacklisted, userFailsWhitelistRegex, editDistanceBlacklisted);
 
                                 if (ipDB.TryGetIPAddressState(ipAddress, out IPBanDB.IPAddressState state, transaction) &&
                                     (state == IPBanDB.IPAddressState.Active || state == IPBanDB.IPAddressState.AddPending))

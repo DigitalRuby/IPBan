@@ -181,6 +181,7 @@ namespace DigitalRuby.IPBanTests
                 Assert.IsFalse(cfg.ResetFailedLoginCountForUnbannedIPAddresses);
                 Assert.IsTrue(cfg.UseDefaultBannedIPAddressHandler);
                 Assert.IsEmpty(cfg.UserNameWhitelist);
+                Assert.IsEmpty(cfg.UserNameWhitelistRegex);
                 Assert.IsEmpty(cfg.WhiteList);
                 Assert.IsEmpty(cfg.WhiteListRegex);
                 Assert.AreEqual(0, cfg.ExtraRules.Count);
