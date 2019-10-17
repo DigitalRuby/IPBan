@@ -27,7 +27,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
 
-namespace DigitalRuby.IPBan
+namespace DigitalRuby.IPBanCore
 {
     /// <summary>
     /// IPBan integration for external applications

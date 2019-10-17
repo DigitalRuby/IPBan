@@ -19,7 +19,7 @@ You can also visit the ipban discord at https://discord.gg/sHCUHH3 to chat with 
 **Features**
 - Auto ban ip addresses on Windows and Linux by detecting failed logins from event viewer and/or log files. On Linux, SSH is watched by default. On Windows, RDP, OpenSSH, VNC, MySQL, SQL Server and Exchange are watched. More applications can easily be added via config file.
 - Highly configurable, many options to determine failed login count threshold, time to ban, etc.
-- Make sure to check out the DigitalRuby.IPBan.dll.config file for configuration options, each option is documented with comments.
+- Make sure to check out the DigitalRuby.IPBan.dll.config file (in the IPBanCore project) for configuration options, each option is documented with comments.
 - Banning happens basically instantly for event viewer. For log files, you can set how often it polls for changes.
 - Very fast - I've optimized and tuned this code since 2012. The bottleneck is pretty much always the firewall implementation, not this code.
 - Unban ip addresses easily by placing an unban.txt file into the service folder with each ip address on a line to unban.

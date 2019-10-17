@@ -31,7 +31,7 @@ using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace DigitalRuby.IPBan
+namespace DigitalRuby.IPBanCore
 {
     public abstract class IPBanLinuxBaseFirewall : IPBanBaseFirewall, IIPBanFirewall
     {

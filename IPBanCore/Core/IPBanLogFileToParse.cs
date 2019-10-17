@@ -27,7 +27,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Xml.Serialization;
 
-namespace DigitalRuby.IPBan
+namespace DigitalRuby.IPBanCore
 {
     /// <summary>
     /// Log file to parse data

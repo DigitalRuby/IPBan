@@ -2,7 +2,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace DigitalRuby.IPBan
+namespace DigitalRuby.IPBanCore
 {
     /// <summary>
     /// Simple way to lock an Action or Func in an async lock

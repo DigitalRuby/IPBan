@@ -29,7 +29,7 @@ using System.Runtime.InteropServices;
 using System.ServiceProcess;
 using System.Threading.Tasks;
 
-namespace DigitalRuby.IPBan
+namespace DigitalRuby.IPBanCore
 {
     public class IPBanServiceRunner : IDisposable
     {

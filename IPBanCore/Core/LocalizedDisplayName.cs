@@ -24,7 +24,7 @@ SOFTWARE.
 
 using System.ComponentModel;
 
-namespace DigitalRuby.IPBan
+namespace DigitalRuby.IPBanCore
 {
     /// <summary>
     /// Apply a localized display name to an object

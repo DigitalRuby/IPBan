@@ -16,7 +16,7 @@ using System.Text.RegularExpressions;
 using System.Runtime.Serialization;
 #endif
 
-namespace DigitalRuby.IPBan
+namespace DigitalRuby.IPBanCore
 {
     // NOTE: Why implement IReadOnlyDictionary<TKey,TVal> interface? 
     // =============================================================

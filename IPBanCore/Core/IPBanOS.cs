@@ -31,7 +31,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace DigitalRuby.IPBan
+namespace DigitalRuby.IPBanCore
 {
     // cat /etc/*-release
     public static class IPBanOS

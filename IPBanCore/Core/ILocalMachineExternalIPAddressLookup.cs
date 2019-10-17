@@ -28,7 +28,7 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DigitalRuby.IPBan
+namespace DigitalRuby.IPBanCore
 {
     /// <summary>
     /// Look up external ip address for this machine using http get

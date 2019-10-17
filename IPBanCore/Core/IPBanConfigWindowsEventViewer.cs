@@ -35,7 +35,7 @@ using Newtonsoft.Json;
 
 #endregion Imports
 
-namespace DigitalRuby.IPBan
+namespace DigitalRuby.IPBanCore
 {
     /// <summary>
     /// Info about a single Windows event viewer lookup

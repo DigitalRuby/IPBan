@@ -33,7 +33,7 @@ using System.Text;
 
 #endregion Imports
 
-namespace DigitalRuby.IPBan
+namespace DigitalRuby.IPBanCore
 {
     /// <summary>
     /// Log levels
@@ -212,7 +212,7 @@ namespace DigitalRuby.IPBan
         /// <summary>
         /// Log current log levels
         /// </summary>
-        public static void WriteLogLevels(IPBan.LogLevel level = LogLevel.Warn)
+        public static void WriteLogLevels(IPBanCore.LogLevel level = LogLevel.Warn)
         {
             if (logger != null)
             {
@@ -225,16 +225,16 @@ namespace DigitalRuby.IPBan
         /// </summary>
         /// <param name="logLevel">IPBan log level</param>
         /// <returns>NLog log level</returns>
-        public static NLog.LogLevel GetNLogLevel(IPBan.LogLevel logLevel)
+        public static NLog.LogLevel GetNLogLevel(IPBanCore.LogLevel logLevel)
         {
             switch (logLevel)
             {
-                case IPBan.LogLevel.Critical: return NLog.LogLevel.Fatal;
-                case IPBan.LogLevel.Debug: return NLog.LogLevel.Debug;
-                case IPBan.LogLevel.Error: return NLog.LogLevel.Error;
-                case IPBan.LogLevel.Information: return NLog.LogLevel.Info;
-                case IPBan.LogLevel.Trace: return NLog.LogLevel.Trace;
-                case IPBan.LogLevel.Warning: return NLog.LogLevel.Warn;
+                case IPBanCore.LogLevel.Critical: return NLog.LogLevel.Fatal;
+                case IPBanCore.LogLevel.Debug: return NLog.LogLevel.Debug;
+                case IPBanCore.LogLevel.Error: return NLog.LogLevel.Error;
+                case IPBanCore.LogLevel.Information: return NLog.LogLevel.Info;
+                case IPBanCore.LogLevel.Trace: return NLog.LogLevel.Trace;
+                case IPBanCore.LogLevel.Warning: return NLog.LogLevel.Warn;
                 default: return NLog.LogLevel.Off;
             }
         }
@@ -498,7 +498,7 @@ namespace DigitalRuby.IPBan
         /// <param name="args">Format args</param>
         public static void Trace(DateTime ts, string text, params object[] args)
         {
-            Write(LogLevel.Trace, ts, text, args);
+            Write(IPBanCore.LogLevel.Trace, ts, text, args);
         }
 
         /// <summary>
@@ -507,7 +507,7 @@ namespace DigitalRuby.IPBan
         /// <param name="level">Log level</param>
         /// <param name="text">Text with format</param>
         /// <param name="args">Format args</param>
-        private static void Write(IPBan.LogLevel level, string text, params object[] args)
+        private static void Write(IPBanCore.LogLevel level, string text, params object[] args)
         {
             Write(level, IPBanService.UtcNow, text, args);
         }
@@ -519,7 +519,7 @@ namespace DigitalRuby.IPBan
         /// <param name="ts">Timestamp</param>
         /// <param name="text">Text with format</param>
         /// <param name="args">Format args</param>
-        private static void Write(IPBan.LogLevel level, DateTime ts, string text, params object[] args)
+        private static void Write(IPBanCore.LogLevel level, DateTime ts, string text, params object[] args)
         {
             try
             {

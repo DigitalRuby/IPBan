@@ -38,7 +38,7 @@ using System.Xml;
 
 #endregion Imports
 
-namespace DigitalRuby.IPBan
+namespace DigitalRuby.IPBanCore
 {
     public partial class IPBanService : IIPBanService
     {

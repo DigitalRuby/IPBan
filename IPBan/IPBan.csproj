@@ -4,31 +4,21 @@
     <OutputType>Exe</OutputType>
     <TargetFrameworks>netcoreapp3.0</TargetFrameworks>
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <AssemblyVersion>1.5.1.0</AssemblyVersion>
-    <FileVersion>1.5.1.0</FileVersion>
-    <PackageVersion>1.5.1.0</PackageVersion>
+    <Version>1.5.2.0</Version>
     <Company>Digital Ruby, LLC</Company>
-    <Authors>jjxtra</Authors>
     <Copyright>(c) 2010 Digital Ruby, LLC</Copyright>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-    <ApplicationIcon />
     <OutputType>Exe</OutputType>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <StartupObject></StartupObject>
     <TrimUnusedDependencies>true</TrimUnusedDependencies>
     <TargetLatestRuntimePatch>true</TargetLatestRuntimePatch>
-    <PackageId>DigitalRuby.IPBan</PackageId>
-    <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
-    <PackageProjectUrl>https://github.com/DigitalRuby/IPBan</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/DigitalRuby/IPBan</RepositoryUrl>
-    <RepositoryType>git</RepositoryType>
     <Description>Ban ip addresses based on failed login attempts.</Description>
     <Summary>Allow auto-banning ip addresses based on failed logins and rules. Can read event viewer or log files. Windows and Linux supported. Includes firewall API.</Summary>
-    <PackageReleaseNotes>Fix service app crash on reboot of machine on Windows, requires setting startup type to delayed-auto</PackageReleaseNotes>
+    <PackageReleaseNotes></PackageReleaseNotes>
     <DebugType>portable</DebugType>
     <LangVersion>latest</LangVersion>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
-    <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <RootNamespace>DigitalRuby.IPBan</RootNamespace>
     <AssemblyName>DigitalRuby.IPBan</AssemblyName>
     <ApplicationManifest>app.manifest</ApplicationManifest>
@@ -52,7 +42,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="$(ProjectDir)\..\IPBanCore\IPBanCore.csproj" />
+    <ProjectReference Include="..\IPBanCore\IPBanCore.csproj" />
   </ItemGroup>
 
 </Project>

@@ -2,8 +2,25 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
-    <RootNamespace>IPBan</RootNamespace>
+    <RootNamespace>DigitalRuby.IPBanCore</RootNamespace>
     <PreserveCompilationContext>true</PreserveCompilationContext>
+    <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+    <PackageId>DigitalRuby.IPBan</PackageId>
+    <Version>1.5.2.0</Version>
+    <Authors>Jeff Johnson</Authors>
+    <Company>Digital Ruby, LLC</Company>
+    <Product>IPBan</Product>
+    <PackageLicenseFile>../LICENSE.md</PackageLicenseFile>
+    <Description>IPBan is the leading solution to block hackers and botnets. Easily monitor events for all kinds of sources and put the bad ip addresses in the firewall automatically.</Description>
+    <Copyright>(c) 2012 Digital Ruby, LLC</Copyright>
+    <PackageProjectUrl>https://github.com/DigitalRuby/IPBan</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/DigitalRuby/IPBan</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>windows linux firewall hacker botnet block rule security software service email smtp rdp remote desktop ssh auto</PackageTags>
+    <PackageReleaseNotes>Upgrade to .NET core 3, split off the core IPBan code into it's own library.</PackageReleaseNotes>
+    <NeutralLanguage>en</NeutralLanguage>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <AssemblyName>DigitalRuby.IPBanCore</AssemblyName>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -13,10 +30,6 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
-
-  <ItemGroup>
-    <None Remove="DigitalRuby.IPBan.dll.config" />
-  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Data.Sqlite" Version="3.0.0" />
@@ -35,9 +48,9 @@
 
   <ItemGroup>
     <Compile Update="IPBanResources.Designer.cs">
-      <DependentUpon>IPBanResources.resx</DependentUpon>
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
+      <DependentUpon>IPBanResources.resx</DependentUpon>
     </Compile>
   </ItemGroup>
 

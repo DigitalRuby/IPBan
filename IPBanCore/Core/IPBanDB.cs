@@ -28,7 +28,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net;
 
-namespace DigitalRuby.IPBan
+namespace DigitalRuby.IPBanCore
 {
     public class IPBanDB : SqliteDB
     {

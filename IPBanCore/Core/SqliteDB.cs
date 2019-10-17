@@ -5,7 +5,7 @@ using System.Text;
 
 using Microsoft.Data.Sqlite;
 
-namespace DigitalRuby.IPBan
+namespace DigitalRuby.IPBanCore
 {
     public abstract class SqliteDB : IDisposable
     {

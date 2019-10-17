@@ -28,7 +28,7 @@ using System.Security;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace DigitalRuby.IPBan
+namespace DigitalRuby.IPBanCore
 {
     /// <summary>
     /// IP address event interface

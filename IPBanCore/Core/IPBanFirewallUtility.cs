@@ -29,7 +29,7 @@ using System.Net;
 using System.Reflection;
 using System.Text;
 
-namespace DigitalRuby.IPBan
+namespace DigitalRuby.IPBanCore
 {
     /// <summary>
     /// Utility methods for working with firewall data

@@ -30,7 +30,7 @@ using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
-using DigitalRuby.IPBan;
+using DigitalRuby.IPBanCore;
 
 using NUnit.Framework;
 

@@ -26,6 +26,8 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 
+using DigitalRuby.IPBanCore;
+
 namespace DigitalRuby.IPBan
 {
     /// <summary>

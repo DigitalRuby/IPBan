@@ -45,7 +45,7 @@ using System.Xml.Serialization;
 
 #endregion Imports
 
-namespace DigitalRuby.IPBan
+namespace DigitalRuby.IPBanCore
 {
     /// <summary>
     /// Extension methods for IPBan

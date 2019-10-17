@@ -24,7 +24,7 @@ SOFTWARE.
 
 using System.Threading.Tasks;
 
-namespace DigitalRuby.IPBan
+namespace DigitalRuby.IPBanCore
 {
     /// <summary>
     /// Base firewall class that all firewall implementations should inherit from

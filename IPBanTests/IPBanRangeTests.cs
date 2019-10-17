@@ -1,4 +1,4 @@
-﻿using DigitalRuby.IPBan;
+﻿using DigitalRuby.IPBanCore;
 
 using NUnit.Framework;
 

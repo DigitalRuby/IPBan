@@ -28,7 +28,7 @@ using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace DigitalRuby.IPBan
+namespace DigitalRuby.IPBanCore
 {
     [RequiredOperatingSystem(IPBanOS.Linux)]
     [CustomName("Default")]

@@ -24,7 +24,7 @@ SOFTWARE.
 
 using System.Text.RegularExpressions;
 
-namespace DigitalRuby.IPBan
+namespace DigitalRuby.IPBanCore
 {
     public class IPBanIPAddressLogFileScanner : IPBanLogFileScanner
     {

@@ -38,7 +38,7 @@ using System.Threading.Tasks;
 
 #endregion Imports
 
-namespace DigitalRuby.IPBan
+namespace DigitalRuby.IPBanCore
 {
     // TODO: Use https://github.com/falahati/NetworkAdapterSelector/blob/master/NetworkAdapterSelector.Hook/Guest.cs
     // https://falahati.net/my-blog/103-bind-ip-in-c-sharp-code-injection-shell-extension

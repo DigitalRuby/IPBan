@@ -38,7 +38,7 @@ using System.Text;
 
 // TODO: If we ever can't use COM, we need to switch to this implementation of Windows firewall
 
-namespace DigitalRuby.IPBan
+namespace DigitalRuby.IPBanCore
 {
     /// <summary>
     /// Helper class for Windows firewall and banning ip addresses.

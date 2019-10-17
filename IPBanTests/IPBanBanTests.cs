@@ -29,7 +29,8 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
-using DigitalRuby.IPBan;
+
+using DigitalRuby.IPBanCore;
 
 using NUnit.Framework;
 
