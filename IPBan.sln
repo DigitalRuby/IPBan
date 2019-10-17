@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.27703.2026
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29409.12
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{6822D44E-F078-4FD9-8770-D7A8B1B41CF8}"
 	ProjectSection(SolutionItems) = preProject
@@ -10,9 +10,19 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{6822D4
 		.nuget\NuGet.targets = .nuget\NuGet.targets
 	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IPBan", "IPBan.csproj", "{BF7A13A4-7DE6-49DE-89AC-6EA15AB6CD07}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IPBan", "IPBan\IPBan.csproj", "{BF7A13A4-7DE6-49DE-89AC-6EA15AB6CD07}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IPBanTests", "IPBanTests\IPBanTests.csproj", "{03C5299A-9F93-495B-9F2B-4D18B7101584}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IPBanTests", "IPBanTests\IPBanTests.csproj", "{03C5299A-9F93-495B-9F2B-4D18B7101584}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IPBanCore", "IPBanCore\IPBanCore.csproj", "{9940E02E-7136-4357-BA2E-157839F60CED}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionItems", "SolutionItems", "{8E9EED12-B723-40A8-B468-0FEC9CBEC181}"
+	ProjectSection(SolutionItems) = preProject
+		azure-pipelines.yml = azure-pipelines.yml
+		ISSUE_TEMPLATE.md = ISSUE_TEMPLATE.md
+		IPBan\LICENSE.md = IPBan\LICENSE.md
+		README.md = README.md
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -28,6 +38,10 @@ Global
 		{03C5299A-9F93-495B-9F2B-4D18B7101584}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{03C5299A-9F93-495B-9F2B-4D18B7101584}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{03C5299A-9F93-495B-9F2B-4D18B7101584}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9940E02E-7136-4357-BA2E-157839F60CED}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9940E02E-7136-4357-BA2E-157839F60CED}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9940E02E-7136-4357-BA2E-157839F60CED}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9940E02E-7136-4357-BA2E-157839F60CED}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

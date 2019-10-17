@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFrameworks>netcoreapp3.0;netcoreapp2.2</TargetFrameworks>
+    <TargetFrameworks>netcoreapp3.0</TargetFrameworks>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <AssemblyVersion>1.5.1.0</AssemblyVersion>
     <FileVersion>1.5.1.0</FileVersion>
@@ -32,49 +32,27 @@
     <RootNamespace>DigitalRuby.IPBan</RootNamespace>
     <AssemblyName>DigitalRuby.IPBan</AssemblyName>
     <ApplicationManifest>app.manifest</ApplicationManifest>
+    <PreserveCompilationContext>true</PreserveCompilationContext>
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="IPBanCore\**" />
     <Compile Remove="IPBanTests\**" />
     <Compile Remove="packages\**" />
     <Compile Remove="package\**" />
+    <EmbeddedResource Remove="IPBanCore\**" />
     <EmbeddedResource Remove="IPBanTests\**" />
     <EmbeddedResource Remove="packages\**" />
     <EmbeddedResource Remove="package\**" />
+    <None Remove="IPBanCore\**" />
     <None Remove="IPBanTests\**" />
     <None Remove="packages\**" />
     <None Remove="package\**" />
     <None Remove="README.md" />
-    <Content Include="README.md">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <None Include="LICENSE.md" Link="LICENSE.md" Pack="true" PackagePath="" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Data.Sqlite" Version="3.0.0" />
-    <PackageReference Include="Microsoft.Data.Sqlite.Core" Version="3.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Logging" Version="3.0.0" />
-    <PackageReference Include="Microsoft.Packaging.Tools.Trimming" Version="1.1.0-preview1-26619-01" />
-    <PackageReference Include="Microsoft.Windows.Compatibility" Version="3.0.0" />
-    <PackageReference Include="Newtonsoft.Json" Version="12.0.2" />
-    <PackageReference Include="NLog" Version="4.6.7" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Compile Update="Properties\IPBanResources.Designer.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>IPBanResources.resx</DependentUpon>
-    </Compile>
-  </ItemGroup>
-
-  <ItemGroup>
-    <EmbeddedResource Update="Properties\IPBanResources.resx">
-      <Generator>PublicResXFileCodeGenerator</Generator>
-      <LastGenOutput>IPBanResources.Designer.cs</LastGenOutput>
-      <CustomToolNamespace>DigitalRuby.IPBan</CustomToolNamespace>
-    </EmbeddedResource>
+    <ProjectReference Include="$(ProjectDir)\..\IPBanCore\IPBanCore.csproj" />
   </ItemGroup>
 
 </Project>
