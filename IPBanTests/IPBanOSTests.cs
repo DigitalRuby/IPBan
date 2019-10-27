@@ -19,7 +19,7 @@ namespace DigitalRuby.IPBanTests
         [Test]
         public void TestSystemMemory()
         {
-            Assert.IsTrue(OSUtility.GetSystemMemory(out long total, out long avail));
+            Assert.IsTrue(DefaultSystemMemory.Instance.GetSystemMemory(out long total, out long avail));
             Assert.IsTrue(total >= avail);
             Assert.IsTrue(total > 0);
             Assert.IsTrue(avail > 0);

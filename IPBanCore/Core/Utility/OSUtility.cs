@@ -34,32 +34,11 @@ using System.Text.RegularExpressions;
 
 namespace DigitalRuby.IPBanCore
 {
-    // cat /etc/*-release
+    /// <summary>
+    /// Operating system utility methods
+    /// </summary>
     public static class OSUtility
     {
-        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
-        private class MEMORYSTATUSEX
-        {
-            public uint dwLength;
-            public uint dwMemoryLoad;
-            public ulong ullTotalPhys;
-            public ulong ullAvailPhys;
-            public ulong ullTotalPageFile;
-            public ulong ullAvailPageFile;
-            public ulong ullTotalVirtual;
-            public ulong ullAvailVirtual;
-            public ulong ullAvailExtendedVirtual;
-            public MEMORYSTATUSEX()
-            {
-                this.dwLength = (uint)Marshal.SizeOf(typeof(MEMORYSTATUSEX));
-            }
-        }
-
-
-        [return: MarshalAs(UnmanagedType.Bool)]
-        [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
-        private static extern bool GlobalMemoryStatusEx([In, Out] MEMORYSTATUSEX lpBuffer);
-
         /// <summary>
         /// Unknown operating system
         /// </summary>
@@ -137,6 +116,9 @@ namespace DigitalRuby.IPBanCore
             }
         }
 
+        /// <summary>
+        /// Static constructor
+        /// </summary>
         static OSUtility()
         {
             try
@@ -340,55 +322,6 @@ namespace DigitalRuby.IPBanCore
                 throw new ApplicationException($"Program {program} {args}: failed with exit code {process.ExitCode}, output: {output}");
             }
             return output.ToString();
-        }
-
-        /// <summary>
-        /// Get the available and total system memory
-        /// </summary>
-        /// <param name="totalMemory">Receives the total system memory, in bytes</param>/// 
-        /// <param name="availableMemory">Receives the available system memory, in bytes</param>
-        /// <returns>True if memory could be determined, false otherwise</returns>
-        public static bool GetSystemMemory(out long totalMemory, out long availableMemory)
-        {
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                MEMORYSTATUSEX mem = new MEMORYSTATUSEX();
-                GlobalMemoryStatusEx(mem);
-                availableMemory = (long)mem.ullAvailPhys;
-                totalMemory = (long)mem.ullTotalPhys;
-                return true;
-            }
-            else
-            {
-                // try up to 10 times to get the file open and read
-                for (int i = 0; i < 10; i++)
-                {
-                    try
-                    {
-                        // example:
-                        // MemTotal:       66980684 kB
-                        // MemFree:        50547060 kB
-                        // TODO: Consider using pinvoke...
-                        using StreamReader reader = File.OpenText("/proc/meminfo");
-                        string total = reader.ReadLine();
-                        string available = reader.ReadLine();
-                        Match totalMatch = Regex.Match(total, "[0-9]+", RegexOptions.IgnoreCase | RegexOptions.Compiled | RegexOptions.CultureInvariant);
-                        Match availableMatch = Regex.Match(available, "[0-9]+", RegexOptions.IgnoreCase | RegexOptions.Compiled | RegexOptions.CultureInvariant);
-                        totalMemory = long.Parse(totalMatch.Value, CultureInfo.InvariantCulture) / 1024;
-                        availableMemory = long.Parse(availableMatch.Value, CultureInfo.InvariantCulture) / 1024;
-                        return true;
-                    }
-                    catch
-                    {
-                        // don't want this to crash the thread
-                        System.Threading.Thread.Sleep(100);
-                    }
-                }
-
-                totalMemory = availableMemory = 0;
-                Logger.Error("Unable to determine total and available RAM");
-                return false;
-            }
         }
 
         /// <summary>
