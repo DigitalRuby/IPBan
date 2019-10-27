@@ -87,7 +87,7 @@ namespace DigitalRuby.IPBanCore
             }
             catch (Exception ex)
             {
-                IPBanLog.Debug("Failed to normalize ip {0}, it is not a single ip or cidr range: {1}", ipAddress, ex);
+                Logger.Debug("Failed to normalize ip {0}, it is not a single ip or cidr range: {1}", ipAddress, ex);
                 return false;
             }
             return true;
@@ -106,7 +106,7 @@ namespace DigitalRuby.IPBanCore
                 bool foundFirewallType = false;
                 int priority = int.MinValue;
                 Type firewallType = typeof(IIPBanFirewall);
-                List<Type> allTypes = IPBanExtensionMethods.GetAllTypes();
+                List<Type> allTypes = ExtensionMethods.GetAllTypes();
                 var q =
                     from fwType in allTypes
                     where fwType.IsPublic &&
@@ -124,7 +124,7 @@ namespace DigitalRuby.IPBanCore
                     {
                         bool matchName = true;
                         if (osAndFirewall != null && osAndFirewall.Count != 0 &&
-                            (osAndFirewall.TryGetValue(IPBanOS.Name, out string firewallToUse) || osAndFirewall.TryGetValue("*", out firewallToUse)))
+                            (osAndFirewall.TryGetValue(OSUtility.Name, out string firewallToUse) || osAndFirewall.TryGetValue("*", out firewallToUse)))
                         {
                             matchName = result.Name.Name.Equals(firewallToUse, StringComparison.OrdinalIgnoreCase);
                         }
@@ -159,7 +159,7 @@ namespace DigitalRuby.IPBanCore
                 else if (osAndFirewall.Count != 0 && !foundFirewallType)
                 {
                     string typeString = string.Join(',', osAndFirewall.Select(kv => kv.Key + ":" + kv.Value));
-                    throw new ArgumentException("Unable to find firewalls of types: " + typeString + ", osname: " + IPBanOS.Name);
+                    throw new ArgumentException("Unable to find firewalls of types: " + typeString + ", osname: " + OSUtility.Name);
                 }
                 if (existing != null && existing.GetType().Equals(firewallType))
                 {

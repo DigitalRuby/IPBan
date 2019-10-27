@@ -67,7 +67,7 @@ namespace DigitalRuby.IPBanCore
                     .Union(Directory.GetFiles(dir, "*.set6"))
                     .Union(Directory.GetFiles(dir, "*.tbl6"))))
                 {
-                    IPBanExtensionMethods.FileDeleteWithRetry(setFile);
+                    ExtensionMethods.FileDeleteWithRetry(setFile);
                 }
                 RunProcess(IpTablesProcess, true, "-F");
                 RunProcess(ip6TablesProcess, true, "-F");
@@ -149,7 +149,7 @@ namespace DigitalRuby.IPBanCore
         {
             commandLine = string.Format(commandLine, args);
             string bash = "-c \"" + program + " " + commandLine.Replace("\"", "\\\"") + "\"";
-            IPBanLog.Debug("Running firewall process: {0} {1}", program, commandLine);
+            Logger.Debug("Running firewall process: {0} {1}", program, commandLine);
             using (Process p = new Process
             {
                 StartInfo = new ProcessStartInfo
@@ -172,12 +172,12 @@ namespace DigitalRuby.IPBanCore
                 lines = lineList;
                 if (!p.WaitForExit(60000))
                 {
-                    IPBanLog.Error("Process {0} {1} timed out", program, commandLine);
+                    Logger.Error("Process {0} {1} timed out", program, commandLine);
                     p.Kill();
                 }
                 if (requireExitCode && p.ExitCode != 0)
                 {
-                    IPBanLog.Error("Process {0} {1} had exit code {2}", program, commandLine, p.ExitCode);
+                    Logger.Error("Process {0} {1} had exit code {2}", program, commandLine, p.ExitCode);
                 }
                 return p.ExitCode;
             }
@@ -237,7 +237,7 @@ namespace DigitalRuby.IPBanCore
         protected bool UpdateRule(string ruleName, string action, IEnumerable<string> ipAddresses, string hashType, int maxCount,
             IEnumerable<PortRange> allowPorts, CancellationToken cancelToken)
         {
-            string ipFileTemp = IPBanOS.GetTempFileName();
+            string ipFileTemp = OSUtility.GetTempFileName();
             try
             {
                 // add and remove the appropriate ip addresses from the set
@@ -296,7 +296,7 @@ namespace DigitalRuby.IPBanCore
             }
             finally
             {
-                IPBanExtensionMethods.FileDeleteWithRetry(ipFileTemp);
+                ExtensionMethods.FileDeleteWithRetry(ipFileTemp);
             }
         }
 
@@ -304,7 +304,7 @@ namespace DigitalRuby.IPBanCore
         protected bool UpdateRuleDelta(string ruleName, string action, IEnumerable<IPBanFirewallIPAddressDelta> deltas, string hashType,
             int maxCount, bool deleteRule, IEnumerable<PortRange> allowPorts, CancellationToken cancelToken)
         {
-            string ipFileTemp = IPBanOS.GetTempFileName();
+            string ipFileTemp = OSUtility.GetTempFileName();
             try
             {
                 // add and remove the appropriate ip addresses from the set
@@ -372,7 +372,7 @@ namespace DigitalRuby.IPBanCore
             }
             finally
             {
-                IPBanExtensionMethods.FileDeleteWithRetry(ipFileTemp);
+                ExtensionMethods.FileDeleteWithRetry(ipFileTemp);
             }
         }
 
@@ -471,7 +471,7 @@ namespace DigitalRuby.IPBanCore
             }
             catch (Exception ex)
             {
-                IPBanLog.Error(ex);
+                Logger.Error(ex);
                 return Task.FromResult(false);
             }
         }
@@ -485,7 +485,7 @@ namespace DigitalRuby.IPBanCore
             }
             catch (Exception ex)
             {
-                IPBanLog.Error(ex);
+                Logger.Error(ex);
                 return Task.FromResult(false);
             }
         }
@@ -500,7 +500,7 @@ namespace DigitalRuby.IPBanCore
             }
             catch (Exception ex)
             {
-                IPBanLog.Error(ex);
+                Logger.Error(ex);
                 return Task.FromResult(false);
             }
         }
@@ -513,7 +513,7 @@ namespace DigitalRuby.IPBanCore
             }
             catch (Exception ex)
             {
-                IPBanLog.Error(ex);
+                Logger.Error(ex);
                 return Task.FromResult(false);
             }
         }
@@ -527,14 +527,14 @@ namespace DigitalRuby.IPBanCore
             }
             catch (Exception ex)
             {
-                IPBanLog.Error(ex);
+                Logger.Error(ex);
                 return Task.FromResult(false);
             }
         }
 
         public IEnumerable<IPAddressRange> EnumerateIPAddresses(string ruleNamePrefix = null)
         {
-            string tempFile = IPBanOS.GetTempFileName();
+            string tempFile = OSUtility.GetTempFileName();
             try
             {
                 string prefix = RulePrefix + (ruleNamePrefix ?? string.Empty);
@@ -555,7 +555,7 @@ namespace DigitalRuby.IPBanCore
             }
             finally
             {
-                IPBanExtensionMethods.FileDeleteWithRetry(tempFile);
+                ExtensionMethods.FileDeleteWithRetry(tempFile);
             }
         }
 
@@ -572,7 +572,7 @@ namespace DigitalRuby.IPBanCore
 
         public IEnumerable<string> EnumerateBannedIPAddresses()
         {
-            string tempFile = IPBanOS.GetTempFileName();
+            string tempFile = OSUtility.GetTempFileName();
             try
             {
                 RunProcess("ipset", true, $"save > \"{tempFile}\"");
@@ -592,13 +592,13 @@ namespace DigitalRuby.IPBanCore
             }
             finally
             {
-                IPBanExtensionMethods.FileDeleteWithRetry(tempFile);
+                ExtensionMethods.FileDeleteWithRetry(tempFile);
             }
         }
 
         public IEnumerable<string> EnumerateAllowedIPAddresses()
         {
-            string tempFile = IPBanOS.GetTempFileName();
+            string tempFile = OSUtility.GetTempFileName();
             try
             {
                 RunProcess("ipset", true, $"save > \"{tempFile}\"");
@@ -618,7 +618,7 @@ namespace DigitalRuby.IPBanCore
             }
             finally
             {
-                IPBanExtensionMethods.FileDeleteWithRetry(tempFile);
+                ExtensionMethods.FileDeleteWithRetry(tempFile);
             }
         }
 

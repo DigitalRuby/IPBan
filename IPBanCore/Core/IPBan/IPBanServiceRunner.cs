@@ -50,7 +50,7 @@ namespace DigitalRuby.IPBanCore
                     }
                     catch (Exception ex)
                     {
-                        IPBanLog.Error(ex);
+                        Logger.Error(ex);
                     }
                 });
             }
@@ -93,7 +93,7 @@ namespace DigitalRuby.IPBanCore
                 runner.ThrowIfNull();
                 try
                 {
-                    IPBanLog.Warn("Running as a Windows service");
+                    Logger.Warn("Running as a Windows service");
                     this.runner = runner;
                     CanShutdown = false;
                     CanStop = CanHandleSessionChangeEvent = CanHandlePowerEvent = true;
@@ -108,7 +108,7 @@ namespace DigitalRuby.IPBanCore
                 }
                 catch (Exception ex)
                 {
-                    IPBanLog.Error(ex);
+                    Logger.Error(ex);
                 }
             }
 
@@ -147,7 +147,7 @@ namespace DigitalRuby.IPBanCore
             }
             catch (Exception ex)
             {
-                IPBanLog.Error(ex);
+                Logger.Error(ex);
             }
         }
 
@@ -192,12 +192,12 @@ namespace DigitalRuby.IPBanCore
         {
             if (requireAdministrator)
             {
-                IPBanExtensionMethods.RequireAdministrator();
+                ExtensionMethods.RequireAdministrator();
             }
 
             if (args.Length != 0 && (args[0].Equals("info", StringComparison.OrdinalIgnoreCase) || args[0].Equals("-info", StringComparison.OrdinalIgnoreCase)))
             {
-                IPBanLog.Warn("System info: {0}", IPBanOS.OSString());
+                Logger.Warn("System info: {0}", OSUtility.OSString());
             }
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {

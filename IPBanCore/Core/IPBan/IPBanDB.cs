@@ -156,7 +156,7 @@ namespace DigitalRuby.IPBanCore
         protected override void OnInitialize()
         {
             base.OnInitialize();
-            IPBanLog.Info("Initializing IPBan database at {0}", ConnectionString);
+            Logger.Info("Initializing IPBan database at {0}", ConnectionString);
             ExecuteNonQuery("PRAGMA auto_vacuum = INCREMENTAL;");
             ExecuteNonQuery("PRAGMA journal_mode = WAL;");
             ExecuteNonQuery("CREATE TABLE IF NOT EXISTS IPAddresses (IPAddress VARBINARY(16) NOT NULL, IPAddressText VARCHAR(64) NOT NULL, LastFailedLogin BIGINT NOT NULL, FailedLoginCount BIGINT NOT NULL, BanDate BIGINT NULL, PRIMARY KEY (IPAddress))");

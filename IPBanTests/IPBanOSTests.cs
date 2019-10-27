@@ -13,15 +13,13 @@ namespace DigitalRuby.IPBanTests
         [Test]
         public void TestOSIsRecognized()
         {
-            Assert.IsTrue(IPBanOS.Name == IPBanOS.Windows || IPBanOS.Name == IPBanOS.Linux || IPBanOS.Name == IPBanOS.Mac);
+            Assert.IsTrue(OSUtility.Name == OSUtility.Windows || OSUtility.Name == OSUtility.Linux || OSUtility.Name == OSUtility.Mac);
         }
 
         [Test]
         public void TestSystemMemory()
         {
-            long total = -1;
-            long avail = -1;
-            IPBanOS.GetSystemMemory(ref total, ref avail);
+            Assert.IsTrue(OSUtility.GetSystemMemory(out long total, out long avail));
             Assert.IsTrue(total >= avail);
             Assert.IsTrue(total > 0);
             Assert.IsTrue(avail > 0);

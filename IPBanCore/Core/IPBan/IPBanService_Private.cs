@@ -67,7 +67,7 @@ namespace DigitalRuby.IPBanCore
                     }
                     catch (Exception ex)
                     {
-                        IPBanLog.Error(ex);
+                        Logger.Error(ex);
                     }
                 }
             }
@@ -76,7 +76,7 @@ namespace DigitalRuby.IPBanCore
         private void UpdateLogFiles(IPBanConfig newConfig)
         {
             // remove existing log files that are no longer in config
-            foreach (IPBanLogFileScanner file in logFilesToParse.ToArray())
+            foreach (LogFileScanner file in logFilesToParse.ToArray())
             {
                 if (newConfig.LogFilesToParse.FirstOrDefault(f => f.PathsAndMasks.Contains(file.PathAndMask)) is null)
                 {
@@ -95,17 +95,17 @@ namespace DigitalRuby.IPBanCore
                         // if we don't have this log file and the platform matches, add it
                         if (logFilesToParse.FirstOrDefault(f => f.PathAndMask == pathAndMask) is null &&
                             !string.IsNullOrWhiteSpace(newFile.PlatformRegex) &&
-                            Regex.IsMatch(IPBanOS.Description, newFile.PlatformRegex.ToString().Trim(), RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))
+                            Regex.IsMatch(OSUtility.Description, newFile.PlatformRegex.ToString().Trim(), RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))
                         {
                             // log files use a timer internally and do not need to be updated regularly
-                            IPBanLogFileScanner scanner = new IPBanIPAddressLogFileScanner(this, DnsLookup,
+                            LogFileScanner scanner = new IPBanIPAddressLogFileScanner(this, DnsLookup,
                                 newFile.Source, pathAndMask, newFile.Recursive, newFile.FailedLoginRegex, newFile.SuccessfulLoginRegex, newFile.MaxFileSize, newFile.PingInterval);
                             logFilesToParse.Add(scanner);
-                            IPBanLog.Debug("Adding log file to parse: {0}", pathAndMask);
+                            Logger.Debug("Adding log file to parse: {0}", pathAndMask);
                         }
                         else
                         {
-                            IPBanLog.Debug("Ignoring log file path {0}, regex: {1}", pathAndMask, newFile.PlatformRegex);
+                            Logger.Debug("Ignoring log file path {0}, regex: {1}", pathAndMask, newFile.PlatformRegex);
                         }
                     }
                 }
@@ -130,7 +130,7 @@ namespace DigitalRuby.IPBanCore
             }
             catch (Exception ex)
             {
-                IPBanLog.Error(ex);
+                Logger.Error(ex);
 
                 if (Config is null)
                 {
@@ -190,7 +190,7 @@ namespace DigitalRuby.IPBanCore
                 try
                 {
                     LocalIPAddressString = (await DnsLookup.GetLocalIPAddressesAsync()).FirstOrDefault()?.ToString();
-                    IPBanLog.Info("Local ip address: {0}", LocalIPAddressString);
+                    Logger.Info("Local ip address: {0}", LocalIPAddressString);
                 }
                 catch
                 {
@@ -204,7 +204,7 @@ namespace DigitalRuby.IPBanCore
                 {
                     IPAddress ipAddress = await ExternalIPAddressLookup.LookupExternalIPAddressAsync(RequestMaker, Config.ExternalIPAddressUrl);
                     RemoteIPAddressString = ipAddress.ToString();
-                    IPBanLog.Info("Remote ip address: {0}", RemoteIPAddressString);
+                    Logger.Info("Remote ip address: {0}", RemoteIPAddressString);
                 }
                 catch
                 {
@@ -231,7 +231,7 @@ namespace DigitalRuby.IPBanCore
                         string source = failedLogin.Source;
                         if (IsWhitelisted(ipAddress))
                         {
-                            IPBanLog.Warn("Login failure, ignoring whitelisted ip address {0}, {1}, {2}", ipAddress, userName, source);
+                            Logger.Warn("Login failure, ignoring whitelisted ip address {0}, {1}, {2}", ipAddress, userName, source);
                         }
                         else
                         {
@@ -255,22 +255,22 @@ namespace DigitalRuby.IPBanCore
                             bool configBlacklisted = ipBlacklisted || userBlacklisted || userFailsWhitelistRegex || editDistanceBlacklisted;
                             int newCount = ipDB.IncrementFailedLoginCount(ipAddress, UtcNow, failedLogin.Count, transaction);
 
-                            IPBanLog.Warn(now, "Login failure: {0}, {1}, {2}, {3}", ipAddress, userName, source, newCount);
+                            Logger.Warn(now, "Login failure: {0}, {1}, {2}, {3}", ipAddress, userName, source, newCount);
 
                             // if the ip address is black listed or the ip address has reached the maximum failed login attempts before ban, ban the ip address
                             if (configBlacklisted || newCount >= maxFailedLoginAttempts)
                             {
-                                IPBanLog.Info("IP blacklisted: {0}, user name blacklisted: {1}, fails user name white list regex: {2}, user name edit distance blacklisted: {3}",
+                                Logger.Info("IP blacklisted: {0}, user name blacklisted: {1}, fails user name white list regex: {2}, user name edit distance blacklisted: {3}",
                                     ipBlacklisted, userBlacklisted, userFailsWhitelistRegex, editDistanceBlacklisted);
 
                                 if (ipDB.TryGetIPAddressState(ipAddress, out IPBanDB.IPAddressState state, transaction) &&
                                     (state == IPBanDB.IPAddressState.Active || state == IPBanDB.IPAddressState.AddPending))
                                 {
-                                    IPBanLog.Warn(now, "IP {0}, {1}, {2} ban pending.", ipAddress, userName, source);
+                                    Logger.Warn(now, "IP {0}, {1}, {2} ban pending.", ipAddress, userName, source);
                                 }
                                 else
                                 {
-                                    IPBanLog.Debug("Failed login count {0} >= ban count {1}{2}", newCount, maxFailedLoginAttempts, (configBlacklisted ? " config blacklisted" : string.Empty));
+                                    Logger.Debug("Failed login count {0} >= ban count {1}{2}", newCount, maxFailedLoginAttempts, (configBlacklisted ? " config blacklisted" : string.Empty));
 
                                     // if delegate and non-zero count, forward on - count of 0 means it was from external source, like a delegate
                                     if (IPBanDelegate != null && failedLogin.Count > 0)
@@ -282,10 +282,10 @@ namespace DigitalRuby.IPBanCore
                             }
                             else
                             {
-                                IPBanLog.Debug("Failed login count {0} <= ban count {1}", newCount, maxFailedLoginAttempts);
-                                if (IPBanOS.UserIsActive(userName))
+                                Logger.Debug("Failed login count {0} <= ban count {1}", newCount, maxFailedLoginAttempts);
+                                if (OSUtility.UserIsActive(userName))
                                 {
-                                    IPBanLog.Warn("Login failed for known active user {0}", userName);
+                                    Logger.Warn("Login failed for known active user {0}", userName);
                                 }
 
                                 // if delegate and non-zero count, forward on - count of 0 means it was from external source, like a delegate
@@ -298,7 +298,7 @@ namespace DigitalRuby.IPBanCore
                     }
                     catch (Exception ex)
                     {
-                        IPBanLog.Error(ex);
+                        Logger.Error(ex);
                     }
                 }
                 CommitTransaction(transaction);
@@ -307,7 +307,7 @@ namespace DigitalRuby.IPBanCore
             catch (Exception ex)
             {
                 RollbackTransaction(transaction);
-                IPBanLog.Error(ex);
+                Logger.Error(ex);
             }
         }
 
@@ -325,14 +325,14 @@ namespace DigitalRuby.IPBanCore
                         string source = ban.Source;
                         if (IsWhitelisted(ipAddress))
                         {
-                            IPBanLog.Warn("Ignoring pending ban for whitelisted ip address {0}, {1}, {2}", ipAddress, userName, source);
+                            Logger.Warn("Ignoring pending ban for whitelisted ip address {0}, {1}, {2}", ipAddress, userName, source);
                             continue;
                         }
                         AddBannedIPAddress(ipAddress, source, userName, null, ban.Timestamp, false, ban.Count, string.Empty, transaction);
                     }
                     catch (Exception ex1)
                     {
-                        IPBanLog.Error(ex1);
+                        Logger.Error(ex1);
                     }
                 }
                 CommitTransaction(transaction);
@@ -340,7 +340,7 @@ namespace DigitalRuby.IPBanCore
             catch (Exception ex2)
             {
                 RollbackTransaction(transaction);
-                IPBanLog.Error(ex2);
+                Logger.Error(ex2);
             }
             return Task.CompletedTask;
         }
@@ -349,7 +349,7 @@ namespace DigitalRuby.IPBanCore
         {
             foreach (IPAddressLogEvent info in ipAddresses)
             {
-                IPBanLog.Warn("Login succeeded, address: {0}, user name: {1}, source: {2}", info.IPAddress, info.UserName, info.Source);
+                Logger.Warn("Login succeeded, address: {0}, user name: {1}, source: {2}", info.IPAddress, info.UserName, info.Source);
             }
             if (IPBanDelegate != null)
             {
@@ -365,7 +365,7 @@ namespace DigitalRuby.IPBanCore
                     }
                     catch (Exception ex)
                     {
-                        IPBanLog.Error(ex);
+                        Logger.Error(ex);
                     }
                 });
             }
@@ -416,7 +416,7 @@ namespace DigitalRuby.IPBanCore
                 return;
             }
 
-            IPBanLog.Warn(startBanDate, "Banning ip address: {0}, user name: {1}, config black listed: {2}, count: {3}, extra info: {4}",
+            Logger.Warn(startBanDate, "Banning ip address: {0}, user name: {1}, config black listed: {2}, count: {3}, extra info: {4}",
                 ipAddress, userName, configBlacklisted, counter, extraInfo);
 
             if (BannedIPAddressHandler != null && System.Net.IPAddress.TryParse(ipAddress, out System.Net.IPAddress ipAddressObj) && !ipAddressObj.IsInternal())
@@ -439,7 +439,7 @@ namespace DigitalRuby.IPBanCore
                 }
                 catch (Exception ex)
                 {
-                    IPBanLog.Info("Error calling ipban delegate with banned ip address: " + ex.ToString());
+                    Logger.Info("Error calling ipban delegate with banned ip address: " + ex.ToString());
                 }
             }
         }
@@ -483,7 +483,7 @@ namespace DigitalRuby.IPBanCore
                         }
                         catch (Exception ex)
                         {
-                            IPBanLog.Error("Failed to execute process on ban", ex);
+                            Logger.Error("Failed to execute process on ban", ex);
                         }
                     }
                 }
@@ -494,7 +494,7 @@ namespace DigitalRuby.IPBanCore
         {
             if (Config.ClearBannedIPAddressesOnRestart)
             {
-                IPBanLog.Warn("Clearing all banned ip addresses on start because ClearBannedIPAddressesOnRestart is set");
+                Logger.Warn("Clearing all banned ip addresses on start because ClearBannedIPAddressesOnRestart is set");
                 Firewall.Truncate();
                 ipDB.Truncate(true);
             }
@@ -503,7 +503,7 @@ namespace DigitalRuby.IPBanCore
                 DateTime now = UtcNow;
                 DateTime banEnd = now + Config.BanTimes.First();
 
-                IPBanLog.Warn("Syncing firewall and {0} database...", IPBanDB.FileName);
+                Logger.Warn("Syncing firewall and {0} database...", IPBanDB.FileName);
 
                 // bring all firewall ip into the database, if they already exist they will be ignored
                 ipDB.SetBannedIPAddresses(Firewall.EnumerateBannedIPAddresses().Select(i => new Tuple<string, DateTime, DateTime>(i, now, banEnd)), UtcNow);
@@ -521,7 +521,7 @@ namespace DigitalRuby.IPBanCore
 
                 // report on initial count
                 int count = ipDB.GetIPAddressCount();
-                IPBanLog.Warn("{0} total ip addresses in the {1} database", count, IPBanDB.FileName);
+                Logger.Warn("{0} total ip addresses in the {1} database", count, IPBanDB.FileName);
             }
         }
 
@@ -532,7 +532,7 @@ namespace DigitalRuby.IPBanCore
             AddUpdater(Firewall);
             if (existing != Firewall)
             {
-                IPBanLog.Warn("Loaded firewall type {0}", Firewall.GetType());
+                Logger.Warn("Loaded firewall type {0}", Firewall.GetType());
                 if (existing != null)
                 {
                     RemoveUpdater(existing);
@@ -596,14 +596,14 @@ namespace DigitalRuby.IPBanCore
                     {
                         if (ipAddress.State == IPBanDB.IPAddressState.Active)
                         {
-                            IPBanLog.Warn("Un-banning whitelisted ip address {0}", ipAddress.IPAddress);
+                            Logger.Warn("Un-banning whitelisted ip address {0}", ipAddress.IPAddress);
                             unbanList?.Add(ipAddress.IPAddress);
                             DB.SetIPAddressesState(new string[] { ipAddress.IPAddress }, IPBanDB.IPAddressState.RemovePending, transaction);
                             firewallNeedsBlockedIPAddressesUpdate = true;
                         }
                         else
                         {
-                            IPBanLog.Warn("Forgetting whitelisted ip address {0}", ipAddress.IPAddress);
+                            Logger.Warn("Forgetting whitelisted ip address {0}", ipAddress.IPAddress);
                             DB.DeleteIPAddress(ipAddress.IPAddress, transaction);
                         }
                     }
@@ -621,7 +621,7 @@ namespace DigitalRuby.IPBanCore
                 // never un-ban a blacklisted entry
                 if (Config.IsBlackListed(ipAddress.IPAddress) && !Config.IsWhitelisted(ipAddress.IPAddress))
                 {
-                    IPBanLog.Debug("Not unbanning blacklisted ip {0}", ipAddress.IPAddress);
+                    Logger.Debug("Not unbanning blacklisted ip {0}", ipAddress.IPAddress);
                     continue;
                 }
                 // if ban duration has expired, un-ban, check this first as these must trigger a firewall update
@@ -649,19 +649,19 @@ namespace DigitalRuby.IPBanCore
                     }
                     if (i < banTimes.Length)
                     {
-                        IPBanLog.Warn("Preparing ip address {0} for next ban time {1}", ipAddress.IPAddress, banTimes[i]);
+                        Logger.Warn("Preparing ip address {0} for next ban time {1}", ipAddress.IPAddress, banTimes[i]);
                         ipDB.SetIPAddressesState(new string[] { ipAddress.IPAddress }, IPBanDB.IPAddressState.RemovePendingBecomeFailedLogin, transaction);
                     }
                     else
                     {
-                        IPBanLog.Warn("Un-banning ip address {0}, ban expired", ipAddress.IPAddress);
+                        Logger.Warn("Un-banning ip address {0}, ban expired", ipAddress.IPAddress);
                         ipDB.SetIPAddressesState(new string[] { ipAddress.IPAddress }, IPBanDB.IPAddressState.RemovePending, transaction);
                     }
                 }
                 // if fail login has expired, remove ip address from db
                 else if (ipAddress.State == IPBanDB.IPAddressState.FailedLogin)
                 {
-                    IPBanLog.Warn("Forgetting failed login ip address {0}, time expired", ipAddress.IPAddress);
+                    Logger.Warn("Forgetting failed login ip address {0}, time expired", ipAddress.IPAddress);
                     DB.DeleteIPAddress(ipAddress.IPAddress, transaction);
                 }
             }
@@ -690,7 +690,7 @@ namespace DigitalRuby.IPBanCore
             }
             catch (Exception ex)
             {
-                IPBanLog.Error(ex);
+                Logger.Error(ex);
                 DB.RollbackTransaction(transaction);
             }
             finally
@@ -737,7 +737,7 @@ namespace DigitalRuby.IPBanCore
             }
             catch (Exception ex)
             {
-                IPBanLog.Error("Error in delegate Update", ex);
+                Logger.Error("Error in delegate Update", ex);
             }
         }
 
@@ -777,7 +777,7 @@ namespace DigitalRuby.IPBanCore
                         // if the update url sends bytes, we assume a software update, and run the result as an .exe
                         if (bytes.Length != 0)
                         {
-                            string tempFile = Path.Combine(IPBanOS.TempFolder, "IPBanServiceUpdate.exe");
+                            string tempFile = Path.Combine(OSUtility.TempFolder, "IPBanServiceUpdate.exe");
                             File.WriteAllBytes(tempFile, bytes);
 
                             // however you are doing the update, you must allow -c and -d parameters
@@ -794,7 +794,7 @@ namespace DigitalRuby.IPBanCore
                 }
                 catch (Exception ex)
                 {
-                    IPBanLog.Error(ex, "Error getting url of type {0} at {1}", urlType, url);
+                    Logger.Error(ex, "Error getting url of type {0} at {1}", urlType, url);
                 }
             }
             return true;
@@ -830,8 +830,8 @@ namespace DigitalRuby.IPBanCore
             {
                 firewallNeedsBlockedIPAddressesUpdate = false;
                 List<IPBanFirewallIPAddressDelta> deltas = ipDB.EnumerateIPAddressesDeltaAndUpdateState(true, UtcNow, Config.ResetFailedLoginCountForUnbannedIPAddresses).Where(i => !i.Added || !IsWhitelisted(i.IPAddress)).ToList();
-                IPBanLog.Warn("Updating firewall with {0} entries...", deltas.Count);
-                IPBanLog.Debug("Firewall entries updated: {0}", string.Join(',', deltas.Select(d => d.IPAddress)));
+                Logger.Warn("Updating firewall with {0} entries...", deltas.Count);
+                Logger.Debug("Firewall entries updated: {0}", string.Join(',', deltas.Select(d => d.IPAddress)));
                 if (MultiThreaded)
                 {
                     RunFirewallTask((token) => Firewall.BlockIPAddressesDelta(null, deltas, null, token), "Default");
@@ -857,7 +857,7 @@ namespace DigitalRuby.IPBanCore
                 catch (Exception ex)
                 {
                     // should not get here, but if we do log it and sleep a bit in case of repeating error
-                    IPBanLog.Error(ex);
+                    Logger.Error(ex);
                     Thread.Sleep(5000);
                 }
                 finally
@@ -871,7 +871,7 @@ namespace DigitalRuby.IPBanCore
                     {
                     }
                 }
-                IPBanLog.Trace("CycleTimerElapsed");
+                Logger.Trace("CycleTimerElapsed");
             }
         }
 
@@ -911,7 +911,7 @@ namespace DigitalRuby.IPBanCore
                     }
                     else
                     {
-                        IPBanLog.Debug("Ignoring event {0} from {1}, min time between events has not elapsed", type, existing.IPAddress);
+                        Logger.Debug("Ignoring event {0} from {1}, min time between events has not elapsed", type, existing.IPAddress);
                     }
                 }
             }
@@ -930,7 +930,7 @@ namespace DigitalRuby.IPBanCore
                 {
                     ipAddresses = new List<IPAddressLogEvent>(pendingFailedLogins);
                     pendingFailedLogins.Clear();
-                    IPBanLog.Debug("{0} pending failed logins", pendingFailedLogins.Count);
+                    Logger.Debug("{0} pending failed logins", pendingFailedLogins.Count);
                 }
             }
             if (ipAddresses != null)
@@ -949,7 +949,7 @@ namespace DigitalRuby.IPBanCore
                 {
                     ipAddresses = new List<IPAddressLogEvent>(pendingBans);
                     pendingBans.Clear();
-                    IPBanLog.Debug("{0} pending bans", pendingBans.Count);
+                    Logger.Debug("{0} pending bans", pendingBans.Count);
                 }
             }
             if (ipAddresses != null)
@@ -1027,7 +1027,7 @@ namespace DigitalRuby.IPBanCore
             catch (Exception ex)
             {
                 RollbackTransaction(transaction);
-                IPBanLog.Error(ex);
+                Logger.Error(ex);
             }
             ExecuteExternalProcessForBannedIPAddresses(bannedIPs);
             return Task.CompletedTask;

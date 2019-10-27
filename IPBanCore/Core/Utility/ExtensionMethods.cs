@@ -51,7 +51,7 @@ namespace DigitalRuby.IPBanCore
     /// <summary>
     /// Extension methods for IPBan
     /// </summary>
-    public static class IPBanExtensionMethods
+    public static class ExtensionMethods
     {
         private class LockedEnumerable<T> : IEnumerator<T>
         {
@@ -182,7 +182,7 @@ namespace DigitalRuby.IPBanCore
         private static readonly XmlSerializerNamespaces emptyXmlNs = new XmlSerializerNamespaces();
         private static readonly System.Net.IPAddress[] localHostIP = new System.Net.IPAddress[] { System.Net.IPAddress.Parse("127.0.0.1"), System.Net.IPAddress.Parse("::1") };
 
-        static IPBanExtensionMethods()
+        static ExtensionMethods()
         {
             emptyXmlNs.Add("", "");
         }

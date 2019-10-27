@@ -30,7 +30,7 @@ using System.Threading.Tasks;
 
 namespace DigitalRuby.IPBanCore
 {
-    [RequiredOperatingSystem(IPBanOS.Linux)]
+    [RequiredOperatingSystem(OSUtility.Linux)]
     [CustomName("Default")]
     public class IPBanLinuxFirewall : IPBanLinuxBaseFirewall
     {

@@ -36,7 +36,7 @@ namespace DigitalRuby.IPBanTests
     [TestFixture]
     public class IPBanLogFileParserTests : IIPAddressEventHandler
     {
-        private static readonly string tempPath = Path.Combine(IPBanOS.TempFolder, "LogFileParserTest");
+        private static readonly string tempPath = Path.Combine(OSUtility.TempFolder, "LogFileParserTest");
         private static readonly string pathAndMask = Path.Combine(tempPath, "test1*.txt");
         private static readonly List<IPAddressLogEvent> failedIPAddresses = new List<IPAddressLogEvent>();
         private static readonly List<IPAddressLogEvent> successIPAddresses = new List<IPAddressLogEvent>();
@@ -73,7 +73,7 @@ namespace DigitalRuby.IPBanTests
         public void SimpleLogParseTest()
         {
             string fullPath = Path.Combine(tempPath, "test1.txt");
-            using (IPBanLogFileScanner scanner = new IPBanIPAddressLogFileScanner(this, TestDnsLookup.Instance,
+            using (LogFileScanner scanner = new IPBanIPAddressLogFileScanner(this, TestDnsLookup.Instance,
                 source: "SSH",
                 pathAndMask: pathAndMask,
                 recursive: false,
@@ -134,7 +134,7 @@ namespace DigitalRuby.IPBanTests
 
                 writer.Close();
 
-                IPBanExtensionMethods.FileDeleteWithRetry(fullPath);
+                ExtensionMethods.FileDeleteWithRetry(fullPath);
 
                 writer = new StreamWriter(CreateFile(fullPath), Encoding.UTF8)
                 {
@@ -157,7 +157,7 @@ namespace DigitalRuby.IPBanTests
         public void TestLogFileParserMaskReplace()
         {
             string pathAndMask = Path.Combine(tempPath, "log-{year}-{month}-{day}.txt");
-            using (IPBanLogFileScanner scanner = new IPBanIPAddressLogFileScanner(this, TestDnsLookup.Instance,
+            using (LogFileScanner scanner = new IPBanIPAddressLogFileScanner(this, TestDnsLookup.Instance,
                 source: "SSH",
                 pathAndMask: pathAndMask,
                 recursive: false,
@@ -167,7 +167,7 @@ namespace DigitalRuby.IPBanTests
             {
                 string filePath = Path.Combine(tempPath, "log-2019-05-05.txt");
                 IPBanService.UtcNow = new DateTime(2019, 5, 5, 1, 1, 1, DateTimeKind.Utc);
-                IPBanExtensionMethods.FileWriteAllTextWithRetry(filePath, string.Empty);
+                ExtensionMethods.FileWriteAllTextWithRetry(filePath, string.Empty);
                 scanner.PingFiles();
                 File.AppendAllText(filePath, "fail, ip: 99.99.99.99, user: testuser\n");
                 File.AppendAllText(filePath, "success, ip: 98.99.99.99, user: testuser\n");
@@ -195,7 +195,7 @@ namespace DigitalRuby.IPBanTests
         public void TestLogFileCustomSource()
         {
             string fullPath = Path.Combine(tempPath, "test1.txt");
-            using (IPBanLogFileScanner scanner = new IPBanIPAddressLogFileScanner(this, TestDnsLookup.Instance,
+            using (LogFileScanner scanner = new IPBanIPAddressLogFileScanner(this, TestDnsLookup.Instance,
                 source: "SSH",
                 pathAndMask: pathAndMask,
                 recursive: false,
@@ -203,7 +203,7 @@ namespace DigitalRuby.IPBanTests
                 regexSuccess: null,
                 pingIntervalMilliseconds: 0))
             {
-                IPBanExtensionMethods.FileWriteAllTextWithRetry(fullPath, string.Empty);
+                ExtensionMethods.FileWriteAllTextWithRetry(fullPath, string.Empty);
                 scanner.PingFiles();
                 File.AppendAllText(fullPath, "SSH1 97.97.97.97\n");
                 File.AppendAllText(fullPath, "SSH2 98.97.97.97\n");

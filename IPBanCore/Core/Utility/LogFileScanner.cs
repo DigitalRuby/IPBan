@@ -32,7 +32,7 @@ using System.Threading;
 
 namespace DigitalRuby.IPBanCore
 {
-    public class IPBanLogFileScanner : IDisposable
+    public class LogFileScanner : IDisposable
     {
         protected class WatchedFile
         {
@@ -74,7 +74,7 @@ namespace DigitalRuby.IPBanCore
         /// <param name="recursive">Whether to parse all sub directories of path and mask recursively</param>
         /// <param name="maxFileSizeBytes">Max size of file (in bytes) before it is deleted or 0 for unlimited</param>
         /// <param name="pingIntervalMilliseconds">Ping interval in milliseconds, less than 1 for manual ping required</param>
-        public IPBanLogFileScanner(string pathAndMask, bool recursive, long maxFileSizeBytes = 0, int pingIntervalMilliseconds = 0)
+        public LogFileScanner(string pathAndMask, bool recursive, long maxFileSizeBytes = 0, int pingIntervalMilliseconds = 0)
         {
             PathAndMask = pathAndMask?.Trim();
             PathAndMask.ThrowIfNullOrEmpty(nameof(pathAndMask), "Must pass a non-empty path and mask to log file scanner");
@@ -168,7 +168,7 @@ namespace DigitalRuby.IPBanCore
                     }
                     else
                     {
-                        IPBanLog.Debug("Watched file {0} length has not changed", file.FileName);
+                        Logger.Debug("Watched file {0} length has not changed", file.FileName);
                     }
                     if (delete)
                     {
@@ -184,7 +184,7 @@ namespace DigitalRuby.IPBanCore
                 }
                 catch (Exception ex)
                 {
-                    IPBanLog.Error(ex);
+                    Logger.Error(ex);
                 }
             }
 
@@ -304,7 +304,7 @@ namespace DigitalRuby.IPBanCore
                 {
                     if (!watchedFilesCopy.Contains(existing))
                     {
-                        IPBanLog.Debug("Removing parsed log file {0}", existing.FileName);
+                        Logger.Debug("Removing parsed log file {0}", existing.FileName);
                         watchedFiles.Remove(existing);
                     }
                 }
@@ -315,7 +315,7 @@ namespace DigitalRuby.IPBanCore
                     // add the file, will fail if it already exists
                     if (watchedFiles.Add(newFile))
                     {
-                        IPBanLog.Debug("Adding parsed log file {0}", newFile.FileName);
+                        Logger.Debug("Adding parsed log file {0}", newFile.FileName);
                     }
                 }
 
@@ -339,7 +339,7 @@ namespace DigitalRuby.IPBanCore
             int countBeforeNewline = 0;
             fs.Position = file.LastPosition;
 
-            IPBanLog.Info("Processing watched file {0}, len = {1}, pos = {2}", file.FileName, file.LastLength, file.LastPosition);
+            Logger.Info("Processing watched file {0}, len = {1}, pos = {2}", file.FileName, file.LastLength, file.LastPosition);
 
             while (fs.Position < end && countBeforeNewline++ != maxCountBeforeNewline)
             {

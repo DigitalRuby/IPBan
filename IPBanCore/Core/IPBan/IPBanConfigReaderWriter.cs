@@ -52,7 +52,7 @@ namespace DigitalRuby.IPBanCore
                     string existingConfig = await File.ReadAllTextAsync(Path);
                     if (existingConfig != config)
                     {
-                        await IPBanExtensionMethods.FileWriteAllTextWithRetryAsync(Path, config);
+                        await ExtensionMethods.FileWriteAllTextWithRetryAsync(Path, config);
                     }
                 });
             }

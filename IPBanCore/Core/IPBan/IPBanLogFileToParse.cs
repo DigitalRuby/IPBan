@@ -69,7 +69,7 @@ namespace DigitalRuby.IPBanCore
         [Required(AllowEmptyStrings = true)]
         [LocalizedDisplayName(nameof(IPBanResources.FailedLoginRegex))]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-        public IPBanExtensionMethods.XmlCData FailedLoginRegex { get; set; } = string.Empty;
+        public ExtensionMethods.XmlCData FailedLoginRegex { get; set; } = string.Empty;
 
         /// <summary>
         /// Successful login regex
@@ -78,7 +78,7 @@ namespace DigitalRuby.IPBanCore
         [Required(AllowEmptyStrings = true)]
         [LocalizedDisplayName(nameof(IPBanResources.SuccessfulLoginRegex))]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-        public IPBanExtensionMethods.XmlCData SuccessfulLoginRegex { get; set; } = string.Empty;
+        public ExtensionMethods.XmlCData SuccessfulLoginRegex { get; set; } = string.Empty;
 
         /// <summary>
         /// Platform regex, i.e. Windows, Linux, etc.
@@ -87,7 +87,7 @@ namespace DigitalRuby.IPBanCore
         [Required(AllowEmptyStrings = true)]
         [LocalizedDisplayName(nameof(IPBanResources.PlatformRegex))]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-        public IPBanExtensionMethods.XmlCData PlatformRegex { get; set; } = string.Empty;
+        public ExtensionMethods.XmlCData PlatformRegex { get; set; } = string.Empty;
 
         /// <summary>
         /// How often in milliseconds to ping the file

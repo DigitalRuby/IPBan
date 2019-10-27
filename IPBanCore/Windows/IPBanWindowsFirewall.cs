@@ -46,7 +46,7 @@ namespace DigitalRuby.IPBanCore
     /// <summary>
     /// Helper class for Windows firewall and banning ip addresses.
     /// </summary>
-    [RequiredOperatingSystem(IPBanOS.Windows)]
+    [RequiredOperatingSystem(OSUtility.Windows)]
     [CustomName("Default")]
     public class IPBanWindowsFirewall : IPBanBaseFirewall, IIPBanFirewall
     {
@@ -167,7 +167,7 @@ namespace DigitalRuby.IPBanCore
                     {
                         // if something failed, do not create the rule
                         emptyIPAddressString = true;
-                        IPBanLog.Error(ex);
+                        Logger.Error(ex);
                     }
                 }
 
@@ -276,7 +276,7 @@ namespace DigitalRuby.IPBanCore
             }
             catch (Exception ex)
             {
-                IPBanLog.Error("Error deleting rules", ex);
+                Logger.Error("Error deleting rules", ex);
                 return false;
             }
         }
@@ -403,7 +403,7 @@ namespace DigitalRuby.IPBanCore
             }
             catch (Exception ex)
             {
-                IPBanLog.Error(ex);
+                Logger.Error(ex);
                 return Task.FromResult(false);
             }
         }
@@ -554,7 +554,7 @@ namespace DigitalRuby.IPBanCore
             }
             catch (Exception ex)
             {
-                IPBanLog.Error(ex);
+                Logger.Error(ex);
             }
             return false;
         }
@@ -589,7 +589,7 @@ namespace DigitalRuby.IPBanCore
             }
             catch (Exception ex)
             {
-                IPBanLog.Error(ex);
+                Logger.Error(ex);
             }
             return false;
         }

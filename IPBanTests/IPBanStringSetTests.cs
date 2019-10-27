@@ -46,7 +46,7 @@ namespace DigitalRuby.IPBanTests
         [Test]
         public void TestStringSet()
         {
-            using (IPBanStringSet set = new IPBanStringSet("test", true))
+            using (StringSet set = new StringSet("test", true))
             {
                 set.Clear();
                 List<string> strings = new List<string>();

@@ -32,7 +32,7 @@ namespace DigitalRuby.IPBanCore
     /// <summary>
     /// Stores a set of strings in a memory efficient way using disk and caching
     /// </summary>
-    public class IPBanStringSet : IDisposable
+    public class StringSet : IDisposable
     {
         private readonly string dbPath;
         private readonly string connString;
@@ -117,7 +117,7 @@ namespace DigitalRuby.IPBanCore
         /// </summary>
         /// <param name="name">Name of the set - must only have valid file chars</param>
         /// <param name="autoDelete">True to delete the backing file on close</param>
-        public IPBanStringSet(string name, bool autoDelete = false)
+        public StringSet(string name, bool autoDelete = false)
         {
             this.autoDelete = autoDelete;
             dbPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, name + ".sqlite");
@@ -134,7 +134,7 @@ namespace DigitalRuby.IPBanCore
             GC.WaitForPendingFinalizers();
             if (autoDelete)
             {
-                IPBanExtensionMethods.FileDeleteWithRetry(dbPath);
+                ExtensionMethods.FileDeleteWithRetry(dbPath);
             }
         }
 

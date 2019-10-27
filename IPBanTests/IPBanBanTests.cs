@@ -196,7 +196,7 @@ namespace DigitalRuby.IPBanTests
             {
                 // prime Linux log files
                 IPBanPlugin.IPBanLoginFailed("SSH", "User1", "78.88.88.88");
-                foreach (IPBanLogFileScanner toParse in service.LogFilesToParse)
+                foreach (LogFileScanner toParse in service.LogFilesToParse)
                 {
                     toParse.PingFiles();
                 }
@@ -211,7 +211,7 @@ namespace DigitalRuby.IPBanTests
                 for (int j = 0; j < 10 && (!service.DB.TryGetIPAddress("88.88.88.88", out IPBanDB.IPAddressEntry e) || e.FailedLoginCount != i + 1); j++)
                 {
                     System.Threading.Thread.Sleep(100);
-                    foreach (IPBanLogFileScanner toParse in service.LogFilesToParse)
+                    foreach (LogFileScanner toParse in service.LogFilesToParse)
                     {
                         toParse.PingFiles();
                     }
@@ -225,7 +225,7 @@ namespace DigitalRuby.IPBanTests
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             {
                 string toDelete = $"/var/log/ipbancustom_{IPBanPlugin.ProcessName}.log";
-                IPBanExtensionMethods.FileDeleteWithRetry(toDelete);
+                ExtensionMethods.FileDeleteWithRetry(toDelete);
             }
 
             // by default, Windows plugin goes to event viewer, we want to also make sure custom log files work on Windows
@@ -234,10 +234,10 @@ namespace DigitalRuby.IPBanTests
                 // prime log file to parse
                 string file = @"C:/IPBanCustomLogs/ipbancustom_test.log";
                 Directory.CreateDirectory(Path.GetDirectoryName(file));
-                IPBanExtensionMethods.FileWriteAllTextWithRetry(file, "awerfoajwerp jaeowr paojwer " + Environment.NewLine);
+                ExtensionMethods.FileWriteAllTextWithRetry(file, "awerfoajwerp jaeowr paojwer " + Environment.NewLine);
                 service.RunCycle().Sync();
                 System.Threading.Thread.Sleep(100);
-                foreach (IPBanLogFileScanner toParse in service.LogFilesToParse)
+                foreach (LogFileScanner toParse in service.LogFilesToParse)
                 {
                     toParse.PingFiles();
                 }
@@ -246,7 +246,7 @@ namespace DigitalRuby.IPBanTests
                 {
                     File.AppendAllText(file, data);
                     IPBanService.UtcNow += TimeSpan.FromMinutes(5.0);
-                    foreach (IPBanLogFileScanner toParse in service.LogFilesToParse)
+                    foreach (LogFileScanner toParse in service.LogFilesToParse)
                     {
                         toParse.PingFiles();
                     }
@@ -265,7 +265,7 @@ namespace DigitalRuby.IPBanTests
                 }
                 finally
                 {
-                    IPBanExtensionMethods.FileDeleteWithRetry(file);
+                    ExtensionMethods.FileDeleteWithRetry(file);
                     Directory.Delete(Path.GetDirectoryName(file));
                     using (EventLog appLog = new EventLog("Application", System.Environment.MachineName))
                     {

@@ -157,7 +157,7 @@ namespace DigitalRuby.IPBanCore
             }
             catch (Exception ex)
             {
-                IPBanLog.Error(ex);
+                Logger.Error(ex);
                 logFiles = new IPBanLogFileToParse[0];
             }
             GetConfig<string>("ProcessToRunOnBan", ref processToRunOnBan);
@@ -292,14 +292,14 @@ namespace DigitalRuby.IPBanCore
                         AllowPortRanges = pieces[3].Split(',').Select(p => PortRange.Parse(p)).Where(p => p.MinPort >= 0).ToList(),
                         PlatformRegex = new Regex(pieces[4].Replace('*', '.'), RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)
                     };
-                    if (firewallBlockRuleObj.PlatformRegex.IsMatch(IPBanOS.Name))
+                    if (firewallBlockRuleObj.PlatformRegex.IsMatch(OSUtility.Name))
                     {
                         extraRules.Add(firewallBlockRuleObj);
                     }
                 }
                 else
                 {
-                    IPBanLog.Warn("Firewall block rule entry should have 3 comma separated pieces: name;ips;ports. Invalid entry: {0}", firewallBlockRule);
+                    Logger.Warn("Firewall block rule entry should have 3 comma separated pieces: name;ips;ports. Invalid entry: {0}", firewallBlockRule);
                 }
             }
         }
@@ -401,7 +401,7 @@ namespace DigitalRuby.IPBanCore
             }
             catch (Exception ex)
             {
-                IPBanLog.Error(ex, "Error deserializing appSettings key {0}", key);
+                Logger.Error(ex, "Error deserializing appSettings key {0}", key);
                 return defaultValue;
             }
         }
@@ -424,7 +424,7 @@ namespace DigitalRuby.IPBanCore
             }
             catch (Exception ex)
             {
-                IPBanLog.Error(ex, "Error deserializing appSettings key {0}", key);
+                Logger.Error(ex, "Error deserializing appSettings key {0}", key);
             }
         }
 
@@ -447,7 +447,7 @@ namespace DigitalRuby.IPBanCore
             }
             catch (Exception ex)
             {
-                IPBanLog.Error(ex, "Error deserializing appSettings key {0}", key);
+                Logger.Error(ex, "Error deserializing appSettings key {0}", key);
             }
 
             if (minValue != null && maxValue != null)
@@ -489,7 +489,7 @@ namespace DigitalRuby.IPBanCore
             }
             catch (Exception ex)
             {
-                IPBanLog.Error(ex, "Error deserializing appSettings key {0}", key);
+                Logger.Error(ex, "Error deserializing appSettings key {0}", key);
             }
         }
 

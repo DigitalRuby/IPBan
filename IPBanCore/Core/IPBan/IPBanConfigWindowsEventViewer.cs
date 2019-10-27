@@ -65,7 +65,7 @@ namespace DigitalRuby.IPBanCore
         [Required(AllowEmptyStrings = true)]
         [LocalizedDisplayName(nameof(IPBanResources.XPathRegex))]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-        public IPBanExtensionMethods.XmlCData Regex
+        public ExtensionMethods.XmlCData Regex
         {
             get { return regex; }
             set { RegexObject = IPBanConfig.ParseRegex(regex = value); }

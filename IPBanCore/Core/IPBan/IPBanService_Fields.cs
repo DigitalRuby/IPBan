@@ -48,7 +48,7 @@ namespace DigitalRuby.IPBanCore
         private readonly List<IPAddressLogEvent> pendingSuccessfulLogins = new List<IPAddressLogEvent>();
         private readonly List<IPAddressLogEvent> pendingLogEvents = new List<IPAddressLogEvent>();
         private readonly HashSet<IUpdater> updaters = new HashSet<IUpdater>();
-        private readonly HashSet<IPBanLogFileScanner> logFilesToParse = new HashSet<IPBanLogFileScanner>();
+        private readonly HashSet<LogFileScanner> logFilesToParse = new HashSet<LogFileScanner>();
         private readonly SemaphoreSlim stopEvent = new SemaphoreSlim(0, 1);
         private readonly Dictionary<string, AsyncQueue<Func<CancellationToken, Task>>> firewallQueue = new Dictionary<string, AsyncQueue<Func<CancellationToken, Task>>>();
         private readonly CancellationTokenSource firewallQueueCancel = new CancellationTokenSource();
@@ -187,7 +187,7 @@ namespace DigitalRuby.IPBanCore
         /// <summary>
         /// Log files to parse
         /// </summary>
-        public IReadOnlyCollection<IPBanLogFileScanner> LogFilesToParse { get { return logFilesToParse; } }
+        public IReadOnlyCollection<LogFileScanner> LogFilesToParse { get { return logFilesToParse; } }
 
         private static DateTime? utcNow;
         /// <summary>

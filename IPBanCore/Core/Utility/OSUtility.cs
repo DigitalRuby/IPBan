@@ -35,7 +35,7 @@ using System.Text.RegularExpressions;
 namespace DigitalRuby.IPBanCore
 {
     // cat /etc/*-release
-    public static class IPBanOS
+    public static class OSUtility
     {
         [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
         private class MEMORYSTATUSEX
@@ -133,11 +133,11 @@ namespace DigitalRuby.IPBanCore
             }
             catch (Exception ex)
             {
-                IPBanLog.Error(ex, "Unable to load os version from wmi api");
+                Logger.Error(ex, "Unable to load os version from wmi api");
             }
         }
 
-        static IPBanOS()
+        static OSUtility()
         {
             try
             {
@@ -164,18 +164,18 @@ namespace DigitalRuby.IPBanCore
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
                 {
                     isLinux = true;
-                    string tempFile = IPBanOS.GetTempFileName();
+                    string tempFile = OSUtility.GetTempFileName();
                     Process.Start("/bin/bash", "-c \"cat /etc/*release* > " + tempFile + "\"").WaitForExit();
                     System.Threading.Tasks.Task.Delay(100); // wait a small bit for file to really be closed
                     string versionText = File.ReadAllText(tempFile).Trim();
-                    IPBanExtensionMethods.FileDeleteWithRetry(tempFile);
+                    ExtensionMethods.FileDeleteWithRetry(tempFile);
                     if (string.IsNullOrWhiteSpace(versionText))
                     {
-                        IPBanLog.Error(new IOException("Unable to load os version from /etc/*release* ..."));
+                        Logger.Error(new IOException("Unable to load os version from /etc/*release* ..."));
                     }
                     else
                     {
-                        Name = IPBanOS.Linux;
+                        Name = OSUtility.Linux;
                         FriendlyName = ExtractRegex(versionText, "^(Id|Distrib_Id)=(?<value>.*?)$", string.Empty);
                         if (FriendlyName.Length != 0)
                         {
@@ -192,8 +192,8 @@ namespace DigitalRuby.IPBanCore
                 {
                     isWindows = true;
                     processVerb = "runas";
-                    Name = IPBanOS.Windows;
-                    string tempFile = IPBanOS.GetTempFileName();
+                    Name = OSUtility.Windows;
+                    string tempFile = OSUtility.GetTempFileName();
 
                     // .net core WMI has a strange bug where WMI will not initialize on some systems
                     // since this is the only place where WMI is used, we can just work-around it
@@ -207,7 +207,7 @@ namespace DigitalRuby.IPBanCore
                             try
                             {
                                 string[] lines = File.ReadAllLines(tempFile);
-                                IPBanExtensionMethods.FileDeleteWithRetry(tempFile);
+                                ExtensionMethods.FileDeleteWithRetry(tempFile);
                                 if (lines.Length > 1)
                                 {
                                     int versionIndex = lines[0].IndexOf("Version");
@@ -228,7 +228,7 @@ namespace DigitalRuby.IPBanCore
                                 }
                                 else
                                 {
-                                    IPBanLog.Error(ex, "Unable to load os version using wmic, trying wmi api...");
+                                    Logger.Error(ex, "Unable to load os version using wmic, trying wmi api...");
 
                                     // last resort, try wmi api
                                     LoadVersionFromWmiApi();
@@ -245,18 +245,18 @@ namespace DigitalRuby.IPBanCore
                 else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
                 {
                     // TODO: Implement better for MAC
-                    Name = IPBanOS.Mac;
+                    Name = OSUtility.Mac;
                     FriendlyName = "OSX";
                 }
                 else
                 {
-                    Name = IPBanOS.Unknown;
+                    Name = OSUtility.Unknown;
                     FriendlyName = "Unknown";
                 }
             }
             catch (Exception ex)
             {
-                IPBanLog.Error("Error determining platform info", ex);
+                Logger.Error("Error determining platform info", ex);
             }
         }
 
@@ -293,7 +293,7 @@ namespace DigitalRuby.IPBanCore
         /// <exception cref="ApplicationException">Exit code did not match allowed exit codes</exception>
         public static string StartProcessAndWait(int timeoutMilliseconds, string program, string args, params int[] allowedExitCodes)
         {
-            IPBanLog.Info($"Executing process {program} {args}...");
+            Logger.Info($"Executing process {program} {args}...");
 
             var process = new Process
             {
@@ -347,7 +347,8 @@ namespace DigitalRuby.IPBanCore
         /// </summary>
         /// <param name="totalMemory">Receives the total system memory, in bytes</param>/// 
         /// <param name="availableMemory">Receives the available system memory, in bytes</param>
-        public static void GetSystemMemory(ref long totalMemory, ref long availableMemory)
+        /// <returns>True if memory could be determined, false otherwise</returns>
+        public static bool GetSystemMemory(out long totalMemory, out long availableMemory)
         {
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
@@ -355,6 +356,7 @@ namespace DigitalRuby.IPBanCore
                 GlobalMemoryStatusEx(mem);
                 availableMemory = (long)mem.ullAvailPhys;
                 totalMemory = (long)mem.ullTotalPhys;
+                return true;
             }
             else
             {
@@ -374,7 +376,7 @@ namespace DigitalRuby.IPBanCore
                         Match availableMatch = Regex.Match(available, "[0-9]+", RegexOptions.IgnoreCase | RegexOptions.Compiled | RegexOptions.CultureInvariant);
                         totalMemory = long.Parse(totalMatch.Value, CultureInfo.InvariantCulture) / 1024;
                         availableMemory = long.Parse(availableMatch.Value, CultureInfo.InvariantCulture) / 1024;
-                        return;
+                        return true;
                     }
                     catch
                     {
@@ -383,7 +385,9 @@ namespace DigitalRuby.IPBanCore
                     }
                 }
 
-                IPBanLog.Error("Unable to determine total and available RAM");
+                totalMemory = availableMemory = 0;
+                Logger.Error("Unable to determine total and available RAM");
+                return false;
             }
         }
 
@@ -474,7 +478,7 @@ namespace DigitalRuby.IPBanCore
             }
             catch (Exception ex)
             {
-                IPBanLog.Error("Error determining if user is active", ex);
+                Logger.Error("Error determining if user is active", ex);
             }
 
             return false;
@@ -516,7 +520,7 @@ namespace DigitalRuby.IPBanCore
         /// </summary>
         public bool IsValid
         {
-            get { return RequiredOS is null || RequiredOS.Equals(IPBanOS.Name, StringComparison.OrdinalIgnoreCase); }
+            get { return RequiredOS is null || RequiredOS.Equals(OSUtility.Name, StringComparison.OrdinalIgnoreCase); }
         }
 
         /// <summary>

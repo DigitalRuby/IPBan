@@ -47,8 +47,8 @@ namespace DigitalRuby.IPBanCore
         /// </summary>
         public IPBanService()
         {
-            OSName = IPBanOS.Name + (string.IsNullOrWhiteSpace(IPBanOS.FriendlyName) ? string.Empty : " (" + IPBanOS.FriendlyName + ")");
-            OSVersion = IPBanOS.Version;
+            OSName = OSUtility.Name + (string.IsNullOrWhiteSpace(OSUtility.FriendlyName) ? string.Empty : " (" + OSUtility.FriendlyName + ")");
+            OSVersion = OSUtility.Version;
         }
 
         /// <summary>
@@ -60,7 +60,7 @@ namespace DigitalRuby.IPBanCore
             Type typeOfT = typeof(T);
 
             // if any derived class of IPBanService, use that
-            List<Type> allTypes = IPBanExtensionMethods.GetAllTypes();
+            List<Type> allTypes = ExtensionMethods.GetAllTypes();
             var q =
                 from type in allTypes
                 where typeOfT.IsAssignableFrom(type)
@@ -176,21 +176,21 @@ namespace DigitalRuby.IPBanCore
                     if (ipAddressGroup.Name == "ipaddress" && tempIPAddress != Environment.MachineName && tempIPAddress != "-")
                     {
                         // Check Host by name
-                        IPBanLog.Info("Parsing as IP failed, checking dns '{0}'", tempIPAddress);
+                        Logger.Info("Parsing as IP failed, checking dns '{0}'", tempIPAddress);
                         try
                         {
                             IPHostEntry entry = dns.GetHostEntryAsync(tempIPAddress).Sync();
                             if (entry != null && entry.AddressList != null && entry.AddressList.Length > 0)
                             {
                                 ipAddress = entry.AddressList.FirstOrDefault().ToString();
-                                IPBanLog.Info("Dns result '{0}' = '{1}'", tempIPAddress, ipAddress);
+                                Logger.Info("Dns result '{0}' = '{1}'", tempIPAddress, ipAddress);
                                 foundMatch = true;
                                 break;
                             }
                         }
                         catch
                         {
-                            IPBanLog.Info("Parsing as dns failed '{0}'", tempIPAddress);
+                            Logger.Info("Parsing as dns failed '{0}'", tempIPAddress);
                         }
                     }
                 }
@@ -255,12 +255,12 @@ namespace DigitalRuby.IPBanCore
                     }
                     updaters.Clear();
                 }
-                foreach (IPBanLogFileScanner file in logFilesToParse)
+                foreach (LogFileScanner file in logFilesToParse)
                 {
                     file.Dispose();
                 }
                 ipDB?.Dispose();
-                IPBanLog.Warn("Stopped IPBan service");
+                Logger.Warn("Stopped IPBan service");
             }
             finally
             {
@@ -299,12 +299,12 @@ namespace DigitalRuby.IPBanCore
                     cycleTimer.Elapsed += async (sender, e) => await CycleTimerElapsed(sender, e);
                     cycleTimer.Start();
                 }
-                IPBanLog.Warn("IPBan {0} service started and initialized. Operating System: {1}", IPBanOS.Name, IPBanOS.OSString());
-                IPBanLog.WriteLogLevels();
+                Logger.Warn("IPBan {0} service started and initialized. Operating System: {1}", OSUtility.Name, OSUtility.OSString());
+                Logger.WriteLogLevels();
             }
             catch (Exception ex)
             {
-                IPBanLog.Error("Critical error in IPBanService.Start", ex);
+                Logger.Error("Critical error in IPBanService.Start", ex);
             }
         }
 
@@ -466,7 +466,7 @@ namespace DigitalRuby.IPBanCore
                 .Union(Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory, "*.sqlite-shm"))
                 .Union(Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory, "*journal*")))
             {
-                IPBanExtensionMethods.FileDeleteWithRetry(file, 1000);
+                ExtensionMethods.FileDeleteWithRetry(file, 1000);
             }
 
             if (string.IsNullOrWhiteSpace(directory))
@@ -484,7 +484,7 @@ namespace DigitalRuby.IPBanCore
             {
                 configFileText = configFileModifier(configFileText);
             }
-            IPBanExtensionMethods.FileWriteAllTextWithRetry(configFilePath, configFileText);
+            ExtensionMethods.FileWriteAllTextWithRetry(configFilePath, configFileText);
             T service = IPBanService.CreateService<T>() as T;
             service.ExternalIPAddressLookup = LocalMachineExternalIPAddressLookupTest.Instance;
             service.ConfigFilePath = configFilePath;

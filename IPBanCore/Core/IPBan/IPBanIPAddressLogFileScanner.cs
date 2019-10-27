@@ -26,7 +26,7 @@ using System.Text.RegularExpressions;
 
 namespace DigitalRuby.IPBanCore
 {
-    public class IPBanIPAddressLogFileScanner : IPBanLogFileScanner
+    public class IPBanIPAddressLogFileScanner : LogFileScanner
     {
         private readonly IIPAddressEventHandler loginHandler;
         private readonly IDnsLookup dns;
@@ -74,14 +74,14 @@ namespace DigitalRuby.IPBanCore
         /// <returns>True</returns>
         protected override bool OnProcessLine(string line)
         {
-            IPBanLog.Debug("Parsing log file line {0}...", line);
+            Logger.Debug("Parsing log file line {0}...", line);
             bool result = ParseRegex(regexFailure, line, false);
             if (!result)
             {
                 result = ParseRegex(regexSuccess, line, true);
                 if (!result)
                 {
-                    IPBanLog.Debug("No match for line {0}", line);
+                    Logger.Debug("No match for line {0}", line);
                 }
             }
             return true;
@@ -96,7 +96,7 @@ namespace DigitalRuby.IPBanCore
                 {
                     info.Type = (notifyOnly ? IPAddressEventType.SuccessfulLogin : IPAddressEventType.FailedLogin);
                     info.Source = info.Source ?? Source;
-                    IPBanLog.Debug("Log file found match, ip: {0}, user: {1}, source: {2}, count: {3}, type: {4}",
+                    Logger.Debug("Log file found match, ip: {0}, user: {1}, source: {2}, count: {3}, type: {4}",
                         info.IPAddress, info.UserName, info.Source, info.Count, info.Type);
                     loginHandler.AddIPAddressLogEvents(new IPAddressLogEvent[] { info });
                     return true;

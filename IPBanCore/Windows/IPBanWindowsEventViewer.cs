@@ -122,7 +122,7 @@ namespace DigitalRuby.IPBanCore
 
                         if (nodes.Count == 0)
                         {
-                            IPBanLog.Debug("No nodes found for xpath {0}", expression.XPath);
+                            Logger.Debug("No nodes found for xpath {0}", expression.XPath);
                             info = null;
                             break;
                         }
@@ -131,7 +131,7 @@ namespace DigitalRuby.IPBanCore
                         if (string.IsNullOrWhiteSpace(expression.Regex))
                         {
                             // count as a match, do not modify the ip address if it was already set
-                            IPBanLog.Debug("No regex, so counting as a match");
+                            Logger.Debug("No regex, so counting as a match");
                         }
                         else
                         {
@@ -161,7 +161,7 @@ namespace DigitalRuby.IPBanCore
                             if (info != null && !info.FoundMatch)
                             {
                                 // match fail, null out ip, we have to match ALL the nodes or we get null ip and do not ban
-                                IPBanLog.Debug("Regex {0} did not match any nodes with xpath {1}", expression.Regex, expression.XPath);
+                                Logger.Debug("Regex {0} did not match any nodes with xpath {1}", expression.Regex, expression.XPath);
                                 info = null;
                                 foundNotifyOnly = false;
                                 break;
@@ -222,7 +222,7 @@ namespace DigitalRuby.IPBanCore
             }
             catch (Exception ex)
             {
-                IPBanLog.Error(ex);
+                Logger.Error(ex);
             }
         }
 
@@ -262,10 +262,10 @@ namespace DigitalRuby.IPBanCore
                 string queryString = GetEventLogQueryString(ignored);
                 if (queryString != null && queryString != previousQueryString)
                 {
-                    IPBanLog.Warn("Event viewer query string: {0}", queryString);
+                    Logger.Warn("Event viewer query string: {0}", queryString);
                     foreach (string path in ignored)
                     {
-                        IPBanLog.Warn("Ignoring event viewer path {0}", path);
+                        Logger.Warn("Ignoring event viewer path {0}", path);
                     }
 
                     watcher?.Dispose();
@@ -278,7 +278,7 @@ namespace DigitalRuby.IPBanCore
             }
             catch (Exception ex)
             {
-                IPBanLog.Error("Failed to create event viewer watcher", ex);
+                Logger.Error("Failed to create event viewer watcher", ex);
             }
         }
 
@@ -289,7 +289,7 @@ namespace DigitalRuby.IPBanCore
         /// <returns>Log event or null if fail to parse/process</returns>
         public IPAddressLogEvent ProcessEventViewerXml(string xml)
         {
-            IPBanLog.Debug("Processing event viewer xml: {0}", xml);
+            Logger.Debug("Processing event viewer xml: {0}", xml);
 
             XmlDocument doc = ParseXml(xml);
             IPAddressLogEvent info = ExtractEventViewerXml(doc);
@@ -301,7 +301,7 @@ namespace DigitalRuby.IPBanCore
                     return null;
                 }
                 service.AddIPAddressLogEvents(new IPAddressLogEvent[] { info });
-                IPBanLog.Debug("Event viewer found: {0}, {1}, {2}, {3}", info.IPAddress, info.Source, info.UserName, info.Type);
+                Logger.Debug("Event viewer found: {0}, {1}, {2}, {3}", info.IPAddress, info.Source, info.UserName, info.Type);
             }
             return info;
         }

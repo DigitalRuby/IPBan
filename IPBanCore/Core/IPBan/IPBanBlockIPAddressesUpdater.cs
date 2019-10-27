@@ -65,7 +65,7 @@ namespace DigitalRuby.IPBanCore
                 if (File.Exists(textFilePath))
                 {
                     string[] lines = (await File.ReadAllLinesAsync(textFilePath)).Where(l => IPAddress.TryParse(l, out _)).ToArray();
-                    IPBanLog.Warn("Queueing {0} ip addresses to ban from {1} file", lines.Length, textFilePath);
+                    Logger.Warn("Queueing {0} ip addresses to ban from {1} file", lines.Length, textFilePath);
                     List<IPAddressLogEvent> bans = new List<IPAddressLogEvent>();
                     foreach (string[] pieces in lines.Select(l => l.Split(',')))
                     {
@@ -78,12 +78,12 @@ namespace DigitalRuby.IPBanCore
                         bans.Add(new IPAddressLogEvent(ipAddress, string.Empty, source, 1, IPAddressEventType.Blocked));
                     }
                     service.AddIPAddressLogEvents(bans);
-                    IPBanExtensionMethods.FileDeleteWithRetry(textFilePath);
+                    ExtensionMethods.FileDeleteWithRetry(textFilePath);
                 }
             }
             catch (Exception ex)
             {
-                IPBanLog.Error(ex);
+                Logger.Error(ex);
             }
         }
     }

@@ -110,9 +110,9 @@ namespace DigitalRuby.IPBanCore
     /// IPBan logger. Will never throw exceptions.
     /// Currently the IPBan logger uses NLog internally, so make sure it is setup in your app.config file or nlog.config file.
     /// </summary>
-    public static class IPBanLog
+    public static class Logger
     {
-        private static readonly Logger logger;
+        private static readonly NLog.Logger instance;
 
         /* // makes nlog go haywire, revisit later
         private static readonly CustomTimeSource timeSource = new CustomTimeSource();
@@ -139,7 +139,7 @@ namespace DigitalRuby.IPBanCore
         }
         */
 
-        static IPBanLog()
+        static Logger()
         {
             try
             {
@@ -173,7 +173,7 @@ namespace DigitalRuby.IPBanCore
     <logger name=""*"" minlevel=""{logLevel}"" writeTo=""console""/>
   </rules>
 </nlog>";
-                        IPBanExtensionMethods.FileWriteAllTextWithRetry(nlogConfigPath, defaultNLogConfig);
+                        ExtensionMethods.FileWriteAllTextWithRetry(nlogConfigPath, defaultNLogConfig);
                     }
                     if (File.Exists(nlogConfigPath))
                     {
@@ -184,7 +184,7 @@ namespace DigitalRuby.IPBanCore
                         throw new IOException("Unable to create nlog configuration file, nlog.config file failed to write default config.");
                     }
                 }
-                logger = factory.GetCurrentClassLogger();
+                instance = factory.GetCurrentClassLogger();
                 //NLog.Time.TimeSource.Current = timeSource;
             }
             catch (Exception ex)
@@ -214,9 +214,9 @@ namespace DigitalRuby.IPBanCore
         /// </summary>
         public static void WriteLogLevels(IPBanCore.LogLevel level = LogLevel.Warn)
         {
-            if (logger != null)
+            if (instance != null)
             {
-                IPBanLog.Write(level, IPBanService.UtcNow, "Log levels: {0},{1},{2},{3},{4},{5}", logger.IsFatalEnabled, logger.IsErrorEnabled, logger.IsWarnEnabled, logger.IsInfoEnabled, logger.IsDebugEnabled, logger.IsTraceEnabled);
+                Logger.Write(level, IPBanService.UtcNow, "Log levels: {0},{1},{2},{3},{4},{5}", instance.IsFatalEnabled, instance.IsErrorEnabled, instance.IsWarnEnabled, instance.IsInfoEnabled, instance.IsDebugEnabled, instance.IsTraceEnabled);
             }
         }
 
@@ -534,7 +534,7 @@ namespace DigitalRuby.IPBanCore
 #endif
 
                 //timeSource.CurrentTime = ts;
-                logger?.Log(GetNLogLevel(level), text, args);
+                instance?.Log(GetNLogLevel(level), text, args);
             }
             catch
             {
@@ -544,7 +544,7 @@ namespace DigitalRuby.IPBanCore
         /// <summary>
         /// Internal access to the logger
         /// </summary>
-        public static Logger Logger { get { return logger; } }
+        public static ILogger Instance { get { return instance; } }
     }
 
     /// <summary>

@@ -30,7 +30,7 @@ using System.Threading.Tasks;
 namespace DigitalRuby.IPBanCore
 {
     // TODO: use pfctl
-    [RequiredOperatingSystem(IPBanOS.Mac)]
+    [RequiredOperatingSystem(OSUtility.Mac)]
     [CustomName("Default")]
     public class IPBanMacFirewall : IPBanBaseFirewall, IIPBanFirewall
     {
