@@ -32,6 +32,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Security;
 using System.Security.Cryptography;
@@ -1054,6 +1055,57 @@ namespace DigitalRuby.IPBanCore
         public static T Sync<T>(this Task<T> task)
         {
             return task.ConfigureAwait(false).GetAwaiter().GetResult();
+        }
+
+        /// <summary>
+        /// Make a task execute synchronously
+        /// </summary>
+        /// <param name="task">Task</param>
+        public static void Sync(this ValueTask task)
+        {
+            task.ConfigureAwait(false).GetAwaiter().GetResult();
+        }
+
+        /// <summary>
+        /// Make a task execute synchronously
+        /// </summary>
+        /// <param name="task">Task</param>
+        /// <returns>Result</returns>
+        public static T Sync<T>(this ValueTask<T> task)
+        {
+            return task.ConfigureAwait(false).GetAwaiter().GetResult();
+        }
+
+        /// <summary>
+        /// Wait for value tasks to complete
+        /// </summary>
+        /// <typeparam name="T">Type of value task</typeparam>
+        /// <param name="tasks">Value tasks</param>
+        /// <returns>Task that finishes when all value tasks have finished</returns>
+        public static Task WhenAll(this IEnumerable<ValueTask> tasks)
+        {
+            List<Task> valueTaskTasks = new List<Task>();
+            foreach (ValueTask task in tasks)
+            {
+                valueTaskTasks.Add(task.AsTask());
+            }
+            return Task.WhenAll(valueTaskTasks);
+        }
+
+        /// <summary>
+        /// Wait for value tasks to complete
+        /// </summary>
+        /// <typeparam name="T">Type of value task</typeparam>
+        /// <param name="tasks">Value tasks</param>
+        /// <returns>Task that finishes when all value tasks have finished</returns>
+        public static Task WhenAll<T>(this IEnumerable<ValueTask<T>> tasks)
+        {
+            List<Task> valueTaskTasks = new List<Task>();
+            foreach (ValueTask<T> task in tasks)
+            {
+                valueTaskTasks.Add(task.AsTask());
+            }
+            return Task.WhenAll(valueTaskTasks);
         }
 
         /// <summary>
