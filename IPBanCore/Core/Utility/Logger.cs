@@ -199,7 +199,7 @@ namespace DigitalRuby.IPBanCore
             StringBuilder b = new StringBuilder();
             while (ex != null)
             {
-                b.AppendFormat(ex.ToString());
+                b.Append(ex.ToString());
                 if (ex.InnerException != null)
                 {
                     b.AppendLine("---");
