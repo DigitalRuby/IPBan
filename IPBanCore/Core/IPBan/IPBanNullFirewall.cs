@@ -5,10 +5,7 @@ using System.Threading.Tasks;
 namespace DigitalRuby.IPBanCore
 {
     /// <summary>
-    /// In memory firewall that persists rules to disk. This is not meant to be used directly but rather to be used inside of other firewall implementations.
-    /// Use the IsIPAddressBlocked method in your firewall implementation / packet injection / etc.
-    /// Also great for unit testing.
-    /// This class is thread safe.
+    /// This firewall implementation does nothing, so is great for performance testing
     /// </summary>
     [RequiredOperatingSystemAttribute(null, -999)] // low priority, basically any other firewall is preferred unless this one is explicitly specified in the config
     [CustomName("Null")]
