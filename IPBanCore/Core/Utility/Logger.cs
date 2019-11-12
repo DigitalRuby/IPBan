@@ -24,6 +24,7 @@ SOFTWARE.
 
 #region Imports
 
+using Microsoft.Extensions.Logging;
 using NLog;
 using System;
 using System.Configuration;
@@ -112,7 +113,41 @@ namespace DigitalRuby.IPBanCore
     /// </summary>
     public static class Logger
     {
-        private static readonly NLog.Logger instance;
+        private class NLogWrapper : Microsoft.Extensions.Logging.ILogger
+        {
+            private class EmptyDisposable : IDisposable
+            {
+                public void Dispose() { }
+            }
+
+            private static readonly EmptyDisposable emptyDisposable = new EmptyDisposable();
+            private readonly NLog.Logger logger;
+
+            public NLogWrapper(NLog.Logger logger)
+            {
+                this.logger = logger;
+            }
+
+            public IDisposable BeginScope<TState>(TState state)
+            {
+                return emptyDisposable;
+            }
+
+            public bool IsEnabled(Microsoft.Extensions.Logging.LogLevel logLevel)
+            {
+                return logger.IsEnabled(Logger.GetNLogLevel(logLevel));
+            }
+
+            public void Log<TState>(Microsoft.Extensions.Logging.LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
+            {
+                NLog.LogLevel level = Logger.GetNLogLevel(logLevel);
+                string message = formatter(state, exception);
+                logger.Log(level, message);
+            }
+        }
+
+        private static readonly Microsoft.Extensions.Logging.ILogger instance;
+        private static readonly NLog.Logger nlogInstance;
 
         /* // makes nlog go haywire, revisit later
         private static readonly CustomTimeSource timeSource = new CustomTimeSource();
@@ -184,7 +219,8 @@ namespace DigitalRuby.IPBanCore
                         throw new IOException("Unable to create nlog configuration file, nlog.config file failed to write default config.");
                     }
                 }
-                instance = factory.GetCurrentClassLogger();
+                nlogInstance = factory.GetCurrentClassLogger();
+                instance = new NLogWrapper(nlogInstance);
                 //NLog.Time.TimeSource.Current = timeSource;
             }
             catch (Exception ex)
@@ -216,7 +252,9 @@ namespace DigitalRuby.IPBanCore
         {
             if (instance != null)
             {
-                Logger.Write(level, IPBanService.UtcNow, "Log levels: {0},{1},{2},{3},{4},{5}", instance.IsFatalEnabled, instance.IsErrorEnabled, instance.IsWarnEnabled, instance.IsInfoEnabled, instance.IsDebugEnabled, instance.IsTraceEnabled);
+                Logger.Write(level, IPBanService.UtcNow, "Log levels: {0},{1},{2},{3},{4},{5}",
+                    nlogInstance.IsFatalEnabled, nlogInstance.IsErrorEnabled, nlogInstance.IsWarnEnabled,
+                    nlogInstance.IsInfoEnabled, nlogInstance.IsDebugEnabled, nlogInstance.IsTraceEnabled);
             }
         }
 
@@ -534,7 +572,7 @@ namespace DigitalRuby.IPBanCore
 #endif
 
                 //timeSource.CurrentTime = ts;
-                instance?.Log(GetNLogLevel(level), text, args);
+                nlogInstance?.Log(GetNLogLevel(level), text, args);
             }
             catch
             {
@@ -544,7 +582,7 @@ namespace DigitalRuby.IPBanCore
         /// <summary>
         /// Internal access to the logger
         /// </summary>
-        public static ILogger Instance { get { return instance; } }
+        public static Microsoft.Extensions.Logging.ILogger Instance { get { return instance; } }
     }
 
     /// <summary>
