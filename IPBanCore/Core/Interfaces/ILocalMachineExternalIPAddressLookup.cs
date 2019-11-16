@@ -79,7 +79,28 @@ namespace DigitalRuby.IPBanCore
             {
                 url = "https://checkip.amazonaws.com";
             }
-            byte[] bytes = await (requestMaker ?? this.requestMaker).MakeRequestAsync(new Uri(url));
+            byte[] bytes = null;
+            Exception ex = null;
+
+            // try up to 3 times to get external ip
+            for (int i = 0; i < 3; i++)
+            {
+                try
+                {
+                    bytes = await (requestMaker ?? this.requestMaker).MakeRequestAsync(new Uri(url));
+                    break;
+                }
+                catch (Exception _ex)
+                {
+                    ex = _ex;
+                    await Task.Delay(600);
+                }
+            }
+
+            if (bytes is null)
+            {
+                throw new System.Net.WebException("Unable to get external ip address", ex);
+            }
             string ipString = Encoding.UTF8.GetString(bytes).Split(',').Last().Trim();
             if (System.Net.IPAddress.TryParse(ipString, out System.Net.IPAddress ipAddress))
             {
