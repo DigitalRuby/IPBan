@@ -145,7 +145,7 @@ namespace DigitalRuby.IPBanCore
             }
             else if (!Config.UseDefaultBannedIPAddressHandler && BannedIPAddressHandler != null && BannedIPAddressHandler is DefaultBannedIPAddressHandler)
             {
-                BannedIPAddressHandler = null;
+                BannedIPAddressHandler = NullBannedIPAddressHandler.Instance;
             }
         }
 

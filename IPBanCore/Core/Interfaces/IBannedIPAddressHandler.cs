@@ -132,12 +132,12 @@ namespace DigitalRuby.IPBanCore
         /// <summary>
         /// Not implemented
         /// </summary>
-        string IBannedIPAddressHandler.BaseUrl { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        string IBannedIPAddressHandler.BaseUrl { get; set; }
 
         /// <summary>
         /// Not implemented
         /// </summary>
-        SecureString IBannedIPAddressHandler.PublicAPIKey { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        SecureString IBannedIPAddressHandler.PublicAPIKey { get; set; }
 
         /// <summary>
         /// Does nothing
