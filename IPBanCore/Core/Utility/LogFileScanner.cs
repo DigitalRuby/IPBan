@@ -32,9 +32,12 @@ using System.Threading;
 
 namespace DigitalRuby.IPBanCore
 {
+    /// <summary>
+    /// Scans a file periodically looking for patterns
+    /// </summary>
     public class LogFileScanner : IDisposable
     {
-        protected class WatchedFile
+        private class WatchedFile
         {
             public WatchedFile(string fileName, long lastPosition = 0)
             {
@@ -91,6 +94,9 @@ namespace DigitalRuby.IPBanCore
             ScanForFiles(pathAndMask, recursive);
         }
 
+        /// <summary>
+        /// Cleanup all resources
+        /// </summary>
         public void Dispose()
         {
             // wait for any outstanding file pings
@@ -199,11 +205,6 @@ namespace DigitalRuby.IPBanCore
             {
             }
         }
-
-        /// <summary>
-        /// The source of the failed login
-        /// </summary>
-        public string Source { get; set; }
 
         /// <summary>
         /// The path and mask to scan

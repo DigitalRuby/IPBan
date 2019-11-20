@@ -34,6 +34,9 @@ using System.Xml;
 
 namespace DigitalRuby.IPBanCore
 {
+    /// <summary>
+    /// Implementation to hook into Windows event viewer
+    /// </summary>
     public class IPBanWindowsEventViewer : IUpdater
     {
         private static readonly Regex invalidXmlRegex = new Regex(@"(?<![\uD800-\uDBFF])[\uDC00-\uDFFF]|[\uD800-\uDBFF](?![\uDC00-\uDFFF])|[\x00-\x08\x0B\x0C\x0E-\x1F\x7F-\x9F\uFEFF\uFFFE\uFFFF]", RegexOptions.Compiled);
@@ -43,6 +46,10 @@ namespace DigitalRuby.IPBanCore
         private EventLogWatcher watcher;
         private string previousQueryString;
 
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="service">IPBan service interface</param>
         public IPBanWindowsEventViewer(IIPBanService service)
         {
             this.service = service;
@@ -50,12 +57,19 @@ namespace DigitalRuby.IPBanCore
             Update();
         }
 
+        /// <summary>
+        /// Update
+        /// </summary>
+        /// <returns>Task</returns>
         public Task Update()
         {
             SetupEventLogWatcher();
             return Task.CompletedTask;
         }
 
+        /// <summary>
+        /// Cleanup all resources
+        /// </summary>
         public void Dispose()
         {
             query = null;
@@ -65,6 +79,30 @@ namespace DigitalRuby.IPBanCore
                 watcher = null;
                 service.RemoveUpdater(this);
             }
+        }
+
+        /// <summary>
+        /// Process event viewer XML
+        /// </summary>
+        /// <param name="xml">XML</param>
+        /// <returns>Log event or null if fail to parse/process</returns>
+        public IPAddressLogEvent ProcessEventViewerXml(string xml)
+        {
+            Logger.Debug("Processing event viewer xml: {0}", xml);
+
+            XmlDocument doc = ParseXml(xml);
+            IPAddressLogEvent info = ExtractEventViewerXml(doc);
+            if (info != null && info.FoundMatch && (info.Type == IPAddressEventType.FailedLogin || info.Type == IPAddressEventType.SuccessfulLogin))
+            {
+                if (!FindSourceAndUserNameForInfo(info, doc))
+                {
+                    // bad ip address
+                    return null;
+                }
+                service.AddIPAddressLogEvents(new IPAddressLogEvent[] { info });
+                Logger.Debug("Event viewer found: {0}, {1}, {2}, {3}", info.IPAddress, info.Source, info.UserName, info.Type);
+            }
+            return info;
         }
 
         private bool FindSourceAndUserNameForInfo(IPAddressLogEvent info, XmlDocument doc)
@@ -280,30 +318,6 @@ namespace DigitalRuby.IPBanCore
             {
                 Logger.Error("Failed to create event viewer watcher", ex);
             }
-        }
-
-        /// <summary>
-        /// Process event viewer XML
-        /// </summary>
-        /// <param name="xml">XML</param>
-        /// <returns>Log event or null if fail to parse/process</returns>
-        public IPAddressLogEvent ProcessEventViewerXml(string xml)
-        {
-            Logger.Debug("Processing event viewer xml: {0}", xml);
-
-            XmlDocument doc = ParseXml(xml);
-            IPAddressLogEvent info = ExtractEventViewerXml(doc);
-            if (info != null && info.FoundMatch && (info.Type == IPAddressEventType.FailedLogin || info.Type == IPAddressEventType.SuccessfulLogin))
-            {
-                if (!FindSourceAndUserNameForInfo(info, doc))
-                {
-                    // bad ip address
-                    return null;
-                }
-                service.AddIPAddressLogEvents(new IPAddressLogEvent[] { info });
-                Logger.Debug("Event viewer found: {0}, {1}, {2}, {3}", info.IPAddress, info.Source, info.UserName, info.Type);
-            }
-            return info;
         }
     }
 }

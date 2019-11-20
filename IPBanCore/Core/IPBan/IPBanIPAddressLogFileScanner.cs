@@ -26,12 +26,20 @@ using System.Text.RegularExpressions;
 
 namespace DigitalRuby.IPBanCore
 {
+    /// <summary>
+    /// Log file scanner that looks for failed logins
+    /// </summary>
     public class IPBanIPAddressLogFileScanner : LogFileScanner
     {
         private readonly IIPAddressEventHandler loginHandler;
         private readonly IDnsLookup dns;
         private readonly Regex regexFailure;
         private readonly Regex regexSuccess;
+
+        /// <summary>
+        /// The source of the failed login
+        /// </summary>
+        public string Source { get; }
 
         /// <summary>
         /// Create a log file scanner
@@ -95,7 +103,7 @@ namespace DigitalRuby.IPBanCore
                 if (info.FoundMatch)
                 {
                     info.Type = (notifyOnly ? IPAddressEventType.SuccessfulLogin : IPAddressEventType.FailedLogin);
-                    info.Source = info.Source ?? Source;
+                    info.Source ??= Source; // apply default source only if we don't already have a source
                     Logger.Debug("Log file found match, ip: {0}, user: {1}, source: {2}, count: {3}, type: {4}",
                         info.IPAddress, info.UserName, info.Source, info.Count, info.Type);
                     loginHandler.AddIPAddressLogEvents(new IPAddressLogEvent[] { info });
