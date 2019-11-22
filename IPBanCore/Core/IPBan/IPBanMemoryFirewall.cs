@@ -210,7 +210,9 @@ namespace DigitalRuby.IPBanCore
                 }
             }
 
-            public void AddIPAddressesDelta(IEnumerable<IPBanFirewallIPAddressDelta> deltas, IEnumerable<PortRange> allowPorts)
+#pragma warning disable IDE0060 // Remove unused parameter
+            public void AddIPAddressesDelta(IEnumerable<IPBanFirewallIPAddressDelta> deltas, IEnumerable<PortRange> allowPorts = null)
+#pragma warning restore IDE0060 // Remove unused parameter
             {
                 foreach (IPBanFirewallIPAddressDelta delta in deltas)
                 {
@@ -395,7 +397,7 @@ namespace DigitalRuby.IPBanCore
             return Task.FromResult(true);
         }
 
-        public Task<bool> BlockIPAddresses(string ruleNamePrefix, IEnumerable<IPAddressRange> ranges, IEnumerable<PortRange> allowedPorts, CancellationToken cancelToken = default)
+        public Task<bool> BlockIPAddresses(string ruleNamePrefix, IEnumerable<IPAddressRange> ranges, IEnumerable<PortRange> allowedPorts = null, CancellationToken cancelToken = default)
         {
             // for performance, ranges is assumed to be sorted
             lock (this)

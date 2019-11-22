@@ -62,7 +62,7 @@ namespace DigitalRuby.IPBanCore
         /// <param name="allowedPorts">Allowed ports, any port not in this list is blocked</param>
         /// <param name="cancelToken">Cancel token</param>
         /// <returns>True if success, false if error</returns>
-        Task<bool> BlockIPAddresses(string ruleNamePrefix, IEnumerable<IPAddressRange> ranges, IEnumerable<PortRange> allowedPorts, CancellationToken cancelToken = default);
+        Task<bool> BlockIPAddresses(string ruleNamePrefix, IEnumerable<IPAddressRange> ranges, IEnumerable<PortRange> allowedPorts = null, CancellationToken cancelToken = default);
 
         /// <summary>
         /// Creates new rules to allow all the ip addresses on all ports, and removes any left-over rules. Exceptions are logged.

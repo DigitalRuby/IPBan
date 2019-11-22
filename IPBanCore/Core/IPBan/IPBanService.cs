@@ -464,7 +464,7 @@ namespace DigitalRuby.IPBanCore
                 .Union(Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory, "*.sqlite"))
                 .Union(Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory, "*.sqlite-wal"))
                 .Union(Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory, "*.sqlite-shm"))
-                .Union(Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory, "*journal*")))
+                .Union(Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory, "*-journal")))
             {
                 ExtensionMethods.FileDeleteWithRetry(file, 1000);
             }

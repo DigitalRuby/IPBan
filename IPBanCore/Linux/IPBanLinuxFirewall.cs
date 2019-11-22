@@ -92,7 +92,7 @@ namespace DigitalRuby.IPBanCore
             return Task.FromResult(result);
         }
 
-        public override Task<bool> BlockIPAddresses(string ruleNamePrefix, IEnumerable<IPAddressRange> ranges, IEnumerable<PortRange> allowedPorts, CancellationToken cancelToken = default)
+        public override Task<bool> BlockIPAddresses(string ruleNamePrefix, IEnumerable<IPAddressRange> ranges, IEnumerable<PortRange> allowedPorts = null, CancellationToken cancelToken = default)
         {
             IEnumerable<IPAddressRange> ipv4 = ranges.Where(i => i.Begin.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork && i.End.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork);
             IEnumerable<IPAddressRange> ipv6 = ranges.Where(i => i.Begin.AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6 && i.End.AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6);

@@ -490,7 +490,7 @@ namespace DigitalRuby.IPBanCore
             }
         }
 
-        public virtual Task<bool> BlockIPAddresses(string ruleNamePrefix, IEnumerable<IPAddressRange> ranges, IEnumerable<PortRange> allowedPorts, CancellationToken cancelToken = default)
+        public virtual Task<bool> BlockIPAddresses(string ruleNamePrefix, IEnumerable<IPAddressRange> ranges, IEnumerable<PortRange> allowedPorts = null, CancellationToken cancelToken = default)
         {
             ruleNamePrefix.ThrowIfNullOrEmpty();
 

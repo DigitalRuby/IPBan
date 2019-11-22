@@ -58,7 +58,7 @@ namespace DigitalRuby.IPBanCore
             throw new NotImplementedException();
         }
 
-        public Task<bool> BlockIPAddresses(string ruleNamePrefix, IEnumerable<IPAddressRange> ranges, IEnumerable<PortRange> allowedPorts, CancellationToken cancelToken = default)
+        public Task<bool> BlockIPAddresses(string ruleNamePrefix, IEnumerable<IPAddressRange> ranges, IEnumerable<PortRange> allowedPorts = null, CancellationToken cancelToken = default)
         {
             throw new NotImplementedException();
         }
