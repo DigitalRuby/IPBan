@@ -40,7 +40,7 @@ using System.Xml;
 
 namespace DigitalRuby.IPBanCore
 {
-    public partial class IPBanService : IIPBanService
+    public partial class IPBanService : IIPBanService, IIsWhitelisted
     {
         /// <summary>
         /// Constructor
@@ -327,13 +327,25 @@ namespace DigitalRuby.IPBanCore
         }
 
         /// <summary>
-        /// Check if an ip is whitelisted
+        /// Check if an entry is whitelisted
         /// </summary>
-        /// <param name="ipAddress">IP address</param>
+        /// <param name="entry">Entry</param>
         /// <returns>True if whitelisted, false otherwise</returns>
-        public bool IsWhitelisted(string ipAddress)
+        public bool IsWhitelisted(string entry)
         {
-            return (Config.IsWhitelisted(ipAddress) || (IPBanDelegate != null && IPBanDelegate.IsIPAddressWhitelisted(ipAddress)));
+            IPBanConfig config = Config;
+            return (config != null && config.IsWhitelisted(entry));
+        }
+
+        /// <summary>
+        /// Check if an ip address range is whitelisted
+        /// </summary>
+        /// <param name="range">Range</param>
+        /// <returns>True if whitelisted, false otherwise</returns>
+        public bool IsWhitelisted(IPAddressRange range)
+        {
+            IPBanConfig config = Config;
+            return (config != null && Config.IsWhitelisted(range));
         }
 
         /// <summary>

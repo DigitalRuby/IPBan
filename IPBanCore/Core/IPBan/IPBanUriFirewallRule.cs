@@ -25,8 +25,8 @@ SOFTWARE.
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net.Http;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -38,26 +38,41 @@ namespace DigitalRuby.IPBanCore
     public class IPBanUriFirewallRule : IUpdater
     {
         private readonly IIPBanFirewall firewall;
-        private readonly string rulePrefix;
-        private readonly Uri uri;
-        private readonly TimeSpan interval;
+        private readonly IIsWhitelisted whitelistChecker;
         private readonly HttpClient httpClient;
 
         private DateTime lastRun;
 
         /// <summary>
+        /// Rule prefix
+        /// </summary>
+        public string RulePrefix { get; }
+
+        /// <summary>
+        /// Interval
+        /// </summary>
+        public TimeSpan Interval { get; }
+
+        /// <summary>
+        /// Uri
+        /// </summary>
+        public Uri Uri { get; }
+
+        /// <summary>
         /// Constructor
         /// </summary>
         /// <param name="firewall">The firewall to block with</param>
+        /// <param name="whitelistChecker">Whitelist checker</param>
         /// <param name="rulePrefix">Firewall rule prefix</param>
-        /// <param name="uri">Uri, can be either file or http(s).</param>
         /// <param name="interval">Interval to check uri for changes</param>
-        public IPBanUriFirewallRule(IIPBanFirewall firewall, string rulePrefix, Uri uri, TimeSpan interval)
+        /// <param name="uri">Uri, can be either file or http(s).</param>
+        public IPBanUriFirewallRule(IIPBanFirewall firewall, IIsWhitelisted whitelistChecker, string rulePrefix, TimeSpan interval, Uri uri)
         {
             this.firewall = firewall;
-            this.rulePrefix = rulePrefix;
-            this.uri = uri;
-            this.interval = interval;
+            this.whitelistChecker = whitelistChecker;
+            RulePrefix = rulePrefix;
+            Uri = uri;
+            Interval = interval;
 
             if (!uri.IsFile)
             {
@@ -79,6 +94,38 @@ namespace DigitalRuby.IPBanCore
         }
 
         /// <summary>
+        /// Convert to a string
+        /// </summary>
+        /// <returns>String</returns>
+        public override string ToString()
+        {
+            return $"Prefix: {RulePrefix}, Interval: {Interval}, Uri: {Uri}";
+        }
+
+        /// <summary>
+        /// Get hash code for this uri firewall rule
+        /// </summary>
+        /// <returns>Hash code</returns>
+        public override int GetHashCode()
+        {
+            return Uri.GetHashCode();
+        }
+
+        /// <summary>
+        /// Check if equal to another object
+        /// </summary>
+        /// <param name="obj">Other object</param>
+        /// <returns>True if equal, false otherwise</returns>
+        public override bool Equals(object obj)
+        {
+            if (!(obj is IPBanUriFirewallRule rule))
+            {
+                return false;
+            }
+            return (RulePrefix.Equals(rule.RulePrefix) && Uri.Equals(rule.Uri) && Interval.Equals(rule.Interval));
+        }
+
+        /// <summary>
         /// Update the updater
         /// </summary>
         /// <param name="cancelToken">Cancel token</param>
@@ -86,12 +133,12 @@ namespace DigitalRuby.IPBanCore
         public async Task Update(CancellationToken cancelToken)
         {
             DateTime now = IPBanService.UtcNow;
-            if ((now - lastRun) >= interval)
+            if ((now - lastRun) >= Interval)
             {
                 lastRun = now;
-                if (uri.IsFile)
+                if (Uri.IsFile)
                 {
-                    await ProcessResult(await File.ReadAllTextAsync(uri.LocalPath, cancelToken), cancelToken);
+                    await ProcessResult(await File.ReadAllTextAsync(Uri.LocalPath, cancelToken), cancelToken);
                 }
                 else
                 {
@@ -100,6 +147,17 @@ namespace DigitalRuby.IPBanCore
                     string text = await response.Content.ReadAsStringAsync();
                     await ProcessResult(text, cancelToken);
                 }
+            }
+        }
+
+        /// <summary>
+        /// Delete firewall rules that may have been created by this rule
+        /// </summary>
+        public void DeleteRule()
+        {
+            foreach (string ruleName in firewall.GetRuleNames(RulePrefix).ToArray())
+            {
+                firewall.DeleteRule(ruleName);
             }
         }
 
@@ -125,10 +183,14 @@ namespace DigitalRuby.IPBanCore
                 {
                     continue;
                 }
-                ranges.Add(range);
+                else if (whitelistChecker is null || !whitelistChecker.IsWhitelisted(range))
+                {
+                    // make sure to add only ranges that are not whitelisted
+                    ranges.Add(range);
+                }
             }
 
-            return firewall.BlockIPAddresses(rulePrefix, ranges, null, cancelToken);
+            return firewall.BlockIPAddresses(RulePrefix, ranges, null, cancelToken);
         }
     }
 }

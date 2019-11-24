@@ -27,6 +27,7 @@ SOFTWARE.
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Runtime.InteropServices;
@@ -42,7 +43,7 @@ namespace DigitalRuby.IPBanCore
     /// <summary>
     /// Configuration for ip ban app
     /// </summary>
-    public class IPBanConfig
+    public class IPBanConfig : IIsWhitelisted
     {
         private static readonly TimeSpan[] emptyTimeSpanArray = new TimeSpan[] { TimeSpan.Zero };
         private static readonly IPBanLogFileToParse[] emptyLogFilesToParseArray = new IPBanLogFileToParse[0];
@@ -58,12 +59,19 @@ namespace DigitalRuby.IPBanCore
         private readonly int failedLoginAttemptsBeforeBan = 5;
         private readonly bool resetFailedLoginCountForUnbannedIPAddresses;
         private readonly string firewallRulePrefix = "IPBan_";
-        private readonly HashSet<string> blackList = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+        // black list data structures
+        private readonly HashSet<System.Net.IPAddress> blackList = new HashSet<System.Net.IPAddress>();
         private readonly Regex blackListRegex;
         private readonly List<IPAddressRange> blackListRanges = new List<IPAddressRange>();
-        private readonly HashSet<string> whiteList = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        private readonly HashSet<string> blackListOther = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+        // white list data structures
+        private readonly HashSet<System.Net.IPAddress> whiteList = new HashSet<System.Net.IPAddress>();
         private readonly Regex whiteListRegex;
         private readonly List<IPAddressRange> whiteListRanges = new List<IPAddressRange>();
+        private readonly HashSet<string> whiteListOther = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
         private readonly bool clearBannedIPAddressesOnRestart;
         private readonly HashSet<string> userNameWhitelist = new HashSet<string>(StringComparer.Ordinal);
         private readonly int userNameWhitelistMaximumEditDistance = 2;
@@ -77,6 +85,7 @@ namespace DigitalRuby.IPBanCore
         private readonly string getUrlStop;
         private readonly string getUrlConfig;
         private readonly string externalIPAddressUrl;
+        private readonly string firewallUriRules;
         private readonly IDnsLookup dns;
         private readonly List<IPBanFirewallRule> extraRules = new List<IPBanFirewallRule>();
         private readonly EventViewerExpressionsToBlock expressionsFailure;
@@ -111,8 +120,8 @@ namespace DigitalRuby.IPBanCore
             string whiteListRegexString = GetConfig<string>("WhitelistRegex", string.Empty);
             string blacklistString = GetConfig<string>("Blacklist", string.Empty);
             string blacklistRegexString = GetConfig<string>("BlacklistRegex", string.Empty);
-            PopulateList(whiteList, whiteListRanges, ref whiteListRegex, whiteListString, whiteListRegexString);
-            PopulateList(blackList, blackListRanges, ref blackListRegex, blacklistString, blacklistRegexString);
+            PopulateList(whiteList, whiteListRanges, whiteListOther, ref whiteListRegex, whiteListString, whiteListRegexString);
+            PopulateList(blackList, blackListRanges, blackListOther, ref blackListRegex, blacklistString, blacklistRegexString);
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 expressionsFailure = new XmlSerializer(typeof(EventViewerExpressionsToBlock)).Deserialize(new XmlNodeReader(doc.SelectSingleNode("//ExpressionsToBlock"))) as EventViewerExpressionsToBlock;
@@ -195,12 +204,39 @@ namespace DigitalRuby.IPBanCore
             GetConfig<string>("GetUrlStop", ref getUrlStop);
             GetConfig<string>("GetUrlConfig", ref getUrlConfig);
             GetConfig<string>("ExternalIPAddressUrl", ref externalIPAddressUrl);
+            GetConfig<string>("FirewallUriSources", ref firewallUriRules);
 
             // parse firewall block rules, one per line
             ParseFirewallBlockRules();
         }
 
-        private void PopulateList(HashSet<string> set, List<IPAddressRange> ranges, ref Regex regex, string setValue, string regexValue)
+        private bool IsMatch(string entry, HashSet<System.Net.IPAddress> set, List<IPAddressRange> ranges, HashSet<string> others, Regex regex)
+        {
+            if (!string.IsNullOrWhiteSpace(entry))
+            {
+                entry = entry.Trim().Normalize();
+
+                if (System.Net.IPAddress.TryParse(entry, out System.Net.IPAddress ipAddressObj))
+                {
+                    // direct ip match in set or match in range of ip address list
+                    return (set.Contains(ipAddressObj) || ranges.Any(r => r.Contains(ipAddressObj)));
+                }
+                else if (others.Contains(entry))
+                {
+                    // direct string match in other set
+                    return true;
+                }
+                else if (!(regex is null))
+                {
+                    // try the regex as last resort
+                    return regex.IsMatch(entry);
+                }
+            }
+
+            return false;
+        }
+
+        private void PopulateList(HashSet<System.Net.IPAddress> set, List<IPAddressRange> ranges, HashSet<string> others, ref Regex regex, string setValue, string regexValue)
         {
             setValue = (setValue ?? string.Empty).Trim();
             regexValue = (regexValue ?? string.Empty).Replace("*", @"[0-9A-Fa-f:]+?").Trim();
@@ -219,7 +255,7 @@ namespace DigitalRuby.IPBanCore
                             {
                                 if (range.Begin.Equals(range.End))
                                 {
-                                    set.Add(entry);
+                                    set.Add(range.Begin);
                                 }
                                 else if (!ranges.Contains(range))
                                 {
@@ -238,20 +274,20 @@ namespace DigitalRuby.IPBanCore
                                         {
                                             foreach (IPAddress adr in addresses)
                                             {
-                                                set.Add(adr.ToString());
+                                                set.Add(adr);
                                             }
                                         }
                                     }
                                     catch
                                     {
-                                        // eat exception, nothing we can do, just add the entry itself
-                                        set.Add(entry);
+                                        // eat exception, nothing we can do
+                                        others.Add(entry);
                                     }
                                 }
                                 else
                                 {
                                     // add the entry itself
-                                    set.Add(entry);
+                                    others.Add(entry);
                                 }
                             }
                         }
@@ -506,54 +542,50 @@ namespace DigitalRuby.IPBanCore
         }
 
         /// <summary>
-        /// Check if an ip address is whitelisted
+        /// Check if an entry is whitelisted
         /// </summary>
-        /// <param name="ipAddress">IP Address</param>
+        /// <param name="entry">Entry</param>
         /// <returns>True if whitelisted, false otherwise</returns>
-        public bool IsWhitelisted(string ipAddress)
+        public bool IsWhitelisted(string entry)
         {
-            return !string.IsNullOrWhiteSpace(ipAddress) &&
-            (
-                whiteList.Contains(ipAddress) ||
-                (whiteListRegex != null && whiteListRegex.IsMatch(ipAddress)) ||
-                (
-                    IPAddress.TryParse(ipAddress, out IPAddress ipAddressObj) &&
-                    whiteListRanges.Any(r => r.Contains(ipAddressObj))
-                )
-            );
+            return IsMatch(entry, whiteList, whiteListRanges, whiteListOther, whiteListRegex);
+        }
+
+        /// <summary>
+        /// Check if an ip address range is whitelisted. If any whitelist ip or range intersects, the range is whitelisted.
+        /// </summary>
+        /// <param name="range">Range</param>
+        /// <returns>True if range is whitelisted, false otherwise</returns>
+        public bool IsWhitelisted(IPAddressRange range)
+        {
+            foreach (System.Net.IPAddress ip in whiteList)
+            {
+                if (range.Contains(ip))
+                {
+                    return true;
+                }
+            }
+            foreach (IPAddressRange existingRange in whiteListRanges)
+            {
+                if (range.Contains(existingRange))
+                {
+                    return true;
+                }
+            }
+
+            // it's possible the whitelist other list or whitelist regex will match, but it's too performance
+            // intensive to scan every range in the incoming range to check, oh well...
+            return false;
         }
 
         /// <summary>
         /// Check if an ip address, dns name or user name is blacklisted
         /// </summary>
-        /// <param name="ipAddress">IP address, dns name or user name</param>
+        /// <param name="entry">IP address, dns name or user name</param>
         /// <returns>True if blacklisted, false otherwise</returns>
-        public bool IsBlackListed(string ipAddress)
+        public bool IsBlackListed(string entry)
         {
-            return !string.IsNullOrWhiteSpace(ipAddress) &&
-            (
-                blackList.Contains(ipAddress) ||
-                (blackListRegex != null && blackListRegex.IsMatch(ipAddress)) ||
-                (
-                    IPAddress.TryParse(ipAddress, out IPAddress ipAddressObj) &&
-                    blackListRanges.Any(r => r.Contains(ipAddressObj))
-                )
-            );
-        }
-
-        /// <summary>
-        /// Check if a user name is whitelisted
-        /// </summary>
-        /// <param name="userName">User name</param>
-        /// <returns>True if whitelisted, false otherwise</returns>
-        public bool IsUserNameWhitelisted(string userName)
-        {
-            if (string.IsNullOrEmpty(userName))
-            {
-                return false;
-            }
-            userName = userName.Normalize().ToUpperInvariant().Trim();
-            return userNameWhitelist.Contains(userName);
+            return IsMatch(entry, blackList, blackListRanges, blackListOther, blackListRegex);
         }
 
         /// <summary>
@@ -738,6 +770,11 @@ namespace DigitalRuby.IPBanCore
         /// List of extra block rules to create
         /// </summary>
         public IReadOnlyList<IPBanFirewallRule> ExtraRules { get { return extraRules; } }
+
+        /// <summary>
+        /// Config entry for firewall uri rules, one per line. Format is RulePrefix,Interval(DD:HH:MM:SS),Uri[NEWLINE]
+        /// </summary>
+        public string FirewallUriRules { get { return firewallUriRules; } }
 
         /// <summary>
         /// A url to get when the service updates, empty for none. See ReplaceUrl of IPBanService for place-holders.

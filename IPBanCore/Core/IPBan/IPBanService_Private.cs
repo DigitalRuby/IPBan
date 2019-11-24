@@ -123,6 +123,7 @@ namespace DigitalRuby.IPBanCore
                     IPBanConfig oldConfig = Config;
                     IPBanConfig newConfig = IPBanConfig.LoadFromXml(newXml, DnsLookup);
                     UpdateLogFiles(newConfig);
+                    ParseAndAddUriFirewallRules(newConfig);
                     whitelistChanged = (Config is null || Config.WhiteList != newConfig.WhiteList || Config.WhiteListRegex != newConfig.WhiteListRegex);
                     Config = newConfig;
                     LoadFirewall(oldConfig);
@@ -147,11 +148,6 @@ namespace DigitalRuby.IPBanCore
             {
                 BannedIPAddressHandler = NullBannedIPAddressHandler.Instance;
             }
-        }
-
-        private void WhitelistChangedFromDelegate()
-        {
-            whitelistChanged = true;
         }
 
         private object BeginTransaction()
@@ -388,6 +384,13 @@ namespace DigitalRuby.IPBanCore
         private void AddBannedIPAddress(string ipAddress, string source, string userName, List<IPAddressLogEvent> bannedIpAddresses,
             DateTime startBanDate, bool configBlacklisted, int counter, string extraInfo, object transaction)
         {
+            // never ban whitelisted ip addresses
+            if (IsWhitelisted(ipAddress))
+            {
+                Logger.Info("Ignoring ban request for whitelisted ip address {0}", ipAddress);
+                return;
+            }
+
             TimeSpan[] banTimes = Config.BanTimes;
             DateTime banEndDate = startBanDate + banTimes.First();
             if (banTimes.Length > 1 && ipDB.TryGetIPAddress(ipAddress, out IPBanDB.IPAddressEntry ipEntry, transaction) && ipEntry.BanStartDate != null && ipEntry.BanEndDate != null)
@@ -730,9 +733,6 @@ namespace DigitalRuby.IPBanCore
 
             try
             {
-                // ensure we are notified of whitelist updates
-                delg.WhitelistChanged -= WhitelistChangedFromDelegate;
-                delg.WhitelistChanged += WhitelistChangedFromDelegate;
                 await delg.Update();
             }
             catch (Exception ex)
@@ -820,7 +820,14 @@ namespace DigitalRuby.IPBanCore
             // loop through temp list so we don't lock for very long
             foreach (IUpdater updater in updatersTemp)
             {
-                await updater.Update(serviceCancelTokenSource.Token);
+                try
+                {
+                    await updater.Update(serviceCancelTokenSource.Token);
+                }
+                catch (Exception ex)
+                {
+                    Logger.Error("Error in updater {0}: {1}", updater.GetType().FullName, ex);
+                }
             }
         }
 
@@ -1039,6 +1046,53 @@ namespace DigitalRuby.IPBanCore
             {
                 // attach Windows event viewer to the service
                 EventViewer = new IPBanWindowsEventViewer(this);
+            }
+        }
+
+        private void ParseAndAddUriFirewallRules(IPBanConfig newConfig)
+        {
+            List<IPBanUriFirewallRule> toRemove = new List<IPBanUriFirewallRule>(updaters.Where(u => u is IPBanUriFirewallRule).Select(u => u as IPBanUriFirewallRule));
+            using StringReader reader = new StringReader(newConfig.FirewallUriRules);
+            string line;
+            while ((line = reader.ReadLine()) != null)
+            {
+                line = line.Trim();
+                string[] pieces = line.Split(',');
+                if (pieces.Length == 3)
+                {
+                    if (TimeSpan.TryParse(pieces[1], out TimeSpan interval))
+                    {
+                        if (Uri.TryCreate(pieces[2], UriKind.Absolute, out Uri uri))
+                        {
+                            string rulePrefix = pieces[0];
+                            IPBanUriFirewallRule newRule = new IPBanUriFirewallRule(Firewall, this, rulePrefix, interval, uri);
+                            if (updaters.Where(u => u.Equals(newRule)).FirstOrDefault() is IPBanUriFirewallRule existingRule)
+                            {
+                                // exact duplicate rule, do nothing
+                                toRemove.Remove(existingRule);
+                            }
+                            else
+                            {
+                                // new rule, add it
+                                updaters.Add(newRule);
+                            }
+                        }
+                        else
+                        {
+                            Logger.Warn("Invalid uri format in uri firewall rule {0}", line);
+                        }
+                    }
+                    else
+                    {
+                        Logger.Warn("Invalid timestamp format in uri firewall rule {0}", line);
+                    }
+                }
+            }
+
+            // remove any left-over rules that were not in the new config
+            foreach (IPBanUriFirewallRule updater in toRemove)
+            {
+                updater.DeleteRule();
             }
         }
     }

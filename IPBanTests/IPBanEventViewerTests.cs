@@ -287,11 +287,6 @@ namespace DigitalRuby.IPBanTests
             return Task.CompletedTask;
         }
 
-        bool IIPBanDelegate.IsIPAddressWhitelisted(string ipAddress)
-        {
-            return false;
-        }
-
         Task IIPBanDelegate.LoginAttemptFailed(string ip, string source, string userName, string machineGuid, string osName, string osVersion, DateTime timestamp)
         {
             return Task.CompletedTask;
@@ -313,12 +308,6 @@ namespace DigitalRuby.IPBanTests
         Task IIPBanDelegate.Update()
         {
             return Task.CompletedTask;
-        }
-
-        event Action IIPBanDelegate.WhitelistChanged
-        {
-            add { }
-            remove { }
         }
 
         /*

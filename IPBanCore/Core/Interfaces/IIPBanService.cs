@@ -245,17 +245,5 @@ namespace DigitalRuby.IPBanCore
         /// <param name="timestamp">Timestamp</param>
         /// <returns>Task</returns>
         Task LoginAttemptSucceeded(string ip, string source, string userName, string machineGuid, string osName, string osVersion, DateTime timestamp);
-
-        /// <summary>
-        /// Check if an ip address is whitelisted
-        /// </summary>
-        /// <param name="ipAddress">IP Address</param>
-        /// <returns>True if whitelisted, false otherwise</returns>
-        bool IsIPAddressWhitelisted(string ipAddress);
-
-        /// <summary>
-        /// Fires whenever the delegate whitelist changes
-        /// </summary>
-        event Action WhitelistChanged;
     }
 }

@@ -81,10 +81,9 @@ namespace DigitalRuby.IPBanTests
             service.AddIPAddressLogEvents(new IPAddressLogEvent[] { info1, info2, info3 });
             service.RunCycle().Sync();
 
-            Assert.AreEqual(7, events.Count);
+            Assert.AreEqual(6, events.Count);
             AssertEvent("LoginAttemptSucceeded_99.99.99.97_SSH_test_user3", 1);
             AssertEvent("Update", 1);
-            AssertEvent("IsIPAddressWhitelisted", 4);
             AssertEvent("LoginAttemptFailed_99.99.99.99_RDP_test_user", 1);
             AssertEvent("LoginAttemptFailed_99.99.99.98_SSH_test_user2", 1);
             AssertEvent("IPAddressBanned_99.99.99.99_RDP_test_user_True", 1);
@@ -129,21 +128,9 @@ namespace DigitalRuby.IPBanTests
             return Task.CompletedTask;
         }
 
-        bool IIPBanDelegate.IsIPAddressWhitelisted(string ipAddress)
-        {
-            AddEvent(nameof(IIPBanDelegate.IsIPAddressWhitelisted));
-            return false;
-        }
-
         void IDisposable.Dispose()
         {
             AddEvent(nameof(IIPBanDelegate.Dispose));
-        }
-
-        event Action IIPBanDelegate.WhitelistChanged
-        {
-            add { }
-            remove { }
         }
     }
 }
