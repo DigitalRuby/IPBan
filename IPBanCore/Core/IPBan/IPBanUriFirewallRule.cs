@@ -108,9 +108,16 @@ namespace DigitalRuby.IPBanCore
             using StringReader reader = new StringReader(text);
             string line;
             List<IPAddressRange> ranges = new List<IPAddressRange>();
+            int lines = 0;
 
             while ((line = reader.ReadLine()) != null)
             {
+                if (lines++ > 10000)
+                {
+                    // prevent too many lines from crashing us
+                    break;
+                }
+
                 // trim line, ignore if necessary
                 line = line.Trim();
                 if (line.Length == 0 || line.StartsWith("#") || line.StartsWith("'") || line.StartsWith("REM") ||
