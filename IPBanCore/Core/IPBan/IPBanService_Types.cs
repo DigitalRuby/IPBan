@@ -25,6 +25,7 @@ SOFTWARE.
 #region Imports
 
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 #endregion Imports
@@ -50,7 +51,8 @@ namespace DigitalRuby.IPBanCore
         /// <summary>
         /// Update
         /// </summary>
-        Task Update();
+        /// <param name="cancelToken">Cancel token</param>
+        Task Update(CancellationToken cancelToken = default);
     }
 
     /// <summary>

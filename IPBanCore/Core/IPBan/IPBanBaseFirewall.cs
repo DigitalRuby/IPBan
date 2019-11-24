@@ -22,6 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace DigitalRuby.IPBanCore
@@ -29,7 +30,7 @@ namespace DigitalRuby.IPBanCore
     /// <summary>
     /// Base firewall class that all firewall implementations should inherit from
     /// </summary>
-    public class IPBanBaseFirewall
+    public class IPBanBaseFirewall : IUpdater
     {
         protected bool Disposed { get; private set; }
 
@@ -97,8 +98,9 @@ namespace DigitalRuby.IPBanCore
         /// <summary>
         /// Update firewall, perform housekeeping, etc.
         /// </summary>
-        /// <returns></returns>
-        public virtual Task Update()
+        /// <param name="cancelToken">Cancel token</param>
+        /// <returns>Task</returns>
+        public virtual Task Update(CancellationToken cancelToken = default)
         {
             return Task.CompletedTask;
         }

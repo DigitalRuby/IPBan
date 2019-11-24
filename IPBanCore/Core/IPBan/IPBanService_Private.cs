@@ -56,14 +56,14 @@ namespace DigitalRuby.IPBanCore
 
         private async Task FirewallTask(AsyncQueue<Func<CancellationToken, Task>> queue)
         {
-            while (!firewallQueueCancel.IsCancellationRequested)
+            while (!serviceCancelTokenSource.IsCancellationRequested)
             {
-                KeyValuePair<bool, Func<CancellationToken, Task>> nextAction = await queue.TryDequeueAsync(firewallQueueCancel.Token);
+                KeyValuePair<bool, Func<CancellationToken, Task>> nextAction = await queue.TryDequeueAsync(serviceCancelTokenSource.Token);
                 if (nextAction.Key && nextAction.Value != null)
                 {
                     try
                     {
-                        await nextAction.Value.Invoke(firewallQueueCancel.Token);
+                        await nextAction.Value.Invoke(serviceCancelTokenSource.Token);
                     }
                     catch (Exception ex)
                     {
@@ -820,7 +820,7 @@ namespace DigitalRuby.IPBanCore
             // loop through temp list so we don't lock for very long
             foreach (IUpdater updater in updatersTemp)
             {
-                await updater.Update();
+                await updater.Update(serviceCancelTokenSource.Token);
             }
         }
 

@@ -29,6 +29,7 @@ using System.Globalization;
 using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
 
@@ -54,14 +55,15 @@ namespace DigitalRuby.IPBanCore
         {
             this.service = service;
             service.AddUpdater(this);
-            Update();
+            Update(default);
         }
 
         /// <summary>
         /// Update
         /// </summary>
+        /// <param name="cancelToken">Cancel token</param>
         /// <returns>Task</returns>
-        public Task Update()
+        public Task Update(CancellationToken cancelToken)
         {
             SetupEventLogWatcher();
             return Task.CompletedTask;

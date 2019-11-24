@@ -51,7 +51,7 @@ namespace DigitalRuby.IPBanCore
         private readonly HashSet<LogFileScanner> logFilesToParse = new HashSet<LogFileScanner>();
         private readonly SemaphoreSlim stopEvent = new SemaphoreSlim(0, 1);
         private readonly Dictionary<string, AsyncQueue<Func<CancellationToken, Task>>> firewallQueue = new Dictionary<string, AsyncQueue<Func<CancellationToken, Task>>>();
-        private readonly CancellationTokenSource firewallQueueCancel = new CancellationTokenSource();
+        private readonly CancellationTokenSource serviceCancelTokenSource = new CancellationTokenSource();
 
         private bool whitelistChanged;
 

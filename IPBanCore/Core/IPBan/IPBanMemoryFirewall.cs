@@ -346,7 +346,7 @@ namespace DigitalRuby.IPBanCore
             RulePrefix = (string.IsNullOrWhiteSpace(rulePrefix) ? RulePrefix : rulePrefix);
         }
 
-        public Task Update()
+        public Task Update(CancellationToken cancelToken)
         {
             return Task.CompletedTask;
         }

@@ -242,7 +242,7 @@ namespace DigitalRuby.IPBanCore
             IsRunning = false;
             try
             {
-                firewallQueueCancel.Cancel();
+                serviceCancelTokenSource.Cancel();
                 GetUrl(UrlType.Stop).Sync();
                 cycleTimer?.Dispose();
                 IPBanDelegate?.Dispose();
@@ -422,7 +422,7 @@ namespace DigitalRuby.IPBanCore
         {
             if (MultiThreaded)
             {
-                if (!firewallQueueCancel.IsCancellationRequested)
+                if (!serviceCancelTokenSource.IsCancellationRequested)
                 {
                     queueName = (string.IsNullOrWhiteSpace(queueName) ? "Default" : queueName);
                     AsyncQueue<Func<CancellationToken, Task>> queue;
@@ -439,7 +439,7 @@ namespace DigitalRuby.IPBanCore
             }
             else
             {
-                action.Invoke(firewallQueueCancel.Token).Sync();
+                action.Invoke(serviceCancelTokenSource.Token).Sync();
             }
         }
 

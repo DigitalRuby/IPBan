@@ -404,9 +404,9 @@ namespace DigitalRuby.IPBanCore
             RestoreTablesFromDisk();
         }
 
-        public override Task Update()
+        public override Task Update(CancellationToken cancelToken)
         {
-            base.Update();
+            base.Update(cancelToken);
 
             // flush all sets to disk one per minute
             DateTime now = IPBanService.UtcNow;
