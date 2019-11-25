@@ -75,6 +75,16 @@ namespace DigitalRuby.IPBanCore
             public string IPAddress { get; set; }
 
             /// <summary>
+            /// User name if known
+            /// </summary>
+            public string UserName { get; set; }
+
+            /// <summary>
+            /// Source if known
+            /// </summary>
+            public string Source { get; set; }
+
+            /// <summary>
             /// Last failed login
             /// </summary>
             public DateTime LastFailedLogin { get; set; }
@@ -113,6 +123,8 @@ namespace DigitalRuby.IPBanCore
             object banDateObj = reader.GetValue(3);
             IPAddressState state = (IPAddressState)(int)reader.GetInt32(4);
             object banEndDateObj = reader.GetValue(5);
+            string userName = reader.GetString(6);
+            string source = reader.GetString(7);
             long banDateLong = (banDateObj is null || banDateObj == DBNull.Value ? 0 : Convert.ToInt64(banDateObj));
             long banEndDateLong = (banEndDateObj is null || banEndDateObj == DBNull.Value ? 0 : Convert.ToInt64(banEndDateObj));
             DateTime? banDate = (banDateLong == 0 ? (DateTime?)null : banDateLong.ToDateTimeUnixMilliseconds());
@@ -125,7 +137,9 @@ namespace DigitalRuby.IPBanCore
                 FailedLoginCount = (int)failedLoginCount,
                 BanStartDate = banDate,
                 State = state,
-                BanEndDate = banEndDate
+                BanEndDate = banEndDate,
+                UserName = userName,
+                Source = source
             };
         }
 
@@ -145,8 +159,8 @@ namespace DigitalRuby.IPBanCore
             // if the ip address already exists, it can be updated provided that the state is not in a pending remove state (2) and
             // there is no ban end date yet or the ban end date has expired
             // state will stay at 0 if it was 0 else it will become 1 which means the ban is pending, state 0 means ban is already active in firewall
-            int count = ExecuteNonQuery(@"INSERT INTO IPAddresses(IPAddress, IPAddressText, LastFailedLogin, FailedLoginCount, BanDate, State, BanEndDate)
-                VALUES(@Param0, @Param1, @Param2, 0, @Param2, 1, @Param3)
+            int count = ExecuteNonQuery(@"INSERT INTO IPAddresses(IPAddress, IPAddressText, LastFailedLogin, FailedLoginCount, BanDate, State, BanEndDate, Source, UserName)
+                VALUES(@Param0, @Param1, @Param2, 0, @Param2, 1, @Param3, '', '')
                 ON CONFLICT(IPAddress)
                 DO UPDATE SET BanDate = @Param2, State = CASE WHEN State = 0 THEN 0 ELSE 1 END, BanEndDate = @Param3 WHERE State <> 2 AND (BanEndDate IS NULL OR BanEndDate <= @Param4); ",
                 conn, tran, ipBytes, ipAddress, timestampBegin, timestampEnd, currentTimestamp);
@@ -162,6 +176,8 @@ namespace DigitalRuby.IPBanCore
             ExecuteNonQuery("CREATE TABLE IF NOT EXISTS IPAddresses (IPAddress VARBINARY(16) NOT NULL, IPAddressText VARCHAR(64) NOT NULL, LastFailedLogin BIGINT NOT NULL, FailedLoginCount BIGINT NOT NULL, BanDate BIGINT NULL, PRIMARY KEY (IPAddress))");
             ExecuteNonQueryIgnoreExceptions("ALTER TABLE IPAddresses ADD COLUMN State INT NOT NULL DEFAULT 0");
             ExecuteNonQueryIgnoreExceptions("ALTER TABLE IPAddresses ADD COLUMN BanEndDate BIGINT NULL");
+            ExecuteNonQueryIgnoreExceptions("ALTER TABLE IPAddresses ADD COLUMN UserName Text NOT NULL DEFAULT ''");
+            ExecuteNonQueryIgnoreExceptions("ALTER TABLE IPAddresses ADD COLUMN Source Text NOT NULL DEFAULT ''");
             ExecuteNonQuery("CREATE INDEX IF NOT EXISTS IPAddresses_LastFailedLoginDate ON IPAddresses (LastFailedLogin)");
             ExecuteNonQuery("CREATE INDEX IF NOT EXISTS IPAddresses_BanDate ON IPAddresses (BanDate)");
             ExecuteNonQuery("CREATE INDEX IF NOT EXISTS IPAddresses_BanEndDate ON IPAddresses (BanEndDate)");
@@ -210,11 +226,13 @@ namespace DigitalRuby.IPBanCore
         /// Increment the failed login count for an ip address
         /// </summary>
         /// <param name="ipAddress">IP address</param>
+        /// <param name="userName">User name</param>
+        /// <param name="source">Source</param>
         /// <param name="dateTime">DateTime to set for failed login</param>
         /// <param name="increment">Amount to increment</param>
         /// <param name="transaction">Transaction</param>
         /// <returns>New failed login count</returns>
-        public int IncrementFailedLoginCount(string ipAddress, DateTime dateTime, int increment, object transaction = null)
+        public int IncrementFailedLoginCount(string ipAddress, string userName, string source, DateTime dateTime, int increment, object transaction = null)
         {
             if (IPAddress.TryParse(ipAddress, out IPAddress ipAddressObj))
             {
@@ -223,12 +241,13 @@ namespace DigitalRuby.IPBanCore
                 SqliteDBTransaction tran = transaction as SqliteDBTransaction;
 
                 // only increment failed login for new rows or for existing rows with state 3 (failed login only, no ban bending)
-                string command = @"INSERT INTO IPAddresses(IPAddress, IPAddressText, LastFailedLogin, FailedLoginCount, BanDate, State, BanEndDate)
-                    VALUES (@Param0, @Param1, @Param2, @Param3, NULL, 3, NULL)
+                string command = @"INSERT INTO IPAddresses(IPAddress, IPAddressText, LastFailedLogin, FailedLoginCount, BanDate, State, BanEndDate, UserName, Source)
+                    VALUES (@Param0, @Param1, @Param2, @Param3, NULL, 3, NULL, @Param4, @Param5)
                     ON CONFLICT(IPAddress)
                     DO UPDATE SET LastFailedLogin = @Param2, FailedLoginCount = FailedLoginCount + @Param3 WHERE State = 3;
                     SELECT FailedLoginCount FROM IPAddresses WHERE IPAddress = @Param0;";
-                return ExecuteScalar<int>(command, tran?.DBConnection, tran?.DBTransaction, ipBytes, ipAddress, timestamp, increment);
+                return ExecuteScalar<int>(command, tran?.DBConnection, tran?.DBTransaction, ipBytes, ipAddress, timestamp, increment,
+                    (userName ?? string.Empty), (source ?? string.Empty));
             }
             return 0;
         }
@@ -245,7 +264,8 @@ namespace DigitalRuby.IPBanCore
             {
                 byte[] ipBytes = ipAddressObj.GetAddressBytes();
                 SqliteDBTransaction tran = transaction as SqliteDBTransaction;
-                using (SqliteDataReader reader = ExecuteReader("SELECT IPAddressText, LastFailedLogin, FailedLoginCount, BanDate, State, BanEndDate FROM IPAddresses WHERE IPAddress = @Param0",
+                using (SqliteDataReader reader = ExecuteReader("SELECT IPAddressText, LastFailedLogin, FailedLoginCount, BanDate," +
+                    "State, BanEndDate, UserName, Source FROM IPAddresses WHERE IPAddress = @Param0",
                     tran?.DBConnection, tran?.DBTransaction, ipBytes))
                 {
                     if (reader.Read())
@@ -552,7 +572,7 @@ namespace DigitalRuby.IPBanCore
                 banCutOffUnix = banCutOff.Value.ToUnixMillisecondsLong();
             }
             SqliteDBTransaction tran = transaction as SqliteDBTransaction;
-            using (SqliteDataReader reader = ExecuteReader(@"SELECT IPAddressText, LastFailedLogin, FailedLoginCount, BanDate, State, BanEndDate
+            using (SqliteDataReader reader = ExecuteReader(@"SELECT IPAddressText, LastFailedLogin, FailedLoginCount, BanDate, State, BanEndDate, UserName, Source
                 FROM IPAddresses
                 WHERE (@Param0 IS NULL AND @Param1 IS NULL) OR (@Param0 IS NOT NULL AND State = 3 AND LastFailedLogin <= @Param0) OR (@Param1 IS NOT NULL AND State IN (0, 1) AND BanEndDate <= @Param1)
                 ORDER BY IPAddress",
