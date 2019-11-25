@@ -21,8 +21,8 @@ namespace DigitalRuby.IPBanTests
         private readonly HashSet<IPAddressRange> whiteList = new HashSet<IPAddressRange>();
         private readonly List<IPAddressRange> blockList = new List<IPAddressRange>();
         private string blockRule;
-        private int blockCount = 0;
-        private int isWhitelistedCount = 0;
+        private int blockCount;
+        private int isWhitelistedCount;
 
         private string GetTestFile()
         {
@@ -83,6 +83,16 @@ namespace DigitalRuby.IPBanTests
 
         public void Dispose()
         {
+        }
+
+        [SetUp]
+        public void Setup()
+        {
+            whiteList.Clear();
+            blockList.Clear();
+            blockRule = null;
+            blockCount = 0;
+            isWhitelistedCount = 0;
         }
 
         [Test]

@@ -123,10 +123,10 @@ namespace DigitalRuby.IPBanCore
                     IPBanConfig oldConfig = Config;
                     IPBanConfig newConfig = IPBanConfig.LoadFromXml(newXml, DnsLookup);
                     UpdateLogFiles(newConfig);
-                    ParseAndAddUriFirewallRules(newConfig);
                     whitelistChanged = (Config is null || Config.WhiteList != newConfig.WhiteList || Config.WhiteListRegex != newConfig.WhiteListRegex);
                     Config = newConfig;
                     LoadFirewall(oldConfig);
+                    ParseAndAddUriFirewallRules(newConfig);
                 }
             }
             catch (Exception ex)
