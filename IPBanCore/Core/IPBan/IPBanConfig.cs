@@ -205,6 +205,7 @@ namespace DigitalRuby.IPBanCore
             GetConfig<string>("GetUrlConfig", ref getUrlConfig);
             GetConfig<string>("ExternalIPAddressUrl", ref externalIPAddressUrl);
             GetConfig<string>("FirewallUriSources", ref firewallUriRules);
+            firewallUriRules = (firewallUriRules ?? string.Empty).Trim();
 
             // parse firewall block rules, one per line
             ParseFirewallBlockRules();

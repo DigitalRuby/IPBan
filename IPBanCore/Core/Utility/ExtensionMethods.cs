@@ -193,12 +193,14 @@ namespace DigitalRuby.IPBanCore
         /// <param name="obj">Object</param>
         /// <param name="name">Parameter name</param>
         /// <param name="message">Message</param>
-        public static void ThrowIfNull(this object obj, string name = null, string message = null)
+        /// <returns>Object</returns>
+        public static T ThrowIfNull<T>(this T obj, string name = null, string message = null) where T : class
         {
             if (obj is null)
             {
                 throw new ArgumentNullException(name ?? string.Empty, message);
             }
+            return obj;
         }
 
         /// <summary>

@@ -42,7 +42,7 @@ namespace DigitalRuby.IPBanCore
         /// <param name="allowedPorts">Allowed ports, any port not in this list is blocked</param>
         /// <param name="cancelToken">Cancel token</param>
         /// <returns>True if success, false if error</returns>
-        Task<bool> BlockIPAddresses(string ruleNamePrefix, IEnumerable<string> ipAddresses, IEnumerable<PortRange> allowedPorts = null, CancellationToken cancelToken = default);
+        Task<bool> BlockIPAddresses(string ruleNamePrefix, IEnumerable<string> ipAddresses, IEnumerable<PortRange> allowedPorts = null, CancellationToken cancelToken = default) => throw new NotImplementedException();
 
         /// <summary>
         /// Same as BlockIPAddresses except this is a delta that only adds / removes the necessary ip, all other ip are left alone.
@@ -52,7 +52,7 @@ namespace DigitalRuby.IPBanCore
         /// <param name="allowedPorts">Allowed ports, any port not in this list is blocked</param>
         /// <param name="cancelToken">Cancel token</param>
         /// <returns>True if success, false if error</returns>
-        Task<bool> BlockIPAddressesDelta(string ruleNamePrefix, IEnumerable<IPBanFirewallIPAddressDelta> ipAddresses, IEnumerable<PortRange> allowedPorts = null, CancellationToken cancelToken = default);
+        Task<bool> BlockIPAddressesDelta(string ruleNamePrefix, IEnumerable<IPBanFirewallIPAddressDelta> ipAddresses, IEnumerable<PortRange> allowedPorts = null, CancellationToken cancelToken = default) => throw new NotImplementedException();
 
         /// <summary>
         /// Creates/updates new rule(s) prefixed by ruleNamePrefix with block rules for all ranges specified. Exceptions are logged.
@@ -62,7 +62,7 @@ namespace DigitalRuby.IPBanCore
         /// <param name="allowedPorts">Allowed ports, any port not in this list is blocked</param>
         /// <param name="cancelToken">Cancel token</param>
         /// <returns>True if success, false if error</returns>
-        Task<bool> BlockIPAddresses(string ruleNamePrefix, IEnumerable<IPAddressRange> ranges, IEnumerable<PortRange> allowedPorts = null, CancellationToken cancelToken = default);
+        Task<bool> BlockIPAddresses(string ruleNamePrefix, IEnumerable<IPAddressRange> ranges, IEnumerable<PortRange> allowedPorts = null, CancellationToken cancelToken = default) => throw new NotImplementedException();
 
         /// <summary>
         /// Creates new rules to allow all the ip addresses on all ports, and removes any left-over rules. Exceptions are logged.
@@ -70,7 +70,7 @@ namespace DigitalRuby.IPBanCore
         /// <param name="ipAddresses">IP Addresses</param>
         /// <param name="cancelToken">Cancel token</param>
         /// <returns>True if success, false if error</returns>
-        Task<bool> AllowIPAddresses(IEnumerable<string> ipAddresses, CancellationToken cancelToken = default);
+        Task<bool> AllowIPAddresses(IEnumerable<string> ipAddresses, CancellationToken cancelToken = default) => throw new NotImplementedException();
 
         /// <summary>
         /// Creates/updates rules to allow all the ip addresses, and removes any left-over rules. Exceptions are logged.
@@ -81,8 +81,8 @@ namespace DigitalRuby.IPBanCore
         /// <param name="allowedPorts">Allowed ports, any port not in this list is blocked</param>
         /// <param name="cancelToken">Cancel token</param>
         /// <returns>True if success, false if error</returns>
-        Task<bool> AllowIPAddresses(string ruleNamePrefix, IEnumerable<IPAddressRange> ipAddresses, IEnumerable<PortRange> allowedPorts = null, CancellationToken cancelToken = default);
-        
+        Task<bool> AllowIPAddresses(string ruleNamePrefix, IEnumerable<IPAddressRange> ipAddresses, IEnumerable<PortRange> allowedPorts = null, CancellationToken cancelToken = default) => throw new NotImplementedException();
+
         /// <summary>
         /// Checks if an ip address is blocked in the firewall
         /// </summary>
@@ -90,7 +90,7 @@ namespace DigitalRuby.IPBanCore
         /// <param name="ruleName">Found rule name if known by the firewall implementation if ip is blocked, otherwise null</param>
         /// <param name="port">Optional port, -1 to not check the port. Not all firewalls will check the port.</param>
         /// <returns>True if the ip address is blocked in the firewall, false otherwise</returns>
-        bool IsIPAddressBlocked(string ipAddress, out string ruleName, int port = -1);
+        bool IsIPAddressBlocked(string ipAddress, out string ruleName, int port = -1) => throw new NotImplementedException();
 
         /// <summary>
         /// Checks if an ip address is explicitly allowed in the firewall
@@ -98,50 +98,50 @@ namespace DigitalRuby.IPBanCore
         /// <param name="ipAddress">IP Address</param>
         /// <param name="port">Optional port, -1 to not check the port. Not all firewalls will check the port.</param>
         /// <returns>True if explicitly allowed, false if not</returns>
-        bool IsIPAddressAllowed(string ipAddress, int port = -1);
+        bool IsIPAddressAllowed(string ipAddress, int port = -1) => throw new NotImplementedException();
 
         /// <summary>
         /// Get all rules with the specified rule name prefix
         /// </summary>
         /// <param name="ruleNamePrefix">Rule name prefix or null for default</param>
         /// <returns></returns>
-        IEnumerable<string> GetRuleNames(string ruleNamePrefix = null);
+        IEnumerable<string> GetRuleNames(string ruleNamePrefix = null) => throw new NotImplementedException();
 
         /// <summary>
         /// Delete the rule with the specified name
         /// </summary>
         /// <param name="ruleName">Rule name</param>
         /// <returns>True if success, false if failure</returns>
-        bool DeleteRule(string ruleName);
+        bool DeleteRule(string ruleName) => throw new NotImplementedException();
 
         /// <summary>
         /// Gets all banned ip addresses from BlockIPAddresses(list) calls with null prefix
         /// </summary>
         /// <returns>IEnumerable of all ip addresses</returns>
-        IEnumerable<string> EnumerateBannedIPAddresses();
+        IEnumerable<string> EnumerateBannedIPAddresses() => throw new NotImplementedException();
 
         /// <summary>
         /// Gets all explicitly allowed ip addresses
         /// </summary>
         /// <returns>IEnumerable of all ip addresses</returns>
-        IEnumerable<string> EnumerateAllowedIPAddresses();
+        IEnumerable<string> EnumerateAllowedIPAddresses() => throw new NotImplementedException();
 
         /// <summary>
         /// Gets all ip addresses for a rule prefix
         /// </summary>
         /// <param name="ruleNamePrefix">Rule prefix</param>
         /// <returns>IEnumerable of all ip addreses</returns>
-        IEnumerable<IPAddressRange> EnumerateIPAddresses(string ruleNamePrefix = null);
+        IEnumerable<IPAddressRange> EnumerateIPAddresses(string ruleNamePrefix = null) => throw new NotImplementedException();
 
         /// <summary>
         /// Remove all rules that IPBan created
         /// </summary>
-        void Truncate();
+        void Truncate() => throw new NotImplementedException();
 
         /// <summary>
         /// The rule prefix for the firewall
         /// </summary>
-        string RulePrefix { get; }
+        string RulePrefix { get => throw new NotImplementedException(); }
     }
 
     /// <summary>

@@ -27,6 +27,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -37,8 +38,11 @@ namespace DigitalRuby.IPBanCore
     /// </summary>
     public class IPBanUriFirewallRule : IUpdater
     {
+        private static readonly TimeSpan fiveSeconds = TimeSpan.FromSeconds(5.0);
+
         private readonly IIPBanFirewall firewall;
         private readonly IIsWhitelisted whitelistChecker;
+        private readonly IHttpRequestMaker httpRequestMaker;
         private readonly HttpClient httpClient;
 
         private DateTime lastRun;
@@ -63,16 +67,19 @@ namespace DigitalRuby.IPBanCore
         /// </summary>
         /// <param name="firewall">The firewall to block with</param>
         /// <param name="whitelistChecker">Whitelist checker</param>
+        /// <param name="httpRequestMaker">Http request maker for http uris, can leave null if uri is file</param>
         /// <param name="rulePrefix">Firewall rule prefix</param>
         /// <param name="interval">Interval to check uri for changes</param>
         /// <param name="uri">Uri, can be either file or http(s).</param>
-        public IPBanUriFirewallRule(IIPBanFirewall firewall, IIsWhitelisted whitelistChecker, string rulePrefix, TimeSpan interval, Uri uri)
+        public IPBanUriFirewallRule(IIPBanFirewall firewall, IIsWhitelisted whitelistChecker, IHttpRequestMaker httpRequestMaker, string rulePrefix,
+            TimeSpan interval, Uri uri)
         {
-            this.firewall = firewall;
-            this.whitelistChecker = whitelistChecker;
-            RulePrefix = rulePrefix;
-            Uri = uri;
-            Interval = interval;
+            this.firewall = firewall.ThrowIfNull();
+            this.whitelistChecker = whitelistChecker.ThrowIfNull();
+            this.httpRequestMaker = httpRequestMaker;
+            RulePrefix = rulePrefix.ThrowIfNull();
+            Uri = uri.ThrowIfNull();
+            Interval = (interval.TotalSeconds < 5.0 ? fiveSeconds : interval);
 
             if (!uri.IsFile)
             {
@@ -130,7 +137,7 @@ namespace DigitalRuby.IPBanCore
         /// </summary>
         /// <param name="cancelToken">Cancel token</param>
         /// <returns>Task</returns>
-        public async Task Update(CancellationToken cancelToken)
+        public async Task Update(CancellationToken cancelToken = default)
         {
             DateTime now = IPBanService.UtcNow;
             if ((now - lastRun) >= Interval)
@@ -138,13 +145,16 @@ namespace DigitalRuby.IPBanCore
                 lastRun = now;
                 if (Uri.IsFile)
                 {
-                    await ProcessResult(await File.ReadAllTextAsync(Uri.LocalPath, cancelToken), cancelToken);
+                    string filePath = Uri.LocalPath;
+                    if (File.Exists(filePath))
+                    {
+                        await ProcessResult(await File.ReadAllTextAsync(filePath, cancelToken), cancelToken);
+                    }
                 }
                 else
                 {
-                    HttpResponseMessage response = await httpClient.GetAsync(string.Empty, cancelToken);
-                    response.EnsureSuccessStatusCode();
-                    string text = await response.Content.ReadAsStringAsync();
+                    byte[] bytes = await httpRequestMaker.MakeRequestAsync(Uri, cancelToken: cancelToken);
+                    string text = Encoding.UTF8.GetString(bytes);
                     await ProcessResult(text, cancelToken);
                 }
             }

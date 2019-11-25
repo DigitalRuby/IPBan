@@ -41,21 +41,23 @@ namespace DigitalRuby.IPBanCore
         /// <summary>
         /// Make a GET or POST http request
         /// </summary>
-        /// <param name="Uri">Uri</param>
+        /// <param name="uri">Uri</param>
         /// <param name="postJson">Optional json to post for a POST request, else GET is used</param>
         /// <param name="headers">Optional http headers</param>
+        /// <param name="cancelToken">Cancel token</param>
         /// <returns>Task of response byte[]</returns>
-        Task<byte[]> MakeRequestAsync(Uri uri, string postJson = null, IEnumerable<KeyValuePair<string, object>> headers = null);
+        Task<byte[]> MakeRequestAsync(Uri uri, string postJson = null, IEnumerable<KeyValuePair<string, object>> headers = null,
+            CancellationToken cancelToken = default) => throw new NotImplementedException();
 
         /// <summary>
         /// Web proxy (optional)
         /// </summary>
-        IWebProxy Proxy { get; set; }
+        IWebProxy Proxy { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
         /// <summary>
         /// Cache policy
         /// </summary>
-        RequestCachePolicy CachePolicy { get; set; }
+        RequestCachePolicy CachePolicy { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
     }
 
     /// <summary>
@@ -99,7 +101,8 @@ namespace DigitalRuby.IPBanCore
         /// </summary>
         public static long LocalRequestCount { get { return localRequestCount; } }
 
-        public Task<byte[]> MakeRequestAsync(Uri uri, string postJson = null, IEnumerable<KeyValuePair<string, object>> headers = null)
+        public Task<byte[]> MakeRequestAsync(Uri uri, string postJson = null, IEnumerable<KeyValuePair<string, object>> headers = null,
+            CancellationToken cancelToken = default)
         {
             if (uri.Host.IndexOf("localhost", StringComparison.OrdinalIgnoreCase) >= 0 || uri.Host.Contains("127.0.0.1") || uri.Host.Contains("::1"))
             {
@@ -113,42 +116,40 @@ namespace DigitalRuby.IPBanCore
             {
                 Interlocked.Increment(ref liveRequestCount);
             }
-            using (WebClient client = new WebClientWithTimeout())
+            using WebClient client = new WebClientWithTimeout();
+            Assembly versionAssembly = Assembly.GetEntryAssembly();
+            if (versionAssembly is null)
             {
-                Assembly versionAssembly = Assembly.GetEntryAssembly();
+                versionAssembly = Assembly.GetAssembly(Type.GetType("IPBanService"));
                 if (versionAssembly is null)
                 {
-                    versionAssembly = Assembly.GetAssembly(Type.GetType("IPBanService"));
-                    if (versionAssembly is null)
-                    {
-                        versionAssembly = GetType().Assembly;
-                    }
+                    versionAssembly = GetType().Assembly;
                 }
-                client.UseDefaultCredentials = true;
-                client.Headers["User-Agent"] = versionAssembly.GetName().Name;
-                client.Proxy = Proxy ?? client.Proxy;
-                if (DisableLiveRequests)
-                {
-                    client.Headers["Cache-Control"] = "no-cache";
-                }
-                else
-                {
-                    client.CachePolicy = (CachePolicy ?? client.CachePolicy);
-                }
-                if (headers != null)
-                {
-                    foreach (KeyValuePair<string, object> header in headers)
-                    {
-                        client.Headers[header.Key] = header.Value.ToHttpHeaderString();
-                    }
-                }
-                if (string.IsNullOrWhiteSpace(postJson))
-                {
-                    return client.DownloadDataTaskAsync(uri);
-                }
-                client.Headers["Content-Type"] = "application/json";
-                return client.UploadDataTaskAsync(uri, "POST", Encoding.UTF8.GetBytes(postJson));
             }
+            client.UseDefaultCredentials = true;
+            client.Headers["User-Agent"] = versionAssembly.GetName().Name;
+            client.Proxy = Proxy ?? client.Proxy;
+            if (DisableLiveRequests)
+            {
+                client.Headers["Cache-Control"] = "no-cache";
+            }
+            else
+            {
+                client.CachePolicy = (CachePolicy ?? client.CachePolicy);
+            }
+            if (headers != null)
+            {
+                foreach (KeyValuePair<string, object> header in headers)
+                {
+                    client.Headers[header.Key] = header.Value.ToHttpHeaderString();
+                }
+            }
+            if (string.IsNullOrWhiteSpace(postJson))
+            {
+                return client.DownloadDataTaskAsync(uri);
+            }
+            client.Headers["Content-Type"] = "application/json";
+            return client.UploadDataTaskAsync(uri, "POST", Encoding.UTF8.GetBytes(postJson));
         }
 
         public IWebProxy Proxy { get; set; }

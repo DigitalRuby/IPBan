@@ -1065,7 +1065,7 @@ namespace DigitalRuby.IPBanCore
                         if (Uri.TryCreate(pieces[2], UriKind.Absolute, out Uri uri))
                         {
                             string rulePrefix = pieces[0];
-                            IPBanUriFirewallRule newRule = new IPBanUriFirewallRule(Firewall, this, rulePrefix, interval, uri);
+                            IPBanUriFirewallRule newRule = new IPBanUriFirewallRule(Firewall, this, RequestMaker, rulePrefix, interval, uri);
                             if (updaters.Where(u => u.Equals(newRule)).FirstOrDefault() is IPBanUriFirewallRule existingRule)
                             {
                                 // exact duplicate rule, do nothing
