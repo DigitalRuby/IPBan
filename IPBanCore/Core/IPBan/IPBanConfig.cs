@@ -738,7 +738,8 @@ namespace DigitalRuby.IPBanCore
         public string WhiteListRegex { get { return (whiteListRegex is null ? string.Empty : whiteListRegex.ToString()); } }
 
         /// <summary>
-        /// White list user names. Any user name found not in the list is banned.
+        /// White list user names. Any user name found not in the list is banned, unless the list is empty, in which case no checking is done.
+        /// If not empty, Any user name within 'UserNameWhiteListMinimumEditDistance' in the config is also not banned.
         /// </summary>
         public IReadOnlyCollection<string> UserNameWhitelist { get { return userNameWhitelist; } }
 

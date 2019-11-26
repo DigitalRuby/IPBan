@@ -21,6 +21,9 @@
     <NeutralLanguage>en</NeutralLanguage>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
     <AssemblyName>DigitalRuby.IPBanCore</AssemblyName>
+    <ApplicationIcon />
+    <OutputType>Library</OutputType>
+    <StartupObject />
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -60,7 +63,7 @@
 
   <ItemGroup>
     <EmbeddedResource Update="IPBanResources.resx">
-      <CustomToolNamespace>DigitalRuby.IPBan</CustomToolNamespace>
+      <CustomToolNamespace>DigitalRuby.IPBanCore</CustomToolNamespace>
       <LastGenOutput>IPBanResources.Designer.cs</LastGenOutput>
       <Generator>PublicResXFileCodeGenerator</Generator>
     </EmbeddedResource>

@@ -35,32 +35,45 @@ namespace DigitalRuby.IPBanCore
     /// </summary>
     public static class IPBanMain
     {
+        /// <summary>
+        /// Start typed ipban service
+        /// </summary>
+        /// <typeparam name="T">Type of ipban service</typeparam>
+        /// <param name="args">Args</param>
+        /// <param name="started">Started callback</param>
+        /// <returns>Task</returns>
         public static async Task MainService<T>(string[] args, Action started = null) where T : IPBanService
         {
-            T _service = IPBanService.CreateService<T>();
+            T service = IPBanService.CreateService<T>();
             await MainService(args, async (_args) =>
             {
                 // kick off start in background thread, make sure service starts up in a timely manner
-                await _service.StartAsync();
+                await service.StartAsync();
                 started?.Invoke();
 
                 // wait for service to end
-                await _service.WaitAsync(Timeout.Infinite);
+                await service.WaitAsync(Timeout.Infinite);
             }, () =>
             {
                 // stop the service, will cause any WaitAsync to exit
-                _service.Stop();
+                service.Stop();
             });
         }
 
+        /// <summary>
+        /// Start generic ipban service with callbacks. The service implementation should have already been created before this method is called.
+        /// </summary>
+        /// <param name="args">Args</param>
+        /// <param name="start">Start callback, start your implementation running here</param>
+        /// <param name="stop">Stop callback, stop your implementation running here</param>
+        /// <param name="requireAdministrator">Whether administrator access is required</param>
+        /// <returns>Task</returns>
         public static async Task MainService(string[] args, Func<string[], Task> start, Action stop, bool requireAdministrator = true)
         {
             try
             {
-                using (IPBanServiceRunner runner = new IPBanServiceRunner(args, start, stop))
-                {
-                    await runner.RunAsync(requireAdministrator);
-                }
+                using IPBanServiceRunner runner = new IPBanServiceRunner(args, start, stop);
+                await runner.RunAsync(requireAdministrator);
             }
             catch (Exception ex)
             {
