@@ -93,11 +93,11 @@ namespace DigitalRuby.IPBanCore
 
         private void SaveSetsToDisk()
         {
-            // ipv6 is an inner wrapper, do not do this for ipv6
+            // ipset will save all the ipv6 sets as well, we don't need to run this command for the ipv6 firewall implementation
             if (IsIPV4)
             {
                 string setFile = GetSetFileName();
-                RunProcess("ipset", true, $"save > \"{setFile}\"");
+                RunProcess("ipset", true, $"save \"{BlockRuleName}\" > \"{setFile}\"");
             }
         }
 
@@ -575,7 +575,7 @@ namespace DigitalRuby.IPBanCore
             string tempFile = OSUtility.GetTempFileName();
             try
             {
-                RunProcess("ipset", true, $"save > \"{tempFile}\"");
+                RunProcess("ipset", true, $"save {BlockRuleName} > \"{tempFile}\"");
                 bool inBlockRule = true;
                 foreach (string line in File.ReadLines(tempFile))
                 {
