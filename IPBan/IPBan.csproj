@@ -10,7 +10,7 @@
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <OutputType>Exe</OutputType>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <TrimUnusedDependencies>true</TrimUnusedDependencies>
+    <PublishTrimmed>true</PublishTrimmed>
     <TargetLatestRuntimePatch>true</TargetLatestRuntimePatch>
     <Description>Ban ip addresses based on failed login attempts.</Description>
     <Summary>Allow auto-banning ip addresses based on failed logins and rules. Can read event viewer or log files. Windows and Linux supported. Includes firewall API.</Summary>
@@ -24,22 +24,6 @@
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <PreserveCompilationContext>true</PreserveCompilationContext>
   </PropertyGroup>
-
-  <ItemGroup>
-    <Compile Remove="IPBanCore\**" />
-    <Compile Remove="IPBanTests\**" />
-    <Compile Remove="packages\**" />
-    <Compile Remove="package\**" />
-    <EmbeddedResource Remove="IPBanCore\**" />
-    <EmbeddedResource Remove="IPBanTests\**" />
-    <EmbeddedResource Remove="packages\**" />
-    <EmbeddedResource Remove="package\**" />
-    <None Remove="IPBanCore\**" />
-    <None Remove="IPBanTests\**" />
-    <None Remove="packages\**" />
-    <None Remove="package\**" />
-    <None Remove="README.md" />
-  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\IPBanCore\IPBanCore.csproj" />
