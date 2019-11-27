@@ -115,7 +115,7 @@ namespace DigitalRuby.IPBanCore
         bool DeleteRule(string ruleName) => throw new NotImplementedException();
 
         /// <summary>
-        /// Gets all banned ip addresses from BlockIPAddresses(list) calls with null prefix
+        /// Gets all banned ip addresses from BlockIPAddresses calls using the built in block rule
         /// </summary>
         /// <returns>IEnumerable of all ip addresses</returns>
         IEnumerable<string> EnumerateBannedIPAddresses() => throw new NotImplementedException();

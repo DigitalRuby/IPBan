@@ -97,7 +97,7 @@ namespace DigitalRuby.IPBanCore
             if (IsIPV4)
             {
                 string setFile = GetSetFileName();
-                RunProcess("ipset", true, $"save \"{BlockRuleName}\" > \"{setFile}\"");
+                RunProcess("ipset", true, $"save > \"{setFile}\"");
             }
         }
 
@@ -575,14 +575,15 @@ namespace DigitalRuby.IPBanCore
             string tempFile = OSUtility.GetTempFileName();
             try
             {
-                RunProcess("ipset", true, $"save {BlockRuleName} > \"{tempFile}\"");
+                RunProcess("ipset", true, $"save > \"{tempFile}\"");
                 bool inBlockRule = true;
                 foreach (string line in File.ReadLines(tempFile))
                 {
                     string[] pieces = line.Split(' ');
                     if (pieces.Length > 1 && pieces[0].Equals("create", StringComparison.OrdinalIgnoreCase))
                     {
-                        inBlockRule = (!pieces[1].Equals(AllowRuleName));
+                        inBlockRule = (!pieces[1].Equals(AllowRuleName) &&
+                            (pieces[1].StartsWith(BlockRulePrefix) || pieces[1].StartsWith(RulePrefix + "6_Block_")));
                     }
                     else if (inBlockRule && pieces.Length > 2 && pieces[0] == "add")
                     {
