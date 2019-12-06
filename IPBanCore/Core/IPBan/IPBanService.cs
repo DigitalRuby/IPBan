@@ -466,21 +466,8 @@ namespace DigitalRuby.IPBanCore
         public static T CreateAndStartIPBanTestService<T>(string directory = null, string configFileName = null, string defaultBannedIPAddressHandlerUrl = null,
             Func<string, string> configFileModifier = null) where T : IPBanService
         {
+            ExtensionMethods.RemoveDatabaseFiles(AppDomain.CurrentDomain.BaseDirectory);
             DefaultHttpRequestMaker.DisableLiveRequests = true;
-
-            // cleanup any db, set or tbl files
-            foreach (string file in Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory, "*.set")
-                .Union(Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory, "*.tbl"))
-                .Union(Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory, "*.set6"))
-                .Union(Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory, "*.tbl6"))
-                .Union(Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory, "*.sqlite"))
-                .Union(Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory, "*.sqlite-wal"))
-                .Union(Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory, "*.sqlite-shm"))
-                .Union(Directory.GetFiles(AppDomain.CurrentDomain.BaseDirectory, "*-journal")))
-            {
-                ExtensionMethods.FileDeleteWithRetry(file, 1000);
-            }
-
             if (string.IsNullOrWhiteSpace(directory))
             {
                 directory = Path.GetDirectoryName(IPBanAssembly.Location);

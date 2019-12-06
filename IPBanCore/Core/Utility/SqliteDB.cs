@@ -102,11 +102,6 @@ namespace DigitalRuby.IPBanCore
         }
 
         /// <summary>
-        /// In memory db path
-        /// </summary>
-        public const string DbPathInMemory = ":memory:";
-
-        /// <summary>
         /// Default transaction level
         /// </summary>
         protected const System.Data.IsolationLevel TransactionLevel = System.Data.IsolationLevel.Serializable;
@@ -340,7 +335,7 @@ namespace DigitalRuby.IPBanCore
         /// <param name="additionalPragmas">Pragma statements for new connection (semi-colon delimited), or null for none</param>
         public SqliteDB(string dbPath, string additionalPragmas = null)
         {
-            if (dbPath == DbPathInMemory)
+            if (dbPath == ":memory:")
             {
                 InMemoryConnection = new SqliteConnection(ConnectionString = ($"Data Source={dbPath}"));
                 InMemoryConnection.Open();
@@ -349,6 +344,10 @@ namespace DigitalRuby.IPBanCore
             {
                 dbPath.ThrowIfNullOrEmpty(nameof(dbPath));
                 dbPath = (Path.IsPathRooted(dbPath) ? dbPath : Path.Combine(AppDomain.CurrentDomain.BaseDirectory, dbPath));
+                if (!dbPath.EndsWith(".sqlite", StringComparison.OrdinalIgnoreCase))
+                {
+                    dbPath += ".sqlite";
+                }
                 ConnectionString = $"Data Source={dbPath}";
             }
             this.additionalPragmas = (additionalPragmas ?? string.Empty).Trim();

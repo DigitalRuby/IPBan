@@ -1054,5 +1054,21 @@ namespace DigitalRuby.IPBanCore
             tcs.Task.ContinueWith((_, state) => ((RegisteredWaitHandle)state).Unregister(null), registration, TaskScheduler.Default);
             return tcs.Task;
         }
-    }
+
+        public static void RemoveDatabaseFiles(string folder)
+        {
+            // cleanup any db, set or tbl files
+            foreach (string file in Directory.GetFiles(folder, "*.set")
+                .Union(Directory.GetFiles(folder, "*.tbl"))
+                .Union(Directory.GetFiles(folder, "*.set6"))
+                .Union(Directory.GetFiles(folder, "*.tbl6"))
+                .Union(Directory.GetFiles(folder, "*.sqlite"))
+                .Union(Directory.GetFiles(folder, "*.sqlite-wal"))
+                .Union(Directory.GetFiles(folder, "*.sqlite-shm"))
+                .Union(Directory.GetFiles(folder, "*-journal")))
+            {
+                ExtensionMethods.FileDeleteWithRetry(file, 1000);
+            }
+        }
+        }
 }

@@ -26,6 +26,7 @@ SOFTWARE.
 
 using Microsoft.Extensions.Logging;
 using NLog;
+using NLog.Config;
 using System;
 using System.Configuration;
 using System.IO;
@@ -221,6 +222,15 @@ namespace DigitalRuby.IPBanCore
                 }
                 nlogInstance = factory.GetCurrentClassLogger();
                 instance = new NLogWrapper(nlogInstance);
+
+                if (UnitTestDetector.RunningFromNUnit)
+                {
+                    foreach (LoggingRule rule in LogManager.Configuration.LoggingRules)
+                    {
+                        rule.EnableLoggingForLevels(NLog.LogLevel.Trace, NLog.LogLevel.Fatal);
+                    }
+                    LogManager.ReconfigExistingLoggers();
+                }
                 //NLog.Time.TimeSource.Current = timeSource;
             }
             catch (Exception ex)
