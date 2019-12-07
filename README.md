@@ -47,8 +47,8 @@ Change Local Security Policy -> Local Policies -> Audit Policy and turn failure 
 From an admin command prompt:
 
 ```
-auditpol /set /category:"{69979849-797A-11D9-BED3-505054503030}" /success:enable /failure:enable
-auditpol /set /category:"{69979850-797A-11D9-BED3-505054503030}" /success:enable /failure:enable
+auditpol.exe /set /category:"{69979849-797A-11D9-BED3-505054503030}" /success:enable /failure:enable
+auditpol.exe /set /category:"{69979850-797A-11D9-BED3-505054503030}" /success:enable /failure:enable
 ```
 
 - It is highly recommended to disable NTLM logins and only allow NTLM2 logins. Use secpol -> local policies -> security options -> network security restrict ntlm incoming ntlm traffic -> deny all accounts.
