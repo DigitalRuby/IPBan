@@ -220,14 +220,19 @@ namespace DigitalRuby.IPBanCore
                 if (System.Net.IPAddress.TryParse(entry, out System.Net.IPAddress ipAddressObj))
                 {
                     // direct ip match in set or match in range of ip address list
-                    return (set.Contains(ipAddressObj) || ranges.Any(r => r.Contains(ipAddressObj)));
+                    if (set.Contains(ipAddressObj) || ranges.Any(r => r.Contains(ipAddressObj)))
+                    {
+                        return true;
+                    }
                 }
                 else if (others.Contains(entry))
                 {
                     // direct string match in other set
                     return true;
                 }
-                else if (!(regex is null))
+
+                // fallback to regex match
+                if (!(regex is null))
                 {
                     // try the regex as last resort
                     return regex.IsMatch(entry);

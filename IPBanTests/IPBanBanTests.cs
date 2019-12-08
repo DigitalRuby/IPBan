@@ -486,18 +486,27 @@ namespace DigitalRuby.IPBanTests
         [Test]
         public async Task TestIPWhitelist()
         {
-            const string whitelist = "192.168.0.0/16";
+            await RunConfigBanTest("Whitelist", "192.168.0.0/16", "99.99.99.99", "192.168.99.99");
+        }
 
+        [Test]
+        public async Task TestIPWhitelistRegex()
+        {
+            await RunConfigBanTest("WhitelistRegex", "^10.0.([0-1]).([0-9]|[1-9][0-9]|1([0-9][0-9])|2([0-4][0-9]|5[0-5]))$", "192.168.99.99", "10.0.0.1");
+            await RunConfigBanTest("WhitelistRegex", "^(10.0.0.*)|(99.99.99.[0-9])$", "192.168.99.99", "10.0.0.1");
+            await RunConfigBanTest("WhitelistRegex", "^(10.0.0.*)|(99.99.99.[0-9])$", "192.168.99.99", "99.99.99.1");
+        }
+
+        private async Task RunConfigBanTest(string key, string value, string banIP, string noBanIP)
+        {
             string config = await service.ReadConfigAsync();
-            string newConfig = IPBanConfig.ChangeConfigAppSetting(config, "Whitelist", whitelist);
+            string newConfig = IPBanConfig.ChangeConfigAppSetting(config, key, value);
             await service.WriteConfigAsync(newConfig);
+
             try
             {
                 // load new config
                 service.RunCycle().Sync();
-
-                string banIP = "99.99.99.99";
-                string noBanIP = "192.168.99.99";
 
                 service.AddIPAddressLogEvents(new IPAddressLogEvent[]
                 {
