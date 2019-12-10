@@ -778,6 +778,8 @@ namespace DigitalRuby.IPBanCore
 
 #pragma warning restore IDE1006
 
+#if !IPBAN_API
+
         /// <summary>
         /// Throw an exception if the process is not running as administrator (Windows) or root (Linux).
         /// </summary>
@@ -800,6 +802,8 @@ namespace DigitalRuby.IPBanCore
                 throw new InvalidOperationException("Application must be run as root");
             }
         }
+
+#endif
 
         /// <summary>
         /// Delete a file with retry
