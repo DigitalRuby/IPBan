@@ -497,6 +497,31 @@ namespace DigitalRuby.IPBanTests
             await RunConfigBanTest("WhitelistRegex", "^(10.0.0.*)|(99.99.99.[0-9])$", "192.168.99.99", "99.99.99.1");
         }
 
+        [Test]
+        public async Task TestFailedAndSuccessLoginFromSameIPAddress()
+        {
+            await service.RunCycle();
+
+            string ip = "99.88.77.66";
+
+            // we should not do failed login or ban for ip address that had a success login from same ip in the same cycle
+            for (int i = 0; i < 10; i++)
+            {
+                service.AddIPAddressLogEvents(new IPAddressLogEvent[]
+                {
+                    // fail login
+                    new IPAddressLogEvent(ip, "user1", "RDP", 1, IPAddressEventType.FailedLogin),
+
+                    // success login
+                    new IPAddressLogEvent(ip, "user1", "RDP", 1, IPAddressEventType.SuccessfulLogin),
+                });
+            }
+
+            await service.RunCycle();
+
+            Assert.IsFalse(service.Firewall.IsIPAddressBlocked(ip, out _));
+        }
+
         private async Task RunConfigBanTest(string key, string value, string banIP, string noBanIP)
         {
             string config = await service.ReadConfigAsync();

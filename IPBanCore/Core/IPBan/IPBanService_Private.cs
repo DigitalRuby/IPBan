@@ -935,7 +935,16 @@ namespace DigitalRuby.IPBanCore
             {
                 if (pendingFailedLogins.Count != 0)
                 {
-                    ipAddresses = new List<IPAddressLogEvent>(pendingFailedLogins);
+                    // get a copy of success logins, we don't want to do a failed login if there was a successful login
+                    // from the same ip address...
+                    // TODO: one user reported getting both failed and success RDP logins, until the cause of this problem
+                    // is tracked down, this will prevent that scenario
+                    List<IPAddressLogEvent> successes;
+                    lock (pendingSuccessfulLogins)
+                    {
+                        successes = new List<IPAddressLogEvent>(pendingSuccessfulLogins);
+                    }
+                    ipAddresses = new List<IPAddressLogEvent>(pendingFailedLogins.Where(f => !successes.Any(s => s.IPAddress.Equals(f.IPAddress))));
                     pendingFailedLogins.Clear();
                     Logger.Debug("{0} pending failed logins", pendingFailedLogins.Count);
                 }

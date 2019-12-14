@@ -611,7 +611,15 @@ namespace DigitalRuby.IPBanCore
         /// <param name="timestamp">Timestamp of the event, default for current timestamp</param>
         public IPAddressLogEvent(string ipAddress, string userName, string source, int count, IPAddressEventType type, DateTime timestamp = default)
         {
-            IPAddress = ipAddress;
+            // normalize ip address if possible
+            if (System.Net.IPAddress.TryParse(ipAddress, out System.Net.IPAddress parsedIPAddress))
+            {
+                IPAddress = parsedIPAddress.ToString();
+            }
+            else
+            {
+                IPAddress = ipAddress;
+            }
             UserName = userName;
             Source = source;
             Count = count;
