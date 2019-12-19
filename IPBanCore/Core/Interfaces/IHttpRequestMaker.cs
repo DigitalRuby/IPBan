@@ -52,12 +52,12 @@ namespace DigitalRuby.IPBanCore
         /// <summary>
         /// Web proxy (optional)
         /// </summary>
-        IWebProxy Proxy { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        IWebProxy Proxy { get => null; set { } }
 
         /// <summary>
         /// Cache policy
         /// </summary>
-        RequestCachePolicy CachePolicy { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        RequestCachePolicy CachePolicy { get => new RequestCachePolicy(RequestCacheLevel.NoCacheNoStore); set { } }
     }
 
     /// <summary>
