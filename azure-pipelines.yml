@@ -32,9 +32,9 @@ steps:
       inputs:
         version: '3.1.x'
         packageType: sdk
-    - script: dotnet test --configuration $(buildConfiguration)
-      displayName: 'Test Windows'
-      condition: contains( variables['Agent.OS'], 'Windows' )
-    - script: sudo dotnet test --configuration $(buildConfiguration)
-      displayName: 'Test Linux'
-      condition: contains( variables['Agent.OS'], 'Linux' )
+        - script: sudo dotnet test --configuration $(buildConfiguration)
+          displayName: 'Test Linux'
+          condition: contains( variables['Agent.OS'], 'Linux' )
+        - script: dotnet test --configuration $(buildConfiguration)
+          displayName: 'Test Windows'
+          condition: contains( variables['Agent.OS'], 'Windows' )
