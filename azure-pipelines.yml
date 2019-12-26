@@ -15,31 +15,20 @@ variables:
     buildConfiguration: 'Release'
 
 steps:
-    - task: UseDotNet@2
-      displayName: ".NET Core 3.1.x"
-      inputs:
-        version: '3.1.x'
-        packageType: sdk
-
     - script: sudo apt-get install iptables
       displayName: 'Install iptables on Linux'
       condition: contains( variables['Agent.OS'], 'Linux' )
-
     - script: sudo apt-get install ipset
       displayName: 'Install ipset on Linux'
       condition: contains( variables['Agent.OS'], 'Linux' )
-
     - script: sudo apt-get update
       displayName: 'Run apt-get update on Linux'
       condition: contains( variables['Agent.OS'], 'Linux' )
-
     - script: dotnet build --configuration $(buildConfiguration)
       displayName: 'Build All'
-
     - script: sudo dotnet test --configuration $(buildConfiguration)
       displayName: 'Test Linux'
       condition: contains( variables['Agent.OS'], 'Linux' )
-
     - script: dotnet test --configuration $(buildConfiguration)
       displayName: 'Test Windows'
       condition: contains( variables['Agent.OS'], 'Windows' )
