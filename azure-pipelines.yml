@@ -22,25 +22,14 @@ steps:
         version: '3.1.x'
         packageType: sdk
 
-    - script: sudo apt-get install -q -y iptables
-      displayName: 'Install iptables on Linux'
+    - script: sudo apt-get install -q -y iptables; sudo apt-get install -q -y ipset; sudo apt-get update;
+      displayName: 'Install dependencies on Linux'
       condition: contains( variables['Agent.OS'], 'Linux' )
 
-    - script: sudo apt-get install -q -y ipset
-      displayName: 'Install ipset on Linux'
-      condition: contains( variables['Agent.OS'], 'Linux' )
-
-    - script: sudo apt-get update
-      displayName: 'Run apt-get update on Linux'
-      condition: contains( variables['Agent.OS'], 'Linux' )
-
-    - script: dotnet build --configuration $(buildConfiguration)
-      displayName: 'Build All'
-
-    - script: sudo dotnet test --configuration $(buildConfiguration)
+    - script: dotnet build --configuration $(buildConfiguration); sudo dotnet test --configuration $(buildConfiguration);
       displayName: 'Test Linux'
       condition: contains( variables['Agent.OS'], 'Linux' )
 
-    - script: dotnet test --configuration $(buildConfiguration)
+    - script: dotnet build --configuration $(buildConfiguration); dotnet test --configuration $(buildConfiguration);
       displayName: 'Test Windows'
       condition: contains( variables['Agent.OS'], 'Windows' )
