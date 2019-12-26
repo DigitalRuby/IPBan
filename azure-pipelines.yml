@@ -28,9 +28,21 @@ steps:
       condition: contains( variables['Agent.OS'], 'Linux' )
 
     - task: UseDotNet@2
-      displayName: 'SDK'
+      displayName: 'SDK Windows'
       inputs:
         version: '3.1.x'
         packageType: sdk
+      condition: contains( variables['Agent.OS'], 'Windows' )
     - script: dotnet test --configuration $(buildConfiguration)
+      displayName: 'Test Windows'
+      condition: contains( variables['Agent.OS'], 'Windows' )
+
+    - task: UseDotNet@2
+      displayName: 'SDK Linux'
+      inputs:
+        version: '3.1.x'
+        packageType: sdk
+      condition: contains( variables['Agent.OS'], 'Linux' )
+    - script: sudo dotnet test --configuration $(buildConfiguration)
       displayName: 'Test Linux'
+      condition: contains( variables['Agent.OS'], 'Linux' )
