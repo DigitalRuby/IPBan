@@ -15,11 +15,11 @@ variables:
     buildConfiguration: 'Release'
 
 steps:
-    - script: sudo apt-get install -q -y iptables
+    - script: sudo apt-get install iptables
       displayName: 'Install iptables on Linux'
       condition: contains( variables['Agent.OS'], 'Linux' )
 
-    - script: sudo apt-get install -q -y ipset
+    - script: sudo apt-get install ipset
       displayName: 'Install ipset on Linux'
       condition: contains( variables['Agent.OS'], 'Linux' )
 
@@ -33,14 +33,8 @@ steps:
         version: '3.1.x'
         packageType: sdk
     - script: sudo dotnet test --configuration $(buildConfiguration)
-        displayName: 'Test Linux'
-        condition: contains( variables['Agent.OS'], 'Linux' )
-
-    - task: UseDotNet@2
-      displayName: 'SDK'
-      inputs:
-        version: '3.1.x'
-        packageType: sdk
+      displayName: 'Test Linux'
+      condition: contains( variables['Agent.OS'], 'Linux' )
     - script: dotnet test --configuration $(buildConfiguration)
-        displayName: 'Test Windows'
-        condition: contains( variables['Agent.OS'], 'Windows' )
+      displayName: 'Test Windows'
+      condition: contains( variables['Agent.OS'], 'Windows' )
