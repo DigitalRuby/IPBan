@@ -28,27 +28,18 @@ steps:
       condition: contains( variables['Agent.OS'], 'Linux' )
 
     - task: UseDotNet@2
-      displayName: ".NET Core 3.1.x"
-      inputs:
-        version: '3.1.x'
-        packageType: sdk
-
-    - script: dotnet build --configuration $(buildConfiguration)
       displayName: 'Build All'
       inputs:
         version: '3.1.x'
         packageType: sdk
+      script: dotnet build --configuration $(buildConfiguration)
 
-    - script: sudo dotnet test --configuration $(buildConfiguration)
+    - task: UseDotNet@2
       displayName: 'Test Linux'
-      inputs:
-        version: '3.1.x'
-        packageType: sdk
+      script: sudo dotnet test --configuration $(buildConfiguration)
       condition: contains( variables['Agent.OS'], 'Linux' )
 
-    - script: dotnet test --configuration $(buildConfiguration)
+    - task: UseDotNet@2
       displayName: 'Test Windows'
-      inputs:
-        version: '3.1.x'
-        packageType: sdk
+      script: dotnet test --configuration $(buildConfiguration)
       condition: contains( variables['Agent.OS'], 'Windows' )
