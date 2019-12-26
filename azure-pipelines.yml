@@ -15,6 +15,11 @@ variables:
     buildConfiguration: 'Release'
 
 steps:
+    - task: UseDotNet@3
+      displayName: ".NET Core 3.1.x"
+      inputs:
+        version: '3.1.x'
+        packageType: sdk
     - script: sudo apt-get install iptables
       displayName: 'Install iptables on Linux'
       condition: contains( variables['Agent.OS'], 'Linux' )

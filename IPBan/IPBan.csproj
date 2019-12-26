@@ -2,9 +2,9 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFrameworks>netcoreapp3.0</TargetFrameworks>
+    <TargetFrameworks>netcoreapp3.1</TargetFrameworks>
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <Version>1.5.2.0</Version>
+    <Version>1.5.3.0</Version>
     <Company>Digital Ruby, LLC</Company>
     <Copyright>(c) 2010 Digital Ruby, LLC</Copyright>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
