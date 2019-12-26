@@ -741,7 +741,7 @@ namespace DigitalRuby.IPBanCore
         }
 
         /// <summary>
-        /// Get the local ip addresses of the local machine
+        /// Get the ip addresses of the local machine
         /// </summary>
         /// <param name="dns">Dns lookup</param>
         /// <param name="addressFamily">Desired address family or null for all</param>
