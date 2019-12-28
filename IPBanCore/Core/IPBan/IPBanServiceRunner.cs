@@ -27,6 +27,7 @@ using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.ServiceProcess;
+using System.Diagnostics;
 using System.Threading.Tasks;
 
 namespace DigitalRuby.IPBanCore
@@ -127,7 +128,8 @@ namespace DigitalRuby.IPBanCore
 
         private async Task RunWindowsService(string[] args)
         {
-            if (Console.IsInputRedirected)
+            // if we have no console input and we are not in IIS, run as windows service
+            if (Console.IsInputRedirected && !OSUtility.IsRunningInProcessIIS())              
             {
                 // create and start using Windows service APIs
                 windowsService = new IPBanWindowsServiceRunner(this, args);
