@@ -32,7 +32,7 @@ WantedBy=multi-user.target
 END.OF.TEMPLATE
 
 # enable and start service, ensure that it is running on reboots as well
-sudo systemctl daemon-reload; sudo systemctl start ipban; sudo systemctl restart ipban; sudo systemctl enable ipban; systemctl status ipban;
+sudo systemctl daemon-reload; sudo systemctl start ipban; sudo systemctl restart ipban; sudo systemctl enable ipban; sudo systemctl status ipban;
 
 # open up config editor to make any additional changes like whitelist or min failed attempt to ban, etc.
 sudo nano /opt/ipban/DigitalRuby.IPBan.dll.config
