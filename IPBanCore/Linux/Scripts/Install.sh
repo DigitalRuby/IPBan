@@ -4,7 +4,7 @@ FILE_NAME="IPBan-Linux-x64_$VERSION_UNDERSCORES.zip"
 
 # run entire script from url, do sudo -i first
 # sudo -i;
-# wget -qO- https://raw.githubusercontent.com/DigitalRuby/IPBan/master/IPBanCore/Linux/Scripts/Install.sh | bash
+# bash <(wget -qO- https://raw.githubusercontent.com/DigitalRuby/IPBan/master/IPBanCore/Linux/Scripts/Install.sh)
 
 # install unzipper, install iptables and ipset, make folder /opt/ipban
 sudo apt-get -q -y install unzip; sudo apt-get install -q -y iptables; sudo apt-get install -q -y ipset; sudo apt-get -q -y update; sudo mkdir /opt/ipban -p; cd /opt/ipban;
@@ -35,4 +35,4 @@ END.OF.TEMPLATE
 sudo systemctl daemon-reload; sudo systemctl start ipban; sudo systemctl restart ipban; sudo systemctl enable ipban; sudo systemctl status ipban;
 
 # open up config editor to make any additional changes like whitelist or min failed attempt to ban, etc.
-# sudo nano /opt/ipban/DigitalRuby.IPBan.dll.config
+sudo nano /opt/ipban/DigitalRuby.IPBan.dll.config
