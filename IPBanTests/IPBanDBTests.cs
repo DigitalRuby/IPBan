@@ -35,17 +35,25 @@ namespace DigitalRuby.IPBanTests
     [TestFixture]
     public class IPBanDBTests
     {
+        [TearDown]
+        public void Teardown()
+        {
+            IPBanService.UtcNow = default;
+        }
+
         [Test]
         public void TestDB()
         {
-            DateTime now = DateTime.UtcNow;
+            IPBanService.UtcNow = new DateTime(2020, 1, 1);
+            DateTime now = IPBanService.UtcNow;
             using IPBanDB db = new IPBanDB();
             db.Truncate(true);
             const string ip = "10.10.10.10";
-            DateTime dt1 = new DateTime(2018, 1, 1, 1, 1, 1, 1, DateTimeKind.Utc);
-            DateTime dt2 = new DateTime(2019, 1, 1, 1, 1, 1, 1, DateTimeKind.Utc);
-            DateTime dt3 = new DateTime(2020, 1, 1, 1, 1, 1, 1, DateTimeKind.Utc);
-            DateTime dt4 = new DateTime(2021, 1, 1, 1, 1, 1, 1, DateTimeKind.Utc);
+            int year = now.Year;
+            DateTime dt1 = new DateTime(year - 1, 1, 1, 1, 1, 1, 1, DateTimeKind.Utc);
+            DateTime dt2 = new DateTime(year, 1, 1, 1, 1, 1, 1, DateTimeKind.Utc);
+            DateTime dt3 = new DateTime(year + 1, 1, 1, 1, 1, 1, 1, DateTimeKind.Utc);
+            DateTime dt4 = new DateTime(year + 2, 1, 1, 1, 1, 1, 1, DateTimeKind.Utc);
             int count = db.IncrementFailedLoginCount(ip, "testuser", "testsource", dt1, 1);
             Assert.IsTrue(db.TryGetIPAddress(ip, out IPBanDB.IPAddressEntry entry));
             Assert.AreEqual(entry.UserName, "testuser");
@@ -164,7 +172,7 @@ namespace DigitalRuby.IPBanTests
             DateTime cutOff = now - TimeSpan.FromMilliseconds(1634.0);
             IPBanDB.IPAddressEntry[] entries = db.EnumerateIPAddresses(null, cutOff).ToArray();
             Assert.AreEqual(65536 - 1634, entries.Length);
-            TimeSpan span = (DateTime.UtcNow - now);
+            TimeSpan span = (IPBanService.UtcNow - now);
 
             // make sure performance is good
             Assert.Less(span, TimeSpan.FromSeconds(10.0));
