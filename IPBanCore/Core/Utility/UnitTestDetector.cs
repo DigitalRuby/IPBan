@@ -12,7 +12,7 @@ namespace DigitalRuby.IPBanCore
         /// <summary>
         /// True if running unit tests, false otherwise
         /// </summary>
-        public static bool RunningFromNUnit { get; }
+        public static bool Running { get; }
 
         /// <summary>
         /// Static constructor
@@ -23,7 +23,7 @@ namespace DigitalRuby.IPBanCore
             {
                 if (assem.FullName.ToLowerInvariant().StartsWith("nunit.framework"))
                 {
-                    RunningFromNUnit = true;
+                    Running = true;
                     break;
                 }
             }

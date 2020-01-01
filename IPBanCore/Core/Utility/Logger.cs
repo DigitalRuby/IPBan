@@ -223,7 +223,7 @@ namespace DigitalRuby.IPBanCore
                 nlogInstance = factory.GetCurrentClassLogger();
                 instance = new NLogWrapper(nlogInstance);
 
-                if (UnitTestDetector.RunningFromNUnit)
+                if (UnitTestDetector.Running)
                 {
                     foreach (LoggingRule rule in LogManager.Configuration.LoggingRules)
                     {
