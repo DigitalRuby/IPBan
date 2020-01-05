@@ -368,6 +368,31 @@ namespace DigitalRuby.IPBanCore
         }
 
         /// <summary>
+        /// Convert bytes to hex string
+        /// </summary>
+        /// <param name="bytes">Bytes</param>
+        /// <returns>Hex string</returns>
+        public static string ToHexString(this byte[] bytes)
+        {
+            return BitConverter.ToString(bytes).Replace("-", string.Empty);
+        }
+
+        /// <summary>
+        /// Convert hex string to bytes
+        /// </summary>
+        /// <param name="s">String in hex format</param>
+        /// <returns>Bytes</returns>
+        public static byte[] ToBytesFromHex(this string s)
+        {
+            byte[] bytes = new byte[s.Length / 2];
+            for (int i = 0; i < s.Length; i += 2)
+            {
+                bytes[i / 2] = Convert.ToByte(s.Substring(i, 2), 16);
+            }
+            return bytes;
+        }
+
+        /// <summary>
         /// Convert an object to an http header value string
         /// </summary>
         /// <param name="obj">Object</param>
@@ -744,14 +769,22 @@ namespace DigitalRuby.IPBanCore
         /// Get the ip addresses of the local machine
         /// </summary>
         /// <param name="dns">Dns lookup</param>
+        /// <param name="allowLocal">Whether to return localhost ip</param>
         /// <param name="addressFamily">Desired address family or null for all</param>
         /// <returns>Local ip address or empty array if unable to determine. If no address family match, falls back to an ipv6 attempt.</returns>
-        public static async Task<System.Net.IPAddress[]> GetLocalIPAddressesAsync(this IDnsLookup dns, System.Net.Sockets.AddressFamily? addressFamily = System.Net.Sockets.AddressFamily.InterNetwork)
+        public static async Task<System.Net.IPAddress[]> GetLocalIPAddressesAsync(this IDnsLookup dns, bool allowLocal = true, System.Net.Sockets.AddressFamily? addressFamily = System.Net.Sockets.AddressFamily.InterNetwork)
         {
             try
             {
                 // append ipv4 first, then the ipv6 then the remote ip
-                return (await dns.GetHostAddressesAsync(dns.GetHostName())).Union(localHostIP).Where(i => addressFamily is null || i.AddressFamily == addressFamily).ToArray();
+                List<IPAddress> ips = new List<IPAddress>();
+                ips.AddRange(await dns.GetHostAddressesAsync(dns.GetHostName()));
+                if (allowLocal)
+                {
+                    ips.AddRange(localHostIP);
+                }
+                return ips.Where(ip => (allowLocal || ip.IsLocalHost()) ||
+                    (addressFamily is null || ip.AddressFamily == addressFamily)).ToArray();
             }
             catch
             {
