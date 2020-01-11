@@ -81,6 +81,7 @@ namespace DigitalRuby.IPBanCore
 
         private static readonly bool isWindows;
         private static readonly bool isLinux;
+        private static readonly bool isMac;
         private static readonly string processVerb;
         private static readonly string tempFolder;
 
@@ -227,6 +228,7 @@ namespace DigitalRuby.IPBanCore
                 else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
                 {
                     // TODO: Implement better for MAC
+                    isMac = true;
                     Name = OSUtility.Mac;
                     FriendlyName = "OSX";
                 }
@@ -459,7 +461,7 @@ namespace DigitalRuby.IPBanCore
         /// <summary>
         /// Are we on Mac?
         /// </summary>
-        public static bool IsMac => false;
+        public static bool IsMac => isMac;
     }
 
     /// <summary>
