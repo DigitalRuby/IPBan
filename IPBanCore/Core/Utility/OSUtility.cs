@@ -445,6 +445,21 @@ namespace DigitalRuby.IPBanCore
         /// Get the current temp foldre path
         /// </summary>
         public static string TempFolder { get { return tempFolder; } }
+
+        /// <summary>
+        /// Are we on Windows?
+        /// </summary>
+        public static bool IsWindows => isWindows;
+
+        /// <summary>
+        /// Are we on Linux?
+        /// </summary>
+        public static bool IsLinux => isLinux;
+
+        /// <summary>
+        /// Are we on Mac?
+        /// </summary>
+        public static bool IsMac => false;
     }
 
     /// <summary>
