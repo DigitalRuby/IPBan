@@ -115,6 +115,7 @@ namespace DigitalRuby.IPBanCore
             string ipAddress = null;
             string source = null;
             int repeatCount = 1;
+            DateTime timestamp = default;
 
             Match repeater = Regex.Match(text, "message repeated (?<count>[0-9]+) times", RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
             if (repeater.Success)
@@ -133,20 +134,26 @@ namespace DigitalRuby.IPBanCore
                 Group userNameGroup = m.Groups["username"];
                 if (userNameGroup != null && userNameGroup.Success)
                 {
-                    userName = (userName ?? userNameGroup.Value.Trim('\'', '\"', '(', ')', '[', ']', '{', '}', ' ', '\r', '\n'));
+                    userName = (userName ?? userNameGroup.Value.Trim(regexTrimChars));
                 }
                 Group sourceGroup = m.Groups["source"];
                 if (sourceGroup != null && sourceGroup.Success)
                 {
-                    source = (source ?? sourceGroup.Value.Trim('\'', '\"', '(', ')', '[', ']', '{', '}', ' ', '\r', '\n'));
+                    source = (source ?? sourceGroup.Value.Trim(regexTrimChars));
                 }
-                if (string.IsNullOrWhiteSpace(source))
+                foreach (Group group in m.Groups)
                 {
-                    foreach (Group group in m.Groups)
+                    if (group.Success && group.Name != null)
                     {
-                        if (group.Success && group.Name != null && group.Name.StartsWith(customSourcePrefix))
+                        if (string.IsNullOrWhiteSpace(source) && group.Name.StartsWith(customSourcePrefix))
                         {
                             source = group.Name.Substring(customSourcePrefix.Length);
+                        }
+                        else if (group.Name == "timestamp")
+                        {
+                            string toParse = group.Value.Trim(regexTrimChars);
+                            DateTime.TryParse(toParse, CultureInfo.InvariantCulture,
+                                DateTimeStyles.AssumeLocal | DateTimeStyles.AdjustToUniversal, out timestamp);
                         }
                     }
                 }
@@ -201,7 +208,7 @@ namespace DigitalRuby.IPBanCore
                 }
             }
 
-            return new IPAddressLogEvent(ipAddress, userName, source, repeatCount, IPAddressEventType.FailedLogin) { FoundMatch = foundMatch };
+            return new IPAddressLogEvent(ipAddress, userName, source, repeatCount, IPAddressEventType.FailedLogin, timestamp) { FoundMatch = foundMatch };
         }
 
         /// <summary>

@@ -220,6 +220,56 @@ namespace DigitalRuby.IPBanTests
             }
         }
 
+        [Test]
+        public void TestLogFileTimestamp()
+        {
+            string fullPath = Path.Combine(tempPath, "test1.txt");
+            using (LogFileScanner scanner = new IPBanIPAddressLogFileScanner(this, TestDnsLookup.Instance,
+                source: "SSH",
+                pathAndMask: pathAndMask,
+                recursive: false,
+                regexFailure: @"(?<timestamp>\d\d\d\d-\d\d-\d\d\s\d\d:\d\d:\d\d\.?\d*Z?,\s)?(?<source>.*?,)(?<ipaddress>.+)",
+                regexSuccess: null,
+                pingIntervalMilliseconds: 0))
+            {
+                ExtensionMethods.FileWriteAllTextWithRetry(fullPath, string.Empty);
+                scanner.PingFiles();
+                File.AppendAllText(fullPath, "2020-01-11 22:34:20Z, SSH, 97.97.97.97\n");
+                File.AppendAllText(fullPath, "2020-01-12 22:34:20Z, SSH, 98.97.97.97\n");
+                File.AppendAllText(fullPath, "2020-01-13 22:34:20Z, SSH, 99.97.97.98\n");
+                File.AppendAllText(fullPath, "2020-01-14 22:34:20.5Z, SSH, 99.97.97.98\n");
+                File.AppendAllText(fullPath, "2020-01-15 22:34:21.5Z, SSH, 99.97.97.98\n");
+                scanner.PingFiles();
+
+                Assert.AreEqual(5, failedIPAddresses.Count, "Did not find all expected ip addresses");
+
+                Assert.AreEqual("97.97.97.97", failedIPAddresses[0].IPAddress);
+                Assert.AreEqual(1, failedIPAddresses[0].Count);
+                Assert.AreEqual("SSH", failedIPAddresses[0].Source);
+                Assert.AreEqual(new DateTime(2020, 01, 11, 22, 34, 20, DateTimeKind.Utc), failedIPAddresses[0].Timestamp);
+
+                Assert.AreEqual("98.97.97.97", failedIPAddresses[1].IPAddress);
+                Assert.AreEqual(1, failedIPAddresses[1].Count);
+                Assert.AreEqual("SSH", failedIPAddresses[1].Source);
+                Assert.AreEqual(new DateTime(2020, 01, 12, 22, 34, 20, DateTimeKind.Utc), failedIPAddresses[1].Timestamp);
+
+                Assert.AreEqual("99.97.97.98", failedIPAddresses[2].IPAddress);
+                Assert.AreEqual(1, failedIPAddresses[2].Count);
+                Assert.AreEqual("SSH", failedIPAddresses[2].Source);
+                Assert.AreEqual(new DateTime(2020, 01, 13, 22, 34, 20, DateTimeKind.Utc), failedIPAddresses[2].Timestamp);
+
+                Assert.AreEqual("99.97.97.98", failedIPAddresses[3].IPAddress);
+                Assert.AreEqual(1, failedIPAddresses[3].Count);
+                Assert.AreEqual("SSH", failedIPAddresses[3].Source);
+                Assert.AreEqual(new DateTime(2020, 01, 14, 22, 34, 20, 500, DateTimeKind.Utc), failedIPAddresses[3].Timestamp);
+
+                Assert.AreEqual("99.97.97.98", failedIPAddresses[4].IPAddress);
+                Assert.AreEqual(1, failedIPAddresses[4].Count);
+                Assert.AreEqual("SSH", failedIPAddresses[4].Source);
+                Assert.AreEqual(new DateTime(2020, 01, 15, 22, 34, 21, 500, DateTimeKind.Utc), failedIPAddresses[4].Timestamp);
+            }
+        }
+
         void IIPAddressEventHandler.AddIPAddressLogEvents(IEnumerable<IPAddressLogEvent> events)
         {
             foreach (IPAddressLogEvent evt in events)

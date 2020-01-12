@@ -66,8 +66,8 @@ namespace DigitalRuby.IPBanTests
                 "Linux", false, "SSH",
 
                 "/var/log/ipbancustom*.log",
-                @"ipban\sfailed\slogin,\sip\saddress:\s(?<ipaddress>.+?),\ssource:\s(?<source>.+?),\suser:\s?(?<username>[^\s,]+)?",
-                @"ipban\ssuccess\slogin,\sip\saddress:\s(?<ipaddress>.+?),\ssource:\s(?<source>.+?),\suser:\s?(?<username>[^\s,]+)?",
+                @"(?<timestamp>\d\d\d\d-\d\d-\d\d\s\d\d:\d\d:\d\d\.?\d*Z?,\s)?ipban\sfailed\slogin,\sip\saddress:\s(?<ipaddress>.+?),\ssource:\s(?<source>.+?),\suser:\s?(?<username>[^\s,]+)?",
+                @"(?<timestamp>\d\d\d\d-\d\d-\d\d\s\d\d:\d\d:\d\d\.?\d*Z?,\s)?ipban\ssuccess\slogin,\sip\saddress:\s(?<ipaddress>.+?),\ssource:\s(?<source>.+?),\suser:\s?(?<username>[^\s,]+)?",
                 "Linux", false, "IPBanCustom",
 
                 "C:/Program Files/Microsoft/Exchange Server/*.log",

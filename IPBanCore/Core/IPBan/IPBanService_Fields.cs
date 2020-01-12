@@ -38,6 +38,11 @@ namespace DigitalRuby.IPBanCore
 {
     public partial class IPBanService
     {
+        private static readonly char[] regexTrimChars = new char[]
+        {
+            ',', ';', '|', '_', '-', '\'', '\"', '(', ')', '[', ']', '{', '}', ' ', '\r', '\n'
+        };
+
         private System.Timers.Timer cycleTimer;
         private bool firewallNeedsBlockedIPAddressesUpdate;
         private IPBanDB ipDB;
