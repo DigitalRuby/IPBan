@@ -73,18 +73,19 @@ namespace DigitalRuby.IPBanCore
         public string BaseUrl { get; set; } = "https://api.ipban.com";
 
         /// <inheritdoc />
-        public Task HandleBannedIPAddress(string ipAddress, string source, string userName, string osName, string osVersion, string assemblyVersion, IHttpRequestMaker requestMaker)
+        public async Task HandleBannedIPAddress(string ipAddress, string source, string userName, string osName, string osVersion, string assemblyVersion, IHttpRequestMaker requestMaker)
         {
             if (requestMaker is null)
             {
-                return Task.CompletedTask;
+                return;
             }
 
             try
             {
-                if (!System.Net.IPAddress.TryParse(ipAddress, out System.Net.IPAddress ipAddressObj) || ipAddressObj.IsInternal())
+                if (!System.Net.IPAddress.TryParse(ipAddress, out System.Net.IPAddress ipAddressObj) ||
+                    ipAddressObj.IsInternal())
                 {
-                    return Task.CompletedTask;
+                    return;
                 }
 
                 // submit url to ipban public database so that everyone can benefit from an aggregated list of banned ip addresses
@@ -109,12 +110,11 @@ namespace DigitalRuby.IPBanCore
                 {
                     headers = null;
                 }
-                return requestMaker.MakeRequestAsync(new Uri(url), headers: headers);
+                await requestMaker.MakeRequestAsync(new Uri(url), headers: headers);
             }
             catch
             {
                 // don't care, this is not fatal
-                return Task.CompletedTask;
             }
         }
 
