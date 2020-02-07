@@ -83,7 +83,7 @@ sc.exe config IPBAN start= delayed-auto
 - IPBan is currently supported on Ubuntu 16.04 or newer and Debian 9 or newer. IPSet and IPTables are required and installed automatically if needed.
 - Easy one click install:
 ```
-sudo -i; bash <(wget -qO- https://raw.githubusercontent.com/DigitalRuby/IPBan/master/Linux/Scripts/Install.sh)
+sudo -i; bash <(wget -qO- https://raw.githubusercontent.com/DigitalRuby/IPBan/master/IPBanCore/Linux/Scripts/Install.sh)
 ```
 - Change config file as desired, changes will be picked up automatically, press Ctrl-X to save.
 
