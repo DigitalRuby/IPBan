@@ -124,26 +124,34 @@ namespace DigitalRuby.IPBanCore
             PopulateList(blackList, blackListRanges, blackListOther, ref blackListRegex, blacklistString, blacklistRegexString);
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                expressionsFailure = new XmlSerializer(typeof(EventViewerExpressionsToBlock)).Deserialize(new XmlNodeReader(doc.SelectSingleNode("//ExpressionsToBlock"))) as EventViewerExpressionsToBlock;
-                if (expressionsFailure != null)
+                XmlNode node = doc.SelectSingleNode("//ExpressionsToBlock");
+                if (node != null)
                 {
-                    foreach (EventViewerExpressionGroup group in expressionsFailure.Groups)
+                    expressionsFailure = new XmlSerializer(typeof(EventViewerExpressionsToBlock)).Deserialize(new XmlNodeReader(node)) as EventViewerExpressionsToBlock;
+                    if (expressionsFailure != null)
                     {
-                        foreach (EventViewerExpression expression in group.Expressions)
+                        foreach (EventViewerExpressionGroup group in expressionsFailure.Groups)
                         {
-                            expression.Regex = (expression.Regex?.ToString() ?? string.Empty).Trim();
+                            foreach (EventViewerExpression expression in group.Expressions)
+                            {
+                                expression.Regex = (expression.Regex?.ToString() ?? string.Empty).Trim();
+                            }
                         }
                     }
                 }
-                expressionsSuccess = new XmlSerializer(typeof(EventViewerExpressionsToNotify)).Deserialize(new XmlNodeReader(doc.SelectSingleNode("//ExpressionsToNotify"))) as EventViewerExpressionsToNotify;
-                if (expressionsSuccess != null)
+                node = doc.SelectSingleNode("//ExpressionsToNotify");
+                if (node != null)
                 {
-                    foreach (EventViewerExpressionGroup group in expressionsSuccess.Groups)
+                    expressionsSuccess = new XmlSerializer(typeof(EventViewerExpressionsToNotify)).Deserialize(new XmlNodeReader(node)) as EventViewerExpressionsToNotify;
+                    if (expressionsSuccess != null)
                     {
-                        group.NotifyOnly = true;
-                        foreach (EventViewerExpression expression in group.Expressions)
+                        foreach (EventViewerExpressionGroup group in expressionsSuccess.Groups)
                         {
-                            expression.Regex = (expression.Regex?.ToString() ?? string.Empty).Trim();
+                            group.NotifyOnly = true;
+                            foreach (EventViewerExpression expression in group.Expressions)
+                            {
+                                expression.Regex = (expression.Regex?.ToString() ?? string.Empty).Trim();
+                            }
                         }
                     }
                 }
