@@ -212,7 +212,12 @@ namespace DigitalRuby.IPBanCore
             GetConfig<string>("GetUrlStop", ref getUrlStop);
             GetConfig<string>("GetUrlConfig", ref getUrlConfig);
             GetConfig<string>("ExternalIPAddressUrl", ref externalIPAddressUrl);
-            GetConfig<string>("FirewallUriSources", ref firewallUriRules);
+            GetConfig<string>("FirewallUriRules", ref firewallUriRules);
+            if (string.IsNullOrWhiteSpace(firewallUriRules))
+            {
+                // legacy
+                GetConfig<string>("FirewallUriSources", ref firewallUriRules);
+            }
             firewallUriRules = (firewallUriRules ?? string.Empty).Trim();
 
             // parse firewall block rules, one per line

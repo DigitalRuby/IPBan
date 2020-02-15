@@ -620,6 +620,24 @@ namespace DigitalRuby.IPBanCore {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Firewall Uri Rules.
+        /// </summary>
+        public static string FirewallUriRules {
+            get {
+                return ResourceManager.GetString("FirewallUriRules", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Config entry for firewall uri rules, one per line. Format is RulePrefix,Interval(DD:HH:MM:SS),Uri[NEWLINE]..
+        /// </summary>
+        public static string FirewallUriRulesTooltip {
+            get {
+                return ResourceManager.GetString("FirewallUriRulesTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to FQDN.
         /// </summary>
         public static string FQDN {

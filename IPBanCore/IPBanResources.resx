@@ -740,4 +740,10 @@ Prefix with OS:ClassName, example: Windows:Custom,Linux:Default</value>
   <data name="UserNameWhitelistRegexTooltip" xml:space="preserve">
     <value>If set, any user name that fails this regex will result in an immediate ban of the ip address.</value>
   </data>
+  <data name="FirewallUriRules" xml:space="preserve">
+    <value>Firewall Uri Rules</value>
+  </data>
+  <data name="FirewallUriRulesTooltip" xml:space="preserve">
+    <value>Config entry for firewall uri rules, one per line. Format is RulePrefix,Interval(DD:HH:MM:SS),Uri[NEWLINE].</value>
+  </data>
 </root>
