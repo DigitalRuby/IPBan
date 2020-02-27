@@ -310,25 +310,6 @@ namespace DigitalRuby.IPBanCore
         }
 
         /// <summary>
-        /// Static constructor
-        /// </summary>
-        static SqliteDB()
-        {
-            for (int i = 0; i < 10; i++)
-            {
-                try
-                {
-                    SQLitePCL.Batteries.Init();
-                    break;
-                }
-                catch
-                {
-                    System.Threading.Thread.Sleep(100);
-                }
-            }
-        }
-
-        /// <summary>
         /// Constructor
         /// </summary>
         /// <param name="dbPath">Database full path or just the file name. Can use SqliteDB.DbPathInMemory for in memory db.</param>

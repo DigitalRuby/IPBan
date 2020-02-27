@@ -1092,8 +1092,10 @@ namespace DigitalRuby.IPBanCore
             return tcs.Task;
         }
 
-        public static void RemoveDatabaseFiles(string folder)
+        public static void RemoveDatabaseFiles(string folder = null)
         {
+            folder ??= AppDomain.CurrentDomain.BaseDirectory;
+
             // cleanup any db, set or tbl files
             foreach (string file in Directory.GetFiles(folder, "*.set")
                 .Union(Directory.GetFiles(folder, "*.tbl"))

@@ -473,7 +473,7 @@ namespace DigitalRuby.IPBanCore
         public static T CreateAndStartIPBanTestService<T>(string directory = null, string configFileName = null, string defaultBannedIPAddressHandlerUrl = null,
             Func<string, string> configFileModifier = null) where T : IPBanService
         {
-            ExtensionMethods.RemoveDatabaseFiles(AppDomain.CurrentDomain.BaseDirectory);
+            ExtensionMethods.RemoveDatabaseFiles();
             DefaultHttpRequestMaker.DisableLiveRequests = true;
             if (string.IsNullOrWhiteSpace(directory))
             {
