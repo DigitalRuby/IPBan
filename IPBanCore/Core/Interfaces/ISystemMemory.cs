@@ -102,8 +102,8 @@ namespace DigitalRuby.IPBanCore
                         using StreamReader reader = File.OpenText("/proc/meminfo");
                         string total = reader.ReadLine();
                         string available = reader.ReadLine();
-                        Match totalMatch = Regex.Match(total, "[0-9]+", RegexOptions.IgnoreCase | RegexOptions.Compiled | RegexOptions.CultureInvariant);
-                        Match availableMatch = Regex.Match(available, "[0-9]+", RegexOptions.IgnoreCase | RegexOptions.Compiled | RegexOptions.CultureInvariant);
+                        Match totalMatch = Regex.Match(total, "[0-9]+", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+                        Match availableMatch = Regex.Match(available, "[0-9]+", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
                         totalMemory = long.Parse(totalMatch.Value, CultureInfo.InvariantCulture) * 1024;
                         availableMemory = long.Parse(availableMatch.Value, CultureInfo.InvariantCulture) * 1024;
                         return true;
