@@ -555,7 +555,7 @@ namespace DigitalRuby.IPBanCore
         /// <param name="level">Log level</param>
         /// <param name="text">Text with format</param>
         /// <param name="args">Format args</param>
-        private static void Write(IPBanCore.LogLevel level, string text, params object[] args)
+        public static void Write(IPBanCore.LogLevel level, string text, params object[] args)
         {
             Write(level, IPBanService.UtcNow, text, args);
         }
