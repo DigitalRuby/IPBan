@@ -412,6 +412,12 @@ namespace DigitalRuby.IPBanCore
         public IPBanWindowsFirewall(string rulePrefix = null) : base(rulePrefix)
         {
             MigrateOldDefaultRuleNames();
+            Type NetFwMgrType = Type.GetTypeFromProgID("HNetCfg.FwMgr", false);
+            INetFwMgr mgr = (INetFwMgr)Activator.CreateInstance(NetFwMgrType);
+            if (!mgr.LocalPolicy.CurrentProfile.FirewallEnabled)
+            {
+                throw new InvalidOperationException("Windows firewall is currently disabled, please enable Windows firewall");
+            }
         }
 
         public Task<bool> BlockIPAddresses(string ruleNamePrefix, IEnumerable<string> ipAddresses, IEnumerable<PortRange> allowedPorts = null, CancellationToken cancelToken = default)
