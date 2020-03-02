@@ -83,7 +83,7 @@ namespace DigitalRuby.IPBanTests
                 new KeyValuePair<string, string>
                 (
                     @"<Event xmlns='http://schemas.microsoft.com/win/2004/08/events/event'><System><Provider Name='PostgreSQL' /><EventID Qualifiers='0'>0</EventID><Level>4</Level><Task>0</Task><Keywords>0x80000000000000</Keywords><TimeCreated SystemTime='2020-01-26T09:49:25.000000000Z' /><EventRecordID>3649448</EventRecordID><Channel>Application</Channel><Computer>COMPUTER_NAME</Computer><Security /></System><EventData><Data>2020-01-26 04:49:25 -05 LOG: conexión recibida: host=33.55.77.99 port=59368</Data></EventData></Event>",
-                    "33.55.77.99,,Postgres,0"
+                    "33.55.77.99,,PostgreSQL,0"
                 ),
                 new KeyValuePair<string, string>
                 (
