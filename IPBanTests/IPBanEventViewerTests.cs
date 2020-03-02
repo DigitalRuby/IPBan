@@ -82,6 +82,11 @@ namespace DigitalRuby.IPBanTests
             {
                 new KeyValuePair<string, string>
                 (
+                    @"<Event xmlns='http://schemas.microsoft.com/win/2004/08/events/event'><System><Provider Name='PostgreSQL' /><EventID Qualifiers='0'>0</EventID><Level>4</Level><Task>0</Task><Keywords>0x80000000000000</Keywords><TimeCreated SystemTime='2020-01-26T09:49:25.000000000Z' /><EventRecordID>3649448</EventRecordID><Channel>Application</Channel><Computer>COMPUTER_NAME</Computer><Security /></System><EventData><Data>2020-01-26 04:49:25 -05 LOG: conexión recibida: host=33.55.77.99 port=59368</Data></EventData></Event>",
+                    "33.55.77.99,,Postgres,0"
+                ),
+                new KeyValuePair<string, string>
+                (
                     @"<Event xmlns='http://schemas.microsoft.com/win/2004/08/events/event'><System><Provider Name='Microsoft-Windows-Security-Auditing' Guid='{54849625-5478-4994-A5BA-3E3B0328C30D}' /><EventID>4624</EventID><Version>1</Version><Level>0</Level><Task>12544</Task><Opcode>0</Opcode><Keywords>0x8020000000000000</Keywords><TimeCreated SystemTime='2019-06-13T14:35:04.718125000Z' /><EventRecordID>14296</EventRecordID><Correlation /><Execution ProcessID='480' ThreadID='7692' /><Channel>Security</Channel><Computer>ns524406</Computer><Security /></System><EventData><Data Name='SubjectUserSid'>S-1-5-18</Data><Data Name='SubjectUserName'>CPU4406$</Data><Data Name='SubjectDomainName'>WORKGROUP</Data><Data Name='SubjectLogonId'>0x3e7</Data><Data Name='TargetUserSid'>S-1-5-21-549477949-4172057549-3284972235-1005</Data><Data Name='TargetUserName'>rdpuser</Data><Data Name='TargetDomainName'>CPU4406</Data><Data Name='TargetLogonId'>0x1d454067</Data><Data Name='LogonType'>10</Data><Data Name='LogonProcessName'>User32</Data><Data Name='AuthenticationPackageName'>Negotiate</Data><Data Name='WorkstationName'>CPU4406</Data><Data Name='LogonGuid'>{00000000-0000-0000-0000-000000000000}</Data><Data Name='TransmittedServices'>-</Data><Data Name='LmPackageName'>-</Data><Data Name='KeyLength'>0</Data><Data Name='ProcessId'>0xc38</Data><Data Name='ProcessName'>C:\Windows\System32\winlogon.exe</Data><Data Name='IpAddress'>44.55.66.77</Data><Data Name='IpPort'>0</Data><Data Name='ImpersonationLevel'>%%1833</Data></EventData></Event>",
                     "44.55.66.77,rdpuser,RDP,1"
                 ),
@@ -248,6 +253,7 @@ namespace DigitalRuby.IPBanTests
                 "1.2.3.4",
                 "10.0.0.1",
                 "10.20.30.40",
+                "33.55.77.99",
                 "37.140.141.29",
                 "37.191.115.2",
                 "61.62.63.64",
