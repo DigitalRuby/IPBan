@@ -408,16 +408,23 @@ namespace DigitalRuby.IPBanCore
             }
         }
 
-
-        public IPBanWindowsFirewall(string rulePrefix = null) : base(rulePrefix)
+        /// <summary>
+        /// Throw an exception if Windows firewall is disabled
+        /// </summary>
+        public static void ThrowExceptionIfWindowsFirewallIsDisabled()
         {
-            MigrateOldDefaultRuleNames();
             Type NetFwMgrType = Type.GetTypeFromProgID("HNetCfg.FwMgr", false);
             INetFwMgr mgr = (INetFwMgr)Activator.CreateInstance(NetFwMgrType);
             if (!mgr.LocalPolicy.CurrentProfile.FirewallEnabled)
             {
-                throw new InvalidOperationException("Windows firewall is currently disabled, please enable Windows firewall");
+                throw new ApplicationException("Windows firewall is currently disabled, please enable Windows firewall");
             }
+        }
+
+        public IPBanWindowsFirewall(string rulePrefix = null) : base(rulePrefix)
+        {
+            ThrowExceptionIfWindowsFirewallIsDisabled();
+            MigrateOldDefaultRuleNames();
         }
 
         public Task<bool> BlockIPAddresses(string ruleNamePrefix, IEnumerable<string> ipAddresses, IEnumerable<PortRange> allowedPorts = null, CancellationToken cancelToken = default)
