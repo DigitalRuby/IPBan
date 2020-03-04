@@ -429,7 +429,8 @@ namespace DigitalRuby.IPBanCore
 
         public Task<bool> BlockIPAddresses(string ruleNamePrefix, IEnumerable<string> ipAddresses, IEnumerable<PortRange> allowedPorts = null, CancellationToken cancelToken = default)
         {
-            return BlockOrAllowIPAddresses(BlockRulePrefix, true, ipAddresses, allowedPorts, cancelToken);
+            string prefix = (string.IsNullOrWhiteSpace(ruleNamePrefix) ? BlockRulePrefix : RulePrefix + ruleNamePrefix).TrimEnd('_') + "_";
+            return BlockOrAllowIPAddresses(prefix, true, ipAddresses, allowedPorts, cancelToken);
         }
 
         public Task<bool> BlockIPAddressesDelta(string ruleNamePrefix, IEnumerable<IPBanFirewallIPAddressDelta> ipAddresses, IEnumerable<PortRange> allowedPorts = null, CancellationToken cancelToken = default)

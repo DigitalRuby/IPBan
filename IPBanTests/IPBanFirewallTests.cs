@@ -65,6 +65,27 @@ namespace DigitalRuby.IPBanTests
         }
 
         [Test]
+        public void TestBlockClearsOutExtraRules()
+        {
+            List<string> ips = new List<string>(2020);
+            for (int i = 0; i < 2020; i++)
+            {
+                string ip = "99.99." + ((i & 0x0000FF00) >> 8).ToString() + "." + (i & 0x000000FF).ToString();
+                ips.Add(ip);
+            }
+
+            firewall.BlockIPAddresses("TMP_", ips).Sync();
+            IPAddressRange[] ranges = firewall.EnumerateIPAddresses("TMP_").ToArray();
+            Assert.AreEqual(ips.Count, ranges.Length);
+
+            ips.RemoveRange(1000, ips.Count - 1000);
+
+            firewall.BlockIPAddresses("TMP_", ips).Sync();
+            ranges = firewall.EnumerateIPAddresses("TMP_").ToArray();
+            Assert.AreEqual(ips.Count, ranges.Length);
+        }
+
+        [Test]
         public void TestFirewallMultipleRules()
         {
             string[] toBlock = new string[512 * 10];
