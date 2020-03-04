@@ -82,6 +82,16 @@ namespace DigitalRuby.IPBanTests
             {
                 new KeyValuePair<string, string>
                 (
+                    @"<Event xmlns='http://schemas.microsoft.com/win/2004/08/events/event'><System><Provider Name='MSSQL$INSTANCENAME' /><EventID Qualifiers='49152'>18456</EventID><Level>0</Level><Task>4</Task><Keywords>0x90000000000000</Keywords><TimeCreated SystemTime='2020-03-04T19:40:23.065120000Z' /><EventRecordID>16022222</EventRecordID><Channel>Application</Channel><Computer>MyVM1</Computer><Security /></System><EventData><Data>sa</Data><Data>Reason: Password did not match that for the login provided.</Data><Data>[CLIENT: 2.92.13.221]</Data><Binary>184800000E00000015000000430065006E0050006F0069006E00740056004D0031005C00430045004E0050004F0049004E0054000000070000006D00610073007400650072000000</Binary></EventData></Event>",
+                    "2.92.13.221,sa,MSSQL,0"
+                ),
+                new KeyValuePair<string, string>
+                (
+                    @"<Event xmlns='http://schemas.microsoft.com/win/2004/08/events/event'><System><Provider Name='Microsoft-Windows-Security-Auditing' Guid='{54849625-5478-4994-a5ba-3e3b0328c30d}' /><EventID>4625</EventID><Version>0</Version><Level>0</Level><Task>12544</Task><Opcode>0</Opcode><Keywords>0x8010000000000000</Keywords><TimeCreated SystemTime='2020-03-04T09:54:40.262696500Z' /><EventRecordID>3588211</EventRecordID><Correlation ActivityID='{8bc80487-e7d1-0002-8a04-c88bd1e7d501}' /><Execution ProcessID='144' ThreadID='1580' /><Channel>Security</Channel><Computer>FAILED_SERVER_NAME</Computer><Security /></System><EventData><Data Name='SubjectUserSid'>S-1-0-0</Data><Data Name='SubjectUserName'>-</Data><Data Name='SubjectDomainName'>-</Data><Data Name='SubjectLogonId'>0x0</Data><Data Name='TargetUserSid'>S-1-0-0</Data><Data Name='TargetUserName'>FAILED_USER_NAME</Data><Data Name='TargetDomainName'>FAILED_DOMAIN_NAME</Data><Data Name='Status'>0xc000006d</Data><Data Name='FailureReason'>%%2313</Data><Data Name='SubStatus'>0xc0000064</Data><Data Name='LogonType'>3</Data><Data Name='LogonProcessName'>NtLmSsp</Data><Data Name='AuthenticationPackageName'>NTLM</Data><Data Name='WorkstationName'>FAILED_WORK_STATION_NAME</Data><Data Name='TransmittedServices'>-</Data><Data Name='LmPackageName'>-</Data><Data Name='KeyLength'>0</Data><Data Name='ProcessId'>0x0</Data><Data Name='ProcessName'>-</Data><Data Name='IpAddress'>100.101.102.103</Data><Data Name='IpPort'>0</Data></EventData></Event>",
+                    "100.101.102.103,FAILED_USER_NAME,RDP,0"
+                ),
+                new KeyValuePair<string, string>
+                (
                     @"<Event xmlns='http://schemas.microsoft.com/win/2004/08/events/event'><System><Provider Name='PostgreSQL' /><EventID Qualifiers='0'>0</EventID><Level>4</Level><Task>0</Task><Keywords>0x80000000000000</Keywords><TimeCreated SystemTime='2020-01-26T09:49:25.000000000Z' /><EventRecordID>3649448</EventRecordID><Channel>Application</Channel><Computer>COMPUTER_NAME</Computer><Security /></System><EventData><Data>2020-01-26 04:49:25 -05 LOG: conexión recibida: host=33.55.77.99 port=59368</Data></EventData></Event>",
                     "33.55.77.99,,PostgreSQL,0"
                 ),
@@ -256,6 +266,7 @@ namespace DigitalRuby.IPBanTests
             string[] expected = new string[]
             {
                 "1.2.3.4",
+                "2.92.13.221",
                 "10.0.0.1",
                 "10.20.30.40",
                 "33.55.77.99",
@@ -267,6 +278,7 @@ namespace DigitalRuby.IPBanTests
                 "99.99.99.98",
                 "99.99.99.99",
                 "99.99.99.100",
+                "100.101.102.103",
                 "104.248.243.148",
                 "185.209.0.22",
                 "185.222.211.58",

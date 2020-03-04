@@ -249,7 +249,9 @@ namespace DigitalRuby.IPBanCore
                             bool userFailsWhitelistRegex = (userBlacklisted ? false : Config.UserNameFailsUserNameWhitelistRegex(userName));
                             bool editDistanceBlacklisted = (ipBlacklisted || userBlacklisted || userFailsWhitelistRegex ? false : !Config.IsUserNameWithinMaximumEditDistanceOfUserNameWhitelist(userName));
                             bool configBlacklisted = ipBlacklisted || userBlacklisted || userFailsWhitelistRegex || editDistanceBlacklisted;
-                            int newCount = ipDB.IncrementFailedLoginCount(ipAddress, userName, source, UtcNow, failedLogin.Count, transaction);
+
+                            // if the event came in with a count of 0 that means it is an automatic ban
+                            int newCount = (failedLogin.Count <= 0 ? maxFailedLoginAttempts : ipDB.IncrementFailedLoginCount(ipAddress, userName, source, UtcNow, failedLogin.Count, transaction));
 
                             Logger.Warn(now, "Login failure: {0}, {1}, {2}, {3}", ipAddress, userName, source, newCount);
 

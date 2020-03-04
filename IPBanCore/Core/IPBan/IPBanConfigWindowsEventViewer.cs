@@ -168,7 +168,7 @@ namespace DigitalRuby.IPBanCore
             for (int i = 0; i < lines.Length; i++)
             {
                 line = lines[i].Trim();
-                if (line.StartsWith("//"))
+                if (line.StartsWith("//") || line.StartsWith("(//"))
                 {
                     if (currentExpression != null)
                     {
