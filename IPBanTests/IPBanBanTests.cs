@@ -138,6 +138,18 @@ namespace DigitalRuby.IPBanTests
         }
 
         [Test]
+        public void TestBanIPAddressExternal()
+        {
+            // add the external event to the service
+            service.AddIPAddressLogEvents(new IPAddressLogEvent[]
+            {
+                new IPAddressLogEvent("10.11.12.13", "TestUser", "RDP", 0, IPAddressEventType.Blocked, new DateTime(2020, 01, 01))
+            });
+            service.RunCycle().Sync();
+            Assert.IsTrue(service.Firewall.IsIPAddressBlocked("10.11.12.13", out _));
+        }
+
+        [Test]
         public void TestBlockIPAddresesBlockFile()
         {
             // put an ban.txt file in path, service should pick it up and ban the ip addresses

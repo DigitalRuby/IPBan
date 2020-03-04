@@ -48,7 +48,6 @@ namespace DigitalRuby.IPBanCore
         private IPBanDB ipDB;
 
         // batch failed logins every cycle
-        private readonly List<IPAddressLogEvent> pendingBans = new List<IPAddressLogEvent>();
         private readonly List<IPAddressLogEvent> pendingFailedLogins = new List<IPAddressLogEvent>();
         private readonly List<IPAddressLogEvent> pendingSuccessfulLogins = new List<IPAddressLogEvent>();
         private readonly List<IPAddressLogEvent> pendingLogEvents = new List<IPAddressLogEvent>();

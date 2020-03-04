@@ -310,40 +310,6 @@ namespace DigitalRuby.IPBanCore
             }
         }
 
-        private Task ProcessPendingBans(IReadOnlyList<IPAddressLogEvent> ipAddresses)
-        {
-            object transaction = BeginTransaction();
-            try
-            {
-                foreach (IPAddressLogEvent ban in ipAddresses)
-                {
-                    try
-                    {
-                        string ipAddress = ban.IPAddress;
-                        string userName = ban.UserName;
-                        string source = ban.Source;
-                        if (IsWhitelisted(ipAddress))
-                        {
-                            Logger.Warn("Ignoring pending ban for whitelisted ip address {0}, {1}, {2}", ipAddress, userName, source);
-                            continue;
-                        }
-                        AddBannedIPAddress(ipAddress, source, userName, null, ban.Timestamp, false, ban.Count, string.Empty, transaction);
-                    }
-                    catch (Exception ex1)
-                    {
-                        Logger.Error(ex1);
-                    }
-                }
-                CommitTransaction(transaction);
-            }
-            catch (Exception ex2)
-            {
-                RollbackTransaction(transaction);
-                Logger.Error(ex2);
-            }
-            return Task.CompletedTask;
-        }
-
         private Task ProcessPendingSuccessfulLogins(IEnumerable<IPAddressLogEvent> ipAddresses)
         {
             foreach (IPAddressLogEvent info in ipAddresses)
@@ -404,28 +370,28 @@ namespace DigitalRuby.IPBanCore
                 {
                     if (span < banTimes[i])
                     {
-                        // ban for 1 year if ticks less than 1
+                        // ban for next timespan
                         banEndDate = startBanDate + banTimes[i];
                         break;
                     }
                 }
             }
-            bannedIpAddresses?.Add(new IPAddressLogEvent(ipAddress, userName, source, counter, IPAddressEventType.Blocked));
+            int adjustedCount = (counter <= 0 ? Config.FailedLoginAttemptsBeforeBan : counter);
+            bannedIpAddresses?.Add(new IPAddressLogEvent(ipAddress, userName, source, adjustedCount, IPAddressEventType.Blocked));
             if (ipDB.SetBanDates(ipAddress, startBanDate, banEndDate, UtcNow, transaction))
             {
                 firewallNeedsBlockedIPAddressesUpdate = true;
             }
+
+            Logger.Warn(startBanDate, "Banning ip address: {0}, user name: {1}, config black listed: {2}, count: {3}, extra info: {4}",
+                ipAddress, userName, configBlacklisted, counter, extraInfo);
 
             // if this is a delegate callback (counter of 0), exit out - we don't want to run handlers or processes for shared banned ip addresses
             if (counter <= 0)
             {
                 return;
             }
-
-            Logger.Warn(startBanDate, "Banning ip address: {0}, user name: {1}, config black listed: {2}, count: {3}, extra info: {4}",
-                ipAddress, userName, configBlacklisted, counter, extraInfo);
-
-            if (BannedIPAddressHandler != null && System.Net.IPAddress.TryParse(ipAddress, out System.Net.IPAddress ipAddressObj) && !ipAddressObj.IsInternal())
+            else if (BannedIPAddressHandler != null && System.Net.IPAddress.TryParse(ipAddress, out System.Net.IPAddress ipAddressObj) && !ipAddressObj.IsInternal())
             {
                 try
                 {
@@ -841,7 +807,7 @@ namespace DigitalRuby.IPBanCore
                 firewallNeedsBlockedIPAddressesUpdate = false;
                 List<IPBanFirewallIPAddressDelta> deltas = ipDB.EnumerateIPAddressesDeltaAndUpdateState(true, UtcNow, Config.ResetFailedLoginCountForUnbannedIPAddresses).Where(i => !i.Added || !IsWhitelisted(i.IPAddress)).ToList();
                 Logger.Warn("Updating firewall with {0} entries...", deltas.Count);
-                Logger.Debug("Firewall entries updated: {0}", string.Join(',', deltas.Select(d => d.IPAddress)));
+                Logger.Info("Firewall entries updated: {0}", string.Join(',', deltas.Select(d => d.IPAddress)));
                 if (MultiThreaded)
                 {
                     RunFirewallTask((token) => Firewall.BlockIPAddressesDelta(null, deltas, null, token), "Default");
@@ -958,25 +924,6 @@ namespace DigitalRuby.IPBanCore
             }
         }
 
-        private async Task ProcessPendingBans()
-        {
-            // make a quick copy of pending ip addresses so we don't lock it for very long
-            List<IPAddressLogEvent> ipAddresses = null;
-            lock (pendingBans)
-            {
-                if (pendingBans.Count != 0)
-                {
-                    ipAddresses = new List<IPAddressLogEvent>(pendingBans);
-                    pendingBans.Clear();
-                    Logger.Debug("{0} pending bans", pendingBans.Count);
-                }
-            }
-            if (ipAddresses != null)
-            {
-                await ProcessPendingBans(ipAddresses);
-            }
-        }
-
         /// <summary>
         /// Process all pending successful logins
         /// </summary>
@@ -1032,6 +979,7 @@ namespace DigitalRuby.IPBanCore
                             break;
 
                         case IPAddressEventType.Blocked:
+                            // make sure the ip address is ban pending
                             AddBannedIPAddress(evt.IPAddress, evt.Source, evt.UserName, bannedIPs, evt.Timestamp, false, evt.Count, string.Empty, transaction);
                             break;
 

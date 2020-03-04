@@ -81,7 +81,6 @@ namespace DigitalRuby.IPBanCore
             await UpdateExpiredIPAddressStates();
             await ProcessPendingLogEvents();
             await ProcessPendingFailedLogins();
-            await ProcessPendingBans();
             await ProcessPendingSuccessfulLogins();
             await UpdateFirewall();
         }
