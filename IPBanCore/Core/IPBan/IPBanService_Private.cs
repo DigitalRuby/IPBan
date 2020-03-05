@@ -391,7 +391,9 @@ namespace DigitalRuby.IPBanCore
             {
                 return;
             }
-            else if (BannedIPAddressHandler != null && System.Net.IPAddress.TryParse(ipAddress, out System.Net.IPAddress ipAddressObj) && !ipAddressObj.IsInternal())
+            else if (BannedIPAddressHandler != null &&
+                System.Net.IPAddress.TryParse(ipAddress, out System.Net.IPAddress ipAddressObj) &&
+                !ipAddressObj.IsInternal())
             {
                 try
                 {
