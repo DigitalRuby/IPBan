@@ -182,7 +182,7 @@ namespace DigitalRuby.IPBanTests
         {
             Random r = new Random();
             byte[] ipBytes = new byte[4];
-            string[] ips = new string[5000];
+            string[] ips = new string[5005];
             for (int i = 0; i < ips.Length; i++)
             {
                 r.NextBytes(ipBytes);

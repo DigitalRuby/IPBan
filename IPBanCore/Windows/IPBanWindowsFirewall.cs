@@ -286,6 +286,7 @@ namespace DigitalRuby.IPBanCore
             // powershell example
             // (New-Object -ComObject HNetCfg.FwPolicy2).rules | Where-Object { $_.Name -match '^prefix' } | ForEach-Object { Write-Output "$($_.Name)" }
             // TODO: Revisit COM interface in .NET core 3.0
+            List<INetFwRule> rules = new List<INetFwRule>();
             var e = policy.Rules.GetEnumeratorVariant();
             object[] results = new object[64];
             int count;
@@ -301,7 +302,7 @@ namespace DigitalRuby.IPBanCore
                     {
                         if ((o is INetFwRule rule) && (matchAll || rule.Name.StartsWith(ruleNamePrefix, StringComparison.OrdinalIgnoreCase)))
                         {
-                            yield return rule;
+                            rules.Add(rule);
                         }
                     }
                 }
@@ -311,6 +312,20 @@ namespace DigitalRuby.IPBanCore
             {
                 Marshal.FreeCoTaskMem(bufferLengthPointer);
             }
+
+            rules.Sort((rule1, rule2) =>
+            {
+                Match match1 = Regex.Match(rule1.Name, "_(?<index>[0-9]+)$");
+                Match match2 = Regex.Match(rule2.Name, "_(?<index>[0-9]+)$");
+                if (match1.Success && match2.Success)
+                {
+                    string value1 = match1.Groups["index"].Value.PadLeft(9, '0');
+                    string value2 = match2.Groups["index"].Value.PadLeft(9, '0');
+                    return value1.CompareTo(value2);
+                }
+                return rule1.Name.CompareTo(rule2.Name);
+            });
+            return rules;
 
             /*
             System.Diagnostics.Process p = new System.Diagnostics.Process
@@ -461,39 +476,52 @@ namespace DigitalRuby.IPBanCore
                 ruleChanges.Add(false);
             }
             List<IPBanFirewallIPAddressDelta> deltas = ipAddresses.ToList();
-            deltas.Sort((d1, d2) => d2.Added.CompareTo(d1.Added));
             for (int deltaIndex = deltas.Count - 1; deltaIndex >= 0; deltaIndex--)
             {
-                for (ruleIndex = 0; ruleIndex < remoteIPAddresses.Count; ruleIndex++)
+                IPBanFirewallIPAddressDelta delta = deltas[deltaIndex];
+                if (delta.Added)
                 {
-                    HashSet<string> remoteIPAddressesSet = remoteIPAddresses[ruleIndex];
-                    bool change = false;
-                    if (deltas[deltaIndex].Added)
+                    if (remoteIPAddresses.Any(set => set.Contains(delta.IPAddress)))
                     {
-                        if (remoteIPAddressesSet.Count < MaxIpAddressesPerRule)
-                        {
-                            remoteIPAddressesSet.Add(deltas[deltaIndex].IPAddress);
-                            change = true;
-                        }
+                        // no change, a set already has the ip
+                        deltas.RemoveAt(deltaIndex);
+                        continue;
                     }
                     else
                     {
-                        change = remoteIPAddressesSet.Remove(deltas[deltaIndex].IPAddress);
+                        // try to find a set with an availble slot
+                        for (int setIndex = 0; setIndex < remoteIPAddresses.Count; setIndex++)
+                        {
+                            if (remoteIPAddresses[setIndex].Count < MaxIpAddressesPerRule)
+                            {
+                                remoteIPAddresses[setIndex].Add(delta.IPAddress);
+                                deltas.RemoveAt(deltaIndex);
+                                ruleChanges[setIndex] = true;
+                                break;
+                            }
+                        }
                     }
-                    if (change)
+                }
+                else
+                {
+                    for (int setIndex = 0; setIndex < remoteIPAddresses.Count; setIndex++)
                     {
-                        deltas.RemoveAt(deltaIndex);
-                        ruleChanges[ruleIndex] = true;
-                        break;
+                        if (remoteIPAddresses[setIndex].Remove(delta.IPAddress))
+                        {
+                            ruleChanges[setIndex] = true;
+                            break;
+                        }
                     }
+                    deltas.RemoveAt(deltaIndex);
                 }
             }
 
             // any remaining deltas for adding need to go in new rules if they did not fit in the existing rules
-            string[] remainingIPAddresses = deltas.Where(d => d.Added).Select(d => d.IPAddress).ToArray();
+            // remaining deltas are guaranteed to be adds
+            string[] remainingIPAddresses = deltas.Select(d => d.IPAddress).Where(ip => IPAddress.TryParse(ip, out _)).ToArray();
             for (int i = 0; i < remainingIPAddresses.Length; i += MaxIpAddressesPerRule)
             {
-                remoteIPAddresses.Add(new HashSet<string>(remainingIPAddresses.Skip(i).Take(MaxIpAddressesPerRule).Where(i2 => IPAddress.TryParse(i2, out _))));
+                remoteIPAddresses.Add(new HashSet<string>(remainingIPAddresses.Skip(i).Take(MaxIpAddressesPerRule)));
                 ruleChanges.Add(true);
             }
 
