@@ -363,7 +363,12 @@ namespace DigitalRuby.IPBanCore
 
             TimeSpan[] banTimes = Config.BanTimes;
             DateTime banEndDate = startBanDate + banTimes.First();
-            if (banTimes.Length > 1 && ipDB.TryGetIPAddress(ipAddress, out IPBanDB.IPAddressEntry ipEntry, transaction) && ipEntry.BanStartDate != null && ipEntry.BanEndDate != null)
+
+            // if we have an ip in the database, use the ban time to move to the next ban slot in the list of ban times
+            // if ban times only has one entry, do not do this
+            if (banTimes.Length > 1 &&
+                ipDB.TryGetIPAddress(ipAddress, out IPBanDB.IPAddressEntry ipEntry, transaction) &&
+                ipEntry.BanStartDate != null && ipEntry.BanEndDate != null)
             {
                 // find the next ban time in the array
                 TimeSpan span = ipEntry.BanEndDate.Value - ipEntry.BanStartDate.Value;
