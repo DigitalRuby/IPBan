@@ -428,9 +428,20 @@ namespace DigitalRuby.IPBanCore
         /// </summary>
         public static void ThrowExceptionIfWindowsFirewallIsDisabled()
         {
-            Type NetFwMgrType = Type.GetTypeFromProgID("HNetCfg.FwMgr", false);
-            INetFwMgr mgr = (INetFwMgr)Activator.CreateInstance(NetFwMgrType);
-            if (!mgr.LocalPolicy.CurrentProfile.FirewallEnabled)
+            //const int NET_FW_PROFILE2_DOMAIN = 1;
+            //const int NET_FW_PROFILE2_PRIVATE = 2;
+            //const int NET_FW_PROFILE2_PUBLIC = 4;
+
+            Type netFwMgrType = Type.GetTypeFromProgID("HNetCfg.FwMgr", false);
+            //Type netFwPolicyType = Type.GetTypeFromProgID("HNetCfg.FwPolicy2", false);
+            INetFwMgr mgr = (INetFwMgr)Activator.CreateInstance(netFwMgrType);
+            //INetFwPolicy2 policy = (INetFwPolicy2)Activator.CreateInstance(netFwPolicyType);
+            INetFwProfile current = mgr.LocalPolicy.GetProfileByType(NET_FW_PROFILE_TYPE_.NET_FW_PROFILE_CURRENT);
+            INetFwProfile domain = mgr.LocalPolicy.GetProfileByType(NET_FW_PROFILE_TYPE_.NET_FW_PROFILE_DOMAIN);
+            INetFwProfile standard = mgr.LocalPolicy.GetProfileByType(NET_FW_PROFILE_TYPE_.NET_FW_PROFILE_STANDARD);
+            if ((current is null || !current.FirewallEnabled) &&
+                (domain is null || !domain.FirewallEnabled) &&
+                (standard is null || !standard.FirewallEnabled))
             {
                 throw new ApplicationException("Windows firewall is currently disabled, please enable Windows firewall");
             }
