@@ -42,7 +42,8 @@ namespace DigitalRuby.IPBanCore
         public static string GlobalConfigString { get; set; } = string.Empty; // force different from local config string for first entry
 
         private string localConfigString;
-        private static DateTime lastConfigFileDateTime = DateTime.MinValue;
+        private static string lastConfigValue;
+        private static DateTime lastConfigWriteTime;
 
         /// <summary>
         /// Read config
@@ -76,6 +77,7 @@ namespace DigitalRuby.IPBanCore
                     string existingConfig = await File.ReadAllTextAsync(Path);
                     if (existingConfig != config)
                     {
+                        lastConfigValue = null;
                         await ExtensionMethods.FileWriteAllTextWithRetryAsync(Path, config);
                     }
                 });
@@ -94,11 +96,13 @@ namespace DigitalRuby.IPBanCore
         {
             if (UseFile)
             {
-                DateTime lastDateTime = File.GetLastWriteTimeUtc(Path);
-                if (lastDateTime > lastConfigFileDateTime)
+                DateTime lastWriteTime = File.GetLastWriteTimeUtc(Path);
+                string currentConfig = await ReadConfigAsync();
+                if (lastWriteTime != lastConfigWriteTime || currentConfig != lastConfigValue)
                 {
-                    lastConfigFileDateTime = lastDateTime;
-                    return await ReadConfigAsync();
+                    lastConfigValue = currentConfig;
+                    lastConfigWriteTime = lastWriteTime;
+                    return currentConfig;
                 }
             }
             else if (GlobalConfigString != localConfigString)
