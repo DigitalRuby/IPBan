@@ -48,12 +48,20 @@ namespace DigitalRuby.IPBanCore
         /// <summary>
         /// Read config
         /// </summary>
+        /// <param name="acquireLock">Whether to acquire an exclusive lock, this should always be true unless special locking patterns are used</param>
         /// <returns>Task with config string</returns>
-        public async Task<string> ReadConfigAsync()
+        public async Task<string> ReadConfigAsync(bool acquireLock = true)
         {
             if (UseFile)
             {
-                return await Locker.LockFunctionAsync(async () => await File.ReadAllTextAsync(Path));
+                if (acquireLock)
+                {
+                    return await Locker.LockFunctionAsync(async () => await File.ReadAllTextAsync(Path));
+                }
+                else
+                {
+                    return await File.ReadAllTextAsync(Path);
+                }
             }
             else if (string.IsNullOrWhiteSpace(GlobalConfigString))
             {
@@ -96,14 +104,19 @@ namespace DigitalRuby.IPBanCore
         {
             if (UseFile)
             {
-                DateTime lastWriteTime = File.GetLastWriteTimeUtc(Path);
-                string currentConfig = await ReadConfigAsync();
-                if (lastWriteTime != lastConfigWriteTime || currentConfig != lastConfigValue)
+                string result = null;
+                await Locker.LockActionAsync(async () =>
                 {
-                    lastConfigValue = currentConfig;
-                    lastConfigWriteTime = lastWriteTime;
-                    return currentConfig;
-                }
+                    DateTime lastWriteTime = File.GetLastWriteTimeUtc(Path);
+                    string currentConfig = await ReadConfigAsync(false);
+                    if (lastWriteTime != lastConfigWriteTime || currentConfig != lastConfigValue)
+                    {
+                        lastConfigWriteTime = lastWriteTime;
+                        lastConfigValue = currentConfig;
+                        result = currentConfig;
+                    }
+                });
+                return result;
             }
             else if (GlobalConfigString != localConfigString)
             {
