@@ -378,6 +378,7 @@ namespace DigitalRuby.IPBanCore
                     {
                         // ban for next timespan
                         banEndDate = startBanDate + banTimes[i];
+                        Logger.Info("Moving to next ban duration {0} at index {1} for ip {1}", banTimes[i], i, ipAddress);
                         break;
                     }
                 }
@@ -623,6 +624,7 @@ namespace DigitalRuby.IPBanCore
                             if (span < banTimes[i])
                             {
                                 // this is the next span to ban
+                                Logger.Info("Ban duration {0} at index {1} expired for ip {2}", banTimes[i], i, ipAddress);
                                 break;
                             }
                         }
