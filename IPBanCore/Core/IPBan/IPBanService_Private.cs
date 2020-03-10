@@ -127,6 +127,7 @@ namespace DigitalRuby.IPBanCore
                     Config = newConfig;
                     LoadFirewall(oldConfig);
                     ParseAndAddUriFirewallRules(newConfig);
+                    Logger.Info("Config file changed");
                 }
             }
             catch (Exception ex)
