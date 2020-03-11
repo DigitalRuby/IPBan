@@ -429,19 +429,11 @@ namespace DigitalRuby.IPBanCore
         /// </summary>
         public static void ThrowExceptionIfWindowsFirewallIsDisabled()
         {
-            //const int NET_FW_PROFILE2_DOMAIN = 1;
-            //const int NET_FW_PROFILE2_PRIVATE = 2;
-            //const int NET_FW_PROFILE2_PUBLIC = 4;
-
-            Type netFwMgrType = Type.GetTypeFromProgID("HNetCfg.FwMgr", false);
-            Type netFwPolicyType = Type.GetTypeFromProgID("HNetCfg.FwPolicy2", false);
-            INetFwMgr mgr = (INetFwMgr)Activator.CreateInstance(netFwMgrType);
-            INetFwPolicy2 policy = (INetFwPolicy2)Activator.CreateInstance(netFwPolicyType);
             if (!policy.get_FirewallEnabled(NetFwProfileType2.Domain) &&
                 !policy.get_FirewallEnabled(NetFwProfileType2.Private) &&
                 !policy.get_FirewallEnabled(NetFwProfileType2.Public))
             {
-                throw new ApplicationException("Windows firewall is currently disabled, please enable Windows firewall");
+                throw new ApplicationException("Windows firewall is currently disabled, please enable Windows firewall. Public, Private and Domain profiles were checked for active state.");
             }
         }
 
