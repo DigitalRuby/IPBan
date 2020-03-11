@@ -24,7 +24,6 @@ SOFTWARE.
 
 #region Imports
 
-using NetFwTypeLib;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -35,6 +34,8 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+
+using IPBanCore.Windows.COM;
 
 #endregion Imports
 
@@ -91,7 +92,7 @@ namespace DigitalRuby.IPBanCore
             return b.ToString();
         }
 
-        private bool GetOrCreateRule(string ruleName, string remoteIPAddresses, NET_FW_ACTION_ action, IEnumerable<PortRange> allowedPorts = null)
+        private bool GetOrCreateRule(string ruleName, string remoteIPAddresses, NetFwAction action, IEnumerable<PortRange> allowedPorts = null)
         {
             remoteIPAddresses = (remoteIPAddresses ?? string.Empty).Trim();
             bool emptyIPAddressString = string.IsNullOrWhiteSpace(remoteIPAddresses) || remoteIPAddresses == "*";
@@ -116,7 +117,7 @@ namespace DigitalRuby.IPBanCore
                     rule.Enabled = true;
                     rule.Action = action;
                     rule.Description = "Automatically created by IPBan";
-                    rule.Direction = NET_FW_RULE_DIRECTION_.NET_FW_RULE_DIR_IN;
+                    rule.Direction = NetFwRuleDirection.Inbound;
                     rule.EdgeTraversal = false;
                     rule.Grouping = "IPBan";
                     rule.LocalAddresses = "*";
@@ -132,9 +133,9 @@ namespace DigitalRuby.IPBanCore
                         PortRange[] allowedPortsArray = (allowedPorts?.ToArray());
                         if (allowedPortsArray != null && allowedPortsArray.Length != 0)
                         {
-                            rule.Protocol = (int)NET_FW_IP_PROTOCOL_.NET_FW_IP_PROTOCOL_TCP;
+                            rule.Protocol = (int)NetFwIPProtocol.TCP;
                             string localPorts;
-                            if (action == NET_FW_ACTION_.NET_FW_ACTION_BLOCK)
+                            if (action == NetFwAction.Block)
                             {
                                 localPorts = IPBanFirewallUtility.GetPortRangeStringBlockExcept(allowedPortsArray);
                             }
@@ -148,7 +149,7 @@ namespace DigitalRuby.IPBanCore
                         {
                             try
                             {
-                                rule.Protocol = (int)NET_FW_IP_PROTOCOL_.NET_FW_IP_PROTOCOL_ANY;
+                                rule.Protocol = (int)NetFwIPProtocol.Any;
                             }
                             catch
                             {
@@ -194,13 +195,13 @@ namespace DigitalRuby.IPBanCore
         private void CreateBlockRule(IReadOnlyList<string> ipAddresses, int index, int count, string ruleName, IEnumerable<PortRange> allowedPorts = null)
         {
             string remoteIpString = CreateRuleStringForIPAddresses(ipAddresses, index, count);
-            GetOrCreateRule(ruleName, remoteIpString, NET_FW_ACTION_.NET_FW_ACTION_BLOCK, allowedPorts);
+            GetOrCreateRule(ruleName, remoteIpString, NetFwAction.Block, allowedPorts);
         }
 
         private void CreateAllowRule(IReadOnlyList<string> ipAddresses, int index, int count, string ruleName, IEnumerable<PortRange> allowedPorts = null)
         {
             string remoteIpString = CreateRuleStringForIPAddresses(ipAddresses, index, count);
-            GetOrCreateRule(ruleName, remoteIpString, NET_FW_ACTION_.NET_FW_ACTION_ALLOW, allowedPorts);
+            GetOrCreateRule(ruleName, remoteIpString, NetFwAction.Allow, allowedPorts);
         }
 
         private void MigrateOldDefaultRuleNames()
@@ -433,15 +434,12 @@ namespace DigitalRuby.IPBanCore
             //const int NET_FW_PROFILE2_PUBLIC = 4;
 
             Type netFwMgrType = Type.GetTypeFromProgID("HNetCfg.FwMgr", false);
-            //Type netFwPolicyType = Type.GetTypeFromProgID("HNetCfg.FwPolicy2", false);
+            Type netFwPolicyType = Type.GetTypeFromProgID("HNetCfg.FwPolicy2", false);
             INetFwMgr mgr = (INetFwMgr)Activator.CreateInstance(netFwMgrType);
-            //INetFwPolicy2 policy = (INetFwPolicy2)Activator.CreateInstance(netFwPolicyType);
-            INetFwProfile current = mgr.LocalPolicy.GetProfileByType(NET_FW_PROFILE_TYPE_.NET_FW_PROFILE_CURRENT);
-            INetFwProfile domain = mgr.LocalPolicy.GetProfileByType(NET_FW_PROFILE_TYPE_.NET_FW_PROFILE_DOMAIN);
-            INetFwProfile standard = mgr.LocalPolicy.GetProfileByType(NET_FW_PROFILE_TYPE_.NET_FW_PROFILE_STANDARD);
-            if ((current is null || !current.FirewallEnabled) &&
-                (domain is null || !domain.FirewallEnabled) &&
-                (standard is null || !standard.FirewallEnabled))
+            INetFwPolicy2 policy = (INetFwPolicy2)Activator.CreateInstance(netFwPolicyType);
+            if (!policy.get_FirewallEnabled(NetFwProfileType2.Domain) &&
+                !policy.get_FirewallEnabled(NetFwProfileType2.Private) &&
+                !policy.get_FirewallEnabled(NetFwProfileType2.Public))
             {
                 throw new ApplicationException("Windows firewall is currently disabled, please enable Windows firewall");
             }
@@ -543,7 +541,7 @@ namespace DigitalRuby.IPBanCore
                 if (ruleChanges[i])
                 {
                     string name = (i < rules.Length ? rules[i].Name : prefix + ruleIndex.ToStringInvariant());
-                    GetOrCreateRule(name, string.Join(',', remoteIPAddresses[i]), NET_FW_ACTION_.NET_FW_ACTION_BLOCK, allowedPorts);
+                    GetOrCreateRule(name, string.Join(',', remoteIPAddresses[i]), NetFwAction.Block, allowedPorts);
                 }
                 ruleIndex += MaxIpAddressesPerRule;
             }
@@ -768,7 +766,7 @@ namespace DigitalRuby.IPBanCore
                 if (m.Success)
                 {
                     string remoteIPAddresses = localIP.Substring(0, m.Index) + ".0/24";
-                    GetOrCreateRule(ruleName, remoteIPAddresses, NET_FW_ACTION_.NET_FW_ACTION_ALLOW);
+                    GetOrCreateRule(ruleName, remoteIPAddresses, NetFwAction.Allow);
                 }
             }
         }

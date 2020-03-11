@@ -1,0 +1,5 @@
+﻿Code in COM folder taken from:
+
+https://github.com/falahati/WindowsFirewallHelper
+
+MIT license
