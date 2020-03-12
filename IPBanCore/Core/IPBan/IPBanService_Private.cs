@@ -133,11 +133,15 @@ namespace DigitalRuby.IPBanCore
             catch (Exception ex)
             {
                 Logger.Error(ex);
+            }
 
-                if (Config is null)
-                {
-                    throw new ApplicationException("Configuration failed to load, make sure to check for XML errors or unblock all the files.", ex);
-                }
+            if (Config is null)
+            {
+                throw new ApplicationException("Configuration failed to load, make sure to check for XML errors or unblock all the files.");
+            }
+            if (Firewall is null)
+            {
+                throw new ApplicationException("Firewall failed to load, check that your firewall is enabled and setup in configuration properly");
             }
 
             // set or unset default banned ip address handler based on config
