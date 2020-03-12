@@ -9,9 +9,7 @@
     <Copyright>(c) 2010 Digital Ruby, LLC</Copyright>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <OutputType>Exe</OutputType>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <PublishTrimmed>true</PublishTrimmed>
-    <TargetLatestRuntimePatch>true</TargetLatestRuntimePatch>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>    <TargetLatestRuntimePatch>true</TargetLatestRuntimePatch>
     <Description>Ban ip addresses based on failed login attempts.</Description>
     <Summary>Allow auto-banning ip addresses based on failed logins and rules. Can read event viewer or log files. Windows and Linux supported. Includes firewall API.</Summary>
     <PackageReleaseNotes></PackageReleaseNotes>
@@ -23,6 +21,7 @@
     <AssemblyName>DigitalRuby.IPBan</AssemblyName>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <PreserveCompilationContext>true</PreserveCompilationContext>
+    <PublishTrimmed>true</PublishTrimmed>
   </PropertyGroup>
 
   <ItemGroup>
