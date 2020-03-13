@@ -481,8 +481,10 @@ namespace DigitalRuby.IPBanCore
                         return bytes[1] >= 16 && bytes[1] < 32;
                     case 192:
                         return bytes[1] == 168;
+                    case 0:
+                        return true;
                     default:
-                        return (bytes[0] == 0 && bytes[1] == 0 && bytes[2] == 0 && bytes[3] == 0);
+                        return false;
                 }
             }
 
