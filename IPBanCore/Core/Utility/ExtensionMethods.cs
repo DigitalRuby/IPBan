@@ -489,7 +489,6 @@ namespace DigitalRuby.IPBanCore
             }
 
             string addressAsString = ip.ToString();
-            string firstWord = addressAsString.Split(new[] { ':' }, StringSplitOptions.RemoveEmptyEntries)[0];
 
             // equivalent of 127.0.0.1 in IPv6
             if (addressAsString == "::1")
@@ -503,11 +502,13 @@ namespace DigitalRuby.IPBanCore
                 return true;
             }
 
+            string firstWord = addressAsString.Split(new[] { ':' }, StringSplitOptions.RemoveEmptyEntries)[0];
+
             // These days Unique Local Addresses (ULA) are used in place of Site Local. 
             // ULA has two variants: 
             //      fc00::/8 is not defined yet, but might be used in the future for internal-use addresses that are registered in a central place (ULA Central). 
             //      fd00::/8 is in use and does not have to registered anywhere.
-            else if (firstWord.Length >= 4 && firstWord.Substring(0, 2) == "fc")
+            if (firstWord.Length >= 4 && firstWord.Substring(0, 2) == "fc")
             {
                 return true;
             }
