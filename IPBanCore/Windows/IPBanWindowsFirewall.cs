@@ -26,6 +26,7 @@ SOFTWARE.
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Net;
@@ -61,6 +62,7 @@ namespace DigitalRuby.IPBanCore
         private const string clsidFwPolicy2 = "{E2B3C97F-6AE1-41AC-817A-F6F92166D7DD}";
         private const string clsidFwRule = "{2C5BC43E-3369-4C33-AB0C-BE9469677AF4}";
         private static readonly INetFwPolicy2 policy = Activator.CreateInstance(Type.GetTypeFromCLSID(new Guid(clsidFwPolicy2))) as INetFwPolicy2;
+        private static readonly INetFwMgr manager = (INetFwMgr)Activator.CreateInstance(Type.GetTypeFromProgID("HNetCfg.FwMgr"));
         private static readonly Type ruleType = Type.GetTypeFromCLSID(new Guid(clsidFwRule));
         private static readonly char[] firewallEntryDelimiters = new char[] { '/', '-' };
 
@@ -429,11 +431,26 @@ namespace DigitalRuby.IPBanCore
         /// </summary>
         public static void ThrowExceptionIfWindowsFirewallIsDisabled()
         {
+            // netsh advfirewall show allprofiles state
             if (!policy.get_FirewallEnabled(NetFwProfileType2.Domain) &&
                 !policy.get_FirewallEnabled(NetFwProfileType2.Private) &&
-                !policy.get_FirewallEnabled(NetFwProfileType2.Public))
+                !policy.get_FirewallEnabled(NetFwProfileType2.Public) &&
+                !manager.LocalPolicy.CurrentProfile.FirewallEnabled)
             {
-                throw new ApplicationException("Windows firewall is currently disabled, please enable Windows firewall. Public, Private and Domain profiles were checked for active state.");
+                // read firewall state from powershell script
+                ProcessStartInfo psScript = new ProcessStartInfo("powershell", "Get-NetfirewallProfile -PolicyStore ActiveStore")
+                {
+                    RedirectStandardOutput = true,
+                    CreateNoWindow = true,
+                    WindowStyle = ProcessWindowStyle.Hidden
+                };
+                using Process psProcess = Process.Start(psScript);
+                psProcess.WaitForExit();
+                string text = psProcess.StandardOutput.ReadToEnd();
+                if (!Regex.IsMatch(text, @"enabled\s*:\s*true", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))
+                {
+                    throw new ApplicationException("Windows firewall is currently disabled, please enable Windows firewall. Public, Private and Domain profiles were checked for active state.");
+                }
             }
         }
 
