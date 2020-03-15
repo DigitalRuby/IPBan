@@ -4,13 +4,11 @@
     <TargetFrameworks>netcoreapp3.1</TargetFrameworks>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <IsPackable>false</IsPackable>
-    <AssemblyVersion>1.5.3.0</AssemblyVersion>
-    <FileVersion>1.5.3.0</FileVersion>
     <RootNamespace>DigitalRuby.IPBanTests</RootNamespace>
     <AssemblyName>DigitalRuby.IPBanTests</AssemblyName>
     <PreserveCompilationContext>true</PreserveCompilationContext>
     <LangVersion>latest</LangVersion>
-    <Version>1.5.3.0</Version>
+    <Version>1.5.4</Version>
   </PropertyGroup>
 
   <ItemGroup>
