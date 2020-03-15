@@ -80,6 +80,11 @@ namespace DigitalRuby.IPBanTests
                 @"",
                 "Windows", true, "SmarterMail",
 
+                "C:/Program Files/Tomcat/logs/*access_log*.txt",
+                @"^(?<ipaddress>.*?)\s.*?(phpmyadmin|cgi-bin|phpadmin).*?\s404\s[0-9]+$",
+                @"",
+                "Windows", true, "Apache",
+
                 "C:/IPBanCustomLogs/*.log",
                 @"ipban\sfailed\slogin,\sip\saddress:\s(?<ipaddress>.+?),\ssource:\s(?<source>.+?),\suser:\s?(?<username>[^\s,]+)?",
                 @"ipban\ssuccess\slogin,\sip\saddress:\s(?<ipaddress>.+?),\ssource:\s(?<source>.+?),\suser:\s?(?<username>[^\s,]+)?",
