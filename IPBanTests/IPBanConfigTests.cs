@@ -81,7 +81,7 @@ namespace DigitalRuby.IPBanTests
                 "Windows", true, "SmarterMail",
 
                 "C:/Program Files/Tomcat/logs/*access_log*.txt",
-                @"^(?<ipaddress>.*?)\s.*?((php|cgi-bin).*?\s404\s[0-9]+$|\s400\s-)$",
+                @"^(?<ipaddress>.*?)\s.*?((php|md5sum|cgi-bin|joomla).*?\s404\s[0-9]+$|\s400\s-)$",
                 @"",
                 "Windows", true, "Apache",
 
