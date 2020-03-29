@@ -98,10 +98,21 @@ namespace DigitalRuby.IPBanCore
                             Regex.IsMatch(OSUtility.Description, newFile.PlatformRegex.ToString().Trim(), RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))
                         {
                             // log files use a timer internally and do not need to be updated regularly
-                            LogFileScanner scanner = new IPBanIPAddressLogFileScanner(this, DnsLookup,
-                                newFile.Source, pathAndMask, newFile.Recursive, newFile.FailedLoginRegex,
-                                newFile.FailedLoginRegexTimestampFormat, newFile.SuccessfulLoginRegex,
-                                newFile.SuccessfulLoginRegexTimestampFormat, newFile.MaxFileSize, newFile.PingInterval);
+                            IPBanIPAddressLogFileScannerOptions options = new IPBanIPAddressLogFileScannerOptions
+                            {
+                                Dns = DnsLookup,
+                                LoginHandler = this,
+                                MaxFileSizeBytes = newFile.MaxFileSize,
+                                PathAndMask = pathAndMask,
+                                PingIntervalMilliseconds = newFile.PingInterval,
+                                Recursive = newFile.Recursive,
+                                RegexFailure = newFile.FailedLoginRegex,
+                                RegexSuccess = newFile.SuccessfulLoginRegex,
+                                RegexFailureTimestampFormat = newFile.FailedLoginRegexTimestampFormat,
+                                RegexSuccessTimestampFormat = newFile.SuccessfulLoginRegexTimestampFormat,
+                                Source = newFile.Source
+                            };
+                            LogFileScanner scanner = new IPBanIPAddressLogFileScanner(options);
                             logFilesToParse.Add(scanner);
                             Logger.Debug("Adding log file to parse: {0}", pathAndMask);
                         }

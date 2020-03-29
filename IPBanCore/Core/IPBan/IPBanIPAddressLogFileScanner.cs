@@ -46,39 +46,19 @@ namespace DigitalRuby.IPBanCore
         /// <summary>
         /// Create a log file scanner
         /// </summary>
-        /// <param name="loginHandler">Interface for handling logins</param>
-        /// <param name="dns">Interface for dns lookup</param>
-        /// <param name="source">The source, i.e. SSH or SMTP, etc.</param>
-        /// <param name="pathAndMask">File path and mask (i.e. /var/log/auth*.log)</param>
-        /// <param name="recursive">Whether to parse all sub directories of path and mask recursively</param>
-        /// <param name="regexFailure">Regex to parse file lines to pull out failed login ipaddress and username</param>
-        /// <param name="regexSuccess">Regex to parse file lines to pull out successful login ipaddress and username</param>
-        /// <param name="maxFileSizeBytes">Max size of file (in bytes) before it is deleted or 0 for unlimited</param>
-        /// <param name="pingIntervalMilliseconds">Ping interval in milliseconds, less than 1 for manual ping required</param>
-        public IPBanIPAddressLogFileScanner
-        (
-            IIPAddressEventHandler loginHandler,
-            IDnsLookup dns,
-            string source,
-            string pathAndMask,
-            bool recursive,
-            string regexFailure,
-            string regexFailureTimestampFormat,
-            string regexSuccess,
-            string regexSuccessTimestampFormat,
-            long maxFileSizeBytes = 0,
-            int pingIntervalMilliseconds = 0
-        ) : base(pathAndMask, recursive, maxFileSizeBytes, pingIntervalMilliseconds)
+        /// <param name="options">Options</param>
+        public IPBanIPAddressLogFileScanner(IPBanIPAddressLogFileScannerOptions options) : base(options.PathAndMask, options.Recursive, options.MaxFileSizeBytes, options.PingIntervalMilliseconds)
         {
-            loginHandler.ThrowIfNull(nameof(loginHandler));
-            dns.ThrowIfNull(nameof(dns));
-            Source = source;
-            this.loginHandler = loginHandler;
-            this.dns = dns;
-            this.regexFailure = IPBanConfig.ParseRegex(regexFailure);
-            this.regexSuccess = IPBanConfig.ParseRegex(regexSuccess);
-            this.regexFailureTimestampFormat = regexFailureTimestampFormat;
-            this.regexSuccessTimestampFormat = regexSuccessTimestampFormat;
+            options.ThrowIfNull(nameof(options));
+            options.LoginHandler.ThrowIfNull(nameof(options.LoginHandler));
+            options.Dns.ThrowIfNull(nameof(options.Dns));
+            Source = options.Source;
+            this.loginHandler = options.LoginHandler;
+            this.dns = options.Dns;
+            this.regexFailure = IPBanConfig.ParseRegex(options.RegexFailure);
+            this.regexSuccess = IPBanConfig.ParseRegex(options.RegexSuccess);
+            this.regexFailureTimestampFormat = options.RegexFailureTimestampFormat;
+            this.regexSuccessTimestampFormat = options.RegexSuccessTimestampFormat;
         }
 
         /// <summary>
@@ -118,5 +98,67 @@ namespace DigitalRuby.IPBanCore
             }
             return false;
         }
+    }
+
+    /// <summary>
+    /// Options for IPBanIPAddressLogFileScanner
+    /// </summary>
+    public class IPBanIPAddressLogFileScannerOptions
+    {
+        /// <summary>
+        /// Login handler
+        /// </summary>
+        public IIPAddressEventHandler LoginHandler { get; set; }
+
+        /// <summary>
+        /// Dns lookup
+        /// </summary>
+        public IDnsLookup Dns { get; set; }
+
+        /// <summary>
+        /// Default source
+        /// </summary>
+        public string Source { get; set; }
+
+        /// <summary>
+        /// Folder and file mask to search
+        /// </summary>
+        public string PathAndMask { get; set; }
+
+        /// <summary>
+        /// Whether to search PathAndMask recursively further down into the directory structure
+        /// </summary>
+        public bool Recursive { get; set; }
+
+        /// <summary>
+        /// Regular expression for failed logins, should at minimum have an ipaddress group, but can also have
+        /// a timestamp group, source group and username group.
+        /// </summary>
+        public string RegexFailure { get; set; }
+
+        /// <summary>
+        /// Optional date/time format if RegexFailure has a timestamp group
+        /// </summary>
+        public string RegexFailureTimestampFormat { get; set; }
+        
+        /// <summary>
+        /// Regular expression for successful logins, see RegexFailure for regex group names.
+        /// </summary>
+        public string RegexSuccess { get; set; }
+
+        /// <summary>
+        /// Optional date/time format if RegexSuccess has a timestamp group
+        /// </summary>
+        public string RegexSuccessTimestampFormat { get; set; }
+
+        /// <summary>
+        /// Max file size for the log file before auto-deleting, default is unlimited
+        /// </summary>
+        public long MaxFileSizeBytes { get; set; }
+
+        /// <summary>
+        /// Interval to ping the log file, default is 0 which means manual ping is required
+        /// </summary>
+        public int PingIntervalMilliseconds { get; set; }
     }
 }
