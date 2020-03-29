@@ -33,7 +33,7 @@ using System.Threading;
 namespace DigitalRuby.IPBanCore
 {
     /// <summary>
-    /// Scans a file periodically looking for patterns. File encoding is assumbed to be single or variable byte charset like ASCII, ANSI, UTF-8, etc.
+    /// Scans a file periodically looking for patterns.
     /// </summary>
     public class LogFileScanner : IDisposable
     {
@@ -69,6 +69,7 @@ namespace DigitalRuby.IPBanCore
         private readonly string directoryToWatch;
         private readonly string fileMask;
         private readonly long maxFileSize;
+        private readonly Encoding encoding;
 
         /// <summary>
         /// Create a log file scanner
@@ -77,13 +78,15 @@ namespace DigitalRuby.IPBanCore
         /// <param name="recursive">Whether to parse all sub directories of path and mask recursively</param>
         /// <param name="maxFileSizeBytes">Max size of file (in bytes) before it is deleted or 0 for unlimited</param>
         /// <param name="pingIntervalMilliseconds">Ping interval in milliseconds, less than 1 for manual ping required</param>
-        public LogFileScanner(string pathAndMask, bool recursive, long maxFileSizeBytes = 0, int pingIntervalMilliseconds = 0)
+        /// <param name="encoding">Encoding or null for utf-8. The encoding must either be single or variable byte, like ASCII, Ansi, utf-8, etc. UTF-16 and the like are not supported.</param>
+        public LogFileScanner(string pathAndMask, bool recursive, long maxFileSizeBytes = 0, int pingIntervalMilliseconds = 0, Encoding encoding = null)
         {
             PathAndMask = pathAndMask?.Trim();
             PathAndMask.ThrowIfNullOrEmpty(nameof(pathAndMask), "Must pass a non-empty path and mask to log file scanner");
             this.maxFileSize = maxFileSizeBytes;
             directoryToWatch = Path.GetDirectoryName(pathAndMask);
             fileMask = Path.GetFileName(pathAndMask);
+            this.encoding = encoding ?? Encoding.UTF8;
             if (pingIntervalMilliseconds > 0)
             {
                 pingTimer = new System.Timers.Timer(pingIntervalMilliseconds);
@@ -365,7 +368,7 @@ namespace DigitalRuby.IPBanCore
                     // at the expense of having to store all the bytes in memory for a small time
                     fs.Position = file.LastPosition;
                     byte[] bytes = new BinaryReader(fs).ReadBytes((int)(lastNewlinePos - fs.Position));
-                    StreamReader reader = new StreamReader(new MemoryStream(bytes), Encoding.UTF8);
+                    StreamReader reader = new StreamReader(new MemoryStream(bytes), encoding);
                     string line;
                     while ((line = reader.ReadLine()) != null)
                     {
