@@ -529,6 +529,15 @@ namespace DigitalRuby.IPBanCore {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Format for timestamp if failed login regex has a timestamp group.
+        /// </summary>
+        public static string FailedLoginRegexTimestampFormatTooltip {
+            get {
+                return ResourceManager.GetString("FailedLoginRegexTimestampFormatTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Regex to parse failed logins out of log files. Please provide ipaddress and username groups..
         /// </summary>
         public static string FailedLoginRegexTooltip {
@@ -1561,6 +1570,15 @@ namespace DigitalRuby.IPBanCore {
         public static string SuccessfulLoginRegexTimestampFormat {
             get {
                 return ResourceManager.GetString("SuccessfulLoginRegexTimestampFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Format for timestamp if successful login regex has a timestamp group.
+        /// </summary>
+        public static string SuccessfulLoginRegexTimestampFormatTooltip {
+            get {
+                return ResourceManager.GetString("SuccessfulLoginRegexTimestampFormatTooltip", resourceCulture);
             }
         }
         

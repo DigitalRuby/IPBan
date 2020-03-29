@@ -752,4 +752,10 @@ Prefix with OS:ClassName, example: Windows:Custom,Linux:Default</value>
   <data name="SuccessfulLoginRegexTimestampFormat" xml:space="preserve">
     <value>Successful Login Regex Timestamp Format</value>
   </data>
+  <data name="FailedLoginRegexTimestampFormatTooltip" xml:space="preserve">
+    <value>Format for timestamp if failed login regex has a timestamp group</value>
+  </data>
+  <data name="SuccessfulLoginRegexTimestampFormatTooltip" xml:space="preserve">
+    <value>Format for timestamp if successful login regex has a timestamp group</value>
+  </data>
 </root>
