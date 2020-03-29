@@ -169,7 +169,7 @@ namespace DigitalRuby.IPBanCore
                     // use file info for length compare to avoid doing a full file open
                     if (len != file.LastLength)
                     {
-                        FileStream fs = new FileStream(file.FileName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite, 256);
+                        using FileStream fs = new FileStream(file.FileName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite, 256);
                         file.LastLength = len;
                         delete = PingFile(file, fs);
                     }
