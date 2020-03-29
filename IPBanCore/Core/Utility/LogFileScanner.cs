@@ -33,7 +33,7 @@ using System.Threading;
 namespace DigitalRuby.IPBanCore
 {
     /// <summary>
-    /// Scans a file periodically looking for patterns
+    /// Scans a file periodically looking for patterns. File encoding is assumbed to be single or variable byte charset like ASCII, ANSI, UTF-8, etc.
     /// </summary>
     public class LogFileScanner : IDisposable
     {
@@ -166,11 +166,9 @@ namespace DigitalRuby.IPBanCore
                     // use file info for length compare to avoid doing a full file open
                     if (len != file.LastLength)
                     {
-                        using (FileStream fs = new FileStream(file.FileName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite, 256))
-                        {
-                            file.LastLength = len;
-                            delete = PingFile(file, fs);
-                        }
+                        FileStream fs = new FileStream(file.FileName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite, 256);
+                        file.LastLength = len;
+                        delete = PingFile(file, fs);
                     }
                     else
                     {
@@ -367,17 +365,14 @@ namespace DigitalRuby.IPBanCore
                     // at the expense of having to store all the bytes in memory for a small time
                     fs.Position = file.LastPosition;
                     byte[] bytes = new BinaryReader(fs).ReadBytes((int)(lastNewlinePos - fs.Position));
-
-                    using (StreamReader reader = new StreamReader(new MemoryStream(bytes), Encoding.UTF8))
+                    StreamReader reader = new StreamReader(new MemoryStream(bytes), Encoding.UTF8);
+                    string line;
+                    while ((line = reader.ReadLine()) != null)
                     {
-                        string line;
-                        while ((line = reader.ReadLine()) != null)
+                        line = line.Trim();
+                        if (!OnProcessLine(line) || (ProcessLine != null && !ProcessLine(line)))
                         {
-                            line = line.Trim();
-                            if (!OnProcessLine(line) || (ProcessLine != null && !ProcessLine(line)))
-                            {
-                                break;
-                            }
+                            break;
                         }
                     }
                 }
