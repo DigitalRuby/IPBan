@@ -71,6 +71,12 @@ namespace DigitalRuby.IPBanCore
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public ExtensionMethods.XmlCData FailedLoginRegex { get; set; } = string.Empty;
 
+        [DisplayFormat(ConvertEmptyStringToNull = false)]
+        [Required(AllowEmptyStrings = true)]
+        [LocalizedDisplayName(nameof(IPBanResources.FailedLoginRegexTimestampFormat))]
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        public string FailedLoginRegexTimestampFormat { get; set; } = string.Empty;
+
         /// <summary>
         /// Successful login regex
         /// </summary>
@@ -79,6 +85,12 @@ namespace DigitalRuby.IPBanCore
         [LocalizedDisplayName(nameof(IPBanResources.SuccessfulLoginRegex))]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public ExtensionMethods.XmlCData SuccessfulLoginRegex { get; set; } = string.Empty;
+
+        [DisplayFormat(ConvertEmptyStringToNull = false)]
+        [Required(AllowEmptyStrings = true)]
+        [LocalizedDisplayName(nameof(IPBanResources.SuccessfulLoginRegexTimestampFormat))]
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        public string SuccessfulLoginRegexTimestampFormat { get; set; } = string.Empty;
 
         /// <summary>
         /// Platform regex, i.e. Windows, Linux, etc.

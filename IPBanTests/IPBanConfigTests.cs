@@ -39,10 +39,12 @@ namespace DigitalRuby.IPBanTests
     [TestFixture]
     public class IPBanConfigTests
     {
-        private void AssertLogFileToParse(IPBanLogFileToParse file, string failedLoginRegex, int maxFileSize, string pathAndMask, int pingInterval, string platformRegex,
-            bool recursive, string source, string successfulLoginRegex)
+        private void AssertLogFileToParse(IPBanLogFileToParse file, string failedLoginRegex, string failedLoginRegexTimestampFormat,
+            int maxFileSize, string pathAndMask, int pingInterval, string platformRegex,
+            bool recursive, string source, string successfulLoginRegex, string successfulLoginRegexTimestampFormat)
         {
             Assert.AreEqual(IPBanConfig.ParseRegex(failedLoginRegex)?.ToString(), IPBanConfig.ParseRegex(file.FailedLoginRegex)?.ToString());
+            Assert.AreEqual(failedLoginRegexTimestampFormat, file.FailedLoginRegexTimestampFormat);
             Assert.AreEqual(maxFileSize, file.MaxFileSize);
             Assert.AreEqual(Regex.Replace(pathAndMask.Trim().Replace('\n', '|'), "\\s+", string.Empty), Regex.Replace(file.PathAndMask.Trim().Replace('\n', '|'), "\\s+", string.Empty));
             Assert.AreEqual(pingInterval, file.PingInterval);
@@ -50,6 +52,7 @@ namespace DigitalRuby.IPBanTests
             Assert.AreEqual(recursive, file.Recursive);
             Assert.AreEqual(source, file.Source);
             Assert.AreEqual(IPBanConfig.ParseRegex(successfulLoginRegex)?.ToString(), IPBanConfig.ParseRegex(file.SuccessfulLoginRegex)?.ToString());
+            Assert.AreEqual(successfulLoginRegexTimestampFormat, file.SuccessfulLoginRegexTimestampFormat);
         }
 
         private void AssertLogFilesToParse(IPBanConfig cfg)
@@ -57,52 +60,66 @@ namespace DigitalRuby.IPBanTests
             const int maxFileSize = 16777216;
             const int pingInterval = 10000;
 
-            // path and mask, fail expression, success expression, platform regex, recursive, source
+            // path and mask, fail expression, fail timestamp format, success expression, success timestamp format, platform regex, recursive, source
             object[] logFileData = new object[]
             {
                 "/var/log/auth*.log\n/var/log/secure*",
                 @"failed\s+password\s+for\s+(invalid\s+user\s+)?(?<username>.+?\s+)from\s+(?<ipaddress>.+?)\s+port\s+[0-9]+\s+ssh|did\s+not\s+receive\s+identification\s+string\s+from\s+(?<ipaddress>[^\s]+)|connection\s+closed\s+by\s+(invalid\s+user\s+)?(?<username>.+?\s+)?(?<ipaddress>.+?)\s+port\s+[0-9]+\s+\[preauth\]\s*(\(no\s+attempt\s+to\s+login\s+after\s+timeout\))?|disconnected\s+from\s+(invalid\s+user\s+)?(?<username>.+?)\s+(?<ipaddress>.+?)\s+port\s+[0-9]+\s+\[preauth\]|disconnected\s+from\s+(?<ipaddress>.+?)\s+port\s+[0-9]+\s+\[preauth\]|disconnected\s+from\s+authenticating\s+user\s+(?<username>.+?)\s+(?<ipaddress>.+?)\s+port\s+[0-9]+\s+\[preauth\]",
+                @"",
                 @"Accepted\s+password\s+for\s+(?<username>.+?)\s+from\s+(?<ipaddress>.+?)\s+port\s+[0-9]+\s+ssh",
+                @"",
                 "Linux", false, "SSH",
 
                 "/var/log/ipbancustom*.log",
                 @"(?<timestamp>\d\d\d\d-\d\d-\d\d\s\d\d:\d\d:\d\d\.?\d*Z?,\s)?ipban\sfailed\slogin,\sip\saddress:\s(?<ipaddress>.+?),\ssource:\s(?<source>.+?),\suser:\s?(?<username>[^\s,]+)?",
+                @"",
                 @"(?<timestamp>\d\d\d\d-\d\d-\d\d\s\d\d:\d\d:\d\d\.?\d*Z?,\s)?ipban\ssuccess\slogin,\sip\saddress:\s(?<ipaddress>.+?),\ssource:\s(?<source>.+?),\suser:\s?(?<username>[^\s,]+)?",
+                @"",
                 "Linux", false, "IPBanCustom",
 
                 "C:/Program Files/Microsoft/Exchange Server/*.log",
                 @".*?,.*?,.*?,.*?,(?<ipaddress>.+?),(?<username>.+?),.*?AuthFailed",
+                @"",
+                @"",
                 @"",
                 "Windows", true, "MSExchange",
 
                 "C:/Program Files/Smarter Tools/Smarter Mail/*.log\nC:/ Program Files(x86) / Smarter Tools / Smarter Mail/*.log\nC:/SmarterMail/logs/*.log\nC:/Smarter Mail/logs/*.log",
                 @"\[(?<ipaddress>[^\]]+)\](\[.*?\]\s+)?(The domain given in the EHLO command violates an EHLO SMTP|IP blocked by brute force abuse detection rule)",
                 @"",
+                @"",
+                @"",
                 "Windows", true, "SmarterMail",
 
                 "C:/Program Files/Tomcat/logs/*access_log*.txt",
-                @"^(?<ipaddress>.*?)\s.*?((php|md5sum|cgi-bin|joomla).*?\s404\s[0-9]+$|\s400\s-)$",
+                @"^(?<ipaddress>.*?)\s.*?\[(?<timestamp>.*?)\].*?((php|md5sum|cgi-bin|joomla).*?\s404\s[0-9]+$|\s400\s-)$",
+                @"dd/MMM/yyyy:HH:mm:ss zzzz",
+                @"",
                 @"",
                 "Windows", true, "Apache",
 
                 "C:/IPBanCustomLogs/*.log",
                 @"ipban\sfailed\slogin,\sip\saddress:\s(?<ipaddress>.+?),\ssource:\s(?<source>.+?),\suser:\s?(?<username>[^\s,]+)?",
+                @"",
                 @"ipban\ssuccess\slogin,\sip\saddress:\s(?<ipaddress>.+?),\ssource:\s(?<source>.+?),\suser:\s?(?<username>[^\s,]+)?",
+                @"",
                 "Windows", true, "IPBanCustom"
             };
 
-            Assert.AreEqual(logFileData.Length / 6, cfg.LogFilesToParse.Count);
-            for (int i = 0; i < logFileData.Length; i += 6)
+            Assert.AreEqual(logFileData.Length / 8, cfg.LogFilesToParse.Count);
+            for (int i = 0; i < logFileData.Length; i += 8)
             {
-                AssertLogFileToParse(cfg.LogFilesToParse[i / 6],
+                AssertLogFileToParse(cfg.LogFilesToParse[i / 8],
                     (string)logFileData[i + 1],
+                    (string)logFileData[i + 2],
                     maxFileSize,
                     (string)logFileData[i],
                     pingInterval,
-                    (string)logFileData[i + 3],
-                    (bool)logFileData[i + 4],
                     (string)logFileData[i + 5],
-                    (string)logFileData[i + 2]);
+                    (bool)logFileData[i + 6],
+                    (string)logFileData[i + 7],
+                    (string)logFileData[i + 3],
+                    (string)logFileData[i + 4]);
             }
         }
 

@@ -70,6 +70,15 @@ namespace DigitalRuby.IPBanCore
             get { return regex; }
             set { RegexObject = IPBanConfig.ParseRegex(regex = value); }
         }
+
+        /// <summary>
+        /// Timestamp format
+        /// </summary>
+        [DisplayFormat(ConvertEmptyStringToNull = false)]
+        [Required(AllowEmptyStrings = true)]
+        [LocalizedDisplayName(nameof(IPBanResources.FailedLoginRegexTimestampFormat))]
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        public string TimestampFormat { get; set; }
     }
 
     /// <summary>

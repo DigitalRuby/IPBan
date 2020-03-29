@@ -78,7 +78,9 @@ namespace DigitalRuby.IPBanTests
                 pathAndMask: pathAndMask,
                 recursive: false,
                 regexFailure: "__prefix__(?<ipaddress>.+)__suffix(__(?<username>.*?)__end)?",
+                regexFailureTimestampFormat: null,
                 regexSuccess: "success_prefix__(?<ipaddress>.+)__suffix(__(?<username>.*?)__end)?",
+                regexSuccessTimestampFormat: null,
                 pingIntervalMilliseconds: 0))
             {
                 StreamWriter writer = new StreamWriter(CreateFile(fullPath), Encoding.UTF8)
@@ -162,7 +164,9 @@ namespace DigitalRuby.IPBanTests
                 pathAndMask: pathAndMask,
                 recursive: false,
                 regexFailure: "fail, ip: (?<ipaddress>.+), user: (?<username>.*?)",
+                regexFailureTimestampFormat: null,
                 regexSuccess: "success, ip: (?<ipaddress>.+), user: (?<username>.*?)",
+                regexSuccessTimestampFormat: null,
                 pingIntervalMilliseconds: 0))
             {
                 string filePath = Path.Combine(tempPath, "log-2019-05-05.txt");
@@ -200,7 +204,9 @@ namespace DigitalRuby.IPBanTests
                 pathAndMask: pathAndMask,
                 recursive: false,
                 regexFailure: "(?<source_ssh1>SSH1 (?<ipaddress>.+))|(?<source_ssh2>SSH2 (?<ipaddress>.+))|(?<source_ssh4>SSH4 (?<ipaddress>.+))|(SSH Default (?<ipaddress>.+))",
+                regexFailureTimestampFormat: null,
                 regexSuccess: null,
+                regexSuccessTimestampFormat: null,
                 pingIntervalMilliseconds: 0))
             {
                 ExtensionMethods.FileWriteAllTextWithRetry(fullPath, string.Empty);
@@ -229,7 +235,9 @@ namespace DigitalRuby.IPBanTests
                 pathAndMask: pathAndMask,
                 recursive: false,
                 regexFailure: @"(?<timestamp>\d\d\d\d-\d\d-\d\d\s\d\d:\d\d:\d\d\.?\d*Z?,\s)?(?<source>.*?,)(?<ipaddress>.+)",
+                regexFailureTimestampFormat: null,
                 regexSuccess: null,
+                regexSuccessTimestampFormat: null,
                 pingIntervalMilliseconds: 0))
             {
                 ExtensionMethods.FileWriteAllTextWithRetry(fullPath, string.Empty);
@@ -267,6 +275,34 @@ namespace DigitalRuby.IPBanTests
                 Assert.AreEqual(1, failedIPAddresses[4].Count);
                 Assert.AreEqual("SSH", failedIPAddresses[4].Source);
                 Assert.AreEqual(new DateTime(2020, 01, 15, 22, 34, 21, 500, DateTimeKind.Utc), failedIPAddresses[4].Timestamp);
+            }
+        }
+
+        [Test]
+        public void TestLogFileTimestampFormat()
+        {
+            string fullPath = Path.Combine(tempPath, "test1.txt");
+            using (LogFileScanner scanner = new IPBanIPAddressLogFileScanner(this, TestDnsLookup.Instance,
+                source: "SSH",
+                pathAndMask: pathAndMask,
+                recursive: false,
+                regexFailure: @"^(?<ipaddress>.*?)\s.*?\[(?<timestamp>.*?)\].*?((php|md5sum|cgi-bin|joomla).*?\s404\s[0-9]+$|\s400\s-)$",
+                regexFailureTimestampFormat: "dd/MMM/yyyy:HH:mm:ss zzzz",
+                regexSuccess: null,
+                regexSuccessTimestampFormat: null,
+                pingIntervalMilliseconds: 0))
+            {
+                ExtensionMethods.FileWriteAllTextWithRetry(fullPath, string.Empty);
+                scanner.PingFiles();
+                File.AppendAllText(fullPath, "97.97.97.97 - - [28/Mar/2020:09:30:56 -0400] \"GET /TP/html /public/index.php HTTP/1.1\" 404 1110\n");
+                scanner.PingFiles();
+
+                Assert.AreEqual(1, failedIPAddresses.Count, "Did not find all expected ip addresses");
+
+                Assert.AreEqual("97.97.97.97", failedIPAddresses[0].IPAddress);
+                Assert.AreEqual(1, failedIPAddresses[0].Count);
+                Assert.AreEqual("SSH", failedIPAddresses[0].Source);
+                Assert.AreEqual(new DateTime(2020, 03, 28, 13, 30, 56, DateTimeKind.Utc), failedIPAddresses[0].Timestamp);
             }
         }
 

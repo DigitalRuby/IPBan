@@ -35,6 +35,8 @@ namespace DigitalRuby.IPBanCore
         private readonly IDnsLookup dns;
         private readonly Regex regexFailure;
         private readonly Regex regexSuccess;
+        private readonly string regexFailureTimestampFormat;
+        private readonly string regexSuccessTimestampFormat;
 
         /// <summary>
         /// The source of the failed login
@@ -61,7 +63,9 @@ namespace DigitalRuby.IPBanCore
             string pathAndMask,
             bool recursive,
             string regexFailure,
+            string regexFailureTimestampFormat,
             string regexSuccess,
+            string regexSuccessTimestampFormat,
             long maxFileSizeBytes = 0,
             int pingIntervalMilliseconds = 0
         ) : base(pathAndMask, recursive, maxFileSizeBytes, pingIntervalMilliseconds)
@@ -73,6 +77,8 @@ namespace DigitalRuby.IPBanCore
             this.dns = dns;
             this.regexFailure = IPBanConfig.ParseRegex(regexFailure);
             this.regexSuccess = IPBanConfig.ParseRegex(regexSuccess);
+            this.regexFailureTimestampFormat = regexFailureTimestampFormat;
+            this.regexSuccessTimestampFormat = regexSuccessTimestampFormat;
         }
 
         /// <summary>
@@ -83,10 +89,10 @@ namespace DigitalRuby.IPBanCore
         protected override bool OnProcessLine(string line)
         {
             Logger.Debug("Parsing log file line {0}...", line);
-            bool result = ParseRegex(regexFailure, line, false);
+            bool result = ParseRegex(regexFailure, line, false, regexFailureTimestampFormat);
             if (!result)
             {
-                result = ParseRegex(regexSuccess, line, true);
+                result = ParseRegex(regexSuccess, line, true, regexSuccessTimestampFormat);
                 if (!result)
                 {
                     Logger.Debug("No match for line {0}", line);
@@ -95,11 +101,11 @@ namespace DigitalRuby.IPBanCore
             return true;
         }
 
-        private bool ParseRegex(Regex regex, string line, bool notifyOnly)
+        private bool ParseRegex(Regex regex, string line, bool notifyOnly, string timestampFormat)
         {
             if (regex != null)
             {
-                IPAddressLogEvent info = IPBanService.GetIPAddressInfoFromRegex(dns, regex, line);
+                IPAddressLogEvent info = IPBanService.GetIPAddressInfoFromRegex(dns, regex, line, timestampFormat);
                 if (info.FoundMatch)
                 {
                     info.Type = (notifyOnly ? IPAddressEventType.SuccessfulLogin : IPAddressEventType.FailedLogin);

@@ -105,8 +105,9 @@ namespace DigitalRuby.IPBanCore
         /// <param name="text">Text</param>
         /// <param name="ipAddress">Found ip address or null if none</param>
         /// <param name="userName">Found user name or null if none</param>
+        /// <param name="timestampFormat">Timestamp format</param>
         /// <returns>True if a regex match was found, false otherwise</returns>
-        public static IPAddressLogEvent GetIPAddressInfoFromRegex(IDnsLookup dns, Regex regex, string text)
+        public static IPAddressLogEvent GetIPAddressInfoFromRegex(IDnsLookup dns, Regex regex, string text, string timestampFormat = null)
         {
             const string customSourcePrefix = "source_";
             bool foundMatch = false;
@@ -148,11 +149,16 @@ namespace DigitalRuby.IPBanCore
                         {
                             source = group.Name.Substring(customSourcePrefix.Length);
                         }
-                        else if (group.Name == "timestamp")
+                        else if (group.Name.Equals("timestamp", StringComparison.OrdinalIgnoreCase))
                         {
                             string toParse = group.Value.Trim(regexTrimChars);
-                            DateTime.TryParse(toParse, CultureInfo.InvariantCulture,
-                                DateTimeStyles.AssumeLocal | DateTimeStyles.AdjustToUniversal, out timestamp);
+                            if (string.IsNullOrWhiteSpace(timestampFormat) ||
+                                !DateTime.TryParseExact(toParse, timestampFormat.Trim(), CultureInfo.InvariantCulture,
+                                    DateTimeStyles.AssumeLocal | DateTimeStyles.AdjustToUniversal, out timestamp))
+                            {
+                                DateTime.TryParse(toParse, CultureInfo.InvariantCulture,
+                                    DateTimeStyles.AssumeLocal | DateTimeStyles.AdjustToUniversal, out timestamp);
+                            }
                         }
                     }
                 }

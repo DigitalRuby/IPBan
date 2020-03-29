@@ -99,7 +99,9 @@ namespace DigitalRuby.IPBanCore
                         {
                             // log files use a timer internally and do not need to be updated regularly
                             LogFileScanner scanner = new IPBanIPAddressLogFileScanner(this, DnsLookup,
-                                newFile.Source, pathAndMask, newFile.Recursive, newFile.FailedLoginRegex, newFile.SuccessfulLoginRegex, newFile.MaxFileSize, newFile.PingInterval);
+                                newFile.Source, pathAndMask, newFile.Recursive, newFile.FailedLoginRegex,
+                                newFile.FailedLoginRegexTimestampFormat, newFile.SuccessfulLoginRegex,
+                                newFile.SuccessfulLoginRegexTimestampFormat, newFile.MaxFileSize, newFile.PingInterval);
                             logFilesToParse.Add(scanner);
                             Logger.Debug("Adding log file to parse: {0}", pathAndMask);
                         }
