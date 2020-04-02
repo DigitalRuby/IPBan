@@ -387,8 +387,7 @@ namespace DigitalRuby.IPBanCore
         }
 
         /// <summary>
-        /// Get a regex from text - this handles multi-line regex using \n, combining it into a single line
-        /// To find newlines in the text, use the escape code for \n using \u0010
+        /// Get a regex from text
         /// </summary>
         /// <param name="text">Text</param>
         /// <returns>Regex or null if text is null or whitespace</returns>
@@ -410,7 +409,7 @@ namespace DigitalRuby.IPBanCore
                     sb.Append(trimmedLine);
                 }
             }
-            return new Regex(sb.ToString(), RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+            return new Regex(sb.ToString(), RegexOptions.IgnoreCase | RegexOptions.CultureInvariant | RegexOptions.Singleline);
         }
 
         /// <summary>

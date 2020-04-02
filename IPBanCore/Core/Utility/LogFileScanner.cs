@@ -218,17 +218,18 @@ namespace DigitalRuby.IPBanCore
         public Regex Regex { get; private set; }
 
         /// <summary>
-        /// Handler to read processed lines. Takes string param of line, returns bool true to continue processing,
+        /// Handler to read processed lines. Takes string[] param of lines, int line index and returns bool true to continue processing,
         /// or false to stop processing.
         /// </summary>
-        public System.Func<string, bool> ProcessLine { get; set; }
+        public System.Func<string[], int, bool> ProcessLine { get; set; }
 
         /// <summary>
         /// Process a line
         /// </summary>
-        /// <param name="line">Line to process</param>
+        /// <param name="lines">Lines being processed</param>
+        /// <param name="index">The current line index</param>
         /// <returns>True to continue processing, false to stop</returns>
-        protected virtual bool OnProcessLine(string line)
+        protected virtual bool OnProcessLine(string[] lines, int index)
         {
             return true;
         }
@@ -368,12 +369,14 @@ namespace DigitalRuby.IPBanCore
                     // at the expense of having to store all the bytes in memory for a small time
                     fs.Position = file.LastPosition;
                     byte[] bytes = new BinaryReader(fs).ReadBytes((int)(lastNewlinePos - fs.Position));
-                    StreamReader reader = new StreamReader(new MemoryStream(bytes), encoding);
-                    string line;
-                    while ((line = reader.ReadLine()) != null)
+
+                    // performance should be slightly better blitting all the lines into memory at once before doing other processing
+                    // this also allows the line processors to peek ahead to future lines if desired
+                    string[] lines = Encoding.UTF8.GetString(bytes).Split('\n').Select(l => l.Trim()).ToArray();
+
+                    for (int i = 0; i < lines.Length; i++)
                     {
-                        line = line.Trim();
-                        if (!OnProcessLine(line) || (ProcessLine != null && !ProcessLine(line)))
+                        if (!OnProcessLine(lines, i) || (ProcessLine != null && !ProcessLine(lines, i)))
                         {
                             break;
                         }

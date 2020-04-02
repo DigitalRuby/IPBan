@@ -36,7 +36,9 @@ namespace DigitalRuby.IPBanCore
         private readonly Regex regexFailure;
         private readonly Regex regexSuccess;
         private readonly string regexFailureTimestampFormat;
+        private readonly bool regexFailureMultiline;
         private readonly string regexSuccessTimestampFormat;
+        private readonly bool regexSuccessMultiline;
 
         /// <summary>
         /// The source of the failed login
@@ -53,26 +55,38 @@ namespace DigitalRuby.IPBanCore
             options.LoginHandler.ThrowIfNull(nameof(options.LoginHandler));
             options.Dns.ThrowIfNull(nameof(options.Dns));
             Source = options.Source;
+
             this.loginHandler = options.LoginHandler;
             this.dns = options.Dns;
+
             this.regexFailure = IPBanConfig.ParseRegex(options.RegexFailure);
-            this.regexSuccess = IPBanConfig.ParseRegex(options.RegexSuccess);
             this.regexFailureTimestampFormat = options.RegexFailureTimestampFormat;
+            this.regexFailureMultiline = options.RegexFailure != null && options.RegexFailure.Contains("\\n");
+
+            this.regexSuccess = IPBanConfig.ParseRegex(options.RegexSuccess);
             this.regexSuccessTimestampFormat = options.RegexSuccessTimestampFormat;
+            this.regexSuccessMultiline = options.RegexSuccess != null && options.RegexSuccess.Contains("\\n");
         }
 
-        /// <summary>
-        /// Process a line, checking for ip addresses
-        /// </summary>
-        /// <param name="line">Line to process</param>
-        /// <returns>True</returns>
-        protected override bool OnProcessLine(string line)
+        /// <inheritdoc />
+        protected override bool OnProcessLine(string[] lines, int index)
         {
+            string line = lines[index];
             Logger.Debug("Parsing log file line {0}...", line);
-            bool result = ParseRegex(regexFailure, line, false, regexFailureTimestampFormat);
+            string failureLine = line;
+            if (regexFailureMultiline && index < lines.Length - 1)
+            {
+                failureLine += "\n" + lines[index + 1];
+            }
+            bool result = ParseRegex(regexFailure, failureLine, false, regexFailureTimestampFormat);
             if (!result)
             {
-                result = ParseRegex(regexSuccess, line, true, regexSuccessTimestampFormat);
+                string successLine = line;
+                if (regexSuccessMultiline && index < lines.Length - 1)
+                {
+                    successLine += "\n" + lines[index + 1];
+                }
+                result = ParseRegex(regexSuccess, successLine, true, regexSuccessTimestampFormat);
                 if (!result)
                 {
                     Logger.Debug("No match for line {0}", line);

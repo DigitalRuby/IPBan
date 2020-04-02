@@ -92,7 +92,7 @@ namespace DigitalRuby.IPBanTests
                 "Windows", true, "SmarterMail",
 
                 "C:/Program Files/Tomcat/logs/*access_log*.txt",
-                @"^(?<ipaddress>[^\-\s]+)[\-\s]+[^\[]*\[(?<timestamp>[^\]]+)\].*((php|md5sum|cgi-bin|joomla).*\s404\s[0-9]+$|\s400\s-)$",
+                @"^(?<ipaddress>[^\-\s]+)[\-\s]+[^\[]*\[(?<timestamp>[^\]]+)\].*?((php|md5sum|cgi-bin|joomla).*?\s404\s[0-9]+$|\s400\s-)$",
                 @"dd/MMM/yyyy:HH:mm:ss zzzz",
                 @"",
                 @"",
@@ -159,7 +159,7 @@ namespace DigitalRuby.IPBanTests
             AssertEventViewerGroup(groups[0], "0x8010000000000000", minimumWindowsMajorVersion, 0, false, "Security", "RDP", "//EventID", "^(4625|5152)$", "//Data[@Name='IpAddress' or @Name='Workstation' or @Name='SourceAddress']", "(?<ipaddress>.+)");
             AssertEventViewerGroup(groups[1], "0x8010000000000000", minimumWindowsMajorVersion, 0, false, "Security", "RDP", "//EventID", "^4653$", "//Data[@Name='FailureReason']", ".", "//Data[@Name='RemoteAddress']", "(?<ipaddress>.+)");
             AssertEventViewerGroup(groups[2], "0x80000000000000", minimumWindowsMajorVersion, 0, false, "Application", "IPBanCustom", "//Data", @"ipban\sfailed\slogin,\sip\saddress:\s(?<ipaddress>[^,]+),\ssource:\s(?<source>[^,]+),\suser:\s?(?<username>[^\s,]+)?");
-            AssertEventViewerGroup(groups[3], "0x90000000000000", minimumWindowsMajorVersion, 0, false, "Application", "MSSQL", "//Provider[contains(@Name,'MSSQL')]", string.Empty, "//EventID", "^18456$", "(//Data)[1]", "^(?<username>.*)$", "//Data", @"\[CLIENT\s?:\s?(?<ipaddress>[^\]]+)\]");
+            AssertEventViewerGroup(groups[3], "0x90000000000000", minimumWindowsMajorVersion, 0, false, "Application", "MSSQL", "//Provider[contains(@Name,'MSSQL')]", string.Empty, "//EventID", "^18456$", "(//Data)[1]", "^(?<username>.+)$", "//Data", @"\[CLIENT\s?:\s?(?<ipaddress>[^\]]+)\]");
             AssertEventViewerGroup(groups[4], "0x80000000000000", minimumWindowsMajorVersion, 0, false, "Application", "MySQL", "//Provider[@Name='MySQL']", string.Empty, "//Data", "Access denied for user '?(?<username>[^']+)'@'(?<ipaddress>[^']+)'");
             AssertEventViewerGroup(groups[5], "0x80000000000000", minimumWindowsMajorVersion, 0, false, "Application", "PostgreSQL", "//Provider[@Name='PostgreSQL']", string.Empty, "//Data", "host=(?<ipaddress>[^ ]+)");
             AssertEventViewerGroup(groups[6], "0x80000000000000", minimumWindowsMajorVersion, 0, false, "System", "MSExchange", "//Provider[@Name='MSExchangeTransport']", string.Empty, "//Data", "LogonDenied", "//Data", "(?<ipaddress_exact>.+)");
