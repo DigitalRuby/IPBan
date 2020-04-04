@@ -56,14 +56,16 @@ auditpol.exe /set /category:"{69979850-797A-11D9-BED3-505054503030}" /success:en
 ```
 sc.exe create IPBAN type= own start= delayed-auto binPath= c:\path\to\service\DigitalRuby.IPBan.exe DisplayName= IPBAN
 sc.exe description IPBAN "Automatically builds firewall rules for abusive login attempts: https://github.com/DigitalRuby/IPBan"
+sc.exe failure IPBAN reset= 9999 actions= "restart/60000/restart/60000/restart/60000"
 sc.exe start IPBAN
 ```
 or with Powershell use the command [New-Service](https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.management/new-service) and run the following in an elevated powershell window:
 ```powershell
 New-Service -Name "IPBAN" -BinaryPathName "c:\path\to\service\DigitalRuby.IPBan.exe" -StartupType automatic -DisplayName "IPBAN" -Description "Automatically builds firewall rules for abusive login attempts: https://github.com/DigitalRuby/IPBan"
 Get-WmiObject win32_service -Filter "name='IPBAN'"
+& sc.exe config IPBAN start= delayed-auto
+& sc.exe failure IPBAN reset= 9999 actions= "restart/60000/restart/60000/restart/60000"
 Start-Service IPBAN
-sc.exe config IPBAN start= delayed-auto
 ```
 - On Windows, the service MUST be set to start as delayed automatic, otherwise the service will crash upon machine reboot.
 - The service needs file system, event viewer and firewall access, so running as a privileged account is required.
