@@ -625,7 +625,6 @@ namespace DigitalRuby.IPBanCore
             Count = count;
             Type = type;
             Timestamp = (timestamp == default ? IPBanService.UtcNow : timestamp);
-            FoundMatch = true;
         }
 
         /// <summary>
@@ -634,13 +633,8 @@ namespace DigitalRuby.IPBanCore
         /// <returns>String</returns>
         public override string ToString()
         {
-            return $"IP: {IPAddress}, Match: {FoundMatch}, UserName: {UserName}, Source: {Source}, Count: {Count}, Type: {Type}, Timestamp: {Timestamp}";
+            return $"IP: {IPAddress}, UserName: {UserName}, Source: {Source}, Count: {Count}, Type: {Type}, Timestamp: {Timestamp}";
         }
-
-        /// <summary>
-        /// Whether a match was found
-        /// </summary>
-        public bool FoundMatch { get; set; }
 
         /// <summary>
         /// IP address

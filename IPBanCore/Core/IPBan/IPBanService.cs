@@ -100,74 +100,76 @@ namespace DigitalRuby.IPBanCore
         /// <summary>
         /// Get an ip address and user name out of text using regex. Regex may contain groups named source_[sourcename] to override the source.
         /// </summary>
-        /// <param name="dns">Dns lookup to resolve ip addresses</param>
         /// <param name="regex">Regex</param>
         /// <param name="text">Text</param>
         /// <param name="ipAddress">Found ip address or null if none</param>
         /// <param name="userName">Found user name or null if none</param>
         /// <param name="timestampFormat">Timestamp format</param>
-        /// <returns>True if a regex match was found, false otherwise</returns>
-        public static IPAddressLogEvent GetIPAddressInfoFromRegex(IDnsLookup dns, Regex regex, string text, string timestampFormat = null)
+        /// <param name="eventType">Event type</param>
+        /// <param name="dns">Dns lookup to resolve ip addresses</param>
+        /// <returns>Set of matches from text</returns>
+        public static IEnumerable<IPAddressLogEvent> GetIPAddressEventsFromRegex(Regex regex, string text,
+            string timestampFormat = null, IPAddressEventType eventType = IPAddressEventType.FailedLogin, IDnsLookup dns = null)
         {
             const string customSourcePrefix = "source_";
-            bool foundMatch = false;
-            string userName = null;
-            string ipAddress = null;
-            string source = null;
-            int repeatCount = 1;
-            DateTime timestamp = default;
 
-            Match repeater = Regex.Match(text, "message repeated (?<count>[0-9]+) times", RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
-            if (repeater.Success)
+            // if no regex or no text, we are done
+            if (regex is null || string.IsNullOrWhiteSpace(text))
             {
-                repeatCount = int.Parse(repeater.Groups["count"].Value, CultureInfo.InvariantCulture);
+                yield break;
             }
 
-            foreach (Match m in regex.Matches(text))
+            // go through all the matches and pull out event info
+            foreach (Match match in regex.Matches(text))
             {
-                if (!m.Success)
-                {
-                    continue;
-                }
+                string userName = null;
+                string ipAddress = null;
+                string source = null;
+                DateTime timestamp = default;
 
                 // check for a user name
-                Group userNameGroup = m.Groups["username"];
+                Group userNameGroup = match.Groups["username"];
                 if (userNameGroup != null && userNameGroup.Success)
                 {
                     userName = (userName ?? userNameGroup.Value.Trim(regexTrimChars));
                 }
-                Group sourceGroup = m.Groups["source"];
+
+                // check for source
+                Group sourceGroup = match.Groups["source"];
                 if (sourceGroup != null && sourceGroup.Success)
                 {
                     source = (source ?? sourceGroup.Value.Trim(regexTrimChars));
                 }
-                foreach (Group group in m.Groups)
+
+                // check for groups with a custom source name
+                foreach (Group group in match.Groups)
                 {
-                    if (group.Success && group.Name != null)
+                    if (group.Success && group.Name != null &&
+                        string.IsNullOrWhiteSpace(source) && group.Name.StartsWith(customSourcePrefix))
                     {
-                        if (string.IsNullOrWhiteSpace(source) && group.Name.StartsWith(customSourcePrefix))
-                        {
-                            source = group.Name.Substring(customSourcePrefix.Length);
-                        }
-                        else if (group.Name.Equals("timestamp", StringComparison.OrdinalIgnoreCase))
-                        {
-                            string toParse = group.Value.Trim(regexTrimChars);
-                            if (string.IsNullOrWhiteSpace(timestampFormat) ||
-                                !DateTime.TryParseExact(toParse, timestampFormat.Trim(), CultureInfo.InvariantCulture,
-                                    DateTimeStyles.AssumeLocal | DateTimeStyles.AdjustToUniversal, out timestamp))
-                            {
-                                DateTime.TryParse(toParse, CultureInfo.InvariantCulture,
-                                    DateTimeStyles.AssumeLocal | DateTimeStyles.AdjustToUniversal, out timestamp);
-                            }
-                        }
+                        source = group.Name.Substring(customSourcePrefix.Length);
+                    }
+                }
+
+                // check for timestamp group
+                Group timestampGroup = match.Groups["timestamp"];
+                if (timestampGroup != null && timestampGroup.Success)
+                {
+                    string toParse = timestampGroup.Value.Trim(regexTrimChars);
+                    if (string.IsNullOrWhiteSpace(timestampFormat) ||
+                        !DateTime.TryParseExact(toParse, timestampFormat.Trim(), CultureInfo.InvariantCulture,
+                            DateTimeStyles.AssumeLocal | DateTimeStyles.AdjustToUniversal, out timestamp))
+                    {
+                        DateTime.TryParse(toParse, CultureInfo.InvariantCulture,
+                            DateTimeStyles.AssumeLocal | DateTimeStyles.AdjustToUniversal, out timestamp);
                     }
                 }
 
                 // check if the regex had an ipadddress group
-                Group ipAddressGroup = m.Groups["ipaddress"];
+                Group ipAddressGroup = match.Groups["ipaddress"];
                 if (ipAddressGroup is null)
                 {
-                    ipAddressGroup = m.Groups["ipaddress_exact"];
+                    ipAddressGroup = match.Groups["ipaddress_exact"];
                 }
                 if (ipAddressGroup != null && ipAddressGroup.Success && !string.IsNullOrWhiteSpace(ipAddressGroup.Value))
                 {
@@ -180,12 +182,11 @@ namespace DigitalRuby.IPBanCore
                     if (isValidIPAddress || (lastColon >= 0 && IPAddress.TryParse(tempIPAddress.Substring(0, lastColon), out tmp)))
                     {
                         ipAddress = tmp.ToString();
-                        foundMatch = true;
-                        break;
                     }
 
                     // if we are parsing anything as ip address (including dns names)
-                    if (ipAddressGroup.Name == "ipaddress" && tempIPAddress != Environment.MachineName && tempIPAddress != "-")
+                    if (ipAddress is null && dns != null && ipAddressGroup.Name == "ipaddress" &&
+                        tempIPAddress != Environment.MachineName && tempIPAddress != "-")
                     {
                         // Check Host by name
                         Logger.Info("Parsing as IP failed, checking dns '{0}'", tempIPAddress);
@@ -196,7 +197,6 @@ namespace DigitalRuby.IPBanCore
                             {
                                 ipAddress = entry.AddressList.FirstOrDefault().ToString();
                                 Logger.Info("Dns result '{0}' = '{1}'", tempIPAddress, ipAddress);
-                                foundMatch = true;
                                 break;
                             }
                         }
@@ -206,14 +206,13 @@ namespace DigitalRuby.IPBanCore
                         }
                     }
                 }
-                else
-                {
-                    // found a match but no ip address, that is OK.
-                    foundMatch = true;
-                }
-            }
 
-            return new IPAddressLogEvent(ipAddress, userName, source, repeatCount, IPAddressEventType.FailedLogin, timestamp) { FoundMatch = foundMatch };
+                // see if there is a repeat indicator in the message
+                int repeatCount = ExtractRepeatCount(match, text);
+
+                // return an event for this match
+                yield return new IPAddressLogEvent(ipAddress, userName, source, repeatCount, eventType, timestamp);
+            }
         }
 
         /// <summary>

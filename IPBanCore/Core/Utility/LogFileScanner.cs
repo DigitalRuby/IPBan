@@ -218,21 +218,15 @@ namespace DigitalRuby.IPBanCore
         public Regex Regex { get; private set; }
 
         /// <summary>
-        /// Handler to read processed lines. Takes string[] param of lines, int line index and returns bool true to continue processing,
-        /// or false to stop processing.
+        /// Handler to process text. As lines of log file are read, they are concatenated into a blob of text that always end in a newline.
         /// </summary>
-        public System.Func<string[], int, bool> ProcessLine { get; set; }
+        public System.Action<string> ProcessText { get; set; }
 
         /// <summary>
-        /// Process a line
+        /// Process text. Text will always end in a newline.
         /// </summary>
-        /// <param name="lines">Lines being processed</param>
-        /// <param name="index">The current line index</param>
-        /// <returns>True to continue processing, false to stop</returns>
-        protected virtual bool OnProcessLine(string[] lines, int index)
-        {
-            return true;
-        }
+        /// <param name="text">Text to process</param>
+        protected virtual void OnProcessText(string text) { }
 
         private void ScanForFiles(string pathAndMask, bool recursive)
         {
@@ -364,23 +358,12 @@ namespace DigitalRuby.IPBanCore
             {
                 try
                 {
-                    // we could read line by line by going one byte at a time, but the hope here is that by taking
-                    // advantage of stream reader and binary reader read bytes we can get some improved cpu usage
-                    // at the expense of having to store all the bytes in memory for a small time
+                    // read all the text for the current set of lines into a string for processing
                     fs.Position = file.LastPosition;
                     byte[] bytes = new BinaryReader(fs).ReadBytes((int)(lastNewlinePos - fs.Position));
-
-                    // performance should be slightly better blitting all the lines into memory at once before doing other processing
-                    // this also allows the line processors to peek ahead to future lines if desired
-                    string[] lines = Encoding.UTF8.GetString(bytes).Split('\n').Select(l => l.Trim()).ToArray();
-
-                    for (int i = 0; i < lines.Length; i++)
-                    {
-                        if (!OnProcessLine(lines, i) || (ProcessLine != null && !ProcessLine(lines, i)))
-                        {
-                            break;
-                        }
-                    }
+                    string text = Encoding.UTF8.GetString(bytes).Trim().Replace("\r\n", "\n") + "\n";
+                    OnProcessText(text);
+                    ProcessText?.Invoke(text);
                 }
                 finally
                 {

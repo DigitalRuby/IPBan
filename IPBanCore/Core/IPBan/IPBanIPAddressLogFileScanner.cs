@@ -22,6 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
 namespace DigitalRuby.IPBanCore
@@ -36,9 +37,7 @@ namespace DigitalRuby.IPBanCore
         private readonly Regex regexFailure;
         private readonly Regex regexSuccess;
         private readonly string regexFailureTimestampFormat;
-        private readonly bool regexFailureMultiline;
         private readonly string regexSuccessTimestampFormat;
-        private readonly bool regexSuccessMultiline;
 
         /// <summary>
         /// The source of the failed login
@@ -59,58 +58,34 @@ namespace DigitalRuby.IPBanCore
             this.loginHandler = options.LoginHandler;
             this.dns = options.Dns;
 
-            this.regexFailure = IPBanConfig.ParseRegex(options.RegexFailure);
+            this.regexFailure = IPBanConfig.ParseRegex(options.RegexFailure, true);
             this.regexFailureTimestampFormat = options.RegexFailureTimestampFormat;
-            this.regexFailureMultiline = options.RegexFailure != null && options.RegexFailure.Contains("\\n");
 
-            this.regexSuccess = IPBanConfig.ParseRegex(options.RegexSuccess);
+            this.regexSuccess = IPBanConfig.ParseRegex(options.RegexSuccess, true);
             this.regexSuccessTimestampFormat = options.RegexSuccessTimestampFormat;
-            this.regexSuccessMultiline = options.RegexSuccess != null && options.RegexSuccess.Contains("\\n");
         }
 
         /// <inheritdoc />
-        protected override bool OnProcessLine(string[] lines, int index)
+        protected override void OnProcessText(string text)
         {
-            string line = lines[index];
-            Logger.Debug("Parsing log file line {0}...", line);
-            string failureLine = line;
-            if (regexFailureMultiline && index < lines.Length - 1)
-            {
-                failureLine += "\n" + lines[index + 1];
-            }
-            bool result = ParseRegex(regexFailure, failureLine, false, regexFailureTimestampFormat);
-            if (!result)
-            {
-                string successLine = line;
-                if (regexSuccessMultiline && index < lines.Length - 1)
-                {
-                    successLine += "\n" + lines[index + 1];
-                }
-                result = ParseRegex(regexSuccess, successLine, true, regexSuccessTimestampFormat);
-                if (!result)
-                {
-                    Logger.Debug("No match for line {0}", line);
-                }
-            }
-            return true;
+            Logger.Debug("Parsing log file text {0}...", text);
+            ParseRegex(regexFailure, text, false, regexFailureTimestampFormat);
+            ParseRegex(regexSuccess, text, true, regexSuccessTimestampFormat);
         }
 
-        private bool ParseRegex(Regex regex, string line, bool notifyOnly, string timestampFormat)
+        private void ParseRegex(Regex regex, string text, bool notifyOnly, string timestampFormat)
         {
-            if (regex != null)
+            List<IPAddressLogEvent> events = new List<IPAddressLogEvent>();
+            IPAddressEventType type = (notifyOnly ? IPAddressEventType.SuccessfulLogin : IPAddressEventType.FailedLogin);
+            foreach (IPAddressLogEvent info in IPBanService.GetIPAddressEventsFromRegex(regex, text, timestampFormat, type, dns))
             {
-                IPAddressLogEvent info = IPBanService.GetIPAddressInfoFromRegex(dns, regex, line, timestampFormat);
-                if (info.FoundMatch)
-                {
-                    info.Type = (notifyOnly ? IPAddressEventType.SuccessfulLogin : IPAddressEventType.FailedLogin);
-                    info.Source ??= Source; // apply default source only if we don't already have a source
-                    Logger.Debug("Log file found match, ip: {0}, user: {1}, source: {2}, count: {3}, type: {4}",
-                        info.IPAddress, info.UserName, info.Source, info.Count, info.Type);
-                    loginHandler.AddIPAddressLogEvents(new IPAddressLogEvent[] { info });
-                    return true;
-                }
+                info.Source ??= Source; // apply default source only if we don't already have a source
+                events.Add(info);
+
+                Logger.Debug("Log file found match, ip: {0}, user: {1}, source: {2}, count: {3}, type: {4}",
+                    info.IPAddress, info.UserName, info.Source, info.Count, info.Type);
             }
-            return false;
+            loginHandler.AddIPAddressLogEvents(events);
         }
     }
 

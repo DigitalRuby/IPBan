@@ -390,8 +390,9 @@ namespace DigitalRuby.IPBanCore
         /// Get a regex from text
         /// </summary>
         /// <param name="text">Text</param>
+        /// <param name="multiline">Whether to use multi-line regex, default is false which is single line</param>
         /// <returns>Regex or null if text is null or whitespace</returns>
-        public static Regex ParseRegex(string text)
+        public static Regex ParseRegex(string text, bool multiline = false)
         {
             text = (text ?? string.Empty).Trim();
             if (text.Length == 0)
@@ -409,7 +410,12 @@ namespace DigitalRuby.IPBanCore
                     sb.Append(trimmedLine);
                 }
             }
-            return new Regex(sb.ToString(), RegexOptions.IgnoreCase | RegexOptions.CultureInvariant | RegexOptions.Singleline);
+            RegexOptions options = RegexOptions.IgnoreCase | RegexOptions.CultureInvariant;
+            if (multiline)
+            {
+                options |= RegexOptions.Multiline;
+            }
+            return new Regex(sb.ToString(), options);
         }
 
         /// <summary>

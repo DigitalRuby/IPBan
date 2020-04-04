@@ -83,72 +83,70 @@ namespace DigitalRuby.IPBanTests
                 RegexSuccess = "success_prefix__(?<ipaddress>.+)__suffix(__(?<username>.*?)__end)?"
             };
             using LogFileScanner scanner = new IPBanIPAddressLogFileScanner(options);
-            StreamWriter writer = new StreamWriter(CreateFile(fullPath), Encoding.UTF8) { AutoFlush = true };
+            {
+                using StreamWriter writer = new StreamWriter(CreateFile(fullPath), Encoding.UTF8) { AutoFlush = true };
 
-            // scan once before writing any data, otherwise scanner starts at aned of file and will miss
-            // the first data written
-            scanner.PingFiles();
+                // scan once before writing any data, otherwise scanner starts at aned of file and will miss
+                // the first data written
+                scanner.PingFiles();
 
-            // start off with one ip, do not write the last newline, we will do that later
-            writer.Write("asdasdasdasdasdasd ");
-            writer.Write("__prefix__1.1.1.1__suffix message repeated 3 times");
+                // start off with one ip, do not write the last newline, we will do that later
+                writer.Write("asdasdasdasdasdasd ");
+                writer.Write("__prefix__1.1.1.1__suffix message repeated 3 times");
 
-            scanner.PingFiles();
+                scanner.PingFiles();
 
-            Assert.AreEqual(0, failedIPAddresses.Count, "Should not have found ip address yet");
+                Assert.AreEqual(0, failedIPAddresses.Count, "Should not have found ip address yet");
 
-            // now write a newline, this should make it pickup the line
-            writer.WriteLine(" aaa ");
-            writer.WriteLine();
+                // now write a newline, this should make it pickup the line
+                writer.WriteLine(" aaa ");
+                writer.WriteLine();
 
-            scanner.PingFiles();
+                scanner.PingFiles();
 
-            Assert.AreEqual(1, failedIPAddresses.Count, "Did not find all expected ip addresses");
-            Assert.AreEqual("1.1.1.1", failedIPAddresses[0].IPAddress, "First ip address is wrong");
-            Assert.AreEqual("SSH", failedIPAddresses[0].Source, "First ip source is wrong");
-            Assert.AreEqual(3, failedIPAddresses[0].Count, "Repeat count is wrong");
-            Assert.IsNull(failedIPAddresses[0].UserName, "First user name should be null");
+                Assert.AreEqual(1, failedIPAddresses.Count, "Did not find all expected ip addresses");
+                Assert.AreEqual("1.1.1.1", failedIPAddresses[0].IPAddress, "First ip address is wrong");
+                Assert.AreEqual("SSH", failedIPAddresses[0].Source, "First ip source is wrong");
+                Assert.AreEqual(3, failedIPAddresses[0].Count, "Repeat count is wrong");
+                Assert.IsNull(failedIPAddresses[0].UserName, "First user name should be null");
 
-            scanner.PingFiles();
+                scanner.PingFiles();
 
-            Assert.AreEqual(1, failedIPAddresses.Count, "Should not have found more ip address yet");
+                Assert.AreEqual(1, failedIPAddresses.Count, "Should not have found more ip address yet");
 
-            writer.WriteLine("aowefjapweojfopaejfpaoe4231    343240-302843 -204 8-23084 -0");
-            writer.WriteLine("__prefix__2.2.2.2__suffix__THISUSER__end");
-            writer.WriteLine("success_prefix__4.4.4.4__suffix__THISUSER__end");
+                writer.WriteLine("aowefjapweojfopaejfpaoe4231    343240-302843 -204 8-23084 -0");
+                writer.WriteLine("__prefix__2.2.2.2__suffix__THISUSER__end");
+                writer.WriteLine("success_prefix__4.4.4.4__suffix__THISUSER__end");
 
-            scanner.PingFiles();
+                scanner.PingFiles();
 
-            Assert.AreEqual(2, failedIPAddresses.Count, "Did not find all expected ip addresses");
-            Assert.AreEqual("2.2.2.2", failedIPAddresses[1].IPAddress, "Second ip address is wrong");
-            Assert.AreEqual("SSH", failedIPAddresses[1].Source, "First ip source is wrong");
-            Assert.AreEqual("THISUSER", failedIPAddresses[1].UserName, "Second user name is wrong");
-            Assert.AreEqual(1, failedIPAddresses[1].Count, "Repeat count is wrong");
+                Assert.AreEqual(2, failedIPAddresses.Count, "Did not find all expected ip addresses");
+                Assert.AreEqual("2.2.2.2", failedIPAddresses[1].IPAddress, "Second ip address is wrong");
+                Assert.AreEqual("SSH", failedIPAddresses[1].Source, "First ip source is wrong");
+                Assert.AreEqual("THISUSER", failedIPAddresses[1].UserName, "Second user name is wrong");
+                Assert.AreEqual(1, failedIPAddresses[1].Count, "Repeat count is wrong");
 
-            Assert.AreEqual(1, successIPAddresses.Count);
-            Assert.IsTrue(successIPAddresses[0].Type == IPAddressEventType.SuccessfulLogin);
-            Assert.AreEqual("4.4.4.4", successIPAddresses[0].IPAddress);
-            Assert.AreEqual("SSH", successIPAddresses[0].Source);
-            Assert.AreEqual("THISUSER", successIPAddresses[0].UserName);
-
-            writer.Close();
+                Assert.AreEqual(1, successIPAddresses.Count);
+                Assert.IsTrue(successIPAddresses[0].Type == IPAddressEventType.SuccessfulLogin);
+                Assert.AreEqual("4.4.4.4", successIPAddresses[0].IPAddress);
+                Assert.AreEqual("SSH", successIPAddresses[0].Source);
+                Assert.AreEqual("THISUSER", successIPAddresses[0].UserName);
+            }
 
             ExtensionMethods.FileDeleteWithRetry(fullPath);
-
-            writer = new StreamWriter(CreateFile(fullPath), Encoding.UTF8)
             {
-                AutoFlush = true
-            };
-            writer.WriteLine("__prefix__3.3.3.3__suffix message repeated 4 times");
+                using StreamWriter writer = new StreamWriter(CreateFile(fullPath), Encoding.UTF8)
+                {
+                    AutoFlush = true
+                };
+                writer.WriteLine("__prefix__3.3.3.3__suffix message repeated 4 times");
 
-            scanner.PingFiles();
-
+                scanner.PingFiles();
+            }
             Assert.AreEqual(3, failedIPAddresses.Count, "Did not find all expected ip addresses");
             Assert.AreEqual("3.3.3.3", failedIPAddresses[2].IPAddress, "Second ip address is wrong");
             Assert.AreEqual("SSH", failedIPAddresses[2].Source, "First ip source is wrong");
             Assert.AreEqual(4, failedIPAddresses[2].Count, "Repeat count is wrong");
-
-            writer.Close();
         }
 
         [Test]
