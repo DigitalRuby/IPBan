@@ -360,8 +360,11 @@ namespace DigitalRuby.IPBanCore
                 {
                     // read all the text for the current set of lines into a string for processing
                     fs.Position = file.LastPosition;
+
+                    // create giant text blob with all lines trimmed
                     byte[] bytes = new BinaryReader(fs).ReadBytes((int)(lastNewlinePos - fs.Position));
-                    string text = Encoding.UTF8.GetString(bytes).Trim().Replace("\r\n", "\n") + "\n";
+                    string text = string.Join('\n', Encoding.UTF8.GetString(bytes).Split('\n').Select(l => l.Trim())) + "\n";
+
                     OnProcessText(text);
                     ProcessText?.Invoke(text);
                 }

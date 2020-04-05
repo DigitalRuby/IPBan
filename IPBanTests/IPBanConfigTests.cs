@@ -78,7 +78,7 @@ namespace DigitalRuby.IPBanTests
                 "Linux", false, "IPBanCustom",
 
                 "C:/Program Files/Microsoft/Exchange Server/*.log",
-                @"(?<timestamp>[^,]+)?,[^,]*,[^,]*,[^,]*,(?<ipaddress>[^,]*),(?<username>[^,]*),[^,]*AuthFailed|(?<timestamp>[^,]+)?,[^,]*,[^,]*,[^,]*,[^,]*,(?<ipaddress>[^,]*),[^,]*,[^,]*,.*?LogonDenied\n.*?User Name: (?<username>.+)",
+                @"^(?<timestamp>[0-9TZ\-:\.]+)?,[^,]*,[^,]*,[^,]*,(?<ipaddress>[^,]*),(?<username>[^,]*),[^,]*AuthFailed|^(?<timestamp>[0-9TZ\-:\.]+)?,[^,]*,[^,]*,[^,]*,[^,]*,(?<ipaddress>[^,]+),[^,]*,[^,]*,.*?LogonDenied\n.*?User Name: (?<username>.+)\n",
                 @"",
                 @"",
                 @"",
