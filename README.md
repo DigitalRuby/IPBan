@@ -11,7 +11,7 @@ Please visit <a href='https://ipban.com'>https://ipban.com</a> to learn about IP
 You can also visit the ipban discord at https://discord.gg/sHCUHH3 to chat with me or other IPBan users.
 
 **Requirements**
-- IPBan requires .NET core 3.0 SDK to build and debug code. For an IDE, I suggest Visual Studio Community 2019 for Windows, or VS code for Linux. All are free. You can build a self contained executable to eliminate the need for dotnet core on the server machine, or just download the precompiled binaries.
+- IPBan requires .NET core 3.1 SDK to build and debug code. For an IDE, I suggest Visual Studio Community 2019 for Windows, or VS code for Linux. All are free. You can build a self contained executable to eliminate the need for dotnet core on the server machine, or just download the precompiled binaries.
 - Running and/or debugging code requires that you run your IDE or terminal as administrator or root.
 - Officially supported platforms: Windows 8.1 or newer (x86, x64), Windows Server 2012 or newer (x86, x64), Linux Ubuntu 16.04+ or equivelant (x64). Windows Server 2008 will work with some tweaks, but it is basically at end of life, so no longer officially supported.
 - Mac OS X not supported at this time.
@@ -98,7 +98,7 @@ To disable anonymously sending banned ip addresses to the global ipban database,
 
 **About Me**
 
-I'm Jeff Johnson and I created IPBan to block hackers out because Windows (and Linux quite frankly) does a horrible job of this by default and performance suffers as hackers try to breach your remote desktop, SSH, SMTP, etc. IPBan gets them in the block rule of the firewall where they belong.
+I'm Jeff Johnson and I created IPBan to eliminate bot nets, hackers and brute force login attempts. IPBan improves the security and performance of your machines and gets the bad actors in the block rule of the firewall where they belong.
 
 Please visit <a href='https://ipban.com'>https://ipban.com</a> for additional updates, news, additional software and more.
 
@@ -107,6 +107,8 @@ I do consulting and contracting if you need extra customizations for this softwa
 Donations are accepted, any amount is appreciated, I work on this project for free to benefit the world.
 
 [![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=7EJ3K33SRLU9E)
+
+<a href="https://email.digitalruby.com/SubscribeInitial/IPBan">Sign up for the IPBan Mailing List</a>
 
 Jeff Johnson, CEO/CTO  
 Digital Ruby, LLC  
