@@ -255,7 +255,7 @@ namespace DigitalRuby.IPBanTests
         [Test]
         public void TestLogFileExchange()
         {
-            using LogFileScanner scanner = SetupLogFileScanner(@"[^,]*,[^,]*,[^,]*,[^,]*,[^,]*,(?<ipaddress>[^,]*),[^,]*,[^,]*,.*?LogonDenied\n(?<timestamp>[^,]+),.*?User Name: (?<username>.+)");
+            using LogFileScanner scanner = SetupLogFileScanner(@"(?<timestamp>[^,]+),[^,]*,[^,]*,[^,]*,[^,]*,(?<ipaddress>[^,]*),[^,]*,[^,]*,.*?LogonDenied\n.*?User Name: (?<username>.+)\n");
             File.AppendAllText(fullPath, "2020-04-01T13:13:03.129Z,SRV-XCH03\\External Authenticated Relay,08D7D4D2EFBC3E30,10,192.168.2.101:10587,92.118.38.34:46676,*,,Inbound AUTH LOGIN failed because of LogonDenied\n" +
                 "2020-04-01T13:13:03.129Z,SRV-XCH03\\External Authenticated Relay,08D7D4D2EFBC3E30,11,192.168.2.101:10587,92.118.38.34:46676,*,,User Name: shaun@example.com\n");
             scanner.PingFiles();
