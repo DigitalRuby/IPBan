@@ -876,7 +876,7 @@ namespace DigitalRuby.IPBanCore
         /// <param name="dir">Directory to delete</param>
         /// <param name="millisecondsBetweenRetry">Milliseconds between each retry</param>
         /// <param name="retryCount">Retry count</param>
-        public static void DirectoryDeleteWithRetry(string dir, int millisecondsBetweenRetry = 1000, int retryCount = 30)
+        public static void DirectoryDeleteWithRetry(string dir, int millisecondsBetweenRetry = 200, int retryCount = 10)
         {
             if (Directory.Exists(dir))
             {
