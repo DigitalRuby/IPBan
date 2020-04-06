@@ -824,13 +824,11 @@ namespace DigitalRuby.IPBanCore
         {
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                using (WindowsIdentity identity = WindowsIdentity.GetCurrent())
+                using WindowsIdentity identity = WindowsIdentity.GetCurrent();
+                WindowsPrincipal principal = new WindowsPrincipal(identity);
+                if (!principal.IsInRole(WindowsBuiltInRole.Administrator))
                 {
-                    WindowsPrincipal principal = new WindowsPrincipal(identity);
-                    if (!principal.IsInRole(WindowsBuiltInRole.Administrator))
-                    {
-                        throw new InvalidOperationException("Application must be run as administrator");
-                    }
+                    throw new InvalidOperationException("Application must be run as administrator");
                 }
             }
             else if (getuid() != 0)
@@ -849,53 +847,45 @@ namespace DigitalRuby.IPBanCore
         /// <param name="retryCount">Retry count</param>
         public static void FileDeleteWithRetry(string path, int millisecondsBetweenRetry = 200, int retryCount = 10)
         {
-            Exception lastError = null;
-            for (int i = 0; i < retryCount; i++)
+            if (File.Exists(path))
             {
-                try
-                {
-                    if (File.Exists(path))
-                    {
-                        File.Delete(path);
-                    }
-                    return;
-                }
-                catch (Exception ex)
-                {
-                    lastError = ex;
-                    System.Threading.Thread.Sleep(millisecondsBetweenRetry);
-                }
+                Retry(() => File.Delete(path), millisecondsBetweenRetry, retryCount);
             }
-            throw lastError;
         }
 
         /// <summary>
-        /// Write all file text with retry
+        /// Move a file with retry
         /// </summary>
-        /// <param name="fileName">File name</param>
-        /// <param name="text">Text</param>
+        /// <param name="sourceFile">Source file to move</param>
+        /// <param name="destFile">Destination file to move to</param>
         /// <param name="millisecondsBetweenRetry">Milliseconds between each retry</param>
         /// <param name="retryCount">Retry count</param>
-        public static void FileWriteAllTextWithRetry(string fileName, string text, int millisecondsBetweenRetry = 200, int retryCount = 10)
+        public static void FileMoveWithRetry(string sourceFile, string destFile, int millisecondsBetweenRetry = 200, int retryCount = 10)
         {
-            Exception lastError = null;
-            string fullPath = Path.GetFullPath(fileName);
-            string dirName = Path.GetDirectoryName(fullPath);
-            Directory.CreateDirectory(dirName);
-            for (int i = 0; i < retryCount; i++)
+            if (File.Exists(sourceFile))
             {
-                try
-                {
-                    File.WriteAllText(fileName, text, Utf8EncodingNoPrefix);
-                    return;
-                }
-                catch (Exception ex)
-                {
-                    lastError = ex;
-                    System.Threading.Thread.Sleep(millisecondsBetweenRetry);
-                }
+                ExtensionMethods.FileDeleteWithRetry(destFile);
+                Retry(() => Directory.CreateDirectory(Path.GetDirectoryName(destFile)), millisecondsBetweenRetry, retryCount);
+                Retry(() => File.Move(sourceFile, destFile), millisecondsBetweenRetry, retryCount);
             }
-            throw lastError;
+        }
+
+        /// <summary>
+        /// Delete directory recursively with retry for each file. Does nothing if dir does not exist.
+        /// </summary>
+        /// <param name="dir">Directory to delete</param>
+        /// <param name="millisecondsBetweenRetry">Milliseconds between each retry</param>
+        /// <param name="retryCount">Retry count</param>
+        public static void DirectoryDeleteWithRetry(string dir, int millisecondsBetweenRetry = 1000, int retryCount = 30)
+        {
+            if (Directory.Exists(dir))
+            {
+                foreach (string file in Directory.GetFiles(dir, "*.*", SearchOption.AllDirectories))
+                {
+                    FileDeleteWithRetry(file, millisecondsBetweenRetry, retryCount);
+                }
+                Retry(() => Directory.Delete(dir, true), millisecondsBetweenRetry, 3);
+            }
         }
 
         /// <summary>
@@ -906,23 +896,76 @@ namespace DigitalRuby.IPBanCore
         /// <param name="millisecondsBetweenRetry">Milliseconds between each retry</param>
         /// <param name="retryCount">Retry count</param>
         /// <returns>Task</returns>
-        public static async Task FileWriteAllTextWithRetryAsync(string fileName, string text, int millisecondsBetweenRetry = 200, int retryCount = 10)
+        public static void FileWriteAllTextWithRetry(string fileName, string text, int millisecondsBetweenRetry = 200, int retryCount = 10)
         {
-            Exception lastError = null;
             string fullPath = Path.GetFullPath(fileName);
             string dirName = Path.GetDirectoryName(fullPath);
             Directory.CreateDirectory(dirName);
+            Retry(() => File.WriteAllText(fileName, text, Utf8EncodingNoPrefix), millisecondsBetweenRetry, retryCount);
+        }
+
+        /// <summary>
+        /// Write all file text with retry
+        /// </summary>
+        /// <param name="fileName">File name</param>
+        /// <param name="text">Text</param>
+        /// <param name="millisecondsBetweenRetry">Milliseconds between each retry</param>
+        /// <param name="retryCount">Retry count</param>
+        /// <returns>Task</returns>
+        public static Task FileWriteAllTextWithRetryAsync(string fileName, string text, int millisecondsBetweenRetry = 200, int retryCount = 10)
+        {
+            string fullPath = Path.GetFullPath(fileName);
+            string dirName = Path.GetDirectoryName(fullPath);
+            Directory.CreateDirectory(dirName);
+            return RetryAsync(() => File.WriteAllTextAsync(fileName, text, Utf8EncodingNoPrefix), millisecondsBetweenRetry, retryCount);
+        }
+
+        /// <summary>
+        /// Attempt an action with retry and delay between failures. Throws an exception if all retry fails.
+        /// </summary>
+        /// <param name="action">Action</param>
+        /// <param name="millisecondsBetweenRetry">Milliseconds between each retry</param>
+        /// <param name="retryCount">Retry count</param>
+        public static void Retry(Action action, int millisecondsBetweenRetry = 1000, int retryCount = 3)
+        {
+            Exception lastError = null;
             for (int i = 0; i < retryCount; i++)
             {
                 try
                 {
-                    await File.WriteAllTextAsync(fileName, text, Utf8EncodingNoPrefix);
+                    action();
                     return;
                 }
                 catch (Exception ex)
                 {
                     lastError = ex;
-                    await Task.Delay(millisecondsBetweenRetry);
+                    Thread.Sleep(millisecondsBetweenRetry);
+                }
+            }
+            throw lastError;
+        }
+
+        /// <summary>
+        /// Attempt an action with retry and delay between failures. Throws an exception if all retry fails.
+        /// </summary>
+        /// <param name="action">Action</param>
+        /// <param name="millisecondsBetweenRetry">Milliseconds between each retry</param>
+        /// <param name="retryCount">Retry count</param>
+        /// <returns>Task</returns>
+        public static async Task RetryAsync(Func<Task> action, int millisecondsBetweenRetry = 1000, int retryCount = 3)
+        {
+            Exception lastError = null;
+            for (int i = 0; i < retryCount; i++)
+            {
+                try
+                {
+                    await action();
+                    return;
+                }
+                catch (Exception ex)
+                {
+                    lastError = ex;
+                    Thread.Sleep(millisecondsBetweenRetry);
                 }
             }
             throw lastError;

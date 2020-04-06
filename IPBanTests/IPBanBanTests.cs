@@ -277,12 +277,9 @@ namespace DigitalRuby.IPBanTests
                 }
                 finally
                 {
-                    ExtensionMethods.FileDeleteWithRetry(file);
-                    Directory.Delete(Path.GetDirectoryName(file));
-                    using (EventLog appLog = new EventLog("Application", System.Environment.MachineName))
-                    {
-                        appLog.Clear();
-                    }
+                    ExtensionMethods.DirectoryDeleteWithRetry(Path.GetDirectoryName(file));
+                    using EventLog appLog = new EventLog("Application", System.Environment.MachineName);
+                    appLog.Clear();
                 }
             }
         }

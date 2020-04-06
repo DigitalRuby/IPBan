@@ -57,10 +57,7 @@ namespace DigitalRuby.IPBanTests
         {
             failedIPAddresses.Clear();
             successIPAddresses.Clear();
-            if (Directory.Exists(tempPath))
-            {
-                Directory.Delete(tempPath, true);
-            }
+            ExtensionMethods.DirectoryDeleteWithRetry(tempPath);
             IPBanService.UtcNow = default;
         }
 
