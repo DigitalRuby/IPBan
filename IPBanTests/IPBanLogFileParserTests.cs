@@ -239,7 +239,7 @@ namespace DigitalRuby.IPBanTests
         [Test]
         public void TestLogFileTimestampFormat()
         {
-            using LogFileScanner scanner = SetupLogFileScanner(@"^(?<ipaddress>.*?)\s.*?\[(?<timestamp>.*?)\].*?((php|md5sum|cgi-bin|joomla).*?\s404\s[0-9]+$|\s400\s-)$",
+            using LogFileScanner scanner = SetupLogFileScanner(@"^(?<ipaddress>[^\s]+)\s.*?\[(?<timestamp>.*?)\].*?((php|md5sum|cgi-bin|joomla).*?\s404\s[0-9]+|\s400\s-)$",
                 "dd/MMM/yyyy:HH:mm:ss zzzz");
             File.AppendAllText(fullPath, "97.97.97.97 - - [28/Mar/2020:09:30:56 -0400] \"GET /TP/html /public/index.php HTTP/1.1\" 404 1110\n");
             scanner.PingFiles();

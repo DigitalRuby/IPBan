@@ -363,7 +363,7 @@ namespace DigitalRuby.IPBanCore
 
                     // create giant text blob with all lines trimmed
                     byte[] bytes = new BinaryReader(fs).ReadBytes((int)(lastNewlinePos - fs.Position));
-                    string text = string.Join('\n', Encoding.UTF8.GetString(bytes).Split('\n').Select(l => l.Trim())) + "\n";
+                    string text = "\n" + string.Join('\n', Encoding.UTF8.GetString(bytes).Split('\n').Select(l => l.Trim())) + "\n";
 
                     OnProcessText(text);
                     ProcessText?.Invoke(text);

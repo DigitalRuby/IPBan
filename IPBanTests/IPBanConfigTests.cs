@@ -92,7 +92,7 @@ namespace DigitalRuby.IPBanTests
                 "Windows", true, "SmarterMail",
 
                 "C:/Program Files/Tomcat/logs/*access_log*.txt",
-                @"(?<ipaddress>[^\-\s]+)[\-\s]+[^\[]*\[(?<timestamp>[^\]]+)\].*?((php|md5sum|cgi-bin|joomla).*?\s404\s[0-9]+|\s400\s-)",
+                @"^(?<ipaddress>[^\s]+)\s.*?\[(?<timestamp>.*?)\].*?((php|md5sum|cgi-bin|joomla).*?\s404\s[0-9]+|\s400\s-)$",
                 @"dd/MMM/yyyy:HH:mm:ss zzzz",
                 @"",
                 @"",
