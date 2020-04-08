@@ -1086,6 +1086,12 @@ namespace DigitalRuby.IPBanCore
 
         private static int ExtractRepeatCount(Match match, string text)
         {
+            // if the match is optional/empty just return 1
+            if (match.Length == 0)
+            {
+                return 1;
+            }
+
             // look for the first instance of a message repeated text for this match, up to the last newline
             int repeatStart = match.Index;
             int repeatEnd = match.Index + match.Length;

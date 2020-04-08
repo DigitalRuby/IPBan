@@ -48,6 +48,7 @@ namespace DigitalRuby.IPBanCore
         [XmlIgnore]
         public Regex RegexObject { get; private set; }
 
+        private string xpath;
         /// <summary>
         /// Xpath to find
         /// </summary>
@@ -55,7 +56,15 @@ namespace DigitalRuby.IPBanCore
         [Required(AllowEmptyStrings = true)]
         [LocalizedDisplayName(nameof(IPBanResources.XPath))]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-        public string XPath { get; set; } = string.Empty;
+        public string XPath
+        {
+            get { return xpath; }
+            set
+            {
+                xpath = value;
+                XPathIsOptional = (xpath != null && xpath == "//Data[@Name='ProcessName']");
+            }
+        }
 
         private string regex = string.Empty;
         /// <summary>
@@ -70,6 +79,13 @@ namespace DigitalRuby.IPBanCore
             get { return regex; }
             set { RegexObject = IPBanConfig.ParseRegex(regex = value); }
         }
+
+        /// <summary>
+        /// Whether the xpath is optional
+        /// </summary>
+        [JsonIgnore]
+        [XmlIgnore]
+        public bool XPathIsOptional { get; private set; }
     }
 
     /// <summary>

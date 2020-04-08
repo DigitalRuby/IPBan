@@ -169,6 +169,12 @@ namespace DigitalRuby.IPBanCore
 
                         if (nodes.Count == 0)
                         {
+                            if (expression.XPathIsOptional)
+                            {
+                                // optional expression, continue on...
+                                continue;
+                            }
+
                             Logger.Debug("No nodes found for xpath {0}", expression.XPath);
                             userName = source = ipAddress = null;
                             timestamp = null;
@@ -180,7 +186,7 @@ namespace DigitalRuby.IPBanCore
                         // if there is a regex, it must match
                         if (string.IsNullOrWhiteSpace(expression.Regex))
                         {
-                            // count as a match, do not modify the ip address if it was already set
+                            // if empty regex, we are just checking for the existance of the element
                             Logger.Debug("No regex, so counting as a match");
                         }
                         else

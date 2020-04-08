@@ -87,6 +87,11 @@ namespace DigitalRuby.IPBanTests
                 ),
                 new KeyValuePair<string, string>
                 (
+                    @"<Event xmlns='http://schemas.microsoft.com/win/2004/08/events/event'><System><Provider Name='Microsoft-Windows-Security-Auditing' Guid='{54849625-5478-4994-A5BA-3E3B0328C30D}' /><EventID>4625</EventID><Version>0</Version><Level>0</Level><Task>12544</Task><Opcode>0</Opcode><Keywords>0x8010000000000000</Keywords><TimeCreated SystemTime='2020-04-05T19:12:41.597844900Z' /><EventRecordID>295694367</EventRecordID><Correlation ActivityID='{9EF3A62A-06BB-0005-46A6-F39EBB06D601}' /><Execution ProcessID='728' ThreadID='18912' /><Channel>Security</Channel><Computer>srv-xch03.example.com</Computer><Security /></System><EventData><Data Name='SubjectUserSid'>S-1-5-18</Data><Data Name='SubjectUserName'>SRV-XCH03$</Data><Data Name='SubjectDomainName'>EXAMPLE</Data><Data Name='SubjectLogonId'>0x3e7</Data><Data Name='TargetUserSid'>S-1-0-0</Data><Data Name='TargetUserName'>testuser</Data><Data Name='TargetDomainName'>example.com</Data><Data Name='Status'>0xc000006d</Data><Data Name='FailureReason'>%%2313</Data><Data Name='SubStatus'>0xc0000064</Data><Data Name='LogonType'>8</Data><Data Name='LogonProcessName'>Advapi</Data><Data Name='AuthenticationPackageName'>Negotiate</Data><Data Name='WorkstationName'>SRV-XCH03</Data><Data Name='TransmittedServices'>-</Data><Data Name='LmPackageName'>-</Data><Data Name='KeyLength'>0</Data><Data Name='ProcessId'>0x23b0</Data><Data Name='ProcessName'>C:\Windows\System32\inetsrv\w3wp.exe</Data><Data Name='IpAddress'>21.25.29.33</Data><Data Name='IpPort'>1765</Data></EventData></Event>",
+                    "21.25.29.33,testuser,IIS,0"
+                ),
+                new KeyValuePair<string, string>
+                (
                     @"<Event xmlns='http://schemas.microsoft.com/win/2004/08/events/event'><System><Provider Name='MSSQL$INSTANCENAME' /><EventID Qualifiers='49152'>18456</EventID><Level>0</Level><Task>4</Task><Keywords>0x90000000000000</Keywords><TimeCreated SystemTime='2020-03-04T19:40:23.065120000Z' /><EventRecordID>16022222</EventRecordID><Channel>Application</Channel><Computer>MyVM1</Computer><Security /></System><EventData><Data>sa</Data><Data>Reason: Password did not match that for the login provided.</Data><Data>[CLIENT: 2.92.13.221]</Data><Binary>184800000E00000015000000430065006E0050006F0069006E00740056004D0031005C00430045004E0050004F0049004E0054000000070000006D00610073007400650072000000</Binary></EventData></Event>",
                     "2.92.13.221,sa,MSSQL,0"
                 ),
@@ -274,6 +279,7 @@ namespace DigitalRuby.IPBanTests
                 "2.92.13.221",
                 "10.0.0.1",
                 "10.20.30.40",
+                "21.25.29.33",
                 "33.32.31.30",
                 "33.55.77.99",
                 "37.140.141.29",

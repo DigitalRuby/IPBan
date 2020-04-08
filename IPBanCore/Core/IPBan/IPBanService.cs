@@ -119,6 +119,8 @@ namespace DigitalRuby.IPBanCore
                 yield break;
             }
 
+            text = text.Trim();
+
             // go through all the matches and pull out event info
             foreach (Match match in regex.Matches(text))
             {
