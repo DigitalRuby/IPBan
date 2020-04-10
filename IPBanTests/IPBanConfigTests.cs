@@ -85,7 +85,7 @@ namespace DigitalRuby.IPBanTests
                 "Windows", true, "MSExchange",
 
                 "C:/Program Files/Smarter Tools/Smarter Mail/*.log\nC:/ Program Files(x86) / Smarter Tools / Smarter Mail/*.log\nC:/SmarterMail/logs/*.log\nC:/Smarter Mail/logs/*.log",
-                @"\[(?<ipaddress>[^\]]+)\](\[[^\]]*\]\s+)?(The domain given in the EHLO command violates an EHLO SMTP|IP blocked by brute force abuse detection rule)",
+                @"\[(?<ipaddress>[^\]\n]+)\](?:\[[^\]\n]*\]\s+)?(?:The domain given in the EHLO command violates an EHLO SMTP|IP blocked by brute force abuse detection rule)",
                 @"",
                 @"",
                 @"",
