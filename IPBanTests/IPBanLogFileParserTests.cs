@@ -252,11 +252,23 @@ namespace DigitalRuby.IPBanTests
         [Test]
         public void TestLogFileExchange()
         {
-            using LogFileScanner scanner = SetupLogFileScanner(@"^(?<timestamp>[0-9TZ\-:\.]+)?,[^,\n]*,[^,\n]*,[^,\n]*,[^,\n]*,(?<ipaddress>[^,\n]+),[^,\n]*,[^,\n]*,.*?LogonDenied\n.*?User Name: (?<username>.+)\n");
+            const string regex = @"^(?<timestamp>[0-9TZ\-:\.]+)?,(?:[^,\n]*,){3}(?<ipaddress>[^,\n]*),(?<username>[^,\n]*),.*?AuthFailed|^(?<timestamp>[0-9TZ\-:\.]+)?,(?:[^,\n]*,){4}(?<ipaddress>[^,\n]+),(?:[^,\n]*,){2}.*?LogonDenied\n.*?User Name: (?<username>.+)\n";
+            using LogFileScanner scanner = SetupLogFileScanner(regex);
+
+            File.AppendAllText(fullPath, "asdasdasdasdsad\n2020-04-01T13:13:03.129Z,SRV-XCH03\\External Authenticated Relay,08D7D4D2EFBC3E30,10,192.168.2.101:10587,92.118.38.34:46676,*,,Inbound AUTH LOGIN failed because of LogonDenied\n2020-04-01T13:13:03.129Z,SRV-XCH03\\External Authenticated Relay,08D7D4D2EFBC3E30,11,192.168.2.101:10587,92.118.38.34:46676,*,,User Name: shaun@example.com\nasdasdasdasd\n");
+            scanner.PingFiles();
+            Assert.AreEqual(1, failedIPAddresses.Count, "Did not find expected ip addresses");
+            Assert.AreEqual("92.118.38.34", failedIPAddresses[0].IPAddress);
+            Assert.AreEqual("shaun@example.com", failedIPAddresses[0].UserName);
+            Assert.AreEqual("SSH", failedIPAddresses[0].Source);
+            Assert.AreEqual(1, failedIPAddresses[0].Count);
+            Assert.AreEqual(IPAddressEventType.FailedLogin, failedIPAddresses[0].Type);
+            Assert.AreEqual(new DateTime(2020, 4, 1, 13, 13, 3, 129, DateTimeKind.Utc), failedIPAddresses[0].Timestamp);
+            failedIPAddresses.Clear();
+
             File.AppendAllText(fullPath, "dsfadwsfawefeafwafewafew\n2020-04-01T13:13:03.129Z,SRV-XCH03\\External Authenticated Relay,08D7D4D2EFBC3E30,10,192.168.2.101:10587,92.118.38.34:46676,*,,Inbound AUTH LOGIN failed because of LogonDenied\n" +
                 "2020-04-01T13:13:03.129Z,SRV-XCH03\\External Authenticated Relay,08D7D4D2EFBC3E30,11,192.168.2.101:10587,92.118.38.34:46676,*,,User Name: shaun@example.com\nawefaweffeawaefweafwafeweawf\n");
             scanner.PingFiles();
-            // IP: 92.118.38.34, UserName: shaun@example.com, Source: SSH, Count: 1, Type: FailedLogin, Timestamp: 4/5/2020 7:20:58 PM}
             Assert.AreEqual(1, failedIPAddresses.Count, "Did not find expected ip addresses");
             Assert.AreEqual("92.118.38.34", failedIPAddresses[0].IPAddress);
             Assert.AreEqual("shaun@example.com", failedIPAddresses[0].UserName);
