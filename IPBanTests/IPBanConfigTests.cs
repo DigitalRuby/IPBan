@@ -71,14 +71,14 @@ namespace DigitalRuby.IPBanTests
                 "Linux", false, "SSH",
 
                 "/var/log/ipbancustom*.log",
-                @"(?<timestamp>\d\d\d\d-\d\d-\d\d\s\d\d:\d\d:\d\d\.?\d*Z?,\s)?ipban\sfailed\slogin,\sip\saddress:\s(?<ipaddress>[^,]+),\ssource:\s(?<source>[^,]+),\suser:\s?(?<username>[^\s,]+)?",
+                @"(?<timestamp>\d\d\d\d-\d\d-\d\d\s\d\d:\d\d:\d\d\.?\d*Z?,\s)?ipban\sfailed\slogin,\sip\saddress:\s(?<ipaddress>[^,\n]+),\ssource:\s(?<source>[^,\n]+),\suser:\s?(?<username>[^\s,]+)?",
                 @"",
-                @"(?<timestamp>\d\d\d\d-\d\d-\d\d\s\d\d:\d\d:\d\d\.?\d*Z?,\s)?ipban\ssuccess\slogin,\sip\saddress:\s(?<ipaddress>[^,]+),\ssource:\s(?<source>[^,]+),\suser:\s?(?<username>[^\s,]+)?",
+                @"(?<timestamp>\d\d\d\d-\d\d-\d\d\s\d\d:\d\d:\d\d\.?\d*Z?,\s)?ipban\ssuccess\slogin,\sip\saddress:\s(?<ipaddress>[^,\n]+),\ssource:\s(?<source>[^,\n]+),\suser:\s?(?<username>[^\s,]+)?",
                 @"",
                 "Linux", false, "IPBanCustom",
 
                 "C:/Program Files/Microsoft/Exchange Server/*.log",
-                @"^(?<timestamp>[0-9TZ\-:\.]+)?,[^,]*,[^,]*,[^,]*,(?<ipaddress>[^,]*),(?<username>[^,]*),[^,]*AuthFailed|^(?<timestamp>[0-9TZ\-:\.]+)?,[^,]*,[^,]*,[^,]*,[^,]*,(?<ipaddress>[^,]+),[^,]*,[^,]*,.*?LogonDenied\n.*?User Name: (?<username>.+)\n",
+                @"^(?<timestamp>[0-9TZ\-:\.]+)?,[^,\n]*,[^,\n]*,[^,\n]*,(?<ipaddress>[^,\n]*),(?<username>[^,\n]*),[^,\n]*AuthFailed|^(?<timestamp>[0-9TZ\-:\.]+)?,[^,\n]*,[^,\n]*,[^,\n]*,[^,\n]*,(?<ipaddress>[^,\n]+),[^,\n]*,[^,\n]*,.*?LogonDenied\n.*?User Name: (?<username>.+)\n",
                 @"",
                 @"",
                 @"",
@@ -99,9 +99,9 @@ namespace DigitalRuby.IPBanTests
                 "Windows", true, "Apache",
 
                 "C:/IPBanCustomLogs/*.log",
-                @"ipban\sfailed\slogin,\sip\saddress:\s(?<ipaddress>[^,]+),\ssource:\s(?<source>[^,]+),\suser:\s?(?<username>[^\s,]+)?",
+                @"ipban\sfailed\slogin,\sip\saddress:\s(?<ipaddress>[^,\n]+),\ssource:\s(?<source>[^,\n]+),\suser:\s?(?<username>[^\s,]+)?",
                 @"",
-                @"ipban\ssuccess\slogin,\sip\saddress:\s(?<ipaddress>[^,]+),\ssource:\s(?<source>[^,]+),\suser:\s?(?<username>[^\s,]+)?",
+                @"ipban\ssuccess\slogin,\sip\saddress:\s(?<ipaddress>[^,\n]+),\ssource:\s(?<source>[^,\n]+),\suser:\s?(?<username>[^\s,]+)?",
                 @"",
                 "Windows", true, "IPBanCustom"
             };
