@@ -65,7 +65,7 @@ namespace DigitalRuby.IPBanCore
         }
 
         private readonly HashSet<WatchedFile> watchedFiles = new HashSet<WatchedFile>();
-        private readonly System.Timers.Timer pingTimer;
+        private readonly System.Timers.Timer fileProcessingTimer;
         private readonly string directoryToWatch;
         private readonly string fileMask;
         private readonly long maxFileSize;
@@ -77,24 +77,53 @@ namespace DigitalRuby.IPBanCore
         /// <param name="pathAndMask">File path and mask (i.e. /var/log/auth*.log)</param>
         /// <param name="recursive">Whether to parse all sub directories of path and mask recursively</param>
         /// <param name="maxFileSizeBytes">Max size of file (in bytes) before it is deleted or 0 for unlimited</param>
-        /// <param name="pingIntervalMilliseconds">Ping interval in milliseconds, less than 1 for manual ping required</param>
+        /// <param name="fileProcessingIntervalMilliseconds">How often to process files, in milliseconds, less than 1 for manual processing, in which case <see cref="ProcessFiles"/> must be called as needed.</param>
         /// <param name="encoding">Encoding or null for utf-8. The encoding must either be single or variable byte, like ASCII, Ansi, utf-8, etc. UTF-16 and the like are not supported.</param>
-        public LogFileScanner(string pathAndMask, bool recursive, long maxFileSizeBytes = 0, int pingIntervalMilliseconds = 0, Encoding encoding = null)
+        public LogFileScanner(string pathAndMask, bool recursive, long maxFileSizeBytes = 0, int fileProcessingIntervalMilliseconds = 0, Encoding encoding = null)
         {
+            // setup properties
             PathAndMask = pathAndMask?.Trim();
             PathAndMask.ThrowIfNullOrEmpty(nameof(pathAndMask), "Must pass a non-empty path and mask to log file scanner");
             this.maxFileSize = maxFileSizeBytes;
             directoryToWatch = Path.GetDirectoryName(pathAndMask);
             fileMask = Path.GetFileName(pathAndMask);
             this.encoding = encoding ?? Encoding.UTF8;
-            if (pingIntervalMilliseconds > 0)
+
+            // add initial files
+            SearchOption option = (recursive ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly);
+            string dir = Path.GetDirectoryName(pathAndMask);
+            if (Directory.Exists(dir))
             {
-                pingTimer = new System.Timers.Timer(pingIntervalMilliseconds);
-                pingTimer.Elapsed += PingTimerElapsed;
-                pingTimer.Start();
+                lock (watchedFiles)
+                {
+                    foreach (string existingFileName in Directory.GetFiles(dir, Path.GetFileName(pathAndMask), option))
+                    {
+                        // start at end of existing files
+                        FileInfo info = new FileInfo(existingFileName);
+                        try
+                        {
+                            long pos = info.Length;
+                            watchedFiles.Add(new WatchedFile(existingFileName, pos));
+                        }
+                        catch (Exception ex)
+                        {
+                            if (!(ex is FileNotFoundException || ex is IOException))
+                            {
+                                throw ex;
+                            }
+                            // ignore, maybe the file got deleted...
+                        }
+                    }
+                }
             }
 
-            ScanForFiles(pathAndMask, recursive);
+            // setup timer to ping files
+            if (fileProcessingIntervalMilliseconds > 0)
+            {
+                fileProcessingTimer = new System.Timers.Timer(fileProcessingIntervalMilliseconds);
+                fileProcessingTimer.Elapsed += (sender, args) => ProcessFiles();
+                fileProcessingTimer.Start();
+            }
         }
 
         /// <summary>
@@ -103,13 +132,13 @@ namespace DigitalRuby.IPBanCore
         public void Dispose()
         {
             // wait for any outstanding file pings
-            if (pingTimer != null)
+            if (fileProcessingTimer != null)
             {
-                while (!pingTimer.Enabled)
+                while (!fileProcessingTimer.Enabled)
                 {
                     Thread.Sleep(20);
                 }
-                pingTimer?.Dispose();
+                fileProcessingTimer?.Dispose();
             }
             lock (watchedFiles)
             {
@@ -118,92 +147,65 @@ namespace DigitalRuby.IPBanCore
         }
 
         /// <summary>
-        /// Ping the files, this is normally done on a timer, but if you have passed a 0 second
+        /// Process the files, this is normally done on a timer, but if you have passed a 0 second
         /// ping interval to the constructor, you must call this manually
         /// </summary>
-        public void PingFiles()
+        public void ProcessFiles()
         {
+            // disable timer while we parse so it doesn't stack
+            SetProcessingTimerEnabled(false);
+
             try
             {
-                if (pingTimer != null)
+                foreach (WatchedFile file in GetCurrentWatchedFiles())
                 {
-                    pingTimer.Enabled = false;
-                }
-            }
-            catch
-            {
-            }
-
-
-            foreach (WatchedFile file in GetCurrentWatchedFiles())
-            {
-                try
-                {
-                    // if file length has changed, ping the file
-                    bool delete = false;
-
-                    // ugly hack to force file to flush
-                    using (FileStream fs = new FileStream(file.FileName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite, 16))
+                    // catch each file, that way one file exception doesn't bring down processing for all files
+                    try
                     {
-                        try
+                        // ensure file has most recent data
+                        long len = FlushFile(file.FileName);
+
+                        // if file has shrunk (deleted and recreated for example) reset last position to 0 to ensure correct parsing from start of file
+                        if (len < file.LastLength || len < file.LastPosition)
                         {
-                            if (fs.Length != 0)
+                            file.LastPosition = 0;
+                        }
+
+                        // if the length changed, we need to parse data from the file
+                        if (len != file.LastLength)
+                        {
+                            using FileStream fs = new FileStream(file.FileName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite, 256);
+                            file.LastLength = len;
+                            ProcessFile(file, fs);
+                        }
+                        else
+                        {
+                            Logger.Debug("Watched file {0} length has not changed", file.FileName);
+                        }
+
+                        // if a max file size is specified and the file is over the max size, delete the file
+                        if (maxFileSize > 0 && len > maxFileSize)
+                        {
+                            try
                             {
-                                fs.Position = fs.Length - 1;
-                                fs.ReadByte();
+                                Logger.Warn("Deleting log file over max size: {0}", file.FileName);
+                                File.Delete(file.FileName);
+                            }
+                            catch
+                            {
+                                // someone else might have it open, in which case we have no chance to delete
                             }
                         }
-                        catch
-                        {
-                        }
                     }
-
-                    long len = new FileInfo(file.FileName).Length;
-
-                    // if file has shrunk (deleted and recreated for example) reset positions to 0
-                    if (len < file.LastLength || len < file.LastPosition)
+                    catch (Exception ex)
                     {
-                        file.LastPosition = 0;
+                        Logger.Error(ex);
                     }
-
-                    // use file info for length compare to avoid doing a full file open
-                    if (len != file.LastLength)
-                    {
-                        using FileStream fs = new FileStream(file.FileName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite, 256);
-                        file.LastLength = len;
-                        delete = PingFile(file, fs);
-                    }
-                    else
-                    {
-                        Logger.Debug("Watched file {0} length has not changed", file.FileName);
-                    }
-                    if (delete)
-                    {
-                        try
-                        {
-                            File.Delete(file.FileName);
-                        }
-                        catch
-                        {
-                            // OK someone else might have it open, in which case we have no chance to delete
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Logger.Error(ex);
                 }
             }
-
-            try
+            finally
             {
-                if (pingTimer != null)
-                {
-                    pingTimer.Enabled = true;
-                }
-            }
-            catch
-            {
+                SetProcessingTimerEnabled(true);
             }
         }
 
@@ -228,40 +230,31 @@ namespace DigitalRuby.IPBanCore
         /// <param name="text">Text to process</param>
         protected virtual void OnProcessText(string text) { }
 
-        private void ScanForFiles(string pathAndMask, bool recursive)
+        private void SetProcessingTimerEnabled(bool enabled)
         {
-            // add initial files
-            SearchOption option = (recursive ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly);
-            string dir = Path.GetDirectoryName(pathAndMask);
-            if (Directory.Exists(dir))
+            try
             {
-                foreach (string existingFileName in Directory.GetFiles(dir, Path.GetFileName(pathAndMask), option))
+                if (fileProcessingTimer != null)
                 {
-                    // start at end of existing files
-                    AddPingFile(existingFileName, new FileInfo(existingFileName).Length);
+                    fileProcessingTimer.Enabled = enabled;
                 }
             }
-        }
-
-        private void PingTimerElapsed(object sender, System.Timers.ElapsedEventArgs e)
-        {
-            PingFiles();
-        }
-
-        private void AddPingFile(string fileName, long pos)
-        {
-            lock (watchedFiles)
+            catch
             {
-                watchedFiles.Add(new WatchedFile(fileName, pos));
             }
         }
 
-        private void RemovePingFile(string fileName)
+        private static long FlushFile(string fileName)
         {
-            lock (watchedFiles)
+            // by opening and seeking to the end, the os will flush the file and any pending data to disk
+            using FileStream fs = new FileStream(fileName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite, 16);
+            if (fs.Length != 0)
             {
-                watchedFiles.Remove(new WatchedFile(fileName));
+                // force read a byte, this gets the file data flushed properly
+                fs.Position = fs.Length - 1;
+                fs.ReadByte();
             }
+            return fs.Length;
         }
 
         private string ReplacePathVars(string path)
@@ -327,7 +320,7 @@ namespace DigitalRuby.IPBanCore
             return watchedFilesCopy;
         }
 
-        private bool PingFile(WatchedFile file, FileStream fs)
+        private void ProcessFile(WatchedFile file, FileStream fs)
         {
             const int maxCountBeforeNewline = 1024;
             int b;
@@ -336,7 +329,7 @@ namespace DigitalRuby.IPBanCore
             int countBeforeNewline = 0;
             fs.Position = file.LastPosition;
 
-            Logger.Info("Processing watched file {0}, len = {1}, pos = {2}", file.FileName, file.LastLength, file.LastPosition);
+            Logger.Info("Processing log file {0}, len = {1}, pos = {2}", file.FileName, file.LastLength, file.LastPosition);
 
             while (fs.Position < end && countBeforeNewline++ != maxCountBeforeNewline)
             {
@@ -363,7 +356,7 @@ namespace DigitalRuby.IPBanCore
 
                     // create giant text blob with all lines trimmed
                     byte[] bytes = new BinaryReader(fs).ReadBytes((int)(lastNewlinePos - fs.Position));
-                    string text = "\n" + string.Join('\n', Encoding.UTF8.GetString(bytes).Split('\n').Select(l => l.Trim())) + "\n";
+                    string text = "\n" + string.Join('\n', encoding.GetString(bytes).Split('\n').Select(l => l.Trim())) + "\n";
 
                     OnProcessText(text);
                     ProcessText?.Invoke(text);
@@ -374,8 +367,6 @@ namespace DigitalRuby.IPBanCore
                     fs.Position = file.LastPosition = ++lastNewlinePos;
                 }
             }
-
-            return (maxFileSize > 0 && fs.Length > maxFileSize);
         }
     }
 }

@@ -210,7 +210,7 @@ namespace DigitalRuby.IPBanTests
                 IPBanPlugin.IPBanLoginFailed("SSH", "User1", "78.88.88.88");
                 foreach (LogFileScanner toParse in service.LogFilesToParse)
                 {
-                    toParse.PingFiles();
+                    toParse.ProcessFiles();
                 }
             }
             service.RunCycle().Sync();
@@ -225,7 +225,7 @@ namespace DigitalRuby.IPBanTests
                     System.Threading.Thread.Sleep(100);
                     foreach (LogFileScanner toParse in service.LogFilesToParse)
                     {
-                        toParse.PingFiles();
+                        toParse.ProcessFiles();
                     }
                     service.RunCycle().Sync();
                 }
@@ -251,7 +251,7 @@ namespace DigitalRuby.IPBanTests
                 System.Threading.Thread.Sleep(100);
                 foreach (LogFileScanner toParse in service.LogFilesToParse)
                 {
-                    toParse.PingFiles();
+                    toParse.ProcessFiles();
                 }
                 string data = "ipban failed login, ip address: 99.99.99.99, source: SSH, user: User2" + Environment.NewLine;
                 for (int i = 0; i < 5; i++)
@@ -260,7 +260,7 @@ namespace DigitalRuby.IPBanTests
                     IPBanService.UtcNow += TimeSpan.FromMinutes(5.0);
                     foreach (LogFileScanner toParse in service.LogFilesToParse)
                     {
-                        toParse.PingFiles();
+                        toParse.ProcessFiles();
                     }
 
                     // attempt to read failed logins, if they do not match, sleep a bit and try again
