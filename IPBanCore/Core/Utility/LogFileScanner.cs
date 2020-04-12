@@ -117,7 +117,7 @@ namespace DigitalRuby.IPBanCore
                 }
             }
 
-            // setup timer to ping files
+            // setup timer to process files
             if (fileProcessingIntervalMilliseconds > 0)
             {
                 fileProcessingTimer = new System.Timers.Timer(fileProcessingIntervalMilliseconds);
@@ -131,7 +131,7 @@ namespace DigitalRuby.IPBanCore
         /// </summary>
         public void Dispose()
         {
-            // wait for any outstanding file pings
+            // wait for any outstanding file processing
             if (fileProcessingTimer != null)
             {
                 while (!fileProcessingTimer.Enabled)
@@ -148,7 +148,7 @@ namespace DigitalRuby.IPBanCore
 
         /// <summary>
         /// Process the files, this is normally done on a timer, but if you have passed a 0 second
-        /// ping interval to the constructor, you must call this manually
+        /// processing interval to the constructor, you must call this manually
         /// </summary>
         public void ProcessFiles()
         {
@@ -331,7 +331,7 @@ namespace DigitalRuby.IPBanCore
 
             Logger.Info("Processing log file {0}, len = {1}, pos = {2}", file.FileName, file.LastLength, file.LastPosition);
 
-            while (fs.Position < end && countBeforeNewline++ != maxCountBeforeNewline)
+            while (fs.Position < end && ++countBeforeNewline != maxCountBeforeNewline)
             {
                 // read until last \n is found
                 b = fs.ReadByte();
@@ -344,9 +344,10 @@ namespace DigitalRuby.IPBanCore
 
             if (countBeforeNewline == maxCountBeforeNewline)
             {
-                throw new InvalidOperationException($"Log file '{file.FileName}' may not be a plain text new line delimited file");
+                throw new InvalidOperationException($"Cannot process log file '{file.FileName}', file may not be a plain text new line delimited file");
             }
 
+            // if we found a newline, process all the text up until that newline
             if (lastNewlinePos > -1)
             {
                 try
@@ -363,7 +364,7 @@ namespace DigitalRuby.IPBanCore
                 }
                 finally
                 {
-                    // set file position for next ping
+                    // set file position for next processing
                     fs.Position = file.LastPosition = ++lastNewlinePos;
                 }
             }
