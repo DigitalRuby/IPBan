@@ -1097,7 +1097,7 @@ namespace DigitalRuby.IPBanCore {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Paths and masks to search, one per line.
+        ///   Looks up a localized string similar to Paths and masks to search, one per line. Glob syntax can be used for recursion, i.e. /logs/**/*.log.
         /// </summary>
         public static string PathAndMaskTooltip {
             get {

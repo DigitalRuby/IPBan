@@ -625,7 +625,7 @@ Prefix with OS:ClassName, example: Windows:Custom,Linux:Default</value>
     <value>Paths and Masks</value>
   </data>
   <data name="PathAndMaskTooltip" xml:space="preserve">
-    <value>Paths and masks to search, one per line</value>
+    <value>Paths and masks to search, one per line. Glob syntax can be used for recursion, i.e. /logs/**/*.log</value>
   </data>
   <data name="LogFilePingInterval" xml:space="preserve">
     <value>Ping Interval</value>
