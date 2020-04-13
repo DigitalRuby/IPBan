@@ -68,6 +68,7 @@ namespace DigitalRuby.IPBanCore
         private readonly long maxFileSize;
         private readonly Encoding encoding;
         private readonly SearchOption searchOption;
+        private readonly int maxLineLength;
 
         /// <summary>
         /// Create a log file scanner
@@ -77,7 +78,8 @@ namespace DigitalRuby.IPBanCore
         /// <param name="maxFileSizeBytes">Max size of file (in bytes) before it is deleted or 0 for unlimited</param>
         /// <param name="fileProcessingIntervalMilliseconds">How often to process files, in milliseconds, less than 1 for manual processing, in which case <see cref="ProcessFiles"/> must be called as needed.</param>
         /// <param name="encoding">Encoding or null for utf-8. The encoding must either be single or variable byte, like ASCII, Ansi, utf-8, etc. UTF-16 and the like are not supported.</param>
-        public LogFileScanner(string pathAndMask, bool recursive, long maxFileSizeBytes = 0, int fileProcessingIntervalMilliseconds = 0, Encoding encoding = null)
+        /// <param name="maxLineLength">Maximum line length before considering the file a binary file and failing</param>
+        public LogFileScanner(string pathAndMask, bool recursive, long maxFileSizeBytes = 0, int fileProcessingIntervalMilliseconds = 0, Encoding encoding = null, int maxLineLength = 8192)
         {
             // setup properties
             PathAndMask = pathAndMask?.Trim();
@@ -86,6 +88,7 @@ namespace DigitalRuby.IPBanCore
             directoryToWatch = Path.GetDirectoryName(pathAndMask);
             fileMask = Path.GetFileName(pathAndMask);
             this.encoding = encoding ?? Encoding.UTF8;
+            this.maxLineLength = maxLineLength;
 
             // add initial files
             searchOption = (recursive ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly);
@@ -331,7 +334,6 @@ namespace DigitalRuby.IPBanCore
 
         private void ProcessFile(WatchedFile file, FileStream fs)
         {
-            const int maxCountBeforeNewline = 8192;
             int b;
             long lastNewlinePos = -1;
             long end = Math.Min(file.LastLength, fs.Length);
@@ -340,7 +342,7 @@ namespace DigitalRuby.IPBanCore
 
             Logger.Info("Processing log file {0}, len = {1}, pos = {2}", file.FileName, file.LastLength, file.LastPosition);
 
-            while (fs.Position < end && ++countBeforeNewline != maxCountBeforeNewline)
+            while (fs.Position < end && ++countBeforeNewline != maxLineLength)
             {
                 // read until last \n is found
                 b = fs.ReadByte();
@@ -351,7 +353,7 @@ namespace DigitalRuby.IPBanCore
                 }
             }
 
-            if (countBeforeNewline == maxCountBeforeNewline)
+            if (countBeforeNewline == maxLineLength)
             {
                 throw new InvalidOperationException($"Cannot process log file '{file.FileName}', file may not be a plain text new line delimited file");
             }
