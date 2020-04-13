@@ -108,7 +108,6 @@ namespace DigitalRuby.IPBanCore
                                 MaxFileSizeBytes = newFile.MaxFileSize,
                                 PathAndMask = pathAndMask,
                                 PingIntervalMilliseconds = (service.ManualCycle ? 0 : newFile.PingInterval),
-                                Recursive = newFile.Recursive,
                                 RegexFailure = newFile.FailedLoginRegex,
                                 RegexSuccess = newFile.SuccessfulLoginRegex,
                                 RegexFailureTimestampFormat = newFile.FailedLoginRegexTimestampFormat,

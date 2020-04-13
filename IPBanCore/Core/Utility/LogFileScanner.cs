@@ -30,6 +30,9 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 
+using Microsoft.Extensions.FileSystemGlobbing;
+using Microsoft.Extensions.FileSystemGlobbing.Abstractions;
+
 namespace DigitalRuby.IPBanCore
 {
     /// <summary>
@@ -37,14 +40,23 @@ namespace DigitalRuby.IPBanCore
     /// </summary>
     public class LogFileScanner : IDisposable
     {
-        private class WatchedFile
+        /// <summary>
+        /// Represents a watched file from a log file scanner
+        /// </summary>
+        public class WatchedFile
         {
+            /// <summary>
+            /// Constructor
+            /// </summary>
+            /// <param name="fileName">File name</param>
+            /// <param name="lastPosition">Last position scanned</param>
             public WatchedFile(string fileName, long lastPosition = 0)
             {
                 this.FileName = fileName;
                 LastPosition = lastPosition;
             }
 
+            /// <inheritdoc />
             public override bool Equals(object obj)
             {
                 if (!(obj is WatchedFile other))
@@ -54,51 +66,67 @@ namespace DigitalRuby.IPBanCore
                 return other.FileName == FileName;
             }
 
+            /// <inheritdoc />
             public override int GetHashCode() => FileName.GetHashCode();
 
+            /// <summary>
+            /// File name
+            /// </summary>
             public string FileName { get; private set; }
+
+            /// <summary>
+            /// Last scanned position
+            /// </summary>
             public long LastPosition { get; set; }
+
+            /// <summary>
+            /// Last file length
+            /// </summary>
             public long LastLength { get; set; }
 
-            internal bool isBinaryFile { get; set; }
+            /// <summary>
+            /// True if this is a binary file
+            /// </summary>
+            public bool IsBinaryFile { get; internal set; }
         }
 
         private readonly HashSet<WatchedFile> watchedFiles = new HashSet<WatchedFile>();
         private readonly System.Timers.Timer fileProcessingTimer;
-        private readonly string directoryToWatch;
-        private readonly string fileMask;
         private readonly long maxFileSize;
         private readonly Encoding encoding;
-        private readonly SearchOption searchOption;
         private readonly int maxLineLength;
 
         /// <summary>
         /// Create a log file scanner
         /// </summary>
         /// <param name="pathAndMask">File path and mask (i.e. /var/log/auth*.log)</param>
-        /// <param name="recursive">Whether to parse all sub directories of path and mask recursively</param>
         /// <param name="maxFileSizeBytes">Max size of file (in bytes) before it is deleted or 0 for unlimited</param>
         /// <param name="fileProcessingIntervalMilliseconds">How often to process files, in milliseconds, less than 1 for manual processing, in which case <see cref="ProcessFiles"/> must be called as needed.</param>
         /// <param name="encoding">Encoding or null for utf-8. The encoding must either be single or variable byte, like ASCII, Ansi, utf-8, etc. UTF-16 and the like are not supported.</param>
         /// <param name="maxLineLength">Maximum line length before considering the file a binary file and failing</param>
-        public LogFileScanner(string pathAndMask, bool recursive, long maxFileSizeBytes = 0, int fileProcessingIntervalMilliseconds = 0, Encoding encoding = null, int maxLineLength = 8192)
+        public LogFileScanner(string pathAndMask, long maxFileSizeBytes = 0, int fileProcessingIntervalMilliseconds = 0, Encoding encoding = null, int maxLineLength = 8192)
         {
             // replace env vars in path/mask
-            PathAndMask = pathAndMask.Trim();
+            PathAndMask = pathAndMask?.Trim().Replace('\\', '/');
             PathAndMask.ThrowIfNullOrEmpty(nameof(pathAndMask), "Must pass a non-empty path and mask to log file scanner");
 
             // set properties
             this.maxFileSize = maxFileSizeBytes;
-            directoryToWatch = Path.GetDirectoryName(pathAndMask);
-            fileMask = Path.GetFileName(pathAndMask);
             this.encoding = encoding ?? Encoding.UTF8;
             this.maxLineLength = maxLineLength;
 
-            // add initial files
-            searchOption = (recursive ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly);
-            foreach (WatchedFile file in GetLogFiles())
+            try
             {
-                watchedFiles.Add(file);
+                // add initial files
+                foreach (WatchedFile file in LogFileScanner.GetFiles(PathAndMask))
+                {
+                    watchedFiles.Add(file);
+                }
+            }
+            catch
+            {
+                // generally catching all exceptions and not reporting is bad, but in this case we don't care,
+                // we will try to get files on every ProcessFiles call and can throw the exception then
             }
 
             // setup timer to process files
@@ -137,6 +165,58 @@ namespace DigitalRuby.IPBanCore
         }
 
         /// <summary>
+        /// Get all files from a path and mask
+        /// </summary>
+        /// <param name="pathAndMask">Path and mask, this uses glob syntax. This should use forward slash only for dir separators</param>
+        /// <returns>Found files</returns>
+        public static IReadOnlyCollection<WatchedFile> GetFiles(string pathAndMask)
+        {
+            List<WatchedFile> files = new List<WatchedFile>();
+
+            // pull out the directory portion of the path/mask, accounting for /* syntax in the folder name
+            string replacedPathMask = ReplacePathVars(pathAndMask);
+            int lastSlashPos = replacedPathMask.LastIndexOf('/');
+            string baseDirectoryWithoutGlobSyntax = replacedPathMask.Substring(0, lastSlashPos);
+            int pos = baseDirectoryWithoutGlobSyntax.IndexOf("/*");
+            Matcher fileMatcher;
+            if (pos < 0)
+            {
+                // no /* in the directory, assume file mask is the last piece
+                string fileMask = replacedPathMask.Substring(++lastSlashPos);
+                fileMatcher = new Matcher(StringComparison.OrdinalIgnoreCase).AddInclude(fileMask);
+            }
+            else
+            {
+                // found a /*, take the root directory and make that the base path and everything else the glob path
+                string fileMask = replacedPathMask.Substring(pos);
+                baseDirectoryWithoutGlobSyntax = replacedPathMask.Substring(0, pos);
+                fileMatcher = new Matcher(StringComparison.OrdinalIgnoreCase).AddInclude(fileMask);
+            }
+
+            // get the base directory that does not have glob syntax
+            DirectoryInfoWrapper baseDir = new DirectoryInfoWrapper(new DirectoryInfo(baseDirectoryWithoutGlobSyntax));
+
+            // read in existing files that match the mask in the directory being watched
+            foreach (var file in fileMatcher.Execute(baseDir).Files)
+            {
+                try
+                {
+                    FileInfo info = new FileInfo(Path.Combine(baseDirectoryWithoutGlobSyntax, file.Path));
+                    files.Add(new WatchedFile(info.FullName, info.Length));
+                }
+                catch (Exception ex)
+                {
+                    if (!(ex is FileNotFoundException || ex is IOException))
+                    {
+                        throw ex;
+                    }
+                    // ignore, maybe the file got deleted...
+                }
+            }
+            return files;
+        }
+
+        /// <summary>
         /// Process the files, this is normally done on a timer, but if you have passed a 0 second
         /// processing interval to the constructor, you must call this manually
         /// </summary>
@@ -147,7 +227,7 @@ namespace DigitalRuby.IPBanCore
 
             try
             {
-                foreach (WatchedFile file in GetCurrentWatchedFiles().Where(f => !f.isBinaryFile))
+                foreach (WatchedFile file in GetCurrentWatchedFiles().Where(f => !f.IsBinaryFile))
                 {
                     // catch each file, that way one file exception doesn't bring down processing for all files
                     try
@@ -247,7 +327,7 @@ namespace DigitalRuby.IPBanCore
             return fs.Length;
         }
 
-        private string ReplacePathVars(string path)
+        private static string ReplacePathVars(string path)
         {
             DateTime nowUtc = IPBanService.UtcNow;
             DateTime nowLocal = nowUtc.ToLocalTime();
@@ -263,7 +343,7 @@ namespace DigitalRuby.IPBanCore
         {
             // read in existing files that match the mask in the directory being watched
             HashSet<WatchedFile> watchedFilesCopy = new HashSet<WatchedFile>();
-            foreach (WatchedFile file in GetLogFiles())
+            foreach (WatchedFile file in LogFileScanner.GetFiles(PathAndMask))
             {
                 watchedFilesCopy.Add(file);
             }
@@ -301,41 +381,6 @@ namespace DigitalRuby.IPBanCore
             return watchedFilesCopy;
         }
 
-        private IReadOnlyCollection<WatchedFile> GetLogFiles()
-        {
-            List<WatchedFile> files = new List<WatchedFile>();
-            try
-            {
-                // read in existing files that match the mask in the directory being watched
-                string replacedDirectory = ReplacePathVars(directoryToWatch);
-                if (Directory.Exists(replacedDirectory))
-                {
-                    string replacedFileMask = ReplacePathVars(fileMask);
-                    foreach (string file in Directory.EnumerateFiles(replacedDirectory, replacedFileMask, searchOption))
-                    {
-                        try
-                        {
-                            FileInfo info = new FileInfo(file);
-                            files.Add(new WatchedFile(file, info.Length));
-                        }
-                        catch (Exception ex)
-                        {
-                            if (!(ex is FileNotFoundException || ex is IOException))
-                            {
-                                throw ex;
-                            }
-                            // ignore, maybe the file got deleted...
-                        }
-                    }
-                }
-            }
-            catch
-            {
-                // nothing to do here, something failed enumerating the directory files
-            }
-            return files;
-        }
-
         private void ProcessFile(WatchedFile file, FileStream fs)
         {
             int b;
@@ -359,7 +404,7 @@ namespace DigitalRuby.IPBanCore
 
             if (countBeforeNewline > maxLineLength)
             {
-                file.isBinaryFile = true;
+                file.IsBinaryFile = true;
                 Logger.Warn($"Aborting parsing log file {file.FileName}, file may be a binary file");
                 return;
             }

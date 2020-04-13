@@ -48,7 +48,7 @@ namespace DigitalRuby.IPBanCore
         /// Create a log file scanner
         /// </summary>
         /// <param name="options">Options</param>
-        public IPBanLogFileScanner(IPBanIPAddressLogFileScannerOptions options) : base(options.PathAndMask, options.Recursive, options.MaxFileSizeBytes, options.PingIntervalMilliseconds)
+        public IPBanLogFileScanner(IPBanIPAddressLogFileScannerOptions options) : base(options.PathAndMask, options.MaxFileSizeBytes, options.PingIntervalMilliseconds)
         {
             options.ThrowIfNull(nameof(options));
             options.LoginHandler.ThrowIfNull(nameof(options.LoginHandler));
@@ -113,11 +113,6 @@ namespace DigitalRuby.IPBanCore
         /// Folder and file mask to search
         /// </summary>
         public string PathAndMask { get; set; }
-
-        /// <summary>
-        /// Whether to search PathAndMask recursively further down into the directory structure
-        /// </summary>
-        public bool Recursive { get; set; }
 
         /// <summary>
         /// Regular expression for failed logins, should at minimum have an ipaddress group, but can also have

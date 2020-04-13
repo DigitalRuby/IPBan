@@ -80,7 +80,7 @@ namespace DigitalRuby.IPBanTests
                 return;
             }
 
-            await RunTest("//LogFile[Source='MSExchange']", "Exchange/*.log");
+            await RunTest("//LogFile[Source='MSExchange']", "**/Exchange/*.log");
 
             Assert.AreEqual(1, successfulEvents.Count);
             Assert.AreEqual("180.20.20.20", successfulEvents[0].IPAddress);
@@ -105,7 +105,7 @@ namespace DigitalRuby.IPBanTests
         private async Task RunTest(string pathAndMaskXPath, string pathAndMaskOverride)
         {
             // create a test service with log file path/mask overriden
-            pathAndMaskOverride = Path.Combine(AppContext.BaseDirectory, "TestData", "LogFiles", pathAndMaskOverride);
+            pathAndMaskOverride = Path.Combine(AppContext.BaseDirectory, pathAndMaskOverride).Replace('\\', '/');
             service = IPBanService.CreateAndStartIPBanTestService<IPBanService>(configFileModifier: config =>
             {
                 XmlDocument doc = new XmlDocument();
@@ -119,10 +119,10 @@ namespace DigitalRuby.IPBanTests
 
             // read all the files, save contents in memory temporarily
             Dictionary<string, string> files = new Dictionary<string, string>();
-            foreach (string fileName in Directory.GetFiles(Path.GetDirectoryName(pathAndMaskOverride), Path.GetFileName(pathAndMaskOverride)))
+            foreach (var file in LogFileScanner.GetFiles(pathAndMaskOverride))
             {
-                files[fileName] = File.ReadAllText(fileName);
-                File.WriteAllText(fileName, string.Empty);
+                files[file.FileName] = File.ReadAllText(file.FileName);
+                File.WriteAllText(file.FileName, string.Empty);
             }
 
             // force service to read all files as empty, the service always starts at the end of the file

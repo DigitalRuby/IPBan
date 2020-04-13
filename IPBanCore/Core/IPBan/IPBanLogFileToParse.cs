@@ -55,15 +55,6 @@ namespace DigitalRuby.IPBanCore
         public string PathAndMask { get; set; } = string.Empty;
 
         /// <summary>
-        /// Recursive directory search?
-        /// </summary>
-        [DisplayFormat(ConvertEmptyStringToNull = false)]
-        [Required(AllowEmptyStrings = true)]
-        [LocalizedDisplayName(nameof(IPBanResources.Recursive))]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-        public bool Recursive { get; set; }
-
-        /// <summary>
         /// Failed login regex
         /// </summary>
         [DisplayFormat(ConvertEmptyStringToNull = false)]
