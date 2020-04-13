@@ -39,7 +39,8 @@ namespace DigitalRuby.IPBanTests
     public class IPBanLogFileIntegrationTests : IIPBanDelegate
     {
         private IPBanService service;
-        private readonly List<IPAddressLogEvent> loggedEvents = new List<IPAddressLogEvent>();
+        private readonly List<IPAddressLogEvent> failedEvents = new List<IPAddressLogEvent>();
+        private readonly List<IPAddressLogEvent> successfulEvents = new List<IPAddressLogEvent>();
 
         [SetUp]
         public void Setup()
@@ -50,16 +51,23 @@ namespace DigitalRuby.IPBanTests
         [TearDown]
         public void Teardown()
         {
-            loggedEvents.Clear();
+            failedEvents.Clear();
+            successfulEvents.Clear();
             IPBanService.DisposeIPBanTestService(service);
             service = null;
         }
 
         public void Dispose() { }
 
+        Task IIPBanDelegate.LoginAttemptFailed(string ip, string source, string userName, string machineGuid, string osName, string osVersion, DateTime timestamp)
+        {
+            failedEvents.Add(new IPAddressLogEvent(ip, userName, source, 1, IPAddressEventType.FailedLogin, timestamp));
+            return Task.CompletedTask;
+        }
+
         Task IIPBanDelegate.LoginAttemptSucceeded(string ip, string source, string userName, string machineGuid, string osName, string osVersion, DateTime timestamp)
         {
-            loggedEvents.Add(new IPAddressLogEvent(ip, userName, source, 1, IPAddressEventType.SuccessfulLogin, timestamp));
+            successfulEvents.Add(new IPAddressLogEvent(ip, userName, source, 1, IPAddressEventType.SuccessfulLogin, timestamp));
             return Task.CompletedTask;
         }
 
@@ -73,25 +81,25 @@ namespace DigitalRuby.IPBanTests
             }
 
             await RunTest("//LogFile[Source='MSExchange']", "Exchange/*.log");
-            Assert.AreEqual(1, loggedEvents.Count);
-            Assert.AreEqual("180.20.20.20", loggedEvents[0].IPAddress);
-            Assert.AreEqual("MSExchange", loggedEvents[0].Source);
-            Assert.AreEqual(IPAddressEventType.SuccessfulLogin, loggedEvents[0].Type);
-            Assert.AreEqual("user@example.com", loggedEvents[0].UserName);
 
-            var ips = service.DB.EnumerateIPAddresses().OrderBy(i => i.IPAddress).ToArray();
+            Assert.AreEqual(1, successfulEvents.Count);
+            Assert.AreEqual("180.20.20.20", successfulEvents[0].IPAddress);
+            for (int i = 0; i < successfulEvents.Count; i++)
+            {
+                Assert.AreEqual("MSExchange", successfulEvents[i].Source);
+                Assert.AreEqual(IPAddressEventType.SuccessfulLogin, successfulEvents[i].Type);
+                Assert.AreEqual("user@example.com", successfulEvents[i].UserName);
+            }
 
-            Assert.AreEqual(2, ips.Length);
-
-            Assert.AreEqual("180.60.60.60", ips[0].IPAddress);
-            Assert.AreEqual("MSExchange", ips[0].Source);
-            Assert.AreEqual("user@example.com", ips[0].UserName);
-            Assert.AreEqual(IPBanDB.IPAddressState.FailedLogin, ips[0].State);
-
-            Assert.AreEqual("90.30.30.30", ips[1].IPAddress);
-            Assert.AreEqual("MSExchange", ips[1].Source);
-            Assert.AreEqual("user@example.com", ips[0].UserName);
-            Assert.AreEqual(IPBanDB.IPAddressState.FailedLogin, ips[1].State);
+            Assert.AreEqual(2, failedEvents.Count);
+            Assert.AreEqual("90.30.30.30", failedEvents[0].IPAddress);
+            Assert.AreEqual("180.60.60.60", failedEvents[1].IPAddress);
+            for (int i = 0; i < failedEvents.Count; i++)
+            {
+                Assert.AreEqual("MSExchange", failedEvents[i].Source);
+                Assert.AreEqual("user@example.com", failedEvents[i].UserName);
+                Assert.AreEqual(IPAddressEventType.FailedLogin, failedEvents[i].Type);
+            }
         }
 
         private async Task RunTest(string pathAndMaskXPath, string pathAndMaskOverride)
