@@ -54,10 +54,7 @@ namespace DigitalRuby.IPBanCore
                 return other.FileName == FileName;
             }
 
-            public override int GetHashCode()
-            {
-                return FileName.GetHashCode();
-            }
+            public override int GetHashCode() => FileName.GetHashCode();
 
             public string FileName { get; private set; }
             public long LastPosition { get; set; }
@@ -334,7 +331,7 @@ namespace DigitalRuby.IPBanCore
 
         private void ProcessFile(WatchedFile file, FileStream fs)
         {
-            const int maxCountBeforeNewline = 1024;
+            const int maxCountBeforeNewline = 8192;
             int b;
             long lastNewlinePos = -1;
             long end = Math.Min(file.LastLength, fs.Length);
