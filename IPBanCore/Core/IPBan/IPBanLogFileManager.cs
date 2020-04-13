@@ -95,9 +95,10 @@ namespace DigitalRuby.IPBanCore
                     if (pathAndMask.Length != 0)
                     {
                         // if we don't have this log file and the platform matches, add it
-                        if (logFilesToParse.FirstOrDefault(f => f.PathAndMask == pathAndMask) is null &&
-                            !string.IsNullOrWhiteSpace(newFile.PlatformRegex) &&
-                            Regex.IsMatch(OSUtility.Description, newFile.PlatformRegex.ToString().Trim(), RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))
+                        bool noMatchingLogFile = logFilesToParse.FirstOrDefault(f => f.PathAndMask == pathAndMask) is null;
+                        bool platformMatches = !string.IsNullOrWhiteSpace(newFile.PlatformRegex) &&
+                            Regex.IsMatch(OSUtility.Description, newFile.PlatformRegex.ToString().Trim(), RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+                        if (noMatchingLogFile && platformMatches)                            
                         {
                             // log files use a timer internally and do not need to be updated regularly
                             IPBanIPAddressLogFileScannerOptions options = new IPBanIPAddressLogFileScannerOptions
@@ -116,11 +117,12 @@ namespace DigitalRuby.IPBanCore
                             };
                             IPBanLogFileScanner scanner = new IPBanLogFileScanner(options);
                             logFilesToParse.Add(scanner);
-                            Logger.Debug("Adding log file to parse: {0}", pathAndMask);
+                            Logger.Info("Adding log file to parse: {0}", pathAndMask);
                         }
                         else
                         {
-                            Logger.Debug("Ignoring log file path {0}, regex: {1}", pathAndMask, newFile.PlatformRegex);
+                            Logger.Debug("Ignoring log file path {0}, regex: {1}, no matching file: {2}, platform match: {3}",
+                                pathAndMask, newFile.PlatformRegex, noMatchingLogFile, platformMatches);
                         }
                     }
                 }

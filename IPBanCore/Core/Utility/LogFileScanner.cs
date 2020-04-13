@@ -70,6 +70,7 @@ namespace DigitalRuby.IPBanCore
         private readonly string fileMask;
         private readonly long maxFileSize;
         private readonly Encoding encoding;
+        private readonly SearchOption searchOption;
 
         /// <summary>
         /// Create a log file scanner
@@ -90,28 +91,10 @@ namespace DigitalRuby.IPBanCore
             this.encoding = encoding ?? Encoding.UTF8;
 
             // add initial files
-            SearchOption option = (recursive ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly);
-            string dir = Path.GetDirectoryName(pathAndMask);
-            if (Directory.Exists(dir))
+            searchOption = (recursive ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly);
+            foreach (WatchedFile file in GetLogFiles())
             {
-                foreach (string existingFileName in Directory.GetFiles(dir, Path.GetFileName(pathAndMask), option))
-                {
-                    try
-                    {
-                        // start at end of existing files
-                        FileInfo info = new FileInfo(existingFileName);
-                        long pos = info.Length;
-                        watchedFiles.Add(new WatchedFile(existingFileName, pos));
-                    }
-                    catch (Exception ex)
-                    {
-                        if (!(ex is FileNotFoundException || ex is IOException))
-                        {
-                            throw ex;
-                        }
-                        // ignore, maybe the file got deleted...
-                    }
-                }
+                watchedFiles.Add(file);
             }
 
             // setup timer to process files
@@ -264,30 +247,21 @@ namespace DigitalRuby.IPBanCore
         {
             DateTime nowUtc = IPBanService.UtcNow;
             DateTime nowLocal = nowUtc.ToLocalTime();
-            return path.Replace("{year}", nowUtc.Year.ToString("0000")).Replace("{month}", nowUtc.Month.ToString("00")).Replace("{day}", nowUtc.Day.ToString("00"))
-                .Replace("{year-local}", nowLocal.Year.ToString("0000")).Replace("{month-local}", nowLocal.Month.ToString("00")).Replace("{day-local}", nowLocal.Day.ToString("00")); ;
+            return path.Replace("{year}", nowUtc.Year.ToString("0000"))
+                .Replace("{month}", nowUtc.Month.ToString("00"))
+                .Replace("{day}", nowUtc.Day.ToString("00"))
+                .Replace("{year-local}", nowLocal.Year.ToString("0000"))
+                .Replace("{month-local}", nowLocal.Month.ToString("00"))
+                .Replace("{day-local}", nowLocal.Day.ToString("00"));
         }
 
         private HashSet<WatchedFile> GetCurrentWatchedFiles()
         {
+            // read in existing files that match the mask in the directory being watched
             HashSet<WatchedFile> watchedFilesCopy = new HashSet<WatchedFile>();
-
-            try
+            foreach (WatchedFile file in GetLogFiles())
             {
-                // read in existing files that match the mask in the directory being watched
-                if (Directory.Exists(directoryToWatch))
-                {
-                    string replacedDirectory = ReplacePathVars(directoryToWatch);
-                    string replacedFileMask = ReplacePathVars(fileMask);
-                    foreach (string file in Directory.EnumerateFiles(replacedDirectory, replacedFileMask, SearchOption.TopDirectoryOnly))
-                    {
-                        watchedFilesCopy.Add(new WatchedFile(file, new FileInfo(file).Length));
-                    }
-                }
-            }
-            catch
-            {
-                // nothing to do here, something failed enumerating the directory files
+                watchedFilesCopy.Add(file);
             }
 
             lock (watchedFiles)
@@ -321,6 +295,41 @@ namespace DigitalRuby.IPBanCore
             }
 
             return watchedFilesCopy;
+        }
+
+        private IReadOnlyCollection<WatchedFile> GetLogFiles()
+        {
+            List<WatchedFile> files = new List<WatchedFile>();
+            try
+            {
+                // read in existing files that match the mask in the directory being watched
+                string replacedDirectory = ReplacePathVars(directoryToWatch);
+                if (Directory.Exists(replacedDirectory))
+                {
+                    string replacedFileMask = ReplacePathVars(fileMask);
+                    foreach (string file in Directory.EnumerateFiles(replacedDirectory, replacedFileMask, searchOption))
+                    {
+                        try
+                        {
+                            FileInfo info = new FileInfo(file);
+                            files.Add(new WatchedFile(file, info.Length));
+                        }
+                        catch (Exception ex)
+                        {
+                            if (!(ex is FileNotFoundException || ex is IOException))
+                            {
+                                throw ex;
+                            }
+                            // ignore, maybe the file got deleted...
+                        }
+                    }
+                }
+            }
+            catch
+            {
+                // nothing to do here, something failed enumerating the directory files
+            }
+            return files;
         }
 
         private void ProcessFile(WatchedFile file, FileStream fs)
