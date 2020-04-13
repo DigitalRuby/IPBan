@@ -208,10 +208,6 @@ namespace DigitalRuby.IPBanTests
             {
                 // prime Linux log files
                 IPBanPlugin.IPBanLoginFailed("SSH", "User1", "78.88.88.88");
-                foreach (LogFileScanner toParse in service.LogFilesToParse)
-                {
-                    toParse.ProcessFiles();
-                }
             }
             service.RunCycle().Sync();
             for (int i = 0; i < 5; i++)
@@ -223,10 +219,6 @@ namespace DigitalRuby.IPBanTests
                 for (int j = 0; j < 10 && (!service.DB.TryGetIPAddress("88.88.88.88", out IPBanDB.IPAddressEntry e) || e.FailedLoginCount != i + 1); j++)
                 {
                     System.Threading.Thread.Sleep(100);
-                    foreach (LogFileScanner toParse in service.LogFilesToParse)
-                    {
-                        toParse.ProcessFiles();
-                    }
                     service.RunCycle().Sync();
                 }
                 IPBanService.UtcNow += TimeSpan.FromMinutes(5.0);
@@ -249,19 +241,13 @@ namespace DigitalRuby.IPBanTests
                 ExtensionMethods.FileWriteAllTextWithRetry(file, "awerfoajwerp jaeowr paojwer " + Environment.NewLine);
                 service.RunCycle().Sync();
                 System.Threading.Thread.Sleep(100);
-                foreach (LogFileScanner toParse in service.LogFilesToParse)
-                {
-                    toParse.ProcessFiles();
-                }
+                service.RunCycle().Sync();
                 string data = "ipban failed login, ip address: 99.99.99.99, source: SSH, user: User2" + Environment.NewLine;
                 for (int i = 0; i < 5; i++)
                 {
                     File.AppendAllText(file, data);
                     IPBanService.UtcNow += TimeSpan.FromMinutes(5.0);
-                    foreach (LogFileScanner toParse in service.LogFilesToParse)
-                    {
-                        toParse.ProcessFiles();
-                    }
+                    service.RunCycle().Sync();
 
                     // attempt to read failed logins, if they do not match, sleep a bit and try again
                     for (int j = 0; j < 10 && (!service.DB.TryGetIPAddress("99.99.99.99", out IPBanDB.IPAddressEntry e) || e.FailedLoginCount != i + 1); j++)

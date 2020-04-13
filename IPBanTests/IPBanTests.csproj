@@ -31,4 +31,13 @@
     <ProjectReference Include="..\IPBanCore\IPBanCore.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="TestData\LogFiles\Exchange\smtp_auth_successful.log">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="TestData\LogFiles\Exchange\smtp_auth_unsuccessful.log">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

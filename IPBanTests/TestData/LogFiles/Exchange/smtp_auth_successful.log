@@ -1,0 +1,27 @@
+#Software: Microsoft Exchange Server
+#Version: 15.0.0.0
+#Log-type: SMTP Receive Protocol Log
+#Date: 2020-04-02T07:00:14.501Z
+#Fields: date-time,connector-id,session-id,sequence-number,local-endpoint,remote-endpoint,event,data,context
+2020-04-02T07:57:37.405Z,SRV-XCH03\External Authenticated Relay,08D7D4D2EFBC4CC6,0,192.168.0.101:10587,180.20.20.20:50767,+,,
+2020-04-02T07:57:37.406Z,SRV-XCH03\External Authenticated Relay,08D7D4D2EFBC4CC6,1,192.168.0.101:10587,180.20.20.20:50767,>,"220 mail.example.com Microsoft ESMTP MAIL Service ready at Thu, 2 Apr 2020 09:57:37 +0200",
+2020-04-02T07:57:37.426Z,SRV-XCH03\External Authenticated Relay,08D7D4D2EFBC4CC6,2,192.168.0.101:10587,180.20.20.20:50767,<,EHLO srv-app01,
+2020-04-02T07:57:37.426Z,SRV-XCH03\External Authenticated Relay,08D7D4D2EFBC4CC6,3,192.168.0.101:10587,180.20.20.20:50767,>,250  mail.example.com Hello [180.20.20.20] SIZE 37748736 PIPELINING DSN ENHANCEDSTATUSCODES STARTTLS AUTH LOGIN 8BITMIME BINARYMIME CHUNKING,
+2020-04-02T07:57:37.444Z,SRV-XCH03\External Authenticated Relay,08D7D4D2EFBC4CC6,4,192.168.0.101:10587,180.20.20.20:50767,<,STARTTLS,
+2020-04-02T07:57:37.445Z,SRV-XCH03\External Authenticated Relay,08D7D4D2EFBC4CC6,5,192.168.0.101:10587,180.20.20.20:50767,>,220 2.0.0 SMTP server ready,
+2020-04-02T07:57:37.445Z,SRV-XCH03\External Authenticated Relay,08D7D4D2EFBC4CC6,6,192.168.0.101:10587,180.20.20.20:50767,*," CN=*.example.com, OU=Redacted Certificate Information *.example.com;example.com",Sending certificate Subject Issuer name Serial number Thumbprint Not before Not after Subject alternate names
+2020-04-02T07:57:37.490Z,SRV-XCH03\External Authenticated Relay,08D7D4D2EFBC4CC6,7,192.168.0.101:10587,180.20.20.20:50767,*,,"TLS protocol SP_PROT_TLS1_2_SERVER negotiation succeeded using bulk encryption algorithm CALG_AES_256 with strength 256 bits, MAC hash algorithm CALG_SHA_384 with strength 0 bits and key exchange algorithm CALG_ECDH_EPHEM with strength 255 bits"
+2020-04-02T07:57:37.511Z,SRV-XCH03\External Authenticated Relay,08D7D4D2EFBC4CC6,8,192.168.0.101:10587,180.20.20.20:50767,<,EHLO srv-app01,
+2020-04-02T07:57:37.511Z,SRV-XCH03\External Authenticated Relay,08D7D4D2EFBC4CC6,9,192.168.0.101:10587,180.20.20.20:50767,*,,Client certificate chain validation status: 'EmptyCertificate'
+2020-04-02T07:57:37.511Z,SRV-XCH03\External Authenticated Relay,08D7D4D2EFBC4CC6,10,192.168.0.101:10587,180.20.20.20:50767,*,,TlsDomainCapabilities='None'; Status='NoRemoteCertificate'
+2020-04-02T07:57:37.511Z,SRV-XCH03\External Authenticated Relay,08D7D4D2EFBC4CC6,11,192.168.0.101:10587,180.20.20.20:50767,>,250  mail.example.com Hello [180.20.20.20] SIZE 37748736 PIPELINING DSN ENHANCEDSTATUSCODES AUTH LOGIN 8BITMIME BINARYMIME CHUNKING,
+2020-04-02T07:57:37.530Z,SRV-XCH03\External Authenticated Relay,08D7D4D2EFBC4CC6,12,192.168.0.101:10587,180.20.20.20:50767,<,AUTH login,
+2020-04-02T07:57:37.530Z,SRV-XCH03\External Authenticated Relay,08D7D4D2EFBC4CC6,13,192.168.0.101:10587,180.20.20.20:50767,>,334 <authentication response>,
+2020-04-02T07:57:37.647Z,SRV-XCH03\External Authenticated Relay,08D7D4D2EFBC4CC6,14,192.168.0.101:10587,180.20.20.20:50767,*,SMTPSubmit SMTPAcceptAnyRecipient SMTPAcceptAnySender BypassAntiSpam AcceptRoutingHeaders,Set Session Permissions
+2020-04-02T07:57:37.647Z,SRV-XCH03\External Authenticated Relay,08D7D4D2EFBC4CC6,15,192.168.0.101:10587,180.20.20.20:50767,*,user@example.com,authenticated
+2020-04-02T07:57:37.647Z,SRV-XCH03\External Authenticated Relay,08D7D4D2EFBC4CC6,16,192.168.0.101:10587,180.20.20.20:50767,*,,ASyncBackendLocator.BeginGetDatabaseToServerMappingInfo for user user@example.com.
+2020-04-02T07:57:37.667Z,SRV-XCH03\External Authenticated Relay,08D7D4D2EFBC4CC6,17,192.168.0.101:10587,180.20.20.20:50767,*,,AsyncBackendLocator.EndGetDatabaseToServerMappingInfo for user user@example.com
+2020-04-02T07:57:37.667Z,SRV-XCH03\External Authenticated Relay,08D7D4D2EFBC4CC6,18,192.168.0.101:10587,180.20.20.20:50767,*,,Setting up client proxy session to destination(s): srv-xch03.example.com
+2020-04-02T07:57:37.708Z,SRV-XCH03\External Authenticated Relay,08D7D4D2EFBC4CC6,19,192.168.0.101:10587,180.20.20.20:50767,*,,Proxy session was successfully set up. Session foruser@example.com will now be proxied
+2020-04-02T07:57:37.708Z,SRV-XCH03\External Authenticated Relay,08D7D4D2EFBC4CC6,20,192.168.0.101:10587,180.20.20.20:50767,>,235 2.7.0 Authentication successful,
+2020-04-02T07:57:40.532Z,SRV-XCH03\External Authenticated Relay,08D7D4D2EFBC4CC6,21,192.168.0.101:10587,180.20.20.20:50767,-,,Remote(ConnectionReset)

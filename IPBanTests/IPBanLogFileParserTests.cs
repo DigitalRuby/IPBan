@@ -295,7 +295,7 @@ namespace DigitalRuby.IPBanTests
                 RegexSuccess = successRegex,
                 RegexSuccessTimestampFormat = successRegexTimestampFormat
             };
-            LogFileScanner scanner = new IPBanIPAddressLogFileScanner(options);
+            LogFileScanner scanner = new IPBanLogFileScanner(options);
             ExtensionMethods.FileWriteAllTextWithRetry(fullPath, string.Empty);
             scanner.ProcessFiles();
             return scanner;

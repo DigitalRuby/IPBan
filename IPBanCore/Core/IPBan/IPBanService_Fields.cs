@@ -52,7 +52,6 @@ namespace DigitalRuby.IPBanCore
         private readonly List<IPAddressLogEvent> pendingSuccessfulLogins = new List<IPAddressLogEvent>();
         private readonly List<IPAddressLogEvent> pendingLogEvents = new List<IPAddressLogEvent>();
         private readonly HashSet<IUpdater> updaters = new HashSet<IUpdater>();
-        private readonly HashSet<LogFileScanner> logFilesToParse = new HashSet<LogFileScanner>();
         private readonly SemaphoreSlim stopEvent = new SemaphoreSlim(0, 1);
         private readonly Dictionary<string, AsyncQueue<Func<CancellationToken, Task>>> firewallQueue = new Dictionary<string, AsyncQueue<Func<CancellationToken, Task>>>();
         private readonly CancellationTokenSource serviceCancelTokenSource = new CancellationTokenSource();
@@ -112,6 +111,11 @@ namespace DigitalRuby.IPBanCore
         /// Configuration
         /// </summary>
         public IPBanConfig Config { get; private set; }
+
+        /// <summary>
+        /// Config changed event
+        /// </summary>
+        public event Action<IPBanConfig> ConfigChanged;
 
         /// <summary>
         /// Config reader/writer
@@ -187,11 +191,6 @@ namespace DigitalRuby.IPBanCore
         /// Whether to link up to the Windows event viewer on Start
         /// </summary>
         public bool UseWindowsEventViewer { get; set; } = true;
-
-        /// <summary>
-        /// Log files to parse
-        /// </summary>
-        public IReadOnlyCollection<LogFileScanner> LogFilesToParse { get { return logFilesToParse; } }
 
         private static DateTime? utcNow;
         /// <summary>

@@ -101,14 +101,12 @@ namespace DigitalRuby.IPBanCore
             {
                 // WMI API sometimes fails to initialize on .NET core on some systems, not sure why...
                 // fall-back to WMI, maybe future .NET core versions will fix the bug
-                using (ManagementObjectSearcher searcher = new ManagementObjectSearcher("SELECT Caption, Version FROM Win32_OperatingSystem"))
+                using ManagementObjectSearcher searcher = new ManagementObjectSearcher("SELECT Caption, Version FROM Win32_OperatingSystem");
+                foreach (var result in searcher.Get())
                 {
-                    foreach (var result in searcher.Get())
-                    {
-                        FriendlyName = result["Caption"] as string;
-                        Version = result["Version"] as string;
-                        break;
-                    }
+                    FriendlyName = result["Caption"] as string;
+                    Version = result["Version"] as string;
+                    break;
                 }
             }
             catch (Exception ex)

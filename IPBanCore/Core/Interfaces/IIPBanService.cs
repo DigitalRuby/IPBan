@@ -115,9 +115,19 @@ namespace DigitalRuby.IPBanCore
         bool IsRunning { get; }
 
         /// <summary>
+        /// Whether the cycle runs automatically
+        /// </summary>
+        bool ManualCycle { get; }
+
+        /// <summary>
         /// Current configuration
         /// </summary>
         IPBanConfig Config { get; }
+
+        /// <summary>
+        /// Config changed event
+        /// </summary>
+        event Action<IPBanConfig> ConfigChanged;
 
         /// <summary>
         /// Local ip address string
@@ -199,12 +209,12 @@ namespace DigitalRuby.IPBanCore
         /// Start - call only once. Dispose to stop.
         /// </summary>
         /// <param name="service">The service this delegate is attached to</param>
-        void Start(IIPBanService service);
+        void Start(IIPBanService service) { }
 
         /// <summary>
         /// Update, do housekeeping, etc.
         /// </summary>
-        Task Update();
+        Task Update() => Task.CompletedTask;
 
         /// <summary>
         /// Notify when an ip is banned
@@ -218,7 +228,7 @@ namespace DigitalRuby.IPBanCore
         /// <param name="timestamp">Timestamp</param>
         /// <param name="banned">True if banned, false if unbanned</param>
         /// <returns>Task</returns>
-        Task IPAddressBanned(string ip, string source, string userName, string machineGuid, string osName, string osVersion, DateTime timestamp, bool banned);
+        Task IPAddressBanned(string ip, string source, string userName, string machineGuid, string osName, string osVersion, DateTime timestamp, bool banned) => Task.CompletedTask;
 
         /// <summary>
         /// Notify when a login attempt fails
@@ -231,7 +241,7 @@ namespace DigitalRuby.IPBanCore
         /// <param name="osVersion">OS version</param>
         /// <param name="timestamp">Timestamp</param>
         /// <returns>Task</returns>
-        Task LoginAttemptFailed(string ip, string source, string userName, string machineGuid, string osName, string osVersion, DateTime timestamp);
+        Task LoginAttemptFailed(string ip, string source, string userName, string machineGuid, string osName, string osVersion, DateTime timestamp) => Task.CompletedTask;
 
         /// <summary>
         /// Notify when a login attempt succeeds
@@ -244,6 +254,6 @@ namespace DigitalRuby.IPBanCore
         /// <param name="osVersion">OS version</param>
         /// <param name="timestamp">Timestamp</param>
         /// <returns>Task</returns>
-        Task LoginAttemptSucceeded(string ip, string source, string userName, string machineGuid, string osName, string osVersion, DateTime timestamp);
+        Task LoginAttemptSucceeded(string ip, string source, string userName, string machineGuid, string osName, string osVersion, DateTime timestamp) => Task.CompletedTask;
     }
 }

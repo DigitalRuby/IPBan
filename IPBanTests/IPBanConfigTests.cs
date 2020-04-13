@@ -80,7 +80,7 @@ namespace DigitalRuby.IPBanTests
                 "C:/Program Files/Microsoft/Exchange Server/*.log",
                 @"^(?<timestamp>[0-9TZ\-:\.]+)?,(?:[^,\n]*,){3}(?<ipaddress>[^,\n]*),(?<username>[^,\n]*),.*?AuthFailed|^(?<timestamp>[0-9TZ\-:\.]+)?,(?:[^,\n]*,){4}(?<ipaddress>[^,\n]+),(?:[^,\n]*,){2}.*?LogonDenied\n.*?User Name: (?<username>.+)\n",
                 @"",
-                @"",
+                @"^(?<timestamp>[0-9TZ\-:\.]+)?,(?:[^,\n]*,){4}(?<ipaddress>[^,\n]*),(?:[^,\n]*),(?<username>[^,\n]*),authenticated",
                 @"",
                 "Windows", true, "MSExchange",
 

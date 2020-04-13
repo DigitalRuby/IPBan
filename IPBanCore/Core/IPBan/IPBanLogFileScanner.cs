@@ -28,9 +28,9 @@ using System.Text.RegularExpressions;
 namespace DigitalRuby.IPBanCore
 {
     /// <summary>
-    /// Log file scanner that looks for failed logins
+    /// Log file scanner that looks for failed and successful logins
     /// </summary>
-    public class IPBanIPAddressLogFileScanner : LogFileScanner
+    public class IPBanLogFileScanner : LogFileScanner
     {
         private readonly IIPAddressEventHandler loginHandler;
         private readonly IDnsLookup dns;
@@ -48,7 +48,7 @@ namespace DigitalRuby.IPBanCore
         /// Create a log file scanner
         /// </summary>
         /// <param name="options">Options</param>
-        public IPBanIPAddressLogFileScanner(IPBanIPAddressLogFileScannerOptions options) : base(options.PathAndMask, options.Recursive, options.MaxFileSizeBytes, options.PingIntervalMilliseconds)
+        public IPBanLogFileScanner(IPBanIPAddressLogFileScannerOptions options) : base(options.PathAndMask, options.Recursive, options.MaxFileSizeBytes, options.PingIntervalMilliseconds)
         {
             options.ThrowIfNull(nameof(options));
             options.LoginHandler.ThrowIfNull(nameof(options.LoginHandler));

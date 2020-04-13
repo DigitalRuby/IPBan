@@ -94,25 +94,22 @@ namespace DigitalRuby.IPBanCore
             string dir = Path.GetDirectoryName(pathAndMask);
             if (Directory.Exists(dir))
             {
-                lock (watchedFiles)
+                foreach (string existingFileName in Directory.GetFiles(dir, Path.GetFileName(pathAndMask), option))
                 {
-                    foreach (string existingFileName in Directory.GetFiles(dir, Path.GetFileName(pathAndMask), option))
+                    try
                     {
                         // start at end of existing files
                         FileInfo info = new FileInfo(existingFileName);
-                        try
+                        long pos = info.Length;
+                        watchedFiles.Add(new WatchedFile(existingFileName, pos));
+                    }
+                    catch (Exception ex)
+                    {
+                        if (!(ex is FileNotFoundException || ex is IOException))
                         {
-                            long pos = info.Length;
-                            watchedFiles.Add(new WatchedFile(existingFileName, pos));
+                            throw ex;
                         }
-                        catch (Exception ex)
-                        {
-                            if (!(ex is FileNotFoundException || ex is IOException))
-                            {
-                                throw ex;
-                            }
-                            // ignore, maybe the file got deleted...
-                        }
+                        // ignore, maybe the file got deleted...
                     }
                 }
             }
@@ -144,6 +141,12 @@ namespace DigitalRuby.IPBanCore
             {
                 watchedFiles.Clear();
             }
+        }
+
+        /// <inheritdoc />
+        public override string ToString()
+        {
+            return $"Path/Mask: {PathAndMask}, Files: {watchedFiles.Count}, Encoding: {encoding.EncodingName}";
         }
 
         /// <summary>

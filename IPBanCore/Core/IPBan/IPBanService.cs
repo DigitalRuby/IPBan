@@ -49,6 +49,9 @@ namespace DigitalRuby.IPBanCore
         {
             OSName = OSUtility.Name + (string.IsNullOrWhiteSpace(OSUtility.FriendlyName) ? string.Empty : " (" + OSUtility.FriendlyName + ")");
             OSVersion = OSUtility.Version;
+
+            // by default, all IPBan services will parse log files
+            updaters.Add(new IPBanLogFileManager(this));
         }
 
         /// <summary>
@@ -267,10 +270,6 @@ namespace DigitalRuby.IPBanCore
                         updater.Dispose();
                     }
                     updaters.Clear();
-                }
-                foreach (LogFileScanner file in logFilesToParse)
-                {
-                    file.Dispose();
                 }
                 ipDB?.Dispose();
                 Logger.Warn("Stopped IPBan service");
