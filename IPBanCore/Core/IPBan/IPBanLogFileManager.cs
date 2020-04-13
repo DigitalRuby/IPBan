@@ -98,7 +98,7 @@ namespace DigitalRuby.IPBanCore
                         bool noMatchingLogFile = logFilesToParse.FirstOrDefault(f => f.PathAndMask == pathAndMask) is null;
                         bool platformMatches = !string.IsNullOrWhiteSpace(newFile.PlatformRegex) &&
                             Regex.IsMatch(OSUtility.Description, newFile.PlatformRegex.ToString().Trim(), RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
-                        if (noMatchingLogFile && platformMatches)                            
+                        if (noMatchingLogFile && platformMatches)
                         {
                             // log files use a timer internally and do not need to be updated regularly
                             IPBanIPAddressLogFileScannerOptions options = new IPBanIPAddressLogFileScannerOptions

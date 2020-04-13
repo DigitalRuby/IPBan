@@ -59,6 +59,8 @@ namespace DigitalRuby.IPBanCore
             public string FileName { get; private set; }
             public long LastPosition { get; set; }
             public long LastLength { get; set; }
+
+            internal bool isBinaryFile { get; set; }
         }
 
         private readonly HashSet<WatchedFile> watchedFiles = new HashSet<WatchedFile>();
@@ -81,9 +83,11 @@ namespace DigitalRuby.IPBanCore
         /// <param name="maxLineLength">Maximum line length before considering the file a binary file and failing</param>
         public LogFileScanner(string pathAndMask, bool recursive, long maxFileSizeBytes = 0, int fileProcessingIntervalMilliseconds = 0, Encoding encoding = null, int maxLineLength = 8192)
         {
-            // setup properties
-            PathAndMask = pathAndMask?.Trim();
+            // replace env vars in path/mask
+            PathAndMask = pathAndMask.Trim();
             PathAndMask.ThrowIfNullOrEmpty(nameof(pathAndMask), "Must pass a non-empty path and mask to log file scanner");
+
+            // set properties
             this.maxFileSize = maxFileSizeBytes;
             directoryToWatch = Path.GetDirectoryName(pathAndMask);
             fileMask = Path.GetFileName(pathAndMask);
@@ -143,7 +147,7 @@ namespace DigitalRuby.IPBanCore
 
             try
             {
-                foreach (WatchedFile file in GetCurrentWatchedFiles())
+                foreach (WatchedFile file in GetCurrentWatchedFiles().Where(f => !f.isBinaryFile))
                 {
                     // catch each file, that way one file exception doesn't bring down processing for all files
                     try
@@ -342,7 +346,7 @@ namespace DigitalRuby.IPBanCore
 
             Logger.Info("Processing log file {0}, len = {1}, pos = {2}", file.FileName, file.LastLength, file.LastPosition);
 
-            while (fs.Position < end && ++countBeforeNewline != maxLineLength)
+            while (fs.Position < end && countBeforeNewline++ != maxLineLength)
             {
                 // read until last \n is found
                 b = fs.ReadByte();
@@ -353,9 +357,11 @@ namespace DigitalRuby.IPBanCore
                 }
             }
 
-            if (countBeforeNewline == maxLineLength)
+            if (countBeforeNewline > maxLineLength)
             {
-                throw new InvalidOperationException($"Cannot process log file '{file.FileName}', file may not be a plain text new line delimited file");
+                file.isBinaryFile = true;
+                Logger.Warn($"Aborting parsing log file {file.FileName}, file may be a binary file");
+                return;
             }
 
             // if we found a newline, process all the text up until that newline
