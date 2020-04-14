@@ -389,7 +389,7 @@ namespace DigitalRuby.IPBanCore
             int countBeforeNewline = 0;
             fs.Position = file.LastPosition;
 
-            Logger.Info("Processing log file {0}, len = {1}, pos = {2}", file.FileName, file.LastLength, file.LastPosition);
+            Logger.Trace("Processing log file {0}, len = {1}, pos = {2}", file.FileName, file.LastLength, file.LastPosition);
 
             while (fs.Position < end && countBeforeNewline++ != maxLineLength)
             {

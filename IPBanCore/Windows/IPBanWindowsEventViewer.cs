@@ -91,7 +91,7 @@ namespace DigitalRuby.IPBanCore
         /// <returns>Log event or null if fail to parse/process</returns>
         public IPAddressLogEvent ProcessEventViewerXml(string xml)
         {
-            Logger.Debug("Processing event viewer xml: {0}", xml);
+            Logger.Trace("Processing event viewer xml: {0}", xml);
 
             XmlDocument doc = ParseXml(xml);
             IPAddressLogEvent info = ExtractEventViewerXml(doc);
