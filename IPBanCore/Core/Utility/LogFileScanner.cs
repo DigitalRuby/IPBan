@@ -250,7 +250,7 @@ namespace DigitalRuby.IPBanCore
                         }
                         else
                         {
-                            Logger.Debug("Watched file {0} length has not changed", file.FileName);
+                            Logger.Trace("Watched file {0} length has not changed", file.FileName);
                         }
 
                         // if a max file size is specified and the file is over the max size, delete the file
