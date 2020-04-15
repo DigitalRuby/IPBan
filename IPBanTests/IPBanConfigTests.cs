@@ -77,14 +77,14 @@ namespace DigitalRuby.IPBanTests
                 "Linux", "IPBanCustom",
 
                 "C:/Program Files/Microsoft/Exchange Server/V15/TransportRoles/Logs/FrontEnd/ProtocolLog/**.log",
-                @"^(?<timestamp>[0-9TZ\-:\.]+)?,(?:[^,\n]*,){4}(?<ipaddress>[^,\n]*),(?<username>[^,\n]*),.*?AuthFailed|^(?<timestamp>[0-9TZ\-:\.]+)?,(?:[^,\n]*,){4}(?<ipaddress>[^,\n]+),(?:[^,\n]*,){2}.*?LogonDenied\n.*?User Name: (?<username>.+)\n",
+                @"^(?<timestamp>[0-9TZ\-:\.]+),(?:[^,\n]*,){3}(?:(?<ipaddress>[^,\n]*),(?<username>[^,\n]*),.*?AuthFailed|(?:[^,\n]*,){1}(?<ipaddress>[^,\n]+),(?:[^,\n]*,){2}.*?LogonDenied\n.*?User\sName:\s(?<username>.*)\n)",
                 @"",
                 @"^(?<timestamp>[0-9TZ\-:\.]+)?,(?:[^,\n]*,){4}(?<ipaddress>[^,\n]*),(?:[^,\n]*),(?<username>[^,\n]*),authenticated",
                 @"",
                 "Windows", "MSExchange",
 
                 " C:/Program Files/Smarter Tools/Smarter Mail/**/*.log\nC:/Program Files (x86)/Smarter Tools/Smarter Mail/**/*.log\nC:/SmarterMail/logs/**/*.log\nC:/Smarter Mail/logs/**/*.log",
-                @"\[(?<ipaddress>[^\]\n]+)\](?:\[[^\]\n]*\]\s+)?(?:The domain given in the EHLO command violates an EHLO SMTP|IP blocked by brute force abuse detection rule)",
+                @"\[(?<ipaddress>[^\]\n]+)\](?:\[[^\]\n]*\]\s+)?(?:The\sdomain\sgiven\sin\sthe\sEHLO\scommand\sviolates\san\sEHLO\sSMTP|IP\sblocked\sby\sbrute\sforce\sabuse\sdetection\srule)",
                 @"",
                 @"",
                 @"",

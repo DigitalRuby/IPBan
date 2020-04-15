@@ -249,35 +249,6 @@ namespace DigitalRuby.IPBanTests
             Assert.AreEqual(new DateTime(2020, 03, 28, 13, 30, 56, DateTimeKind.Utc), failedIPAddresses[0].Timestamp);
         }
 
-        [Test]
-        public void TestLogFileExchange()
-        {
-            const string regex = @"^(?<timestamp>[0-9TZ\-:\.]+)?,(?:[^,\n]*,){4}(?<ipaddress>[^,\n]*),(?<username>[^,\n]*),.*?AuthFailed|^(?<timestamp>[0-9TZ\-:\.]+)?,(?:[^,\n]*,){4}(?<ipaddress>[^,\n]+),(?:[^,\n]*,){2}.*?LogonDenied\n.*?User Name: (?<username>.+)\n";
-            using LogFileScanner scanner = SetupLogFileScanner(regex);
-
-            File.AppendAllText(fullPath, "asdasdasdasdsad\n2020-04-01T13:13:03.129Z,SRV-XCH03\\External Authenticated Relay,08D7D4D2EFBC3E30,10,192.168.2.101:10587,92.118.38.34:46676,*,,Inbound AUTH LOGIN failed because of LogonDenied\n2020-04-01T13:13:03.129Z,SRV-XCH03\\External Authenticated Relay,08D7D4D2EFBC3E30,11,192.168.2.101:10587,92.118.38.34:46676,*,,User Name: shaun@example.com\nasdasdasdasd\n");
-            scanner.ProcessFiles();
-            Assert.AreEqual(1, failedIPAddresses.Count, "Did not find expected ip addresses");
-            Assert.AreEqual("92.118.38.34", failedIPAddresses[0].IPAddress);
-            Assert.AreEqual("shaun@example.com", failedIPAddresses[0].UserName);
-            Assert.AreEqual("SSH", failedIPAddresses[0].Source);
-            Assert.AreEqual(1, failedIPAddresses[0].Count);
-            Assert.AreEqual(IPAddressEventType.FailedLogin, failedIPAddresses[0].Type);
-            Assert.AreEqual(new DateTime(2020, 4, 1, 13, 13, 3, 129, DateTimeKind.Utc), failedIPAddresses[0].Timestamp);
-            failedIPAddresses.Clear();
-
-            File.AppendAllText(fullPath, "dsfadwsfawefeafwafewafew\n2020-04-01T13:13:03.129Z,SRV-XCH03\\External Authenticated Relay,08D7D4D2EFBC3E30,10,192.168.2.101:10587,92.118.38.34:46676,*,,Inbound AUTH LOGIN failed because of LogonDenied\n" +
-                "2020-04-01T13:13:03.129Z,SRV-XCH03\\External Authenticated Relay,08D7D4D2EFBC3E30,11,192.168.2.101:10587,92.118.38.34:46676,*,,User Name: shaun@example.com\nawefaweffeawaefweafwafeweawf\n");
-            scanner.ProcessFiles();
-            Assert.AreEqual(1, failedIPAddresses.Count, "Did not find expected ip addresses");
-            Assert.AreEqual("92.118.38.34", failedIPAddresses[0].IPAddress);
-            Assert.AreEqual("shaun@example.com", failedIPAddresses[0].UserName);
-            Assert.AreEqual("SSH", failedIPAddresses[0].Source);
-            Assert.AreEqual(1, failedIPAddresses[0].Count);
-            Assert.AreEqual(IPAddressEventType.FailedLogin, failedIPAddresses[0].Type);
-            Assert.AreEqual(new DateTime(2020, 4, 1, 13, 13, 3, 129, DateTimeKind.Utc), failedIPAddresses[0].Timestamp);
-        }
-
         private LogFileScanner SetupLogFileScanner(string failureRegex = "",
             string failureRegexTimestampFormat = null,
             string successRegex = null,

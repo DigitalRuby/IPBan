@@ -40,3 +40,5 @@
 2020-04-02T08:31:07.381Z,SRV-XCH03\External Authenticated Relay,08D7D4D2EFBC4D65,17,192.168.0.101:10587,180.60.60.60:24175,*,Tarpit for '0.00:00:05' due to '535 5.7.3 Authentication unsuccessful',
 2020-04-02T08:31:12.392Z,SRV-XCH03\External Authenticated Relay,08D7D4D2EFBC4D65,18,192.168.0.101:10587,180.60.60.60:24175,>,535 5.7.3 Authentication unsuccessful,
 2020-04-02T08:31:12.644Z,SRV-XCH03\External Authenticated Relay,08D7D4D2EFBC4D65,19,192.168.0.101:10587,180.60.60.60:24175,-,,Local
+2018-10-08T15:09:27.508Z,00000000002A64E8,2,5.5.5.5:993,109.75.46.81:40016,user@example.com,23,31,30,authenticate,plain,"R=""2 NO AUTHENTICATE failed."";Msg=""AuthFailed:LogonDenied,User: user@example.com"";ErrMsg=AuthFailed:LogonDenied"
+2020-04-02T08:31:12.644Z,SRV-XCH03\External Authenticated Relay,08D7D4D2EFBC4D65,19,192.168.0.101:10587,180.60.60.60:24175,-,,Local

@@ -91,9 +91,10 @@ namespace DigitalRuby.IPBanTests
                 Assert.AreEqual("user@example.com", successfulEvents[i].UserName);
             }
 
-            Assert.AreEqual(2, failedEvents.Count);
+            Assert.AreEqual(3, failedEvents.Count);
             Assert.AreEqual("90.30.30.30", failedEvents[0].IPAddress);
             Assert.AreEqual("180.60.60.60", failedEvents[1].IPAddress);
+            Assert.AreEqual("109.75.46.81", failedEvents[2].IPAddress);
             for (int i = 0; i < failedEvents.Count; i++)
             {
                 Assert.AreEqual("MSExchange", failedEvents[i].Source);
