@@ -80,7 +80,7 @@ namespace DigitalRuby.IPBanTests
                 return;
             }
 
-            await RunTest("//LogFile[Source='MSExchange']", "**/Exchange/*.log");
+            await RunTest("//LogFile[Source='MSExchange']", "TestData/**/Exchange/*.log");
 
             Assert.AreEqual(1, successfulEvents.Count);
             Assert.AreEqual("180.20.20.20", successfulEvents[0].IPAddress);

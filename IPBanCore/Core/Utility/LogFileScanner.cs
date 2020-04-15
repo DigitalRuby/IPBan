@@ -234,6 +234,10 @@ namespace DigitalRuby.IPBanCore
                     {
                         // ensure file has most recent data
                         long len = FlushFile(file.FileName);
+                        if (len < 0)
+                        {
+                            continue;
+                        }
 
                         // if file has shrunk (deleted and recreated for example) reset last position to 0 to ensure correct parsing from start of file
                         if (len < file.LastLength || len < file.LastPosition)
@@ -316,15 +320,19 @@ namespace DigitalRuby.IPBanCore
 
         private static long FlushFile(string fileName)
         {
-            // by opening and seeking to the end, the os will flush the file and any pending data to disk
-            using FileStream fs = new FileStream(fileName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite, 16);
-            if (fs.Length != 0)
+            if (File.Exists(fileName))
             {
-                // force read a byte, this gets the file data flushed properly
-                fs.Position = fs.Length - 1;
-                fs.ReadByte();
+                // by opening and seeking to the end, the os will flush the file and any pending data to disk
+                using FileStream fs = new FileStream(fileName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite, 16);
+                if (fs.Length != 0)
+                {
+                    // force read a byte, this gets the file data flushed properly
+                    fs.Position = fs.Length - 1;
+                    fs.ReadByte();
+                }
+                return fs.Length;
             }
-            return fs.Length;
+            return -1;
         }
 
         private static string ReplacePathVars(string path)
