@@ -25,6 +25,7 @@ SOFTWARE.
 #region Imports
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
@@ -386,6 +387,7 @@ namespace DigitalRuby.IPBanCore
             }
         }
 
+        private static readonly ConcurrentDictionary<string, Regex> regexCache = new ConcurrentDictionary<string, Regex>();
         /// <summary>
         /// Get a regex from text
         /// </summary>
@@ -410,12 +412,14 @@ namespace DigitalRuby.IPBanCore
                     sb.Append(trimmedLine);
                 }
             }
-            RegexOptions options = RegexOptions.IgnoreCase | RegexOptions.CultureInvariant;
+            RegexOptions options = RegexOptions.IgnoreCase | RegexOptions.CultureInvariant | RegexOptions.Compiled;
             if (multiline)
             {
                 options |= RegexOptions.Multiline;
             }
-            return new Regex(sb.ToString(), options);
+            string sbText = sb.ToString();
+            string cacheKey = ((uint)options).ToString("X8") + ":" + sbText;
+            return regexCache.GetOrAdd(cacheKey, _key => new Regex(sbText, options));
         }
 
         /// <summary>
