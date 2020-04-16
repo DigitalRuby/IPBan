@@ -23,7 +23,6 @@ SOFTWARE.
 */
 
 using System;
-using System.Threading;
 using System.Threading.Tasks;
 
 using DigitalRuby.IPBanCore;
@@ -42,7 +41,7 @@ namespace DigitalRuby.IPBan
         /// <returns>Task</returns>
         public static async Task Main(string[] args)
         {
-            await IPBanMain.MainService<IPBanService>(args, () =>
+            await IPBanServiceRunner.MainService<IPBanService>(args, () =>
             {
                 // TODO: IPBan service does not use .NET hosting infrastructure, so send out the message manually, revisit this in the future using host builder
                 if (Environment.UserInteractive)
