@@ -279,10 +279,10 @@ namespace DigitalRuby.IPBanCore
             }
         }
 
+        private static int osInfoRetryCount;
+
         private static void LoadOSInfoWithRetryLoop()
         {
-            int count = 0;
-
             try
             {
                 LoadOSInfo();
@@ -292,7 +292,7 @@ namespace DigitalRuby.IPBanCore
                 Logger.Error(ex, "Error loading os info");
 
                 // try up to 100 times to load the os info
-                if (++count < 100)
+                if (++osInfoRetryCount < 100)
                 {
                     ThreadPool.QueueUserWorkItem(state =>
                     {
