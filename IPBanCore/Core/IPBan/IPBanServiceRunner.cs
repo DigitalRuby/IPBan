@@ -29,6 +29,7 @@ using System.Runtime.InteropServices;
 using System.ServiceProcess;
 using System.Diagnostics;
 using System.Threading.Tasks;
+using System.Threading;
 
 namespace DigitalRuby.IPBanCore
 {
@@ -125,6 +126,53 @@ namespace DigitalRuby.IPBanCore
         private readonly Func<string[], Task> start;
 
         private Action stop;
+
+        /// <summary>
+        /// Start typed ipban service
+        /// </summary>
+        /// <typeparam name="T">Type of ipban service</typeparam>
+        /// <param name="args">Args</param>
+        /// <param name="started">Started callback</param>
+        /// <returns>Task</returns>
+        public static async Task MainService<T>(string[] args, Action started = null) where T : IPBanService
+        {
+            T service = IPBanService.CreateService<T>();
+            await MainService(args, async (_args) =>
+            {
+                // kick off start in background thread, make sure service starts up in a timely manner
+                await service.StartAsync();
+                started?.Invoke();
+
+                // wait for service to end
+                await service.WaitAsync(Timeout.Infinite);
+            }, () =>
+            {
+                // stop the service, will cause any WaitAsync to exit
+                service.Stop();
+            });
+        }
+
+        /// <summary>
+        /// Start generic ipban service with callbacks. The service implementation should have already been created before this method is called.
+        /// </summary>
+        /// <param name="args">Args</param>
+        /// <param name="start">Start callback, start your implementation running here</param>
+        /// <param name="stop">Stop callback, stop your implementation running here</param>
+        /// <param name="requireAdministrator">Whether administrator access is required</param>
+        /// <returns>Task</returns>
+        public static async Task MainService(string[] args, Func<string[], Task> start, Action stop, bool requireAdministrator = true)
+        {
+            try
+            {
+                using IPBanServiceRunner runner = new IPBanServiceRunner(args, start, stop);
+                await runner.RunAsync(requireAdministrator);
+            }
+            catch (Exception ex)
+            {
+                ExtensionMethods.FileWriteAllTextWithRetry(System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "startup_fail.txt"), ex.ToString());
+                Logger.Fatal("Fatal error starting service", ex);
+            }
+        }
 
         private async Task RunWindowsService(string[] args)
         {
