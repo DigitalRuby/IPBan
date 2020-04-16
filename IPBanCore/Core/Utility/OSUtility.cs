@@ -154,12 +154,14 @@ namespace DigitalRuby.IPBanCore
 
             Logger.Info("Attempting to load os info from wmic");
 
+            // attempt to run wmic to generate the info we want
+            StartProcessAndWait(5000, "cmd", "/C wmic path Win32_OperatingSystem get Caption,Version /format:table > \"" + tempFile + "\"");
+
             // try up to 10 times to read the file
             for (int i = 0; i < 10; i++)
             {
                 try
                 {
-                    StartProcessAndWait(5000, "cmd", "/C wmic path Win32_OperatingSystem get Caption,Version /format:table > \"" + tempFile + "\"");
                     string[] lines = File.ReadAllLines(tempFile);
                     ExtensionMethods.FileDeleteWithRetry(tempFile);
                     if (lines.Length > 1)
