@@ -68,6 +68,11 @@ namespace DigitalRuby.IPBanCore
         public static string Name { get; private set; }
 
         /// <summary>
+        /// Operating system cpu architecture (i.e. x86 or x64)
+        /// </summary>
+        public static string CpuArchitecture { get; private set; }
+
+        /// <summary>
         /// Operating system version
         /// </summary>
         public static string Version { get; private set; }
@@ -217,6 +222,7 @@ namespace DigitalRuby.IPBanCore
 
             // start off with built in version info, this is not as detailed or nice as we like,
             //  so we try some other ways to get more detailed information
+            CpuArchitecture = RuntimeInformation.ProcessArchitecture.ToString().ToLowerInvariant();
             Version = Environment.OSVersion.Version.ToString();
             Description = RuntimeInformation.OSDescription;
 

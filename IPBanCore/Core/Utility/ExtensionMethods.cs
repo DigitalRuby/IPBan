@@ -939,6 +939,10 @@ namespace DigitalRuby.IPBanCore
                 catch (Exception ex)
                 {
                     lastError = ex;
+                    if (lastError is OperationCanceledException)
+                    {
+                        break;
+                    }
                     Thread.Sleep(millisecondsBetweenRetry);
                 }
             }
@@ -965,6 +969,10 @@ namespace DigitalRuby.IPBanCore
                 catch (Exception ex)
                 {
                     lastError = ex;
+                    if (lastError is OperationCanceledException)
+                    {
+                        break;
+                    }
                     Thread.Sleep(millisecondsBetweenRetry);
                 }
             }
