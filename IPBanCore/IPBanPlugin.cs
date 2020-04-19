@@ -55,10 +55,8 @@ namespace DigitalRuby.IPBanCore
             {
                 eventLog = new EventLog("Application", Environment.MachineName, "IPBanCustom");
             }
-            using (Process p = Process.GetCurrentProcess())
-            {
-                ProcessName = p.ProcessName;
-            }
+            using Process p = Process.GetCurrentProcess();
+            ProcessName = p.ProcessName;
         }
 
         /// <summary>
@@ -74,7 +72,7 @@ namespace DigitalRuby.IPBanCore
                 // Windows
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 {
-                    string data = $"ipban failed login, ip address: {remoteIpAddress}, source: {source}, user: {userName}";
+                    string data = $"{DateTime.UtcNow:u}, ipban failed login, ip address: {remoteIpAddress}, source: {source}, user: {userName}";
                     eventLog.WriteEntry(data, EventLogEntryType.Warning);
                 }
                 // MAC
@@ -85,7 +83,7 @@ namespace DigitalRuby.IPBanCore
                 // Linux
                 else if (Directory.Exists(@"/var/log"))
                 {
-                    File.AppendAllText($"/var/log/ipbancustom_{ProcessName}.log", $"{DateTime.UtcNow.ToString("u")}, ipban failed login, ip address: {remoteIpAddress}, source: {source}, user: {userName}\n");
+                    File.AppendAllText($"/var/log/ipbancustom_{ProcessName}.log", $"{DateTime.UtcNow:u}, ipban failed login, ip address: {remoteIpAddress}, source: {source}, user: {userName}\n");
                 }
             }
             catch (Exception ex)
@@ -107,7 +105,7 @@ namespace DigitalRuby.IPBanCore
                 // Windows
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 {
-                    string data = $"ipban success login, ip address: {remoteIpAddress}, source: {source}, user: {userName}";
+                    string data = $"{DateTime.UtcNow:u}, ipban success login, ip address: {remoteIpAddress}, source: {source}, user: {userName}";
                     eventLog.WriteEntry(data, EventLogEntryType.Warning);
                 }
                 // MAC
@@ -119,7 +117,7 @@ namespace DigitalRuby.IPBanCore
                 else if (Directory.Exists(@"/var/log"))
                 {
                     string processName = System.Diagnostics.Process.GetCurrentProcess().ProcessName;
-                    File.AppendAllText($"/var/log/ipbancustom_{ProcessName}.log", $"{DateTime.UtcNow.ToString("u")}, ipban success login, ip address: {remoteIpAddress}, source: {source}, user: {userName}\n");
+                    File.AppendAllText($"/var/log/ipbancustom_{ProcessName}.log", $"{DateTime.UtcNow:u}, ipban success login, ip address: {remoteIpAddress}, source: {source}, user: {userName}\n");
                 }
             }
             catch (Exception ex)

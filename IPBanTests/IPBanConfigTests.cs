@@ -98,9 +98,9 @@ namespace DigitalRuby.IPBanTests
                 "Windows", "Apache",
 
                 "C:/IPBanCustomLogs/**/*.log",
-                @"ipban\sfailed\slogin,\sip\saddress:\s(?<ipaddress>[^,\n]+),\ssource:\s(?<source>[^,\n]+),\suser:\s?(?<username>[^\s,]+)?",
+                @"(?<timestamp>\d\d\d\d-\d\d-\d\d\s\d\d:\d\d:\d\d\.?\d*Z?,\s)?ipban\sfailed\slogin,\sip\saddress:\s(?<ipaddress>[^,\n]+),\ssource:\s(?<source>[^,\n]+),\suser:\s?(?<username>[^\s,]+)?",
                 @"",
-                @"ipban\ssuccess\slogin,\sip\saddress:\s(?<ipaddress>[^,\n]+),\ssource:\s(?<source>[^,\n]+),\suser:\s?(?<username>[^\s,]+)?",
+                @"(?<timestamp>\d\d\d\d-\d\d-\d\d\s\d\d:\d\d:\d\d\.?\d*Z?,\s)?ipban\ssuccess\slogin,\sip\saddress:\s(?<ipaddress>[^,\n]+),\ssource:\s(?<source>[^,\n]+),\suser:\s?(?<username>[^\s,]+)?",
                 @"",
                 "Windows", "IPBanCustom"
             };
