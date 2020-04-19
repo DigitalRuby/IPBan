@@ -1655,6 +1655,24 @@ namespace DigitalRuby.IPBanCore {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Update.
+        /// </summary>
+        public static string Update {
+            get {
+                return ResourceManager.GetString("Update", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Update Clients.
+        /// </summary>
+        public static string UpdateClients {
+            get {
+                return ResourceManager.GetString("UpdateClients", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Use Default Banned IP Address Handler.
         /// </summary>
         public static string UseDefaultBannedIPAddressHandler {

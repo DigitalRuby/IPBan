@@ -758,4 +758,12 @@ Prefix with OS:ClassName, example: Windows:Custom,Linux:Default</value>
   <data name="SuccessfulLoginRegexTimestampFormatTooltip" xml:space="preserve">
     <value>Format for timestamp if successful login regex has a timestamp group</value>
   </data>
+  <data name="Update" xml:space="preserve">
+    <value>Update</value>
+    <comment>As in update the software to latest version</comment>
+  </data>
+  <data name="UpdateClients" xml:space="preserve">
+    <value>Update Clients</value>
+    <comment>As in update clients to the latest software version</comment>
+  </data>
 </root>
