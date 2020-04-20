@@ -1,5 +1,7 @@
 param([Parameter(Mandatory=$true)] [String]$version)
 
+# powershell -ExecutionPolicy Bypass
+
 Remove-Item ./package -Recurse -ErrorAction Ignore
 mkdir ./package
 & "c:/program files/dotnet/dotnet.exe" publish IPBan.csproj -f netcoreapp3.1 -o package/linux-x64 -c Release -r linux-x64
