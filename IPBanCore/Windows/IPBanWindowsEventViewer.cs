@@ -202,7 +202,7 @@ namespace DigitalRuby.IPBanCore
                                     dns: service.DnsLookup).FirstOrDefault();
                                 if (info != null)
                                 {
-                                    mismatch = false;                                         
+                                    mismatch = false;
                                     if (group.NotifyOnly)
                                     {
                                         foundNotifyOnly = true;

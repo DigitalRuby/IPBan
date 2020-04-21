@@ -122,7 +122,8 @@ namespace DigitalRuby.IPBanCore
                 yield break;
             }
 
-            text = text.Trim();
+            // remove control chars
+            text = new string(text.Where(c => c == '\n' || c == '\t' || !char.IsControl(c)).ToArray()).Trim();
 
             // go through all the matches and pull out event info
             foreach (Match match in regex.Matches(text))
