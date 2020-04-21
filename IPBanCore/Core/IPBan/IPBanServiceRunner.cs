@@ -24,10 +24,10 @@ SOFTWARE.
 
 using System;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.ServiceProcess;
-using System.Diagnostics;
 using System.Threading.Tasks;
 using System.Threading;
 
@@ -176,8 +176,9 @@ namespace DigitalRuby.IPBanCore
 
         private async Task RunWindowsService(string[] args)
         {
-            // if we have no console input and we are not in IIS, run as windows service
-            if (Console.IsInputRedirected && !OSUtility.IsRunningInProcessIIS())              
+            // if we have no console input and we are not in IIS and not running an installer, run as windows service
+            if (Console.IsInputRedirected && !OSUtility.IsRunningInProcessIIS() &&
+                !args.Any(a => a.StartsWith("-install", StringComparison.OrdinalIgnoreCase)))
             {
                 // create and start using Windows service APIs
                 windowsService = new IPBanWindowsServiceRunner(this, args);

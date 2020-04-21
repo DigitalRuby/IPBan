@@ -171,8 +171,8 @@ namespace DigitalRuby.IPBanCore
                 var startupInfo = new ProcessUtility.STARTUPINFO();
                 var sa = new ProcessUtility.SECURITY_ATTRIBUTES();
                 sa.Length = Marshal.SizeOf(sa);
-                CreateProcess(fileName, arguments, ref sa, ref sa, false,
-                    ProcessUtility.DETACHED_PROCESS | ProcessUtility.CREATE_NO_WINDOW,
+                CreateProcess(null, "\"" + fileName + "\" " + arguments, ref sa, ref sa, false,
+                    DETACHED_PROCESS,
                     IntPtr.Zero, Path.GetDirectoryName(fileName), ref startupInfo, out processInformation);
             }
             else
