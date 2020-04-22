@@ -854,6 +854,22 @@ namespace DigitalRuby.IPBanCore
         }
 
         /// <summary>
+        /// Copy a file with retry
+        /// </summary>
+        /// <param name="sourceFile">Source file to move</param>
+        /// <param name="destFile">Destination file to move to</param>
+        /// <param name="millisecondsBetweenRetry">Milliseconds between each retry</param>
+        /// <param name="retryCount">Retry count</param>
+        public static void FileCopyWithRetry(string sourceFile, string destFile, int millisecondsBetweenRetry = 200, int retryCount = 10)
+        {
+            if (File.Exists(sourceFile))
+            {
+                Retry(() => Directory.CreateDirectory(Path.GetDirectoryName(destFile)), millisecondsBetweenRetry, retryCount);
+                Retry(() => File.Copy(sourceFile, destFile, true), millisecondsBetweenRetry, retryCount);
+            }
+        }
+
+        /// <summary>
         /// Move a file with retry
         /// </summary>
         /// <param name="sourceFile">Source file to move</param>
