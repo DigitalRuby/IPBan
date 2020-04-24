@@ -549,7 +549,7 @@ namespace DigitalRuby.IPBanCore
             };
             domain.FirstChanceException += (obj, ex) =>
             {
-                Logger.Error(ex.Exception);
+                //Logger.Error(ex.Exception);
             };
         }
 

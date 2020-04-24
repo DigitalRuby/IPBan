@@ -24,6 +24,7 @@
     <ApplicationIcon />
     <OutputType>Library</OutputType>
     <StartupObject />
+	<GenerateSerializationAssemblies>Off</GenerateSerializationAssemblies>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
