@@ -177,7 +177,7 @@ namespace DigitalRuby.IPBanCore
         private async Task RunWindowsService(string[] args)
         {
             // if we have no console input and we are not in IIS and not running an installer, run as windows service
-            if (Console.IsInputRedirected && !OSUtility.IsRunningInProcessIIS() &&
+            if (Console.IsInputRedirected && !OSUtility.Instance.IsRunningInProcessIIS() &&
                 !args.Any(a => a.StartsWith("-install", StringComparison.OrdinalIgnoreCase)))
             {
                 // create and start using Windows service APIs
@@ -248,7 +248,7 @@ namespace DigitalRuby.IPBanCore
 
             if (args.Length != 0 && (args[0].Equals("info", StringComparison.OrdinalIgnoreCase) || args[0].Equals("-info", StringComparison.OrdinalIgnoreCase)))
             {
-                Logger.Warn("System info: {0}", OSUtility.OSString());
+                Logger.Warn("System info: {0}", OSUtility.Instance.OSString());
             }
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {

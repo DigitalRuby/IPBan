@@ -237,7 +237,7 @@ namespace DigitalRuby.IPBanCore
         protected bool UpdateRule(string ruleName, string action, IEnumerable<string> ipAddresses, string hashType, int maxCount,
             IEnumerable<PortRange> allowPorts, CancellationToken cancelToken)
         {
-            string ipFileTemp = OSUtility.GetTempFileName();
+            string ipFileTemp = OSUtility.Instance.GetTempFileName();
             try
             {
                 // add and remove the appropriate ip addresses from the set
@@ -304,7 +304,7 @@ namespace DigitalRuby.IPBanCore
         protected bool UpdateRuleDelta(string ruleName, string action, IEnumerable<IPBanFirewallIPAddressDelta> deltas, string hashType,
             int maxCount, bool deleteRule, IEnumerable<PortRange> allowPorts, CancellationToken cancelToken)
         {
-            string ipFileTemp = OSUtility.GetTempFileName();
+            string ipFileTemp = OSUtility.Instance.GetTempFileName();
             try
             {
                 // add and remove the appropriate ip addresses from the set
@@ -534,7 +534,7 @@ namespace DigitalRuby.IPBanCore
 
         public IEnumerable<IPAddressRange> EnumerateIPAddresses(string ruleNamePrefix = null)
         {
-            string tempFile = OSUtility.GetTempFileName();
+            string tempFile = OSUtility.Instance.GetTempFileName();
             try
             {
                 string prefix = RulePrefix + (ruleNamePrefix ?? string.Empty);
@@ -572,7 +572,7 @@ namespace DigitalRuby.IPBanCore
 
         public IEnumerable<string> EnumerateBannedIPAddresses()
         {
-            string tempFile = OSUtility.GetTempFileName();
+            string tempFile = OSUtility.Instance.GetTempFileName();
             try
             {
                 RunProcess("ipset", true, $"save > \"{tempFile}\"");
@@ -599,7 +599,7 @@ namespace DigitalRuby.IPBanCore
 
         public IEnumerable<string> EnumerateAllowedIPAddresses()
         {
-            string tempFile = OSUtility.GetTempFileName();
+            string tempFile = OSUtility.Instance.GetTempFileName();
             try
             {
                 RunProcess("ipset", true, $"save > \"{tempFile}\"");

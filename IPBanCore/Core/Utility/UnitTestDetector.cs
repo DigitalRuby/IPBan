@@ -19,13 +19,20 @@ namespace DigitalRuby.IPBanCore
         /// </summary>
         static UnitTestDetector()
         {
-            foreach (System.Reflection.Assembly assem in AppDomain.CurrentDomain.GetAssemblies())
+            try
             {
-                if (assem.FullName.ToLowerInvariant().StartsWith("nunit.framework"))
+                foreach (System.Reflection.Assembly assem in AppDomain.CurrentDomain.GetAssemblies())
                 {
-                    Running = true;
-                    break;
+                    if (assem.FullName.ToLowerInvariant().StartsWith("nunit.framework"))
+                    {
+                        Running = true;
+                        break;
+                    }
                 }
+            }
+            catch (Exception ex)
+            {
+                Logger.Error($"Error in {nameof(UnitTestDetector)} static constructor", ex);
             }
         }
     }

@@ -348,7 +348,7 @@ namespace DigitalRuby.IPBanCore
                         AllowPortRanges = pieces[3].Split(',').Select(p => PortRange.Parse(p)).Where(p => p.MinPort >= 0).ToList(),
                         PlatformRegex = new Regex(pieces[4].Replace('*', '.'), RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)
                     };
-                    if (firewallBlockRuleObj.PlatformRegex.IsMatch(OSUtility.Name))
+                    if (firewallBlockRuleObj.PlatformRegex.IsMatch(OSUtility.Instance.Name))
                     {
                         extraRules.Add(firewallBlockRuleObj);
                     }

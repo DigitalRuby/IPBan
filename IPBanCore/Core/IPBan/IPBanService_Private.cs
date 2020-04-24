@@ -251,7 +251,7 @@ namespace DigitalRuby.IPBanCore
                             else
                             {
                                 Logger.Debug("Failed login count {0} <= ban count {1}", newCount, maxFailedLoginAttempts);
-                                if (OSUtility.UserIsActive(userName))
+                                if (OSUtility.Instance.UserIsActive(userName))
                                 {
                                     Logger.Warn("Login failed for known active user {0}", userName);
                                 }
@@ -724,7 +724,7 @@ namespace DigitalRuby.IPBanCore
                         // if the update url sends bytes, we assume a software update, and run the result as an .exe
                         if (bytes.Length != 0)
                         {
-                            string tempFile = Path.Combine(OSUtility.TempFolder, "IPBanServiceUpdate.exe");
+                            string tempFile = Path.Combine(OSUtility.Instance.TempFolder, "IPBanServiceUpdate.exe");
                             File.WriteAllBytes(tempFile, bytes);
 
                             // however you are doing the update, you must allow -c and -d parameters

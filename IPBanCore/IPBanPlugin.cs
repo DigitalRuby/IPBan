@@ -51,12 +51,19 @@ namespace DigitalRuby.IPBanCore
         /// </summary>
         static IPBanPlugin()
         {
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            try
             {
-                eventLog = new EventLog("Application", Environment.MachineName, "IPBanCustom");
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                {
+                    eventLog = new EventLog("Application", Environment.MachineName, "IPBanCustom");
+                }
+                using Process p = Process.GetCurrentProcess();
+                ProcessName = p.ProcessName;
             }
-            using Process p = Process.GetCurrentProcess();
-            ProcessName = p.ProcessName;
+            catch (Exception ex)
+            {
+                Logger.Error($"Error in {nameof(IPBanPlugin)} static constructor", ex);
+            }
         }
 
         /// <summary>

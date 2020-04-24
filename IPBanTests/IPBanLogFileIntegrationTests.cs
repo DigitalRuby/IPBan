@@ -75,7 +75,7 @@ namespace DigitalRuby.IPBanTests
         public async Task TestLogFilesExchange()
         {
             // only run this test on Windows
-            if (!OSUtility.IsWindows)
+            if (!OSUtility.Instance.IsWindows)
             {
                 return;
             }

@@ -40,7 +40,7 @@ namespace DigitalRuby.IPBanCore
     /// <summary>
     /// Operating system utility methods
     /// </summary>
-    public static class OSUtility
+    public class OSUtility
     {
         /// <summary>
         /// Unknown operating system
@@ -62,39 +62,52 @@ namespace DigitalRuby.IPBanCore
         /// </summary>
         public const string Mac = "Mac";
 
+        private static readonly Lazy<OSUtility> instance = new Lazy<OSUtility>(() =>
+        {
+            OSUtility os = new OSUtility();
+            os.Initialize();
+            return os;
+        });
+
+        /// <summary>
+        /// Singleton. Setting static variables in a static constructor especially with threads has proven
+        /// problematic, so making this a singleton object instead.
+        /// </summary>
+        public static OSUtility Instance { get { return instance.Value; } }
+
         /// <summary>
         /// Operating system name (i.e. Windows, Linux or OSX)
         /// </summary>
-        public static string Name { get; private set; }
+        public string Name { get; private set; }
 
         /// <summary>
         /// Operating system cpu architecture (i.e. x86 or x64)
         /// </summary>
-        public static string CpuArchitecture { get; private set; }
+        public string CpuArchitecture { get; private set; }
 
         /// <summary>
         /// Operating system version
         /// </summary>
-        public static string Version { get; private set; }
+        public string Version { get; private set; }
 
         /// <summary>
         /// Operating system friendly/code name
         /// </summary>
-        public static string FriendlyName { get; private set; }
+        public string FriendlyName { get; private set; }
 
         /// <summary>
         /// Operating system description
         /// </summary>
-        public static string Description { get; private set; }
+        public string Description { get; private set; }
 
-        private static bool isWindows;
-        private static bool isLinux;
-        private static bool isMac;
+        private bool isWindows;
+        private bool isLinux;
+        private bool isMac;
 
-        private static string processVerb;
-        private static string tempFolder;
+        private string processVerb;
+        private string tempFolder;
 
-        private static string ExtractRegex(string input, string regex, string defaultValue)
+        private string ExtractRegex(string input, string regex, string defaultValue)
         {
             Match m = Regex.Match(input, regex, RegexOptions.IgnoreCase | RegexOptions.Multiline);
             if (m.Success)
@@ -104,7 +117,7 @@ namespace DigitalRuby.IPBanCore
             return defaultValue;
         }
 
-        private static void LoadVersionFromWmiApi()
+        private void LoadVersionFromWmiApi()
         {
             Logger.Info("Attempting to retrieve os version from WMI api...");
 
@@ -146,9 +159,9 @@ namespace DigitalRuby.IPBanCore
             Version = version;
         }
 
-        private static void LoadVersionFromWmic()
+        private void LoadVersionFromWmic()
         {
-            string tempFile = OSUtility.GetTempFileName();
+            string tempFile = GetTempFileName();
             
             // .net core WMI has a strange bug where WMI will not initialize on some systems
             // since this is the only place where WMI is used, we can just work-around it
@@ -204,7 +217,7 @@ namespace DigitalRuby.IPBanCore
             throw new ApplicationException("Unable to load os version using wmic", lastError);
         }
 
-        private static void LoadOSInfo()
+        private void LoadOSInfo()
         {
             tempFolder = Path.GetTempPath();
             if (string.IsNullOrWhiteSpace(tempFolder))
@@ -231,7 +244,7 @@ namespace DigitalRuby.IPBanCore
             {
                 Name = FriendlyName = OSUtility.Linux;
                 isLinux = true;
-                string tempFile = OSUtility.GetTempFileName();
+                string tempFile = GetTempFileName();
                 Process.Start("/bin/bash", "-c \"cat /etc/*release* > " + tempFile + "\"").WaitForExit();
                 System.Threading.Tasks.Task.Delay(100); // wait a small bit for file to really be closed
                 string versionText = File.ReadAllText(tempFile).Trim();
@@ -285,9 +298,9 @@ namespace DigitalRuby.IPBanCore
             }
         }
 
-        private static int osInfoRetryCount;
+        private int osInfoRetryCount;
 
-        private static void LoadOSInfoWithRetryLoop()
+        private void LoadOSInfoWithRetryLoop()
         {
             try
             {
@@ -310,10 +323,15 @@ namespace DigitalRuby.IPBanCore
         }
 
         /// <summary>
-        /// Static constructor
+        /// Constructor
         /// </summary>
-        static OSUtility()
+        private OSUtility()
         {
+        }
+
+        private void Initialize()
+        {
+            // perform initialize after constructor to avoid weird clr issues and freezing
             LoadOSInfoWithRetryLoop();
         }
 
@@ -321,7 +339,7 @@ namespace DigitalRuby.IPBanCore
         /// Get a string representing the operating system
         /// </summary>
         /// <returns>String</returns>
-        public static string OSString()
+        public string OSString()
         {
             return $"Name: {Name}, Version: {Version}, Friendly Name: {FriendlyName}, Description: {Description}";
         }
@@ -334,7 +352,7 @@ namespace DigitalRuby.IPBanCore
         /// <param name="allowedExitCodes">Allowed exit codes, if null or empty it is not checked, otherwise a mismatch will throw an exception.</param>
         /// <returns>Output</returns>
         /// <exception cref="ApplicationException">Exit code did not match allowed exit codes</exception>
-        public static string StartProcessAndWait(string program, string args, params int[] allowedExitCodes)
+        public string StartProcessAndWait(string program, string args, params int[] allowedExitCodes)
         {
             return StartProcessAndWait(60000, program, args, allowedExitCodes);
         }
@@ -348,7 +366,7 @@ namespace DigitalRuby.IPBanCore
         /// <param name="allowedExitCodes">Allowed exit codes, if null or empty it is not checked, otherwise a mismatch will throw an exception.</param>
         /// <returns>Output</returns>
         /// <exception cref="ApplicationException">Exit code did not match allowed exit codes</exception>
-        public static string StartProcessAndWait(int timeoutMilliseconds, string program, string args, params int[] allowedExitCodes)
+        public string StartProcessAndWait(int timeoutMilliseconds, string program, string args, params int[] allowedExitCodes)
         {
             Logger.Info($"Executing process {program} {args}...");
 
@@ -404,7 +422,7 @@ namespace DigitalRuby.IPBanCore
         /// </summary>
         /// <param name="userName">User name to check</param>
         /// <returns>True if user name is active, false otherwise</returns>
-        public static bool UserIsActive(string userName)
+        public bool UserIsActive(string userName)
         {
             if (string.IsNullOrWhiteSpace(userName))
             {
@@ -495,7 +513,7 @@ namespace DigitalRuby.IPBanCore
         /// <summary>
         /// Generate a new temporary file using TempFolder
         /// </summary>
-        public static string GetTempFileName()
+        public string GetTempFileName()
         {
             return Path.Combine(tempFolder, Guid.NewGuid().ToString("N") + ".tmp");
         }
@@ -504,7 +522,7 @@ namespace DigitalRuby.IPBanCore
         /// Check if this process is running on Windows in an in process instance in IIS
         /// </summary>
         /// <returns>True if Windows and in an in process instance on IIS, false otherwise</returns>
-        public static bool IsRunningInProcessIIS()
+        public bool IsRunningInProcessIIS()
         {
             if (!isWindows)
             {
@@ -517,24 +535,43 @@ namespace DigitalRuby.IPBanCore
         }
 
         /// <summary>
+        /// Add app domain exception handlers
+        /// </summary>
+        /// <param name="domain">Appdomain</param>
+        public void AddAppDomainExceptionHandlers(AppDomain domain)
+        {
+            domain.UnhandledException += (obj, ex) =>
+            {
+                if (ex.ExceptionObject is Exception _ex)
+                {
+                    Logger.Error(_ex);
+                }
+            };
+            domain.FirstChanceException += (obj, ex) =>
+            {
+                Logger.Error(ex.Exception);
+            };
+        }
+
+        /// <summary>
         /// Get the current temp foldre path
         /// </summary>
-        public static string TempFolder { get { return tempFolder; } }
+        public string TempFolder { get { return tempFolder; } }
 
         /// <summary>
         /// Are we on Windows?
         /// </summary>
-        public static bool IsWindows => isWindows;
+        public bool IsWindows => isWindows;
 
         /// <summary>
         /// Are we on Linux?
         /// </summary>
-        public static bool IsLinux => isLinux;
+        public bool IsLinux => isLinux;
 
         /// <summary>
         /// Are we on Mac?
         /// </summary>
-        public static bool IsMac => isMac;
+        public bool IsMac => isMac;
     }
 
     /// <summary>
@@ -559,7 +596,7 @@ namespace DigitalRuby.IPBanCore
         /// </summary>
         public bool IsValid
         {
-            get { return RequiredOS is null || RequiredOS.Equals(OSUtility.Name, StringComparison.OrdinalIgnoreCase); }
+            get { return RequiredOS is null || RequiredOS.Equals(OSUtility.Instance.Name, StringComparison.OrdinalIgnoreCase); }
         }
 
         /// <summary>

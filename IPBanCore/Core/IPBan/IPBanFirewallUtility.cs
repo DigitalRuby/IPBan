@@ -124,7 +124,7 @@ namespace DigitalRuby.IPBanCore
                     {
                         bool matchName = true;
                         if (osAndFirewall != null && osAndFirewall.Count != 0 &&
-                            (osAndFirewall.TryGetValue(OSUtility.Name, out string firewallToUse) || osAndFirewall.TryGetValue("*", out firewallToUse)))
+                            (osAndFirewall.TryGetValue(OSUtility.Instance.Name, out string firewallToUse) || osAndFirewall.TryGetValue("*", out firewallToUse)))
                         {
                             matchName = result.Name.Name.Equals(firewallToUse, StringComparison.OrdinalIgnoreCase);
                         }
@@ -159,7 +159,7 @@ namespace DigitalRuby.IPBanCore
                 else if (osAndFirewall.Count != 0 && !foundFirewallType)
                 {
                     string typeString = string.Join(',', osAndFirewall.Select(kv => kv.Key + ":" + kv.Value));
-                    throw new ArgumentException("Unable to find firewalls of types: " + typeString + ", osname: " + OSUtility.Name);
+                    throw new ArgumentException("Unable to find firewalls of types: " + typeString + ", osname: " + OSUtility.Instance.Name);
                 }
                 if (existing != null && existing.GetType().Equals(firewallType))
                 {

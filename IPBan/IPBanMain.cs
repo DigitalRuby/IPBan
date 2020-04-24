@@ -41,6 +41,8 @@ namespace DigitalRuby.IPBan
         /// <returns>Task</returns>
         public static async Task Main(string[] args)
         {
+            OSUtility.Instance.AddAppDomainExceptionHandlers(AppDomain.CurrentDomain);
+
             await IPBanServiceRunner.MainService<IPBanService>(args, () =>
             {
                 // TODO: IPBan service does not use .NET hosting infrastructure, so send out the message manually, revisit this in the future using host builder
