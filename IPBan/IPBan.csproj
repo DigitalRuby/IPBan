@@ -22,6 +22,7 @@
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <PreserveCompilationContext>true</PreserveCompilationContext>
     <PublishTrimmed>true</PublishTrimmed>
+	<GenerateSerializationAssemblies>Off</GenerateSerializationAssemblies>
   </PropertyGroup>
 
   <ItemGroup>
