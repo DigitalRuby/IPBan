@@ -40,6 +40,9 @@ using System.Xml;
 
 namespace DigitalRuby.IPBanCore
 {
+    /// <summary>
+    /// Base ipban service class
+    /// </summary>
     public partial class IPBanService : IIPBanService, IIsWhitelisted
     {
         /// <summary>
