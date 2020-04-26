@@ -887,6 +887,21 @@ namespace DigitalRuby.IPBanCore
         }
 
         /// <summary>
+        /// Move a directory recursively with retry. Does nothing if sourceDir does not exist.
+        /// </summary>
+        /// <param name="sourceDir">Source directory</param>
+        /// <param name="destDir">Destination directory</param>
+        /// <param name="millisecondsBetweenRetry">Milliseconds between each retry</param>
+        /// <param name="retryCount">Retry count</param>
+        public static void DirectoryMoveWithRetry(string sourceDir, string destDir, int millisecondsBetweenRetry = 200, int retryCount = 10)
+        {
+            if (Directory.Exists(sourceDir))
+            {
+                Retry(() => Directory.Move(sourceDir, destDir), millisecondsBetweenRetry, retryCount);
+            }
+        }
+
+        /// <summary>
         /// Delete directory recursively with retry for each file. Does nothing if dir does not exist.
         /// </summary>
         /// <param name="dir">Directory to delete</param>
@@ -900,7 +915,7 @@ namespace DigitalRuby.IPBanCore
                 {
                     FileDeleteWithRetry(file, millisecondsBetweenRetry, retryCount);
                 }
-                Retry(() => Directory.Delete(dir, true), millisecondsBetweenRetry, 3);
+                Retry(() => Directory.Delete(dir, true), millisecondsBetweenRetry, retryCount);
             }
         }
 
