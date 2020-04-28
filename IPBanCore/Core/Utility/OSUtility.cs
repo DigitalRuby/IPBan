@@ -368,51 +368,63 @@ namespace DigitalRuby.IPBanCore
         /// <exception cref="ApplicationException">Exit code did not match allowed exit codes</exception>
         public string StartProcessAndWait(int timeoutMilliseconds, string program, string args, params int[] allowedExitCodes)
         {
-            Logger.Info($"Executing process {program} {args}...");
-
-            var process = new Process
-            {
-                StartInfo = new ProcessStartInfo(program, args)
-                {
-                    CreateNoWindow = true,
-                    UseShellExecute = false,
-                    WindowStyle = ProcessWindowStyle.Hidden,
-                    RedirectStandardOutput = true,
-                    RedirectStandardError = true,
-                    Verb = processVerb
-                }
-            };
             StringBuilder output = new StringBuilder();
-            process.OutputDataReceived += (object sender, DataReceivedEventArgs e) =>
+            Task task = Task.Run(() =>
             {
-                lock (output)
+                Logger.Info($"Executing process {program} {args}...");
+
+                var process = new Process
                 {
-                    output.Append("[OUT]: ");
-                    output.AppendLine(e.Data);
-                }
-            };
-            process.ErrorDataReceived += (object sender, DataReceivedEventArgs e) =>
-            {
-                lock (output)
+                    StartInfo = new ProcessStartInfo(program, args)
+                    {
+                        CreateNoWindow = true,
+                        UseShellExecute = false,
+                        WindowStyle = ProcessWindowStyle.Hidden,
+                        RedirectStandardOutput = true,
+                        RedirectStandardError = true,
+                        Verb = processVerb
+                    }
+                };
+
+                process.OutputDataReceived += (object sender, DataReceivedEventArgs e) =>
                 {
-                    output.Append("[ERR]: ");
-                    output.AppendLine(e.Data);
-                }
-            };
-            process.Start();
-            process.BeginOutputReadLine();
-            process.BeginErrorReadLine();
-            if (!process.WaitForExit(timeoutMilliseconds))
-            {
-                lock (output)
+                    lock (output)
+                    {
+                        output.Append("[OUT]: ");
+                        output.AppendLine(e.Data);
+                    }
+                };
+                process.ErrorDataReceived += (object sender, DataReceivedEventArgs e) =>
                 {
-                    output.Append("[ERR]: Terminating process due to timeout");
+                    lock (output)
+                    {
+                        output.Append("[ERR]: ");
+                        output.AppendLine(e.Data);
+                    }
+                };
+                process.Start();
+                process.BeginOutputReadLine();
+                process.BeginErrorReadLine();
+                if (!process.WaitForExit(timeoutMilliseconds))
+                {
+                    lock (output)
+                    {
+                        output.Append("[ERR]: Terminating process due to timeout");
+                    }
+                    process.Kill();
                 }
-                process.Kill();
-            }
-            if (allowedExitCodes.Length != 0 && Array.IndexOf(allowedExitCodes, process.ExitCode) < 0)
+                if (allowedExitCodes.Length != 0 && Array.IndexOf(allowedExitCodes, process.ExitCode) < 0)
+                {
+                    throw new ApplicationException($"Program {program} {args}: failed with exit code {process.ExitCode}, output: {output}");
+                }
+            });
+            if (!task.Wait(timeoutMilliseconds + 5000))
             {
-                throw new ApplicationException($"Program {program} {args}: failed with exit code {process.ExitCode}, output: {output}");
+                if (task.IsFaulted && task.Exception != null)
+                {
+                    throw task.Exception;
+                }
+                throw new ApplicationException("Timed out waiting for process result");
             }
             return output.ToString();
         }
