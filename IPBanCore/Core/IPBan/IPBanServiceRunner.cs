@@ -71,14 +71,6 @@ namespace DigitalRuby.IPBanCore
                     Logger.Warn("Running as a Windows service");
                     this.runner = runner;
                     CanShutdown = false;
-                    CanStop = CanHandleSessionChangeEvent = CanHandlePowerEvent = true;
-                    var acceptedCommandsField = typeof(ServiceBase).GetField("acceptedCommands", BindingFlags.Instance | BindingFlags.NonPublic);
-                    if (acceptedCommandsField != null)
-                    {
-                        int acceptedCommands = (int)acceptedCommandsField.GetValue(this);
-                        acceptedCommands |= 0x00000100; // SERVICE_ACCEPT_PRESHUTDOWN;
-                        acceptedCommandsField.SetValue(this, acceptedCommands);
-                    }
                     Directory.SetCurrentDirectory(AppDomain.CurrentDomain.BaseDirectory);
                 }
                 catch (Exception ex)
