@@ -44,7 +44,7 @@ namespace DigitalRuby.IPBanCore
             protected override void OnStart(string[] args)
             {
                 base.OnStart(args);
-                Task.Run(async () =>
+                System.Threading.ThreadPool.QueueUserWorkItem(state =>
                 {
                     try
                     {
@@ -54,40 +54,13 @@ namespace DigitalRuby.IPBanCore
                     {
                         Logger.Error(ex);
                     }
-                }).GetAwaiter();
+                });
             }
 
             protected override void OnStop()
             {
                 runner.Dispose();
                 base.OnStop();
-            }
-
-            protected override void OnSessionChange(SessionChangeDescription changeDescription)
-            {
-                base.OnSessionChange(changeDescription);
-            }
-
-            protected override bool OnPowerEvent(PowerBroadcastStatus powerStatus)
-            {
-                return base.OnPowerEvent(powerStatus);
-            }
-
-            protected virtual void Preshutdown()
-            {
-            }
-
-            protected override void OnCustomCommand(int command)
-            {
-                // command is SERVICE_CONTROL_PRESHUTDOWN
-                if (command == 0x0000000F)
-                {
-                    Preshutdown();
-                }
-                else
-                {
-                    base.OnCustomCommand(command);
-                }
             }
 
             public IPBanWindowsServiceRunner(IPBanServiceRunner runner, string[] args)
