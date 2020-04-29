@@ -534,9 +534,9 @@ namespace DigitalRuby.IPBanCore
         /// Check if this process is running on Windows in an in process instance in IIS
         /// </summary>
         /// <returns>True if Windows and in an in process instance on IIS, false otherwise</returns>
-        public bool IsRunningInProcessIIS()
+        public static bool IsRunningInProcessIIS()
         {
-            if (!isWindows)
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 return false;
             }

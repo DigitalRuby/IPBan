@@ -144,7 +144,7 @@ namespace DigitalRuby.IPBanCore
             Logger.Info("Determining if Windows service framework is needed...");
 
             // if we have no console input and we are not in IIS and not running an installer, run as windows service
-            if (Console.IsInputRedirected && !OSUtility.Instance.IsRunningInProcessIIS() &&
+            if (Console.IsInputRedirected && !OSUtility.IsRunningInProcessIIS() &&
                 !args.Any(a => a.StartsWith("-install", StringComparison.OrdinalIgnoreCase)))
             {
                 // create and start using Windows service APIs
