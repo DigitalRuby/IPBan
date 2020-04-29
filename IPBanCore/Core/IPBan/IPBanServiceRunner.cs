@@ -54,7 +54,7 @@ namespace DigitalRuby.IPBanCore
                     {
                         Logger.Error(ex);
                     }
-                });
+                }).GetAwaiter();
             }
 
             protected override void OnStop()
