@@ -44,7 +44,7 @@ namespace DigitalRuby.IPBanCore
             protected override void OnStart(string[] args)
             {
                 base.OnStart(args);
-                System.Threading.ThreadPool.QueueUserWorkItem(state =>
+                Task.Run(async () =>
                 {
                     try
                     {
@@ -54,7 +54,7 @@ namespace DigitalRuby.IPBanCore
                     {
                         Logger.Error(ex);
                     }
-                });
+                }).GetAwaiter();
             }
 
             protected override void OnStop()
@@ -141,6 +141,8 @@ namespace DigitalRuby.IPBanCore
 
         private async Task RunWindowsService(string[] args)
         {
+            Logger.Info("Determining if Windows service framework is needed...");
+
             // if we have no console input and we are not in IIS and not running an installer, run as windows service
             if (Console.IsInputRedirected && !OSUtility.Instance.IsRunningInProcessIIS() &&
                 !args.Any(a => a.StartsWith("-install", StringComparison.OrdinalIgnoreCase)))
