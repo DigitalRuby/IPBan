@@ -418,7 +418,8 @@ namespace DigitalRuby.IPBanCore
                     throw new ApplicationException($"Program {program} {args}: failed with exit code {process.ExitCode}, output: {output}");
                 }
             });
-            if (!task.Wait(timeoutMilliseconds + 5000))
+            int timeout = (timeoutMilliseconds < 1 ? Timeout.Infinite : timeoutMilliseconds + 5000);
+            if (!task.Wait(timeout))
             {
                 if (task.IsFaulted && task.Exception != null)
                 {
