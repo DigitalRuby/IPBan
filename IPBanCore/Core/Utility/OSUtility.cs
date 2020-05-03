@@ -388,18 +388,24 @@ namespace DigitalRuby.IPBanCore
 
                 process.OutputDataReceived += (object sender, DataReceivedEventArgs e) =>
                 {
-                    lock (output)
+                    if (!string.IsNullOrEmpty(e.Data))
                     {
-                        output.Append("[OUT]: ");
-                        output.AppendLine(e.Data);
+                        lock (output)
+                        {
+                            output.Append("[OUT]: ");
+                            output.AppendLine(e.Data);
+                        }
                     }
                 };
                 process.ErrorDataReceived += (object sender, DataReceivedEventArgs e) =>
                 {
-                    lock (output)
+                    if (!string.IsNullOrEmpty(e.Data))
                     {
-                        output.Append("[ERR]: ");
-                        output.AppendLine(e.Data);
+                        lock (output)
+                        {
+                            output.Append("[ERR]: ");
+                            output.AppendLine(e.Data);
+                        }
                     }
                 };
                 process.Start();
