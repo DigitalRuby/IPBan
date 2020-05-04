@@ -177,7 +177,7 @@ namespace DigitalRuby.IPBanCore
             string replacedPathMask = ReplacePathVars(pathAndMask);
             int lastSlashPos = replacedPathMask.LastIndexOf('/');
             string baseDirectoryWithoutGlobSyntax = replacedPathMask.Substring(0, lastSlashPos);
-            int pos = baseDirectoryWithoutGlobSyntax.LastIndexOf("/*");
+            int pos = baseDirectoryWithoutGlobSyntax.IndexOf("/*");
             Matcher fileMatcher;
             if (pos < 0)
             {
