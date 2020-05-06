@@ -41,6 +41,13 @@ namespace DigitalRuby.IPBan
         /// <returns>Task</returns>
         public static async Task Main(string[] args)
         {
+            if (args.Length != 0 && (args[0].Equals("info", StringComparison.OrdinalIgnoreCase) ||
+                args[0].Equals("-info", StringComparison.OrdinalIgnoreCase)))
+            {
+                Logger.Warn("System info: {0}", OSUtility.Instance.OSString());
+                return;
+            }
+
             IPBanService service = null;
             await IPBanServiceRunner.MainService(args, () =>
             {
