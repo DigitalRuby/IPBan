@@ -8,7 +8,7 @@
     <AssemblyName>DigitalRuby.IPBanTests</AssemblyName>
     <PreserveCompilationContext>true</PreserveCompilationContext>
     <LangVersion>latest</LangVersion>
-    <Version>1.5.5</Version>
+    <Version>1.5.6</Version>
 	<GenerateSerializationAssemblies>Off</GenerateSerializationAssemblies>
   </PropertyGroup>
 

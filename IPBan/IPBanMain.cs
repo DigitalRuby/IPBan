@@ -41,15 +41,16 @@ namespace DigitalRuby.IPBan
         /// <returns>Task</returns>
         public static async Task Main(string[] args)
         {
-            OSUtility.Instance.AddAppDomainExceptionHandlers(AppDomain.CurrentDomain);
-
-            await IPBanServiceRunner.MainService<IPBanService>(args, () =>
+            IPBanService service = null;
+            await IPBanServiceRunner.MainService(args, () =>
             {
-                // TODO: IPBan service does not use .NET hosting infrastructure, so send out the message manually, revisit this in the future using host builder
-                if (Environment.UserInteractive)
-                {
-                    Console.WriteLine("IPBan service started, press Ctrl+C to exit");
-                }
+                OSUtility.Instance.AddAppDomainExceptionHandlers(AppDomain.CurrentDomain);
+                service = IPBanService.CreateService<IPBanService>();
+                return service.StartAsync();
+            }, () =>
+            {
+                service?.Dispose();
+                return Task.CompletedTask;
             });
         }
     }

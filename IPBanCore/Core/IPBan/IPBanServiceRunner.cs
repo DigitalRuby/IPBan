@@ -30,223 +30,116 @@ using System.Runtime.InteropServices;
 using System.ServiceProcess;
 using System.Threading.Tasks;
 using System.Threading;
+using System.Configuration;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Configuration;
 
 namespace DigitalRuby.IPBanCore
 {
-    public class IPBanServiceRunner : IDisposable
+    public class IPBanServiceRunner : BackgroundService
     {
-        private IPBanWindowsServiceRunner windowsService;
+        private readonly Func<Task> onStart;
+        private readonly Func<Task> onStop;
+        private readonly bool runAsService;
 
-        private class IPBanWindowsServiceRunner : ServiceBase
-        {
-            private readonly IPBanServiceRunner runner;
-
-            protected override void OnStart(string[] args)
-            {
-                base.OnStart(args);
-                Task.Run(async () =>
-                {
-                    try
-                    {
-                        await runner.start.Invoke(args);
-                    }
-                    catch (Exception ex)
-                    {
-                        Logger.Error(ex);
-                    }
-                }).GetAwaiter();
-            }
-
-            protected override void OnStop()
-            {
-                runner.Dispose();
-                base.OnStop();
-            }
-
-            public IPBanWindowsServiceRunner(IPBanServiceRunner runner, string[] args)
-            {
-                runner.ThrowIfNull();
-                try
-                {
-                    Logger.Warn("Running as a Windows service");
-                    this.runner = runner;
-                    CanShutdown = false;
-                    Directory.SetCurrentDirectory(AppDomain.CurrentDomain.BaseDirectory);
-                }
-                catch (Exception ex)
-                {
-                    Logger.Error(ex);
-                }
-            }
-
-            public Task Run()
-            {
-                System.ServiceProcess.ServiceBase[] ServicesToRun = new System.ServiceProcess.ServiceBase[] { this };
-                System.ServiceProcess.ServiceBase.Run(ServicesToRun);
-                return Task.CompletedTask;
-            }
-        }
-
-        private readonly string[] args;
-        private readonly Func<string[], Task> start;
-
-        private Action stop;
+        private IHost host;
 
         /// <summary>
-        /// Start typed ipban service
+        /// Constructor
         /// </summary>
-        /// <typeparam name="T">Type of ipban service</typeparam>
-        /// <param name="args">Args</param>
-        /// <param name="started">Started callback</param>
-        /// <returns>Task</returns>
-        public static async Task MainService<T>(string[] args, Action started = null) where T : IPBanService
+        /// <param name="args">Command line args</param>
+        /// <param name="onStart">Action to execute on start</param>
+        /// <param name="onStop">Action to execute on stop</param>
+        private IPBanServiceRunner(string[] args, Func<Task> onStart, Func<Task> onStop)
         {
-            T service = IPBanService.CreateService<T>();
-            await MainService(args, async (_args) =>
-            {
-                // kick off start in background thread, make sure service starts up in a timely manner
-                await service.StartAsync();
-                started?.Invoke();
+            var hostBuilder = Host.CreateDefaultBuilder()
+                .ConfigureServices((hostContext, services) =>
+                {
+                    services.AddHostedService<IPBanServiceRunner>(provider => this);
+                });
 
-                // wait for service to end
-                await service.WaitAsync(Timeout.Infinite);
-            }, () =>
-            {
-                // stop the service, will cause any WaitAsync to exit
-                service.Stop();
-            });
-        }
+            Logger.Info("Determining if service framework is needed...");
 
-        /// <summary>
-        /// Start generic ipban service with callbacks. The service implementation should have already been created before this method is called.
-        /// </summary>
-        /// <param name="args">Args</param>
-        /// <param name="start">Start callback, start your implementation running here</param>
-        /// <param name="stop">Stop callback, stop your implementation running here</param>
-        /// <param name="requireAdministrator">Whether administrator access is required</param>
-        /// <returns>Task</returns>
-        public static async Task MainService(string[] args, Func<string[], Task> start, Action stop, bool requireAdministrator = true)
-        {
-            try
-            {
-                using IPBanServiceRunner runner = new IPBanServiceRunner(args, start, stop);
-                await runner.RunAsync(requireAdministrator);
-            }
-            catch (Exception ex)
-            {
-                ExtensionMethods.FileWriteAllTextWithRetry(System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "startup_fail.txt"), ex.ToString());
-                Logger.Fatal("Fatal error starting service", ex);
-            }
-        }
+            // if we have no console input and we are not in IIS and not running an installer, run as a service
+            runAsService = (Console.IsInputRedirected && !OSUtility.IsRunningInProcessIIS() &&
+                !args.Any(a => a.StartsWith("-install", StringComparison.OrdinalIgnoreCase)));
 
-        private async Task RunWindowsService(string[] args)
-        {
-            Logger.Info("Determining if Windows service framework is needed...");
+            this.onStart = onStart;
+            this.onStop = onStop;
 
-            // if we have no console input and we are not in IIS and not running an installer, run as windows service
-            if (Console.IsInputRedirected && !OSUtility.IsRunningInProcessIIS() &&
-                !args.Any(a => a.StartsWith("-install", StringComparison.OrdinalIgnoreCase)))
+            if (runAsService)
             {
-                // create and start using Windows service APIs
-                windowsService = new IPBanWindowsServiceRunner(this, args);
-                await windowsService.Run();
+                Logger.Info("Running as service");
+                hostBuilder.UseWindowsService();
+                hostBuilder.UseSystemd();
             }
             else
             {
-                await RunConsoleService(args);
+                Logger.Info("Running as console app");
+                hostBuilder.UseConsoleLifetime();
             }
-        }
 
-        private async Task RunConsoleService(string[] args)
-        {
-            try
-            {
-                await start.Invoke(args);
-            }
-            catch (Exception ex)
-            {
-                Logger.Error(ex);
-            }
-        }
-
-        private async Task RunLinuxService(string[] args)
-        {
-            await RunConsoleService(args);
-        }
-
-        private void AppDomainExit(object sender, EventArgs e)
-        {
-            Dispose();
-        }
-
-        private void Console_CancelKeyPress(object sender, ConsoleCancelEventArgs e)
-        {
-            Dispose();
+            host = hostBuilder.Build();
         }
 
         /// <summary>
-        /// Construct and start the service
+        /// Cleanup
         /// </summary>
-        /// <param name="args">Command line args</param>
-        /// <param name="start">Start action, params are command line args. This should start the internal service.</param>
-        /// <param name="stop">Stop action, this should stop the internal service.</param>
-        public IPBanServiceRunner(string[] args, Func<string[], Task> start, Action stop)
+        public override void Dispose()
         {
-            this.args = args ?? new string[0];
-            start.ThrowIfNull();
-            stop.ThrowIfNull();
-            this.start = start;
-            this.stop = stop;
-            Console.CancelKeyPress += Console_CancelKeyPress;
-            AppDomain.CurrentDomain.ProcessExit += AppDomainExit;
+            if (host != null)
+            {
+                base.Dispose();
+                host.Dispose();
+                host = null;
+            }
         }
 
         /// <summary>
         /// Run the service
         /// </summary>
-        /// <param name="requireAdministrator">True to require administrator, false otherwise</param>
-        /// <returns>Exit code</returns>
-        public async Task RunAsync(bool requireAdministrator = true)
+        /// <param name="cancelToken">Cancel token</param>
+        /// <returns>Task</returns>
+        public Task RunAsync(CancellationToken cancelToken = default)
         {
-            if (requireAdministrator)
-            {
-                ExtensionMethods.RequireAdministrator();
-            }
-
-            if (args.Length != 0 && (args[0].Equals("info", StringComparison.OrdinalIgnoreCase) || args[0].Equals("-info", StringComparison.OrdinalIgnoreCase)))
-            {
-                Logger.Warn("System info: {0}", OSUtility.Instance.OSString());
-            }
-            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                await RunWindowsService(args);
-            }
-            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-            {
-                await RunLinuxService(args);
-            }
-            else
-            {
-                throw new PlatformNotSupportedException();
-            }
+            return host.RunAsync(cancelToken);
         }
 
         /// <summary>
-        /// Dispose and stop
+        /// Run service helper method
         /// </summary>
-        public void Dispose()
+        /// <param name="args">Args</param>
+        /// <param name="onStart">Start</param>
+        /// <param name="onStop">Stop</param>
+        /// <param name="cancelToken">Cancel token</param>
+        /// <returns>Task</returns>
+        public static async Task MainService(string[] args, Func<Task> onStart, Func<Task> onStop = null, CancellationToken cancelToken = default)
         {
-            IPBanWindowsServiceRunner runner = windowsService;
-            windowsService = null;
-            if (runner != null)
+            try
             {
-                runner.Stop();
+                using IPBanServiceRunner runner = new IPBanServiceRunner(args, onStart, onStop);
+                await runner.RunAsync(cancelToken);
             }
-            Action stopper = stop;
-            stop = null;
-            if (stopper != null)
+            catch (Exception ex)
             {
-                stopper.Invoke();
+                ExtensionMethods.FileWriteAllTextWithRetry(System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "service_error.txt"), ex.ToString());
+                Logger.Fatal("Fatal error running service", ex);
+            }
+        }
+
+        /// <inheritdoc />
+        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+        {
+            Directory.SetCurrentDirectory(AppContext.BaseDirectory);
+            if (onStart != null)
+            {
+                await onStart();
+            }
+            await Task.Delay(-1, stoppingToken);
+            if (onStop != null)
+            {
+                await onStop();
             }
         }
     }
