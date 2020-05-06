@@ -299,8 +299,8 @@ namespace DigitalRuby.IPBanCore
                 IsRunning = true;
                 ipDB = new IPBanDB(DatabasePath ?? "ipban.sqlite");
                 AddWindowsEventViewer();
-                AddUpdater(new IPBanUnblockIPAddressesUpdater(this, Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "unban.txt")));
-                AddUpdater(new IPBanBlockIPAddressesUpdater(this, Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ban.txt")));
+                AddUpdater(new IPBanUnblockIPAddressesUpdater(this, Path.Combine(AppContext.BaseDirectory, "unban.txt")));
+                AddUpdater(new IPBanBlockIPAddressesUpdater(this, Path.Combine(AppContext.BaseDirectory, "ban.txt")));
                 AssemblyVersion = IPBanService.IPBanAssembly.GetName().Version.ToString();
                 await ReadAppSettings();
                 UpdateBannedIPAddressesOnStart();

@@ -190,7 +190,7 @@ namespace DigitalRuby.IPBanCore
                 }
                 if (factory is null || factory.Configuration.AllTargets.Count == 0)
                 {
-                    string nlogConfigPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "nlog.config");
+                    string nlogConfigPath = Path.Combine(AppContext.BaseDirectory, "nlog.config");
                     if (!File.Exists(nlogConfigPath))
                     {
                         string logLevel = "Warn";

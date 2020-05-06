@@ -1179,7 +1179,7 @@ namespace DigitalRuby.IPBanCore
 
         public static void RemoveDatabaseFiles(string folder = null)
         {
-            folder ??= AppDomain.CurrentDomain.BaseDirectory;
+            folder ??= AppContext.BaseDirectory;
 
             // cleanup any db, set or tbl files
             foreach (string file in Directory.GetFiles(folder, "*.set")

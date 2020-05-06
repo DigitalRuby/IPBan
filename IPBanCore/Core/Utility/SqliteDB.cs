@@ -324,7 +324,7 @@ namespace DigitalRuby.IPBanCore
             else
             {
                 dbPath.ThrowIfNullOrEmpty(nameof(dbPath));
-                dbPath = (Path.IsPathRooted(dbPath) ? dbPath : Path.Combine(AppDomain.CurrentDomain.BaseDirectory, dbPath));
+                dbPath = (Path.IsPathRooted(dbPath) ? dbPath : Path.Combine(AppContext.BaseDirectory, dbPath));
                 if (!dbPath.EndsWith(".sqlite", StringComparison.OrdinalIgnoreCase))
                 {
                     dbPath += ".sqlite";

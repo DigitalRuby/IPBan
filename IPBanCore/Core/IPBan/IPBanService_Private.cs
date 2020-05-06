@@ -80,7 +80,7 @@ namespace DigitalRuby.IPBanCore
         {
             try
             {
-                ConfigFilePath = (!File.Exists(ConfigFilePath) ? Path.Combine(AppDomain.CurrentDomain.BaseDirectory, IPBanService.ConfigFileName) : ConfigFilePath);
+                ConfigFilePath = (!File.Exists(ConfigFilePath) ? Path.Combine(AppContext.BaseDirectory, IPBanService.ConfigFileName) : ConfigFilePath);
                 string newXml = await ConfigReaderWriter.CheckForConfigChange();
                 if (!string.IsNullOrWhiteSpace(newXml))
                 {
@@ -730,7 +730,7 @@ namespace DigitalRuby.IPBanCore
                             // however you are doing the update, you must allow -c and -d parameters
                             // pass -c to tell the update executable to delete itself when done
                             // pass -d for a directory which tells the .exe where this service lives
-                            string args = "-c \"-d=" + AppDomain.CurrentDomain.BaseDirectory + "\"";
+                            string args = "-c \"-d=" + AppContext.BaseDirectory + "\"";
                             Process.Start(tempFile, args);
                         }
                     }

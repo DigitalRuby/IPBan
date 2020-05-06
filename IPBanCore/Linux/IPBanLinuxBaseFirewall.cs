@@ -61,7 +61,7 @@ namespace DigitalRuby.IPBanCore
 
             try
             {
-                string dir = AppDomain.CurrentDomain.BaseDirectory;
+                string dir = AppContext.BaseDirectory;
                 foreach (string setFile in Directory.GetFiles(dir, "*.set")
                     .Union(Directory.GetFiles(dir, "*.tbl")
                     .Union(Directory.GetFiles(dir, "*.set6"))
@@ -132,12 +132,12 @@ namespace DigitalRuby.IPBanCore
 
         protected string GetTableFileName()
         {
-            return Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ipban" + TableSuffix);
+            return Path.Combine(AppContext.BaseDirectory, "ipban" + TableSuffix);
         }
 
         protected string GetSetFileName()
         {
-            return Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ipban.set");
+            return Path.Combine(AppContext.BaseDirectory, "ipban.set");
         }
 
         protected int RunProcess(string program, bool requireExitCode, string commandLine, params object[] args)

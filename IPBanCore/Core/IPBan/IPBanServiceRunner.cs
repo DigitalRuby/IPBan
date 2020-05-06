@@ -123,7 +123,7 @@ namespace DigitalRuby.IPBanCore
             }
             catch (Exception ex)
             {
-                ExtensionMethods.FileWriteAllTextWithRetry(System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "service_error.txt"), ex.ToString());
+                ExtensionMethods.FileWriteAllTextWithRetry(System.IO.Path.Combine(AppContext.BaseDirectory, "service_error.txt"), ex.ToString());
                 Logger.Fatal("Fatal error running service", ex);
             }
         }

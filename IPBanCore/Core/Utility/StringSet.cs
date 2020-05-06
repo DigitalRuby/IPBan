@@ -119,7 +119,7 @@ namespace DigitalRuby.IPBanCore
         public StringSet(string name, bool autoDelete = false)
         {
             this.autoDelete = autoDelete;
-            dbPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, name + ".sqlite");
+            dbPath = Path.Combine(AppContext.BaseDirectory, name + ".sqlite");
             connString = "Data Source=" + dbPath;
             Initialize();
         }

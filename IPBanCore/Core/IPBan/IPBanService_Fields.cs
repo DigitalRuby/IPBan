@@ -225,11 +225,11 @@ namespace DigitalRuby.IPBanCore
         /// <summary>
         /// File name to write ip addresses to (one per line) to block the ip addresses in the file. Can comma separate each line and the second line will be a source of the ban.
         /// </summary>
-        public string BlockIPAddressesFileName { get; } = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ban.txt");
+        public string BlockIPAddressesFileName { get; } = Path.Combine(AppContext.BaseDirectory, "ban.txt");
 
         /// <summary>
         /// File name to write ip addresses to (one per line) to unblock the ip addresses in the file
         /// </summary>
-        public string UnblockIPAddressesFileName { get; } = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "unban.txt");
+        public string UnblockIPAddressesFileName { get; } = Path.Combine(AppContext.BaseDirectory, "unban.txt");
     }
 }
