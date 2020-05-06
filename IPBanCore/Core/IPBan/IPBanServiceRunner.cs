@@ -54,7 +54,7 @@ namespace DigitalRuby.IPBanCore
             Logger.Warn("Initializing service");
             Directory.SetCurrentDirectory(AppContext.BaseDirectory);
             OSUtility.Instance.AddAppDomainExceptionHandlers(AppDomain.CurrentDomain);
-            var hostBuilder = Host.CreateDefaultBuilder()
+            var hostBuilder = new HostBuilder()
                 .ConfigureServices((hostContext, services) =>
                 {
                     services.AddHostedService<IPBanServiceRunner>(provider => this);
@@ -65,10 +65,7 @@ namespace DigitalRuby.IPBanCore
             hostBuilder.UseWindowsService();
             hostBuilder.UseSystemd();
             hostBuilder.UseConsoleLifetime();
-            hostBuilder.ConfigureLogging(logging =>
-            {
-                logging.ClearProviders();
-            });
+            hostBuilder.UseContentRoot(AppContext.BaseDirectory);
             host = hostBuilder.Build();
         }
 
