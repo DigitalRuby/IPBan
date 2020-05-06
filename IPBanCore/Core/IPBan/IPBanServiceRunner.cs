@@ -30,6 +30,7 @@ using System.Threading;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using System.Diagnostics;
 
 namespace DigitalRuby.IPBanCore
 {
@@ -62,9 +63,19 @@ namespace DigitalRuby.IPBanCore
 
             this.onStart = onStart;
             this.onStop = onStop;
-            hostBuilder.UseWindowsService();
-            hostBuilder.UseSystemd();
-            hostBuilder.UseConsoleLifetime();
+            if (Microsoft.Extensions.Hosting.WindowsServices.WindowsServiceHelpers.IsWindowsService())
+            {
+                hostBuilder.UseWindowsService();
+            }
+            else if (Microsoft.Extensions.Hosting.Systemd.SystemdHelpers.IsSystemdService())
+            {
+                hostBuilder.UseSystemd();
+            }
+            else
+            {
+                // adding console lifetime wrecks things if actually running under a service
+                hostBuilder.UseConsoleLifetime();
+            }
             hostBuilder.UseContentRoot(AppContext.BaseDirectory);
             host = hostBuilder.Build();
         }
