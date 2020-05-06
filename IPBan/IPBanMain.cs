@@ -44,7 +44,6 @@ namespace DigitalRuby.IPBan
             IPBanService service = null;
             await IPBanServiceRunner.MainService(args, () =>
             {
-                OSUtility.Instance.AddAppDomainExceptionHandlers(AppDomain.CurrentDomain);
                 service = IPBanService.CreateService<IPBanService>();
                 return service.StartAsync();
             }, () =>

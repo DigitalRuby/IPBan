@@ -41,45 +41,30 @@ namespace DigitalRuby.IPBanCore
     {
         private readonly Func<Task> onStart;
         private readonly Func<Task> onStop;
-        private readonly bool runAsService;
 
         private IHost host;
 
         /// <summary>
         /// Constructor
         /// </summary>
-        /// <param name="args">Command line args</param>
         /// <param name="onStart">Action to execute on start</param>
         /// <param name="onStop">Action to execute on stop</param>
-        private IPBanServiceRunner(string[] args, Func<Task> onStart, Func<Task> onStop)
+        private IPBanServiceRunner(Func<Task> onStart, Func<Task> onStop)
         {
+            Logger.Warn("Initializing service");
+            Directory.SetCurrentDirectory(AppContext.BaseDirectory);
+            OSUtility.Instance.AddAppDomainExceptionHandlers(AppDomain.CurrentDomain);
             var hostBuilder = Host.CreateDefaultBuilder()
                 .ConfigureServices((hostContext, services) =>
                 {
                     services.AddHostedService<IPBanServiceRunner>(provider => this);
                 });
 
-            Logger.Info("Determining if service framework is needed...");
-
-            // if we have no console input and we are not in IIS and not running an installer, run as a service
-            runAsService = (Console.IsInputRedirected && !OSUtility.IsRunningInProcessIIS() &&
-                !args.Any(a => a.StartsWith("-install", StringComparison.OrdinalIgnoreCase)));
-
             this.onStart = onStart;
             this.onStop = onStop;
-
-            if (runAsService)
-            {
-                Logger.Info("Running as service");
-                hostBuilder.UseWindowsService();
-                hostBuilder.UseSystemd();
-            }
-            else
-            {
-                Logger.Info("Running as console app");
-                hostBuilder.UseConsoleLifetime();
-            }
-
+            hostBuilder.UseWindowsService();
+            hostBuilder.UseSystemd();
+            hostBuilder.UseConsoleLifetime();
             host = hostBuilder.Build();
         }
 
@@ -90,6 +75,7 @@ namespace DigitalRuby.IPBanCore
         {
             if (host != null)
             {
+                Logger.Warn("Disposing service");
                 base.Dispose();
                 host.Dispose();
                 host = null;
@@ -103,6 +89,7 @@ namespace DigitalRuby.IPBanCore
         /// <returns>Task</returns>
         public Task RunAsync(CancellationToken cancelToken = default)
         {
+            Logger.Warn("Preparing to run service");
             return host.RunAsync(cancelToken);
         }
 
@@ -114,11 +101,13 @@ namespace DigitalRuby.IPBanCore
         /// <param name="onStop">Stop</param>
         /// <param name="cancelToken">Cancel token</param>
         /// <returns>Task</returns>
+#pragma warning disable IDE0060 // Remove unused parameter
         public static async Task MainService(string[] args, Func<Task> onStart, Func<Task> onStop = null, CancellationToken cancelToken = default)
+#pragma warning restore IDE0060 // Remove unused parameter
         {
             try
             {
-                using IPBanServiceRunner runner = new IPBanServiceRunner(args, onStart, onStop);
+                using IPBanServiceRunner runner = new IPBanServiceRunner(onStart, onStop);
                 await runner.RunAsync(cancelToken);
             }
             catch (Exception ex)
@@ -129,18 +118,32 @@ namespace DigitalRuby.IPBanCore
         }
 
         /// <inheritdoc />
-        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+        public override async Task StartAsync(CancellationToken cancellationToken)
         {
-            Directory.SetCurrentDirectory(AppContext.BaseDirectory);
+            Logger.Warn("Starting service");
+            await base.StartAsync(cancellationToken);
             if (onStart != null)
             {
                 await onStart();
             }
-            await Task.Delay(-1, stoppingToken);
+        }
+
+        /// <inheritdoc />
+        public override async Task StopAsync(CancellationToken cancellationToken)
+        {
+            Logger.Warn("Stopping service");
+            await base.StopAsync(cancellationToken);
             if (onStop != null)
             {
                 await onStop();
             }
+        }
+
+        /// <inheritdoc />
+        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+        {
+            Logger.Warn("Running service");
+            await Task.Delay(-1, stoppingToken);
         }
     }
 }
