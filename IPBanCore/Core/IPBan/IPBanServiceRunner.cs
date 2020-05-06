@@ -24,20 +24,20 @@ SOFTWARE.
 
 using System;
 using System.IO;
-using System.Linq;
-using System.Reflection;
-using System.Runtime.InteropServices;
-using System.ServiceProcess;
 using System.Threading.Tasks;
 using System.Threading;
-using System.Configuration;
+
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 
 namespace DigitalRuby.IPBanCore
 {
-    public class IPBanServiceRunner : BackgroundService
+    /// <summary>
+    /// IPBan service runner, assists with starting the service and make sure it runs
+    /// properly if under a Windows service, systemd, etc.
+    /// </summary>
+    public sealed class IPBanServiceRunner : BackgroundService
     {
         private readonly Func<Task> onStart;
         private readonly Func<Task> onStop;
@@ -65,6 +65,10 @@ namespace DigitalRuby.IPBanCore
             hostBuilder.UseWindowsService();
             hostBuilder.UseSystemd();
             hostBuilder.UseConsoleLifetime();
+            hostBuilder.ConfigureLogging(logging =>
+            {
+                logging.ClearProviders();
+            });
             host = hostBuilder.Build();
         }
 
