@@ -557,7 +557,7 @@ namespace DigitalRuby.IPBanCore
         /// Add app domain exception handlers
         /// </summary>
         /// <param name="domain">Appdomain</param>
-        public void AddAppDomainExceptionHandlers(AppDomain domain)
+        public static void AddAppDomainExceptionHandlers(AppDomain domain)
         {
             domain.UnhandledException += (obj, ex) =>
             {

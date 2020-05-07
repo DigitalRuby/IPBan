@@ -54,7 +54,7 @@ namespace DigitalRuby.IPBanCore
         {
             Logger.Warn("Initializing service");
             Directory.SetCurrentDirectory(AppContext.BaseDirectory);
-            OSUtility.Instance.AddAppDomainExceptionHandlers(AppDomain.CurrentDomain);
+            OSUtility.AddAppDomainExceptionHandlers(AppDomain.CurrentDomain);
             var hostBuilder = new HostBuilder()
                 .ConfigureServices((hostContext, services) =>
                 {
@@ -134,10 +134,6 @@ namespace DigitalRuby.IPBanCore
         {
             Logger.Warn("Starting service");
             await base.StartAsync(cancellationToken);
-            if (onStart != null)
-            {
-                await onStart();
-            }
         }
 
         /// <inheritdoc />
@@ -154,6 +150,11 @@ namespace DigitalRuby.IPBanCore
         /// <inheritdoc />
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
+            if (onStart != null)
+            {
+                await onStart();
+            }
+
             Logger.Warn("Running service");
             await Task.Delay(-1, stoppingToken);
         }
