@@ -325,29 +325,42 @@ namespace DigitalRuby.IPBanCore
 
         private void SetupEventLogWatcher()
         {
-            try
-            {
-                List<string> ignored = new List<string>();
-                string queryString = GetEventLogQueryString(ignored);
-                if (queryString != null && queryString != previousQueryString)
-                {
-                    Logger.Warn("Event viewer query string: {0}", queryString);
-                    foreach (string path in ignored)
-                    {
-                        Logger.Warn("Ignoring event viewer path {0}", path);
-                    }
+            Exception error = null;
 
-                    watcher?.Dispose();
-                    query = new EventLogQuery(null, PathType.LogName, queryString);
-                    watcher = new EventLogWatcher(query);
-                    watcher.EventRecordWritten += EventRecordWritten;
-                    watcher.Enabled = true;
-                    previousQueryString = queryString;
+            for (int i = 49; i >= 0; i--)
+            {
+                try
+                {
+                    List<string> ignored = new List<string>();
+                    string queryString = GetEventLogQueryString(ignored);
+                    if (queryString != null && queryString != previousQueryString)
+                    {
+                        Logger.Warn("Event viewer query string: {0}", queryString);
+                        foreach (string path in ignored)
+                        {
+                            Logger.Warn("Ignoring event viewer path {0}", path);
+                        }
+
+                        watcher?.Dispose();
+                        query = new EventLogQuery(null, PathType.LogName, queryString);
+                        watcher = new EventLogWatcher(query);
+                        watcher.EventRecordWritten += EventRecordWritten;
+                        watcher.Enabled = true;
+                        previousQueryString = queryString;
+                    }
+                    error = null;
+                    break;
+                }
+                catch (Exception ex)
+                {
+                    Logger.Error(error, "Failed to create event viewer watcher, retrying {0} more times...", i);
+                    error = ex;
+                    Thread.Sleep(10000);
                 }
             }
-            catch (Exception ex)
+            if (error != null)
             {
-                Logger.Error("Failed to create event viewer watcher", ex);
+                throw error;
             }
         }
     }

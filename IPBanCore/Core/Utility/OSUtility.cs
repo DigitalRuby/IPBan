@@ -124,32 +124,21 @@ namespace DigitalRuby.IPBanCore
             // use local vars, attempting to set property in a static constructor in a thread hangs the process
             string friendlyName = null;
             string version = null;
-
-            // in case this hangs after os reboot, put a 5 second timeout on the call
-            Thread thread = new Thread(new ThreadStart(() =>
+            try
             {
-                try
+                // WMI API sometimes fails to initialize on .NET core on some systems, not sure why...
+                // fall-back to WMI, maybe future .NET core versions will fix the bug
+                using ManagementObjectSearcher searcher = new ManagementObjectSearcher("SELECT Caption, Version FROM Win32_OperatingSystem");
+                foreach (var result in searcher.Get())
                 {
-                    // WMI API sometimes fails to initialize on .NET core on some systems, not sure why...
-                    // fall-back to WMI, maybe future .NET core versions will fix the bug
-                    using ManagementObjectSearcher searcher = new ManagementObjectSearcher("SELECT Caption, Version FROM Win32_OperatingSystem");
-                    foreach (var result in searcher.Get())
-                    {
-                        friendlyName = result["Caption"] as string;
-                        version = result["Version"] as string;
-                        break;
-                    }
+                    friendlyName = result["Caption"] as string;
+                    version = result["Version"] as string;
+                    break;
                 }
-                catch (Exception ex)
-                {
-                    Logger.Error(ex, "Error loading os info from WMI API");
-                }
-            }));
-            thread.SetApartmentState(ApartmentState.STA);
-            thread.Start();
-            if (!thread.Join(5000))
+            }
+            catch (Exception ex)
             {
-                throw new ApplicationException("Timed out loading os info from WMI API");
+                Logger.Error(ex, "Error loading os info from WMI API");
             }
             if (friendlyName is null || version is null)
             {
@@ -332,7 +321,16 @@ namespace DigitalRuby.IPBanCore
         private void Initialize()
         {
             // perform initialize after constructor to avoid weird clr issues and freezing
-            LoadOSInfoWithRetryLoop();
+            Thread thread = new Thread(new ParameterizedThreadStart((_state) =>
+            {
+                LoadOSInfoWithRetryLoop();
+            }));
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                thread.SetApartmentState(ApartmentState.STA);
+            }
+            thread.Start();
+            thread.Join(10000); // give the thread 10 seconds to complete, otherwise give up
         }
 
         /// <summary>
@@ -369,7 +367,7 @@ namespace DigitalRuby.IPBanCore
         public string StartProcessAndWait(int timeoutMilliseconds, string program, string args, params int[] allowedExitCodes)
         {
             StringBuilder output = new StringBuilder();
-            Task task = Task.Run(() =>
+            Thread thread = new Thread(new ParameterizedThreadStart((_state) =>
             {
                 Logger.Info($"Executing process {program} {args}...");
 
@@ -423,14 +421,11 @@ namespace DigitalRuby.IPBanCore
                 {
                     throw new ApplicationException($"Program {program} {args}: failed with exit code {process.ExitCode}, output: {output}");
                 }
-            });
+            }));
+            thread.Start();
             int timeout = (timeoutMilliseconds < 1 ? Timeout.Infinite : timeoutMilliseconds + 5000);
-            if (!task.Wait(timeout))
+            if (!thread.Join(timeout))
             {
-                if (task.IsFaulted && task.Exception != null)
-                {
-                    throw task.Exception;
-                }
                 throw new ApplicationException("Timed out waiting for process result");
             }
             return output.ToString();
