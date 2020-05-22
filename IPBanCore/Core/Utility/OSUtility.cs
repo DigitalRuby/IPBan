@@ -180,8 +180,11 @@ namespace DigitalRuby.IPBanCore
                             int versionIndex = lines[0].IndexOf("Version");
                             if (versionIndex >= 0)
                             {
-                                FriendlyName = lines[1].Substring(0, versionIndex - 1).Trim();
-                                Version = lines[1].Substring(versionIndex).Trim();
+                                FriendlyName = lines[1].Substring(0, versionIndex).Trim();
+                                if (string.IsNullOrWhiteSpace(Version))
+                                {
+                                    Version = lines[1].Substring(versionIndex).Trim();
+                                }
                                 return;
                             }
                         }
