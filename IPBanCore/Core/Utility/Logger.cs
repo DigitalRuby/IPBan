@@ -609,7 +609,9 @@ namespace DigitalRuby.IPBanCore
         /// <param name="count">How many messages were aggregated, 1 for no aggregation</param>
         /// <param name="type">Event type</param>
         /// <param name="timestamp">Timestamp of the event, default for current timestamp</param>
-        public IPAddressLogEvent(string ipAddress, string userName, string source, int count, IPAddressEventType type, DateTime timestamp = default)
+        /// <param name="external">Whether this log came from an external source</param>
+        public IPAddressLogEvent(string ipAddress, string userName, string source,
+            int count, IPAddressEventType type, DateTime timestamp = default, bool external = false)
         {
             // normalize ip address if possible
             if (System.Net.IPAddress.TryParse(ipAddress, out System.Net.IPAddress parsedIPAddress))
@@ -625,6 +627,7 @@ namespace DigitalRuby.IPBanCore
             Count = count;
             Type = type;
             Timestamp = (timestamp == default ? IPBanService.UtcNow : timestamp);
+            External = external;
         }
 
         /// <summary>
@@ -655,6 +658,11 @@ namespace DigitalRuby.IPBanCore
         /// How many messages were aggregated, 1 for no aggregation. Can be set to 0 if count is unknown or from an external source.
         /// </summary>
         public int Count { get; set; }
+
+        /// <summary>
+        /// Whether this event was from an external source
+        /// </summary>
+        public bool External { get; set; }
 
         /// <summary>
         /// Timestamp of the event
