@@ -267,11 +267,18 @@ namespace DigitalRuby.IPBanCore
             {
                 foreach (string entry in setValue.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(e => e.Trim()))
                 {
-                    if (entry != "0.0.0.0" && entry != "::0" && entry != "127.0.0.1" && entry != "::1" && entry != "localhost")
+                    string entryWithoutComment = entry;
+                    int pos = entryWithoutComment.IndexOf('?');
+                    if (pos >= 0)
+                    {
+                        entryWithoutComment = entryWithoutComment.Substring(0, pos);
+                    }
+                    entryWithoutComment = entryWithoutComment.Trim();
+                    if (entryWithoutComment != "0.0.0.0" && entryWithoutComment != "::0" && entryWithoutComment != "127.0.0.1" && entryWithoutComment != "::1" && entryWithoutComment != "localhost")
                     {
                         try
                         {
-                            if (IPAddressRange.TryParse(entry, out IPAddressRange range))
+                            if (IPAddressRange.TryParse(entryWithoutComment, out IPAddressRange range))
                             {
                                 if (range.Begin.Equals(range.End))
                                 {
@@ -289,7 +296,7 @@ namespace DigitalRuby.IPBanCore
                                     try
                                     {
                                         // add entries for each ip address that matches the dns entry
-                                        IPAddress[] addresses = dns.GetHostEntryAsync(entry).Sync().AddressList;
+                                        IPAddress[] addresses = dns.GetHostEntryAsync(entryWithoutComment).Sync().AddressList;
                                         if (addresses != null)
                                         {
                                             foreach (IPAddress adr in addresses)
@@ -301,13 +308,13 @@ namespace DigitalRuby.IPBanCore
                                     catch
                                     {
                                         // eat exception, nothing we can do
-                                        others.Add(entry);
+                                        others.Add(entryWithoutComment);
                                     }
                                 }
                                 else
                                 {
                                     // add the entry itself
-                                    others.Add(entry);
+                                    others.Add(entryWithoutComment);
                                 }
                             }
                         }
@@ -666,6 +673,19 @@ namespace DigitalRuby.IPBanCore
         {
             return WindowsEventViewerExpressionsToBlock.Groups.Where(g => (g.KeywordsULONG == keywords))
                 .Union(expressionsSuccess.Groups.Where(g => (g.KeywordsULONG == keywords)));
+        }
+
+        /// <summary>
+        /// Change an app settings - no XML encoding is done, so ensure your key and new value are already encoded
+        /// </summary>
+        /// <param name="config">Entire XML config</param>
+        /// <param name="key">App setting key to look for</param>
+        /// <returns>The config value or null if not found</returns>
+        public static string GetConfigAppSetting(string config, string key)
+        {
+            string find = $@"\<add key=""{key}"" value=""(?<value>[^""]*)"" *\/\>";
+            Match match = Regex.Match(config, find, RegexOptions.IgnoreCase);
+            return (match is null || !match.Success ? null : match.Groups["value"].Value);
         }
 
         /// <summary>
