@@ -24,6 +24,7 @@ SOFTWARE.
 
 using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -218,6 +219,22 @@ namespace DigitalRuby.IPBanTests
             {
                 IPBanService.DisposeIPBanTestService(service);
             }
+        }
+
+        /// <summary>
+        /// Test that we can parse a blacklist or whitelist with comments
+        /// </summary>
+        [Test]
+        public void TestListComments()
+        {
+            IPBanConfig config = IPBanConfig.LoadFromXml("<?xml version='1.0'?><configuration>" +
+                "<appSettings><add key='Whitelist' value='99.99.99.99?TestIP?2020-05-25," +
+                "88.88.88.88?TestIP2?2020-05-24' /></appSettings></configuration>",
+                DefaultDnsLookup.Instance);
+            Assert.AreEqual(config.WhiteList, "99.99.99.99,88.88.88.88");
+            Assert.IsTrue(config.IsWhitelisted("99.99.99.99"));
+            Assert.IsTrue(config.IsWhitelisted("88.88.88.88"));
+            Assert.IsFalse(config.IsWhitelisted("77.77.77.77"));
         }
     }
 }
