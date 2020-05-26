@@ -809,7 +809,7 @@ namespace DigitalRuby.IPBanCore {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to IP addresses, cidr masks or dns names to never ban. Comma separated.
+        ///   Looks up a localized string similar to IP addresses, cidr masks or dns names to never ban. Comma separated..
         /// </summary>
         public static string IPWhitelistTooltip {
             get {
