@@ -122,6 +122,10 @@ namespace DigitalRuby.IPBanCore
                 using IPBanServiceRunner runner = new IPBanServiceRunner(onStart, onStop);
                 await runner.RunAsync(cancelToken);
             }
+            catch (OperationCanceledException)
+            {
+                // don't care
+            }
             catch (Exception ex)
             {
                 ExtensionMethods.FileWriteAllTextWithRetry(System.IO.Path.Combine(AppContext.BaseDirectory, "service_error.txt"), ex.ToString());
