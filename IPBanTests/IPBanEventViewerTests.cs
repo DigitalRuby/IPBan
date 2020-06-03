@@ -162,6 +162,11 @@ namespace DigitalRuby.IPBanTests
                 ),
                 new KeyValuePair<string, string>
                 (
+                    @"<Event xmlns='http://schemas.microsoft.com/win/2004/08/events/event'><System><Provider Name='MSSQLSERVER' /><EventID Qualifiers='49152'>18456</EventID><Level>0</Level><Task>4</Task><Keywords>0x90000000000000</Keywords><TimeCreated SystemTime='2020-06-03T18:29:05.369181500Z' /><EventRecordID>303418</EventRecordID><Channel>Application</Channel><Computer>MYDOMAIN.MYDOMAINHOST.local</Computer><Security /></System><EventData><Data>sa</Data><Data>Reason: An error occurred while evaluating the password.</Data><Data>[CLIENT: 155.155.155.155]</Data><Binary>184800000E0000000B0000004200540043004F005200440042003000310030000000070000006D00610073007400650072000000</Binary></EventData></Event>",
+                    "155.155.155.155,sa,MSSQL,0"
+                ),
+                new KeyValuePair<string, string>
+                (
                     @"<Event xmlns='http://schemas.microsoft.com/win/2004/08/events/event'><System><Provider Name='MSSQLSERVER'/><EventID Qualifiers='49152'>18456</EventID><Level>0</Level><Task>4</Task><Keywords>0x90000000000000</Keywords><TimeCreated SystemTime='2012-04-05T20:26:30.000000000Z'/><EventRecordID>408488</EventRecordID><Channel>Application</Channel><Computer>dallas</Computer><Security/></System><EventData><Data>sa1</Data><Data> Reason: Could not find a login matching the name provided.</Data><Data> [CLIENT: 0.0.0.0]</Data><Binary>184800000E00000007000000440041004C004C00410053000000070000006D00610073007400650072000000</Binary></EventData></Event>",
                     "0.0.0.0,sa1,MSSQL,0"
                 ),
@@ -297,6 +302,7 @@ namespace DigitalRuby.IPBanTests
                 "99.99.99.100",
                 "100.101.102.103",
                 "104.248.243.148",
+                "155.155.155.155",
                 "185.209.0.22",
                 "185.222.211.58",
                 "188.166.71.236",
