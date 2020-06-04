@@ -154,12 +154,13 @@ namespace DigitalRuby.IPBanCore
         /// <inheritdoc />
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
+            Logger.Warn("Running service");
+
             if (onStart != null)
             {
                 await onStart();
             }
 
-            Logger.Warn("Running service");
             await Task.Delay(-1, stoppingToken);
         }
     }
