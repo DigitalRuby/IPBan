@@ -287,7 +287,8 @@ namespace DigitalRuby.IPBanCore
         /// <summary>
         /// Initialize and start the service
         /// </summary>
-        public async Task StartAsync()
+        /// <param name="cancelToken">Cancel token</param>
+        public async Task StartAsync(CancellationToken cancelToken)
         {
             if (IsRunning)
             {
@@ -514,7 +515,7 @@ namespace DigitalRuby.IPBanCore
                 service.BannedIPAddressHandler = new DefaultBannedIPAddressHandler { BaseUrl = defaultBannedIPAddressHandlerUrl };
             }
             service.Version = "1.1.1.1";
-            service.StartAsync().Sync();
+            service.StartAsync(CancellationToken.None).Sync();
             service.DB.Truncate(true);
             service.Firewall.Truncate();
             return service;

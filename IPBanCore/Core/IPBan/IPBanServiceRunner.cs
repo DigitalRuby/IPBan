@@ -40,8 +40,8 @@ namespace DigitalRuby.IPBanCore
     /// </summary>
     public sealed class IPBanServiceRunner : BackgroundService
     {
-        private readonly Func<Task> onStart;
-        private readonly Func<Task> onStop;
+        private readonly Func<CancellationToken, Task> onStart;
+        private readonly Func<CancellationToken, Task> onStop;
 
         private IHost host;
 
@@ -50,7 +50,7 @@ namespace DigitalRuby.IPBanCore
         /// </summary>
         /// <param name="onStart">Action to execute on start</param>
         /// <param name="onStop">Action to execute on stop</param>
-        private IPBanServiceRunner(Func<Task> onStart, Func<Task> onStop)
+        private IPBanServiceRunner(Func<CancellationToken, Task> onStart, Func<CancellationToken, Task> onStop)
         {
             Logger.Warn("Initializing service");
             Directory.SetCurrentDirectory(AppContext.BaseDirectory);
@@ -114,7 +114,7 @@ namespace DigitalRuby.IPBanCore
         /// <param name="cancelToken">Cancel token</param>
         /// <returns>Task</returns>
 #pragma warning disable IDE0060 // Remove unused parameter
-        public static async Task MainService(string[] args, Func<Task> onStart, Func<Task> onStop = null, CancellationToken cancelToken = default)
+        public static async Task MainService(string[] args, Func<CancellationToken, Task> onStart, Func<CancellationToken, Task> onStop = null, CancellationToken cancelToken = default)
 #pragma warning restore IDE0060 // Remove unused parameter
         {
             try
@@ -147,7 +147,7 @@ namespace DigitalRuby.IPBanCore
             await base.StopAsync(cancellationToken);
             if (onStop != null)
             {
-                await onStop();
+                await onStop(cancellationToken);
             }
         }
 
@@ -158,7 +158,7 @@ namespace DigitalRuby.IPBanCore
 
             if (onStart != null)
             {
-                await onStart();
+                await onStart(stoppingToken);
             }
 
             await Task.Delay(-1, stoppingToken);
