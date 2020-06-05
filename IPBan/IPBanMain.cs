@@ -23,6 +23,7 @@ SOFTWARE.
 */
 
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 using DigitalRuby.IPBanCore;
@@ -49,11 +50,11 @@ namespace DigitalRuby.IPBan
             }
 
             IPBanService service = null;
-            await IPBanServiceRunner.MainService(args, () =>
+            await IPBanServiceRunner.MainService(args, (CancellationToken cancelToken) =>
             {
                 service = IPBanService.CreateService<IPBanService>();
-                return service.StartAsync();
-            }, () =>
+                return service.StartAsync(cancelToken);
+            }, (CancellationToken cancelToken) =>
             {
                 service?.Dispose();
                 return Task.CompletedTask;
