@@ -27,6 +27,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
+using System.Xml;
 
 using DigitalRuby.IPBanCore;
 
@@ -82,6 +83,16 @@ namespace DigitalRuby.IPBanTests
             {
                 new KeyValuePair<string, string>
                 (
+                    @"<Event xmlns='http://schemas.microsoft.com/win/2004/08/events/event'><System><Provider Name='RemoteAccess' /><EventID Qualifiers='0'>20271</EventID><Level>3</Level><Task>0</Task><Keywords>0x80000000000000</Keywords><TimeCreated SystemTime='2020-03-23T19:40:08.225301000Z' /><EventRecordID>32407</EventRecordID><Channel>System</Channel><Computer>MYCOMPUTER.MYDOMAIN.local</Computer><Security /></System><EventData><Data>{NA}</Data><Data>corinne</Data><Data>11.12.13.15</Data><Data>The remote connection was denied because the user name and password combination you provided is not recognized, or the selected authentication protocol is not permitted on the remote access server.</Data><Data>0x10</Data><Binary>B3020000</Binary></EventData></Event>",
+                    "11.12.13.15,corinne,RRAS,0"
+                ),
+                new KeyValuePair<string, string>
+                (
+                    @"<Event xmlns='http://schemas.microsoft.com/win/2004/08/events/event'><System><Provider Name='Microsoft-Windows-Security-Auditing' Guid='{54849625-5478-4994-A5BA-3E3B0328C30D}' /><EventID>6272</EventID><Version>1</Version><Level>0</Level><Task>12552</Task><Opcode>0</Opcode><Keywords>0x8020000000000000</Keywords><TimeCreated SystemTime='2019-12-13T19:48:39.420098200Z' /><EventRecordID>276341076</EventRecordID><Correlation /><Execution ProcessID='616' ThreadID='3956' /><Channel>Security</Channel><Computer>MYSUBDOMAIN.MYDOMAIN.local</Computer><Security /></System><EventData><Data Name='SubjectUserSid'>S-1-5-21-2216450734-2288107589-99135520-4696</Data><Data Name='SubjectUserName'>mydomain\username</Data><Data Name='SubjectDomainName'>L1S</Data><Data Name='FullyQualifiedSubjectUserName'>MYSUBDOMAIN.MYDOMAIN.local/username</Data><Data Name='SubjectMachineSID'>S-1-0-0</Data><Data Name='SubjectMachineName'>-</Data><Data Name='FullyQualifiedSubjectMachineName'>-</Data><Data Name='MachineInventory'>-</Data><Data Name='CalledStationID'>192.168.21.49</Data><Data Name='CallingStationID'>98.196.175.165</Data><Data Name='NASIPv4Address'>192.168.21.49</Data><Data Name='NASIPv6Address'>-</Data><Data Name='NASIdentifier'>nasid</Data><Data Name='NASPortType'>Virtual</Data><Data Name='NASPort'>7</Data><Data Name='ClientName'>clientname</Data><Data Name='ClientIPAddress'>192.168.21.49</Data><Data Name='ProxyPolicyName'>Microsoft Routing and Remote Access Service Policy</Data><Data Name='NetworkPolicyName'>PolicyCorp</Data><Data Name='AuthenticationProvider'>Windows</Data><Data Name='AuthenticationServer'>MYSUBDOMAIN.MYDOMAIN.local</Data><Data Name='AuthenticationType'>EAP</Data><Data Name='EAPType'>Microsoft: Secured password (EAP-MSCHAP v2)</Data><Data Name='AccountSessionIdentifier'>353238</Data><Data Name='QuarantineState'>Full Access</Data><Data Name='QuarantineSessionIdentifier'>-</Data><Data Name='LoggingResult'>Accounting information was written to the local log file.</Data></EventData></Event>",
+                    "98.196.175.165,username,RRAS,1"
+                ),
+                new KeyValuePair<string, string>
+                (
                     @"<Event xmlns='http://schemas.microsoft.com/win/2004/08/events/event'><System><Provider Name='MSSQL$SERVER' /><EventID Qualifiers='49152'>18456</EventID><Level>0</Level><Task>4</Task><Keywords>0x90000000000000</Keywords><TimeCreated SystemTime='2020-04-16T13:56:01.660102100Z' /><EventRecordID>24234250</EventRecordID><Channel>Application</Channel><Computer>CPU1</Computer><Security /></System><EventData><Data>sa</Data><Data>Reason: Failed to open the explicitly specified database 'db'.</Data><Data>[CLIENT: 173.10.24.145]</Data><Binary>184800000E00000015000000430065006E0050006F0069006E00740056004D0031005C00430045004E0050004F0049004E0054000000070000006D00610073007400650072000000</Binary></EventData></Event>",
                     "x"
                 ),
@@ -112,7 +123,7 @@ namespace DigitalRuby.IPBanTests
                 ),
                 new KeyValuePair<string, string>
                 (
-                    @"<Event xmlns='http://schemas.microsoft.com/win/2004/08/events/event'><System><Provider Name='Microsoft-Windows-Security-Auditing' Guid='{54849625-5478-4994-A5BA-3E3B0328C30D}' /><EventID>4624</EventID><Version>2</Version><Level>0</Level><Task>12544</Task><Opcode>0</Opcode><Keywords>0x8020000000000000</Keywords><TimeCreated SystemTime='2020-03-02T20:51:32.557777800Z' /><EventRecordID>278832</EventRecordID><Correlation ActivityID='{01CF6159-F0D1-0002-6361-CF01D1F0D501}' /><Execution ProcessID='656' ThreadID='3396' /><Channel>Security</Channel><Computer>Abeilles-SRV.Abeilles.local</Computer><Security /></System><EventData><Data Name='SubjectUserSid'>S-1-5-18</Data><Data Name='SubjectUserName'>ABEILLES-SRV$</Data><Data Name='SubjectDomainName'>ABEILLES</Data><Data Name='SubjectLogonId'>0x3e7</Data><Data Name='TargetUserSid'>S-1-5-21-668249714-2975252900-182073203-500</Data><Data Name='TargetUserName'>administrateur</Data><Data Name='TargetDomainName'>ABEILLES</Data><Data Name='TargetLogonId'>0x2c83b3</Data><Data Name='LogonType'>10</Data><Data Name='LogonProcessName'>User32</Data><Data Name='AuthenticationPackageName'>Negotiate</Data><Data Name='WorkstationName'>ABEILLES-SRV</Data><Data Name='LogonGuid'>{F56C817A-B94F-73E3-E9BE-07A9AFFB8844}</Data><Data Name='TransmittedServices'>-</Data><Data Name='LmPackageName'>-</Data><Data Name='KeyLength'>0</Data> <Data Name='ProcessId'>0x4b0</Data><Data Name='ProcessName'>C:\Windows\System32\svchost.exe</Data><Data Name='IpAddress'>74.76.76.76</Data><Data Name='IpPort'>0</Data><Data Name='ImpersonationLevel'>%%1833</Data><Data Name='RestrictedAdminMode'>%%1843</Data><Data Name='TargetOutboundUserName'>-</Data><Data Name='TargetOutboundDomainName'>-</Data><Data Name='VirtualAccount'>%%1843</Data><Data Name='TargetLinkedLogonId'>0x0</Data> <Data Name='ElevatedToken'>%%1842</Data></EventData></Event>",
+                    @"<Event xmlns='http://schemas.microsoft.com/win/2004/08/events/event'><System><Provider Name='Microsoft-Windows-Security-Auditing' Guid='{54849625-5478-4994-A5BA-3E3B0328C30D}' /><EventID>4624</EventID><Version>2</Version><Level>0</Level><Task>12544</Task><Opcode>0</Opcode><Keywords>0x8020000000000000</Keywords><TimeCreated SystemTime='2020-03-02T20:51:32.557777800Z' /><EventRecordID>278832</EventRecordID><Correlation ActivityID='{01CF6159-F0D1-0002-6361-CF01D1F0D501}' /><Execution ProcessID='656' ThreadID='3396' /><Channel>Security</Channel><Computer>Abeilles-SRV.Abeilles.local</Computer><Security /></System><EventData><Data Name='SubjectUserSid'>S-1-5-18</Data><Data Name='SubjectUserName'>ABEILLES-SRV$</Data><Data Name='SubjectDomainName'>ABEILLES</Data><Data Name='SubjectLogonId'>0x3e7</Data><Data Name='TargetUserSid'>S-1-5-21-668249714-2975252900-182073203-500</Data><Data Name='TargetUserName'>administrateur</Data><Data Name='TargetDomainName'>ABEILLES</Data><Data Name='TargetLogonId'>0x2c83b3</Data><Data Name='LogonType'>10</Data><Data Name='LogonProcessName'>User32</Data><Data Name='AuthenticationPackageName'>Negotiate</Data><Data Name='WorkstationName'>ABEILLES-SRV</Data><Data Name='LogonGuid'>{F56C817A-B94F-73E3-E9BE-07A9AFFB8844}</Data><Data Name='TransmittedServices'>-</Data><Data Name='LmPackageName'>-</Data><Data Name='KeyLength'>0</Data><Data Name='ProcessId'>0x4b0</Data><Data Name='ProcessName'>C:\Windows\System32\svchost.exe</Data><Data Name='IpAddress'>74.76.76.76</Data><Data Name='IpPort'>0</Data><Data Name='ImpersonationLevel'>%%1833</Data><Data Name='RestrictedAdminMode'>%%1843</Data><Data Name='TargetOutboundUserName'>-</Data><Data Name='TargetOutboundDomainName'>-</Data><Data Name='VirtualAccount'>%%1843</Data><Data Name='TargetLinkedLogonId'>0x0</Data><Data Name='ElevatedToken'>%%1842</Data></EventData></Event>",
                     "74.76.76.76,administrateur,RDP,1"
                 ),
                 new KeyValuePair<string, string>
@@ -289,6 +300,7 @@ namespace DigitalRuby.IPBanTests
                 "2.92.13.221",
                 "10.0.0.1",
                 "10.20.30.40",
+                "11.12.13.15",
                 "21.25.29.33",
                 "33.32.31.30",
                 "33.55.77.99",
@@ -318,12 +330,13 @@ namespace DigitalRuby.IPBanTests
                 Assert.Fail("Failed to block ips: " + string.Join(", ", expected.Except(blockedIPAddresses)));
             }
             Assert.AreEqual(expected, blockedIPAddresses);
-            Assert.AreEqual(4, successEvents.Count);
-            Assert.AreEqual(5, successEvents["74.76.76.76_RDP_administrateur"]);
-            Assert.AreEqual(5, successEvents["44.55.66.77_RDP_rdpuser"]);
-            Assert.AreEqual(5, successEvents["88.88.88.88_SSH_success_user"]);
+            Assert.AreEqual(5, successEvents.Count);
             Assert.AreEqual(5, successEvents["24.42.43.14_VNC_"]);
-        }
+            Assert.AreEqual(5, successEvents["44.55.66.77_RDP_rdpuser"]);
+            Assert.AreEqual(5, successEvents["74.76.76.76_RDP_administrateur"]);
+            Assert.AreEqual(5, successEvents["88.88.88.88_SSH_success_user"]);
+            Assert.AreEqual(5, successEvents["98.196.175.165_RRAS_username"]);
+}
 
         void IDisposable.Dispose()
         {

@@ -154,7 +154,7 @@ namespace DigitalRuby.IPBanTests
             const int minimumWindowsMajorVersion = 6;
             List<EventViewerExpressionGroup> groups = cfg.WindowsEventViewerExpressionsToBlock.Groups;
             Assert.NotNull(groups);
-            Assert.AreEqual(11, groups.Count);
+            Assert.AreEqual(12, groups.Count);
             AssertEventViewerGroup(groups[0], "0x8010000000000000", minimumWindowsMajorVersion, 0, false, "Security", "RDP", "//EventID", "^(4625|5152)$", "//Data[@Name='IpAddress' or @Name='Workstation' or @Name='SourceAddress']", "(?<ipaddress>.+)", "//Data[@Name='ProcessName']", "(?<source_IIS>c:\\\\Windows\\\\System32\\\\inetsrv\\\\w3wp.exe)?$");
             AssertEventViewerGroup(groups[1], "0x8010000000000000", minimumWindowsMajorVersion, 0, false, "Security", "RDP", "//EventID", "^4653$", "//Data[@Name='FailureReason']", ".", "//Data[@Name='RemoteAddress']", "(?<ipaddress>.+)");
             AssertEventViewerGroup(groups[2], "0x80000000000000", minimumWindowsMajorVersion, 0, false, "Application", "IPBanCustom", "//Data", @"(?<timestamp>\d\d\d\d-\d\d-\d\d\s\d\d:\d\d:\d\d\.?\d*Z?,\s)?ipban\sfailed\slogin,\sip\saddress:\s(?<ipaddress>[^,]+),\ssource:\s(?<source>[^,]+),\suser:\s?(?<username>[^\s,]+)?");
@@ -166,14 +166,16 @@ namespace DigitalRuby.IPBanTests
             AssertEventViewerGroup(groups[8], "0x4000000000000000", minimumWindowsMajorVersion, 0, false, "OpenSSH/Operational", "SSH", "//Data[@Name='payload']", @"failed\s+password\s+for\s+(invalid\s+user\s+)?(?<username>[^\s]+)\s+from\s+(?<ipaddress>[^\s]+)\s+port\s+[0-9]+\s+ssh|did\s+not\s+receive\s+identification\s+string\s+from\s+(?<ipaddress>[^\s]+)|connection\s+closed\s+by\s+((invalid\s+user\s+)?(?<username>[^\s]+)\s+)?(?<ipaddress>[^\s]+)\s+port\s+[0-9]+\s+\[preauth\]|disconnected\s+from\s+(invalid\s+user\s+)?(?<username>[^\s]+)\s+(?<ipaddress>[^\s]+)\s+port\s+[0-9]+\s+\[preauth\]|disconnected\s+from\s+(?<ipaddress>[^\s]+)\s+port\s+[0-9]+\s+\[preauth\]|disconnected\s+from\s+authenticating\s+user\s+(?<username>[^\s]+)\s+(?<ipaddress>[^\s]+)\s+port\s+[0-9]+\s+\[preauth\]");
             AssertEventViewerGroup(groups[9], "0x4000000000000000", minimumWindowsMajorVersion, 0, false, "Microsoft-Windows-RemoteDesktopServices-RdpCoreTS/Operational", "RDP", "//Opcode", "^14$", "//Data[@Name='ClientIP' or @Name='IPString']", "(?<ipaddress>.+)");
             AssertEventViewerGroup(groups[10], "0x80000000000000", minimumWindowsMajorVersion, 0, false, "Application", "VNC", "//EventID", "^258$", "//Data", @"Authentication\sfailed\sfrom\s(?<ipaddress>.+)");
+            AssertEventViewerGroup(groups[11], "0x80000000000000", minimumWindowsMajorVersion, 0, false, "System", "RRAS", "//EventID", "^20271$", "(//Data)[2]", @"(?<username>.*)", "(//Data)[3]", @"(?<ipaddress>.+)", "(//Data)[4]", @"\sdenied\s");
 
             groups = cfg.WindowsEventViewerExpressionsToNotify.Groups;
             Assert.NotNull(groups);
-            Assert.AreEqual(4, groups.Count);
+            Assert.AreEqual(5, groups.Count);
             AssertEventViewerGroup(groups[0], "0x8020000000000000", minimumWindowsMajorVersion, 0, true, "Security", "RDP", "//EventID", "^4624$", "//Data[@Name='ProcessName']", "winlogon|svchost", "//Data[@Name='IpAddress' or @Name='Workstation' or @Name='SourceAddress']", "(?<ipaddress>.+)");
             AssertEventViewerGroup(groups[1], "0x4000000000000000", minimumWindowsMajorVersion, 0, true, "OpenSSH/Operational", "SSH", "//Data[@Name='payload']", @"Accepted\s+password\s+for\s+(?<username>[^\s]+)\s+from\s+(?<ipaddress>[^\s]+)\s+port\s+[0-9]+\s+ssh");
             AssertEventViewerGroup(groups[2], "0x80000000000000", minimumWindowsMajorVersion, 0, true, "Application", "IPBanCustom", "//Data", @"(?<timestamp>\d\d\d\d-\d\d-\d\d\s\d\d:\d\d:\d\d\.?\d*Z?,\s)?ipban\ssuccess\slogin,\sip\saddress:\s(?<ipaddress>[^,]+),\ssource:\s(?<source>[^,]+),\suser:\s?(?<username>[^\s,]+)?");
             AssertEventViewerGroup(groups[3], "0x80000000000000", minimumWindowsMajorVersion, 0, true, "Application", "VNC", "//EventID", "^257$", "//Data", @"Authentication\spassed\sby\s(?<ipaddress>.+)");
+            AssertEventViewerGroup(groups[4], "0x8020000000000000", minimumWindowsMajorVersion, 0, true, "System", "RRAS", "//EventID", "^6272$", "//Data[@Name='SubjectUserName']", @"(?<username>[^\\\/]+)$", "//Data[@Name='CallingStationID']", "(?<ipaddress>.+)", "//Data[@Name='EAPType']", "\\s?secured\\spassword\\s?");
         }
 
         [Test]
