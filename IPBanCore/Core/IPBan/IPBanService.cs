@@ -308,10 +308,6 @@ namespace DigitalRuby.IPBanCore
                 IPBanDelegate?.Start(this);
                 if (!ManualCycle)
                 {
-                    if (RunFirstCycleRightAway)
-                    {
-                        await RunCycle(); // run one cycle right away
-                    }
                     cycleTimer = new System.Timers.Timer(Config.CycleTime.TotalMilliseconds);
                     cycleTimer.Elapsed += async (sender, e) => await CycleTimerElapsed(sender, e);
                     cycleTimer.Start();
