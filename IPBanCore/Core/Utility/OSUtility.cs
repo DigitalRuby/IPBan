@@ -275,6 +275,9 @@ namespace DigitalRuby.IPBanCore
                     // last resort, try wmi api
                     LoadVersionFromWmiApi();
                 }
+
+                // Windows loves to add a trailing .0 for some reason
+                Version = Regex.Replace(Version, "\\.0$", string.Empty);
             }
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
             {
