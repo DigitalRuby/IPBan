@@ -29,7 +29,6 @@ You can also visit the ipban discord at https://discord.gg/sHCUHH3 to chat with 
 **Download**
 
 - Official download link is: https://github.com/DigitalRuby/IPBan/releases
-- Legacy download link: https://www.digitalruby.com/download/ipban-software-download/.
 
 Install
 ------
