@@ -83,6 +83,16 @@ namespace DigitalRuby.IPBanTests
             {
                 new KeyValuePair<string, string>
                 (
+                    @"<Event xmlns='http://schemas.microsoft.com/win/2004/08/events/event'><System><Provider Name='VisualSVN Server 3.9' /><EventID Qualifiers='0'>1004</EventID><Level>2</Level><Task>2</Task><Keywords>0x80000000000000</Keywords><TimeCreated SystemTime='2020-04-12T19:52:33.000000000Z' /><EventRecordID>134854</EventRecordID><Channel>VisualSVNServer</Channel><Computer>server.domain-net.com</Computer><Security /></System><EventData><Data>user root: (OS 1326) Der Benutzername oder das Kennwort ist falsch.</Data><Data>123.123.123.124</Data></EventData></Event>",
+                    "123.123.123.124,root,SVN,0"
+                ),
+                new KeyValuePair<string, string>
+                (
+                    @"<Event xmlns='http://schemas.microsoft.com/win/2004/08/events/event'><System><Provider Name='RemoteAccess' /><EventID Qualifiers='0'>20271</EventID><Level>3</Level><Task>0</Task><Keywords>0x80000000000000</Keywords><TimeCreated SystemTime='2020-03-06T11:47:14.000000000Z' /><EventRecordID>440917</EventRecordID><Channel>System</Channel><Computer>server.domain-net.com</Computer><Security /></System><EventData><Data>{NA}</Data><Data>Admin</Data><Data>123.123.123.123</Data><Data>Die Remoteverbindung wurde verweigert, weil die angegebene Kombination aus Benutzername und Kennwort nicht erkannt wird oder das ausgewählte Authentifizierungsprotokoll nicht für den RAS-Server zulässig ist.</Data><Data>0x10</Data><Binary>B3020000</Binary></EventData></Event>",
+                    "123.123.123.123,Admin,RRAS,0"
+                ),
+                new KeyValuePair<string, string>
+                (
                     @"<Event xmlns='http://schemas.microsoft.com/win/2004/08/events/event'><System><Provider Name='RemoteAccess' /><EventID Qualifiers='0'>20271</EventID><Level>3</Level><Task>0</Task><Keywords>0x80000000000000</Keywords><TimeCreated SystemTime='2020-03-23T19:40:08.225301000Z' /><EventRecordID>32407</EventRecordID><Channel>System</Channel><Computer>MYCOMPUTER.MYDOMAIN.local</Computer><Security /></System><EventData><Data>{NA}</Data><Data>corinne</Data><Data>11.12.13.15</Data><Data>The remote connection was denied because the user name and password combination you provided is not recognized, or the selected authentication protocol is not permitted on the remote access server.</Data><Data>0x10</Data><Binary>B3020000</Binary></EventData></Event>",
                     "11.12.13.15,corinne,RRAS,0"
                 ),
@@ -209,7 +219,7 @@ namespace DigitalRuby.IPBanTests
                 new KeyValuePair<string, string>
                 (
                     @"<Event xmlns='http://schemas.microsoft.com/win/2004/08/events/event'><System><Provider Name='MSExchangeTransport' /><EventID Qualifiers='32772'>1035</EventID><Level>3</Level><Task>1</Task><Keywords>0x80000000000000</Keywords><TimeCreated SystemTime='2015-06-08T08:13:12.000000000Z' /><EventRecordID>667364</EventRecordID><Channel>Application</Channel><Computer>DC.sicoir.local</Computer><Security /></System><EventData><Data>LogonDenied</Data><Data>Default DC</Data><Data>Ntlm</Data><Data>212.48.88.133</Data></EventData></Event>",
-                    "x"
+                    "212.48.88.133,,MSExchange,0"
                 ),
                 new KeyValuePair<string, string>
                 (
@@ -314,12 +324,15 @@ namespace DigitalRuby.IPBanTests
                 "99.99.99.100",
                 "100.101.102.103",
                 "104.248.243.148",
+                "123.123.123.123",
+                "123.123.123.124",
                 "155.155.155.155",
                 "185.209.0.22",
                 "185.222.211.58",
                 "188.166.71.236",
                 "192.169.217.183",
                 "196.65.47.84",
+                "212.48.88.133",
                 "218.10.17.192",
                 "222.186.61.16"
             };

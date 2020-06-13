@@ -176,7 +176,7 @@ namespace DigitalRuby.IPBanCore
 
                 // check if the regex had an ipadddress group
                 Group ipAddressGroup = match.Groups["ipaddress"];
-                if (ipAddressGroup is null)
+                if (ipAddressGroup is null || !ipAddressGroup.Success)
                 {
                     ipAddressGroup = match.Groups["ipaddress_exact"];
                 }
