@@ -74,6 +74,7 @@ namespace DigitalRuby.IPBanCore
         private readonly HashSet<string> whiteListOther = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
         private readonly bool clearBannedIPAddressesOnRestart;
+        private readonly bool clearFailedLoginsOnSuccessfulLogin;
         private readonly HashSet<string> userNameWhitelist = new HashSet<string>(StringComparer.Ordinal);
         private readonly int userNameWhitelistMaximumEditDistance = 2;
         private readonly Regex userNameWhitelistRegex;
@@ -112,6 +113,7 @@ namespace DigitalRuby.IPBanCore
                 banTimes[i] = banTimes[i].Clamp(TimeSpan.FromMinutes(1.0), maxBanTimeSpan);
             }
             GetConfig<bool>("ClearBannedIPAddressesOnRestart", ref clearBannedIPAddressesOnRestart);
+            GetConfig<bool>("ClearFailedLoginsOnSuccessfulLogin", ref clearFailedLoginsOnSuccessfulLogin);
             GetConfig<TimeSpan>("ExpireTime", ref expireTime, TimeSpan.FromMinutes(1.0), maxBanTimeSpan);
             GetConfig<TimeSpan>("CycleTime", ref cycleTime, TimeSpan.FromSeconds(5.0), TimeSpan.FromMinutes(1.0), false);
             GetConfig<TimeSpan>("MinimumTimeBetweenFailedLoginAttempts", ref minimumTimeBetweenFailedLoginAttempts, TimeSpan.Zero, TimeSpan.FromSeconds(15.0), false);
@@ -763,6 +765,11 @@ namespace DigitalRuby.IPBanCore
         /// True to clear and unban ip addresses upon restart, false otherwise
         /// </summary>
         public bool ClearBannedIPAddressesOnRestart { get { return clearBannedIPAddressesOnRestart; } }
+
+        /// <summary>
+        /// Whether to clear failed logins when an ip has a successful login (default false)
+        /// </summary>
+        public bool ClearFailedLoginsOnSuccessfulLogin { get { return clearFailedLoginsOnSuccessfulLogin; } }
 
         /// <summary>
         /// Black list of ips as a comma separated string

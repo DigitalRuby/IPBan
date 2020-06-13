@@ -285,6 +285,10 @@ namespace DigitalRuby.IPBanCore
             foreach (IPAddressLogEvent info in ipAddresses)
             {
                 Logger.Warn("Login succeeded, address: {0}, user name: {1}, source: {2}", info.IPAddress, info.UserName, info.Source);
+                if (Config.ClearFailedLoginsOnSuccessfulLogin)
+                {
+                    DB.DeleteIPAddress(info.IPAddress);
+                }
             }
             if (IPBanDelegate != null)
             {

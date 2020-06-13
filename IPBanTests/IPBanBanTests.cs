@@ -517,6 +517,73 @@ namespace DigitalRuby.IPBanTests
             Assert.IsFalse(service.Firewall.IsIPAddressBlocked(ip, out _));
         }
 
+        [Test]
+        public async Task TestFailedLoginsClearOnSuccessfulLogin()
+        {
+            // turn on clear failed logins upon success login
+            string config = await service.ReadConfigAsync();
+            string newConfig = IPBanConfig.ChangeConfigAppSetting(config, nameof(IPBanConfig.ClearFailedLoginsOnSuccessfulLogin), "true");
+            await service.WriteConfigAsync(newConfig);
+
+            try
+            {
+                await service.RunCycle();
+
+                string ip = "99.88.77.66";
+                for (int i = 0; i < 2; i++)
+                {
+                    service.AddIPAddressLogEvents(new IPAddressLogEvent[]
+                    {
+                    // fail login
+                    new IPAddressLogEvent(ip, "user1", "RDP", 1, IPAddressEventType.FailedLogin),
+                    });
+                }
+
+                await service.RunCycle();
+
+                service.AddIPAddressLogEvents(new IPAddressLogEvent[]
+                {
+                new IPAddressLogEvent(ip, "user1", "RDP", 1, IPAddressEventType.SuccessfulLogin),
+                });
+
+                await service.RunCycle();
+
+                Assert.IsFalse(service.DB.TryGetIPAddress(ip, out _));
+            }
+            finally
+            {
+                // restore config
+                await service.WriteConfigAsync(config);
+            }
+        }
+
+        [Test]
+        public async Task TestFailedLoginsDoesNotClearOnSuccessfulLogin()
+        {
+            await service.RunCycle();
+
+            string ip = "99.88.77.66";
+            for (int i = 0; i < 2; i++)
+            {
+                service.AddIPAddressLogEvents(new IPAddressLogEvent[]
+                {
+                    // fail login
+                    new IPAddressLogEvent(ip, "user1", "RDP", 1, IPAddressEventType.FailedLogin),
+                });
+            }
+
+            await service.RunCycle();
+
+            service.AddIPAddressLogEvents(new IPAddressLogEvent[]
+            {
+                new IPAddressLogEvent(ip, "user1", "RDP", 1, IPAddressEventType.SuccessfulLogin),
+            });
+
+            await service.RunCycle();
+
+            Assert.IsTrue(service.DB.TryGetIPAddress(ip, out _));
+        }
+
         private async Task RunConfigBanTest(string key, string value, string banIP, string noBanIP)
         {
             string config = await service.ReadConfigAsync();
