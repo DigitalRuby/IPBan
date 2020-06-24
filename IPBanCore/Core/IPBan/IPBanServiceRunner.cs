@@ -65,15 +65,18 @@ namespace DigitalRuby.IPBanCore
             this.onStop = onStop;
             if (Microsoft.Extensions.Hosting.WindowsServices.WindowsServiceHelpers.IsWindowsService())
             {
+                Logger.Warn("Running as a Windows service");
                 hostBuilder.UseWindowsService();
             }
             else if (Microsoft.Extensions.Hosting.Systemd.SystemdHelpers.IsSystemdService())
             {
+                Logger.Warn("Running as a systemd service");
                 hostBuilder.UseSystemd();
             }
             else
             {
                 // adding console lifetime wrecks things if actually running under a service
+                Logger.Warn("Running as a console app");
                 hostBuilder.UseConsoleLifetime();
             }
             hostBuilder.UseContentRoot(AppContext.BaseDirectory);
