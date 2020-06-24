@@ -27,6 +27,7 @@ Type=notify
 WorkingDirectory=/opt/ipban
 ExecStart=/opt/ipban/DigitalRuby.IPBan
 Restart=on-failure
+KillSignal=SIGINT
 
 [Install]
 WantedBy=multi-user.target
