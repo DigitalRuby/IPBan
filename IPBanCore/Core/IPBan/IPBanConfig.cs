@@ -68,10 +68,10 @@ namespace DigitalRuby.IPBanCore
         private readonly HashSet<string> blackListOther = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
         // white list data structures
-        private readonly HashSet<System.Net.IPAddress> whiteList = new HashSet<System.Net.IPAddress>();
-        private readonly Regex whiteListRegex;
-        private readonly List<IPAddressRange> whiteListRanges = new List<IPAddressRange>();
-        private readonly HashSet<string> whiteListOther = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        private readonly HashSet<System.Net.IPAddress> whitelist = new HashSet<System.Net.IPAddress>();
+        private readonly Regex whitelistRegex;
+        private readonly List<IPAddressRange> whitelistRanges = new List<IPAddressRange>();
+        private readonly HashSet<string> whitelistOther = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
         private readonly bool clearBannedIPAddressesOnRestart;
         private readonly bool clearFailedLoginsOnSuccessfulLogin;
@@ -119,11 +119,11 @@ namespace DigitalRuby.IPBanCore
             GetConfig<TimeSpan>("MinimumTimeBetweenFailedLoginAttempts", ref minimumTimeBetweenFailedLoginAttempts, TimeSpan.Zero, TimeSpan.FromSeconds(15.0), false);
             GetConfig<string>("FirewallRulePrefix", ref firewallRulePrefix);
 
-            string whiteListString = GetConfig<string>("Whitelist", string.Empty);
-            string whiteListRegexString = GetConfig<string>("WhitelistRegex", string.Empty);
+            string whitelistString = GetConfig<string>("Whitelist", string.Empty);
+            string whitelistRegexString = GetConfig<string>("WhitelistRegex", string.Empty);
             string blacklistString = GetConfig<string>("Blacklist", string.Empty);
             string blacklistRegexString = GetConfig<string>("BlacklistRegex", string.Empty);
-            PopulateList(whiteList, whiteListRanges, whiteListOther, ref whiteListRegex, whiteListString, whiteListRegexString);
+            PopulateList(whitelist, whitelistRanges, whitelistOther, ref whitelistRegex, whitelistString, whitelistRegexString);
             PopulateList(blackList, blackListRanges, blackListOther, ref blackListRegex, blacklistString, blacklistRegexString);
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
@@ -194,8 +194,8 @@ namespace DigitalRuby.IPBanCore
                 }
             }
 
-            string userNameWhiteListString = GetConfig<string>("UserNameWhiteList", string.Empty);
-            foreach (string userName in userNameWhiteListString.Split(','))
+            string userNameWhitelistString = GetConfig<string>("UserNameWhitelist", string.Empty);
+            foreach (string userName in userNameWhitelistString.Split(','))
             {
                 string userNameTrimmed = userName.Normalize().ToUpperInvariant().Trim();
                 if (userNameTrimmed.Length > 0)
@@ -203,12 +203,12 @@ namespace DigitalRuby.IPBanCore
                     userNameWhitelist.Add(userNameTrimmed);
                 }
             }
-            string userNameWhiteListRegexString = GetConfig<string>("UserNameWhiteListRegex", string.Empty);
-            if (!string.IsNullOrWhiteSpace(userNameWhiteListRegexString))
+            string userNameWhitelistRegexString = GetConfig<string>("UserNameWhitelistRegex", string.Empty);
+            if (!string.IsNullOrWhiteSpace(userNameWhitelistRegexString))
             {
-                userNameWhitelistRegex = new Regex(userNameWhiteListRegexString, RegexOptions.IgnoreCase | RegexOptions.CultureInvariant | RegexOptions.Singleline);
+                userNameWhitelistRegex = new Regex(userNameWhitelistRegexString, RegexOptions.IgnoreCase | RegexOptions.CultureInvariant | RegexOptions.Singleline);
             }
-            GetConfig<int>("UserNameWhiteListMinimumEditDistance", ref userNameWhitelistMaximumEditDistance);
+            GetConfig<int>("UserNameWhitelistMinimumEditDistance", ref userNameWhitelistMaximumEditDistance);
             GetConfig<int>("FailedLoginAttemptsBeforeBanUserNameWhitelist", ref failedLoginAttemptsBeforeBanUserNameWhitelist);
             GetConfig<string>("GetUrlUpdate", ref getUrlUpdate);
             GetConfig<string>("GetUrlStart", ref getUrlStart);
@@ -585,7 +585,7 @@ namespace DigitalRuby.IPBanCore
         /// <returns>True if whitelisted, false otherwise</returns>
         public bool IsWhitelisted(string entry)
         {
-            return IsMatch(entry, whiteList, whiteListRanges, whiteListOther, whiteListRegex);
+            return IsMatch(entry, whitelist, whitelistRanges, whitelistOther, whitelistRegex);
         }
 
         /// <summary>
@@ -595,14 +595,14 @@ namespace DigitalRuby.IPBanCore
         /// <returns>True if range is whitelisted, false otherwise</returns>
         public bool IsWhitelisted(IPAddressRange range)
         {
-            foreach (System.Net.IPAddress ip in whiteList)
+            foreach (System.Net.IPAddress ip in whitelist)
             {
                 if (range.Contains(ip))
                 {
                     return true;
                 }
             }
-            foreach (IPAddressRange existingRange in whiteListRanges)
+            foreach (IPAddressRange existingRange in whitelistRanges)
             {
                 if (range.Contains(existingRange))
                 {
@@ -784,16 +784,16 @@ namespace DigitalRuby.IPBanCore
         /// <summary>
         /// White list of ips as a comma separated string
         /// </summary>
-        public string WhiteList { get { return string.Join(",", whiteList); } }
+        public string Whitelist { get { return string.Join(",", whitelist); } }
 
         /// <summary>
         /// White list regex
         /// </summary>
-        public string WhiteListRegex { get { return (whiteListRegex is null ? string.Empty : whiteListRegex.ToString()); } }
+        public string WhitelistRegex { get { return (whitelistRegex is null ? string.Empty : whitelistRegex.ToString()); } }
 
         /// <summary>
         /// White list user names. Any user name found not in the list is banned, unless the list is empty, in which case no checking is done.
-        /// If not empty, Any user name within 'UserNameWhiteListMinimumEditDistance' in the config is also not banned.
+        /// If not empty, Any user name within 'UserNameWhitelistMinimumEditDistance' in the config is also not banned.
         /// </summary>
         public IReadOnlyCollection<string> UserNameWhitelist { get { return userNameWhitelist; } }
 

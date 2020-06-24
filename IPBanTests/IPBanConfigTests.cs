@@ -207,8 +207,8 @@ namespace DigitalRuby.IPBanTests
                 Assert.IsTrue(cfg.UseDefaultBannedIPAddressHandler);
                 Assert.IsEmpty(cfg.UserNameWhitelist);
                 Assert.IsEmpty(cfg.UserNameWhitelistRegex);
-                Assert.IsEmpty(cfg.WhiteList);
-                Assert.IsEmpty(cfg.WhiteListRegex);
+                Assert.IsEmpty(cfg.Whitelist);
+                Assert.IsEmpty(cfg.WhitelistRegex);
                 Assert.AreEqual(0, cfg.ExtraRules.Count);
                 Assert.AreEqual(cfg.FirewallUriRules.Trim(), "EmergingThreats,01:00:00:00,https://rules.emergingthreats.net/fwrules/emerging-Block-IPs.txt");
 
@@ -234,7 +234,7 @@ namespace DigitalRuby.IPBanTests
                 "<appSettings><add key='Whitelist' value='99.99.99.99?TestIP?2020-05-25," +
                 "88.88.88.88?TestIP2?2020-05-24' /></appSettings></configuration>",
                 DefaultDnsLookup.Instance);
-            Assert.AreEqual(config.WhiteList, "99.99.99.99,88.88.88.88");
+            Assert.AreEqual(config.Whitelist, "99.99.99.99,88.88.88.88");
             Assert.IsTrue(config.IsWhitelisted("99.99.99.99"));
             Assert.IsTrue(config.IsWhitelisted("88.88.88.88"));
             Assert.IsFalse(config.IsWhitelisted("77.77.77.77"));

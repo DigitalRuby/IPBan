@@ -18,8 +18,8 @@ namespace DigitalRuby.IPBanTests
         private static readonly IPAddressRange range2 = IPAddressRange.Parse("100.100.100.100/31");
         private static readonly IPAddressRange range3 = IPAddressRange.Parse("89.99.99.99");
 
-        private readonly HashSet<IPAddressRange> whiteList = new HashSet<IPAddressRange>();
-        private readonly List<IPAddressRange> blockList = new List<IPAddressRange>();
+        private readonly HashSet<IPAddressRange> whitelist = new HashSet<IPAddressRange>();
+        private readonly List<IPAddressRange> blocklist = new List<IPAddressRange>();
         private string blockRule;
         private int blockCount;
         private int isWhitelistedCount;
@@ -44,11 +44,11 @@ namespace DigitalRuby.IPBanTests
                 {
                     File.WriteAllText(tempFile, GetTestFile());
                 }
-                whiteList.Add(range3);
+                whitelist.Add(range3);
                 await rule.Update();
                 Assert.AreEqual(1, blockCount);
-                Assert.Contains(range1, blockList);
-                Assert.Contains(range2, blockList);
+                Assert.Contains(range1, blocklist);
+                Assert.Contains(range2, blocklist);
                 Assert.AreEqual(3, isWhitelistedCount);
                 Assert.AreEqual("TestPrefix", blockRule);
             }
@@ -65,14 +65,14 @@ namespace DigitalRuby.IPBanTests
         {
             blockRule = ruleNamePrefix;
             blockCount++;
-            blockList.AddRange(ranges);
+            blocklist.AddRange(ranges);
             return Task.FromResult(true);
         }
 
         public bool IsWhitelisted(IPAddressRange range)
         {
             isWhitelistedCount++;
-            return whiteList.Contains(range);
+            return whitelist.Contains(range);
         }
 
         public Task<byte[]> MakeRequestAsync(Uri uri, string postJson = null, IEnumerable<KeyValuePair<string, object>> headers = null,
@@ -88,8 +88,8 @@ namespace DigitalRuby.IPBanTests
         [SetUp]
         public void Setup()
         {
-            whiteList.Clear();
-            blockList.Clear();
+            whitelist.Clear();
+            blocklist.Clear();
             blockRule = null;
             blockCount = 0;
             isWhitelistedCount = 0;

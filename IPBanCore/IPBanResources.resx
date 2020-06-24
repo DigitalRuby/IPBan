@@ -568,14 +568,14 @@ Prefix with OS:ClassName, example: Windows:Custom,Linux:Default</value>
   <data name="UserNameWhitelist" xml:space="preserve">
     <value>User Name Whitelist</value>
   </data>
-  <data name="UserNameWhiteListMinimumEditDistance" xml:space="preserve">
+  <data name="UserNameWhitelistMinimumEditDistance" xml:space="preserve">
     <value>User Name Edit Distance</value>
   </data>
-  <data name="UserNameWhiteListMinimumEditDistanceTooltip" xml:space="preserve">
+  <data name="UserNameWhitelistMinimumEditDistanceTooltip" xml:space="preserve">
     <value>If user name whitelist is not empty and if the edit distance (levenshtein distance) of a failed user name is greater than this distance away, the user name is immediately banned. Set to 0 to ban all failed user names if UserNameWhitelist has entries. Case is ignored. Empty user names are always allowed.</value>
   </data>
   <data name="UserNameWhitelistTooltip" xml:space="preserve">
-    <value>Comma separated list of user names that are allowed. UserNameWhiteListMinimumEditDistance is checked for user names not in the list to determine whether a failed user name should be banned. Case is ignored. Empty user names are always allowed. *** IMPORTANT*** This can represent an attack vector by a hacker. If they know you are using DigitalRuby.IPBan and they don't get locked out right away, they might know they are somewhat close to the right user name. Make sure your passwords are complex enough and this shouldn't be a problem.</value>
+    <value>Comma separated list of user names that are allowed. UserNameWhitelistMinimumEditDistance is checked for user names not in the list to determine whether a failed user name should be banned. Case is ignored. Empty user names are always allowed. *** IMPORTANT*** This can represent an attack vector by a hacker. If they know you are using DigitalRuby.IPBan and they don't get locked out right away, they might know they are somewhat close to the right user name. Make sure your passwords are complex enough and this shouldn't be a problem.</value>
   </data>
   <data name="Version" xml:space="preserve">
     <value>Version</value>

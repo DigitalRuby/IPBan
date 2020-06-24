@@ -481,7 +481,9 @@ namespace DigitalRuby.IPBanTests
         [Test]
         public async Task TestIPWhitelist()
         {
-            await RunConfigBanTest("Whitelist", "192.168.0.0/16", "99.99.99.99", "192.168.99.99");
+            await RunConfigBanTest("Whitelist", "190.168.0.0", "99.99.99.99", "190.168.0.0");
+            await RunConfigBanTest("Whitelist", "190.168.0.0/16", "99.99.99.99", "190.168.99.99");
+            await RunConfigBanTest("Whitelist", "216.245.221.80/28", "99.99.99.99", "216.245.221.86");
         }
 
         [Test]

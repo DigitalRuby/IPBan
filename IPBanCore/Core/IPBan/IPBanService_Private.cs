@@ -87,7 +87,7 @@ namespace DigitalRuby.IPBanCore
                     IPBanConfig oldConfig = Config;
                     IPBanConfig newConfig = IPBanConfig.LoadFromXml(newXml, DnsLookup);
                     ConfigChanged?.Invoke(newConfig);
-                    whitelistChanged = (Config is null || Config.WhiteList != newConfig.WhiteList || Config.WhiteListRegex != newConfig.WhiteListRegex);
+                    whitelistChanged = (Config is null || Config.Whitelist != newConfig.Whitelist || Config.WhitelistRegex != newConfig.WhitelistRegex);
                     Config = newConfig;
                     LoadFirewall(oldConfig);
                     ParseAndAddUriFirewallRules(newConfig);
