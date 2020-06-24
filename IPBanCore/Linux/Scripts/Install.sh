@@ -23,6 +23,7 @@ Description=IPBan Service
 After=network.target
 
 [Service]
+Type=notify
 WorkingDirectory=/opt/ipban
 ExecStart=/opt/ipban/DigitalRuby.IPBan
 Restart=on-failure
