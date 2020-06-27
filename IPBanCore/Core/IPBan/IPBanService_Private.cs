@@ -73,9 +73,7 @@ namespace DigitalRuby.IPBanCore
                 }
             }
         }
-
         
-
         internal async Task UpdateConfiguration()
         {
             try
