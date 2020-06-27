@@ -320,7 +320,9 @@ namespace DigitalRuby.IPBanCore
                     // setup cycle timer if needed
                     if (!ManualCycle)
                     {
-                        cycleTimer = new System.Timers.Timer(Config.CycleTime.TotalMilliseconds);
+                        // create a new timer that goes off in 5 seconds, this will change as the config is
+                        // loaded and the cycle time becomes whatever is in the config
+                        cycleTimer = new System.Timers.Timer(5000);
                         cycleTimer.Elapsed += async (sender, e) => await CycleTimerElapsed(sender, e);
                         cycleTimer.Start();
                     }

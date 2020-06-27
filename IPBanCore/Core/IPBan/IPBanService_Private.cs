@@ -836,7 +836,11 @@ namespace DigitalRuby.IPBanCore
                 {
                     try
                     {
-                        cycleTimer.Interval = Math.Min(60000.0, Math.Max(1000.0, Config.CycleTime.TotalMilliseconds));
+                        // if we have no config at this point, use a 5 second cycle under the 
+                        // assumption that something threw an exception and will hopefully
+                        // succeed after a short break and another cycle
+                        cycleTimer.Interval = Math.Min(60000.0, Math.Max(1000.0,
+                            (Config is null ? 5000 : Config.CycleTime.TotalMilliseconds)));
                         cycleTimer.Start();
                     }
                     catch
