@@ -317,19 +317,20 @@ namespace DigitalRuby.IPBanCore
                     // start delegate if we have one
                     IPBanDelegate?.Start(this);
 
-                    // setup cycle timer if needed
-                    if (!ManualCycle)
-                    {
-                        // create a new timer that goes off in 5 seconds, this will change as the config is
-                        // loaded and the cycle time becomes whatever is in the config
-                        cycleTimer = new System.Timers.Timer(5000);
-                        cycleTimer.Elapsed += async (sender, e) => await CycleTimerElapsed(sender, e);
-                        cycleTimer.Start();
-                    }
-
                     Logger.Warn("IPBan service started and initialized. Operating System: {0}",
                         OSUtility.Instance.OSString());
                     Logger.WriteLogLevels();
+
+                    // setup cycle timer if needed
+                    if (!ManualCycle)
+                    {
+                        // create a new timer that goes off in 2 seconds, this will change as the config is
+                        // loaded and the cycle time becomes whatever is in the config
+                        cycleTimer = new Timer(async (_state) =>
+                        {
+                            await CycleTimerElapsed();
+                        }, null, 1000, Timeout.Infinite);
+                    }
                 }
                 catch (Exception ex)
                 {

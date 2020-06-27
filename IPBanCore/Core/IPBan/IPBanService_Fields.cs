@@ -52,7 +52,7 @@ namespace DigitalRuby.IPBanCore
         private readonly Dictionary<string, AsyncQueue<Func<CancellationToken, Task>>> firewallQueue = new Dictionary<string, AsyncQueue<Func<CancellationToken, Task>>>();
         private readonly CancellationTokenSource serviceCancelTokenSource = new CancellationTokenSource();
 
-        private System.Timers.Timer cycleTimer;
+        private System.Threading.Timer cycleTimer;
         private bool firewallNeedsBlockedIPAddressesUpdate;
         private IPBanDB ipDB;
         private bool whitelistChanged;

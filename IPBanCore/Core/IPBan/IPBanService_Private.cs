@@ -817,37 +817,23 @@ namespace DigitalRuby.IPBanCore
             return Task.CompletedTask;
         }
 
-        private async Task CycleTimerElapsed(object sender, System.Timers.ElapsedEventArgs e)
+        private async Task CycleTimerElapsed()
         {
             if (IsRunning)
             {
-                try
-                {
-                    cycleTimer.Stop();
-                    await RunCycle();
-                }
-                catch (Exception ex)
-                {
-                    // should not get here, but if we do log it and sleep a bit in case of repeating error
-                    Logger.Error(ex);
-                    Thread.Sleep(5000);
-                }
-                finally
-                {
-                    try
-                    {
-                        // if we have no config at this point, use a 5 second cycle under the 
-                        // assumption that something threw an exception and will hopefully
-                        // succeed after a short break and another cycle
-                        cycleTimer.Interval = Math.Min(60000.0, Math.Max(1000.0,
-                            (Config is null ? 5000 : Config.CycleTime.TotalMilliseconds)));
-                        cycleTimer.Start();
-                    }
-                    catch
-                    {
-                    }
-                }
                 Logger.Trace("CycleTimerElapsed");
+
+                // perform the cycle, will not throw out
+                await RunCycle();
+
+                // if we have no config at this point, use a 5 second cycle under the 
+                // assumption that something threw an exception and will hopefully
+                // succeed after a short break and another cycle
+                int nextTimerMilliseconds = Math.Min(60000, Math.Max(1000,
+                    (Config is null ? 5000 : (int)Config.CycleTime.TotalMilliseconds)));
+
+                // configure the timer to run again
+                cycleTimer.Change(nextTimerMilliseconds, Timeout.Infinite);
             }
         }
 
