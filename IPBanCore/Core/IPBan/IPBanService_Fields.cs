@@ -1,7 +1,7 @@
 ﻿/*
 MIT License
 
-Copyright (c) 2019 Digital Ruby, LLC - https://www.digitalruby.com
+Copyright (c) 2012-present Digital Ruby, LLC - https://www.digitalruby.com
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -43,10 +43,6 @@ namespace DigitalRuby.IPBanCore
             ',', ';', '|', '_', '-', '\'', '\"', '(', ')', '[', ']', '{', '}', ' ', '\r', '\n'
         };
 
-        private System.Timers.Timer cycleTimer;
-        private bool firewallNeedsBlockedIPAddressesUpdate;
-        private IPBanDB ipDB;
-
         // batch failed logins every cycle
         private readonly List<IPAddressLogEvent> pendingFailedLogins = new List<IPAddressLogEvent>();
         private readonly List<IPAddressLogEvent> pendingSuccessfulLogins = new List<IPAddressLogEvent>();
@@ -56,7 +52,11 @@ namespace DigitalRuby.IPBanCore
         private readonly Dictionary<string, AsyncQueue<Func<CancellationToken, Task>>> firewallQueue = new Dictionary<string, AsyncQueue<Func<CancellationToken, Task>>>();
         private readonly CancellationTokenSource serviceCancelTokenSource = new CancellationTokenSource();
 
+        private System.Timers.Timer cycleTimer;
+        private bool firewallNeedsBlockedIPAddressesUpdate;
+        private IPBanDB ipDB;
         private bool whitelistChanged;
+        private bool updateBannedIPAddressesOnStartCalled;
 
         /// <summary>
         /// Whether start url has been gotten

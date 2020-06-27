@@ -1,7 +1,7 @@
 ﻿/*
 MIT License
 
-Copyright (c) 2019 Digital Ruby, LLC - https://www.digitalruby.com
+Copyright (c) 2012-present Digital Ruby, LLC - https://www.digitalruby.com
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -41,7 +41,8 @@ using System.Xml;
 namespace DigitalRuby.IPBanCore
 {
     /// <summary>
-    /// Base ipban service class
+    /// Base ipban service class. Configuration, firewall and many other properties will
+    /// not be initialized until the first RunCycle is called.
     /// </summary>
     public partial class IPBanService : IIPBanService, IIsWhitelisted
     {
@@ -80,15 +81,22 @@ namespace DigitalRuby.IPBanCore
         /// </summary>
         public async Task RunCycle()
         {
-            await SetNetworkInfo();
-            await ReadAppSettings();
-            await UpdateDelegate();
-            await UpdateUpdaters();
-            await UpdateExpiredIPAddressStates();
-            await ProcessPendingLogEvents();
-            await ProcessPendingFailedLogins();
-            await ProcessPendingSuccessfulLogins();
-            await UpdateFirewall();
+            try
+            {
+                await UpdateConfiguration();
+                await SetNetworkInfo();
+                await UpdateDelegate();
+                await UpdateUpdaters();
+                await UpdateExpiredIPAddressStates();
+                await ProcessPendingLogEvents();
+                await ProcessPendingFailedLogins();
+                await ProcessPendingSuccessfulLogins();
+                await UpdateFirewall();
+            }
+            catch (Exception ex)
+            {
+                Logger.Error($"Error on {nameof(IPBanService)}.{nameof(RunCycle)}", ex);
+            }
         }
 
         /// <summary>
@@ -288,37 +296,45 @@ namespace DigitalRuby.IPBanCore
         /// Initialize and start the service
         /// </summary>
         /// <param name="cancelToken">Cancel token</param>
-        public async Task StartAsync(CancellationToken cancelToken)
+        public Task StartAsync(CancellationToken cancelToken)
         {
-            if (IsRunning)
+            if (!IsRunning)
             {
-                return;
-            }
-
-            try
-            {
-                IsRunning = true;
-                ipDB = new IPBanDB(DatabasePath ?? "ipban.sqlite");
-                AddWindowsEventViewer();
-                AddUpdater(new IPBanUnblockIPAddressesUpdater(this, Path.Combine(AppContext.BaseDirectory, "unban.txt")));
-                AddUpdater(new IPBanBlockIPAddressesUpdater(this, Path.Combine(AppContext.BaseDirectory, "ban.txt")));
-                AssemblyVersion = IPBanService.IPBanAssembly.GetName().Version.ToString();
-                await ReadAppSettings();
-                UpdateBannedIPAddressesOnStart();
-                IPBanDelegate?.Start(this);
-                if (!ManualCycle)
+                try
                 {
-                    cycleTimer = new System.Timers.Timer(Config.CycleTime.TotalMilliseconds);
-                    cycleTimer.Elapsed += async (sender, e) => await CycleTimerElapsed(sender, e);
-                    cycleTimer.Start();
+                    IsRunning = true;
+
+                    // set version
+                    AssemblyVersion = IPBanService.IPBanAssembly.GetName().Version.ToString();
+
+                    // create db
+                    ipDB = new IPBanDB(DatabasePath ?? "ipban.sqlite");
+
+                    // add some services
+                    AddUpdater(new IPBanUnblockIPAddressesUpdater(this, Path.Combine(AppContext.BaseDirectory, "unban.txt")));
+                    AddUpdater(new IPBanBlockIPAddressesUpdater(this, Path.Combine(AppContext.BaseDirectory, "ban.txt")));
+
+                    // start delegate if we have one
+                    IPBanDelegate?.Start(this);
+
+                    // setup cycle timer if needed
+                    if (!ManualCycle)
+                    {
+                        cycleTimer = new System.Timers.Timer(Config.CycleTime.TotalMilliseconds);
+                        cycleTimer.Elapsed += async (sender, e) => await CycleTimerElapsed(sender, e);
+                        cycleTimer.Start();
+                    }
+
+                    Logger.Warn("IPBan service started and initialized. Operating System: {0}",
+                        OSUtility.Instance.OSString());
+                    Logger.WriteLogLevels();
                 }
-                Logger.Warn("IPBan {0} service started and initialized. Operating System: {1}", OSUtility.Instance.Name, OSUtility.Instance.OSString());
-                Logger.WriteLogLevels();
+                catch (Exception ex)
+                {
+                    Logger.Error("Critical error in IPBanService.Start", ex);
+                }
             }
-            catch (Exception ex)
-            {
-                Logger.Error("Critical error in IPBanService.Start", ex);
-            }
+            return Task.CompletedTask;
         }
 
         /// <summary>
@@ -512,6 +528,7 @@ namespace DigitalRuby.IPBanCore
             }
             service.Version = "1.1.1.1";
             service.StartAsync(CancellationToken.None).Sync();
+            service.RunCycle().Sync();
             service.DB.Truncate(true);
             service.Firewall.Truncate();
             return service;

@@ -1,7 +1,7 @@
 ﻿/*
 MIT License
 
-Copyright (c) 2019 Digital Ruby, LLC - https://www.digitalruby.com
+Copyright (c) 2012-present Digital Ruby, LLC - https://www.digitalruby.com
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -76,7 +76,7 @@ namespace DigitalRuby.IPBanCore
 
         
 
-        internal async Task ReadAppSettings()
+        internal async Task UpdateConfiguration()
         {
             try
             {
@@ -117,6 +117,12 @@ namespace DigitalRuby.IPBanCore
             {
                 BannedIPAddressHandler = NullBannedIPAddressHandler.Instance;
             }
+
+            // will only execute once
+            UpdateBannedIPAddressesOnStart();
+
+            // will only execute once
+            SetupWindowsEventViewer();
         }
 
         private object BeginTransaction()
@@ -447,6 +453,12 @@ namespace DigitalRuby.IPBanCore
 
         private void UpdateBannedIPAddressesOnStart()
         {
+            if (updateBannedIPAddressesOnStartCalled)
+            {
+                return;
+            }
+            updateBannedIPAddressesOnStartCalled = true;
+
             if (Config.ClearBannedIPAddressesOnRestart)
             {
                 Logger.Warn("Clearing all banned ip addresses on start because ClearBannedIPAddressesOnRestart is set");
@@ -986,9 +998,11 @@ namespace DigitalRuby.IPBanCore
             return Task.CompletedTask;
         }
 
-        private void AddWindowsEventViewer()
+        private void SetupWindowsEventViewer()
         {
-            if (UseWindowsEventViewer && RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            if (EventViewer is null &&
+                UseWindowsEventViewer &&
+                RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 // attach Windows event viewer to the service
                 EventViewer = new IPBanWindowsEventViewer(this);
