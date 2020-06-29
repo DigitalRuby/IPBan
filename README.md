@@ -36,7 +36,7 @@ Install
 Please note that for IPBan Pro, you can find install instructions at https://ipban.com/Docs/Install. These install instructions are for the free IPBan version.
 
 **Windows**
-- For Windows, IPBan is supported on Windows Server 2012 or equivalent or newer. Windows Server 2008 does a poor job of logging ip addresses and is end of life. Windows XP and Server 2003 are NOT supported.
+- For Windows, IPBan is supported on Windows Server 2012 or newer, or Windows 10 or newer.
 - Extract the IPBan.zip (inside is IPBanWindows.zip) file to a place on your computer. Right click on all the extracted files and select properties. Make sure to select "unblock" if the option is available.  You can use the [Unblock-File](https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.utility/unblock-file?view=powershell-6) utility with an **elevated** PowerShell to unblock all files in the IPBan directory:
 ```
 dir C:\path\to\ipban | Unblock-File
@@ -69,7 +69,6 @@ Start-Service IPBAN
 - On Windows, the service MUST be set to start as delayed automatic, otherwise the service will crash upon machine reboot.
 - The service needs file system, event viewer and firewall access, so running as a privileged account is required.
 - To run as a console app, simply run DigitalRuby.IPBan.exe and watch console output.
-- On some Windows versions, NLA will default to on. This may lock you out of remote desktop, so turn this option off if needed.
 - NLA is not supported with IPBan on Windows Server 2012 or older. You must use Windows Server 2016 or newer if you want NLA. Failed logins do not log properly with NLA on the older Windows editions, regardless of any settings, registry or group policy changes.
 - On Windows Small Business Server 2011 (and probably earlier) and Windows Server running Exchange, with installed PowerShell v.2 that does not know Unblock-File command, and newer version can’t be installed (as some scripts for managing OWA stop working correctly). Easier way is to manually unblock downloaded ZIP file and then unzip content.
 - On Windows Server running Exchange, it is impossible to disable NTLM (deny all clients in Security restrict ntlm incoming ntlm traffic) as then Outlook on client computers permanently asks users for entering username and password. To workaround this, set LAN Manager authenticating level in Security Options of Local Policies to "Send NTLMv2 response only. Refuse LM & NTLM". There is one small issue – when somebody tries to login with an undefined username, the log does not contain an IP address. Not sure why Microsoft can't log an ip address properly.
