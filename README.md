@@ -52,6 +52,7 @@ auditpol.exe /set /category:"{69979850-797A-11D9-BED3-505054503030}" /success:en
 
 - It is highly recommended to disable NTLM logins and only allow NTLM2 logins. Use secpol -> local policies -> security options -> network security restrict ntlm incoming ntlm traffic -> deny all accounts.
 - Please ensure your server and clients are patched before making the above change: https://support.microsoft.com/en-us/help/4093492/credssp-updates-for-cve-2018-0886-march-13-2018. You need to manually edit group policy as specified in the link.
+![](IPBan/img/WindowsCredSSP.png)
 - Instead of the above, you can try: local policy "Network Security -> LAN Manager authentication level" to "NTLMv2 response only/refuse LM and NTLM".
 - To install as a Windows service use the [sc command](https://docs.microsoft.com/en-us/windows-server/administration/windows-commands/sc-create) and run the following in an elevated command window:
 ```
