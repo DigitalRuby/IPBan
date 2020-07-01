@@ -195,11 +195,11 @@ namespace DigitalRuby.IPBanCore
             }
 
             string userNameWhitelistString = GetConfig<string>("UserNameWhitelist", string.Empty);
-            foreach (string userName in userNameWhitelistString.Split(','))
+            if (!string.IsNullOrEmpty(userNameWhitelistString))
             {
-                string userNameTrimmed = userName.Normalize().ToUpperInvariant().Trim();
-                if (userNameTrimmed.Length > 0)
+                foreach (string userName in userNameWhitelistString.Split(','))
                 {
+                    string userNameTrimmed = userName.Normalize().ToUpperInvariant().Trim();
                     userNameWhitelist.Add(userNameTrimmed);
                 }
             }
@@ -642,22 +642,21 @@ namespace DigitalRuby.IPBanCore
 
         /// <summary>
         /// Checks if a user name is within the maximum edit distance for the user name whitelist.
-        /// If userName is null or empty this method returns true.
         /// If the user name whitelist is empty, this method returns true.
         /// </summary>
         /// <param name="userName">User name</param>
         /// <returns>True if within max edit distance of any whitelisted user name, false otherwise.</returns>
         public bool IsUserNameWithinMaximumEditDistanceOfUserNameWhitelist(string userName)
         {
-            if (userNameWhitelist.Count == 0 || string.IsNullOrEmpty(userName))
+            if (userNameWhitelist.Count == 0)
             {
                 return true;
             }
 
             userName = userName.Normalize().ToUpperInvariant().Trim();
-            foreach (string userNameInWhitelist in userNameWhitelist)
+            foreach (string userNameToCheckAgainst in userNameWhitelist)
             {
-                int distance = LevenshteinUnsafe.Distance(userName, userNameInWhitelist);
+                int distance = LevenshteinUnsafe.Distance(userName, userNameToCheckAgainst);
                 if (distance <= userNameWhitelistMaximumEditDistance)
                 {
                     return true;
