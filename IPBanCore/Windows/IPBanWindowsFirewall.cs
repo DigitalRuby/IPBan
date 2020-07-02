@@ -22,6 +22,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+// #define ENABLE_FIREWALL_PROFILING
+
 #region Imports
 
 using System;
@@ -374,10 +376,18 @@ namespace DigitalRuby.IPBanCore
 
         private Task<bool> BlockOrAllowIPAddresses(string ruleNamePrefix, bool block, IEnumerable<string> ipAddresses, IEnumerable<PortRange> allowedPorts = null, CancellationToken cancelToken = default)
         {
+
+#if ENABLE_FIREWALL_PROFILING
+
+            Stopwatch timer = Stopwatch.StartNew();
+
+#endif
+
+            int i = 0;
+            string prefix = ruleNamePrefix.TrimEnd('_') + "_";
+
             try
             {
-                string prefix = ruleNamePrefix.TrimEnd('_') + "_";
-                int i = 0;
                 List<string> ipAddressesList = new List<string>();
                 foreach (string ipAddress in ipAddresses)
                 {
@@ -424,6 +434,18 @@ namespace DigitalRuby.IPBanCore
                 Logger.Error(ex);
                 return Task.FromResult(false);
             }
+            finally
+            {
+
+#if ENABLE_FIREWALL_PROFILING
+
+                timer.Stop();
+                Logger.Warn("Block ip addresses rule '{0}' took {1:0.00}ms with {2} ips",
+                    prefix, timer.Elapsed.TotalMilliseconds, i);
+
+#endif
+
+            }
         }
 
         /// <summary>
@@ -468,6 +490,13 @@ namespace DigitalRuby.IPBanCore
 
         public Task<bool> BlockIPAddressesDelta(string ruleNamePrefix, IEnumerable<IPBanFirewallIPAddressDelta> ipAddresses, IEnumerable<PortRange> allowedPorts = null, CancellationToken cancelToken = default)
         {
+
+#if ENABLE_FIREWALL_PROFILING
+
+            Stopwatch timer = Stopwatch.StartNew();
+
+#endif
+
             string prefix = (string.IsNullOrWhiteSpace(ruleNamePrefix) ? BlockRulePrefix : RulePrefix + ruleNamePrefix).TrimEnd('_') + "_";
             int ruleIndex;
             INetFwRule[] rules = EnumerateRulesMatchingPrefix(prefix).ToArray();
@@ -494,6 +523,7 @@ namespace DigitalRuby.IPBanCore
                 ruleChanges.Add(false);
             }
             List<IPBanFirewallIPAddressDelta> deltas = ipAddresses.ToList();
+            int deltasCount = deltas.Count;
             for (int deltaIndex = deltas.Count - 1; deltaIndex >= 0; deltaIndex--)
             {
                 IPBanFirewallIPAddressDelta delta = deltas[deltaIndex];
@@ -554,6 +584,14 @@ namespace DigitalRuby.IPBanCore
                 }
                 ruleIndex += MaxIpAddressesPerRule;
             }
+
+#if ENABLE_FIREWALL_PROFILING
+
+            timer.Stop();
+            Logger.Warn("BlockIPAddressesDelta rule '{0}' took {1:0.00}ms with {2} ips",
+                prefix, timer.Elapsed.TotalMilliseconds, deltasCount);
+
+#endif
 
             return Task.FromResult(true);
         }

@@ -22,6 +22,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+// #define ENABLE_FIREWALL_PROFILING
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -237,6 +239,13 @@ namespace DigitalRuby.IPBanCore
         protected bool UpdateRule(string ruleName, string action, IEnumerable<string> ipAddresses, string hashType, int maxCount,
             IEnumerable<PortRange> allowPorts, CancellationToken cancelToken)
         {
+
+#if ENABLE_FIREWALL_PROFILING
+
+            Stopwatch timer = Stopwatch.StartNew();
+
+#endif
+
             string ipFileTemp = OSUtility.Instance.GetTempFileName();
             try
             {
@@ -297,6 +306,15 @@ namespace DigitalRuby.IPBanCore
             finally
             {
                 ExtensionMethods.FileDeleteWithRetry(ipFileTemp);
+
+#if ENABLE_FIREWALL_PROFILING
+
+                timer.Stop();
+                Logger.Warn("BlockIPAddressesDelta rule '{0}' took {1:0.00}ms with {2} ips",
+                    ruleName, timer.Elapsed.TotalMilliseconds, ipAddresses.Count());
+
+#endif
+
             }
         }
 
@@ -304,6 +322,13 @@ namespace DigitalRuby.IPBanCore
         protected bool UpdateRuleDelta(string ruleName, string action, IEnumerable<IPBanFirewallIPAddressDelta> deltas, string hashType,
             int maxCount, bool deleteRule, IEnumerable<PortRange> allowPorts, CancellationToken cancelToken)
         {
+
+#if ENABLE_FIREWALL_PROFILING
+
+            Stopwatch timer = Stopwatch.StartNew();
+
+#endif
+
             string ipFileTemp = OSUtility.Instance.GetTempFileName();
             try
             {
@@ -373,6 +398,15 @@ namespace DigitalRuby.IPBanCore
             finally
             {
                 ExtensionMethods.FileDeleteWithRetry(ipFileTemp);
+
+#if ENABLE_FIREWALL_PROFILING
+
+                timer.Stop();
+                Logger.Warn("BlockIPAddressesDelta rule '{0}' took {1:0.00}ms with {2} ips",
+                    ruleName, timer.Elapsed.TotalMilliseconds, deltas.Count());
+
+#endif
+
             }
         }
 

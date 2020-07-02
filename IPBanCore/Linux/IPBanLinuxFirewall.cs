@@ -68,64 +68,64 @@ namespace DigitalRuby.IPBanCore
 
         public IPBanLinuxFirewall(string rulePrefix = null) : base(rulePrefix) { }
 
-        public override Task<bool> BlockIPAddresses(string ruleNamePrefix, IEnumerable<string> ipAddresses, IEnumerable<PortRange> allowedPorts = null, CancellationToken cancelToken = default)
+        public override async Task<bool> BlockIPAddresses(string ruleNamePrefix, IEnumerable<string> ipAddresses, IEnumerable<PortRange> allowedPorts = null, CancellationToken cancelToken = default)
         {
             IEnumerable<string> ipv4 = ipAddresses.Where(i => IPAddress.TryParse(i, out IPAddress obj) && obj.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork);
             IEnumerable<string> ipv6 = ipAddresses.Where(i => IPAddress.TryParse(i, out IPAddress obj) && obj.AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6);
-            bool result = base.BlockIPAddresses(ruleNamePrefix, ipv4, allowedPorts, cancelToken).Sync();
+            bool result = await base.BlockIPAddresses(ruleNamePrefix, ipv4, allowedPorts, cancelToken);
             if (result)
             {
-                result = firewall6.BlockIPAddresses(ruleNamePrefix, ipv6, allowedPorts, cancelToken).Sync();
+                result = await firewall6.BlockIPAddresses(ruleNamePrefix, ipv6, allowedPorts, cancelToken);
             }
-            return Task.FromResult(result);
+            return result;
         }
 
-        public override Task<bool> BlockIPAddressesDelta(string ruleNamePrefix, IEnumerable<IPBanFirewallIPAddressDelta> ipAddresses, IEnumerable<PortRange> allowedPorts = null, CancellationToken cancelToken = default)
+        public override async Task<bool> BlockIPAddressesDelta(string ruleNamePrefix, IEnumerable<IPBanFirewallIPAddressDelta> ipAddresses, IEnumerable<PortRange> allowedPorts = null, CancellationToken cancelToken = default)
         {
             List<IPBanFirewallIPAddressDelta> deltas4 = new List<IPBanFirewallIPAddressDelta>(ipAddresses.Where(i => IPAddress.Parse(i.IPAddress).AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork));
             List<IPBanFirewallIPAddressDelta> deltas6 = new List<IPBanFirewallIPAddressDelta>(ipAddresses.Where(i => IPAddress.Parse(i.IPAddress).AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6));
-            bool result = base.BlockIPAddressesDelta(ruleNamePrefix, deltas4, allowedPorts, cancelToken).Sync();
+            bool result = await base.BlockIPAddressesDelta(ruleNamePrefix, deltas4, allowedPorts, cancelToken);
             if (result)
             {
-                result = firewall6.BlockIPAddressesDelta(ruleNamePrefix, deltas6, allowedPorts, cancelToken).Sync();
+                result = await firewall6.BlockIPAddressesDelta(ruleNamePrefix, deltas6, allowedPorts, cancelToken);
             }
-            return Task.FromResult(result);
+            return result;
         }
 
-        public override Task<bool> BlockIPAddresses(string ruleNamePrefix, IEnumerable<IPAddressRange> ranges, IEnumerable<PortRange> allowedPorts = null, CancellationToken cancelToken = default)
+        public override async Task<bool> BlockIPAddresses(string ruleNamePrefix, IEnumerable<IPAddressRange> ranges, IEnumerable<PortRange> allowedPorts = null, CancellationToken cancelToken = default)
         {
             IEnumerable<IPAddressRange> ipv4 = ranges.Where(i => i.Begin.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork && i.End.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork);
             IEnumerable<IPAddressRange> ipv6 = ranges.Where(i => i.Begin.AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6 && i.End.AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6);
-            bool result = base.BlockIPAddresses(ruleNamePrefix, ranges, allowedPorts, cancelToken).Sync();
+            bool result = await base.BlockIPAddresses(ruleNamePrefix, ranges, allowedPorts, cancelToken);
             if (result)
             {
-                result = firewall6.BlockIPAddresses(ruleNamePrefix, ranges, allowedPorts, cancelToken).Sync();
+                result = await firewall6.BlockIPAddresses(ruleNamePrefix, ranges, allowedPorts, cancelToken);
             }
-            return Task.FromResult(result);
+            return result;
         }
 
-        public override Task<bool> AllowIPAddresses(IEnumerable<string> ipAddresses, CancellationToken cancelToken = default)
+        public override async Task<bool> AllowIPAddresses(IEnumerable<string> ipAddresses, CancellationToken cancelToken = default)
         {
             IEnumerable<string> ipv4 = ipAddresses.Where(i => IPAddress.TryParse(i, out IPAddress obj) && obj.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork);
             IEnumerable<string> ipv6 = ipAddresses.Where(i => IPAddress.TryParse(i, out IPAddress obj) && obj.AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6);
-            bool result = base.AllowIPAddresses(ipv4, cancelToken).Sync();
+            bool result = await base.AllowIPAddresses(ipv4, cancelToken);
             if (result)
             {
-                result = firewall6.AllowIPAddresses(ipv6, cancelToken).Sync();
+                result = await firewall6.AllowIPAddresses(ipv6, cancelToken);
             }
-            return Task.FromResult(result);
+            return result;
         }
 
-        public override Task<bool> AllowIPAddresses(string ruleNamePrefix, IEnumerable<IPAddressRange> ipAddresses, IEnumerable<PortRange> allowedPorts = null, CancellationToken cancelToken = default)
+        public override async Task<bool> AllowIPAddresses(string ruleNamePrefix, IEnumerable<IPAddressRange> ipAddresses, IEnumerable<PortRange> allowedPorts = null, CancellationToken cancelToken = default)
         {
             IEnumerable<IPAddressRange> ipv4 = ipAddresses.Where(i => IPAddressRange.TryParse(i, out IPAddressRange obj) && obj.Begin.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork);
             IEnumerable<IPAddressRange> ipv6 = ipAddresses.Where(i => IPAddressRange.TryParse(i, out IPAddressRange obj) && obj.Begin.AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6);
-            bool result = base.AllowIPAddresses(ruleNamePrefix, ipv4, allowedPorts, cancelToken).Sync();
+            bool result = await base.AllowIPAddresses(ruleNamePrefix, ipv4, allowedPorts, cancelToken);
             if (result)
             {
-                result = firewall6.AllowIPAddresses(ruleNamePrefix, ipv6, allowedPorts, cancelToken).Sync();
+                result = await firewall6.AllowIPAddresses(ruleNamePrefix, ipv6, allowedPorts, cancelToken);
             }
-            return Task.FromResult(result);
+            return result;
         }
 
         public override void Truncate()
