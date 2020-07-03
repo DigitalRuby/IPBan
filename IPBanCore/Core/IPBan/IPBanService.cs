@@ -83,18 +83,27 @@ namespace DigitalRuby.IPBanCore
         {
             try
             {
-                await cycleLock.WaitAsync(1);
-                if (IsRunning)
+                if (await cycleLock.WaitAsync(1))
                 {
-                    await UpdateConfiguration();
-                    await SetNetworkInfo();
-                    await UpdateDelegate();
-                    await UpdateUpdaters();
-                    await UpdateExpiredIPAddressStates();
-                    await ProcessPendingLogEvents();
-                    await ProcessPendingFailedLogins();
-                    await ProcessPendingSuccessfulLogins();
-                    await UpdateFirewall();
+                    try
+                    {
+                        if (IsRunning)
+                        {
+                            await UpdateConfiguration();
+                            await SetNetworkInfo();
+                            await UpdateDelegate();
+                            await UpdateUpdaters();
+                            await UpdateExpiredIPAddressStates();
+                            await ProcessPendingLogEvents();
+                            await ProcessPendingFailedLogins();
+                            await ProcessPendingSuccessfulLogins();
+                            await UpdateFirewall();
+                        }
+                    }
+                    finally
+                    {
+                        cycleLock.Release();
+                    }
                 }
             }
             catch (Exception ex)
@@ -103,10 +112,6 @@ namespace DigitalRuby.IPBanCore
                 {
                     Logger.Error($"Error on {nameof(IPBanService)}.{nameof(RunCycle)}", ex);
                 }
-            }
-            finally
-            {
-                cycleLock.Release();
             }
         }
 
