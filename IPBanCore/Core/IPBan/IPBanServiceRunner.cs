@@ -40,10 +40,12 @@ namespace DigitalRuby.IPBanCore
     /// </summary>
     public sealed class IPBanServiceRunner : BackgroundService
     {
+        private readonly CancellationTokenSource cancelToken = new CancellationTokenSource();
         private readonly Func<CancellationToken, Task> onStart;
         private readonly Func<CancellationToken, Task> onStop;
 
         private IHost host;
+        private int stopLock;
 
         /// <summary>
         /// Constructor
@@ -91,6 +93,7 @@ namespace DigitalRuby.IPBanCore
             if (host != null)
             {
                 Logger.Warn("Disposing service");
+                cancelToken.Cancel();
                 base.Dispose();
                 host.Dispose();
                 host = null;
@@ -100,12 +103,11 @@ namespace DigitalRuby.IPBanCore
         /// <summary>
         /// Run the service
         /// </summary>
-        /// <param name="cancelToken">Cancel token</param>
         /// <returns>Task</returns>
-        public Task RunAsync(CancellationToken cancelToken = default)
+        public Task RunAsync()
         {
             Logger.Warn("Preparing to run service");
-            return host.RunAsync(cancelToken);
+            return host.RunAsync(cancelToken.Token);
         }
 
         /// <summary>
@@ -114,16 +116,15 @@ namespace DigitalRuby.IPBanCore
         /// <param name="args">Args</param>
         /// <param name="onStart">Start</param>
         /// <param name="onStop">Stop</param>
-        /// <param name="cancelToken">Cancel token</param>
         /// <returns>Task</returns>
 #pragma warning disable IDE0060 // Remove unused parameter
-        public static async Task MainService(string[] args, Func<CancellationToken, Task> onStart, Func<CancellationToken, Task> onStop = null, CancellationToken cancelToken = default)
+        public static async Task MainService(string[] args, Func<CancellationToken, Task> onStart, Func<CancellationToken, Task> onStop = null)
 #pragma warning restore IDE0060 // Remove unused parameter
         {
             try
             {
                 using IPBanServiceRunner runner = new IPBanServiceRunner(onStart, onStop);
-                await runner.RunAsync(cancelToken);
+                await runner.RunAsync();
             }
             catch (OperationCanceledException)
             {
@@ -146,11 +147,14 @@ namespace DigitalRuby.IPBanCore
         /// <inheritdoc />
         public override async Task StopAsync(CancellationToken cancellationToken)
         {
-            Logger.Warn("Stopping service");
-            await base.StopAsync(cancellationToken);
-            if (onStop != null)
+            if (Interlocked.Increment(ref stopLock) == 1)
             {
-                await onStop(cancellationToken);
+                Logger.Warn("Stopping service");
+                await base.StopAsync(cancellationToken);
+                if (onStop != null)
+                {
+                    await onStop(cancellationToken);
+                }
             }
         }
 
@@ -159,12 +163,17 @@ namespace DigitalRuby.IPBanCore
         {
             Logger.Warn("Running service");
 
+            // fire off start event if there is one
             if (onStart != null)
             {
                 await onStart(stoppingToken);
             }
 
+            // wait until service shuts down
             await Task.Delay(-1, stoppingToken);
+
+            // ensure service shuts down
+            await StopAsync(stoppingToken);
         }
     }
 }
