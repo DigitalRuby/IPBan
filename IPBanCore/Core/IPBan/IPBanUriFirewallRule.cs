@@ -39,6 +39,7 @@ namespace DigitalRuby.IPBanCore
     public class IPBanUriFirewallRule : IUpdater
     {
         private static readonly TimeSpan fiveSeconds = TimeSpan.FromSeconds(5.0);
+        private static readonly TimeSpan thirtySeconds = TimeSpan.FromSeconds(30.0);
 
         private readonly IIPBanFirewall firewall;
         private readonly IIsWhitelisted whitelistChecker;
@@ -88,7 +89,7 @@ namespace DigitalRuby.IPBanCore
                 {
                     uri = new Uri(uri.ToString() + "/");
                 }
-                httpClient = new HttpClient { BaseAddress = uri };
+                httpClient = new HttpClient { BaseAddress = uri, Timeout = thirtySeconds };
             }
         }
 
