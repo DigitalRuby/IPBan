@@ -45,6 +45,7 @@ namespace DigitalRuby.IPBanCore
         private readonly Func<CancellationToken, Task> onStop;
 
         private IHost host;
+        private int disposeLock;
         private int stopLock;
 
         /// <summary>
@@ -90,7 +91,7 @@ namespace DigitalRuby.IPBanCore
         /// </summary>
         public override void Dispose()
         {
-            if (host != null)
+            if (host != null && Interlocked.Increment(ref disposeLock) == 1)
             {
                 Logger.Warn("Disposing service");
                 cancelToken.Cancel();
