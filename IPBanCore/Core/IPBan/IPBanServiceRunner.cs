@@ -166,14 +166,14 @@ namespace DigitalRuby.IPBanCore
             // fire off start event if there is one
             if (onStart != null)
             {
-                await onStart(stoppingToken);
+                await onStart(cancelToken.Token);
             }
 
             // wait until service shuts down
-            await Task.Delay(-1, stoppingToken);
+            await Task.Delay(-1, cancelToken.Token);
 
             // ensure service shuts down
-            await StopAsync(stoppingToken);
+            await StopAsync(cancelToken.Token);
         }
     }
 }
