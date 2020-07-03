@@ -83,7 +83,7 @@ namespace DigitalRuby.IPBanCore
         {
             try
             {
-                await cycleLock.WaitAsync();
+                await cycleLock.WaitAsync(1);
                 if (IsRunning)
                 {
                     await UpdateConfiguration();
