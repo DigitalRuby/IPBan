@@ -151,30 +151,26 @@ namespace DigitalRuby.IPBanCore
             if (Interlocked.Increment(ref stopLock) == 1)
             {
                 Logger.Warn("Stopping service");
-                await base.StopAsync(cancellationToken);
                 if (onStop != null)
                 {
                     await onStop(cancellationToken);
                 }
+                await base.StopAsync(cancellationToken);
             }
         }
 
         /// <inheritdoc />
-        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+        protected override Task ExecuteAsync(CancellationToken stoppingToken)
         {
             Logger.Warn("Running service");
 
             // fire off start event if there is one
             if (onStart != null)
             {
-                await onStart(stoppingToken);
+                onStart(stoppingToken).GetAwaiter();
             }
 
-            // wait until service shuts down
-            await Task.Delay(-1, stoppingToken);
-
-            // ensure service shuts down
-            await StopAsync(stoppingToken);
+            return Task.CompletedTask;
         }
     }
 }
