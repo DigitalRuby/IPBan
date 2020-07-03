@@ -43,9 +43,8 @@ namespace DigitalRuby.IPBanCore
         private readonly CancellationTokenSource cancelToken = new CancellationTokenSource();
         private readonly Func<CancellationToken, Task> onStart;
         private readonly Func<CancellationToken, Task> onStop;
+        private readonly IHost host;
 
-        private IHost host;
-        private int disposeLock;
         private int stopLock;
 
         /// <summary>
@@ -84,19 +83,6 @@ namespace DigitalRuby.IPBanCore
             }
             hostBuilder.UseContentRoot(AppContext.BaseDirectory);
             host = hostBuilder.Build();
-        }
-
-        /// <summary>
-        /// Cleanup
-        /// </summary>
-        public override void Dispose()
-        {
-            if (host != null && Interlocked.Increment(ref disposeLock) == 1)
-            {
-                Logger.Warn("Disposing service");
-                host = null;
-                base.Dispose();
-            }
         }
 
         /// <summary>
