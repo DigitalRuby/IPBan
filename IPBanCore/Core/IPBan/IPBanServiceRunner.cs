@@ -94,10 +94,8 @@ namespace DigitalRuby.IPBanCore
             if (host != null && Interlocked.Increment(ref disposeLock) == 1)
             {
                 Logger.Warn("Disposing service");
-                cancelToken.Cancel();
-                base.Dispose();
-                host.Dispose();
                 host = null;
+                base.Dispose();
             }
         }
 

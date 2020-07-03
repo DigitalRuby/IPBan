@@ -95,7 +95,10 @@ namespace DigitalRuby.IPBanCore
             }
             catch (Exception ex)
             {
-                Logger.Error($"Error on {nameof(IPBanService)}.{nameof(RunCycle)}", ex);
+                if (!(ex is OperationCanceledException))
+                {
+                    Logger.Error($"Error on {nameof(IPBanService)}.{nameof(RunCycle)}", ex);
+                }
             }
         }
 
@@ -328,7 +331,13 @@ namespace DigitalRuby.IPBanCore
                         // loaded and the cycle time becomes whatever is in the config
                         cycleTimer = new Timer(async (_state) =>
                         {
-                            await CycleTimerElapsed();
+                            try
+                            {
+                                await CycleTimerElapsed();
+                            }
+                            catch
+                            {
+                            }
                         }, null, 1000, Timeout.Infinite);
                     }
                 }
@@ -475,7 +484,20 @@ namespace DigitalRuby.IPBanCore
                         if (!firewallQueue.TryGetValue(queueName, out queue))
                         {
                             firewallQueue[queueName] = queue = new AsyncQueue<Func<CancellationToken, Task>>();
-                            Task.Run(() => FirewallTask(queue));
+                            Task.Run(async () =>
+                            {
+                                try
+                                {
+                                    await FirewallTask(queue);
+                                }
+                                catch (Exception ex)
+                                {
+                                    if (!(ex is OperationCanceledException))
+                                    {
+                                        Logger.Error(ex);
+                                    }
+                                }
+                            });
                         }
                     }
                     queue.Enqueue(action);
