@@ -41,7 +41,7 @@ namespace DigitalRuby.IPBanCore
     public sealed class IPBanServiceRunner : BackgroundService
     {
         private readonly CancellationTokenSource cancelToken = new CancellationTokenSource();
-        private readonly Func<CancellationToken, Task> onStart;
+        private readonly Func<CancellationToken, Task> onRun;
         private readonly Func<CancellationToken, Task> onStop;
         private readonly IHost host;
 
@@ -50,9 +50,9 @@ namespace DigitalRuby.IPBanCore
         /// <summary>
         /// Constructor
         /// </summary>
-        /// <param name="onStart">Action to execute on start</param>
+        /// <param name="onRun">Action to execute for run</param>
         /// <param name="onStop">Action to execute on stop</param>
-        private IPBanServiceRunner(Func<CancellationToken, Task> onStart, Func<CancellationToken, Task> onStop)
+        private IPBanServiceRunner(Func<CancellationToken, Task> onRun, Func<CancellationToken, Task> onStop)
         {
             Logger.Warn("Initializing service");
             Directory.SetCurrentDirectory(AppContext.BaseDirectory);
@@ -63,7 +63,7 @@ namespace DigitalRuby.IPBanCore
                     services.AddHostedService<IPBanServiceRunner>(provider => this);
                 });
 
-            this.onStart = onStart;
+            this.onRun = onRun;
             this.onStop = onStop;
             if (Microsoft.Extensions.Hosting.WindowsServices.WindowsServiceHelpers.IsWindowsService())
             {
@@ -89,26 +89,33 @@ namespace DigitalRuby.IPBanCore
         /// Run the service
         /// </summary>
         /// <returns>Task</returns>
-        public Task RunAsync()
+        public async Task RunAsync()
         {
             Logger.Warn("Preparing to run service");
-            return host.RunAsync(cancelToken.Token);
+            try
+            {
+                await host.RunAsync(cancelToken.Token);
+            }
+            finally
+            {
+                host.Dispose();
+            }
         }
 
         /// <summary>
         /// Run service helper method
         /// </summary>
         /// <param name="args">Args</param>
-        /// <param name="onStart">Start</param>
+        /// <param name="onRun">Run</param>
         /// <param name="onStop">Stop</param>
         /// <returns>Task</returns>
 #pragma warning disable IDE0060 // Remove unused parameter
-        public static async Task MainService(string[] args, Func<CancellationToken, Task> onStart, Func<CancellationToken, Task> onStop = null)
+        public static async Task MainService(string[] args, Func<CancellationToken, Task> onRun, Func<CancellationToken, Task> onStop = null)
 #pragma warning restore IDE0060 // Remove unused parameter
         {
             try
             {
-                using IPBanServiceRunner runner = new IPBanServiceRunner(onStart, onStop);
+                using IPBanServiceRunner runner = new IPBanServiceRunner(onRun, onStop);
                 await runner.RunAsync();
             }
             catch (OperationCanceledException)
@@ -141,21 +148,25 @@ namespace DigitalRuby.IPBanCore
                     await onStop(cancellationToken);
                 }
                 await base.StopAsync(cancellationToken);
+                await host.StopAsync(cancellationToken);
             }
         }
 
         /// <inheritdoc />
-        protected override Task ExecuteAsync(CancellationToken stoppingToken)
+        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             Logger.Warn("Running service");
 
-            // fire off start event if there is one
-            if (onStart != null)
+            // fire off run event if there is one
+            if (onRun != null)
             {
-                onStart(cancelToken.Token).GetAwaiter();
+                await onRun(cancelToken.Token);
+
+                // send a stop event since we are done running
+                StopAsync(stoppingToken).GetAwaiter();
             }
 
-            return Task.CompletedTask;
+            // else it is up to the caller of this class to call StopAsync
         }
     }
 }
