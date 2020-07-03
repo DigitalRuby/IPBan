@@ -53,7 +53,7 @@ namespace DigitalRuby.IPBan
             await IPBanServiceRunner.MainService(args, (CancellationToken cancelToken) =>
             {
                 service = IPBanService.CreateService<IPBanService>();
-                return service.StartAsync(cancelToken);
+                return service.RunAsync(cancelToken);
             }, (CancellationToken cancelToken) =>
             {
                 service?.Dispose();

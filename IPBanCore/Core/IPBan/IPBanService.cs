@@ -312,7 +312,7 @@ namespace DigitalRuby.IPBanCore
         /// Initialize and start the service
         /// </summary>
         /// <param name="cancelToken">Cancel token</param>
-        public Task StartAsync(CancellationToken cancelToken)
+        public async Task RunAsync(CancellationToken cancelToken)
         {
             CancelToken = cancelToken;
 
@@ -355,13 +355,20 @@ namespace DigitalRuby.IPBanCore
                             }
                         }, null, 1000, Timeout.Infinite);
                     }
+
+                    if (!ManualCycle)
+                    {
+                        await Task.Delay(Timeout.Infinite, cancelToken);
+                    }
                 }
                 catch (Exception ex)
                 {
-                    Logger.Error("Critical error in IPBanService.Start", ex);
+                    if (!(ex is OperationCanceledException))
+                    {
+                        Logger.Error($"Error in {nameof(IPBanService)}.{nameof(IPBanService.RunAsync)}", ex);
+                    }
                 }
             }
-            return Task.CompletedTask;
         }
 
         /// <summary>
@@ -567,7 +574,7 @@ namespace DigitalRuby.IPBanCore
                 service.BannedIPAddressHandler = new DefaultBannedIPAddressHandler { BaseUrl = defaultBannedIPAddressHandlerUrl };
             }
             service.Version = "1.1.1.1";
-            service.StartAsync(CancellationToken.None).Sync();
+            service.RunAsync(CancellationToken.None).Sync();
             service.RunCycle().Sync();
             service.DB.Truncate(true);
             service.Firewall.Truncate();
