@@ -41,8 +41,8 @@ namespace DigitalRuby.IPBanCore
     public sealed class IPBanServiceRunner : BackgroundService
     {
         private readonly CancellationTokenSource cancelToken = new CancellationTokenSource();
-        private readonly Func<CancellationToken, Task> onStart;
-        private readonly Func<CancellationToken, Task> onStop;
+        private readonly Func<CancellationTokenSource, Task> onStart;
+        private readonly Func<CancellationTokenSource, Task> onStop;
         private readonly IHost host;
 
         private int stopLock;
@@ -52,7 +52,7 @@ namespace DigitalRuby.IPBanCore
         /// </summary>
         /// <param name="onStart">Action to execute on start</param>
         /// <param name="onStop">Action to execute on stop</param>
-        private IPBanServiceRunner(Func<CancellationToken, Task> onStart, Func<CancellationToken, Task> onStop)
+        private IPBanServiceRunner(Func<CancellationTokenSource, Task> onStart, Func<CancellationTokenSource, Task> onStop)
         {
             Logger.Warn("Initializing service");
             Directory.SetCurrentDirectory(AppContext.BaseDirectory);
@@ -103,7 +103,7 @@ namespace DigitalRuby.IPBanCore
         /// <param name="onStop">Stop</param>
         /// <returns>Task</returns>
 #pragma warning disable IDE0060 // Remove unused parameter
-        public static async Task MainService(string[] args, Func<CancellationToken, Task> onStart, Func<CancellationToken, Task> onStop = null)
+        public static async Task MainService(string[] args, Func<CancellationTokenSource, Task> onStart, Func<CancellationTokenSource, Task> onStop = null)
 #pragma warning restore IDE0060 // Remove unused parameter
         {
             try
@@ -137,9 +137,9 @@ namespace DigitalRuby.IPBanCore
                 Logger.Warn("Stopping service");
                 if (onStop != null)
                 {
-                    await onStop(cancellationToken);
+                    await onStop(cancelToken);
                 }
-                await base.StopAsync(cancellationToken);
+                await base.StopAsync(cancelToken.Token);
             }
         }
 
@@ -151,7 +151,7 @@ namespace DigitalRuby.IPBanCore
             // fire off start event if there is one
             if (onStart != null)
             {
-                onStart(stoppingToken).GetAwaiter();
+                onStart(cancelToken).GetAwaiter();
             }
 
             return Task.CompletedTask;

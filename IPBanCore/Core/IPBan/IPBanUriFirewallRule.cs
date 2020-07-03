@@ -144,19 +144,29 @@ namespace DigitalRuby.IPBanCore
             if ((now - lastRun) >= Interval)
             {
                 lastRun = now;
-                if (Uri.IsFile)
+                try
                 {
-                    string filePath = Uri.LocalPath;
-                    if (File.Exists(filePath))
+                    if (Uri.IsFile)
                     {
-                        await ProcessResult(await File.ReadAllTextAsync(filePath, cancelToken), cancelToken);
+                        string filePath = Uri.LocalPath;
+                        if (File.Exists(filePath))
+                        {
+                            await ProcessResult(await File.ReadAllTextAsync(filePath, cancelToken), cancelToken);
+                        }
+                    }
+                    else
+                    {
+                        byte[] bytes = await httpRequestMaker.MakeRequestAsync(Uri, cancelToken: cancelToken);
+                        string text = Encoding.UTF8.GetString(bytes);
+                        await ProcessResult(text, cancelToken);
                     }
                 }
-                else
+                catch (Exception ex)
                 {
-                    byte[] bytes = await httpRequestMaker.MakeRequestAsync(Uri, cancelToken: cancelToken);
-                    string text = Encoding.UTF8.GetString(bytes);
-                    await ProcessResult(text, cancelToken);
+                    if (!(ex is OperationCanceledException))
+                    {
+                        Logger.Error(ex);
+                    }
                 }
             }
         }
