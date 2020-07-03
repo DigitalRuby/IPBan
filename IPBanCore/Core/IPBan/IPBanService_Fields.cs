@@ -51,6 +51,7 @@ namespace DigitalRuby.IPBanCore
         private readonly SemaphoreSlim stopEvent = new SemaphoreSlim(0, 1);
         private readonly Dictionary<string, AsyncQueue<Func<CancellationToken, Task>>> firewallQueue = new Dictionary<string, AsyncQueue<Func<CancellationToken, Task>>>();
         private readonly CancellationTokenSource serviceCancelTokenSource = new CancellationTokenSource();
+        private readonly SemaphoreSlim cycleLock = new SemaphoreSlim(1, 1);
 
         private System.Threading.Timer cycleTimer;
         private bool firewallNeedsBlockedIPAddressesUpdate;

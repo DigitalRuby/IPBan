@@ -340,8 +340,6 @@ namespace DigitalRuby.IPBanCore
         /// </summary>
         public virtual void Dispose()
         {
-            GC.Collect();
-            GC.WaitForPendingFinalizers();
             InMemoryConnection?.Dispose();
         }
 

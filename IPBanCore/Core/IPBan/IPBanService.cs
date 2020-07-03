@@ -83,15 +83,19 @@ namespace DigitalRuby.IPBanCore
         {
             try
             {
-                await UpdateConfiguration();
-                await SetNetworkInfo();
-                await UpdateDelegate();
-                await UpdateUpdaters();
-                await UpdateExpiredIPAddressStates();
-                await ProcessPendingLogEvents();
-                await ProcessPendingFailedLogins();
-                await ProcessPendingSuccessfulLogins();
-                await UpdateFirewall();
+                await cycleLock.WaitAsync();
+                if (IsRunning)
+                {
+                    await UpdateConfiguration();
+                    await SetNetworkInfo();
+                    await UpdateDelegate();
+                    await UpdateUpdaters();
+                    await UpdateExpiredIPAddressStates();
+                    await ProcessPendingLogEvents();
+                    await ProcessPendingFailedLogins();
+                    await ProcessPendingSuccessfulLogins();
+                    await UpdateFirewall();
+                }
             }
             catch (Exception ex)
             {
@@ -99,6 +103,10 @@ namespace DigitalRuby.IPBanCore
                 {
                     Logger.Error($"Error on {nameof(IPBanService)}.{nameof(RunCycle)}", ex);
                 }
+            }
+            finally
+            {
+                cycleLock.Release();
             }
         }
 
@@ -270,9 +278,10 @@ namespace DigitalRuby.IPBanCore
                 return;
             }
 
-            IsRunning = false;
             try
             {
+                cycleLock.WaitAsync().Sync();
+                IsRunning = false;
                 serviceCancelTokenSource.Cancel();
                 GetUrl(UrlType.Stop).Sync();
                 cycleTimer?.Dispose();

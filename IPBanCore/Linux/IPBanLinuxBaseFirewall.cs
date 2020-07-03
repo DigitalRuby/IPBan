@@ -505,7 +505,10 @@ namespace DigitalRuby.IPBanCore
             }
             catch (Exception ex)
             {
-                Logger.Error(ex);
+                if (!(ex is OperationCanceledException))
+                {
+                    Logger.Error(ex);
+                }
                 return Task.FromResult(false);
             }
         }
@@ -519,7 +522,10 @@ namespace DigitalRuby.IPBanCore
             }
             catch (Exception ex)
             {
-                Logger.Error(ex);
+                if (!(ex is OperationCanceledException))
+                {
+                    Logger.Error(ex);
+                }
                 return Task.FromResult(false);
             }
         }
@@ -534,7 +540,10 @@ namespace DigitalRuby.IPBanCore
             }
             catch (Exception ex)
             {
-                Logger.Error(ex);
+                if (!(ex is OperationCanceledException))
+                {
+                    Logger.Error(ex);
+                }
                 return Task.FromResult(false);
             }
         }
@@ -547,7 +556,10 @@ namespace DigitalRuby.IPBanCore
             }
             catch (Exception ex)
             {
-                Logger.Error(ex);
+                if (!(ex is OperationCanceledException))
+                {
+                    Logger.Error(ex);
+                }
                 return Task.FromResult(false);
             }
         }
@@ -561,7 +573,10 @@ namespace DigitalRuby.IPBanCore
             }
             catch (Exception ex)
             {
-                Logger.Error(ex);
+                if (!(ex is OperationCanceledException))
+                {
+                    Logger.Error(ex);
+                }
                 return Task.FromResult(false);
             }
         }

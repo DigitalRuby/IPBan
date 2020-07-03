@@ -431,7 +431,10 @@ namespace DigitalRuby.IPBanCore
             }
             catch (Exception ex)
             {
-                Logger.Error(ex);
+                if (!(ex is OperationCanceledException))
+                {
+                    Logger.Error(ex);
+                }
                 return Task.FromResult(false);
             }
             finally
@@ -652,7 +655,10 @@ namespace DigitalRuby.IPBanCore
             }
             catch (Exception ex)
             {
-                Logger.Error(ex);
+                if (!(ex is OperationCanceledException))
+                {
+                    Logger.Error(ex);
+                }
             }
             return false;
         }
@@ -687,7 +693,10 @@ namespace DigitalRuby.IPBanCore
             }
             catch (Exception ex)
             {
-                Logger.Error(ex);
+                if (!(ex is OperationCanceledException))
+                {
+                    Logger.Error(ex);
+                }
             }
             return false;
         }
