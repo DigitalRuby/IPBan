@@ -50,7 +50,6 @@ namespace DigitalRuby.IPBanCore
         private readonly HashSet<IUpdater> updaters = new HashSet<IUpdater>();
         private readonly SemaphoreSlim stopEvent = new SemaphoreSlim(0, 1);
         private readonly Dictionary<string, AsyncQueue<Func<CancellationToken, Task>>> firewallQueue = new Dictionary<string, AsyncQueue<Func<CancellationToken, Task>>>();
-        private readonly CancellationTokenSource serviceCancelTokenSource = new CancellationTokenSource();
         private readonly SemaphoreSlim cycleLock = new SemaphoreSlim(1, 1);
 
         private System.Threading.Timer cycleTimer;
@@ -192,6 +191,11 @@ namespace DigitalRuby.IPBanCore
         /// Whether to link up to the Windows event viewer on Start
         /// </summary>
         public bool UseWindowsEventViewer { get; set; } = true;
+
+        /// <summary>
+        /// Cancel token
+        /// </summary>
+        public CancellationToken CancelToken { get; private set; }
 
         private static DateTime? utcNow;
         /// <summary>
