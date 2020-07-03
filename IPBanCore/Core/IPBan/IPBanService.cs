@@ -275,6 +275,7 @@ namespace DigitalRuby.IPBanCore
             {
                 serviceCancelTokenSource.Cancel();
                 GetUrl(UrlType.Stop).Sync();
+                cycleTimer?.Dispose();
                 IPBanDelegate?.Dispose();
                 IPBanDelegate = null;
                 lock (updaters)
