@@ -960,7 +960,7 @@ namespace DigitalRuby.IPBanCore
         public static void Retry(Action action, int millisecondsBetweenRetry = 1000, int retryCount = 3)
         {
             Exception lastError = null;
-            for (int i = 0; i < retryCount; i++)
+            for (int i = 1; i <= retryCount; i++)
             {
                 try
                 {
@@ -974,7 +974,10 @@ namespace DigitalRuby.IPBanCore
                     {
                         break;
                     }
-                    Thread.Sleep(millisecondsBetweenRetry);
+                    if (i != retryCount)
+                    {
+                        Thread.Sleep(millisecondsBetweenRetry);
+                    }
                 }
             }
             throw lastError;
@@ -990,7 +993,7 @@ namespace DigitalRuby.IPBanCore
         public static async Task RetryAsync(Func<Task> action, int millisecondsBetweenRetry = 1000, int retryCount = 3)
         {
             Exception lastError = null;
-            for (int i = 0; i < retryCount; i++)
+            for (int i = 1; i <= retryCount; i++)
             {
                 try
                 {
@@ -1004,7 +1007,10 @@ namespace DigitalRuby.IPBanCore
                     {
                         break;
                     }
-                    Thread.Sleep(millisecondsBetweenRetry);
+                    if (i != retryCount)
+                    {
+                        Thread.Sleep(millisecondsBetweenRetry);
+                    }
                 }
             }
             throw lastError;
