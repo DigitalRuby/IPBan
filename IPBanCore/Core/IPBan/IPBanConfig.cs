@@ -46,6 +46,58 @@ namespace DigitalRuby.IPBanCore
     /// </summary>
     public class IPBanConfig : IIsWhitelisted
     {
+        /// <summary>
+        /// Allow temporary change of config
+        /// </summary>
+        public class TempConfigChanger : IDisposable
+        {
+            private readonly IConfigReaderWriter config;
+            private readonly string origConfig;
+            private readonly string modifiedConfig;
+
+            /// <summary>
+            /// Constructor
+            /// </summary>
+            /// <param name="service">Service</param>
+            /// <param name="modifier">Config modifier</param>
+            /// <param name="modifiedConfig">Receives modified config</param>
+            public TempConfigChanger(IConfigReaderWriter config, Func<string, string> modifier) :
+                this(config, modifier, out _)
+            {
+            }
+
+            /// <summary>
+            /// Constructor
+            /// </summary>
+            /// <param name="service">Service</param>
+            /// <param name="modifier">Config modifier</param>
+            /// <param name="modifiedConfig">Receives modified config</param>
+            public TempConfigChanger(IConfigReaderWriter config, Func<string, string> modifier, out string modifiedConfig)
+            {
+                this.config = config;
+                origConfig = config.ReadConfigAsync().Sync();
+                this.modifiedConfig = modifiedConfig = modifier(origConfig);
+                config.WriteConfigAsync(this.modifiedConfig).Sync();
+                if (config is IIPBanService service)
+                {
+                    service.RunCycle().Sync();
+                }
+            }
+
+            /// <summary>
+            /// Revert config back to original value
+            /// </summary>
+            public void Dispose()
+            {
+                config.WriteConfigAsync(origConfig).Sync();
+            }
+
+            /// <summary>
+            /// Get the modified config
+            /// </summary>
+            public string ModifiedConfig => modifiedConfig;
+        }
+
         private static readonly TimeSpan[] emptyTimeSpanArray = new TimeSpan[] { TimeSpan.Zero };
         private static readonly IPBanLogFileToParse[] emptyLogFilesToParseArray = new IPBanLogFileToParse[0];
         private static readonly TimeSpan maxBanTimeSpan = TimeSpan.FromDays(90.0);

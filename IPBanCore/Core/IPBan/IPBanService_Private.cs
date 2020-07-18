@@ -340,7 +340,8 @@ namespace DigitalRuby.IPBanCore
             }
 
             TimeSpan[] banTimes = Config.BanTimes;
-            DateTime banEndDate = startBanDate + banTimes.First();
+            TimeSpan banTime = banTimes.First();
+            DateTime banEndDate = startBanDate + banTime;
 
             // if we have an ip in the database, use the ban time to move to the next ban slot in the list of ban times
             // if ban times only has one entry, do not do this
@@ -349,13 +350,14 @@ namespace DigitalRuby.IPBanCore
                 ipEntry.BanStartDate != null && ipEntry.BanEndDate != null)
             {
                 // find the next ban time in the array
-                TimeSpan span = ipEntry.BanEndDate.Value - ipEntry.BanStartDate.Value;
+                banTime = ipEntry.BanEndDate.Value - ipEntry.BanStartDate.Value;
                 for (int i = 0; i < banTimes.Length; i++)
                 {
-                    if (span < banTimes[i])
+                    if (banTime < banTimes[i])
                     {
                         // ban for next timespan
-                        banEndDate = startBanDate + banTimes[i];
+                        banTime = banTimes[i];
+                        banEndDate = startBanDate + banTime;
                         Logger.Info("Moving to next ban duration {0} at index {1} for ip {1}", banTimes[i], i, ipAddress);
                         break;
                     }
@@ -368,8 +370,8 @@ namespace DigitalRuby.IPBanCore
                 firewallNeedsBlockedIPAddressesUpdate = true;
             }
 
-            Logger.Warn(startBanDate, "Banning ip address: {0}, user name: {1}, config black listed: {2}, count: {3}, extra info: {4}",
-                ipAddress, userName, configBlacklisted, counter, extraInfo);
+            Logger.Warn(startBanDate, "Banning ip address: {0}, user name: {1}, config black listed: {2}, count: {3}, extra info: {4}, duration: {5}",
+                ipAddress, userName, configBlacklisted, counter, extraInfo, banTime);
 
             // if this is a delegate callback (counter of 0), exit out - we don't want to run handlers or processes for shared banned ip addresses
             if (counter <= 0)

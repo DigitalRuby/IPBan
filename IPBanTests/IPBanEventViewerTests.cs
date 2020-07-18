@@ -83,6 +83,11 @@ namespace DigitalRuby.IPBanTests
             {
                 new KeyValuePair<string, string>
                 (
+                    @"<Event xmlns='http://schemas.microsoft.com/win/2004/08/events/event'><System><Provider Name='Microsoft-Windows-Security-Auditing' Guid='{54849625-5478-4994-A5BA-3E3B0328C30D}' /><EventID>4653</EventID><Version>0</Version><Level>0</Level><Task>12547</Task><Opcode>0</Opcode><Keywords>0x8010000000000000</Keywords><TimeCreated SystemTime='2020-07-10T17:20:06.687103300Z' /><EventRecordID>100095994</EventRecordID><Correlation ActivityID='{5108737F-4EB9-0001-8473-0851B94ED601}' /><Execution ProcessID='660' ThreadID='124' /><Channel>Security</Channel><Computer>MYVPN.MYCPU</Computer><Security /></System><EventData><Data Name='LocalMMPrincipalName'>-</Data><Data Name='RemoteMMPrincipalName'>-</Data><Data Name='LocalAddress'>88.88.88.81</Data><Data Name='LocalKeyModPort'>4500</Data><Data Name='RemoteAddress'>88.88.88.82</Data><Data Name='RemoteKeyModPort'>4500</Data><Data Name='KeyModName'>%%8222</Data><Data Name='FailurePoint'>%%8199</Data><Data Name='FailureReason'>Negotiation timed out</Data><Data Name='MMAuthMethod'>%%8194</Data><Data Name='State'>%%8202</Data><Data Name='Role'>%%8205</Data><Data Name='MMImpersonationState'>%%8217</Data><Data Name='MMFilterID'>54919761</Data><Data Name='InitiatorCookie'>db55d3767e51b422</Data><Data Name='ResponderCookie'>0000000000000000</Data></EventData></Event>",
+                    "88.88.88.82,,RDP,0"
+                ),
+                new KeyValuePair<string, string>
+                (
                     @"<Event xmlns='http://schemas.microsoft.com/win/2004/08/events/event'><System><Provider Name='VisualSVN Server 3.9' /><EventID Qualifiers='0'>1004</EventID><Level>2</Level><Task>2</Task><Keywords>0x80000000000000</Keywords><TimeCreated SystemTime='2020-04-12T19:52:33.000000000Z' /><EventRecordID>134854</EventRecordID><Channel>VisualSVNServer</Channel><Computer>server.domain-net.com</Computer><Security /></System><EventData><Data>user root: (OS 1326) Der Benutzername oder das Kennwort ist falsch.</Data><Data>123.123.123.124</Data></EventData></Event>",
                     "123.123.123.124,root,SVN,0"
                 ),
@@ -319,6 +324,7 @@ namespace DigitalRuby.IPBanTests
                 "61.62.63.64",
                 "70.91.222.121",
                 "82.61.45.195",
+                "88.88.88.82",
                 "99.99.99.98",
                 "99.99.99.99",
                 "99.99.99.100",

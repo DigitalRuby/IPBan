@@ -43,16 +43,10 @@ namespace DigitalRuby.IPBanCore
     }
 
     /// <summary>
-    /// IPBan service interface
+    /// Allow reading and writing of configuration
     /// </summary>
-    public interface IIPBanService : IIPAddressEventHandler, IDisposable
+    public interface IConfigReaderWriter
     {
-        /// <summary>
-        /// Manually run regular processing - useful if testing
-        /// </summary>
-        /// <returns>Task</returns>
-        Task RunCycle();
-
         /// <summary>
         /// Update config file with new xml
         /// </summary>
@@ -65,6 +59,18 @@ namespace DigitalRuby.IPBanCore
         /// </summary>
         /// <returns>Task with xml config</returns>
         Task<string> ReadConfigAsync();
+    }
+
+    /// <summary>
+    /// IPBan service interface
+    /// </summary>
+    public interface IIPBanService : IIPAddressEventHandler, IConfigReaderWriter, IDisposable
+    {
+        /// <summary>
+        /// Manually run regular processing - useful if testing
+        /// </summary>
+        /// <returns>Task</returns>
+        Task RunCycle();
 
         /// <summary>
         /// Replace place-holders in url with values from this service

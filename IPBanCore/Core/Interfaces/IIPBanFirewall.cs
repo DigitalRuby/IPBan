@@ -93,6 +93,14 @@ namespace DigitalRuby.IPBanCore
         bool IsIPAddressBlocked(string ipAddress, out string ruleName, int port = -1) => throw new NotImplementedException();
 
         /// <summary>
+        /// Checks if an ip address is blocked in the firewall
+        /// </summary>
+        /// <param name="ipAddress">IP Address</param>
+        /// <param name="port">Optional port, -1 to not check the port. Not all firewalls will check the port.</param>
+        /// <returns>True if the ip address is blocked in the firewall, false otherwise</returns>
+        bool IsIPAddressBlocked(string ipAddress, int port = -1) => IsIPAddressBlocked(ipAddress, out _, port);
+
+        /// <summary>
         /// Checks if an ip address is explicitly allowed in the firewall
         /// </summary>
         /// <param name="ipAddress">IP Address</param>

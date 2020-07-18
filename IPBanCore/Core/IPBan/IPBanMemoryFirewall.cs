@@ -495,6 +495,11 @@ namespace DigitalRuby.IPBanCore
             return IsIPAddressAllowed(ipAddressObj);
         }
 
+        public bool IsIPAddressBlocked(string ipAddress, int port = -1)
+        {
+            return IsIPAddressBlocked(ipAddress, out _, port);
+        }
+
         public bool IsIPAddressBlocked(string ipAddress, out string ruleName, int port = -1)
         {
             ruleName = null;
