@@ -58,8 +58,8 @@ namespace DigitalRuby.IPBanCore
         /// <param name="leastSignificant">The least significant 64 bits of the value.</param>
         public UInt128(ulong mostSignificant, ulong leastSignificant)
         {
-            _mostSignificant = mostSignificant;
-            _leastSignificant = leastSignificant;
+            MostSignificant = mostSignificant;
+            LeastSignificant = leastSignificant;
         }
 
         /// <summary>
@@ -110,7 +110,7 @@ namespace DigitalRuby.IPBanCore
         /// <returns>The 64 bit value converted from the 128 bit value.</returns>
         public static explicit operator ulong(UInt128 value)
         {
-            return value._leastSignificant;
+            return value.LeastSignificant;
         }
 
         /// <summary>
@@ -364,8 +364,8 @@ namespace DigitalRuby.IPBanCore
         /// <returns>True iff the two values represent the same value.</returns>
         public bool Equals(UInt128 other)
         {
-            return _mostSignificant == other._mostSignificant &&
-                   _leastSignificant == other._leastSignificant;
+            return MostSignificant == other.MostSignificant &&
+                   LeastSignificant == other.LeastSignificant;
         }
 
         /// <summary>
@@ -394,9 +394,9 @@ namespace DigitalRuby.IPBanCore
         /// <param name="other">An object to compare with this object.</param>
         public int CompareTo(UInt128 other)
         {
-            if (_mostSignificant != other._mostSignificant)
-                return _mostSignificant.CompareTo(other._mostSignificant);
-            return _leastSignificant.CompareTo(other._leastSignificant);
+            if (MostSignificant != other.MostSignificant)
+                return MostSignificant.CompareTo(other.MostSignificant);
+            return LeastSignificant.CompareTo(other.LeastSignificant);
         }
 
         /// <summary>
@@ -498,10 +498,10 @@ namespace DigitalRuby.IPBanCore
             if (numberOfBits >= 128)
                 return Zero;
             if (numberOfBits >= 64)
-                return new UInt128(0, value._mostSignificant >> (numberOfBits - 64));
+                return new UInt128(0, value.MostSignificant >> (numberOfBits - 64));
             if (numberOfBits == 0)
                 return value;
-            return new UInt128(value._mostSignificant >> numberOfBits, (value._leastSignificant >> numberOfBits) + (value._mostSignificant << (64 - numberOfBits)));
+            return new UInt128(value.MostSignificant >> numberOfBits, (value.LeastSignificant >> numberOfBits) + (value.MostSignificant << (64 - numberOfBits)));
         }
 
         /// <summary>
@@ -514,10 +514,10 @@ namespace DigitalRuby.IPBanCore
         {
             numberOfBits %= 128;
             if (numberOfBits >= 64)
-                return new UInt128(value._leastSignificant << (numberOfBits - 64), 0);
+                return new UInt128(value.LeastSignificant << (numberOfBits - 64), 0);
             if (numberOfBits == 0)
                 return value;
-            return new UInt128((value._mostSignificant << numberOfBits) + (value._leastSignificant >> (64 - numberOfBits)), value._leastSignificant << numberOfBits);
+            return new UInt128((value.MostSignificant << numberOfBits) + (value.LeastSignificant >> (64 - numberOfBits)), value.LeastSignificant << numberOfBits);
         }
 
         /// <summary>
@@ -539,7 +539,7 @@ namespace DigitalRuby.IPBanCore
         /// <returns>The two values after they were bitwise anded.</returns>
         public static UInt128 BitwiseAnd(UInt128 value1, UInt128 value2)
         {
-            return new UInt128(value1._mostSignificant & value2._mostSignificant, value1._leastSignificant & value2._leastSignificant);
+            return new UInt128(value1.MostSignificant & value2.MostSignificant, value1.LeastSignificant & value2.LeastSignificant);
         }
 
         /// <summary>
@@ -561,7 +561,7 @@ namespace DigitalRuby.IPBanCore
         /// <returns>The two values after they were bitwise ored.</returns>
         public static UInt128 BitwiseOr(UInt128 value1, UInt128 value2)
         {
-            return new UInt128(value1._mostSignificant | value2._mostSignificant, value1._leastSignificant | value2._leastSignificant);
+            return new UInt128(value1.MostSignificant | value2.MostSignificant, value1.LeastSignificant | value2.LeastSignificant);
         }
 
         /// <summary>
@@ -583,9 +583,9 @@ namespace DigitalRuby.IPBanCore
         /// <returns>The sum of the given values.</returns>
         public static UInt128 Add(UInt128 value1, UInt128 value2)
         {
-            ulong leastSignificant = value1._leastSignificant + value2._leastSignificant;
-            bool overflow = (leastSignificant < Math.Max(value1._leastSignificant, value2._leastSignificant));
-            return new UInt128(value1._mostSignificant + value2._mostSignificant + (ulong)(overflow ? 1 : 0), leastSignificant);
+            ulong leastSignificant = value1.LeastSignificant + value2.LeastSignificant;
+            bool overflow = (leastSignificant < Math.Max(value1.LeastSignificant, value2.LeastSignificant));
+            return new UInt128(value1.MostSignificant + value2.MostSignificant + (ulong)(overflow ? 1 : 0), leastSignificant);
         }
 
         /// <summary>
@@ -607,9 +607,9 @@ namespace DigitalRuby.IPBanCore
         /// <returns>The result of substracting the second value from the first value.</returns>
         public static UInt128 Subtract(UInt128 value1, UInt128 value2)
         {
-            ulong leastSignificant = value1._leastSignificant - value2._leastSignificant;
-            bool overflow = (leastSignificant > value1._leastSignificant);
-            return new UInt128(value1._mostSignificant - value2._mostSignificant - (ulong)(overflow ? 1 : 0), leastSignificant);
+            ulong leastSignificant = value1.LeastSignificant - value2.LeastSignificant;
+            bool overflow = (leastSignificant > value1.LeastSignificant);
+            return new UInt128(value1.MostSignificant - value2.MostSignificant - (ulong)(overflow ? 1 : 0), leastSignificant);
         }
 
         /// <summary>
@@ -621,7 +621,7 @@ namespace DigitalRuby.IPBanCore
         /// <filterpriority>2</filterpriority>
         public override int GetHashCode()
         {
-            return _mostSignificant.GetHashCode() + _leastSignificant.GetHashCode();
+            return MostSignificant.GetHashCode() + LeastSignificant.GetHashCode();
         }
 
         /// <summary>
@@ -658,7 +658,7 @@ namespace DigitalRuby.IPBanCore
         public string ToString(string format, IFormatProvider formatProvider)
         {
             string bigIntegerString = ((BigInteger)this).ToString(format, formatProvider);
-            if (_mostSignificant >> 63 == 1 && bigIntegerString[0] == '0')
+            if (MostSignificant >> 63 == 1 && bigIntegerString[0] == '0')
                 return bigIntegerString.Substring(1);
             return bigIntegerString;
         }
@@ -708,29 +708,20 @@ namespace DigitalRuby.IPBanCore
 
         private BigInteger ToBigInteger()
         {
-            BigInteger value = _mostSignificant;
+            BigInteger value = MostSignificant;
             value <<= 64;
-            value += _leastSignificant;
+            value += LeastSignificant;
             return value;
         }
-
-        private readonly ulong _leastSignificant;
-        private readonly ulong _mostSignificant;
 
         /// <summary>
         /// Get the least significate ulong
         /// </summary>
-        public ulong LeastSignificant
-        {
-            get { return _leastSignificant; }
-        }
+        public ulong LeastSignificant;
 
         /// <summary>
         /// Get the most significant ulong
         /// </summary>
-        public ulong MostSignificant
-        {
-            get { return _mostSignificant; }
-        }
+        public ulong MostSignificant;
     }
 }

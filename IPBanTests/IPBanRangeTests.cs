@@ -15,7 +15,7 @@ namespace DigitalRuby.IPBanTests
 
         private static void TestPortRangeBlockExcept(string expected, string message, params PortRange[] ranges)
         {
-            string actual = IPBanFirewallUtility.GetPortRangeStringBlockExcept(ranges);
+            string actual = IPBanFirewallUtility.GetBlockPortRangeString(ranges);
             Assert.AreEqual(expected, actual, message ?? "Invalid port string");
         }
 
@@ -52,6 +52,9 @@ namespace DigitalRuby.IPBanTests
             TestPortRangeBlockExcept(null, "Invalid range should be null", "-1");
             TestPortRangeBlockExcept("0-24,26-79,81-442,444-65535", null, "25", "80", "443");
             TestPortRangeBlockExcept("0-24,26-79,81-442,444-65535", null, "25", "80", "443", "25", "80", "443");
+            TestPortRangeBlockExcept("0-24,1000-1023,1051-65535", null, "25-999", "1024-1050");
+            TestPortRangeBlockExcept("0,65535", null, "1-65534");
+            TestPortRangeBlockExcept(null, null, "0-65535");
         }
 
         [Test]

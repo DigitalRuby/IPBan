@@ -684,12 +684,12 @@ namespace DigitalRuby.IPBanCore
     public struct PortRange
     {
         /// <summary>
-        /// Min port
+        /// Min port, inclusive
         /// </summary>
         public int MinPort { get; private set; }
 
         /// <summary>
-        /// Max port
+        /// Max port, inclusive
         /// </summary>
         public int MaxPort { get; private set; }
 

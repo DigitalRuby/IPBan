@@ -141,7 +141,7 @@ namespace DigitalRuby.IPBanCore
                             string localPorts;
                             if (action == NetFwAction.Block)
                             {
-                                localPorts = IPBanFirewallUtility.GetPortRangeStringBlockExcept(allowedPortsArray);
+                                localPorts = IPBanFirewallUtility.GetBlockPortRangeString(allowedPortsArray);
                             }
                             else
                             {

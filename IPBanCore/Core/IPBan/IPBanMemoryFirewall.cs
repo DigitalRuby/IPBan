@@ -85,7 +85,7 @@ namespace DigitalRuby.IPBanCore
                 ipv6.TrimExcess();
                 if (block)
                 {
-                    string portString = IPBanFirewallUtility.GetPortRangeStringBlockExcept(allowedPorts);
+                    string portString = IPBanFirewallUtility.GetBlockPortRangeString(allowedPorts);
                     this.portRanges = (string.IsNullOrWhiteSpace(portString) ? new List<PortRange>(0) : portString.Split(',').Select(s => PortRange.Parse(s)).ToList());
                 }
                 else

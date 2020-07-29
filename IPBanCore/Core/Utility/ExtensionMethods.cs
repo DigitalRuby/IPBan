@@ -603,22 +603,36 @@ namespace DigitalRuby.IPBanCore
         }
 
         /// <summary>
-        /// Get a UInt128 from an ipv6 address. The UInt128 will be in the byte order of the CPU.
+        /// Get a UInt128 from an ipv6 address. The UInt128 will be in the byte order of the CPU by default.
         /// </summary>
         /// <param name="ip">IPV6 address</param>
+        /// <param name="swap">Whether to swap bytes for CPU order</param>
         /// <returns>UInt128</returns>
         /// <exception cref="InvalidOperationException">Not an ipv6 address</exception>
-        public static UInt128 ToUInt128(this IPAddress ip)
+        public static unsafe UInt128 ToUInt128(this IPAddress ip, bool swap = true)
         {
             if (ip is null || ip.AddressFamily != System.Net.Sockets.AddressFamily.InterNetworkV6)
             {
                 throw new InvalidOperationException(ip?.ToString() + " is not an ipv6 address");
             }
 
-            byte[] bytes = ip.GetAddressBytes().Reverse().ToArray();
-            ulong l1 = BitConverter.ToUInt64(bytes, 0);
-            ulong l2 = BitConverter.ToUInt64(bytes, 8);
-            return new UInt128(l2, l1);
+            byte[] bytes = ip.GetAddressBytes();
+            if (swap)
+            {
+                bytes = bytes.Reverse().ToArray();
+                ulong l1 = BitConverter.ToUInt64(bytes, 0);
+                ulong l2 = BitConverter.ToUInt64(bytes, 8);
+                return new UInt128(l2, l1);
+            }
+            else
+            {
+                fixed (byte* ptr = bytes)
+                {
+                    ulong* ulongPtr = (ulong*)ptr;
+                    return new UInt128(*ulongPtr, *(++ulongPtr));
+                }
+            }
+            
         }
 
         /// <summary>

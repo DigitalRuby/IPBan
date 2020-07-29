@@ -200,7 +200,7 @@ namespace DigitalRuby.IPBanCore
             bool replaced = false;
             if (allowedPortsArray != null && allowedPortsArray.Length != 0)
             {
-                string portList = (action == "DROP" ? IPBanFirewallUtility.GetPortRangeStringBlockExcept(allowedPorts) :
+                string portList = (action == "DROP" ? IPBanFirewallUtility.GetBlockPortRangeString(allowedPorts) :
                      IPBanFirewallUtility.GetPortRangeStringAllow(allowedPorts));
                 portString = " -m multiport -p tcp --dports " + portList.Replace('-', ':') + " "; // iptables uses ':' instead of '-' for range
             }

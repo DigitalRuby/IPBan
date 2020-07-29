@@ -261,65 +261,74 @@ namespace DigitalRuby.IPBanCore
         }
 
         /// <summary>
-        /// Get a port range of block ports except the passed in port ranges
+        /// Get a collection of block port ranges from a set of allow port ranges
         /// </summary>
-        /// <param name="portRanges">Port ranges to allow, all other ports are blocked</param>
-        /// <returns>Port range string to block (i.e. 0-79,81-442,444-65535)</returns>
-        public static string GetPortRangeStringBlockExcept(IEnumerable<PortRange> portRanges)
+        /// <param name="allowPortRanges">Allow port ranges</param>
+        /// <returns>Set of block port ranges</returns>
+        public static IReadOnlyCollection<PortRange> GetBlockPortRanges(IEnumerable<PortRange> allowPortRanges)
         {
-            if (portRanges is null)
+            if (allowPortRanges is null)
             {
                 return null;
             }
-            StringBuilder b = new StringBuilder();
+            List<PortRange> blockPortRanges = new List<PortRange>();
             int currentPort = 0;
-            foreach (PortRange range in portRanges.Where(r => r.IsValid).OrderBy(r => r.MinPort))
+            foreach (PortRange range in allowPortRanges.Where(r => r.IsValid).OrderBy(r => r.MinPort).ThenBy(r => r.MaxPort))
             {
                 // if current port less than min, append range
                 if (currentPort < range.MinPort)
                 {
                     int maxPort = range.MinPort - 1;
-                    AppendRange(b, new PortRange(currentPort, maxPort));
+                    blockPortRanges.Add(new PortRange(currentPort, maxPort));
                     currentPort = range.MaxPort + 1;
                 }
-                // if current port in range, append the overlapped range
-                else if (currentPort >= range.MinPort && currentPort <= range.MaxPort)
-                {
-                    AppendRange(b, new PortRange(range.MinPort, currentPort));
-                    currentPort++;
-                }
-                // append the after range to current port
-                else if (currentPort <= range.MaxPort)
-                {
-                    AppendRange(b, new PortRange(range.MaxPort + 1, currentPort));
-                    currentPort++;
-                }
             }
-            if (currentPort != 0)
+            if (currentPort != 0 && currentPort <= 65535)
             {
-                AppendRange(b, new PortRange(currentPort, 65535));
+                blockPortRanges.Add(new PortRange(currentPort, 65535));
+            }
+
+            return blockPortRanges;
+        }
+
+        /// <summary>
+        /// Get a port range of block ports given a set of allowed port ranges
+        /// </summary>
+        /// <param name="allowPortRanges">Port ranges to allow, all other ports are blocked</param>
+        /// <returns>Port range string to block (i.e. 0-79,81-442,444-65535) - null if none to block.</returns>
+        public static string GetBlockPortRangeString(IEnumerable<PortRange> allowPortRanges)
+        {
+            if (allowPortRanges is null)
+            {
+                return null;
+            }
+            IReadOnlyCollection<PortRange> blockPortRanges = GetBlockPortRanges(allowPortRanges);
+            StringBuilder portRangeStringBuilder = new StringBuilder();
+            foreach (PortRange portRange in blockPortRanges)
+            {
+                AppendRange(portRangeStringBuilder, portRange);
             }
 
             // trim ending comma
-            if (b.Length != 0)
+            if (portRangeStringBuilder.Length != 0)
             {
-                b.Length--;
+                portRangeStringBuilder.Length--;
             }
-            return (b.Length == 0 ? null : b.ToString());
+            return (portRangeStringBuilder.Length == 0 ? null : portRangeStringBuilder.ToString());
         }
 
         /// <summary>
         /// Get a port range of allow ports. Overlaps are thrown out.
         /// </summary>
-        /// <param name="portRanges">Port ranges to allow</param>
+        /// <param name="allowPortRanges">Port ranges to allow</param>
         /// <returns>Port range string to allow (i.e. 80,443,1000-10010)</returns>
-        public static string GetPortRangeStringAllow(IEnumerable<PortRange> portRanges)
+        public static string GetPortRangeStringAllow(IEnumerable<PortRange> allowPortRanges)
         {
             StringBuilder b = new StringBuilder();
-            if (portRanges != null)
+            if (allowPortRanges != null)
             {
                 int lastMax = -1;
-                foreach (PortRange range in portRanges.OrderBy(p => p.MinPort))
+                foreach (PortRange range in allowPortRanges.OrderBy(p => p.MinPort))
                 {
                     if (range.MinPort > lastMax)
                     {

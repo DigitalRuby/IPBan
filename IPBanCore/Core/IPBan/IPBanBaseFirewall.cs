@@ -86,7 +86,7 @@ namespace DigitalRuby.IPBanCore
         /// <summary>
         /// Dispose
         /// </summary>
-        public void Dispose()
+        public virtual void Dispose()
         {
             if (!Disposed)
             {
