@@ -261,7 +261,7 @@ namespace DigitalRuby.IPBanCore
         }
 
         /// <summary>
-        /// Get a collection of block port ranges from a set of allow port ranges
+        /// Get a collection of block port ranges from a set of allow port ranges. Overlap ranges are not allowed.
         /// </summary>
         /// <param name="allowPortRanges">Allow port ranges</param>
         /// <returns>Set of block port ranges</returns>
