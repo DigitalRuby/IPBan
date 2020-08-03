@@ -42,18 +42,6 @@ namespace DigitalRuby.IPBanCore
     [CustomName("Memory")]
     public class IPBanMemoryFirewall : IIPBanFirewall
     {
-        private struct IPV4Range
-        {
-            public uint Begin;
-            public uint End;
-        }
-
-        private struct IPV6Range
-        {
-            public UInt128 Begin;
-            public UInt128 End;
-        }
-
         private class MemoryFirewallRuleRanges : IComparer<IPV4Range>, IComparer<IPV6Range>
         {
             private readonly List<IPV4Range> ipv4 = new List<IPV4Range>();
@@ -135,53 +123,24 @@ namespace DigitalRuby.IPBanCore
 
             public IEnumerable<IPAddressRange> EnumerateIPAddresses()
             {
-                IPAddress ip1, ip2;
                 foreach (IPV4Range range in ipv4)
                 {
-                    ip1 = range.Begin.ToIPAddress();
-                    ip2 = range.End.ToIPAddress();
-                    yield return new IPAddressRange(ip1, ip2);
+                    yield return range.ToIPAddressRange();
                 }
                 foreach (IPV6Range range in ipv6)
                 {
-                    ip1 = range.Begin.ToIPAddress();
-                    ip2 = range.End.ToIPAddress();
-                    yield return new IPAddressRange(ip1, ip2);
+                    yield return range.ToIPAddressRange();
                 }
             }
 
             int IComparer<IPV4Range>.Compare(IPV4Range x, IPV4Range y)
             {
-                int cmp = x.End.CompareTo(y.Begin);
-                if (cmp < 0)
-                {
-                    return cmp;
-                }
-                cmp = x.Begin.CompareTo(y.End);
-                if (cmp > 0)
-                {
-                    return cmp;
-                }
-
-                // inside range
-                return 0;
+                return x.CompareTo(y);
             }
 
             int IComparer<IPV6Range>.Compare(IPV6Range x, IPV6Range y)
             {
-                int cmp = x.End.CompareTo(y.Begin);
-                if (cmp < 0)
-                {
-                    return cmp;
-                }
-                cmp = x.Begin.CompareTo(y.End);
-                if (cmp > 0)
-                {
-                    return cmp;
-                }
-
-                // inside range
-                return 0;
+                return x.CompareTo(y);
             }
         }
 

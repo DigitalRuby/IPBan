@@ -49,7 +49,7 @@ namespace DigitalRuby.IPBanCore
         /// </summary>
         /// <param name="ruleNamePrefix">Rule name prefix, required</param>
         /// <param name="ipAddresses">IP Addresses (delta)</param>
-        /// <param name="allowedPorts">Allowed ports, any port not in this list is blocked</param>
+        /// <param name="allowedPorts">Allowed ports, any port not in this list is blocked, null to block all ports</param>
         /// <param name="cancelToken">Cancel token</param>
         /// <returns>True if success, false if error</returns>
         Task<bool> BlockIPAddressesDelta(string ruleNamePrefix, IEnumerable<IPBanFirewallIPAddressDelta> ipAddresses, IEnumerable<PortRange> allowedPorts = null, CancellationToken cancelToken = default) => throw new NotImplementedException();
@@ -59,7 +59,7 @@ namespace DigitalRuby.IPBanCore
         /// </summary>
         /// <param name="ruleNamePrefix">Rule name prefix, required</param>
         /// <param name="ranges">Ranges to block</param>
-        /// <param name="allowedPorts">Allowed ports, any port not in this list is blocked</param>
+        /// <param name="allowedPorts">Allowed ports, any port not in this list is blocked, null to block all ports</param>
         /// <param name="cancelToken">Cancel token</param>
         /// <returns>True if success, false if error</returns>
         Task<bool> BlockIPAddresses(string ruleNamePrefix, IEnumerable<IPAddressRange> ranges, IEnumerable<PortRange> allowedPorts = null, CancellationToken cancelToken = default) => throw new NotImplementedException();

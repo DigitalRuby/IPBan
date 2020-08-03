@@ -605,9 +605,14 @@ namespace DigitalRuby.IPBanCore
         /// <summary>
         /// Returns a Cidr String if this matches exactly a Cidr subnet
         /// </summary>
-        public string ToCidrString()
+        /// <param name="displaySingleSubnet">Whether to display the cidr string even if this is a single ip address.</param>
+        public string ToCidrString(bool displaySingleSubnet = true)
         {
-            return Begin.ToString() + "/" + GetPrefixLength().ToString(CultureInfo.InvariantCulture);
+            if (displaySingleSubnet || !Begin.Equals(End))
+            {
+                return Begin.ToString() + "/" + GetPrefixLength().ToString(CultureInfo.InvariantCulture);
+            }
+            return Begin.ToString();
         }
 
         #region JSON.NET Support by implement IReadOnlyDictionary<string, string>
