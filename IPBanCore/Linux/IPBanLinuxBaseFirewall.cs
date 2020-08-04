@@ -35,7 +35,7 @@ using System.Threading.Tasks;
 
 namespace DigitalRuby.IPBanCore
 {
-    public abstract class IPBanLinuxBaseFirewall : IPBanBaseFirewall, IIPBanFirewall
+    public abstract class IPBanLinuxBaseFirewall : IPBanBaseFirewall
     {
         private readonly AddressFamily addressFamily;
         private DateTime lastUpdate = IPBanService.UtcNow;

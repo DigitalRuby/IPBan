@@ -30,7 +30,7 @@ namespace DigitalRuby.IPBanCore
     /// <summary>
     /// Base firewall class that all firewall implementations should inherit from
     /// </summary>
-    public class IPBanBaseFirewall : IUpdater
+    public class IPBanBaseFirewall : IIPBanFirewall, IUpdater
     {
         protected bool Disposed { get; private set; }
 
@@ -63,7 +63,6 @@ namespace DigitalRuby.IPBanCore
         /// <param name="rulePrefix">Rule prefix or null for default</param>
         public IPBanBaseFirewall(string rulePrefix = null)
         {
-            rulePrefix = rulePrefix?.Trim();
             if (!string.IsNullOrWhiteSpace(rulePrefix))
             {
                 RulePrefix = rulePrefix.Trim();

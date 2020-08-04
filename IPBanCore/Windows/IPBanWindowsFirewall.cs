@@ -52,7 +52,7 @@ namespace DigitalRuby.IPBanCore
     /// </summary>
     [RequiredOperatingSystem(OSUtility.Windows)]
     [CustomName("Default")]
-    public class IPBanWindowsFirewall : IPBanBaseFirewall, IIPBanFirewall
+    public class IPBanWindowsFirewall : IPBanBaseFirewall
     {
         // DO NOT CHANGE THESE CONST AND READONLY FIELDS!
 
