@@ -453,7 +453,7 @@ namespace DigitalRuby.IPBanCore
             return Task.CompletedTask;
         }
 
-        public IEnumerable<string> GetRuleNames(string ruleNamePrefix = null)
+        public override IEnumerable<string> GetRuleNames(string ruleNamePrefix = null)
         {
             const string setText = " match-set ";
             string prefix = setText + RulePrefix + (ruleNamePrefix ?? string.Empty);
@@ -471,7 +471,7 @@ namespace DigitalRuby.IPBanCore
             }
         }
 
-        public bool DeleteRule(string ruleName)
+        public override bool DeleteRule(string ruleName)
         {
             RunProcess(IpTablesProcess, true, out IReadOnlyList<string> lines, "-L --line-numbers");
             string ruleNameWithSpaces = " " + ruleName + " ";
@@ -496,7 +496,7 @@ namespace DigitalRuby.IPBanCore
             return false;
         }
 
-        public virtual Task<bool> BlockIPAddresses(string ruleNamePrefix, IEnumerable<string> ipAddresses, IEnumerable<PortRange> allowedPorts = null, CancellationToken cancelToken = default)
+        public override Task<bool> BlockIPAddresses(string ruleNamePrefix, IEnumerable<string> ipAddresses, IEnumerable<PortRange> allowedPorts = null, CancellationToken cancelToken = default)
         {
             try
             {
@@ -513,7 +513,7 @@ namespace DigitalRuby.IPBanCore
             }
         }
 
-        public virtual Task<bool> BlockIPAddressesDelta(string ruleNamePrefix, IEnumerable<IPBanFirewallIPAddressDelta> deltas, IEnumerable<PortRange> allowedPorts = null, CancellationToken cancelToken = default)
+        public override Task<bool> BlockIPAddressesDelta(string ruleNamePrefix, IEnumerable<IPBanFirewallIPAddressDelta> deltas, IEnumerable<PortRange> allowedPorts = null, CancellationToken cancelToken = default)
         {
             try
             {
@@ -530,7 +530,7 @@ namespace DigitalRuby.IPBanCore
             }
         }
 
-        public virtual Task<bool> BlockIPAddresses(string ruleNamePrefix, IEnumerable<IPAddressRange> ranges, IEnumerable<PortRange> allowedPorts = null, CancellationToken cancelToken = default)
+        public override Task<bool> BlockIPAddresses(string ruleNamePrefix, IEnumerable<IPAddressRange> ranges, IEnumerable<PortRange> allowedPorts = null, CancellationToken cancelToken = default)
         {
             ruleNamePrefix.ThrowIfNullOrEmpty();
 
@@ -548,7 +548,7 @@ namespace DigitalRuby.IPBanCore
             }
         }
 
-        public virtual Task<bool> AllowIPAddresses(IEnumerable<string> ipAddresses, CancellationToken cancelToken = default)
+        public override Task<bool> AllowIPAddresses(IEnumerable<string> ipAddresses, CancellationToken cancelToken = default)
         {
             try
             {
@@ -564,7 +564,7 @@ namespace DigitalRuby.IPBanCore
             }
         }
 
-        public virtual Task<bool> AllowIPAddresses(string ruleNamePrefix, IEnumerable<IPAddressRange> ipAddresses, IEnumerable<PortRange> allowedPorts = null, CancellationToken cancelToken = default)
+        public override Task<bool> AllowIPAddresses(string ruleNamePrefix, IEnumerable<IPAddressRange> ipAddresses, IEnumerable<PortRange> allowedPorts = null, CancellationToken cancelToken = default)
         {
             try
             {
@@ -581,7 +581,7 @@ namespace DigitalRuby.IPBanCore
             }
         }
 
-        public IEnumerable<IPAddressRange> EnumerateIPAddresses(string ruleNamePrefix = null)
+        public override IEnumerable<IPAddressRange> EnumerateIPAddresses(string ruleNamePrefix = null)
         {
             string tempFile = OSUtility.Instance.GetTempFileName();
             try
@@ -608,18 +608,18 @@ namespace DigitalRuby.IPBanCore
             }
         }
 
-        public bool IsIPAddressBlocked(string ipAddress, out string ruleName, int port = -1)
+        public override bool IsIPAddressBlocked(string ipAddress, out string ruleName, int port = -1)
         {
             ruleName = null;
             return EnumerateBannedIPAddresses().ToArray().Contains(ipAddress);
         }
 
-        public bool IsIPAddressAllowed(string ipAddress, int port = -1)
+        public override bool IsIPAddressAllowed(string ipAddress, int port = -1)
         {
             return EnumerateAllowedIPAddresses().ToArray().Contains(ipAddress);
         }
 
-        public IEnumerable<string> EnumerateBannedIPAddresses()
+        public override IEnumerable<string> EnumerateBannedIPAddresses()
         {
             string tempFile = OSUtility.Instance.GetTempFileName();
             try
@@ -646,7 +646,7 @@ namespace DigitalRuby.IPBanCore
             }
         }
 
-        public IEnumerable<string> EnumerateAllowedIPAddresses()
+        public override IEnumerable<string> EnumerateAllowedIPAddresses()
         {
             string tempFile = OSUtility.Instance.GetTempFileName();
             try

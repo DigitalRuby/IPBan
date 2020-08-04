@@ -22,6 +22,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+using System.Collections.Generic;
+using System.Security.Policy;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -103,6 +105,42 @@ namespace DigitalRuby.IPBanCore
         {
             return Task.CompletedTask;
         }
+
+        /// <inheritdoc />
+        public virtual Task<bool> BlockIPAddresses(string ruleNamePrefix, IEnumerable<string> ipAddresses, IEnumerable<PortRange> allowedPorts = null, CancellationToken cancelToken = default) => Task.FromResult<bool>(false);
+
+        /// <inheritdoc />
+        public virtual Task<bool> BlockIPAddressesDelta(string ruleNamePrefix, IEnumerable<IPBanFirewallIPAddressDelta> ipAddresses, IEnumerable<PortRange> allowedPorts = null, CancellationToken cancelToken = default) => Task.FromResult<bool>(false);
+
+        /// <inheritdoc />
+        public virtual Task<bool> BlockIPAddresses(string ruleNamePrefix, IEnumerable<IPAddressRange> ranges, IEnumerable<PortRange> allowedPorts = null, CancellationToken cancelToken = default) => Task.FromResult<bool>(false);
+
+        /// <inheritdoc />
+        public virtual Task<bool> AllowIPAddresses(IEnumerable<string> ipAddresses, CancellationToken cancelToken = default) => Task.FromResult<bool>(false);
+
+        /// <inheritdoc />
+        public virtual Task<bool> AllowIPAddresses(string ruleNamePrefix, IEnumerable<IPAddressRange> ipAddresses, IEnumerable<PortRange> allowedPorts = null, CancellationToken cancelToken = default) => Task.FromResult<bool>(false);
+
+        /// <inheritdoc />
+        public virtual bool IsIPAddressBlocked(string ipAddress, out string ruleName, int port = -1) { ruleName = null; return false; }
+
+        /// <inheritdoc />
+        public virtual bool IsIPAddressAllowed(string ipAddress, int port = -1) => false;
+
+        /// <inheritdoc />
+        public virtual IEnumerable<string> GetRuleNames(string ruleNamePrefix = null) => new string[0];
+
+        /// <inheritdoc />
+        public virtual bool DeleteRule(string ruleName) => false;
+
+        /// <inheritdoc />
+        public virtual IEnumerable<string> EnumerateBannedIPAddresses() => new string[0];
+
+        /// <inheritdoc />
+        public virtual IEnumerable<string> EnumerateAllowedIPAddresses() => new string[0];
+
+        /// <inheritdoc />
+        public virtual IEnumerable<IPAddressRange> EnumerateIPAddresses(string ruleNamePrefix = null) => new IPAddressRange[0];
 
         /// <summary>
         /// Truncate
