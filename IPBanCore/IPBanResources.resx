@@ -766,4 +766,10 @@ Prefix with OS:ClassName, example: Windows:Custom,Linux:Default</value>
     <value>Update Clients</value>
     <comment>As in update clients to the latest software version</comment>
   </data>
+  <data name="EnableLists" xml:space="preserve">
+    <value>Enable Lists</value>
+  </data>
+  <data name="EnableListsTooltip" xml:space="preserve">
+    <value>Whether to enable lists like the recent or naughty list</value>
+  </data>
 </root>

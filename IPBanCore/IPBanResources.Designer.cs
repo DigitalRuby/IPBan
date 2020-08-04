@@ -358,6 +358,24 @@ namespace DigitalRuby.IPBanCore {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Enable Lists.
+        /// </summary>
+        public static string EnableLists {
+            get {
+                return ResourceManager.GetString("EnableLists", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Whether to enable lists like the recent or naughty list.
+        /// </summary>
+        public static string EnableListsTooltip {
+            get {
+                return ResourceManager.GetString("EnableListsTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Enable SSL.
         /// </summary>
         public static string EnableSSL {
