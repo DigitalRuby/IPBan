@@ -672,7 +672,7 @@ namespace DigitalRuby.IPBanCore
             }
         }
 
-        public virtual void Truncate()
+        public override void Truncate()
         {
             RemoveAllTablesAndSets();
         }

@@ -105,6 +105,11 @@ namespace DigitalRuby.IPBanCore
         }
 
         /// <summary>
+        /// Truncate
+        /// </summary>
+        public virtual void Truncate() { }
+
+        /// <summary>
         /// Rule prefix - defaults to 'IPBan_'
         /// </summary>
         public string RulePrefix { get; } = "IPBan_";

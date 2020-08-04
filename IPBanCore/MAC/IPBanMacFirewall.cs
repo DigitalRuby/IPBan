@@ -98,7 +98,7 @@ namespace DigitalRuby.IPBanCore
             throw new NotImplementedException();
         }
 
-        public void Truncate()
+        public override void Truncate()
         {
             throw new NotImplementedException();
         }

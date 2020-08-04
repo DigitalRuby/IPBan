@@ -827,7 +827,7 @@ namespace DigitalRuby.IPBanCore
             }
         }
 
-        public void Truncate()
+        public override void Truncate()
         {
             foreach (INetFwRule rule in EnumerateRulesMatchingPrefix(RulePrefix).ToArray())
             {
