@@ -98,6 +98,11 @@ namespace DigitalRuby.IPBanCore
             public string ModifiedConfig => modifiedConfig;
         }
 
+        private static readonly HashSet<string> ignoreListEntries = new HashSet<string>
+        {
+            "0.0.0.0", "::0", "127.0.0.1", "::1", "localhost"
+        };
+
         private static readonly TimeSpan[] emptyTimeSpanArray = new TimeSpan[] { TimeSpan.Zero };
         private static readonly IPBanLogFileToParse[] emptyLogFilesToParseArray = new IPBanLogFileToParse[0];
         private static readonly TimeSpan maxBanTimeSpan = TimeSpan.FromDays(90.0);
@@ -328,47 +333,42 @@ namespace DigitalRuby.IPBanCore
                         entryWithoutComment = entryWithoutComment.Substring(0, pos);
                     }
                     entryWithoutComment = entryWithoutComment.Trim();
-                    if (entryWithoutComment != "0.0.0.0" && entryWithoutComment != "::0" && entryWithoutComment != "127.0.0.1" && entryWithoutComment != "::1" && entryWithoutComment != "localhost")
+                    if (!ignoreListEntries.Contains(entryWithoutComment))
                     {
-                        try
+                        if (IPAddressRange.TryParse(entryWithoutComment, out IPAddressRange range))
                         {
-                            if (IPAddressRange.TryParse(entryWithoutComment, out IPAddressRange range))
+                            if (range.Begin.Equals(range.End))
                             {
-                                if (range.Begin.Equals(range.End))
-                                {
-                                    set.Add(range.Begin);
-                                }
-                                else
-                                {
-                                    ranges.Add(range);
-                                }
-                            }
-                            else if (Uri.CheckHostName(entryWithoutComment) != UriHostNameType.Unknown)
-                            {
-                                try
-                                {
-                                    // add entries for each ip address that matches the dns entry
-                                    IPAddress[] addresses = null;
-                                    ExtensionMethods.Retry(() => addresses = dns.GetHostAddressesAsync(entryWithoutComment).Sync());
-                                    foreach (IPAddress adr in addresses)
-                                    {
-                                        set.Add(adr);
-                                    }
-                                }
-                                catch
-                                {
-                                    // eat exception, nothing we can do
-                                    others.Add(entryWithoutComment);
-                                }
+                                set.Add(range.Begin);
                             }
                             else
                             {
+                                ranges.Add(range);
+                            }
+                        }
+                        else if (Uri.CheckHostName(entryWithoutComment) != UriHostNameType.Unknown)
+                        {
+                            try
+                            {
+                                // add entries for each ip address that matches the dns entry
+                                IPAddress[] addresses = null;
+                                ExtensionMethods.Retry(() => addresses = dns.GetHostAddressesAsync(entryWithoutComment).Sync());
+                                foreach (IPAddress adr in addresses)
+                                {
+                                    set.Add(adr);
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                Logger.Error(ex, "Unable to resolve dns for {0}", entryWithoutComment);
+
+                                // eat exception, nothing we can do
                                 others.Add(entryWithoutComment);
                             }
                         }
-                        catch (System.Net.Sockets.SocketException)
+                        else
                         {
-                            // ignore, dns lookup fails
+                            others.Add(entryWithoutComment);
                         }
                     }
                 }
