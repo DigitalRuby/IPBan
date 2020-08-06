@@ -27,6 +27,7 @@ using System.Collections.Generic;
 using System.Configuration;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -38,7 +39,7 @@ using NUnit.Framework;
 namespace DigitalRuby.IPBanTests
 {
     [TestFixture]
-    public class IPBanConfigTests
+    public class IPBanConfigTests : IDnsLookup
     {
         private void AssertLogFileToParse(IPBanLogFileToParse file, string failedLoginRegex, string failedLoginRegexTimestampFormat,
             int maxFileSize, string pathAndMask, int pingInterval, string platformRegex,
@@ -238,6 +239,45 @@ namespace DigitalRuby.IPBanTests
             Assert.IsTrue(config.IsWhitelisted("99.99.99.99"));
             Assert.IsTrue(config.IsWhitelisted("88.88.88.88"));
             Assert.IsFalse(config.IsWhitelisted("77.77.77.77"));
+        }
+
+        [Test]
+        public void TestWhitelistDns()
+        {
+            IPBanConfig config = IPBanConfig.LoadFromXml("<?xml version='1.0'?><configuration>" +
+                "<appSettings><add key='Whitelist' value='test.com' /></appSettings></configuration>",
+                this);
+            Assert.IsTrue(config.IsWhitelisted("99.88.77.66"));
+            Assert.IsFalse(config.IsBlackListed("99.88.77.66"));
+        }
+
+        [Test]
+        public void TestBlacklistDns()
+        {
+            IPBanConfig config = IPBanConfig.LoadFromXml("<?xml version='1.0'?><configuration>" +
+                "<appSettings><add key='Blacklist' value='test.com' /></appSettings></configuration>",
+                this);
+            Assert.IsFalse(config.IsWhitelisted("99.88.77.66"));
+            Assert.IsTrue(config.IsBlackListed("99.88.77.66"));
+        }
+
+        public Task<IPHostEntry> GetHostEntryAsync(string hostNameOrAddress)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<IPAddress[]> GetHostAddressesAsync(string hostNameOrAddress)
+        {
+            if (hostNameOrAddress == "test.com")
+            {
+                return Task.FromResult<IPAddress[]>(new IPAddress[] { IPAddress.Parse("99.88.77.66") });
+            }
+            throw new NotImplementedException();
+        }
+
+        public string GetHostName()
+        {
+            throw new NotImplementedException();
         }
     }
 }

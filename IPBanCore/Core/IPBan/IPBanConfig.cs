@@ -116,13 +116,13 @@ namespace DigitalRuby.IPBanCore
         // black list data structures
         private readonly HashSet<System.Net.IPAddress> blackList = new HashSet<System.Net.IPAddress>();
         private readonly Regex blackListRegex;
-        private readonly List<IPAddressRange> blackListRanges = new List<IPAddressRange>();
+        private readonly HashSet<IPAddressRange> blackListRanges = new HashSet<IPAddressRange>();
         private readonly HashSet<string> blackListOther = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
         // white list data structures
         private readonly HashSet<System.Net.IPAddress> whitelist = new HashSet<System.Net.IPAddress>();
         private readonly Regex whitelistRegex;
-        private readonly List<IPAddressRange> whitelistRanges = new List<IPAddressRange>();
+        private readonly HashSet<IPAddressRange> whitelistRanges = new HashSet<IPAddressRange>();
         private readonly HashSet<string> whitelistOther = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
         private readonly bool clearBannedIPAddressesOnRestart;
@@ -145,9 +145,9 @@ namespace DigitalRuby.IPBanCore
         private readonly EventViewerExpressionsToBlock expressionsFailure;
         private readonly EventViewerExpressionsToNotify expressionsSuccess;
 
-        private IPBanConfig(string xml, IDnsLookup dns)
+        private IPBanConfig(string xml, IDnsLookup dns = null)
         {
-            this.dns = dns;
+            this.dns = dns ?? DefaultDnsLookup.Instance;
 
             // deserialize with XmlDocument, the .net core Configuration class is quite buggy
             XmlDocument doc = new XmlDocument();
@@ -279,7 +279,7 @@ namespace DigitalRuby.IPBanCore
             ParseFirewallBlockRules();
         }
 
-        private bool IsMatch(string entry, HashSet<System.Net.IPAddress> set, List<IPAddressRange> ranges, HashSet<string> others, Regex regex)
+        private bool IsMatch(string entry, HashSet<System.Net.IPAddress> set, HashSet<IPAddressRange> ranges, HashSet<string> others, Regex regex)
         {
             if (!string.IsNullOrWhiteSpace(entry))
             {
@@ -310,7 +310,7 @@ namespace DigitalRuby.IPBanCore
             return false;
         }
 
-        private void PopulateList(HashSet<System.Net.IPAddress> set, List<IPAddressRange> ranges, HashSet<string> others, ref Regex regex, string setValue, string regexValue)
+        private void PopulateList(HashSet<System.Net.IPAddress> set, HashSet<IPAddressRange> ranges, HashSet<string> others, ref Regex regex, string setValue, string regexValue)
         {
             setValue = (setValue ?? string.Empty).Trim();
             regexValue = (regexValue ?? string.Empty).Replace("*", @"[0-9A-Fa-f:]+?").Trim();
@@ -338,38 +338,32 @@ namespace DigitalRuby.IPBanCore
                                 {
                                     set.Add(range.Begin);
                                 }
-                                else if (!ranges.Contains(range))
+                                else
                                 {
                                     ranges.Add(range);
                                 }
                             }
-                            else
+                            else if (Uri.CheckHostName(entryWithoutComment) != UriHostNameType.Unknown)
                             {
-                                if (dns != null)
+                                try
                                 {
-                                    try
+                                    // add entries for each ip address that matches the dns entry
+                                    IPAddress[] addresses = null;
+                                    ExtensionMethods.Retry(() => addresses = dns.GetHostAddressesAsync(entryWithoutComment).Sync());
+                                    foreach (IPAddress adr in addresses)
                                     {
-                                        // add entries for each ip address that matches the dns entry
-                                        IPAddress[] addresses = dns.GetHostEntryAsync(entryWithoutComment).Sync().AddressList;
-                                        if (addresses != null)
-                                        {
-                                            foreach (IPAddress adr in addresses)
-                                            {
-                                                set.Add(adr);
-                                            }
-                                        }
-                                    }
-                                    catch
-                                    {
-                                        // eat exception, nothing we can do
-                                        others.Add(entryWithoutComment);
+                                        set.Add(adr);
                                     }
                                 }
-                                else
+                                catch
                                 {
-                                    // add the entry itself
+                                    // eat exception, nothing we can do
                                     others.Add(entryWithoutComment);
                                 }
+                            }
+                            else
+                            {
+                                others.Add(entryWithoutComment);
                             }
                         }
                         catch (System.Net.Sockets.SocketException)
@@ -622,10 +616,9 @@ namespace DigitalRuby.IPBanCore
         /// Load IPBan config from XML
         /// </summary>
         /// <param name="xml">XML string</param>
-        /// <param name="service">Service</param>
-        /// <param name="dns">Dns lookup for resolving ip addresses</param>
+        /// <param name="dns">Dns lookup for resolving ip addresses, null for default</param>
         /// <returns>IPBanConfig</returns>
-        public static IPBanConfig LoadFromXml(string xml, IDnsLookup dns)
+        public static IPBanConfig LoadFromXml(string xml, IDnsLookup dns = null)
         {
             return new IPBanConfig(xml, dns);
         }
@@ -647,19 +640,13 @@ namespace DigitalRuby.IPBanCore
         /// <returns>True if range is whitelisted, false otherwise</returns>
         public bool IsWhitelisted(IPAddressRange range)
         {
-            foreach (System.Net.IPAddress ip in whitelist)
+            // if the whitelist ip address set contains the range or
+            // the whitelist range set contains the range,
+            // the passed in range is considered whitelisted
+            if (whitelist.Any(i => range.Contains(i)) ||
+                whitelistRanges.Any(r => r.Contains(range)))
             {
-                if (range.Contains(ip))
-                {
-                    return true;
-                }
-            }
-            foreach (IPAddressRange existingRange in whitelistRanges)
-            {
-                if (range.Contains(existingRange))
-                {
-                    return true;
-                }
+                return true;
             }
 
             // it's possible the whitelist other list or whitelist regex will match, but it's too performance
