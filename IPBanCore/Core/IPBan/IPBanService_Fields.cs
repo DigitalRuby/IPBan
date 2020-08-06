@@ -108,6 +108,11 @@ namespace DigitalRuby.IPBanCore
         public IBannedIPAddressHandler BannedIPAddressHandler { get; set; } = new DefaultBannedIPAddressHandler();
 
         /// <summary>
+        /// Firewall creator
+        /// </summary>
+        public IFirewallCreator FirewallCreator { get; set; } = new DefaultFirewallCreator();
+
+        /// <summary>
         /// Configuration
         /// </summary>
         public IPBanConfig Config { get; private set; }

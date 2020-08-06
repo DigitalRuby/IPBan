@@ -495,10 +495,10 @@ namespace DigitalRuby.IPBanCore
         private void LoadFirewall(IPBanConfig oldConfig)
         {
             IIPBanFirewall existing = Firewall;
-            Firewall = IPBanFirewallUtility.CreateFirewall(Config.FirewallOSAndType, Config.FirewallRulePrefix, Firewall);
-            AddUpdater(Firewall);
+            Firewall = FirewallCreator.CreateFirewall(Config, Firewall);
             if (existing != Firewall)
             {
+                AddUpdater(Firewall);
                 Logger.Warn("Loaded firewall type {0}", Firewall.GetType());
                 if (existing != null)
                 {

@@ -812,21 +812,6 @@ namespace DigitalRuby.IPBanCore
             }
         }
 
-        public void EnableLocalSubnetTrafficViaFirewall()
-        {
-            string ruleName = RulePrefix + "AllowLocalTraffic";
-            string localIP = DefaultDnsLookup.GetLocalIPAddress().ToString();
-            if (localIP != null)
-            {
-                Match m = Regex.Match(localIP, "\\.[0-9]+$");
-                if (m.Success)
-                {
-                    string remoteIPAddresses = localIP.Substring(0, m.Index) + ".0/24";
-                    GetOrCreateRule(ruleName, remoteIPAddresses, NetFwAction.Allow);
-                }
-            }
-        }
-
         public override void Truncate()
         {
             foreach (INetFwRule rule in EnumerateRulesMatchingPrefix(RulePrefix).ToArray())
@@ -840,6 +825,21 @@ namespace DigitalRuby.IPBanCore
                     catch
                     {
                     }
+                }
+            }
+        }
+
+        public void EnableLocalSubnetTrafficViaFirewall()
+        {
+            string ruleName = RulePrefix + "AllowLocalTraffic";
+            string localIP = DefaultDnsLookup.GetLocalIPAddress().ToString();
+            if (localIP != null)
+            {
+                Match m = Regex.Match(localIP, "\\.[0-9]+$");
+                if (m.Success)
+                {
+                    string remoteIPAddresses = localIP.Substring(0, m.Index) + ".0/24";
+                    GetOrCreateRule(ruleName, remoteIPAddresses, NetFwAction.Allow);
                 }
             }
         }
