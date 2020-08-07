@@ -225,10 +225,10 @@ namespace DigitalRuby.IPBanCore
                         Logger.Info("Parsing as IP failed, checking dns '{0}'", tempIPAddress);
                         try
                         {
-                            IPHostEntry entry = dns.GetHostEntryAsync(tempIPAddress).Sync();
-                            if (entry != null && entry.AddressList != null && entry.AddressList.Length > 0)
+                            IPAddress[] ipAddresses = dns.GetHostAddressesAsync(tempIPAddress).Sync();
+                            if (ipAddresses != null && ipAddresses.Length > 0)
                             {
-                                ipAddress = entry.AddressList.FirstOrDefault().ToString();
+                                ipAddress = ipAddresses.FirstOrDefault().ToString();
                                 Logger.Info("Dns result '{0}' = '{1}'", tempIPAddress, ipAddress);
                                 break;
                             }

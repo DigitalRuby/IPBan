@@ -261,11 +261,6 @@ namespace DigitalRuby.IPBanTests
             Assert.IsTrue(config.IsBlackListed("99.88.77.66"));
         }
 
-        public Task<IPHostEntry> GetHostEntryAsync(string hostNameOrAddress)
-        {
-            throw new NotImplementedException();
-        }
-
         public Task<IPAddress[]> GetHostAddressesAsync(string hostNameOrAddress)
         {
             if (hostNameOrAddress == "test.com")
@@ -275,7 +270,7 @@ namespace DigitalRuby.IPBanTests
             throw new NotImplementedException();
         }
 
-        public string GetHostName()
+        Task<string> IDnsLookup.GetHostNameAsync(string hostNameOrAddress)
         {
             throw new NotImplementedException();
         }

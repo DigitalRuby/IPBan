@@ -34,13 +34,6 @@ namespace DigitalRuby.IPBanCore
     public interface IDnsLookup
     {
         /// <summary>
-        /// Get a host entry
-        /// </summary>
-        /// <param name="hostNameOrAddress">Host name or ip address</param>
-        /// <returns>IPHostEntry</returns>
-        Task<IPHostEntry> GetHostEntryAsync(string hostNameOrAddress);
-
-        /// <summary>
         /// Get ip addresses from a host name or ip address
         /// </summary>
         /// <param name="hostNameOrAddress">Host name or ip address</param>
@@ -50,8 +43,9 @@ namespace DigitalRuby.IPBanCore
         /// <summary>
         /// Get host name of local machine
         /// </summary>
+        /// <param name="hostNameOrAddress">Host name or ip address to get host name for or null for local machine host name</param>
         /// <returns>Host name of local machine</returns>
-        string GetHostName();
+        Task<string> GetHostNameAsync(string hostNameOrAddress = null);
     }
 
     /// <summary>
@@ -74,9 +68,14 @@ namespace DigitalRuby.IPBanCore
             return Dns.GetHostEntryAsync(hostNameOrAddress);
         }
 
-        public string GetHostName()
+        public async Task<string> GetHostNameAsync(string hostNameOrAddress = null)
         {
-            return Dns.GetHostName();
+            if (string.IsNullOrWhiteSpace(hostNameOrAddress))
+            {
+                return Dns.GetHostName();
+            }
+            string hostName = (await Dns.GetHostEntryAsync(hostNameOrAddress)).HostName;
+            return hostName;
         }
 
         public static IPAddress GetLocalIPAddress()
@@ -121,19 +120,18 @@ namespace DigitalRuby.IPBanCore
         /// </summary>
         public static TestDnsLookup Instance { get; } = new TestDnsLookup();
 
-        Task<IPHostEntry> IDnsLookup.GetHostEntryAsync(string hostNameOrAddress)
-        {
-            return Task.FromResult(new IPHostEntry { HostName = hostNameOrAddress, AddressList = new System.Net.IPAddress[] { System.Net.IPAddress.Parse("10.10.10.10") } });
-        }
-
         Task<System.Net.IPAddress[]> IDnsLookup.GetHostAddressesAsync(string hostNameOrAddress)
         {
             return Task.FromResult(new System.Net.IPAddress[1] { System.Net.IPAddress.Parse("10.10.10.10") });
         }
 
-        string IDnsLookup.GetHostName()
+        async Task<string> IDnsLookup.GetHostNameAsync(string hostNameOrAddress)
         {
-            return Dns.GetHostName();
+            if (string.IsNullOrWhiteSpace(hostNameOrAddress))
+            {
+                return Dns.GetHostName();
+            }
+            return (await Dns.GetHostEntryAsync(hostNameOrAddress)).HostName;
         }
     }
 }

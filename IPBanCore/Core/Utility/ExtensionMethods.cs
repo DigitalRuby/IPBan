@@ -795,17 +795,32 @@ namespace DigitalRuby.IPBanCore
             {
                 // append ipv4 first, then the ipv6 then the remote ip
                 List<IPAddress> ips = new List<IPAddress>();
-                ips.AddRange(await dns.GetHostAddressesAsync(dns.GetHostName()));
+                string hostName = await dns.GetHostNameAsync();
+                IPAddress[] hostAddresses = await dns.GetHostAddressesAsync(hostName);
+                ips.AddRange(hostAddresses);
+
+                // sort ipv4 first
+                ips.Sort((ip1, ip2) =>
+                {
+                    int compare = ip1.AddressFamily.CompareTo(ip2.AddressFamily);
+                    if (compare == 0)
+                    {
+                        compare = ip1.CompareTo(ip2);
+                    }
+                    return compare;
+                });
+
                 if (allowLocal)
                 {
                     ips.AddRange(localHostIP);
                 }
-                return ips.Where(ip => (allowLocal || ip.IsLocalHost()) ||
+
+                return ips.Where(ip => (allowLocal || !ip.IsLocalHost()) ||
                     (addressFamily is null || ip.AddressFamily == addressFamily)).ToArray();
             }
             catch
             {
-
+                // eat exception, delicious
             }
             return new System.Net.IPAddress[0];
         }
