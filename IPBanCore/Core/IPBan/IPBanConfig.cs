@@ -737,6 +737,8 @@ namespace DigitalRuby.IPBanCore
         /// <returns>Modified config or the config passed in if not found</returns>
         public static string ChangeConfigAppSetting(string config, string key, string newValue)
         {
+            newValue ??= string.Empty;
+            newValue = newValue.Replace("\"", "&quot;").Replace("'", "&apos;");
             string find = $@"\<add key=""{key}"" value=""[^""]*"" *\/\>";
             string replace = $@"<add key=""{key}"" value=""{newValue}"" />";
             return Regex.Replace(config, find, replace, RegexOptions.IgnoreCase);
