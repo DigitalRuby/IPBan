@@ -806,7 +806,7 @@ namespace DigitalRuby.IPBanCore
                 Logger.Info("Firewall entries updated: {0}", string.Join(',', deltas.Select(d => d.IPAddress)));
                 if (MultiThreaded)
                 {
-                    RunFirewallTask((token) => Firewall.BlockIPAddressesDelta(null, deltas, null, token), "Default");
+                    RunFirewallTask((token) => Firewall.BlockIPAddressesDelta(null, deltas, null, token));
                 }
                 else
                 {

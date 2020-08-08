@@ -493,7 +493,7 @@ namespace DigitalRuby.IPBanCore
         /// </summary>
         /// <param name="action">Action to run</param>
         /// <param name="queueName">Queue name</param>
-        public void RunFirewallTask(Func<CancellationToken, Task> action, string queueName)
+        public void RunFirewallTask(Func<CancellationToken, Task> action, string queueName = null)
         {
             if (MultiThreaded)
             {
