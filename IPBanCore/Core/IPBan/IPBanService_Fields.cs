@@ -100,7 +100,7 @@ namespace DigitalRuby.IPBanCore
         /// <summary>
         /// The dns server list implementation - defaults to IPBanDnsServerList
         /// </summary>
-        public IDnsServerList DnsList { get; } = new IPBanDnsServerList();
+        public IDnsServerList DnsList { get; set; } = new IPBanDnsServerList();
 
         /// <summary>
         /// External ip address implementation - defaults to ExternalIPAddressLookupDefault.Instance

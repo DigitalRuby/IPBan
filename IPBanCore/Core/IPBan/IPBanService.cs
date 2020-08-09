@@ -566,6 +566,7 @@ namespace DigitalRuby.IPBanCore
             service.ConfigFilePath = configFilePath;
             service.MultiThreaded = false;
             service.ManualCycle = true;
+            service.DnsList = null; // too slow for tests, turn off
             if (defaultBannedIPAddressHandlerUrl is null)
             {
                 service.BannedIPAddressHandler = NullBannedIPAddressHandler.Instance;
