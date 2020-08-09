@@ -98,6 +98,11 @@ namespace DigitalRuby.IPBanCore
         public IDnsLookup DnsLookup { get; set; } = DefaultDnsLookup.Instance;
 
         /// <summary>
+        /// The dns server list implementation - defaults to IPBanDnsServerList
+        /// </summary>
+        public IDnsServerList DnsList { get; } = new IPBanDnsServerList();
+
+        /// <summary>
         /// External ip address implementation - defaults to ExternalIPAddressLookupDefault.Instance
         /// </summary>
         public ILocalMachineExternalIPAddressLookup ExternalIPAddressLookup { get; set; } = LocalMachineExternalIPAddressLookupDefault.Instance;

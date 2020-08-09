@@ -146,13 +146,15 @@ namespace DigitalRuby.IPBanCore
         private readonly string externalIPAddressUrl;
         private readonly string firewallUriRules;
         private readonly IDnsLookup dns;
+        private readonly IDnsServerList dnsList;
         private readonly List<IPBanFirewallRule> extraRules = new List<IPBanFirewallRule>();
         private readonly EventViewerExpressionsToBlock expressionsFailure;
         private readonly EventViewerExpressionsToNotify expressionsSuccess;
 
-        private IPBanConfig(string xml, IDnsLookup dns = null)
+        private IPBanConfig(string xml, IDnsLookup dns = null, IDnsServerList dnsList = null)
         {
             this.dns = dns ?? DefaultDnsLookup.Instance;
+            this.dnsList = dnsList;
 
             // deserialize with XmlDocument, the .net core Configuration class is quite buggy
             XmlDocument doc = new XmlDocument();
@@ -284,16 +286,15 @@ namespace DigitalRuby.IPBanCore
             ParseFirewallBlockRules();
         }
 
-        private bool IsMatch(string entry, HashSet<System.Net.IPAddress> set, HashSet<IPAddressRange> ranges, HashSet<string> others, Regex regex)
+        private bool IsMatch(string entry, System.Net.IPAddress entryIPAddress, HashSet<System.Net.IPAddress> set, HashSet<IPAddressRange> ranges, HashSet<string> others, Regex regex)
         {
             if (!string.IsNullOrWhiteSpace(entry))
             {
                 entry = entry.Trim().Normalize();
-
-                if (System.Net.IPAddress.TryParse(entry, out System.Net.IPAddress ipAddressObj))
+                if (entryIPAddress != null || System.Net.IPAddress.TryParse(entry, out entryIPAddress))
                 {
                     // direct ip match in set or match in range of ip address list
-                    if (set.Contains(ipAddressObj) || ranges.Any(r => r.Contains(ipAddressObj)))
+                    if (set.Contains(entryIPAddress) || ranges.Any(r => r.Contains(entryIPAddress)))
                     {
                         return true;
                     }
@@ -617,10 +618,11 @@ namespace DigitalRuby.IPBanCore
         /// </summary>
         /// <param name="xml">XML string</param>
         /// <param name="dns">Dns lookup for resolving ip addresses, null for default</param>
+        /// <param name="dnsList">Dns server list, null for none</param>
         /// <returns>IPBanConfig</returns>
-        public static IPBanConfig LoadFromXml(string xml, IDnsLookup dns = null)
+        public static IPBanConfig LoadFromXml(string xml, IDnsLookup dns = null, IDnsServerList dnsList = null)
         {
-            return new IPBanConfig(xml, dns);
+            return new IPBanConfig(xml, dns, dnsList);
         }
 
         /// <summary>
@@ -630,7 +632,17 @@ namespace DigitalRuby.IPBanCore
         /// <returns>True if whitelisted, false otherwise</returns>
         public bool IsWhitelisted(string entry)
         {
-            return IsMatch(entry, whitelist, whitelistRanges, whitelistOther, whitelistRegex);
+            System.Net.IPAddress ipAddress = null;
+
+            // if we have a dns list and the parameter is an ip address and the ip address
+            // is one of our dns servers, it is whitelisted
+            if (dnsList != null &&
+                IPAddress.TryParse(entry, out ipAddress) &&
+                dnsList.ContainsIPAddress(ipAddress))
+            {
+                return true;
+            }
+            return IsMatch(entry, ipAddress, whitelist, whitelistRanges, whitelistOther, whitelistRegex);
         }
 
         /// <summary>
@@ -640,10 +652,16 @@ namespace DigitalRuby.IPBanCore
         /// <returns>True if range is whitelisted, false otherwise</returns>
         public bool IsWhitelisted(IPAddressRange range)
         {
+            // if we have a dns list and one of our dns servers is in the range, the range is whitelisted
+            if (dnsList != null && dnsList.ContainsIPAddressRange(range))
+            {
+                return true;
+            }
+
             // if the whitelist ip address set contains the range or
             // the whitelist range set contains the range,
             // the passed in range is considered whitelisted
-            if (whitelist.Any(i => range.Contains(i)) ||
+            else if (whitelist.Any(i => range.Contains(i)) ||
                 whitelistRanges.Any(r => r.Contains(range)))
             {
                 return true;
@@ -661,7 +679,18 @@ namespace DigitalRuby.IPBanCore
         /// <returns>True if blacklisted, false otherwise</returns>
         public bool IsBlackListed(string entry)
         {
-            return IsMatch(entry, blackList, blackListRanges, blackListOther, blackListRegex);
+            System.Net.IPAddress ipAddress = null;
+
+            // if we have a dns list and the parameter is an ip address and the ip address
+            // is one of our dns servers, it is not blacklisted
+            if (dnsList != null &&
+                IPAddress.TryParse(entry, out ipAddress) &&
+                dnsList.ContainsIPAddress(ipAddress))
+            {
+                return false;
+            }
+
+            return IsMatch(entry, ipAddress, blackList, blackListRanges, blackListOther, blackListRegex);
         }
 
         /// <summary>

@@ -83,7 +83,7 @@ namespace DigitalRuby.IPBanCore
                 if (!string.IsNullOrWhiteSpace(newXml))
                 {
                     IPBanConfig oldConfig = Config;
-                    IPBanConfig newConfig = IPBanConfig.LoadFromXml(newXml, DnsLookup);
+                    IPBanConfig newConfig = IPBanConfig.LoadFromXml(newXml, DnsLookup, DnsList);
                     ConfigChanged?.Invoke(newConfig);
                     whitelistChanged = (Config is null || Config.Whitelist != newConfig.Whitelist || Config.WhitelistRegex != newConfig.WhitelistRegex);
                     Config = newConfig;
