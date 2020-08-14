@@ -110,7 +110,7 @@ namespace DigitalRuby.IPBanCore
         /// <param name="onStop">Stop</param>
         /// <returns>Task</returns>
 #pragma warning disable IDE0060 // Remove unused parameter
-        public static async Task MainService(string[] args, Func<CancellationToken, Task> onRun, Func<CancellationToken, Task> onStop = null)
+        public static async Task<int> MainService(string[] args, Func<CancellationToken, Task> onRun, Func<CancellationToken, Task> onStop = null)
 #pragma warning restore IDE0060 // Remove unused parameter
         {
             try
@@ -126,7 +126,9 @@ namespace DigitalRuby.IPBanCore
             {
                 ExtensionMethods.FileWriteAllTextWithRetry(System.IO.Path.Combine(AppContext.BaseDirectory, "service_error.txt"), ex.ToString());
                 Logger.Fatal("Fatal error running service", ex);
+                return ex.HResult;
             }
+            return 0;
         }
 
         /// <inheritdoc />
