@@ -494,17 +494,34 @@ namespace DigitalRuby.IPBanTests
         [Test]
         public void TestIPWhitelist()
         {
-            RunConfigBanTest("Whitelist", "190.168.0.0", "99.99.99.99", "190.168.0.0");
-            RunConfigBanTest("Whitelist", "190.168.0.0/16", "99.99.99.99", "190.168.99.99");
-            RunConfigBanTest("Whitelist", "216.245.221.80/28", "99.99.99.99", "216.245.221.86");
+            RunConfigBanTest("Whitelist", "190.168.0.0", "99.99.99.99", "190.168.0.0", -1);
+            RunConfigBanTest("Whitelist", "190.168.0.0/16", "99.99.99.99", "190.168.99.99", -1);
+            RunConfigBanTest("Whitelist", "216.245.221.80/28", "99.99.99.99", "216.245.221.86", -1);
         }
 
         [Test]
         public void TestIPWhitelistRegex()
         {
-            RunConfigBanTest("WhitelistRegex", "^10.0.([0-1]).([0-9]|[1-9][0-9]|1([0-9][0-9])|2([0-4][0-9]|5[0-5]))$", "192.168.99.99", "10.0.0.1");
-            RunConfigBanTest("WhitelistRegex", "^(10.0.0.*)|(99.99.99.[0-9])$", "192.168.99.99", "10.0.0.1");
-            RunConfigBanTest("WhitelistRegex", "^(10.0.0.*)|(99.99.99.[0-9])$", "192.168.99.99", "99.99.99.1");
+            RunConfigBanTest("WhitelistRegex", "^10.0.([0-1]).([0-9]|[1-9][0-9]|1([0-9][0-9])|2([0-4][0-9]|5[0-5]))$", "192.168.99.99", "10.0.0.1", -1);
+            RunConfigBanTest("WhitelistRegex", "^(10.0.0.*)|(99.99.99.[0-9])$", "192.168.99.99", "10.0.0.1", -1);
+            RunConfigBanTest("WhitelistRegex", "^(10.0.0.*)|(99.99.99.[0-9])$", "192.168.99.99", "99.99.99.1", -1);
+        }
+
+        [Test]
+        public void TestIPBlacklist()
+        {
+            RunConfigBanTest("Blacklist", "190.168.0.0", "190.168.0.0", "99.99.99.99", 1);
+            RunConfigBanTest("Blacklist", "190.168.0.0/16", "190.168.99.99", "99.99.99.98", 1);
+            RunConfigBanTest("Blacklist", "216.245.221.80/28", "216.245.221.86", "99.99.99.97", 1);
+        }
+
+        [Test]
+        public void TestIPBlacklistRegex()
+        {
+            RunConfigBanTest("BlacklistRegex", "^10.0.([0-1]).([0-9]|[1-9][0-9]|1([0-9][0-9])|2([0-4][0-9]|5[0-5]))$", "10.0.0.1", "192.168.99.100", 1);
+            RunConfigBanTest("BlacklistRegex", "^(10.0.0.*)|(99.99.99.[0-9])$", "10.0.0.1", "192.168.99.99", 1);
+            RunConfigBanTest("BlacklistRegex", "^(10.0.0.*)|(99.99.99.[0-9])$", "99.99.99.1", "192.168.99.98", 1);
+            RunConfigBanTest("BlacklistRegex", ".", "99.99.99.2", null);
         }
 
         [Test]
@@ -590,7 +607,7 @@ namespace DigitalRuby.IPBanTests
             Assert.IsTrue(service.DB.TryGetIPAddress(ip, out _));
         }
 
-        private void RunConfigBanTest(string key, string value, string banIP, string noBanIP)
+        private void RunConfigBanTest(string key, string value, string banIP, string noBanIP, int noBanIPCount = 999)
         {
             // turn on clear failed logins upon success login
             using IPBanConfig.TempConfigChanger configChanger = new IPBanConfig.TempConfigChanger(service, xml =>
@@ -598,22 +615,35 @@ namespace DigitalRuby.IPBanTests
                 return IPBanConfig.ChangeConfigAppSetting(xml, key, value);
             }, out string newConfig);
 
-            service.AddIPAddressLogEvents(new IPAddressLogEvent[]
+            List<IPAddressLogEvent> events = new List<IPAddressLogEvent>
             {
-                // should be banned
-                new IPAddressLogEvent(banIP, "user1", "RDP", 999, IPAddressEventType.FailedLogin),
-
-                // whitelisted
-                new IPAddressLogEvent(noBanIP, "user2", "RDP", 999, IPAddressEventType.FailedLogin),
-            });
+                new IPAddressLogEvent(banIP, "user1", "RDP", 999, IPAddressEventType.FailedLogin)
+            };
+            if (!string.IsNullOrWhiteSpace(noBanIP))
+            {
+                events.Add(new IPAddressLogEvent(noBanIP, "user2", "RDP", noBanIPCount, IPAddressEventType.FailedLogin));
+            }
+            service.AddIPAddressLogEvents(events);
 
             // process failed logins
             service.RunCycle().Sync();
 
             Assert.IsTrue(service.Firewall.IsIPAddressBlocked(banIP, out _));
-            Assert.IsFalse(service.Firewall.IsIPAddressBlocked(noBanIP, out _));
             Assert.IsTrue(service.DB.TryGetIPAddress(banIP, out IPBanDB.IPAddressEntry e1));
-            Assert.IsFalse(service.DB.TryGetIPAddress(noBanIP, out IPBanDB.IPAddressEntry e2));
+            Assert.AreEqual(e1.FailedLoginCount, 999);
+            if (!string.IsNullOrWhiteSpace(noBanIP))
+            {
+                Assert.IsFalse(service.Firewall.IsIPAddressBlocked(noBanIP, out _));
+                if (noBanIPCount > 0)
+                {
+                    Assert.IsTrue(service.DB.TryGetIPAddress(noBanIP, out IPBanDB.IPAddressEntry e2));
+                    Assert.AreEqual(e2.FailedLoginCount, noBanIPCount);
+                }
+                else
+                {
+                    Assert.IsFalse(service.DB.TryGetIPAddress(noBanIP, out _));
+                }
+            }
         }
     }
 }
