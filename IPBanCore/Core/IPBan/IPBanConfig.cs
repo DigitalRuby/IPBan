@@ -316,7 +316,12 @@ namespace DigitalRuby.IPBanCore
             return false;
         }
 
-        private void PopulateList(HashSet<System.Net.IPAddress> set, HashSet<IPAddressRange> ranges, HashSet<string> others, ref Regex regex, string setValue, string regexValue)
+        private void PopulateList(HashSet<System.Net.IPAddress> set,
+            HashSet<IPAddressRange> ranges,
+            HashSet<string> others,
+            ref Regex regex,
+            string setValue,
+            string regexValue)
         {
             setValue = (setValue ?? string.Empty).Trim();
             regexValue = (regexValue ?? string.Empty).Replace("*", @"[0-9A-Fa-f:]+?").Trim();
@@ -841,9 +846,12 @@ namespace DigitalRuby.IPBanCore
         public bool ClearFailedLoginsOnSuccessfulLogin { get { return clearFailedLoginsOnSuccessfulLogin; } }
 
         /// <summary>
-        /// Black list of ips as a comma separated string
+        /// Get all ip address ranges in the blacklist
         /// </summary>
-        public string BlackList { get { return string.Join(",", blackList); } }
+        public IReadOnlyCollection<IPAddressRange> BlackList
+        {
+            get { return blackList.Select(b => new IPAddressRange(b)).Union(blackListRanges).ToArray(); }
+        }
 
         /// <summary>
         /// Black list regex
@@ -851,9 +859,12 @@ namespace DigitalRuby.IPBanCore
         public string BlackListRegex { get { return (blackListRegex is null ? string.Empty : blackListRegex.ToString()); } }
 
         /// <summary>
-        /// White list of ips as a comma separated string
+        /// Get all ip address ranges in the whitelist
         /// </summary>
-        public string Whitelist { get { return string.Join(",", whitelist); } }
+        public IReadOnlyCollection<IPAddressRange> Whitelist
+        {
+            get { return whitelist.Select(b => new IPAddressRange(b)).Union(whitelistRanges).ToArray(); }
+        }
 
         /// <summary>
         /// White list regex

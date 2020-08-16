@@ -536,7 +536,11 @@ namespace DigitalRuby.IPBanCore
                 }
             }
 
-            // add/update new rules
+            // add/update global rules
+            Firewall.AllowIPAddresses("GlobalWhitelist", Config.Whitelist);
+            Firewall.BlockIPAddresses("GlobalBlacklist", Config.BlackList);
+
+            // add/update user specified rules
             foreach (IPBanFirewallRule rule in Config.ExtraRules)
             {
                 if (rule.Block)

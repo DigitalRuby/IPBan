@@ -235,7 +235,7 @@ namespace DigitalRuby.IPBanTests
                 "<appSettings><add key='Whitelist' value='99.99.99.99?TestIP?2020-05-25," +
                 "88.88.88.88?TestIP2?2020-05-24' /></appSettings></configuration>",
                 DefaultDnsLookup.Instance);
-            Assert.AreEqual(config.Whitelist, "99.99.99.99,88.88.88.88");
+            Assert.AreEqual(string.Join(",", config.Whitelist.OrderBy(i => i)), "88.88.88.88,99.99.99.99");
             Assert.IsTrue(config.IsWhitelisted("99.99.99.99"));
             Assert.IsTrue(config.IsWhitelisted("88.88.88.88"));
             Assert.IsFalse(config.IsWhitelisted("77.77.77.77"));

@@ -496,6 +496,15 @@ namespace DigitalRuby.IPBanCore
         }
 
         /// <summary>
+        /// Convert ip address range to string implicit
+        /// </summary>
+        /// <param name="ip">Ip address</param>
+        public static implicit operator IPAddressRange(IPAddress ip)
+        {
+            return (ip is null ? null : new IPAddressRange(ip));
+        }
+
+        /// <summary>
         /// Takes a subnetmask (eg, "255.255.254.0") and returns the CIDR bit length of that
         /// address. Throws an exception if the passed address is not valid as a subnet mask.
         /// </summary>
