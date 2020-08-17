@@ -198,12 +198,15 @@ namespace DigitalRuby.IPBanCore
             RunProcess(IpTablesProcess, true, out IReadOnlyList<string> lines, "-L --line-numbers");
             string portString = " ";
             bool replaced = false;
+            bool block = (action == "DROP");
+
             if (allowedPortsArray != null && allowedPortsArray.Length != 0)
             {
-                string portList = (action == "DROP" ? IPBanFirewallUtility.GetBlockPortRangeString(allowedPorts) :
+                string portList = (block ? IPBanFirewallUtility.GetBlockPortRangeString(allowedPorts) :
                      IPBanFirewallUtility.GetPortRangeStringAllow(allowedPorts));
                 portString = " -m multiport -p tcp --dports " + portList.Replace('-', ':') + " "; // iptables uses ':' instead of '-' for range
             }
+
             string ruleNameWithSpaces = " " + ruleName + " ";
             foreach (string line in lines)
             {
@@ -221,8 +224,9 @@ namespace DigitalRuby.IPBanCore
             }
             if (!replaced)
             {
-                // add a new rule
-                RunProcess(IpTablesProcess, true, $"-A INPUT -m set{portString}--match-set \"{ruleName}\" src -j {action}");
+                // add a new rule, for block add to end of list (lower priority) for allow add to begin of list (higher priority)
+                string addCommand = (block ? "-A" : "-I");
+                RunProcess(IpTablesProcess, true, $"{addCommand} INPUT -m set{portString}--match-set \"{ruleName}\" src -j {action}");
             }
 
             if (cancelToken.IsCancellationRequested)
