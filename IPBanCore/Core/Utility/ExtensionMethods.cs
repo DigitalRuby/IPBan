@@ -626,13 +626,27 @@ namespace DigitalRuby.IPBanCore
             }
             else
             {
-                fixed (byte* ptr = bytes)
-                {
-                    ulong* ulongPtr = (ulong*)ptr;
-                    return new UInt128(*ulongPtr, *(++ulongPtr));
-                }
+                bytes = bytes.ToArray();
+                ulong l1 = BitConverter.ToUInt64(bytes, 0);
+                ulong l2 = BitConverter.ToUInt64(bytes, 8);
+                return new UInt128(l1, l2);
             }
-            
+        }
+
+        /// <summary>
+        /// Get a UInt128 from an ipv6 address. The UInt128 will use the raw bytes from the ip address as is.
+        /// </summary>
+        /// <param name="ip">IPV6 address</param>
+        /// <returns>UInt128</returns>
+        /// <exception cref="InvalidOperationException">Not an ipv6 address</exception>
+        public static unsafe UInt128 ToUInt128Raw(this IPAddress ip)
+        {
+            byte[] bytes = ip.GetAddressBytes();
+            fixed (byte* ptr = bytes)
+            {
+                ulong* ulongPtr = (ulong*)ptr;
+                return new UInt128(*ulongPtr, *(++ulongPtr));
+            }
         }
 
         /// <summary>
@@ -686,6 +700,38 @@ namespace DigitalRuby.IPBanCore
                 finalBytes = bytes2.Concat(bytes1).ToArray();
             }
             return new IPAddress(finalBytes);
+        }
+
+        /// <summary>
+        /// Get an ip address from a UInt128. The UInt128 raw bytes are used as is.
+        /// </summary>
+        /// <param name="value">UInt128</param>
+        /// <returns>IPAddress</returns>
+        public static unsafe IPAddress ToIPAddressRaw(this UInt128 value)
+        {
+            byte* bytes = (byte*)&value;
+            byte[] managedBytes = new byte[16];
+            for (int i = 0; i < managedBytes.Length; i++)
+            {
+                managedBytes[i] = bytes[i];
+            }
+            return new IPAddress(managedBytes);
+        }
+
+        /// <summary>
+        /// Convert UnmanagedMemoryStream to a byte array
+        /// </summary>
+        /// <param name="stream">UnmanagedMemoryStream</param>
+        /// <returns>Byte array</returns>
+        public static byte[] ToArray(this UnmanagedMemoryStream stream)
+        {
+            byte[] bytes = new byte[stream.Length];
+            stream.Position = 0;
+            for (int i = 0; i < bytes.Length; i++)
+            {
+                bytes[i] = (byte)stream.ReadByte();
+            }
+            return bytes;
         }
 
         /// <summary>
