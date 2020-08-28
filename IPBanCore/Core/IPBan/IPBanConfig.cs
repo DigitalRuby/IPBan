@@ -169,7 +169,15 @@ namespace DigitalRuby.IPBanCore
             GetConfigArray<TimeSpan>("BanTime", ref banTimes, emptyTimeSpanArray);
             for (int i = 0; i < banTimes.Length; i++)
             {
-                banTimes[i] = banTimes[i].Clamp(TimeSpan.FromMinutes(1.0), maxBanTimeSpan);
+                // according to documentation, a ban time of 0 should become max ban time
+                if (banTimes[i].Ticks <= 0)
+                {
+                    banTimes[i] = maxBanTimeSpan;
+                }
+                else
+                {
+                    banTimes[i] = banTimes[i].Clamp(TimeSpan.FromMinutes(1.0), maxBanTimeSpan);
+                }
             }
             GetConfig<bool>("ClearBannedIPAddressesOnRestart", ref clearBannedIPAddressesOnRestart);
             GetConfig<bool>("ClearFailedLoginsOnSuccessfulLogin", ref clearFailedLoginsOnSuccessfulLogin);

@@ -106,8 +106,8 @@ namespace DigitalRuby.IPBanCore
         /// <param name="maxLineLength">Maximum line length before considering the file a binary file and failing</param>
         public LogFileScanner(string pathAndMask, long maxFileSizeBytes = 0, int fileProcessingIntervalMilliseconds = 0, Encoding encoding = null, int maxLineLength = 8192)
         {
-            // replace env vars in path/mask
-            PathAndMask = pathAndMask?.Trim().Replace('\\', '/');
+            // glob syntax, replace all backslash to forward slash
+            PathAndMask = NormalizeGlob(pathAndMask);
             PathAndMask.ThrowIfNullOrEmpty(nameof(pathAndMask), "Must pass a non-empty path and mask to log file scanner");
 
             // set properties
@@ -303,6 +303,11 @@ namespace DigitalRuby.IPBanCore
         /// </summary>
         /// <param name="text">Text to process</param>
         protected virtual void OnProcessText(string text) { }
+
+        private string NormalizeGlob(string glob)
+        {
+            return glob?.Trim().Replace('\\', '/').Replace("(", "\\(").Replace(")", "\\)").Replace("[", "\\[").Replace("]", "\\]");
+        }
 
         private void SetProcessingTimerEnabled(bool enabled)
         {
