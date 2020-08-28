@@ -86,7 +86,7 @@ namespace DigitalRuby.IPBanTests
                 "Windows", "MSExchange",
 
                 " C:/Program Files/Smarter Tools/Smarter Mail/**/*.log\nC:/Program Files (x86)/Smarter Tools/Smarter Mail/**/*.log\nC:/SmarterMail/logs/**/*.log\nC:/Smarter Mail/logs/**/*.log",
-                @"\[(?<ipaddress>[^\]\n]+)\](?:\[[^\]\n]*\]\s+)?(?:The\sdomain\sgiven\sin\sthe\sEHLO\scommand\sviolates\san\sEHLO\sSMTP|IP\sblocked\sby\sbrute\sforce\sabuse\sdetection\srule)",
+                @"\[(?<ipaddress>[^\]\n]+)\](?:\[[^\]\n]*\]\s+).*?(?:(?:The\sdomain\sgiven\sin\sthe\sEHLO\scommand\sviolates\san\sEHLO\sSMTP)|(?:IP\sblocked\sby\sbrute\sforce\sabuse\sdetection\srule)|(?:login\sfailed)|(?:IP\sblocked\sby\sbrute\sforce\sabuse\sdetection\srule)|(?:IP\sis\sblacklisted)|(?:too\smany\sauthentication\sfailures)|(?:Authentication\sfailed)|(?:EHLO\sSMTP\sblocking\srule)|(?:IP\sblocked\sby\sbrute\sforce\sabuse\sdetection\srule)|(?:IP\sis\sblacklisted)|(?:Mail\srejected\sdue\sto\sSMTP\sSpam\sBlocking)|(?:Too\smany\sauthentication\sfailures))",
                 @"",
                 @"",
                 @"",
