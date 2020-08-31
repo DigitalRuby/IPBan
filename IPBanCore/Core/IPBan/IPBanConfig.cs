@@ -98,6 +98,11 @@ namespace DigitalRuby.IPBanCore
             public string ModifiedConfig => modifiedConfig;
         }
 
+        /// <summary>
+        /// Default config file name
+        /// </summary>
+        public const string DefaultFileName = "ipban.config";
+
         private static readonly HashSet<string> ignoreListEntries = new HashSet<string>
         {
             "0.0.0.0", "::0", "127.0.0.1", "::1", "localhost"
@@ -150,6 +155,35 @@ namespace DigitalRuby.IPBanCore
         private readonly List<IPBanFirewallRule> extraRules = new List<IPBanFirewallRule>();
         private readonly EventViewerExpressionsToBlock expressionsFailure;
         private readonly EventViewerExpressionsToNotify expressionsSuccess;
+
+        /// <summary>
+        /// Static constructor - migrate config file from DigitalRuby.IPBan.dll.config to ipban.config
+        /// </summary>
+        static IPBanConfig()
+        {
+            string oldConfigPath = null;
+            string newConfigPath = null;
+
+            try
+            {
+                // move DigitalRuby.IPBan.dll.config to ipban.config
+                oldConfigPath = Path.Combine(AppContext.BaseDirectory, "DigitalRuby.IPBan.dll.config");
+                newConfigPath = Path.Combine(AppContext.BaseDirectory, "ipban.config");
+                if (File.Exists(oldConfigPath))
+                {
+                    ExtensionMethods.Retry(() =>
+                    {
+                        File.Copy(oldConfigPath, newConfigPath, true);
+                        File.Delete(oldConfigPath);
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Error(ex, "Failed to copy old config file at {0} to new config file at {1}",
+                    oldConfigPath, newConfigPath);
+            }
+        }
 
         private IPBanConfig(string xml, IDnsLookup dns = null, IDnsServerList dnsList = null)
         {

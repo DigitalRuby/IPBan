@@ -551,7 +551,7 @@ namespace DigitalRuby.IPBanCore
             }
             if (string.IsNullOrWhiteSpace(configFileName))
             {
-                configFileName = IPBanService.ConfigFileName;
+                configFileName = IPBanConfig.DefaultFileName;
             }
             string configFilePath = Path.Combine(directory, configFileName);
             string configFileText = File.ReadAllText(configFilePath);

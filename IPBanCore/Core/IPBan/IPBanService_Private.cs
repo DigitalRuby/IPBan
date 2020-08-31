@@ -78,7 +78,7 @@ namespace DigitalRuby.IPBanCore
         {
             try
             {
-                ConfigFilePath = (!File.Exists(ConfigFilePath) ? Path.Combine(AppContext.BaseDirectory, IPBanService.ConfigFileName) : ConfigFilePath);
+                ConfigFilePath = (!File.Exists(ConfigFilePath) ? Path.Combine(AppContext.BaseDirectory, IPBanConfig.DefaultFileName) : ConfigFilePath);
                 string newXml = await ConfigReaderWriter.CheckForConfigChange();
                 if (!string.IsNullOrWhiteSpace(newXml))
                 {

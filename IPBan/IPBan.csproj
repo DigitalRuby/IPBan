@@ -26,6 +26,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Content Include="..\README.md" Link="README.md">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\IPBanCore\IPBanCore.csproj" />
   </ItemGroup>
 

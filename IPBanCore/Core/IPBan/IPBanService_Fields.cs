@@ -69,11 +69,6 @@ namespace DigitalRuby.IPBanCore
         public static Assembly IPBanAssembly { get; } = typeof(IPBanService).Assembly;
 
         /// <summary>
-        /// Config file name
-        /// </summary>
-        public const string ConfigFileName = "DigitalRuby.IPBan.dll.config";
-
-        /// <summary>
         /// Config file path
         /// </summary>
         public string ConfigFilePath
