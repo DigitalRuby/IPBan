@@ -366,6 +366,7 @@ namespace DigitalRuby.IPBanCore
             {
                 if (commit)
                 {
+                    commit = false;
                     RollbackTransaction(tran);
                 }
                 throw;
@@ -434,6 +435,7 @@ namespace DigitalRuby.IPBanCore
             {
                 if (commit)
                 {
+                    commit = false;
                     RollbackTransaction(tran);
                 }
                 throw;
@@ -518,6 +520,7 @@ namespace DigitalRuby.IPBanCore
             {
                 if (commit)
                 {
+                    commit = dispose = false;
                     RollbackTransaction(tran);
                 }
                 throw;
