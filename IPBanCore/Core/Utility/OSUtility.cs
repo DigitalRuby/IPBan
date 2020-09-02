@@ -620,7 +620,7 @@ namespace DigitalRuby.IPBanCore
         /// Constructor
         /// </summary>
         /// <param name="os">OS (IPBanOS.*)</param>
-        /// <param name="priority">Priority</param>
+        /// <param name="priority">Priority - higher priority are preferred when registering firewalls</param>
         public RequiredOperatingSystemAttribute(string os, int priority = 1)
         {
             RequiredOS = os;
