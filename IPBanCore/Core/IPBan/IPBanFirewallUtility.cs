@@ -115,7 +115,7 @@ namespace DigitalRuby.IPBanCore
                         fwType.GetCustomAttribute<RequiredOperatingSystemAttribute>() != null &&
                         fwType.GetCustomAttribute<RequiredOperatingSystemAttribute>().IsValid
                     select new { FirewallType = fwType, OS = fwType.GetCustomAttribute<RequiredOperatingSystemAttribute>(), Name = fwType.GetCustomAttribute<CustomNameAttribute>() };
-                var array = q.ToArray();
+                var array = q.OrderBy(f => f.OS.Priority).ToArray();
                 foreach (var result in array)
                 {
                     // look up the requested firewall by os name
@@ -152,7 +152,7 @@ namespace DigitalRuby.IPBanCore
                         }
                     }
                 }
-                if (firewallType is null)
+                if (firewallType is null || firewallType == typeof(IIPBanFirewall))
                 {
                     throw new ArgumentException("Firewall is null, at least one type should implement IIPBanFirewall");
                 }
