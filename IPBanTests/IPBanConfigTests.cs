@@ -206,8 +206,12 @@ namespace DigitalRuby.IPBanTests
                 Assert.AreEqual("https://checkip.amazonaws.com/", cfg.ExternalIPAddressUrl);
                 Assert.AreEqual(5, cfg.FailedLoginAttemptsBeforeBan);
                 Assert.AreEqual(20, cfg.FailedLoginAttemptsBeforeBanUserNameWhitelist);
-                Assert.AreEqual(1, cfg.FirewallOSAndType.Count);
-                Assert.AreEqual("*:Default", cfg.FirewallOSAndType.Keys.First() + ":" + cfg.FirewallOSAndType.Values.First());
+
+                // TODO: Consider if we need firewall types at all in the future, it was using *:Default
+                Assert.AreEqual(0, cfg.FirewallOSAndType.Count);
+                Assert.AreEqual(":", cfg.FirewallOSAndType.Keys.FirstOrDefault() ?? string.Empty +
+                    ":" + cfg.FirewallOSAndType.Values.FirstOrDefault() ?? string.Empty);
+
                 Assert.AreEqual("IPBan_", cfg.FirewallRulePrefix);
                 Assert.AreEqual(TimeSpan.FromSeconds(1.0), cfg.MinimumTimeBetweenFailedLoginAttempts);
                 Assert.IsEmpty(cfg.ProcessToRunOnBan);
