@@ -567,14 +567,18 @@ namespace DigitalRuby.IPBanCore
         {
             try
             {
-                var converter = TypeDescriptor.GetConverter(typeof(T));
-                return (T)converter.ConvertFromInvariantString(appSettings[key]);
+                var value = appSettings[key];
+                if (value != null)
+                {
+                    var converter = TypeDescriptor.GetConverter(typeof(T));
+                    return (T)converter.ConvertFromInvariantString(value);
+                }
             }
             catch (Exception ex)
             {
                 Logger.Error(ex, "Error deserializing appSettings key {0}", key);
-                return defaultValue;
             }
+            return defaultValue;
         }
 
         /// <summary>
