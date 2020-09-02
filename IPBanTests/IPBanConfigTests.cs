@@ -92,6 +92,13 @@ namespace DigitalRuby.IPBanTests
                 @"",
                 "Windows", "SmarterMail",
 
+                "C:/Program Files (x86)/Mail Enable/Logging/SMTP/SMTP-Activity-*.log\nC:/Program Files/Mail Enable/Logging/SMTP/SMTP-Activity-*.log",
+                @"^(?<timestamp>(?:\d\d.){5}\d\d)(?:\t.*?){4}(?<ipaddress>.*?)\t.*?Invalid\sUsername\sor\sPassword(?:\t.*?){2}\t(?<username>.*?)$",
+                @"MM/dd/yy HH:mm:ss",
+                @"",
+                @"",
+                "Windows", "MailEnable",
+
                 "C:/Program Files/Tomcat/logs/**/*access_log*.txt",
                 @"^(?<ipaddress>[^\s]+)\s.*?\[(?<timestamp>.*?)\].*?((php|md5sum|cgi-bin|joomla).*?\s404\s[0-9]+|\s400\s-)$",
                 @"dd/MMM/yyyy:HH:mm:ss zzzz",

@@ -592,6 +592,22 @@ namespace DigitalRuby.IPBanCore
         /// Are we on Mac?
         /// </summary>
         public bool IsMac => isMac;
+
+        /// <summary>
+        /// Determine if system is Windows 7 or Windows Server 2008 - these systems tend to have a lot of hacks
+        /// and work-arounds that are needed, especially for windows filtering platform
+        /// </summary>
+        public bool IsWindows7OrServer2008
+        {
+            get
+            {
+                // Windows 7 and Server 2008 have major version of 6 and minor version of 0 or 1
+                var version = System.Environment.OSVersion;
+                return (version.Platform == PlatformID.Win32NT &&
+                    version.Version.Major == 6 &&
+                    version.Version.Minor < 2);
+            }
+        }
     }
 
     /// <summary>
