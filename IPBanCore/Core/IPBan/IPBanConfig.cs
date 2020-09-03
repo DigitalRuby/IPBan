@@ -141,7 +141,6 @@ namespace DigitalRuby.IPBanCore
         private readonly int userNameWhitelistMaximumEditDistance = 2;
         private readonly Regex userNameWhitelistRegex;
         private readonly int failedLoginAttemptsBeforeBanUserNameWhitelist = 20;
-        private readonly Dictionary<string, string> osAndFirewallType = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         private readonly string processToRunOnBan;
         private readonly bool useDefaultBannedIPAddressHandler;
         private readonly string getUrlUpdate;
@@ -287,17 +286,6 @@ namespace DigitalRuby.IPBanCore
             }
             GetConfig<string>("ProcessToRunOnBan", ref processToRunOnBan);
             GetConfig<bool>("UseDefaultBannedIPAddressHandler", ref useDefaultBannedIPAddressHandler);
-
-            // retrieve firewall configuration
-            string[] firewallTypes = GetConfig<string>("FirewallType", string.Empty).Split(',', StringSplitOptions.RemoveEmptyEntries);
-            foreach (string firewallOSAndType in firewallTypes)
-            {
-                string[] pieces = firewallOSAndType.Split(':');
-                if (pieces.Length == 2)
-                {
-                    osAndFirewallType[pieces[0]] = pieces[1];
-                }
-            }
 
             string userNameWhitelistString = GetConfig<string>("UserNameWhitelist", string.Empty);
             if (!string.IsNullOrEmpty(userNameWhitelistString))
@@ -936,11 +924,6 @@ namespace DigitalRuby.IPBanCore
         /// Number of failed logins before banning a user name in the user name whitelist
         /// </summary>
         public int FailedLoginAttemptsBeforeBanUserNameWhitelist { get { return failedLoginAttemptsBeforeBanUserNameWhitelist; } }
-
-        /// <summary>
-        /// Dictionary of string operating system name (Windows, Linux, OSX, etc.) and firewall class type
-        /// </summary>
-        public IReadOnlyDictionary<string, string> FirewallOSAndType { get { return osAndFirewallType; } }
 
         /// <summary>
         /// Process to run on ban. See ReplaceUrl of IPBanService for place-holders.

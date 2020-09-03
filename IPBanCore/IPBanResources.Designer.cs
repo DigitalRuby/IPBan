@@ -637,25 +637,6 @@ namespace DigitalRuby.IPBanCore {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Firewall Type.
-        /// </summary>
-        public static string FirewallType {
-            get {
-                return ResourceManager.GetString("FirewallType", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Firewall types: Allows setting a type of firewall if not using the default firewall implementation.
-        ///Prefix with OS:ClassName, example: Windows:Custom,Linux:Default.
-        /// </summary>
-        public static string FirewallTypeTooltip {
-            get {
-                return ResourceManager.GetString("FirewallTypeTooltip", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Firewall Uri Rules.
         /// </summary>
         public static string FirewallUriRules {

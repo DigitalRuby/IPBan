@@ -38,7 +38,7 @@ namespace DigitalRuby.IPBanCore
     /// Also great for unit testing.
     /// This class is thread safe.
     /// </summary>
-    [RequiredOperatingSystemAttribute(null, -99)] // low priority, basically any other firewall is preferred unless this one is explicitly specified in the config
+    [RequiredOperatingSystemAttribute(null, Priority = -99)] // low priority, basically any other firewall is preferred unless this one is explicitly specified in the config
     [CustomName("Memory")]
     public class IPBanMemoryFirewall : IIPBanFirewall
     {

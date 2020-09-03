@@ -96,17 +96,16 @@ namespace DigitalRuby.IPBanCore
         /// <summary>
         /// Create a firewall
         /// </summary>
-        /// <param name="osAndFirewall">Dictionary of string operating system name (Windows, Linux, OSX) and firewall class</param>
         /// <param name="rulePrefix">Rule prefix or null for default</param>
         /// <returns>Firewall</returns>
-        public static IIPBanFirewall CreateFirewall(IReadOnlyDictionary<string, string> osAndFirewall, string rulePrefix = null, IIPBanFirewall existing = null)
+        public static IIPBanFirewall CreateFirewall(string rulePrefix = null, IIPBanFirewall existing = null)
         {
             try
             {
-                bool foundFirewallType = false;
                 int priority = int.MinValue;
                 Type firewallType = typeof(IIPBanFirewall);
                 List<Type> allTypes = ExtensionMethods.GetAllTypes();
+
                 var q =
                     from fwType in allTypes
                     where fwType.IsPublic &&
@@ -122,44 +121,29 @@ namespace DigitalRuby.IPBanCore
                     bool matchPriority = priority < result.OS.Priority;
                     if (matchPriority)
                     {
-                        bool matchName = true;
-                        if (osAndFirewall != null && osAndFirewall.Count != 0 &&
-                            (osAndFirewall.TryGetValue(OSUtility.Instance.Name, out string firewallToUse) || osAndFirewall.TryGetValue("*", out firewallToUse)))
+                        // if IsAvailable method is provided, attempt to call
+                        MethodInfo available = result.FirewallType.GetMethod("IsAvailable", BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy);
+                        if (available != null)
                         {
-                            matchName = result.Name.Name.Equals(firewallToUse, StringComparison.OrdinalIgnoreCase);
-                        }
-                        if (matchName)
-                        {
-                            // if IsAvailable method is provided, attempt to call
-                            MethodInfo available = result.FirewallType.GetMethod("IsAvailable", BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy);
-                            if (available != null)
+                            try
                             {
-                                try
-                                {
-                                    if (!Convert.ToBoolean(available.Invoke(null, null)))
-                                    {
-                                        continue;
-                                    }
-                                }
-                                catch
+                                if (!Convert.ToBoolean(available.Invoke(null, null)))
                                 {
                                     continue;
                                 }
                             }
-                            firewallType = result.FirewallType;
-                            priority = result.OS.Priority;
-                            foundFirewallType = true;
+                            catch
+                            {
+                                continue;
+                            }
                         }
+                        firewallType = result.FirewallType;
+                        priority = result.OS.Priority;
                     }
                 }
                 if (firewallType is null || firewallType == typeof(IIPBanFirewall))
                 {
                     throw new ArgumentException("Firewall is null, at least one type should implement IIPBanFirewall");
-                }
-                else if (osAndFirewall.Count != 0 && !foundFirewallType)
-                {
-                    string typeString = string.Join(',', osAndFirewall.Select(kv => kv.Key + ":" + kv.Value));
-                    throw new ArgumentException("Unable to find firewalls of types: " + typeString + ", osname: " + OSUtility.Instance.Name);
                 }
                 if (existing != null && existing.GetType().Equals(firewallType))
                 {

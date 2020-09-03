@@ -27,7 +27,7 @@ namespace DigitalRuby.IPBanCore
         /// <inheritdoc />
         public IIPBanFirewall CreateFirewall(IPBanConfig config, IIPBanFirewall previousFirewall)
         {
-            return IPBanFirewallUtility.CreateFirewall(config.FirewallOSAndType, config.FirewallRulePrefix, previousFirewall);
+            return IPBanFirewallUtility.CreateFirewall(config.FirewallRulePrefix, previousFirewall);
         }
     }
 }

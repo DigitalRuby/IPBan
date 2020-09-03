@@ -31,7 +31,7 @@ namespace DigitalRuby.IPBanCore
     /// <summary>
     /// This firewall implementation does nothing, so is great for performance testing
     /// </summary>
-    [RequiredOperatingSystemAttribute(null, -999)] // low priority, basically any other firewall is preferred unless this one is explicitly specified in the config
+    [RequiredOperatingSystemAttribute(null, Priority = -999)] // low priority, basically any other firewall is preferred unless this one is explicitly specified in the config
     [CustomName("Null")]
     public class IPBanNullFirewall : IIPBanFirewall
     {

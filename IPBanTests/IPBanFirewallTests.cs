@@ -42,7 +42,7 @@ namespace DigitalRuby.IPBanTests
         [SetUp]
         public void TestStart()
         {
-            firewall = IPBanFirewallUtility.CreateFirewall(firewallAndOsType);
+            firewall = IPBanFirewallUtility.CreateFirewall();
             Assert.AreNotEqual(typeof(IPBanMemoryFirewall), firewall.GetType());
 
             // clear all blocks

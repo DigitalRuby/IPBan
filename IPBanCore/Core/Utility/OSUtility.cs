@@ -23,6 +23,7 @@ SOFTWARE.
 */
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
@@ -619,20 +620,10 @@ namespace DigitalRuby.IPBanCore
         /// <summary>
         /// Constructor
         /// </summary>
-        /// <param name="os">OS (IPBanOS.*)</param>
-        /// <param name="priority">Priority - higher priority are preferred when registering firewalls</param>
-        public RequiredOperatingSystemAttribute(string os, int priority = 1)
+        /// <param name="os">OS (IPBanOS.*) or null/empty if none</param>
+        public RequiredOperatingSystemAttribute(string os)
         {
-            RequiredOS = os;
-            Priority = priority;
-        }
-
-        /// <summary>
-        /// Whether the current OS is valid for this attribute
-        /// </summary>
-        public bool IsValid
-        {
-            get { return RequiredOS is null || RequiredOS.Equals(OSUtility.Instance.Name, StringComparison.OrdinalIgnoreCase); }
+            RequiredOS = os?.Trim();
         }
 
         /// <summary>
@@ -641,9 +632,35 @@ namespace DigitalRuby.IPBanCore
         public string RequiredOS { get; }
 
         /// <summary>
-        /// Priority, higher priority override lower priority for the same OS
+        /// Priority - higher priority are preferred when registering firewalls
         /// </summary>
-        public int Priority { get; }
+        public int Priority { get; set; } = 1;
+
+        /// <summary>
+        /// Major version minimum
+        /// </summary>
+        public int MajorVersionMinimum { get; set; }
+
+        /// <summary>
+        /// Minor version minimum
+        /// </summary>
+        public int MinorVersionMinimum { get; set; }
+
+        /// <summary>
+        /// Whether the current OS is valid for this attribute
+        /// </summary>
+        public bool IsValid
+        {
+            get
+            {
+                OperatingSystem os = Environment.OSVersion;
+                return Priority >= 0 &&
+                    !string.IsNullOrWhiteSpace(RequiredOS) &&
+                    RequiredOS.Equals(OSUtility.Instance.Name, StringComparison.OrdinalIgnoreCase) &&
+                    (MajorVersionMinimum <= 0 || MajorVersionMinimum <= os.Version.Major) &&
+                    (MinorVersionMinimum <= 0 || MinorVersionMinimum <= os.Version.Minor);
+            }
+        }
     }
 
     /// <summary>
