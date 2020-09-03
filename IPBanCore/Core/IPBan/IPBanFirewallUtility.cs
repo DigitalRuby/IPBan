@@ -104,7 +104,7 @@ namespace DigitalRuby.IPBanCore
             {
                 int priority = int.MinValue;
                 Type firewallType = typeof(IIPBanFirewall);
-                List<Type> allTypes = ExtensionMethods.GetAllTypes();
+                IReadOnlyCollection<Type> allTypes = ExtensionMethods.GetAllTypes();
 
                 var q =
                     from fwType in allTypes

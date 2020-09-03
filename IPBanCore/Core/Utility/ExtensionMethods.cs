@@ -780,52 +780,96 @@ namespace DigitalRuby.IPBanCore
             return val;
         }
 
+        private static Assembly[] allAssemblies;
+        /// <summary>
+        /// Get all assemblies
+        /// </summary>
+        /// <returns>Assemblies</returns>
+        public static IReadOnlyCollection<Assembly> GetAllAssemblies()
+        {
+            if (allAssemblies != null)
+            {
+                return allAssemblies;
+            }
+            List<Assembly> assemblies = new List<Assembly>();
+            assemblies.AddRange(AppDomain.CurrentDomain.GetAssemblies());
+
+            // attempt to load plugins
+            string pluginPath = Path.Combine(AppContext.BaseDirectory, "plugins");
+            try
+            {
+                if (Directory.Exists(pluginPath))
+                {
+                    foreach (string pluginFile in Directory.GetFiles(pluginPath, "*.dll"))
+                    {
+                        try
+                        {
+                            assemblies.Add(Assembly.LoadFile(pluginFile));
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Error(ex, "Failed to load plugin at {0}", pluginFile);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Error(ex, "Failed to load plugins from {0}", pluginPath);
+            }
+
+            // load assembly references
+            foreach (Assembly assembly in assemblies.ToArray())
+            {
+                foreach (AssemblyName referencedAssemblyName in assembly.GetReferencedAssemblies())
+                {
+
+                    try
+                    {
+                        if (!assemblies.Any(x => x.GetName().FullName.Equals(referencedAssemblyName.FullName, StringComparison.OrdinalIgnoreCase)))
+                        {
+                            Assembly referencedAssembly = Assembly.Load(referencedAssemblyName);
+                            assemblies.Add(referencedAssembly);
+                        }
+                    }
+                    catch
+                    {
+                        // ignore
+                    }
+                }
+            }
+
+            allAssemblies = assemblies.ToArray();
+            return allAssemblies;
+        }
+
+        private static Type[] allTypes;
         /// <summary>
         /// Get all types from all assemblies
         /// </summary>
         /// <returns>List of all types</returns>
-        public static List<Type> GetAllTypes()
+        public static IReadOnlyCollection<Type> GetAllTypes()
         {
-            Assembly[] assemblies = AppDomain.CurrentDomain.GetAssemblies();
-            List<Type> allTypes = new List<Type>();
+            if (allTypes != null)
+            {
+                return allTypes;
+            }
+            IReadOnlyCollection<Assembly> assemblies = GetAllAssemblies();
+            List<Type> types = new List<Type>();
             foreach (Assembly assembly in assemblies)
             {
                 try
                 {
                     // some assemblys throw in unit tests in VS 2019, bug in MSFT...
-                    allTypes.AddRange(assembly.GetTypes());
+                    types.AddRange(assembly.GetTypes());
                 }
                 catch
                 {
+                    // ignore
                 }
             }
+            allTypes = types.ToArray();
             return allTypes;
-        }
-
-        /// <summary>
-        /// Get all assemblies with at least one class matching a type
-        /// </summary>
-        /// <param name="type">Type to match</param>
-        /// <returns>Assemblies with that type</returns>
-        public static IEnumerable<Assembly> GetAssembliesWithType(Type type)
-        {
-            foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
-            {
-                Type[] types;
-                try
-                {
-                    types = assembly.GetTypes();
-                }
-                catch
-                {
-                    // some assemblys throw in unit tests in VS 2019, bug in MSFT...
-                    continue;
-                }
-                if (types.Any(t => t.IsSubclassOf(type)))
-                {
-                    yield return assembly;
-                }
-            }
         }
 
         /// <summary>
@@ -1104,37 +1148,13 @@ namespace DigitalRuby.IPBanCore
                 return type;
             }
 
-            Assembly[] assemblies = AppDomain.CurrentDomain.GetAssemblies();
+            IReadOnlyCollection<Assembly> assemblies = GetAllAssemblies();
             foreach (Assembly assembly in assemblies)
             {
                 type = assembly.GetType(typeString);
                 if (type != null)
                 {
                     return type;
-                }
-            }
-            List<Assembly> loadedAssemblies = assemblies.ToList();
-            foreach (Assembly assembly in assemblies)
-            {
-                foreach (AssemblyName referencedAssemblyName in assembly.GetReferencedAssemblies())
-                {
-                    if (!loadedAssemblies.All(x => x.GetName() != referencedAssemblyName))
-                    {
-                        try
-                        {
-                            Assembly referencedAssembly = Assembly.Load(referencedAssemblyName);
-                            type = referencedAssembly.GetType(typeString);
-                            if (type != null)
-                            {
-                                return type;
-                            }
-                            loadedAssemblies.Add(referencedAssembly);
-                        }
-                        catch
-                        {
-                            // We will ignore this, because the Type might still be in one of the other Assemblies.
-                        }
-                    }
                 }
             }
             return null;

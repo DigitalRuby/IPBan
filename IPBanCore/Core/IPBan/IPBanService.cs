@@ -67,7 +67,7 @@ namespace DigitalRuby.IPBanCore
             Type typeOfT = typeof(T);
 
             // if any derived class of IPBanService, use that
-            List<Type> allTypes = ExtensionMethods.GetAllTypes();
+            IReadOnlyCollection<Type> allTypes = ExtensionMethods.GetAllTypes();
             var q =
                 from type in allTypes
                 where typeOfT.IsAssignableFrom(type)
