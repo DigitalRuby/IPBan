@@ -632,33 +632,49 @@ namespace DigitalRuby.IPBanCore
         public string RequiredOS { get; }
 
         /// <summary>
-        /// Priority - higher priority are preferred when registering firewalls
+        /// Priority - higher priority are preferred when registering firewalls.
+        /// Set to less than 0 to not include in regular firewall injection.
         /// </summary>
         public int Priority { get; set; } = 1;
 
         /// <summary>
-        /// Major version minimum
+        /// Major version minimum. Set to 0 or less to ignore.
         /// </summary>
         public int MajorVersionMinimum { get; set; }
 
         /// <summary>
-        /// Minor version minimum
+        /// Minor version minimum. Set to 0 or less to ignore.
         /// </summary>
         public int MinorVersionMinimum { get; set; }
 
         /// <summary>
-        /// Whether the current OS is valid for this attribute
+        /// Whether the current OS is a match for this attribute
         /// </summary>
-        public bool IsValid
+        public bool IsMatch
         {
             get
             {
                 OperatingSystem os = Environment.OSVersion;
-                return Priority >= 0 &&
-                    !string.IsNullOrWhiteSpace(RequiredOS) &&
-                    RequiredOS.Equals(OSUtility.Instance.Name, StringComparison.OrdinalIgnoreCase) &&
-                    (MajorVersionMinimum <= 0 || MajorVersionMinimum <= os.Version.Major) &&
-                    (MinorVersionMinimum <= 0 || MinorVersionMinimum <= os.Version.Minor);
+
+                // if priority less than 0, do not match
+                bool matchPriority = Priority >= 0;
+
+                // if no os specified, do not match
+                bool matchRequiredOS = !string.IsNullOrWhiteSpace(RequiredOS) &&
+                    RequiredOS.Equals(OSUtility.Instance.Name, StringComparison.OrdinalIgnoreCase);
+
+                // major version matches if param is 0 or we are less than or equal to os major version with the param
+                bool matchMajorVersion = (MajorVersionMinimum <= 0 || MajorVersionMinimum <= os.Version.Major);
+
+                // minor version matches if major version param is 0 or minor version param is 0 or major version param
+                //  is less than os major version or the minor version param is less than or equal to the os minor version
+                bool matchMinorVersion = (MajorVersionMinimum <= 0 || MinorVersionMinimum <= 0 || MajorVersionMinimum < os.Version.Major ||
+                        MinorVersionMinimum <= os.Version.Minor);
+
+                // valid is AND of all of the above
+                bool valid = matchPriority && matchRequiredOS && matchMajorVersion && matchMinorVersion;
+
+                return valid;
             }
         }
     }
