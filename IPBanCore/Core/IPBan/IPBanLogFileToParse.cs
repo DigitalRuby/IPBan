@@ -121,7 +121,7 @@ namespace DigitalRuby.IPBanCore
         }
 
         /// <summary>
-        /// Get an array of each individual path/mask
+        /// Get an array of each individual path/mask, converted to normalized glob syntax
         /// </summary>
         public string[] PathsAndMasks
         {
@@ -132,7 +132,7 @@ namespace DigitalRuby.IPBanCore
                 {
                     if (!string.IsNullOrWhiteSpace(s))
                     {
-                        list.Add(s.Trim());
+                        list.Add(LogFileScanner.NormalizeGlob(s));
                     }
                 }
                 return list.ToArray();

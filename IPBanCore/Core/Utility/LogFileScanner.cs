@@ -99,7 +99,7 @@ namespace DigitalRuby.IPBanCore
         /// <summary>
         /// Create a log file scanner
         /// </summary>
-        /// <param name="pathAndMask">File path and mask (i.e. /var/log/auth*.log)</param>
+        /// <param name="pathAndMask">File path and mask with glob syntax (i.e. /var/log/auth*.log)</param>
         /// <param name="maxFileSizeBytes">Max size of file (in bytes) before it is deleted or 0 for unlimited</param>
         /// <param name="fileProcessingIntervalMilliseconds">How often to process files, in milliseconds, less than 1 for manual processing, in which case <see cref="ProcessFiles"/> must be called as needed.</param>
         /// <param name="encoding">Encoding or null for utf-8. The encoding must either be single or variable byte, like ASCII, Ansi, utf-8, etc. UTF-16 and the like are not supported.</param>
@@ -107,7 +107,7 @@ namespace DigitalRuby.IPBanCore
         public LogFileScanner(string pathAndMask, long maxFileSizeBytes = 0, int fileProcessingIntervalMilliseconds = 0, Encoding encoding = null, int maxLineLength = 8192)
         {
             // glob syntax, replace all backslash to forward slash
-            PathAndMask = NormalizeGlob(pathAndMask);
+            PathAndMask = pathAndMask;
             PathAndMask.ThrowIfNullOrEmpty(nameof(pathAndMask), "Must pass a non-empty path and mask to log file scanner");
 
             // set properties
@@ -304,7 +304,12 @@ namespace DigitalRuby.IPBanCore
         /// <param name="text">Text to process</param>
         protected virtual void OnProcessText(string text) { }
 
-        private string NormalizeGlob(string glob)
+        /// <summary>
+        /// Normalize a glob
+        /// </summary>
+        /// <param name="glob">Glob</param>
+        /// <returns>Normalized glob</returns>
+        public static string NormalizeGlob(string glob)
         {
             return glob?.Trim().Replace('\\', '/').Replace("(", "\\(").Replace(")", "\\)").Replace("[", "\\[").Replace("]", "\\]");
         }

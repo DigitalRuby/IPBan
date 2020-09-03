@@ -36,7 +36,7 @@ namespace DigitalRuby.IPBanTests
     [TestFixture]
     public class IPBanLogFileParserTests : IIPAddressEventHandler
     {
-        private static readonly string tempPath = Path.Combine(OSUtility.Instance.TempFolder, "LogFileParserTest");
+        private static readonly string tempPath = LogFileScanner.NormalizeGlob(Path.Combine(OSUtility.Instance.TempFolder, "LogFileParserTest"));
 
         private readonly List<IPAddressLogEvent> failedIPAddresses = new List<IPAddressLogEvent>();
         private readonly List<IPAddressLogEvent> successIPAddresses = new List<IPAddressLogEvent>();

@@ -88,11 +88,11 @@ namespace DigitalRuby.IPBanCore
             }
             foreach (IPBanLogFileToParse newFile in newConfig.LogFilesToParse)
             {
-                string[] pathsAndMasks = newFile.PathAndMask.Split('\n');
+                string[] pathsAndMasks = newFile.PathsAndMasks;
                 for (int i = 0; i < pathsAndMasks.Length; i++)
                 {
-                    string pathAndMask = pathsAndMasks[i].Trim();
-                    if (pathAndMask.Length != 0)
+                    string pathAndMask = pathsAndMasks[i];
+                    if (!string.IsNullOrWhiteSpace(pathAndMask))
                     {
                         // if we don't have this log file and the platform matches, add it
                         bool noMatchingLogFile = logFilesToParse.FirstOrDefault(f => f.PathAndMask == pathAndMask) is null;
