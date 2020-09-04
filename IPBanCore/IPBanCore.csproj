@@ -6,7 +6,7 @@
     <PreserveCompilationContext>true</PreserveCompilationContext>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
     <PackageId>DigitalRuby.IPBanCore</PackageId>
-    <Version>1.5.6</Version>
+    <Version>1.5.7</Version>
     <Authors>Jeff Johnson</Authors>
     <Company>Digital Ruby, LLC</Company>
     <Product>IPBan</Product>
@@ -25,6 +25,8 @@
     <OutputType>Library</OutputType>
     <StartupObject />
 	<GenerateSerializationAssemblies>Off</GenerateSerializationAssemblies>
+	<AssemblyVersion>1.5.7.0</AssemblyVersion>
+	<FileVersion>1.5.7.0</FileVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
