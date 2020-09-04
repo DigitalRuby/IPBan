@@ -120,7 +120,7 @@ namespace DigitalRuby.IPBanCore
                         }
                         else
                         {
-                            Logger.Debug("Ignoring log file path {0}, regex: {1}, no matching file: {2}, platform match: {3}",
+                            Logger.Trace("Ignoring log file path {0}, regex: {1}, no matching file: {2}, platform match: {3}",
                                 pathAndMask, newFile.PlatformRegex, noMatchingLogFile, platformMatches);
                         }
                     }
