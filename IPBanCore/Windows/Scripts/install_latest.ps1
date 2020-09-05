@@ -1,4 +1,13 @@
-﻿param
+﻿#
+# One click install script for IPBan for Windows
+# (c) 2011-Present Digital Ruby, LLC
+# Please run from an admin powershell prompt the following:
+# iex ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/DigitalRuby/IPBan/master/IPBanCore/Windows/Scripts/install_latest.ps1'))
+#
+# To uninstall, run this same script with an argument of uninstall
+#
+
+param
 (
 	[Parameter(Mandatory=$False, Position = 0)] [String]$uninstall
 )
