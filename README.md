@@ -36,42 +36,17 @@ Install
 Please note that for IPBan Pro, you can find install instructions at https://ipban.com/Docs/Install. These install instructions are for the free IPBan version.
 
 **Windows**
-- For Windows, IPBan is supported on Windows Server 2012 or newer, or Windows 10 or newer.
-- Extract the IPBan.zip (inside is IPBanWindows.zip) file to a place on your computer. Right click on all the extracted files and select properties. Make sure to select "unblock" if the option is available.  You can use the [Unblock-File](https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.utility/unblock-file?view=powershell-6) utility with an **elevated** PowerShell to unblock all files in the IPBan directory:
+- IPBan is supported on Windows Server 2012 and Windows 8, or newer.
+- Easy one click install, open admin powershell and run:
 ```
-dir C:\path\to\ipban | Unblock-File
-```
-- You *MUST* make this change to the local security policy to ensure ip addresses show up: 
-Change Local Security Policy -> Local Policies -> Audit Policy and turn failure logging on for "audit account logon events" and "audit logon events".
-From an admin command prompt:
-
-```
-auditpol.exe /set /category:"{69979849-797A-11D9-BED3-505054503030}" /success:enable /failure:enable
-auditpol.exe /set /category:"{69979850-797A-11D9-BED3-505054503030}" /success:enable /failure:enable
+iex ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/DigitalRuby/IPBan/master/IPBanCore/Windows/Scripts/install_latest.ps1'))
 ```
 
+***Additional Windows Notes***
 - It is highly recommended to disable NTLM logins and only allow NTLM2 logins. Use secpol -> local policies -> security options -> network security restrict ntlm incoming ntlm traffic -> deny all accounts. You must disable NLA if you do this or you will be locked out of your machine (Control Panel -> System and Security -> System -> Advanced Settings -> Remote Tab (uncheck NLA)).
 - Please ensure your server and clients are patched before making the above change: https://support.microsoft.com/en-us/help/4093492/credssp-updates-for-cve-2018-0886-march-13-2018. You need to manually edit group policy as specified in the link.
 ![](IPBan/img/WindowsCredSSP.png)
 - Instead of the above, you can try: local policy "Network Security -> LAN Manager authentication level" to "NTLMv2 response only/refuse LM and NTLM".
-- To install as a Windows service use the [sc command](https://docs.microsoft.com/en-us/windows-server/administration/windows-commands/sc-create) and run the following in an elevated command window:
-```
-sc.exe create IPBAN type= own start= delayed-auto binPath= c:\path\to\service\DigitalRuby.IPBan.exe DisplayName= IPBAN
-sc.exe description IPBAN "Automatically builds firewall rules for abusive login attempts: https://github.com/DigitalRuby/IPBan"
-sc.exe failure IPBAN reset= 9999 actions= "restart/60000/restart/60000/restart/60000"
-sc.exe start IPBAN
-```
-or with Powershell use the command [New-Service](https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.management/new-service) and run the following in an elevated powershell window:
-```powershell
-New-Service -Name "IPBAN" -BinaryPathName "c:\path\to\service\DigitalRuby.IPBan.exe" -StartupType automatic -DisplayName "IPBAN" -Description "Automatically builds firewall rules for abusive login attempts: https://github.com/DigitalRuby/IPBan"
-Get-WmiObject win32_service -Filter "name='IPBAN'"
-& sc.exe config IPBAN start= delayed-auto
-& sc.exe failure IPBAN reset= 9999 actions= "restart/60000/restart/60000/restart/60000"
-Start-Service IPBAN
-```
-- On Windows, the service MUST be set to start as delayed automatic, otherwise the service will crash upon machine reboot.
-- The service needs file system, event viewer and firewall access, so running as a privileged account is required.
-- To run as a console app, simply run DigitalRuby.IPBan.exe and watch console output.
 - NLA is not supported with IPBan on Windows Server 2012 or older. You must use Windows Server 2016 or newer if you want NLA. Failed logins do not log properly with NLA on the older Windows editions, regardless of any settings, registry or group policy changes.
 - On Windows Small Business Server 2011 (and probably earlier) and Windows Server running Exchange, with installed PowerShell v.2 that does not know Unblock-File command, and newer version can’t be installed (as some scripts for managing OWA stop working correctly). Easier way is to manually unblock downloaded ZIP file and then unzip content.
 - On Windows Server running Exchange, it is impossible to disable NTLM (deny all clients in Security restrict ntlm incoming ntlm traffic) as then Outlook on client computers permanently asks users for entering username and password. To workaround this, set LAN Manager authenticating level in Security Options of Local Policies to "Send NTLMv2 response only. Refuse LM & NTLM". There is one small issue – when somebody tries to login with an undefined username, the log does not contain an IP address. Not sure why Microsoft can't log an ip address properly.
@@ -79,16 +54,11 @@ Start-Service IPBAN
 
 **Linux**
 
-- Build and run and debug code with Visual Studio code
-	- This shell script runs vscode as root:
-	- `sudo mount -t vboxsf ipban ~/Desktop/ipban` # only needed if you are in a Virtual Box VM and have setup a shared folder to Windows
-	- `sudo code --user-data-dir="/tmp/vscode-root"`
-- IPBan is currently supported on Ubuntu 16.04 or newer and Debian 9 or newer. IPSet and IPTables are required and installed automatically if needed.
+- IPBan is supported on Ubuntu and Debian operating systems
 - Easy one click install:
 ```
 sudo -i; bash <(wget -qO- https://raw.githubusercontent.com/DigitalRuby/IPBan/master/IPBanCore/Linux/Scripts/Install.sh)
 ```
-- Change config file as desired, changes will be picked up automatically, press Ctrl-X to save.
 
 Other Information
 ------
