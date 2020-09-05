@@ -6,6 +6,8 @@
 # Please run from an admin powershell prompt the following:
 # iex ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/DigitalRuby/IPBan/master/IPBanCore/Windows/Scripts/install_latest.ps1'))
 #
+# Should you ever wish to update IPBan, just re-run this script and it will auto-update and preserve your ipban.sqlite and ipban.config files!
+#
 # To uninstall, run this same script with an argument of uninstall
 #
 
@@ -22,6 +24,9 @@ $INSTALL_EXE = "$INSTALL_PATH/DigitalRuby.IPBan.exe"
 $CONFIG_FILE = "$INSTALL_PATH/ipban.config"
 $SERVICE_NAME = "IPBan"
 
+$tempPath = [System.IO.Path]::GetTempPath()
+[bool] $isUninstall = ($uninstall -eq "u" -or $uninstall -eq "uninstall")
+
 if (Get-Service $SERVICE_NAME -ErrorAction SilentlyContinue)
 {
     # create install path, ensure clean slate
@@ -32,10 +37,15 @@ if (Get-Service $SERVICE_NAME -ErrorAction SilentlyContinue)
 if (Test-Path -Path $INSTALL_PATH)
 {
     & echo "Removing existing directory at $INSTALL_PATH"
+    if ($isUninstall -eq $False)
+    {
+        & copy "$INSTALL_PATH/ipban.config" $tempPath
+        & copy "$INSTALL_PATH/ipban.sqlite" $tempPath
+    }
     & cmd.exe /c rd /s /q $INSTALL_PATH
 }
 
-if ($uninstall -eq "u" -or $uninstall -eq "uninstall")
+if ($isUninstall -eq $True)
 {
     & echo "IPBan is fully uninstalled from this system"
     exit
@@ -51,6 +61,18 @@ Invoke-WebRequest -Uri $Url -OutFile $ZipFile
 # extract zip file, cleanup zip file
 Expand-Archive -LiteralPath $ZipFile -DestinationPath $INSTALL_PATH
 Remove-Item -Force $ZipFile
+
+# copy back over the config and db file
+if (Test-Path -Path "$tempPath/ipban.config")
+{
+    & copy "$tempPath/ipban.config" "$INSTALL_PATH"
+    & rm "$tempPath/ipban.config"
+}
+if (Test-Path -Path "$tempPath/ipban.sqlite")
+{
+    & copy "$tempPath/ipban.sqlite" "$INSTALL_PATH"
+    & rm "$tempPath/ipban.sqlite"
+}
 
 # ensure audit policy is logging
 & auditpol.exe /set /category:"{69979849-797A-11D9-BED3-505054503030}" /success:enable /failure:enable
