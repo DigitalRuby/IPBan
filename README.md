@@ -54,7 +54,7 @@ iex ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercon
 
 **Linux**
 
-- IPBan is supported on Ubuntu and Debian operating systems
+- IPBan is supported on Ubuntu and Debian operating systems.
 - Easy one click install:
 ```
 sudo -i; bash <(wget -qO- https://raw.githubusercontent.com/DigitalRuby/IPBan/master/IPBanCore/Linux/Scripts/Install.sh)
