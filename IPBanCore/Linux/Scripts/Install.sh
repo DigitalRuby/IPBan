@@ -37,4 +37,4 @@ END.OF.TEMPLATE
 sudo systemctl daemon-reload; sudo systemctl start ipban; sudo systemctl restart ipban; sudo systemctl enable ipban; sudo systemctl status ipban;
 
 # open up config editor to make any additional changes like whitelist or min failed attempt to ban, etc.
-sudo nano /opt/ipban/DigitalRuby.IPBan.dll.config
+sudo nano /opt/ipban/ipban.config
