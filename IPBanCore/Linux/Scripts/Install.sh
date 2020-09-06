@@ -9,6 +9,11 @@ FILE_NAME="IPBan-Linux-x64_$VERSION_UNDERSCORES.zip"
 # install unzipper, install iptables and ipset, make folder /opt/ipban
 sudo apt-get -q -y install unzip; sudo apt-get install -q -y iptables; sudo apt-get install -q -y ipset; sudo apt-get -q -y update; sudo mkdir /opt/ipban -p; cd /opt/ipban;
 
+# save off ipban.sqlite and ipban.config files
+mkdir /tmp>/dev/null || :
+cp /opt/ipban/ipban.sqlite /tmp>/dev/null || :
+cp /opt/ipban/ipban.config /tmp>/dev/null || :
+
 # download latest release and extract to /opt/ipban
 sudo wget https://github.com/DigitalRuby/IPBan/releases/download/$VERSION_DOTS/$FILE_NAME; unzip -qq $FILE_NAME; rm $FILE_NAME;
 
@@ -32,6 +37,12 @@ KillSignal=SIGINT
 [Install]
 WantedBy=multi-user.target
 END.OF.TEMPLATE
+
+# restore sqlite and config files
+cp /tmp/ipban.sqlite /opt/ipban>/dev/null || :
+rm /tmp/ipban.sqlite>/dev/null || :
+cp /tmp/ipban.config /opt/ipban>/dev/null || :
+rm /tmp/ipban.config>/dev/null || :
 
 # enable and start service, ensure that it is running on reboots as well
 sudo systemctl daemon-reload; sudo systemctl start ipban; sudo systemctl restart ipban; sudo systemctl enable ipban; sudo systemctl status ipban;
