@@ -9,6 +9,9 @@ FILE_NAME="IPBan-Linux-x64_$VERSION_UNDERSCORES.zip"
 # install unzipper, install iptables and ipset, make folder /opt/ipban
 sudo apt-get -q -y install unzip; sudo apt-get install -q -y iptables; sudo apt-get install -q -y ipset; sudo apt-get -q -y update; sudo mkdir /opt/ipban -p; cd /opt/ipban;
 
+# stop service
+sudo systemctl stop ipban
+
 # save off ipban.sqlite and ipban.config files
 mkdir /tmp>/dev/null || :
 cp /opt/ipban/ipban.sqlite /tmp>/dev/null || :
