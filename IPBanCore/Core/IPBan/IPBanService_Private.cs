@@ -431,11 +431,17 @@ namespace DigitalRuby.IPBanCore
                             string[] pieces = programToRunConfigString.Split('|');
                             if (pieces.Length == 2)
                             {
-                                string program = pieces[0];
+                                string program = Path.GetFullPath(pieces[0]);
                                 string arguments = pieces[1];
-                                Process.Start(program, arguments.Replace("###IPADDRESS###", bannedIp.IPAddress)
-                                    .Replace("###SOURCE###", bannedIp.Source)
-                                    .Replace("###USERNAME###", bannedIp.UserName));
+                                ProcessStartInfo psi = new ProcessStartInfo
+                                {
+                                    FileName = program,
+                                    WorkingDirectory = Path.GetDirectoryName(program),
+                                    Arguments = arguments.Replace("###IPADDRESS###", bannedIp.IPAddress)
+                                        .Replace("###SOURCE###", bannedIp.Source)
+                                        .Replace("###USERNAME###", bannedIp.UserName)
+                                };
+                                Process.Start(psi);
                             }
                             else
                             {
