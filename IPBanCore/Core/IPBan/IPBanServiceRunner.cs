@@ -162,7 +162,14 @@ namespace DigitalRuby.IPBanCore
             // fire off run event if there is one
             if (onRun != null)
             {
-                await onRun(cancelToken.Token);
+                try
+                {
+                    await onRun(cancelToken.Token);
+                }
+                catch (Exception ex)
+                {
+                    Logger.Error(ex);
+                }
 
                 // send a stop event since we are done running
                 StopAsync(stoppingToken).GetAwaiter();
