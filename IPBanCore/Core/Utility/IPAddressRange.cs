@@ -760,6 +760,16 @@ namespace DigitalRuby.IPBanCore
         }
 
         /// <summary>
+        /// Check if port range contains a port
+        /// </summary>
+        /// <param name="port">Port</param>
+        /// <returns>True if contains the port, false otherwise</returns>
+        public bool Contains(int port)
+        {
+            return port >= MinPort && port <= MaxPort;
+        }
+
+        /// <summary>
         /// Parse a port range from a string. If parsing fails, min port will be -1.
         /// </summary>
         /// <param name="s">String</param>
