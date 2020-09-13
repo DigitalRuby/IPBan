@@ -34,6 +34,7 @@ using System.Net;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Serialization;
 
@@ -364,6 +365,7 @@ namespace DigitalRuby.IPBanCore
 
             if (!string.IsNullOrWhiteSpace(setValue))
             {
+                List<string> entries = new List<string>();
                 foreach (string entry in setValue.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(e => e.Trim()))
                 {
                     string entryWithoutComment = entry;
@@ -373,45 +375,89 @@ namespace DigitalRuby.IPBanCore
                         entryWithoutComment = entryWithoutComment.Substring(0, pos);
                     }
                     entryWithoutComment = entryWithoutComment.Trim();
-                    if (!ignoreListEntries.Contains(entryWithoutComment))
-                    {
-                        if (IPAddressRange.TryParse(entryWithoutComment, out IPAddressRange range))
-                        {
-                            if (range.Begin.Equals(range.End))
-                            {
-                                set.Add(range.Begin);
-                            }
-                            else
-                            {
-                                ranges.Add(range);
-                            }
-                        }
-                        else if (Uri.CheckHostName(entryWithoutComment) != UriHostNameType.Unknown)
-                        {
-                            try
-                            {
-                                // add entries for each ip address that matches the dns entry
-                                IPAddress[] addresses = null;
-                                ExtensionMethods.Retry(() => addresses = dns.GetHostAddressesAsync(entryWithoutComment).Sync());
-                                foreach (IPAddress adr in addresses)
-                                {
-                                    set.Add(adr);
-                                }
-                            }
-                            catch (Exception ex)
-                            {
-                                Logger.Error(ex, "Unable to resolve dns for {0}", entryWithoutComment);
+                    entries.Add(entryWithoutComment);
+                }
+                List<Task> entryTasks = new List<Task>();
 
-                                // eat exception, nothing we can do
-                                others.Add(entryWithoutComment);
-                            }
+                // iterate in parallel for performance
+                foreach (string entry in entries)
+                {
+                    string entryWithoutComment = entry;
+                    entryTasks.Add(Task.Run(async () =>
+                    {
+                        bool isUserName;
+                        if (entryWithoutComment.StartsWith("user:", StringComparison.OrdinalIgnoreCase))
+                        {
+                            isUserName = true;
+                            entryWithoutComment = entryWithoutComment.Substring("user:".Length);
                         }
                         else
                         {
-                            others.Add(entryWithoutComment);
+                            isUserName = false;
                         }
-                    }
+                        if (!ignoreListEntries.Contains(entryWithoutComment))
+                        {
+                            if (!isUserName && IPAddressRange.TryParse(entryWithoutComment, out IPAddressRange range))
+                            {
+                                if (range.Begin.Equals(range.End))
+                                {
+                                    lock (set)
+                                    {
+                                        set.Add(range.Begin);
+                                    }
+                                }
+                                else
+                                {
+                                    lock (ranges)
+                                    {
+                                        ranges.Add(range);
+                                    }
+                                }
+                            }
+                            else if (!isUserName && Uri.CheckHostName(entryWithoutComment) != UriHostNameType.Unknown)
+                            {
+                                try
+                                {
+                                    // add entries for each ip address that matches the dns entry
+                                    IPAddress[] addresses = null;
+                                    await ExtensionMethods.RetryAsync(async () => addresses = await dns.GetHostAddressesAsync(entryWithoutComment),
+                                        exceptionRetry: _ex =>
+                                        {
+                                            return (!(_ex is System.Net.Sockets.SocketException socketEx) ||
+                                                socketEx.SocketErrorCode != System.Net.Sockets.SocketError.HostNotFound);
+                                        });
+
+                                    lock (set)
+                                    {
+                                        foreach (IPAddress adr in addresses)
+                                        {
+                                            set.Add(adr);
+                                        }
+                                    }
+                                }
+                                catch (Exception ex)
+                                {
+                                    Logger.Debug("Unable to resolve dns for {0}: {1}", entryWithoutComment, ex.Message);
+
+                                    lock (others)
+                                    {
+                                        // eat exception, nothing we can do
+                                        others.Add(entryWithoutComment);
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                lock (others)
+                                {
+                                    others.Add(entryWithoutComment);
+                                }
+                            }
+                        }
+                    }));
                 }
+
+                Task.WhenAll(entryTasks).Sync();
             }
 
             if (!string.IsNullOrWhiteSpace(regexValue))

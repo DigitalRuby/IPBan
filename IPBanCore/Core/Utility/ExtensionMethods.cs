@@ -1076,7 +1076,9 @@ namespace DigitalRuby.IPBanCore
         /// <param name="action">Action</param>
         /// <param name="millisecondsBetweenRetry">Milliseconds between each retry</param>
         /// <param name="retryCount">Retry count</param>
-        public static void Retry(Action action, int millisecondsBetweenRetry = 1000, int retryCount = 3)
+        /// <param name="exceptionRetry">Optional func to determine if exception should be retried</param>
+        public static void Retry(Action action, int millisecondsBetweenRetry = 1000, int retryCount = 3,
+            Func<Exception, bool> exceptionRetry = null)
         {
             Exception lastError = null;
             for (int i = 1; i <= retryCount; i++)
@@ -1089,11 +1091,12 @@ namespace DigitalRuby.IPBanCore
                 catch (Exception ex)
                 {
                     lastError = ex;
-                    if (lastError is OperationCanceledException)
+                    if (lastError is OperationCanceledException ||
+                        (exceptionRetry != null && !exceptionRetry(ex)))
                     {
                         break;
                     }
-                    if (i != retryCount)
+                    else if (i != retryCount)
                     {
                         Thread.Sleep(millisecondsBetweenRetry);
                     }
@@ -1108,8 +1111,10 @@ namespace DigitalRuby.IPBanCore
         /// <param name="action">Action</param>
         /// <param name="millisecondsBetweenRetry">Milliseconds between each retry</param>
         /// <param name="retryCount">Retry count</param>
+        /// <param name="exceptionRetry">Optional func to determine if exception should be retried</param>
         /// <returns>Task</returns>
-        public static async Task RetryAsync(Func<Task> action, int millisecondsBetweenRetry = 1000, int retryCount = 3)
+        public static async Task RetryAsync(Func<Task> action, int millisecondsBetweenRetry = 1000, int retryCount = 3,
+            Func<Exception, bool> exceptionRetry = null)
         {
             Exception lastError = null;
             for (int i = 1; i <= retryCount; i++)
@@ -1122,11 +1127,12 @@ namespace DigitalRuby.IPBanCore
                 catch (Exception ex)
                 {
                     lastError = ex;
-                    if (lastError is OperationCanceledException)
+                    if (lastError is OperationCanceledException ||
+                        (exceptionRetry != null && !exceptionRetry(ex)))
                     {
                         break;
                     }
-                    if (i != retryCount)
+                    else if (i != retryCount)
                     {
                         Thread.Sleep(millisecondsBetweenRetry);
                     }
