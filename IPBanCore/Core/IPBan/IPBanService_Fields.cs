@@ -236,5 +236,10 @@ namespace DigitalRuby.IPBanCore
         /// File name to write ip addresses to (one per line) to unblock the ip addresses in the file
         /// </summary>
         public string UnblockIPAddressesFileName { get; } = Path.Combine(AppContext.BaseDirectory, "unban.txt");
+
+        /// <summary>
+        /// Pending log events
+        /// </summary>
+        public IReadOnlyCollection<IPAddressLogEvent> PendingLogEvents => pendingLogEvents;
     }
 }
