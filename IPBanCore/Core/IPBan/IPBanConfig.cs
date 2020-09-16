@@ -31,6 +31,7 @@ using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -112,6 +113,7 @@ namespace DigitalRuby.IPBanCore
         private static readonly TimeSpan[] emptyTimeSpanArray = new TimeSpan[] { TimeSpan.Zero };
         private static readonly IPBanLogFileToParse[] emptyLogFilesToParseArray = new IPBanLogFileToParse[0];
         private static readonly TimeSpan maxBanTimeSpan = TimeSpan.FromDays(90.0);
+        private static readonly HttpClient httpClient;
 
         private readonly Dictionary<string, string> appSettings = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         private readonly IPBanLogFileToParse[] logFiles;
@@ -177,6 +179,8 @@ namespace DigitalRuby.IPBanCore
                         File.Delete(oldConfigPath);
                     });
                 }
+                httpClient = new HttpClient();
+                httpClient.DefaultRequestHeaders.Add("User-Agent", "ipban.com");
             }
             catch (Exception ex)
             {
@@ -363,6 +367,24 @@ namespace DigitalRuby.IPBanCore
             set.Clear();
             regex = null;
 
+            void AddIPAddressRange(IPAddressRange range)
+            {
+                if (range.Begin.Equals(range.End))
+                {
+                    lock (set)
+                    {
+                        set.Add(range.Begin);
+                    }
+                }
+                else
+                {
+                    lock (ranges)
+                    {
+                        ranges.Add(range);
+                    }
+                }
+            }
+
             if (!string.IsNullOrWhiteSpace(setValue))
             {
                 List<string> entries = new List<string>();
@@ -397,20 +419,25 @@ namespace DigitalRuby.IPBanCore
                         }
                         if (!ignoreListEntries.Contains(entryWithoutComment))
                         {
-                            if (!isUserName && IPAddressRange.TryParse(entryWithoutComment, out IPAddressRange range))
+                            if (!isUserName && IPAddressRange.TryParse(entryWithoutComment, out IPAddressRange rangeFromEntry))
                             {
-                                if (range.Begin.Equals(range.End))
+                                AddIPAddressRange(rangeFromEntry);
+                            }
+                            else if (!isUserName &&
+                                (entryWithoutComment.StartsWith("https://", StringComparison.OrdinalIgnoreCase) ||
+                                entryWithoutComment.StartsWith("http://", StringComparison.OrdinalIgnoreCase)))
+                            {
+                                // assume url list of ips, newline delimited
+                                string ipList = null;
+                                await ExtensionMethods.RetryAsync(async () => ipList = await httpClient.GetStringAsync(entryWithoutComment));
+                                if (!string.IsNullOrWhiteSpace(ipList))
                                 {
-                                    lock (set)
+                                    foreach (string item in ipList.Split('\n'))
                                     {
-                                        set.Add(range.Begin);
-                                    }
-                                }
-                                else
-                                {
-                                    lock (ranges)
-                                    {
-                                        ranges.Add(range);
+                                        if (IPAddressRange.TryParse(item.Trim(), out IPAddressRange ipRangeFromUrl))
+                                        {
+                                            AddIPAddressRange(ipRangeFromUrl);
+                                        }
                                     }
                                 }
                             }
@@ -423,6 +450,7 @@ namespace DigitalRuby.IPBanCore
                                     await ExtensionMethods.RetryAsync(async () => addresses = await dns.GetHostAddressesAsync(entryWithoutComment),
                                         exceptionRetry: _ex =>
                                         {
+                                            // ignore host not found errors
                                             return (!(_ex is System.Net.Sockets.SocketException socketEx) ||
                                                 socketEx.SocketErrorCode != System.Net.Sockets.SocketError.HostNotFound);
                                         });

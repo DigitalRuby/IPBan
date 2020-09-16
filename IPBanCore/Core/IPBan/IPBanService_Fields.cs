@@ -40,7 +40,7 @@ namespace DigitalRuby.IPBanCore
     {
         private static readonly char[] regexTrimChars = new char[]
         {
-            ',', ';', '|', '_', '-', '\'', '\"', '(', ')', '[', ']', '{', '}', ' ', '\r', '\n'
+            ',', ';', '|', '_', '-', '\'', '\"', '(', ')', '[', ']', '{', '}', ' ', '\t', '\r', '\n'
         };
 
         // batch failed logins every cycle

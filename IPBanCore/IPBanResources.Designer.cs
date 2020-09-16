@@ -763,7 +763,7 @@ namespace DigitalRuby.IPBanCore {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Regular expression for more advanced blacklisting. Shortcut: use* to allow any piece of an ip, dns name or user name(i.e. 128.128.128.*). Sample regex that blacklists a few ips: ^(128\.128\.128\.*)|(99\.99\.99\.[0-9])$ More info about regex: http://www.regular-expressions.info/.
+        ///   Looks up a localized string similar to Regular expression for more advanced blacklisting. Shortcut: use* to allow any piece of an ip, dns name, url or user name(i.e. 128.128.128.*). Sample regex that blacklists a few ips: ^(128\.128\.128\.*)|(99\.99\.99\.[0-9])$ More info about regex: http://www.regular-expressions.info/.
         /// </summary>
         public static string IPBlacklistRegexTooltip {
             get {
@@ -808,7 +808,7 @@ namespace DigitalRuby.IPBanCore {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to IP addresses, cidr masks or dns names to never ban. Prefis user names with user:, i.e. user:root..
+        ///   Looks up a localized string similar to IP addresses, cidr masks, urls or dns names to never ban. Prefis user names with user:, i.e. user:root..
         /// </summary>
         public static string IPWhitelistTooltip {
             get {
