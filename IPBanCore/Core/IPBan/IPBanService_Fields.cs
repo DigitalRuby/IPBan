@@ -240,6 +240,15 @@ namespace DigitalRuby.IPBanCore
         /// <summary>
         /// Pending log events
         /// </summary>
-        public IReadOnlyCollection<IPAddressLogEvent> PendingLogEvents => pendingLogEvents;
+        public IReadOnlyCollection<IPAddressLogEvent> PendingLogEvents
+        {
+            get
+            {
+                lock (pendingLogEvents)
+                {
+                    return pendingLogEvents.ToArray();
+                }
+            }
+        }
     }
 }
