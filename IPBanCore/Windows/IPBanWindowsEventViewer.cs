@@ -66,7 +66,15 @@ namespace DigitalRuby.IPBanCore
         /// <returns>Task</returns>
         public Task Update(CancellationToken cancelToken)
         {
-            SetupEventLogWatcher();
+            try
+            {
+                SetupEventLogWatcher();
+            }
+            catch (Exception ex)
+            {
+                previousQueryString = null;
+                Logger.Warn("Failed to initialize windows event viewer, will retry initialization on next cycle: {0}", ex.Message);
+            }
             return Task.CompletedTask;
         }
 
@@ -326,24 +334,19 @@ namespace DigitalRuby.IPBanCore
         private void SetupEventLogWatcher()
         {
             // note- this code will throw when Windows reboots, especially after patches
-            // make sure to only instantiate in the update loop of the service so that
-            // an exception will just throw out and a re-attempt can be made next cycle
             List<string> ignored = new List<string>();
             string queryString = GetEventLogQueryString(ignored);
             if (queryString != null && queryString != previousQueryString)
             {
-                Logger.Warn("Event viewer query string: {0}", queryString);
-                foreach (string path in ignored)
-                {
-                    Logger.Warn("Ignoring event viewer path {0}", path);
-                }
-
                 watcher?.Dispose();
                 query = new EventLogQuery(null, PathType.LogName, queryString);
                 watcher = new EventLogWatcher(query);
                 watcher.EventRecordWritten += EventRecordWritten;
                 watcher.Enabled = true;
                 previousQueryString = queryString;
+
+                Logger.Warn("Initialized event viewer with query string: {0}", queryString);
+                Logger.Warn("Ignoring event viewer paths: {0}", string.Join(',', ignored));
             }
         }
     }
