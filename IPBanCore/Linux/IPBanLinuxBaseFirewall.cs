@@ -250,7 +250,7 @@ namespace DigitalRuby.IPBanCore
 
 #endif
 
-            string ipFileTemp = OSUtility.Instance.GetTempFileName();
+            string ipFileTemp = OSUtility.GetTempFileName();
             try
             {
                 // add and remove the appropriate ip addresses from the set
@@ -333,7 +333,7 @@ namespace DigitalRuby.IPBanCore
 
 #endif
 
-            string ipFileTemp = OSUtility.Instance.GetTempFileName();
+            string ipFileTemp = OSUtility.GetTempFileName();
             try
             {
                 // add and remove the appropriate ip addresses from the set
@@ -587,7 +587,7 @@ namespace DigitalRuby.IPBanCore
 
         public override IEnumerable<IPAddressRange> EnumerateIPAddresses(string ruleNamePrefix = null)
         {
-            string tempFile = OSUtility.Instance.GetTempFileName();
+            string tempFile = OSUtility.GetTempFileName();
             try
             {
                 string prefix = RulePrefix + (ruleNamePrefix ?? string.Empty);
@@ -625,7 +625,7 @@ namespace DigitalRuby.IPBanCore
 
         public override IEnumerable<string> EnumerateBannedIPAddresses()
         {
-            string tempFile = OSUtility.Instance.GetTempFileName();
+            string tempFile = OSUtility.GetTempFileName();
             try
             {
                 RunProcess("ipset", true, $"save > \"{tempFile}\"");
@@ -652,7 +652,7 @@ namespace DigitalRuby.IPBanCore
 
         public override IEnumerable<string> EnumerateAllowedIPAddresses()
         {
-            string tempFile = OSUtility.Instance.GetTempFileName();
+            string tempFile = OSUtility.GetTempFileName();
             try
             {
                 RunProcess("ipset", true, $"save > \"{tempFile}\"");

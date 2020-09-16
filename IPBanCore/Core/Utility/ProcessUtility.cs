@@ -165,7 +165,7 @@ namespace DigitalRuby.IPBanCore
         /// <param name="arguments">Arguments</param>
         public static void CreateDetachedProcess(string fileName, string arguments)
         {
-            if (OSUtility.Instance.IsWindows)
+            if (OSUtility.IsWindows)
             {
                 var processInformation = new ProcessUtility.PROCESS_INFORMATION();
                 var startupInfo = new ProcessUtility.STARTUPINFO();

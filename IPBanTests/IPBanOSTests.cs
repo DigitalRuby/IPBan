@@ -13,8 +13,8 @@ namespace DigitalRuby.IPBanTests
         [Test]
         public void TestOSIsRecognized()
         {
-            Assert.IsTrue(OSUtility.Instance.Name == OSUtility.Windows || OSUtility.Instance.Name == OSUtility.Linux ||
-                OSUtility.Instance.Name == OSUtility.Mac);
+            Assert.IsTrue(OSUtility.Name == OSUtility.Windows || OSUtility.Name == OSUtility.Linux ||
+                OSUtility.Name == OSUtility.Mac);
         }
 
         [Test]

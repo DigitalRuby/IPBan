@@ -51,8 +51,8 @@ namespace DigitalRuby.IPBanCore
         /// </summary>
         public IPBanService()
         {
-            OSName = OSUtility.Instance.Name + (string.IsNullOrWhiteSpace(OSUtility.Instance.FriendlyName) ? string.Empty : " (" + OSUtility.Instance.FriendlyName + ")");
-            OSVersion = OSUtility.Instance.Version;
+            OSName = OSUtility.Name + (string.IsNullOrWhiteSpace(OSUtility.FriendlyName) ? string.Empty : " (" + OSUtility.FriendlyName + ")");
+            OSVersion = OSUtility.Version;
 
             // by default, all IPBan services will parse log files
             updaters.Add(new IPBanLogFileManager(this));
@@ -337,8 +337,7 @@ namespace DigitalRuby.IPBanCore
                     // start delegate if we have one
                     IPBanDelegate?.Start(this);
 
-                    Logger.Warn("IPBan service started and initialized. Operating System: {0}",
-                        OSUtility.Instance.OSString());
+                    Logger.Warn("IPBan service started and initialized");
                     Logger.WriteLogLevels();
 
                     // setup cycle timer if needed

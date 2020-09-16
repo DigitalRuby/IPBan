@@ -45,7 +45,7 @@ namespace DigitalRuby.IPBan
             if (args.Length != 0 && (args[0].Equals("info", StringComparison.OrdinalIgnoreCase) ||
                 args[0].Equals("-info", StringComparison.OrdinalIgnoreCase)))
             {
-                Logger.Warn("System info: {0}", OSUtility.Instance.OSString());
+                Logger.Warn("System info: {0}", OSUtility.OSString());
                 return;
             }
 
