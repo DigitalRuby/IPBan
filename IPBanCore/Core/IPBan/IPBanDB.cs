@@ -210,7 +210,11 @@ namespace DigitalRuby.IPBanCore
         /// <returns>IP address count</returns>
         public int GetIPAddressCount()
         {
-            return ExecuteScalar<int>("SELECT COUNT(*) FROM IPAddresses");
+            if (ExecuteScalar<int>("SELECT COUNT(*) FROM IPAddresses", out int count))
+            {
+                return count;
+            }
+            return 0;
         }
 
         /// <summary>
@@ -219,7 +223,11 @@ namespace DigitalRuby.IPBanCore
         /// <returns>Banned ip address count</returns>
         public int GetBannedIPAddressCount()
         {
-            return ExecuteScalar<int>("SELECT COUNT(*) FROM IPAddresses WHERE BanDate IS NOT NULL");
+            if (ExecuteScalar<int>("SELECT COUNT(*) FROM IPAddresses WHERE BanDate IS NOT NULL", out int count))
+            {
+                return count;
+            }
+            return 0;
         }
 
         /// <summary>
@@ -246,8 +254,11 @@ namespace DigitalRuby.IPBanCore
                     ON CONFLICT(IPAddress)
                     DO UPDATE SET LastFailedLogin = @Param2, FailedLoginCount = FailedLoginCount + @Param3 WHERE State = 3;
                     SELECT FailedLoginCount FROM IPAddresses WHERE IPAddress = @Param0;";
-                return ExecuteScalar<int>(command, tran?.DBConnection, tran?.DBTransaction, ipBytes, ipAddress, timestamp, increment,
-                    (userName ?? string.Empty), (source ?? string.Empty));
+                if (ExecuteScalar<int>(command, tran?.DBConnection, tran?.DBTransaction, out int count, ipBytes, ipAddress, timestamp, increment,
+                    (userName ?? string.Empty), (source ?? string.Empty)))
+                {
+                    return count;
+                }
             }
             return 0;
         }
@@ -388,16 +399,20 @@ namespace DigitalRuby.IPBanCore
         /// <param name="state">Receives ip address state or default if not found</param>
         /// <param name="transaction">Transaction</param>
         /// <returns>True if ip address found, false otherwise</returns>
-        public bool TryGetIPAddressState(string ipAddress, out IPAddressState state, object transaction = null)
+        public bool TryGetIPAddressState(string ipAddress, out IPAddressState? state, object transaction = null)
         {
             if (IPAddress.TryParse(ipAddress, out IPAddress ipAddressObj))
             {
                 SqliteDBTransaction tran = transaction as SqliteDBTransaction;
                 byte[] ipBytes = ipAddressObj.GetAddressBytes();
-                state = (IPAddressState)ExecuteScalar<int>("SELECT State FROM IPAddresses WHERE IPAddress = @Param0", tran?.DBConnection, tran?.DBTransaction, ipBytes);
-                return true;
+                if (ExecuteScalar<int>("SELECT State FROM IPAddresses WHERE IPAddress = @Param0",
+                    tran?.DBConnection, tran?.DBTransaction, out int stateInt, ipBytes))
+                {
+                    state = (IPAddressState)stateInt;
+                    return true;
+                }
             }
-            state = IPAddressState.Active;
+            state = null;
             return false;
         }
 

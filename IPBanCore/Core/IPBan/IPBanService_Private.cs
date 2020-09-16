@@ -235,8 +235,8 @@ namespace DigitalRuby.IPBanCore
                                 Logger.Info("IP blacklisted: {0}, user name blacklisted: {1}, fails user name white list regex: {2}, user name edit distance blacklisted: {3}",
                                     ipBlacklisted, userBlacklisted, userFailsWhitelistRegex, editDistanceBlacklisted);
 
-                                if (ipDB.TryGetIPAddressState(ipAddress, out IPBanDB.IPAddressState state, transaction) &&
-                                    (state == IPBanDB.IPAddressState.Active || state == IPBanDB.IPAddressState.AddPending))
+                                if (ipDB.TryGetIPAddressState(ipAddress, out IPBanDB.IPAddressState? state, transaction) &&
+                                    (state.Value == IPBanDB.IPAddressState.Active || state.Value == IPBanDB.IPAddressState.AddPending))
                                 {
                                     Logger.Warn(now, "IP {0}, {1}, {2} ban pending.", ipAddress, userName, source);
                                 }
@@ -269,7 +269,7 @@ namespace DigitalRuby.IPBanCore
                             }
                         }
                     }
-                    catch (Exception ex)
+      catch (Exception ex)
                     {
                         Logger.Error(ex);
                     }
@@ -968,7 +968,12 @@ namespace DigitalRuby.IPBanCore
                     switch (evt.Type)
                     {
                         case IPAddressEventType.FailedLogin:
-                            ProcessIPAddressEvent(evt, pendingFailedLogins, Config.MinimumTimeBetweenFailedLoginAttempts, "failed");
+                            // if we are not already banned...
+                            if (!DB.TryGetIPAddressState(evt.IPAddress, out IPBanDB.IPAddressState? state, transaction) ||
+                                (state.Value != IPBanDB.IPAddressState.Active && state.Value != IPBanDB.IPAddressState.AddPending))
+                            {
+                                ProcessIPAddressEvent(evt, pendingFailedLogins, Config.MinimumTimeBetweenFailedLoginAttempts, "failed");
+                            }
                             break;
 
                         case IPAddressEventType.SuccessfulLogin:
@@ -976,9 +981,14 @@ namespace DigitalRuby.IPBanCore
                             break;
 
                         case IPAddressEventType.Blocked:
-                            // make sure the ip address is ban pending
-                            AddBannedIPAddress(evt.IPAddress, evt.Source, evt.UserName, bannedIPs,
+                            // if we are not already banned...
+                            if (!DB.TryGetIPAddressState(evt.IPAddress, out IPBanDB.IPAddressState? state2, transaction) ||
+                                (state2.Value != IPBanDB.IPAddressState.Active && state2.Value != IPBanDB.IPAddressState.AddPending))
+                            {
+                                // make sure the ip address is ban pending
+                                AddBannedIPAddress(evt.IPAddress, evt.Source, evt.UserName, bannedIPs,
                                 evt.Timestamp, false, evt.Count, string.Empty, transaction, evt.External);
+                            }
                             break;
 
                         case IPAddressEventType.Unblocked:

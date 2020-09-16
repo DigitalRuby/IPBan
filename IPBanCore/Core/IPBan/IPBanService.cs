@@ -121,9 +121,10 @@ namespace DigitalRuby.IPBanCore
         /// <param name="events">IP address events</param>
         public void AddIPAddressLogEvents(IEnumerable<IPAddressLogEvent> events)
         {
+            var eventsArray = events.ToArray();
             lock (pendingLogEvents)
             {
-                pendingLogEvents.AddRange(events);
+                pendingLogEvents.AddRange(eventsArray);
             }
         }
 
@@ -532,6 +533,16 @@ namespace DigitalRuby.IPBanCore
             }
         }
 
+        private class TestTimeSource : NLog.Time.TimeSource
+        {
+            public override DateTime Time => IPBanService.UtcNow;
+
+            public override DateTime FromSystemTime(DateTime systemTime)
+            {
+                return systemTime.ToUniversalTime();
+            }
+        }
+
         /// <summary>
         /// Create a test IPBanService
         /// </summary>
@@ -543,6 +554,26 @@ namespace DigitalRuby.IPBanCore
         public static T CreateAndStartIPBanTestService<T>(string directory = null, string configFileName = null, string defaultBannedIPAddressHandlerUrl = null,
             Func<string, string> configFileModifier = null) where T : IPBanService
         {
+            NLog.Time.TimeSource.Current = new TestTimeSource();
+            string defaultNLogConfig = $@"<?xml version=""1.0""?>
+<nlog xmlns=""http://www.nlog-project.org/schemas/NLog.xsd"" xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" throwExceptions=""false"" internalLogToConsole=""false"" internalLogToConsoleError=""false"" internalLogLevel=""Trace"">
+  <targets>
+    <target name=""logfile"" xsi:type=""File"" fileName=""${{basedir}}/logfile.txt"" encoding=""UTF-8""/>
+    <target name=""console"" xsi:type=""Console""/>
+  </targets>
+  <rules>
+    <logger name=""*"" minlevel=""Debug"" writeTo=""logfile""/>
+    <logger name=""*"" minlevel=""Debug"" writeTo=""console""/>
+  </rules>
+</nlog>";
+            File.WriteAllText(Path.Combine(AppContext.BaseDirectory, "nlog.config"), defaultNLogConfig);
+
+            string logFilePath = Path.Combine(AppContext.BaseDirectory, "logfile.txt");
+            if (File.Exists(logFilePath))
+            {
+                File.Delete(logFilePath);
+            }
+
             ExtensionMethods.RemoveDatabaseFiles();
             DefaultHttpRequestMaker.DisableLiveRequests = true;
             if (string.IsNullOrWhiteSpace(directory))
@@ -591,9 +622,15 @@ namespace DigitalRuby.IPBanCore
         {
             if (service != null)
             {
+                if (File.Exists(Path.Combine(AppContext.BaseDirectory, "nlog.config")))
+                {
+                    File.Delete(Path.Combine(AppContext.BaseDirectory, "nlog.config"));
+                }
                 service.Firewall.Truncate();
                 service.RunCycle().Sync();
+                service.IPBanDelegate = null;
                 service.Dispose();
+                NLog.Time.TimeSource.Current = new NLog.Time.AccurateUtcTimeSource();
                 IPBanService.UtcNow = default;
             }
         }

@@ -27,6 +27,7 @@ SOFTWARE.
 using Microsoft.Extensions.Logging;
 using NLog;
 using NLog.Config;
+using NLog.Time;
 using System;
 using System.Configuration;
 using System.IO;
@@ -179,46 +180,35 @@ namespace DigitalRuby.IPBanCore
         {
             try
             {
-                LogFactory factory = null;
-                try
+                string nlogConfigPath = Path.Combine(AppContext.BaseDirectory, "nlog.config");
+                if (!File.Exists(nlogConfigPath))
                 {
-                    factory = LogManager.LoadConfiguration(ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None).FilePath);
-                }
-                catch
-                {
-                    // if no config, exception is thrown that is OK
-                }
-                if (factory is null || factory.Configuration.AllTargets.Count == 0)
-                {
-                    string nlogConfigPath = Path.Combine(AppContext.BaseDirectory, "nlog.config");
-                    if (!File.Exists(nlogConfigPath))
-                    {
-                        string logLevel = "Warn";
+                    const string defaultLogLevel = "Info";
 
-                        Console.WriteLine("Creating default nlog.config file");
+                    Console.WriteLine("Creating default nlog.config file");
 
-                        // storing this as a resource fails to use correct string in precompiled .exe with .net core, bug with Microsoft I think
-                        string defaultNLogConfig = $@"<?xml version=""1.0""?>
+                    // storing this as a resource fails to use correct string in precompiled .exe with .net core, bug with Microsoft I think
+                    string defaultNLogConfig = $@"<?xml version=""1.0""?>
 <nlog xmlns=""http://www.nlog-project.org/schemas/NLog.xsd"" xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" throwExceptions=""false"" internalLogToConsole=""false"" internalLogToConsoleError=""false"" internalLogLevel=""Trace"">
   <targets>
     <target name=""logfile"" xsi:type=""File"" fileName=""${{basedir}}/logfile.txt"" archiveNumbering=""Sequence"" archiveEvery=""Day"" maxArchiveFiles=""28"" encoding=""UTF-8""/>
     <target name=""console"" xsi:type=""Console""/>
   </targets>
   <rules>
-    <logger name=""*"" minlevel=""{logLevel}"" writeTo=""logfile""/>
-    <logger name=""*"" minlevel=""{logLevel}"" writeTo=""console""/>
+    <logger name=""*"" minlevel=""{defaultLogLevel}"" writeTo=""logfile""/>
+    <logger name=""*"" minlevel=""{defaultLogLevel}"" writeTo=""console""/>
   </rules>
 </nlog>";
-                        ExtensionMethods.FileWriteAllTextWithRetry(nlogConfigPath, defaultNLogConfig);
-                    }
-                    if (File.Exists(nlogConfigPath))
-                    {
-                        factory = LogManager.LoadConfiguration(nlogConfigPath);
-                    }
-                    else
-                    {
-                        throw new IOException("Unable to create nlog configuration file, nlog.config file failed to write default config.");
-                    }
+                    ExtensionMethods.FileWriteAllTextWithRetry(nlogConfigPath, defaultNLogConfig);
+                }
+                LogFactory factory;
+                if (File.Exists(nlogConfigPath))
+                {
+                    factory = LogManager.LoadConfiguration(nlogConfigPath);
+                }
+                else
+                {
+                    throw new IOException("Unable to create nlog configuration file, nlog.config file failed to write default config.");
                 }
                 nlogInstance = factory.GetCurrentClassLogger();
                 instance = new NLogWrapper(nlogInstance);

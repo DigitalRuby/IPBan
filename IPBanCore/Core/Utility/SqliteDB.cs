@@ -193,11 +193,13 @@ namespace DigitalRuby.IPBanCore
         /// </summary>
         /// <typeparam name="T">Type of scalar</typeparam>
         /// <param name="cmdText">Command text</param>
+        /// <param name="result">Result</param>
         /// <param name="parameters">Parameters</param>
-        /// <returns>Return value</returns>
-        protected T ExecuteScalar<T>(string cmdText, params object[] parameters)
+        /// <returns>True if value, false if not</returns>
+        protected bool ExecuteScalar<T>(string cmdText, out T result,
+            params object[] parameters)
         {
-            return ExecuteScalar<T>(cmdText, null, null, parameters);
+            return ExecuteScalar<T>(cmdText, null, null, out result, parameters);
         }
 
         /// <summary>
@@ -207,9 +209,11 @@ namespace DigitalRuby.IPBanCore
         /// <param name="cmdText">Command text</param>
         /// <param name="conn">Connection</param>
         /// <param name="tran">Transaction</param>
+        /// <param name="result">Result</param>
         /// <param name="parameters">Parameters</param>
-        /// <returns>Return value</returns>
-        protected T ExecuteScalar<T>(string cmdText, SqliteConnection conn, SqliteTransaction tran, params object[] parameters)
+        /// <returns>True if value, false if not</returns>
+        protected bool ExecuteScalar<T>(string cmdText, SqliteConnection conn, SqliteTransaction tran, out T result,
+            params object[] parameters)
         {
             bool closeConn = false;
             if (conn is null)
@@ -228,7 +232,14 @@ namespace DigitalRuby.IPBanCore
                     {
                         command.Parameters.Add(new SqliteParameter("@Param" + i, parameters[i] ?? DBNull.Value));
                     }
-                    return (T)Convert.ChangeType(command.ExecuteScalar(), typeof(T));
+                    object resultObj = command.ExecuteScalar();
+                    if (resultObj is null || resultObj == DBNull.Value)
+                    {
+                        result = default;
+                        return false;
+                    }
+                    result = (T)Convert.ChangeType(resultObj, typeof(T));
+                    return true;
                 }
             }
             finally
