@@ -412,7 +412,7 @@ namespace DigitalRuby.IPBanCore
             ipRangeString = ipRangeString.Trim();
 
             // define local funtion to strip scope id in ip address string.
-            string stripScopeId(string ipaddressString) => ipaddressString.Split('%')[0];
+            static string stripScopeId(string ipaddressString) => ipaddressString.Split('%')[0];
 
             // Pattern 1. CIDR range: "192.168.0.0/24", "fe80::/10%eth0"
             var m1 = m1_regex.Match(ipRangeString);
