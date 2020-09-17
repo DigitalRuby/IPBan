@@ -292,6 +292,7 @@ namespace DigitalRuby.IPBanCore
                 if (Config.ClearFailedLoginsOnSuccessfulLogin)
                 {
                     DB.DeleteIPAddress(info.IPAddress);
+                    firewallNeedsBlockedIPAddressesUpdate = true;
                 }
             }
             if (IPBanDelegate != null)
