@@ -394,9 +394,19 @@ namespace DigitalRuby.IPBanCore
                 Bits.GtECore(this.End.GetAddressBytes(), range.End.GetAddressBytes(), offset);
         }
 
-        public static IPAddressRange Parse(string ipRangeString)
+        public static IPAddressRange Parse(string ipRangeString, bool throwException = true)
         {
-            if (ipRangeString is null) throw new ArgumentNullException(nameof(ipRangeString));
+            if (ipRangeString is null)
+            {
+                if (throwException)
+                {
+                    throw new ArgumentNullException(nameof(ipRangeString));
+                }
+                else
+                {
+                    return null;
+                }
+            }
 
             // trim white spaces.
             ipRangeString = ipRangeString.Trim();
@@ -453,17 +463,21 @@ namespace DigitalRuby.IPBanCore
                 return new IPAddressRange(new IPAddress(baseAdrBytes), new IPAddress(Bits.Or(baseAdrBytes, Bits.Not(maskBytes))));
             }
 
-            throw new FormatException("Unknown IP range string.");
+            if (throwException)
+            {
+                throw new FormatException("Unknown IP range string.");
+            }
+            return null;
         }
 
         public static bool TryParse(string ipRangeString, out IPAddressRange ipRange)
         {
             try
             {
-                ipRange = IPAddressRange.Parse(ipRangeString);
-                return true;
+                ipRange = IPAddressRange.Parse(ipRangeString, false);
+                return (ipRange != null);
             }
-            catch (Exception)
+            catch
             {
                 ipRange = null;
                 return false;
