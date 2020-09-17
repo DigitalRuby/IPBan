@@ -427,18 +427,25 @@ namespace DigitalRuby.IPBanCore
                                 (entryWithoutComment.StartsWith("https://", StringComparison.OrdinalIgnoreCase) ||
                                 entryWithoutComment.StartsWith("http://", StringComparison.OrdinalIgnoreCase)))
                             {
-                                // assume url list of ips, newline delimited
-                                string ipList = null;
-                                await ExtensionMethods.RetryAsync(async () => ipList = await httpClient.GetStringAsync(entryWithoutComment));
-                                if (!string.IsNullOrWhiteSpace(ipList))
+                                try
                                 {
-                                    foreach (string item in ipList.Split('\n'))
+                                    // assume url list of ips, newline delimited
+                                    string ipList = null;
+                                    await ExtensionMethods.RetryAsync(async () => ipList = await httpClient.GetStringAsync(entryWithoutComment));
+                                    if (!string.IsNullOrWhiteSpace(ipList))
                                     {
-                                        if (IPAddressRange.TryParse(item.Trim(), out IPAddressRange ipRangeFromUrl))
+                                        foreach (string item in ipList.Split('\n'))
                                         {
-                                            AddIPAddressRange(ipRangeFromUrl);
+                                            if (IPAddressRange.TryParse(item.Trim(), out IPAddressRange ipRangeFromUrl))
+                                            {
+                                                AddIPAddressRange(ipRangeFromUrl);
+                                            }
                                         }
                                     }
+                                }
+                                catch (Exception ex)
+                                {
+                                    Logger.Error(ex, "Failed to get ip list from url {0}", entryWithoutComment);
                                 }
                             }
                             else if (!isUserName && Uri.CheckHostName(entryWithoutComment) != UriHostNameType.Unknown)
