@@ -31,7 +31,6 @@ using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Net;
-using System.Net.Http;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -113,7 +112,10 @@ namespace DigitalRuby.IPBanCore
         private static readonly TimeSpan[] emptyTimeSpanArray = new TimeSpan[] { TimeSpan.Zero };
         private static readonly IPBanLogFileToParse[] emptyLogFilesToParseArray = new IPBanLogFileToParse[0];
         private static readonly TimeSpan maxBanTimeSpan = TimeSpan.FromDays(90.0);
-        private static readonly HttpClient httpClient;
+        private static readonly IEnumerable<KeyValuePair<string, object>> ipListHeaders = new KeyValuePair<string, object>[]
+        {
+            new KeyValuePair<string, object>("User-Agent", "ipban.com")
+        };
 
         private readonly Dictionary<string, string> appSettings = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         private readonly IPBanLogFileToParse[] logFiles;
@@ -154,6 +156,7 @@ namespace DigitalRuby.IPBanCore
         private readonly string firewallUriRules;
         private readonly IDnsLookup dns;
         private readonly IDnsServerList dnsList;
+        private readonly IHttpRequestMaker httpRequestMaker;
         private readonly List<IPBanFirewallRule> extraRules = new List<IPBanFirewallRule>();
         private readonly EventViewerExpressionsToBlock expressionsFailure;
         private readonly EventViewerExpressionsToNotify expressionsSuccess;
@@ -179,8 +182,6 @@ namespace DigitalRuby.IPBanCore
                         File.Delete(oldConfigPath);
                     });
                 }
-                httpClient = new HttpClient();
-                httpClient.DefaultRequestHeaders.Add("User-Agent", "ipban.com");
             }
             catch (Exception ex)
             {
@@ -189,10 +190,11 @@ namespace DigitalRuby.IPBanCore
             }
         }
 
-        private IPBanConfig(string xml, IDnsLookup dns = null, IDnsServerList dnsList = null)
+        private IPBanConfig(string xml, IDnsLookup dns = null, IDnsServerList dnsList = null, IHttpRequestMaker httpRequestMaker = null)
         {
             this.dns = dns ?? DefaultDnsLookup.Instance;
             this.dnsList = dnsList;
+            this.httpRequestMaker = httpRequestMaker;
 
             // deserialize with XmlDocument, the .net core Configuration class is quite buggy
             XmlDocument doc = new XmlDocument();
@@ -429,16 +431,21 @@ namespace DigitalRuby.IPBanCore
                             {
                                 try
                                 {
-                                    // assume url list of ips, newline delimited
-                                    string ipList = null;
-                                    await ExtensionMethods.RetryAsync(async () => ipList = await httpClient.GetStringAsync(entryWithoutComment));
-                                    if (!string.IsNullOrWhiteSpace(ipList))
+                                    if (httpRequestMaker != null)
                                     {
-                                        foreach (string item in ipList.Split('\n'))
+                                        // assume url list of ips, newline delimited
+                                        byte[] ipListBytes = null;
+                                        Uri uri = new Uri(entryWithoutComment);
+                                        await ExtensionMethods.RetryAsync(async () => ipListBytes = await httpRequestMaker.MakeRequestAsync(uri, null, ipListHeaders));
+                                        string ipList = Encoding.UTF8.GetString(ipListBytes);
+                                        if (!string.IsNullOrWhiteSpace(ipList))
                                         {
-                                            if (IPAddressRange.TryParse(item.Trim(), out IPAddressRange ipRangeFromUrl))
+                                            foreach (string item in ipList.Split('\n'))
                                             {
-                                                AddIPAddressRange(ipRangeFromUrl);
+                                                if (IPAddressRange.TryParse(item.Trim(), out IPAddressRange ipRangeFromUrl))
+                                                {
+                                                    AddIPAddressRange(ipRangeFromUrl);
+                                                }
                                             }
                                         }
                                     }
@@ -743,10 +750,12 @@ namespace DigitalRuby.IPBanCore
         /// <param name="xml">XML string</param>
         /// <param name="dns">Dns lookup for resolving ip addresses, null for default</param>
         /// <param name="dnsList">Dns server list, null for none</param>
+        /// <param name="httpRequestMaker">Http request maker, null for none</param>
         /// <returns>IPBanConfig</returns>
-        public static IPBanConfig LoadFromXml(string xml, IDnsLookup dns = null, IDnsServerList dnsList = null)
+        public static IPBanConfig LoadFromXml(string xml, IDnsLookup dns = null, IDnsServerList dnsList = null,
+            IHttpRequestMaker httpRequestMaker = null)
         {
-            return new IPBanConfig(xml, dns, dnsList);
+            return new IPBanConfig(xml, dns, dnsList, httpRequestMaker);
         }
 
         /// <summary>
