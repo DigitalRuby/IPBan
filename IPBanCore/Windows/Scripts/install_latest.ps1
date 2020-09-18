@@ -39,8 +39,14 @@ if (Test-Path -Path $INSTALL_PATH)
     & echo "Removing existing directory at $INSTALL_PATH"
     if ($isUninstall -eq $False)
     {
-        & copy "$INSTALL_PATH/ipban.config" $tempPath
-        & copy "$INSTALL_PATH/ipban.sqlite" $tempPath
+        if (Test-Path "$INSTALL_PATH/ipban.config")
+        {
+            copy "$INSTALL_PATH/ipban.config" $tempPath
+        }
+        if (Test-Path "$INSTALL_PATH/ipban.sqlite")
+        {
+            copy "$INSTALL_PATH/ipban.sqlite" $tempPath
+        }
     }
     & cmd.exe /c rd /s /q $INSTALL_PATH
 }
