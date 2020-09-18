@@ -40,6 +40,8 @@ namespace DigitalRuby.IPBanCore
     /// </summary>
     public sealed class IPBanServiceRunner : BackgroundService
     {
+        private static bool hostServiceSetup;
+
         private readonly CancellationTokenSource cancelToken = new CancellationTokenSource();
         private readonly Func<CancellationToken, Task> onRun;
         private readonly Func<CancellationToken, Task> onStop;
@@ -65,23 +67,8 @@ namespace DigitalRuby.IPBanCore
 
             this.onRun = onRun;
             this.onStop = onStop;
-            if (Microsoft.Extensions.Hosting.WindowsServices.WindowsServiceHelpers.IsWindowsService())
-            {
-                Logger.Warn("Running as a Windows service");
-                hostBuilder.UseWindowsService();
-            }
-            else if (Microsoft.Extensions.Hosting.Systemd.SystemdHelpers.IsSystemdService())
-            {
-                Logger.Warn("Running as a systemd service");
-                hostBuilder.UseSystemd();
-            }
-            else
-            {
-                // adding console lifetime wrecks things if actually running under a service
-                Logger.Warn("Running as a console app");
-                hostBuilder.UseConsoleLifetime();
-            }
             hostBuilder.UseContentRoot(AppContext.BaseDirectory);
+            SetupHostService(hostBuilder);
             host = hostBuilder.Build();
         }
 
@@ -99,6 +86,36 @@ namespace DigitalRuby.IPBanCore
             finally
             {
                 host.Dispose();
+            }
+        }
+
+        /// <summary>
+        /// Setup a host builder with Windows service, systemd or console lifetime as appropriate
+        /// </summary>
+        /// <param name="hostBuilder">Host builder</param>
+        public static void SetupHostService(IHostBuilder hostBuilder)
+        {
+            if (hostServiceSetup)
+            {
+                return;
+            }
+            hostServiceSetup = true;
+
+            if (Microsoft.Extensions.Hosting.WindowsServices.WindowsServiceHelpers.IsWindowsService())
+            {
+                Logger.Warn("Running as a Windows service");
+                hostBuilder.UseWindowsService();
+            }
+            else if (Microsoft.Extensions.Hosting.Systemd.SystemdHelpers.IsSystemdService())
+            {
+                Logger.Warn("Running as a systemd service");
+                hostBuilder.UseSystemd();
+            }
+            else
+            {
+                // adding console lifetime wrecks things if actually running under a service
+                Logger.Warn("Running as a console app");
+                hostBuilder.UseConsoleLifetime();
             }
         }
 
