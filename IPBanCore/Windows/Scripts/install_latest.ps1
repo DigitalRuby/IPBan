@@ -52,7 +52,7 @@ if ($isUninstall -eq $True)
 }
 
 # download zip file
-& mkdir -p $INSTALL_PATH
+& mkdir -Path $INSTALL_PATH
 $Url = "https://github.com/DigitalRuby/IPBan/releases/download/$VERSION_DOTS/$FILE_NAME"
 & echo "Downloading ipban from $Url"
 $ZipFile = "$INSTALL_PATH/IPBan.zip"
