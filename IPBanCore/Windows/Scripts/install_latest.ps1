@@ -3,6 +3,9 @@
 # (c) 2011-Present Digital Ruby, LLC
 # https://www.digitalruby.com
 #
+# PowerShell minimum version: 5.0
+# Update PowerShell: https://docs.microsoft.com/en-us/powershell/scripting/install/installing-powershell-core-on-windows?view=powershell-5.1
+#
 # Please run from an admin powershell prompt the following:
 # iex ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/DigitalRuby/IPBan/master/IPBanCore/Windows/Scripts/install_latest.ps1'))
 #
