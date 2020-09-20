@@ -15,7 +15,13 @@ variables:
     buildConfiguration: 'Release'
 
 steps:
-    - task: NugetToolInstaller@1
+    - task: UseDotNet@2
+      displayName: 'Install .Net Core SDK'
+      inputs:
+        packageType: 'sdk'
+        version: '5.0.0-rc.1.20451.14'
+
+    - task: NuGetToolInstaller@1
     - task: DotNetCoreCLI@2
       inputs:
         command: restore

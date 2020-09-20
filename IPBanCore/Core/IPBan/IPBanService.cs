@@ -577,7 +577,7 @@ namespace DigitalRuby.IPBanCore
             DefaultHttpRequestMaker.DisableLiveRequests = true;
             if (string.IsNullOrWhiteSpace(directory))
             {
-                directory = Path.GetDirectoryName(IPBanAssembly.Location);
+                directory = AppContext.BaseDirectory;
             }
             if (string.IsNullOrWhiteSpace(configFileName))
             {

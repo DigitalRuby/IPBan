@@ -208,7 +208,7 @@ namespace DigitalRuby.IPBanCore
                 {
                     if (!(ex is FileNotFoundException || ex is IOException))
                     {
-                        throw ex;
+                        throw;
                     }
                     // ignore, maybe the file got deleted...
                 }

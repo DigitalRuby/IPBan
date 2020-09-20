@@ -1,38 +1,39 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <OutputType>Exe</OutputType>
-    <TargetFrameworks>netcoreapp3.1</TargetFrameworks>
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <Version>1.5.7</Version>
-    <Company>Digital Ruby, LLC</Company>
-    <Copyright>(c) 2010 Digital Ruby, LLC</Copyright>
-    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-    <OutputType>Exe</OutputType>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>    <TargetLatestRuntimePatch>true</TargetLatestRuntimePatch>
-    <Description>Ban ip addresses based on failed login attempts.</Description>
-    <Summary>Allow auto-banning ip addresses based on failed logins and rules. Can read event viewer or log files. Windows and Linux supported. Includes firewall API.</Summary>
-    <PackageReleaseNotes></PackageReleaseNotes>
-    <DebugType>portable</DebugType>
-    <LangVersion>latest</LangVersion>
-    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
-    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
-    <RootNamespace>DigitalRuby.IPBan</RootNamespace>
-    <AssemblyName>DigitalRuby.IPBan</AssemblyName>
-    <ApplicationManifest>app.manifest</ApplicationManifest>
-    <PreserveCompilationContext>true</PreserveCompilationContext>
-    <PublishTrimmed>true</PublishTrimmed>
-	<GenerateSerializationAssemblies>Off</GenerateSerializationAssemblies>
-  </PropertyGroup>
+	<PropertyGroup>
+		<OutputType>Exe</OutputType>
+		<TargetFrameworks>net5.0</TargetFrameworks>
+		<PlatformTarget>AnyCPU</PlatformTarget>
+		<Version>1.5.8</Version>
+		<Company>Digital Ruby, LLC</Company>
+		<Copyright>(c) 2010 Digital Ruby, LLC</Copyright>
+		<GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+		<OutputType>Exe</OutputType>
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+		<TargetLatestRuntimePatch>true</TargetLatestRuntimePatch>
+		<Description>Ban ip addresses based on failed login attempts.</Description>
+		<Summary>Allow auto-banning ip addresses based on failed logins and rules. Can read event viewer or log files. Windows and Linux supported. Includes firewall API.</Summary>
+		<PackageReleaseNotes></PackageReleaseNotes>
+		<DebugType>portable</DebugType>
+		<LangVersion>latest</LangVersion>
+		<GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+		<PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+		<RootNamespace>DigitalRuby.IPBan</RootNamespace>
+		<AssemblyName>DigitalRuby.IPBan</AssemblyName>
+		<ApplicationManifest>app.manifest</ApplicationManifest>
+		<PreserveCompilationContext>true</PreserveCompilationContext>
+		<PublishTrimmed>true</PublishTrimmed>
+		<GenerateSerializationAssemblies>Off</GenerateSerializationAssemblies>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <Content Include="..\README.md" Link="README.md">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-  </ItemGroup>
+	<ItemGroup>
+		<Content Include="..\README.md" Link="README.md">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
+	</ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\IPBanCore\IPBanCore.csproj" />
-  </ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\IPBanCore\IPBanCore.csproj" />
+	</ItemGroup>
 
 </Project>

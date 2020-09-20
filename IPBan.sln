@@ -19,6 +19,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionItems", "SolutionItems", "{8E9EED12-B723-40A8-B468-0FEC9CBEC181}"
 	ProjectSection(SolutionItems) = preProject
 		azure-pipelines.yml = azure-pipelines.yml
+		IPBan\CreatePackage.ps1 = IPBan\CreatePackage.ps1
 		ISSUE_TEMPLATE.md = ISSUE_TEMPLATE.md
 		LICENSE.md = LICENSE.md
 		README.md = README.md
