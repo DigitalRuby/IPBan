@@ -15,7 +15,7 @@ variables:
     buildConfiguration: 'Release'
 
 steps:
-    - script: sudo -i; apt-get install -q -y iptables; sudo apt-get install -q -y ipset; sudo apt-get update
+    - script: sudo -i; apt-get install -q -y iptables; apt-get install -q -y ipset; apt-get update;
       displayName: 'Install dependencies on Linux'
       condition: contains( variables['Agent.OS'], 'Linux' )
 
