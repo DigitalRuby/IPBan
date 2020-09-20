@@ -15,6 +15,10 @@ variables:
     buildConfiguration: 'Release'
 
 steps:
+    - script: sudo apt-get install -q -y iptables; sudo apt-get install -q -y ipset; sudo apt-get update
+      displayName: 'Install dependencies on Linux'
+      condition: contains( variables['Agent.OS'], 'Linux' )
+
     - task: UseDotNet@2
       displayName: 'Install .Net Core SDK'
       inputs:
@@ -23,22 +27,20 @@ steps:
         includePreviewVersions: true
 
     - task: NuGetToolInstaller@1
+
     - task: DotNetCoreCLI@2
       inputs:
         command: restore
         projects: './IPBanTests/IPBanTests.csproj'
 
-    - script: sudo apt-get install -q -y iptables; sudo apt-get install -q -y ipset; sudo apt-get update
-      displayName: 'Install dependencies on Linux'
-      condition: contains( variables['Agent.OS'], 'Linux' )
+    - task: DotNetCoreCLI@2
+      inputs:
+        command: build
+        projects: './IPBanTests/IPBanTests.csproj'
+        arguments: '--configuration $(buildConfiguration)'
 
-    - script: dotnet build --configuration $(buildConfiguration) ./IPBanTests/IPBanTests.csproj
-      displayName: 'Build All'
-
-    - script: sudo dotnet test --configuration $(buildConfiguration) ./IPBanTests/IPBanTests.csproj
-      displayName: 'Test Linux'
-      condition: contains( variables['Agent.OS'], 'Linux' )
-
-    - script: dotnet test --configuration $(buildConfiguration) ./IPBanTests/IPBanTests.csproj
-      displayName: 'Test Windows'
-      condition: contains( variables['Agent.OS'], 'Windows' )
+    - task: DotNetCoreCLI@2
+      inputs:
+        command: test
+        projects: './IPBanTests/IPBanTests.csproj'
+        arguments: '--configuration $(buildConfiguration)'
