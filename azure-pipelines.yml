@@ -20,6 +20,7 @@ steps:
       inputs:
         packageType: 'sdk'
         version: '5.0.0-rc.1.20451.14'
+        includePreviewVersions: true
 
     - task: NuGetToolInstaller@1
     - task: DotNetCoreCLI@2
