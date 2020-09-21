@@ -24,10 +24,12 @@
 		<PreserveCompilationContext>true</PreserveCompilationContext>
 		<PublishTrimmed>true</PublishTrimmed>
 		<GenerateSerializationAssemblies>Off</GenerateSerializationAssemblies>
+		<ApplicationIcon>../ipban_favicon.ico</ApplicationIcon>
 	</PropertyGroup>
 
 	<ItemGroup>
-		<Content Include="..\README.md" Link="README.md">
+		<Content Include="../ipban_favicon.ico" Link="ipban_favicon.ico" />
+		<Content Include="../README.md" Link="README.md">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</Content>
 	</ItemGroup>
