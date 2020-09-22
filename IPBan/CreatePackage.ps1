@@ -3,7 +3,7 @@ param([Parameter(Mandatory=$true)] [String]$version)
 # powershell -ExecutionPolicy Bypass
 
 $netFrameworkVersion = "net5.0"
-$publishTrimmed = $True
+$publishTrimmed = $False
 
 Remove-Item ./package -Recurse -ErrorAction Ignore
 mkdir ./package
