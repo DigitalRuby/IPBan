@@ -905,7 +905,7 @@ namespace DigitalRuby.IPBanCore
                     ips.AddRange(localHostIP);
                 }
 
-                return ips.Where(ip => (allowLocal || !ip.IsLocalHost()) ||
+                return ips.Where(ip => (allowLocal || !ip.IsLocalHost()) &&
                     (addressFamily is null || ip.AddressFamily == addressFamily)).ToArray();
             }
             catch
