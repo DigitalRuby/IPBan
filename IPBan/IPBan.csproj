@@ -38,4 +38,12 @@
 		<ProjectReference Include="..\IPBanCore\IPBanCore.csproj" />
 	</ItemGroup>
 
+	<ItemGroup>
+		<TrimmerRootAssembly Include="System.Core" />
+		<TrimmerRootAssembly Include="System.Reflection" />
+		<TrimmerRootAssembly Include="System.Runtime" />
+		<TrimmerRootAssembly Include="mscorlib" />
+		<TrimmerRootAssembly Include="netstandard" />
+	</ItemGroup>
+
 </Project>
