@@ -161,14 +161,19 @@ namespace DigitalRuby.IPBanCore
             if (Interlocked.Increment(ref stopLock) == 1)
             {
                 Logger.Warn("Stopping service");
-                cancelToken.Cancel();
                 if (onStop != null)
                 {
                     await onStop(cancellationToken);
                 }
-                await base.StopAsync(cancellationToken);
-                await host.StopAsync(cancellationToken);
             }
+        }
+
+        /// <summary>
+        /// Shutdown the service
+        /// </summary>
+        public void Shutdown()
+        {
+            cancelToken.Cancel();
         }
 
         /// <inheritdoc />
@@ -188,11 +193,10 @@ namespace DigitalRuby.IPBanCore
                     Logger.Error(ex);
                 }
 
-                // send a stop event since we are done running
-                StopAsync(stoppingToken).GetAwaiter();
+                Shutdown();
             }
 
-            // else it is up to the caller of this class to call StopAsync
+            // else it is up to the caller of this class to call Shutdown
         }
     }
 }
