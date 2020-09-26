@@ -177,6 +177,9 @@ namespace DigitalRuby.IPBanCore
             }
             else
             {
+                // ensure process is executable
+                OSUtility.StartProcessAndWait("chmod", "+x \"" + fileName + "\"");
+
                 ProcessStartInfo info = new ProcessStartInfo
                 {
                     // Linux uses " &" to detach the process
