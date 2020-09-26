@@ -567,7 +567,7 @@ namespace DigitalRuby.IPBanCore
                 byte[] bytes = ip.GetAddressBytes();
                 if (bytes.Length == 4)
                 {
-                    return (bytes[0] == 127 && bytes[1] == 0 && bytes[2] == 0 && bytes[3] == 1);
+                    return (bytes[0] == 127 && bytes[1] == 0 && (bytes[2] == 0 || bytes[2] == 1) && bytes[3] == 1);
                 }
                 else if (bytes.Length == 16)
                 {
@@ -887,7 +887,7 @@ namespace DigitalRuby.IPBanCore
                 List<IPAddress> ips = new List<IPAddress>();
                 string hostName = await dns.GetHostNameAsync();
                 IPAddress[] hostAddresses = await dns.GetHostAddressesAsync(hostName);
-                ips.AddRange(hostAddresses);
+                ips.AddRange(hostAddresses.Where(i => !i.IsLocalHost()));
 
                 // sort ipv4 first
                 ips.Sort((ip1, ip2) =>
