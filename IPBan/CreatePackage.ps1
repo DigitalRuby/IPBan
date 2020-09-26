@@ -32,6 +32,8 @@ function CodeSign($folder, $checkFail)
 	}
 }
 
+& taskkill /im dotnet.exe /F
+
 # IPBan Linux x64
 & "c:/program files/dotnet/dotnet.exe" restore -r linux-x64; CheckFail
 & "c:/program files/dotnet/dotnet.exe" clean -c Release; CheckFail
@@ -52,3 +54,5 @@ CodeSign package/win-x86 CheckFail
 Compress-Archive -Path ./package/linux-x64/* -DestinationPath ./package/IPBan-Linux-x64_$version.zip; CheckFail
 Compress-Archive -Path ./package/win-x64/* -DestinationPath ./package/IPBan-Windows-x64_$version.zip; CheckFail
 Compress-Archive -Path ./package/win-x86/* -DestinationPath ./package/IPBan-Windows-x86_$version.zip; CheckFail
+
+& taskkill /im dotnet.exe /F
