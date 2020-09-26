@@ -180,12 +180,13 @@ namespace DigitalRuby.IPBanCore
                 // ensure process is executable
                 OSUtility.StartProcessAndWait("sudo", "chmod +x \"" + fileName + "\"");
 
+                // use Linux at, should have been installed earlier
                 ProcessStartInfo info = new ProcessStartInfo
                 {
-                    // Linux uses " &" to detach the process
-                    Arguments = arguments + " &",
+                    // Linux uses nohup and " &" to detach the process
+                    Arguments = "\"" + fileName + "\" " + arguments + " &",
                     CreateNoWindow = true,
-                    FileName = fileName,
+                    FileName = "nohup",
                     UseShellExecute = false,
                     WindowStyle = ProcessWindowStyle.Hidden,
                     WorkingDirectory = Path.GetDirectoryName(fileName)
