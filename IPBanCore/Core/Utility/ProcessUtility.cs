@@ -167,6 +167,8 @@ namespace DigitalRuby.IPBanCore
         {
             if (OSUtility.IsWindows)
             {
+                Logger.Warn("Running detached process {0} {1}", fileName, arguments);
+
                 var processInformation = new ProcessUtility.PROCESS_INFORMATION();
                 var startupInfo = new ProcessUtility.STARTUPINFO();
                 var sa = new ProcessUtility.SECURITY_ATTRIBUTES();
@@ -192,6 +194,8 @@ namespace DigitalRuby.IPBanCore
                     WindowStyle = ProcessWindowStyle.Hidden,
                     WorkingDirectory = Path.GetDirectoryName(fileName)
                 };
+
+                Logger.Warn("Running detached process {0} {1}", info.FileName, info.Arguments);
 
                 Process.Start(info);
             }
