@@ -184,9 +184,10 @@ namespace DigitalRuby.IPBanCore
                 ProcessStartInfo info = new ProcessStartInfo
                 {
                     // Linux uses nohup and " &" to detach the process
-                    Arguments = "\"" + fileName + "\" " + arguments + " &",
+                    // sudo -b to force it into the background
+                    Arguments = "-b nohup \"" + fileName + "\" " + arguments + " &",
                     CreateNoWindow = true,
-                    FileName = "nohup",
+                    FileName = "sudo",
                     UseShellExecute = false,
                     WindowStyle = ProcessWindowStyle.Hidden,
                     WorkingDirectory = Path.GetDirectoryName(fileName)
