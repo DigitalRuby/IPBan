@@ -187,9 +187,9 @@ namespace DigitalRuby.IPBanCore
                 {
                     // Linux uses nohup and " &" to detach the process
                     // sudo -b to force it into the background
-                    Arguments = "echo \"" + fileName + "\" " + arguments + " | at now",
+                    Arguments = "-c \"echo sudo \\\"" + fileName + "\\\" " + arguments.Replace("\"", "\\\"") + " | at now\"",
                     CreateNoWindow = true,
-                    FileName = "sudo",
+                    FileName = "/bin/bash",
                     UseShellExecute = false,
                     WindowStyle = ProcessWindowStyle.Hidden,
                     WorkingDirectory = Path.GetDirectoryName(fileName)
