@@ -187,7 +187,7 @@ namespace DigitalRuby.IPBanCore
                 {
                     // Linux uses nohup and " &" to detach the process
                     // sudo -b to force it into the background
-                    Arguments = "-b \"" + fileName + "\" " + arguments + " & disown",
+                    Arguments = "echo \"" + fileName + "\" " + arguments + " | at now",
                     CreateNoWindow = true,
                     FileName = "sudo",
                     UseShellExecute = false,
