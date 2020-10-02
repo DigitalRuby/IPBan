@@ -33,7 +33,7 @@ You can also visit the ipban discord at https://discord.gg/sHCUHH3 to chat with 
 Install
 ------
 
-Please note that for IPBan Pro, you can find install instructions at https://ipban.com/Docs/Install. These install instructions are for the free IPBan version.
+Please note that for IPBan Pro, you can find install instructions at https://ipban.com/Docs/Install. These install instructions here on github are for the free IPBan version.
 
 **Windows**
 - IPBan is supported on Windows Server 2012 and Windows 8, or newer.
