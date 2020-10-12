@@ -217,7 +217,7 @@ namespace DigitalRuby.IPBanCore
                     int ruleNum = int.Parse(line.Substring(0, index));
 
                     // replace the rule with the new info
-                    RunProcess(IpTablesProcess, true, $"-R INPUT {ruleNum} -m --state NEW -m set{portString}--match-set \"{ruleName}\" src -j {action}");
+                    RunProcess(IpTablesProcess, true, $"-R INPUT {ruleNum} -m state --state NEW -m set{portString}--match-set \"{ruleName}\" src -j {action}");
                     replaced = true;
                     break;
                 }
@@ -226,7 +226,7 @@ namespace DigitalRuby.IPBanCore
             {
                 // add a new rule, for block add to end of list (lower priority) for allow add to begin of list (higher priority)
                 string addCommand = (block ? "-A" : "-I");
-                RunProcess(IpTablesProcess, true, $"{addCommand} INPUT -m --state NEW -m set{portString}--match-set \"{ruleName}\" src -j {action}");
+                RunProcess(IpTablesProcess, true, $"{addCommand} INPUT -m state --state NEW -m set{portString}--match-set \"{ruleName}\" src -j {action}");
             }
 
             if (cancelToken.IsCancellationRequested)
