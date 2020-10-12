@@ -217,7 +217,7 @@ namespace DigitalRuby.IPBanCore
                     int ruleNum = int.Parse(line.Substring(0, index));
 
                     // replace the rule with the new info
-                    RunProcess(IpTablesProcess, true, $"-R INPUT \"{ruleNum}\" -m --state NEW -m set{portString}--match-set \"{ruleName}\" src -j {action}");
+                    RunProcess(IpTablesProcess, true, $"-R INPUT {ruleNum} -m --state NEW -m set{portString}--match-set \"{ruleName}\" src -j {action}");
                     replaced = true;
                     break;
                 }
