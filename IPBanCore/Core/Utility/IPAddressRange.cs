@@ -800,15 +800,23 @@ namespace DigitalRuby.IPBanCore
                 return new PortRange(-1, -1);
             }
             string[] pieces = s.Split('-', StringSplitOptions.RemoveEmptyEntries);
-            if (pieces.Length == 0)
+            if (pieces.Length == 1)
             {
-                return new PortRange();
+                if (int.TryParse(pieces[0], NumberStyles.Any, CultureInfo.InvariantCulture, out int singlePort))
+                {
+                    return new PortRange(singlePort);
+                }
+
             }
-            else if (pieces.Length == 1)
+            else if (pieces.Length == 2)
             {
-                return new PortRange(int.Parse(pieces[0], CultureInfo.InvariantCulture));
+                if (int.TryParse(pieces[0], NumberStyles.Any, CultureInfo.InvariantCulture, out int singlePort1) &&
+                    int.TryParse(pieces[1], NumberStyles.Any, CultureInfo.InvariantCulture, out int singlePort2))
+                {
+                    return new PortRange(singlePort1, singlePort2);
+                }
             }
-            return new PortRange(int.Parse(pieces[0], CultureInfo.InvariantCulture), int.Parse(pieces[1], CultureInfo.InvariantCulture));
+            return new PortRange(-1, -1);
         }
 
         /// <summary>

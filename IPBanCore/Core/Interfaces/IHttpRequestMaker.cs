@@ -104,7 +104,9 @@ namespace DigitalRuby.IPBanCore
         public Task<byte[]> MakeRequestAsync(Uri uri, string postJson = null, IEnumerable<KeyValuePair<string, object>> headers = null,
             CancellationToken cancelToken = default)
         {
-            if (uri.Host.IndexOf("localhost", StringComparison.OrdinalIgnoreCase) >= 0 || uri.Host.Contains("127.0.0.1") || uri.Host.Contains("::1"))
+            if (uri.Host.StartsWith("localhost", StringComparison.OrdinalIgnoreCase) ||
+                uri.Host.StartsWith("127.0.0.1") ||
+                uri.Host.StartsWith("::1"))
             {
                 Interlocked.Increment(ref localRequestCount);
             }
