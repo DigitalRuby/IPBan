@@ -19,7 +19,7 @@ param
 	[Parameter(Mandatory=$False, Position = 0)] [String]$uninstall
 )
 
-$VERSION_DOTS = "1.5.7"
+$VERSION_DOTS = "1.5.8"
 $VERSION_UNDERSCORES = $VERSION_DOTS -replace "\.","_"
 $FILE_NAME = "IPBan-Windows-x64_$VERSION_UNDERSCORES.zip"
 $INSTALL_PATH = "C:/Program Files/IPBan"
