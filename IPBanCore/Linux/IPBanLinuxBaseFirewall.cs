@@ -210,7 +210,7 @@ namespace DigitalRuby.IPBanCore
             string ruleNameWithSpaces = " " + ruleName + " ";
             foreach (string line in lines)
             {
-                if (line.IndexOf(ruleNameWithSpaces, StringComparison.OrdinalIgnoreCase) >= 0)
+                if (line.Contains(ruleNameWithSpaces, StringComparison.OrdinalIgnoreCase))
                 {
                     // rule number is first piece of the line
                     int index = line.IndexOf(' ');

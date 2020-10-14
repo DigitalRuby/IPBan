@@ -115,12 +115,6 @@ namespace DigitalRuby.IPBanCore
             {
                 BannedIPAddressHandler = NullBannedIPAddressHandler.Instance;
             }
-
-            // will only execute once
-            UpdateBannedIPAddressesOnStart();
-
-            // will only execute once
-            SetupWindowsEventViewer();
         }
 
         private object BeginTransaction()
@@ -542,6 +536,12 @@ namespace DigitalRuby.IPBanCore
                     }
                 }
             }
+
+            // ensure firewall is cleared out if needed - will only execute once
+            UpdateBannedIPAddressesOnStart();
+
+            // ensure windows event viewer is setup if needed - will only execute once
+            SetupWindowsEventViewer();
 
             // add/update global rules
             Firewall.AllowIPAddresses("GlobalWhitelist", Config.Whitelist);
