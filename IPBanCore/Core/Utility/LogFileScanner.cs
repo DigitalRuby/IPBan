@@ -332,7 +332,7 @@ namespace DigitalRuby.IPBanCore
                 pos = glob.LastIndexOfAny(new[] { '/', '\\' });
                 if (pos < 0)
                 {
-                    throw new ArgumentException("Cannot normalize a glob that does not have a directory and a file");
+                    throw new ArgumentException("Cannot normalize a glob that does not have a directory and a file piece");
                 }
 
                 // directory is every segment before the last dir sep
@@ -340,6 +340,11 @@ namespace DigitalRuby.IPBanCore
 
                 // glob is everything after
                 globPortion = glob[pos..];
+
+                if (globPortion.Length == 0)
+                {
+                    throw new ArgumentException("Cannot normalize a glob that does not have a directory and a file piece");
+                }
             }
 
             // escape needed chars

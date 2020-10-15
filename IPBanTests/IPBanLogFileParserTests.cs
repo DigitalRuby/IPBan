@@ -255,12 +255,18 @@ namespace DigitalRuby.IPBanTests
             string[] files = new string[]
             {
                 "c:/temp/file.txt",
-                "c:/temp/files/*/subdir/files*.txt"
+                "c:/temp/files/*/subdir/files*.txt",
+                "c:\\temp\\file.txt",
+                "c:\\temp\\files\\*\\subdir\\files*.txt",
+                "/var/log/all*files.txt"
             };
             string[] outFiles = new string[]
             {
                 "c:/temp/", "file.txt",
-                "c:/temp/files/", "*/subdir/files*.txt"
+                "c:/temp/files/", "*/subdir/files*.txt",
+                "c:/temp/", "file.txt",
+                "c:/temp/files/", "*/subdir/files*.txt",
+                "/var/log/", "all*files.txt"
             };
             for (int i = 0; i < files.Length; i++)
             {
@@ -271,6 +277,10 @@ namespace DigitalRuby.IPBanTests
             }
 
             Assert.Throws<ArgumentException>(() => LogFileScanner.NormalizeGlob("a.txt", out _, out _));
+            Assert.Throws<ArgumentException>(() => LogFileScanner.NormalizeGlob("c:/", out _, out _));
+            Assert.Throws<ArgumentException>(() => LogFileScanner.NormalizeGlob("/", out _, out _));
+            Assert.Throws<ArgumentException>(() => LogFileScanner.NormalizeGlob("c:\\", out _, out _));
+            Assert.Throws<ArgumentException>(() => LogFileScanner.NormalizeGlob("\\", out _, out _));
         }
 
         private LogFileScanner SetupLogFileScanner(string failureRegex = "",
