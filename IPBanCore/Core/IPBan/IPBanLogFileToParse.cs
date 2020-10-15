@@ -132,7 +132,7 @@ namespace DigitalRuby.IPBanCore
                 {
                     if (!string.IsNullOrWhiteSpace(s))
                     {
-                        list.Add(LogFileScanner.NormalizeGlob(s));
+                        list.Add(LogFileScanner.NormalizeGlob(s, out _, out _));
                     }
                 }
                 return list.ToArray();

@@ -106,7 +106,6 @@ namespace DigitalRuby.IPBanCore
         /// <param name="maxLineLength">Maximum line length before considering the file a binary file and failing</param>
         public LogFileScanner(string pathAndMask, long maxFileSizeBytes = 0, int fileProcessingIntervalMilliseconds = 0, Encoding encoding = null, int maxLineLength = 8192)
         {
-            // glob syntax, replace all backslash to forward slash
             PathAndMask = pathAndMask;
             PathAndMask.ThrowIfNullOrEmpty(nameof(pathAndMask), "Must pass a non-empty path and mask to log file scanner");
 
@@ -143,6 +142,7 @@ namespace DigitalRuby.IPBanCore
         /// </summary>
         public void Dispose()
         {
+            GC.SuppressFinalize(this);
             // wait for any outstanding file processing
             if (fileProcessingTimer != null)
             {
@@ -173,36 +173,24 @@ namespace DigitalRuby.IPBanCore
         {
             List<WatchedFile> files = new List<WatchedFile>();
 
-            // pull out the directory portion of the path/mask, accounting for /* syntax in the folder name
-            string replacedPathMask = ReplacePathVars(pathAndMask);
-            int lastSlashPos = replacedPathMask.LastIndexOf('/');
-            string baseDirectoryWithoutGlobSyntax = replacedPathMask.Substring(0, lastSlashPos);
-            int pos = baseDirectoryWithoutGlobSyntax.IndexOf("/*");
-            Matcher fileMatcher;
-            if (pos < 0)
-            {
-                // no /* in the directory, assume file mask is the last piece
-                string fileMask = replacedPathMask.Substring(++lastSlashPos);
-                fileMatcher = new Matcher(StringComparison.OrdinalIgnoreCase).AddInclude(fileMask);
-            }
-            else
-            {
-                // found a /*, take the root directory and make that the base path and everything else the glob path
-                string fileMask = replacedPathMask.Substring(pos);
-                baseDirectoryWithoutGlobSyntax = replacedPathMask.Substring(0, pos);
-                fileMatcher = new Matcher(StringComparison.OrdinalIgnoreCase).AddInclude(fileMask);
-            }
+            // pull out the directory portion of the path/mask, accounting for * syntax in the folder name
+            string replacedPathAndMask = ReplacePathVars(pathAndMask);
+            NormalizeGlob(replacedPathAndMask, out string dirPortion, out string globPortion);
+
+            // create a matcher to match glob or regular file syntax
+            Matcher fileMatcher = new Matcher(StringComparison.OrdinalIgnoreCase).AddInclude(globPortion);
 
             // get the base directory that does not have glob syntax
-            DirectoryInfoWrapper baseDir = new DirectoryInfoWrapper(new DirectoryInfo(baseDirectoryWithoutGlobSyntax));
+            DirectoryInfoWrapper baseDir = new DirectoryInfoWrapper(new DirectoryInfo(dirPortion));
 
             // read in existing files that match the mask in the directory being watched
             foreach (var file in fileMatcher.Execute(baseDir).Files)
             {
                 try
                 {
-                    FileInfo info = new FileInfo(Path.Combine(baseDirectoryWithoutGlobSyntax, file.Path));
-                    files.Add(new WatchedFile(info.FullName, info.Length));
+                    string fullPath = dirPortion + file.Path;
+                    long fileLength = new FileInfo(fullPath).Length;
+                    files.Add(new WatchedFile(fullPath, fileLength));
                 }
                 catch (Exception ex)
                 {
@@ -305,13 +293,55 @@ namespace DigitalRuby.IPBanCore
         protected virtual void OnProcessText(string text) { }
 
         /// <summary>
-        /// Normalize a glob
+        /// Normalize a glob. This gets everything with the * character and after escaped properly.
         /// </summary>
         /// <param name="glob">Glob</param>
+        /// <param name="dirPortion">Directory portion</param>
+        /// <param name="globPortion">Glob portion</param>
         /// <returns>Normalized glob</returns>
-        public static string NormalizeGlob(string glob)
+        public static string NormalizeGlob(string glob, out string dirPortion, out string globPortion)
         {
-            return glob?.Trim().Replace('\\', '/').Replace("(", "\\(").Replace(")", "\\)").Replace("[", "\\[").Replace("]", "\\]");
+            dirPortion = globPortion = null;
+            if (string.IsNullOrWhiteSpace(glob))
+            {
+                return glob;
+            }
+
+            // backslash to forward slash
+            glob = glob.Replace('\\', '/').Trim();
+
+            // find first segment that has a glob wildcard
+            int pos = glob.IndexOf('*');
+            if (pos >= 0)
+            {
+                for (int i = pos; i >= 0; i--)
+                {
+                    if (glob[i] == '/')
+                    {
+                        // directory is every segment before the glob wildcard
+                        dirPortion = glob.Substring(0, ++i);
+
+                        // glob is everything after
+                        globPortion = glob[i..];
+                        break;
+                    }
+                }
+            }
+            if (dirPortion is null)
+            {
+                pos = glob.LastIndexOfAny(new[] { '/', '\\' });
+                if (pos < 0)
+                {
+                    throw new ArgumentException("Cannot normalize a glob that does not have a directory and a file");
+                }
+                dirPortion = glob[..++pos];
+                globPortion = glob[pos..];
+            }
+
+            // escape needed chars
+            globPortion = globPortion.Replace("(", "\\(").Replace(")", "\\)").Replace("[", "\\[").Replace("]", "\\]");
+
+            return dirPortion + globPortion;
         }
 
         private void SetProcessingTimerEnabled(bool enabled)
