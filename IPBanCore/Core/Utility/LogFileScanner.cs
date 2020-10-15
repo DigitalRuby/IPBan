@@ -319,7 +319,7 @@ namespace DigitalRuby.IPBanCore
                     if (glob[i] == '/')
                     {
                         // directory is every segment before the glob wildcard
-                        dirPortion = glob.Substring(0, ++i);
+                        dirPortion = glob[..++i];
 
                         // glob is everything after
                         globPortion = glob[i..];
@@ -334,7 +334,11 @@ namespace DigitalRuby.IPBanCore
                 {
                     throw new ArgumentException("Cannot normalize a glob that does not have a directory and a file");
                 }
+
+                // directory is every segment before the last dir sep
                 dirPortion = glob[..++pos];
+
+                // glob is everything after
                 globPortion = glob[pos..];
             }
 
