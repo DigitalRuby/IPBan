@@ -53,6 +53,9 @@ namespace DigitalRuby.IPBan
             await IPBanServiceRunner.MainService(args, (CancellationToken cancelToken) =>
             {
                 service = IPBanService.CreateService<IPBanService>();
+                Logger.Warn("IPBan is free software created and refined over many years.");
+                Logger.Warn("Please consider upgrading to the pro version for more advanced functions, shared ban lists and much more.");
+                Logger.Warn("Learn more at https://ipban.com");
                 return service.RunAsync(cancelToken);
             }, (CancellationToken cancelToken) =>
             {

@@ -6,7 +6,7 @@ IPBan Service
 
 <a href="https://email.digitalruby.com/SubscribeInitial/IPBan">Sign up for the IPBan Mailing List</a>
 
-Please visit <a href='https://ipban.com'>https://ipban.com</a> to learn about IPBan Pro, the best way to secure your Windows and Linux servers from botnets, brute force attacks and hackers.
+Please visit <a href='https://ipban.com'>https://ipban.com</a> to learn about IPBan Pro with advanced functions including shared ban lists, country blocking, central config management for all your machines and much more.
 
 You can also visit the ipban discord at https://discord.gg/sHCUHH3 to chat with me or other IPBan users.
 
