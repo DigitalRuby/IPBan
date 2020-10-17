@@ -502,20 +502,20 @@ namespace DigitalRuby.IPBanCore
 
         private void ParseFirewallBlockRules()
         {
-            string firewallBlockRuleString = null;
-            GetConfig<string>("FirewallRules", ref firewallBlockRuleString);
-            firewallBlockRuleString = (firewallBlockRuleString ?? string.Empty).Trim();
-            if (firewallBlockRuleString.Length == 0)
+            string firewallRulesString = null;
+            GetConfig<string>("FirewallRules", ref firewallRulesString);
+            firewallRulesString = (firewallRulesString ?? string.Empty).Trim();
+            if (firewallRulesString.Length == 0)
             {
                 return;
             }
-            IEnumerable<string> firewallBlockRuleList = firewallBlockRuleString.Trim().Split('\n').Select(s => s.Trim()).Where(s => s.Length != 0);
-            foreach (string firewallBlockRule in firewallBlockRuleList)
+            IEnumerable<string> firewallRuleStrings = firewallRulesString.Trim().Split('\n').Select(s => s.Trim()).Where(s => s.Length != 0);
+            foreach (string firewallRuleString in firewallRuleStrings)
             {
-                string[] pieces = firewallBlockRule.Split(';');
+                string[] pieces = firewallRuleString.Split(';');
                 if (pieces.Length == 5)
                 {
-                    IPBanFirewallRule firewallBlockRuleObj = new IPBanFirewallRule
+                    IPBanFirewallRule firewallRuleObj = new IPBanFirewallRule
                     {
                         Block = (pieces[1].Equals("block", StringComparison.OrdinalIgnoreCase)),
                         IPAddressRanges = pieces[2].Split(',').Select(p => IPAddressRange.Parse(p)).ToList(),
@@ -523,14 +523,14 @@ namespace DigitalRuby.IPBanCore
                         AllowPortRanges = pieces[3].Split(',').Select(p => PortRange.Parse(p)).Where(p => p.MinPort >= 0).ToList(),
                         PlatformRegex = new Regex(pieces[4].Replace('*', '.'), RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)
                     };
-                    if (firewallBlockRuleObj.PlatformRegex.IsMatch(OSUtility.Name))
+                    if (firewallRuleObj.PlatformRegex.IsMatch(OSUtility.Name))
                     {
-                        extraRules.Add(firewallBlockRuleObj);
+                        extraRules.Add(firewallRuleObj);
                     }
                 }
                 else
                 {
-                    Logger.Warn("Firewall block rule entry should have 3 comma separated pieces: name;ips;ports. Invalid entry: {0}", firewallBlockRule);
+                    Logger.Warn("Firewall block rule entry should have 5 comma separated pieces: name;block/allow;ips;ports;platform_regex. Invalid entry: {0}", firewallRuleString);
                 }
             }
         }
