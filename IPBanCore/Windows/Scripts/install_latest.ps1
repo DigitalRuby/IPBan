@@ -3,11 +3,11 @@
 # (c) 2011-Present Digital Ruby, LLC
 # https://www.digitalruby.com
 #
-# PowerShell minimum version: 5.0
+# PowerShell minimum version: 5.1
 # Update PowerShell: https://docs.microsoft.com/en-us/powershell/scripting/install/installing-powershell-core-on-windows?view=powershell-5.1
 #
 # Please run from an admin powershell prompt the following:
-# iex ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/DigitalRuby/IPBan/master/IPBanCore/Windows/Scripts/install_latest.ps1'))
+# [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; iex ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/DigitalRuby/IPBan/master/IPBanCore/Windows/Scripts/install_latest.ps1'))
 #
 # Should you ever wish to update IPBan, just re-run this script and it will auto-update and preserve your ipban.sqlite and ipban.config files!
 #
@@ -26,6 +26,8 @@ $INSTALL_PATH = "C:/Program Files/IPBan"
 $INSTALL_EXE = "$INSTALL_PATH/DigitalRuby.IPBan.exe"
 $CONFIG_FILE = "$INSTALL_PATH/ipban.config"
 $SERVICE_NAME = "IPBan"
+
+$ErrorActionPreference = "Stop"
 
 $tempPath = [System.IO.Path]::GetTempPath()
 [bool] $isUninstall = ($uninstall -eq "u" -or $uninstall -eq "uninstall")
