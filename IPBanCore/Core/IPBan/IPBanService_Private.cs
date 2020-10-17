@@ -244,7 +244,7 @@ namespace DigitalRuby.IPBanCore
                                         await IPBanDelegate.LoginAttemptFailed(ipAddress, source, userName, MachineGuid, OSName, OSVersion, UtcNow);
                                     }
                                     AddBannedIPAddress(ipAddress, source, userName, bannedIpAddresses, now,
-                                        configBlacklisted, newCount, string.Empty, transaction, false);
+                                        configBlacklisted, newCount, string.Empty, transaction, failedLogin.External);
                                 }
                             }
                             else
@@ -263,7 +263,7 @@ namespace DigitalRuby.IPBanCore
                             }
                         }
                     }
-      catch (Exception ex)
+                    catch (Exception ex)
                     {
                         Logger.Error(ex);
                     }
@@ -323,9 +323,9 @@ namespace DigitalRuby.IPBanCore
             }
         }
 
-        private void AddBannedIPAddress(string ipAddress, string source, string userName, List<IPAddressLogEvent> bannedIpAddresses,
-            DateTime startBanDate, bool configBlacklisted, int counter, string extraInfo, object transaction,
-            bool external)
+        private void AddBannedIPAddress(string ipAddress, string source, string userName,
+            List<IPAddressLogEvent> bannedIpAddresses, DateTime startBanDate, bool configBlacklisted,
+            int counter, string extraInfo, object transaction, bool external)
         {
             // never ban whitelisted ip addresses
             if (IsWhitelisted(ipAddress))
