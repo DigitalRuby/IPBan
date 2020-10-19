@@ -32,7 +32,7 @@ namespace DigitalRuby.IPBanCore
     /// <summary>
     /// Base firewall class that all firewall implementations should inherit from
     /// </summary>
-    public abstract class IPBanBaseFirewall : IIPBanFirewall, IUpdater
+    public abstract class IPBanBaseFirewall : IIPBanFirewall
     {
         protected bool Disposed { get; private set; }
 
