@@ -541,6 +541,11 @@ namespace DigitalRuby.IPBanCore
         public int MinorVersionMinimum { get; set; }
 
         /// <summary>
+        /// Require an environment variable to exist (key=value syntax)
+        /// </summary>
+        public string RequireEnvironmentVariable { get; set; }
+
+        /// <summary>
         /// Whether the current OS is a match for this attribute
         /// </summary>
         public bool IsMatch
@@ -564,8 +569,26 @@ namespace DigitalRuby.IPBanCore
                 bool matchMinorVersion = (MajorVersionMinimum <= 0 || MinorVersionMinimum <= 0 || MajorVersionMinimum < os.Version.Major ||
                         MinorVersionMinimum <= os.Version.Minor);
 
+                bool matchEnvVar = true;
+                if (RequireEnvironmentVariable != null)
+                {
+                    string[] pieces = RequireEnvironmentVariable.Split('=');
+                    if (pieces.Length == 2)
+                    {
+                        string value = Environment.GetEnvironmentVariable(pieces[0]);
+                        if (value is null)
+                        {
+                            matchEnvVar = false;
+                        }
+                        else if (pieces[1].Length != 0)
+                        {
+                            matchEnvVar = pieces[1].Equals(value, StringComparison.OrdinalIgnoreCase);
+                        }
+                    }
+                }
+
                 // valid is AND of all of the above
-                bool valid = matchPriority && matchRequiredOS && matchMajorVersion && matchMinorVersion;
+                bool valid = matchPriority && matchRequiredOS && matchMajorVersion && matchMinorVersion && matchEnvVar;
 
                 return valid;
             }
