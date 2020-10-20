@@ -42,15 +42,63 @@ namespace DigitalRuby.IPBanCore
     [CustomName("Memory")]
     public class IPBanMemoryFirewall : IPBanBaseFirewall
     {
-        private class MemoryFirewallRuleRanges : IComparer<IPV4Range>, IComparer<IPV6Range>
+        public interface IMemoryFirewallRuleRanges
+        {
+            /// <summary>
+            /// IPV4 ranges
+            /// </summary>
+            IEnumerable<string> IPV4 { get; }
+
+            /// <summary>
+            /// IPV6 ranges
+            /// </summary>
+            IEnumerable<string> IPV6 { get; }
+
+            /// <summary>
+            /// Port ranges, empty for none
+            /// </summary>
+            IEnumerable<string> PortRanges { get; }
+
+            /// <summary>
+            /// True to block, false to allow
+            /// </summary>
+            bool Block { get; }
+        }
+
+        public interface IMemoryFirewallRule
+        {
+            /// <summary>
+            /// IPV4 set
+            /// </summary>
+            IEnumerable<string> IPV4 { get; }
+
+            /// <summary>
+            /// IPV6 set
+            /// </summary>
+            IEnumerable<string> IPV6 { get; }
+
+            /// <summary>
+            /// True to block, false to allow
+            /// </summary>
+            bool Block { get; }
+        }
+
+        private class MemoryFirewallRuleRanges : IComparer<IPV4Range>, IComparer<IPV6Range>, IMemoryFirewallRuleRanges
         {
             private readonly List<IPV4Range> ipv4 = new List<IPV4Range>();
             private readonly List<IPV6Range> ipv6 = new List<IPV6Range>();
             private readonly List<PortRange> portRanges;
 
+            public IEnumerable<string> IPV4 => ipv4.Select(r => r.ToIPAddressRange().ToCidrString());
+            public IEnumerable<string> IPV6 => ipv6.Select(r => r.ToIPAddressRange().ToCidrString());
+            public IEnumerable<string> PortRanges => portRanges.Select(r => r.ToString());
+
+            public bool Block { get; }
+
             public MemoryFirewallRuleRanges(List<IPAddressRange> ipRanges, List<PortRange> allowedPorts, bool block)
             {
-                allowedPorts = (allowedPorts ?? new List<PortRange>(0));
+                allowedPorts ??= new List<PortRange>(0);
+                Block = block;
                 foreach (IPAddressRange range in ipRanges)
                 {
                     // optimized storage, no pointers or other overhead
@@ -144,10 +192,20 @@ namespace DigitalRuby.IPBanCore
             }
         }
 
-        private class MemoryFirewallRule
+        private class MemoryFirewallRule : IMemoryFirewallRule
         {
             private readonly HashSet<uint> ipv4 = new HashSet<uint>();
             private readonly HashSet<UInt128> ipv6 = new HashSet<UInt128>();
+
+            public IEnumerable<string> IPV4 => ipv4.Select(i => i.ToIPAddress().ToString());
+            public IEnumerable<string> IPV6 => ipv6.Select(i => i.ToIPAddress().ToString());
+
+            public bool Block { get; }
+
+            public MemoryFirewallRule(bool block)
+            {
+                Block = block;
+            }
 
             public void SetIPAddresses(IEnumerable<string> ipAddresses, IEnumerable<PortRange> allowPorts)
             {
@@ -265,8 +323,43 @@ namespace DigitalRuby.IPBanCore
 
         private readonly Dictionary<string, MemoryFirewallRuleRanges> blockRulesRanges = new Dictionary<string, MemoryFirewallRuleRanges>();
         private readonly Dictionary<string, MemoryFirewallRule> blockRules = new Dictionary<string, MemoryFirewallRule>();
-        private readonly MemoryFirewallRule allowRule = new MemoryFirewallRule();
+        private readonly MemoryFirewallRule allowRule = new MemoryFirewallRule(false);
         private readonly Dictionary<string, MemoryFirewallRuleRanges> allowRuleRanges = new Dictionary<string, MemoryFirewallRuleRanges>();
+
+        /// <summary>
+        /// Get all the rules with ranges
+        /// </summary>
+        public IEnumerable<KeyValuePair<string, IMemoryFirewallRuleRanges>> RuleRanges
+        {
+            get
+            {
+                lock (this)
+                {
+                    return blockRulesRanges
+                        .Select(kv => new KeyValuePair<string, IMemoryFirewallRuleRanges>(kv.Key, kv.Value))
+                        .Union(allowRuleRanges.Select(kv => new KeyValuePair<string, IMemoryFirewallRuleRanges>(kv.Key, kv.Value)))
+                        .ToArray();
+                }
+            }
+        }
+
+        /// <summary>
+        /// Get all the rules with sets
+        /// </summary>
+        public IEnumerable<KeyValuePair<string, IMemoryFirewallRule>> RuleSets
+        {
+            get
+            {
+                lock (this)
+                {
+                    IEnumerable<KeyValuePair<string, IMemoryFirewallRule>> allowRules = new KeyValuePair<string, IMemoryFirewallRule>[] { new KeyValuePair<string, IMemoryFirewallRule>("DefaultAllow", allowRule) };
+                    return blockRules
+                        .Select(kv => new KeyValuePair<string, IMemoryFirewallRule>(kv.Key, kv.Value))
+                        .Union(allowRules)
+                        .ToArray();
+                }
+            }
+        }
 
         private bool IsIPAddressAllowed(System.Net.IPAddress ipAddressObj, int port = -1)
         {
@@ -340,7 +433,7 @@ namespace DigitalRuby.IPBanCore
             {
                 if (!blockRules.TryGetValue(ruleName, out MemoryFirewallRule rule))
                 {
-                    blockRules[ruleName] = rule = new MemoryFirewallRule();
+                    blockRules[ruleName] = rule = new MemoryFirewallRule(true);
                 }
                 rule.SetIPAddresses(ipAddresses, allowedPorts);
             }
@@ -354,7 +447,7 @@ namespace DigitalRuby.IPBanCore
             {
                 if (!blockRules.TryGetValue(ruleName, out MemoryFirewallRule rule))
                 {
-                    blockRules[ruleName] = rule = new MemoryFirewallRule();
+                    blockRules[ruleName] = rule = new MemoryFirewallRule(true);
                 }
                 rule.AddIPAddressesDelta(ipAddresses, allowedPorts);
             }
