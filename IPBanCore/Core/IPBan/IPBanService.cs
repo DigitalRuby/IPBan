@@ -98,6 +98,14 @@ namespace DigitalRuby.IPBanCore
                             await ProcessPendingFailedLogins();
                             await ProcessPendingSuccessfulLogins();
                             await UpdateFirewall();
+                            try
+                            {
+                                await OnUpdate();
+                            }
+                            catch
+                            {
+                                // derived or other exception should not affect cycle
+                            }
                         }
                     }
                     finally

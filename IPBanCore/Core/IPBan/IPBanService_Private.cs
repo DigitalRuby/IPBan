@@ -717,6 +717,8 @@ namespace DigitalRuby.IPBanCore
             }
         }
 
+        protected virtual Task OnUpdate() => Task.CompletedTask;
+
         protected virtual async Task<bool> GetUrl(UrlType urlType)
         {
             if ((urlType == UrlType.Start && GotStartUrl) || string.IsNullOrWhiteSpace(LocalIPAddressString) || string.IsNullOrWhiteSpace(FQDN))
