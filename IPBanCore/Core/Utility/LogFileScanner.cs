@@ -94,7 +94,7 @@ namespace DigitalRuby.IPBanCore
         private readonly System.Timers.Timer fileProcessingTimer;
         private readonly long maxFileSize;
         private readonly Encoding encoding;
-        private readonly int maxLineLength;
+        private readonly ushort maxLineLength;
 
         /// <summary>
         /// Create a log file scanner
@@ -104,7 +104,7 @@ namespace DigitalRuby.IPBanCore
         /// <param name="fileProcessingIntervalMilliseconds">How often to process files, in milliseconds, less than 1 for manual processing, in which case <see cref="ProcessFiles"/> must be called as needed.</param>
         /// <param name="encoding">Encoding or null for utf-8. The encoding must either be single or variable byte, like ASCII, Ansi, utf-8, etc. UTF-16 and the like are not supported.</param>
         /// <param name="maxLineLength">Maximum line length before considering the file a binary file and failing</param>
-        public LogFileScanner(string pathAndMask, long maxFileSizeBytes = 0, int fileProcessingIntervalMilliseconds = 0, Encoding encoding = null, int maxLineLength = 8192)
+        public LogFileScanner(string pathAndMask, long maxFileSizeBytes = 0, int fileProcessingIntervalMilliseconds = 0, Encoding encoding = null, ushort maxLineLength = 8192)
         {
             PathAndMask = pathAndMask;
             PathAndMask.ThrowIfNullOrEmpty(nameof(pathAndMask), "Must pass a non-empty path and mask to log file scanner");
@@ -353,6 +353,50 @@ namespace DigitalRuby.IPBanCore
             return dirPortion + globPortion;
         }
 
+        /// <summary>
+        /// Replay a file being written to simulate regular logging
+        /// </summary>
+        /// <param name="sourceFile">Source file</param>
+        /// <param name="destFile">Dest file</param>
+        /// <param name="cancelToken">Cancel token</param>
+        public static void Replay(string sourceFile, string destFile, CancellationToken cancelToken)
+        {
+            FileInfo info = new FileInfo(sourceFile);
+            Random r = new Random();
+            long pos = 0;
+            ExtensionMethods.FileDeleteWithRetry(destFile);
+            while (pos >= 0 && !cancelToken.IsCancellationRequested)
+            {
+                try
+                {
+                    using var stream = File.OpenRead(info.FullName);
+                    using var stream2 = File.OpenWrite(destFile);
+                    stream2.Position = stream2.Length;
+                    stream.Position = pos;
+                    int rand = r.Next(3, 1111);
+                    for (int i = 0; i < rand; i++)
+                    {
+                        int b = stream.ReadByte();
+                        pos++;
+                        if (b >= 0)
+                        {
+                            stream2.WriteByte((byte)b);
+
+                        }
+                        else
+                        {
+                            pos = -1;
+                            break;
+                        }
+                    }
+                }
+                catch
+                {
+                }
+                Thread.Sleep(r.Next(1000, 10000));
+            }
+        }
+
         private void SetProcessingTimerEnabled(bool enabled)
         {
             try
@@ -440,26 +484,34 @@ namespace DigitalRuby.IPBanCore
 
         private void ProcessFile(WatchedFile file, FileStream fs)
         {
-            int b;
-            long lastNewlinePos = -1;
-            long end = Math.Min(file.LastLength, fs.Length);
-            int countBeforeNewline = 0;
-            fs.Position = file.LastPosition;
 
             Logger.Trace("Processing log file {0}, len = {1}, pos = {2}", file.FileName, file.LastLength, file.LastPosition);
 
-            while (fs.Position < end && countBeforeNewline++ != maxLineLength)
+            // seek to next position
+            fs.Position = file.LastPosition;
+
+            // fill up to 64K bytes
+            byte[] bytes = new byte[ushort.MaxValue];
+            int read = fs.Read(bytes, 0, bytes.Length);
+
+            // setup state
+            int bytesEnd = 0;
+            bool foundNewLine = false;
+
+            // find the last newline char
+            for (bytesEnd = read - 1; bytesEnd >= 0; bytesEnd--)
             {
-                // read until last \n is found
-                b = fs.ReadByte();
-                if (b == '\n')
+                if (bytes[bytesEnd] == '\n')
                 {
-                    lastNewlinePos = fs.Position - 1;
-                    countBeforeNewline = 0;
+                    // take bytes up to and including the last newline char
+                    bytesEnd++;
+                    foundNewLine = true;
+                    break;
                 }
             }
 
-            if (countBeforeNewline > maxLineLength)
+            // check for binary file
+            if (bytesEnd > maxLineLength)
             {
                 file.IsBinaryFile = true;
                 Logger.Warn($"Aborting parsing log file {file.FileName}, file may be a binary file");
@@ -467,24 +519,19 @@ namespace DigitalRuby.IPBanCore
             }
 
             // if we found a newline, process all the text up until that newline
-            if (lastNewlinePos > -1)
+            if (foundNewLine)
             {
                 try
                 {
-                    // read all the text for the current set of lines into a string for processing
-                    fs.Position = file.LastPosition;
-
-                    // create giant text blob with all lines trimmed
-                    byte[] bytes = new BinaryReader(fs).ReadBytes((int)(lastNewlinePos - fs.Position));
-                    string text = "\n" + string.Join('\n', encoding.GetString(bytes).Split('\n').Select(l => l.Trim())) + "\n";
-
+                    string text = "\n" + string.Join('\n', encoding.GetString(bytes, 0, bytesEnd).Split('\n').Select(l => l.Trim())) + "\n";
                     OnProcessText(text);
                     ProcessText?.Invoke(text);
                 }
                 finally
                 {
                     // set file position for next processing
-                    fs.Position = file.LastPosition = ++lastNewlinePos;
+                    fs.Position = file.LastPosition + bytesEnd;
+                    file.LastPosition = fs.Position;
                 }
             }
         }

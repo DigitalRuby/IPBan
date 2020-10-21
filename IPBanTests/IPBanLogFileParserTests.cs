@@ -84,7 +84,7 @@ namespace DigitalRuby.IPBanTests
             {
                 using StreamWriter writer = new StreamWriter(CreateFile(), Encoding.UTF8) { AutoFlush = true };
 
-                // scan once before writing any data, otherwise scanner starts at aned of file and will miss
+                // scan once before writing any data, otherwise scanner starts at end of file and will miss
                 // the first data written
                 scanner.ProcessFiles();
 

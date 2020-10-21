@@ -162,7 +162,8 @@ namespace DigitalRuby.IPBanCore
             text = new string(text.Where(c => c == '\n' || c == '\t' || !char.IsControl(c)).ToArray()).Trim();
 
             // go through all the matches and pull out event info
-            foreach (Match match in regex.Matches(text))
+            MatchCollection matches = regex.Matches(text);
+            foreach (Match match in matches)
             {
                 string userName = null;
                 string ipAddress = null;
