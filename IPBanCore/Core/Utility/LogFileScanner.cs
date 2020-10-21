@@ -358,13 +358,16 @@ namespace DigitalRuby.IPBanCore
         /// </summary>
         /// <param name="sourceFile">Source file</param>
         /// <param name="destFile">Dest file</param>
+        /// <param name="delay">Delay in ms before starting replay</param>
         /// <param name="cancelToken">Cancel token</param>
-        public static void Replay(string sourceFile, string destFile, CancellationToken cancelToken)
+        public static void Replay(string sourceFile, string destFile, int delay, CancellationToken cancelToken = default)
         {
             FileInfo info = new FileInfo(sourceFile);
             Random r = new Random();
             long pos = 0;
             ExtensionMethods.FileDeleteWithRetry(destFile);
+            File.WriteAllText(destFile, string.Empty);
+            Thread.Sleep(delay);
             while (pos >= 0 && !cancelToken.IsCancellationRequested)
             {
                 try
@@ -484,7 +487,6 @@ namespace DigitalRuby.IPBanCore
 
         private void ProcessFile(WatchedFile file, FileStream fs)
         {
-
             Logger.Trace("Processing log file {0}, len = {1}, pos = {2}", file.FileName, file.LastLength, file.LastPosition);
 
             // seek to next position
@@ -495,7 +497,7 @@ namespace DigitalRuby.IPBanCore
             int read = fs.Read(bytes, 0, bytes.Length);
 
             // setup state
-            int bytesEnd = 0;
+            int bytesEnd;
             bool foundNewLine = false;
 
             // find the last newline char
@@ -523,9 +525,11 @@ namespace DigitalRuby.IPBanCore
             {
                 try
                 {
-                    string text = "\n" + string.Join('\n', encoding.GetString(bytes, 0, bytesEnd).Split('\n').Select(l => l.Trim())) + "\n";
-                    OnProcessText(text);
-                    ProcessText?.Invoke(text);
+                    // strip out all carriage returns and ensure string starts/ends with newlines
+                    string foundText = encoding.GetString(bytes, 0, bytesEnd).Trim().Replace("\r", string.Empty);
+                    string processText = "\n" + foundText + "\n";
+                    OnProcessText(processText);
+                    ProcessText?.Invoke(processText);
                 }
                 finally
                 {
