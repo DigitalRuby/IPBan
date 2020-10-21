@@ -236,7 +236,7 @@ namespace DigitalRuby.IPBanCore
                         // if the length changed, we need to parse data from the file
                         if (len != file.LastLength)
                         {
-                            using FileStream fs = new FileStream(file.FileName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite, 256);
+                            using FileStream fs = new FileStream(file.FileName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
                             file.LastLength = len;
                             ProcessFile(file, fs);
                         }
@@ -369,8 +369,8 @@ namespace DigitalRuby.IPBanCore
             {
                 try
                 {
-                    using var stream = File.OpenRead(info.FullName);
-                    using var stream2 = File.OpenWrite(destFile);
+                    using var stream = new FileStream(info.FullName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                    using var stream2 = new FileStream(destFile, FileMode.OpenOrCreate, FileAccess.Write, FileShare.ReadWrite);
                     stream2.Position = stream2.Length;
                     stream.Position = pos;
                     int rand = r.Next(3, 1111);
