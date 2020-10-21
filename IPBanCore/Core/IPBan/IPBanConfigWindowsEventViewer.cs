@@ -117,7 +117,7 @@ namespace DigitalRuby.IPBanCore
         /// <summary>
         /// Minimum Windows minor version - see https://msdn.microsoft.com/en-us/library/windows/desktop/ms724832%28v=vs.85%29.aspx?f=255&MSPPError=-2147217396
         /// </summary>
-        public int MinimumWindowsMinorVersion { get; set; } = 0;
+        public int MinimumWindowsMinorVersion { get; set; }
 
         /// <summary>
         /// Set automatically, determines whether this expression is failed login (false) or successful login (true)
@@ -230,6 +230,15 @@ namespace DigitalRuby.IPBanCore
         [LocalizedDisplayName(nameof(IPBanResources.EventViewerExpressions))]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public string ExpressionsText { get; set; }
+
+        /// <summary>
+        /// Override failed login threshold or 0 for default
+        /// </summary>
+        [DisplayFormat(ConvertEmptyStringToNull = false)]
+        [Required(AllowEmptyStrings = true)]
+        [LocalizedDisplayName(nameof(IPBanResources.FailedLoginThreshold))]
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        public int FailedLoginThreshold { get; set; }
     }
 
     /// <summary>

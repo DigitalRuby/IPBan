@@ -79,7 +79,7 @@ namespace DigitalRuby.IPBanCore
         /// <summary>
         /// Manually run one cycle. This is called automatically, unless ManualCycle is true.
         /// </summary>
-        public async Task RunCycle()
+        public async Task RunCycleAsync()
         {
             try
             {
@@ -118,7 +118,7 @@ namespace DigitalRuby.IPBanCore
             {
                 if (!(ex is OperationCanceledException))
                 {
-                    Logger.Error($"Error on {nameof(IPBanService)}.{nameof(RunCycle)}", ex);
+                    Logger.Error($"Error on {nameof(IPBanService)}.{nameof(RunCycleAsync)}", ex);
                 }
             }
         }
@@ -616,7 +616,7 @@ namespace DigitalRuby.IPBanCore
             }
             service.Version = "1.1.1.1";
             service.RunAsync(CancellationToken.None).Sync();
-            service.RunCycle().Sync();
+            service.RunCycleAsync().Sync();
             service.DB.Truncate(true);
             service.Firewall.Truncate();
             return service;
@@ -635,7 +635,7 @@ namespace DigitalRuby.IPBanCore
                     File.Delete(Path.Combine(AppContext.BaseDirectory, "nlog.config"));
                 }
                 service.Firewall.Truncate();
-                service.RunCycle().Sync();
+                service.RunCycleAsync().Sync();
                 service.IPBanDelegate = null;
                 service.Dispose();
                 NLog.Time.TimeSource.Current = new NLog.Time.AccurateUtcTimeSource();

@@ -583,6 +583,24 @@ namespace DigitalRuby.IPBanCore {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Failed Login Threshold.
+        /// </summary>
+        public static string FailedLoginThreshold {
+            get {
+                return ResourceManager.GetString("FailedLoginThreshold", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Override the failed login threshold or 0 for default.
+        /// </summary>
+        public static string FailedLoginThresholdTooltip {
+            get {
+                return ResourceManager.GetString("FailedLoginThresholdTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Filter Settings.
         /// </summary>
         public static string FilterSettings {

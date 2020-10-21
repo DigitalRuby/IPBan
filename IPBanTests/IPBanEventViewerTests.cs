@@ -302,7 +302,7 @@ namespace DigitalRuby.IPBanTests
                         (result.Source ?? string.Empty) + "," + (result.Type == IPAddressEventType.FailedLogin ? "0" : (result.Type == IPAddressEventType.SuccessfulLogin ? "1" : "2"))));
                     Assert.AreEqual(xml.Value, expectedInfo);
                 }
-                service.RunCycle().Sync();
+                service.RunCycleAsync().Sync();
 
                 // pretend enough time has passed to not batch the login attempts
                 IPBanService.UtcNow += TimeSpan.FromSeconds(10.0);

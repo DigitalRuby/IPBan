@@ -600,8 +600,10 @@ namespace DigitalRuby.IPBanCore
         /// <param name="type">Event type</param>
         /// <param name="timestamp">Timestamp of the event, default for current timestamp</param>
         /// <param name="external">Whether this log came from an external source</param>
+        /// <param name="failedLoginThreshold">Failed login threshold or 0 for default</param>
         public IPAddressLogEvent(string ipAddress, string userName, string source,
-            int count, IPAddressEventType type, DateTime timestamp = default, bool external = false)
+            int count, IPAddressEventType type, DateTime timestamp = default, bool external = false,
+            int failedLoginThreshold = 0)
         {
             // normalize ip address if possible
             if (System.Net.IPAddress.TryParse(ipAddress, out System.Net.IPAddress parsedIPAddress))
@@ -618,6 +620,7 @@ namespace DigitalRuby.IPBanCore
             Type = type;
             Timestamp = (timestamp == default ? IPBanService.UtcNow : timestamp);
             External = external;
+            FailedLoginThreshold = failedLoginThreshold;
         }
 
         /// <summary>
@@ -663,5 +666,10 @@ namespace DigitalRuby.IPBanCore
         /// Event flag
         /// </summary>
         public IPAddressEventType Type { get; set; }
+
+        /// <summary>
+        /// Failed login threshold or 0 for default
+        /// </summary>
+        public int FailedLoginThreshold { get; set; }
     }
 }

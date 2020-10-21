@@ -112,7 +112,8 @@ namespace DigitalRuby.IPBanCore
                                 RegexSuccess = newFile.SuccessfulLoginRegex,
                                 RegexFailureTimestampFormat = newFile.FailedLoginRegexTimestampFormat,
                                 RegexSuccessTimestampFormat = newFile.SuccessfulLoginRegexTimestampFormat,
-                                Source = newFile.Source
+                                Source = newFile.Source,
+                                FailedLoginThreshold = newFile.FailedLoginThreshold
                             };
                             IPBanLogFileScanner scanner = new IPBanLogFileScanner(options);
                             logFilesToParse.Add(scanner);

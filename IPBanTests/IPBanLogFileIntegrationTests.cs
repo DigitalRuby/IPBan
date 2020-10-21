@@ -127,7 +127,7 @@ namespace DigitalRuby.IPBanTests
             }
 
             // force service to read all files as empty, the service always starts at the end of the file
-            await service.RunCycle();
+            await service.RunCycleAsync();
 
             // now write the full file contents, service will pick-up all the new text and parse it
             foreach (var file in files)
@@ -137,7 +137,7 @@ namespace DigitalRuby.IPBanTests
             files = null;
 
             // run cycle again to kick off the parse of all the new text
-            await service.RunCycle();
+            await service.RunCycleAsync();
         }
     }
 }

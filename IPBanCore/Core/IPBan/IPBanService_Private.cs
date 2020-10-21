@@ -208,6 +208,9 @@ namespace DigitalRuby.IPBanCore
                                 maxFailedLoginAttempts = Config.FailedLoginAttemptsBeforeBan;
                             }
 
+                            // see if there is an override for max failed login attempts
+                            maxFailedLoginAttempts = Math.Max(failedLogin.FailedLoginThreshold, maxFailedLoginAttempts);
+
                             DateTime now = failedLogin.Timestamp;
 
                             // check for the target user name for additional blacklisting checks
@@ -837,7 +840,7 @@ namespace DigitalRuby.IPBanCore
                 Logger.Trace("CycleTimerElapsed");
 
                 // perform the cycle, will not throw out
-                await RunCycle();
+                await RunCycleAsync();
 
                 // if we have no config at this point, use a 5 second cycle under the 
                 // assumption that something threw an exception and will hopefully
@@ -850,7 +853,7 @@ namespace DigitalRuby.IPBanCore
             }
         }
 
-        private void ProcessIPAddressEvent(IPAddressLogEvent newEvent, List<IPAddressLogEvent> pendingEvents,
+        private static void ProcessIPAddressEvent(IPAddressLogEvent newEvent, List<IPAddressLogEvent> pendingEvents,
             TimeSpan minTimeBetweenEvents, string type)
         {
             if (newEvent.Type != IPAddressEventType.FailedLogin &&
@@ -859,8 +862,8 @@ namespace DigitalRuby.IPBanCore
                 return;
             }
 
-            newEvent.Source = (newEvent.Source ?? "?");
-            newEvent.UserName = (newEvent.UserName ?? string.Empty);
+            newEvent.Source ??= "?";
+            newEvent.UserName ??= string.Empty;
 
             lock (pendingEvents)
             {
@@ -871,7 +874,12 @@ namespace DigitalRuby.IPBanCore
                 }
                 else
                 {
-                    existing.UserName = (existing.UserName ?? newEvent.UserName);
+                    existing.UserName ??= newEvent.UserName;
+
+                    if (existing.FailedLoginThreshold <= 0)
+                    {
+                        existing.FailedLoginThreshold = newEvent.FailedLoginThreshold;
+                    }
 
                     // if more than n seconds has passed, increment the counter
                     // we don't want to count multiple events that all map to the same ip address that happen rapidly

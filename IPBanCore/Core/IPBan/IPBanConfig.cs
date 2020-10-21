@@ -81,7 +81,7 @@ namespace DigitalRuby.IPBanCore
                 config.WriteConfigAsync(this.modifiedConfig).Sync();
                 if (config is IIPBanService service)
                 {
-                    service.RunCycle().Sync();
+                    service.RunCycleAsync().Sync();
                 }
             }
 

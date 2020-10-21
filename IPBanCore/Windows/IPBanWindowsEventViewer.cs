@@ -163,6 +163,7 @@ namespace DigitalRuby.IPBanCore
             DateTime? timestamp = null;
             int count = 1;
             bool mismatch;
+            int failedLoginThreshold = 0;
 
             if (keywordsNode != null)
             {
@@ -246,6 +247,7 @@ namespace DigitalRuby.IPBanCore
                     {
                         // use default source if we didn't find a source override
                         source ??= group.Source;
+                        failedLoginThreshold = group.FailedLoginThreshold;
                         break;
                     }
                 }
@@ -255,7 +257,8 @@ namespace DigitalRuby.IPBanCore
             if (ipAddress != null)
             {
                 IPAddressEventType type = (foundNotifyOnly ? IPAddressEventType.SuccessfulLogin : IPAddressEventType.FailedLogin);
-                return new IPAddressLogEvent(ipAddress, userName, source, count, type, timestamp is null ? default : timestamp.Value);
+                return new IPAddressLogEvent(ipAddress, userName, source, count, type,
+                    timestamp is null ? default : timestamp.Value, false, failedLoginThreshold);
             }
 
             // no matches

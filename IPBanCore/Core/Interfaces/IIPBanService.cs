@@ -70,7 +70,7 @@ namespace DigitalRuby.IPBanCore
         /// Manually run regular processing - useful if testing
         /// </summary>
         /// <returns>Task</returns>
-        Task RunCycle();
+        Task RunCycleAsync();
 
         /// <summary>
         /// Replace place-holders in url with values from this service

@@ -74,7 +74,7 @@ namespace DigitalRuby.IPBanTests
                 new IPAddressLogEvent(info1.IPAddress, info1.UserName, info1.Source, count1, info1.Type),
                 new IPAddressLogEvent(info2.IPAddress, info2.UserName, info2.Source, count2, info2.Type)
             });
-            service.RunCycle().Sync();
+            service.RunCycleAsync().Sync();
         }
 
         private void AssertIPAddressesAreBanned(int failCount1 = -1, int failCount2 = -1)
@@ -129,13 +129,13 @@ namespace DigitalRuby.IPBanTests
 
             // forget all the bans
             IPBanService.UtcNow += TimeSpan.FromDays(14.0);
-            service.RunCycle().Sync();
+            service.RunCycleAsync().Sync();
 
             AssertIPAddressesAreNotBanned();
 
             // add a single failed login, should not cause a block
             service.AddIPAddressLogEvents(new IPAddressLogEvent[] { info3 });
-            service.RunCycle().Sync();
+            service.RunCycleAsync().Sync();
             AssertIPAddressesAreNotBanned(true, false);
         }
 
@@ -147,7 +147,7 @@ namespace DigitalRuby.IPBanTests
             {
                 new IPAddressLogEvent("10.11.12.13", "TestUser", "RDP", 0, IPAddressEventType.Blocked, new DateTime(2020, 01, 01))
             });
-            service.RunCycle().Sync();
+            service.RunCycleAsync().Sync();
             Assert.IsTrue(service.Firewall.IsIPAddressBlocked("10.11.12.13", out _));
         }
 
@@ -156,7 +156,7 @@ namespace DigitalRuby.IPBanTests
         {
             // put an ban.txt file in path, service should pick it up and ban the ip addresses
             File.WriteAllLines(service.BlockIPAddressesFileName, new string[] { ip1, ip2 });
-            service.RunCycle().Sync();
+            service.RunCycleAsync().Sync();
             AssertIPAddressesAreBanned(0, 0);
         }
 
@@ -167,7 +167,7 @@ namespace DigitalRuby.IPBanTests
                 new IPAddressLogEvent(ip2, string.Empty, string.Empty, 1, IPAddressEventType.Blocked) });
 
             // this should block the ip addresses
-            service.RunCycle().Sync();
+            service.RunCycleAsync().Sync();
             AssertIPAddressesAreBanned(0, 0);
         }
 
@@ -181,7 +181,7 @@ namespace DigitalRuby.IPBanTests
             File.WriteAllLines(service.UnblockIPAddressesFileName, new string[] { ip1, ip2 });
 
             // this should un ban the ip addresses
-            service.RunCycle().Sync();
+            service.RunCycleAsync().Sync();
 
             AssertIPAddressesAreNotBanned();
             AssertNoIPInDB();
@@ -197,7 +197,7 @@ namespace DigitalRuby.IPBanTests
                 new IPAddressLogEvent(ip2, string.Empty, string.Empty, 1, IPAddressEventType.Unblocked) });
 
             // this should unblock the ip addresses
-            service.RunCycle().Sync();
+            service.RunCycleAsync().Sync();
 
             AssertIPAddressesAreNotBanned();
             AssertNoIPInDB();
@@ -211,21 +211,21 @@ namespace DigitalRuby.IPBanTests
                 // prime Linux log files
                 IPBanPlugin.IPBanLoginFailed("SSH", "User1", "78.88.88.88");
             }
-            service.RunCycle().Sync();
+            service.RunCycleAsync().Sync();
             for (int i = 0; i < 5; i++)
             {
                 IPBanPlugin.IPBanLoginFailed("SSH", "User1", "88.88.88.88");
-                service.RunCycle().Sync();
+                service.RunCycleAsync().Sync();
 
                 // attempt to read failed logins, if they do not match, sleep a bit and try again
                 for (int j = 0; j < 10 && (!service.DB.TryGetIPAddress("88.88.88.88", out IPBanDB.IPAddressEntry e) || e.FailedLoginCount != i + 1); j++)
                 {
                     System.Threading.Thread.Sleep(100);
-                    service.RunCycle().Sync();
+                    service.RunCycleAsync().Sync();
                 }
                 IPBanService.UtcNow += TimeSpan.FromMinutes(5.0);
             }
-            service.RunCycle().Sync();
+            service.RunCycleAsync().Sync();
             Assert.IsTrue(service.Firewall.IsIPAddressBlocked("88.88.88.88", out _));
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
@@ -241,23 +241,23 @@ namespace DigitalRuby.IPBanTests
                 string file = @"C:/IPBanCustomLogs/ipbancustom_test.log";
                 Directory.CreateDirectory(Path.GetDirectoryName(file));
                 ExtensionMethods.FileWriteAllTextWithRetry(file, "awerfoajwerp jaeowr paojwer " + Environment.NewLine);
-                service.RunCycle().Sync();
+                service.RunCycleAsync().Sync();
                 System.Threading.Thread.Sleep(100);
-                service.RunCycle().Sync();
+                service.RunCycleAsync().Sync();
                 string data = "ipban failed login, ip address: 99.99.99.99, source: SSH, user: User2" + Environment.NewLine;
                 for (int i = 0; i < 5; i++)
                 {
                     File.AppendAllText(file, data);
                     IPBanService.UtcNow += TimeSpan.FromMinutes(5.0);
-                    service.RunCycle().Sync();
+                    service.RunCycleAsync().Sync();
 
                     // attempt to read failed logins, if they do not match, sleep a bit and try again
                     for (int j = 0; j < 10 && (!service.DB.TryGetIPAddress("99.99.99.99", out IPBanDB.IPAddressEntry e) || e.FailedLoginCount != i + 1); j++)
                     {
                         System.Threading.Thread.Sleep(100);
-                        service.RunCycle().Sync();
+                        service.RunCycleAsync().Sync();
                     }
-                    service.RunCycle().Sync();
+                    service.RunCycleAsync().Sync();
                 }
                 try
                 {
@@ -326,7 +326,7 @@ namespace DigitalRuby.IPBanTests
                 // a single failed login with a blacklisted user name should get banned
                 new IPAddressLogEvent("99.99.99.90", "NaughtyUserName", "RDP", 1, IPAddressEventType.FailedLogin)
             });
-            await service.RunCycle();
+            await service.RunCycleAsync();
             Assert.IsTrue(service.Firewall.IsIPAddressBlocked("99.99.99.90", out _));
             Assert.IsFalse(service.Firewall.IsIPAddressBlocked("99.99.99.99", out _));
         }
@@ -347,7 +347,7 @@ namespace DigitalRuby.IPBanTests
                 // a single failed login with a failed user name whitelist regex should get banned
                 new IPAddressLogEvent("99.99.99.90", "NaughtyUserName", "RDP", 1, IPAddressEventType.FailedLogin)
             });
-            await service.RunCycle();
+            await service.RunCycleAsync();
             Assert.IsTrue(service.Firewall.IsIPAddressBlocked("99.99.99.90", out _));
             Assert.IsFalse(service.Firewall.IsIPAddressBlocked("99.99.99.99", out _));
         }
@@ -362,6 +362,28 @@ namespace DigitalRuby.IPBanTests
 
             // TODO: ensure non OnlyMe users are banned immediately
             // TODO: ensure OnlyMe user gets 20 failed logins before ban
+        }
+
+        [Test]
+        public async Task TestBanOverrideFailedLoginThreshold()
+        {
+            service.AddIPAddressLogEvents(new IPAddressLogEvent[]
+            {
+                new IPAddressLogEvent("10.11.12.13", "TestUser", "RDP", 9, IPAddressEventType.FailedLogin,
+                    new DateTime(2020, 01, 01), failedLoginThreshold: 10)
+            });
+
+            await service.RunCycleAsync();
+            Assert.IsFalse(service.Firewall.IsIPAddressBlocked("10.11.12.13"));
+
+            service.AddIPAddressLogEvents(new IPAddressLogEvent[]
+            {
+                new IPAddressLogEvent("10.11.12.13", "TestUser", "RDP", 1, IPAddressEventType.FailedLogin,
+                    new DateTime(2020, 01, 01), failedLoginThreshold: 10)
+            });
+
+            await service.RunCycleAsync();
+            Assert.IsTrue(service.Firewall.IsIPAddressBlocked("10.11.12.13"));
         }
 
         private async Task TestMultipleBanTimespansAsync(bool resetFailedLogin)
@@ -384,7 +406,7 @@ namespace DigitalRuby.IPBanTests
             {
                 // forget all the bans, but they should still be in the database due to the multiple timespans as failed logins
                 IPBanService.UtcNow += TimeSpan.FromDays(14.0);
-                await service.RunCycle();
+                await service.RunCycleAsync();
 
                 if (i < 3)
                 {
@@ -527,11 +549,11 @@ namespace DigitalRuby.IPBanTests
             {
                 events[0] = new IPAddressLogEvent(ipAddress, userName, source, 1, type, IPBanService.UtcNow);
                 service.AddIPAddressLogEvents(events);
-                await service.RunCycle();
+                await service.RunCycleAsync();
                 Assert.IsFalse(service.Firewall.IsIPAddressBlocked(ipAddress));
 
                 // run cycle again, should get pinged by external blocker and ip should be blocked
-                await service.RunCycle();
+                await service.RunCycleAsync();
                 Assert.IsTrue(service.Firewall.IsIPAddressBlocked(ipAddress));
                 Assert.IsTrue(service.DB.TryGetBanDates(ipAddress, out banDates));
                 Assert.AreEqual(IPBanService.UtcNow, banDates.Key);
@@ -539,17 +561,17 @@ namespace DigitalRuby.IPBanTests
 
                 // short step, should still be blocked
                 IPBanService.UtcNow += TimeSpan.FromSeconds(1.0);
-                await service.RunCycle();
+                await service.RunCycleAsync();
                 Assert.IsTrue(service.Firewall.IsIPAddressBlocked(ipAddress));
 
                 IPBanService.UtcNow += TimeSpan.FromMinutes(1.0);
-                await service.RunCycle();
+                await service.RunCycleAsync();
                 Assert.IsFalse(service.Firewall.IsIPAddressBlocked(ipAddress));
 
                 // send a fail login event, should get banned for 5 minutes
                 events[0] = new IPAddressLogEvent(ipAddress, userName, source, 1, type, IPBanService.UtcNow);
                 service.AddIPAddressLogEvents(events);
-                await service.RunCycle();
+                await service.RunCycleAsync();
                 Assert.IsFalse(service.Firewall.IsIPAddressBlocked(ipAddress));
 
                 DateTime savedBanDate = IPBanService.UtcNow;
@@ -557,16 +579,16 @@ namespace DigitalRuby.IPBanTests
                 // add a failed and blocked login event, should not interfere with the ban cycle
                 events[0] = new IPAddressLogEvent(ipAddress, userName, source, 1, IPAddressEventType.FailedLogin, IPBanService.UtcNow);
                 service.AddIPAddressLogEvents(events);
-                await service.RunCycle();
+                await service.RunCycleAsync();
                 events[0] = new IPAddressLogEvent(ipAddress, userName, source, 1, IPAddressEventType.Blocked, IPBanService.UtcNow, true);
                 service.AddIPAddressLogEvents(events);
-                await service.RunCycle();
+                await service.RunCycleAsync();
 
                 // throw in some chaos
                 IPBanService.UtcNow += TimeSpan.FromSeconds(7.213);
 
                 // blocker will ban the ip
-                await service.RunCycle();
+                await service.RunCycleAsync();
 
                 Assert.IsTrue(service.Firewall.IsIPAddressBlocked(ipAddress));
                 Assert.IsTrue(service.DB.TryGetBanDates(ipAddress, out banDates));
@@ -574,41 +596,41 @@ namespace DigitalRuby.IPBanTests
                 Assert.AreEqual(savedBanDate.AddMinutes(5.0), banDates.Value);
 
                 IPBanService.UtcNow += TimeSpan.FromMinutes(20.0);
-                await service.RunCycle();
+                await service.RunCycleAsync();
                 Assert.IsFalse(service.Firewall.IsIPAddressBlocked(ipAddress));
 
                 // send a failed login event, should get banned for 15 minutes
                 events[0] = new IPAddressLogEvent(ipAddress, userName, source, 1, type, IPBanService.UtcNow);
                 service.AddIPAddressLogEvents(events);
-                await service.RunCycle();
+                await service.RunCycleAsync();
                 Assert.IsFalse(service.Firewall.IsIPAddressBlocked(ipAddress));
 
                 // cycle again, blocker will ban
-                await service.RunCycle();
+                await service.RunCycleAsync();
                 Assert.IsTrue(service.Firewall.IsIPAddressBlocked(ipAddress));
                 Assert.IsTrue(service.DB.TryGetBanDates(ipAddress, out banDates));
                 Assert.AreEqual(IPBanService.UtcNow, banDates.Key);
                 Assert.AreEqual(IPBanService.UtcNow.AddMinutes(15.0), banDates.Value);
 
                 IPBanService.UtcNow += TimeSpan.FromMinutes(30.0);
-                await service.RunCycle();
+                await service.RunCycleAsync();
                 Assert.IsFalse(service.Firewall.IsIPAddressBlocked(ipAddress));
 
                 // send a block event, should get banned for 89 days
                 events[0] = new IPAddressLogEvent(ipAddress, userName, source, 1, type, IPBanService.UtcNow);
                 service.AddIPAddressLogEvents(events);
-                await service.RunCycle();
+                await service.RunCycleAsync();
                 Assert.IsFalse(service.Firewall.IsIPAddressBlocked(ipAddress));
 
                 // cycle again, blocker will ban
-                await service.RunCycle();
+                await service.RunCycleAsync();
                 Assert.IsTrue(service.Firewall.IsIPAddressBlocked(ipAddress));
                 Assert.IsTrue(service.DB.TryGetBanDates(ipAddress, out banDates));
                 Assert.AreEqual(IPBanService.UtcNow, banDates.Key);
                 Assert.AreEqual(IPBanService.UtcNow.AddDays(89.0), banDates.Value);
 
                 IPBanService.UtcNow += TimeSpan.FromDays(91.0);
-                await service.RunCycle();
+                await service.RunCycleAsync();
                 Assert.IsFalse(service.Firewall.IsIPAddressBlocked(ipAddress));
             }
         }
@@ -673,7 +695,7 @@ namespace DigitalRuby.IPBanTests
         [Test]
         public async Task TestFailedAndSuccessLoginFromSameIPAddress()
         {
-            await service.RunCycle();
+            await service.RunCycleAsync();
 
             string ip = "99.88.77.66";
 
@@ -690,7 +712,7 @@ namespace DigitalRuby.IPBanTests
                 });
             }
 
-            await service.RunCycle();
+            await service.RunCycleAsync();
 
             Assert.IsFalse(service.Firewall.IsIPAddressBlocked(ip, out _));
         }
@@ -714,14 +736,14 @@ namespace DigitalRuby.IPBanTests
                 });
             }
 
-            await service.RunCycle();
+            await service.RunCycleAsync();
 
             service.AddIPAddressLogEvents(new IPAddressLogEvent[]
             {
                 new IPAddressLogEvent(ip, "user1", "RDP", 1, IPAddressEventType.SuccessfulLogin),
             });
 
-            await service.RunCycle();
+            await service.RunCycleAsync();
 
             Assert.IsFalse(service.DB.TryGetIPAddress(ip, out _));
         }
@@ -729,7 +751,7 @@ namespace DigitalRuby.IPBanTests
         [Test]
         public async Task TestFailedLoginsDoesNotClearOnSuccessfulLogin()
         {
-            await service.RunCycle();
+            await service.RunCycleAsync();
 
             string ip = "99.88.77.66";
             for (int i = 0; i < 2; i++)
@@ -741,14 +763,14 @@ namespace DigitalRuby.IPBanTests
                 });
             }
 
-            await service.RunCycle();
+            await service.RunCycleAsync();
 
             service.AddIPAddressLogEvents(new IPAddressLogEvent[]
             {
                 new IPAddressLogEvent(ip, "user1", "RDP", 1, IPAddressEventType.SuccessfulLogin),
             });
 
-            await service.RunCycle();
+            await service.RunCycleAsync();
 
             Assert.IsTrue(service.DB.TryGetIPAddress(ip, out _));
         }
@@ -772,7 +794,7 @@ namespace DigitalRuby.IPBanTests
             service.AddIPAddressLogEvents(events);
 
             // process failed logins
-            service.RunCycle().Sync();
+            service.RunCycleAsync().Sync();
 
             Assert.IsTrue(service.Firewall.IsIPAddressBlocked(banIP, out _));
             Assert.IsTrue(service.DB.TryGetIPAddress(banIP, out IPBanDB.IPAddressEntry e1));

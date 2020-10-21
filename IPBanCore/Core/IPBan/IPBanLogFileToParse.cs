@@ -112,6 +112,15 @@ namespace DigitalRuby.IPBanCore
         public int MaxFileSize { get; set; }
 
         /// <summary>
+        /// Override failed login threshold or 0 for default
+        /// </summary>
+        [DisplayFormat(ConvertEmptyStringToNull = false)]
+        [Required(AllowEmptyStrings = true)]
+        [LocalizedDisplayName(nameof(IPBanResources.FailedLoginThreshold))]
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        public int FailedLoginThreshold { get; set; }
+
+        /// <summary>
         /// ToString
         /// </summary>
         /// <returns>String</returns>

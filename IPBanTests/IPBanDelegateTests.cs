@@ -79,7 +79,7 @@ namespace DigitalRuby.IPBanTests
         private void AddLoginEvents()
         {
             service.AddIPAddressLogEvents(new IPAddressLogEvent[] { info1, info2, info3 });
-            service.RunCycle().Sync();
+            service.RunCycleAsync().Sync();
 
             Assert.AreEqual(6, events.Count);
             AssertEvent("LoginAttemptSucceeded_99.99.99.97_SSH_test_user3", 1);
