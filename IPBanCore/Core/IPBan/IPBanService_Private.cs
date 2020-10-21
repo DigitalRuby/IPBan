@@ -1063,9 +1063,10 @@ namespace DigitalRuby.IPBanCore
             }
 
             // remove any left-over rules that were not in the new config
-            foreach (IPBanUriFirewallRule updater in toRemove)
+            foreach (IPBanUriFirewallRule updater in toRemove.ToArray())
             {
                 updater.DeleteRule();
+                RemoveUpdater(updater);
             }
         }
 
