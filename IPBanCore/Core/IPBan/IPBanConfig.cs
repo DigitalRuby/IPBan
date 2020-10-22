@@ -239,7 +239,15 @@ namespace DigitalRuby.IPBanCore
             XmlNode node2 = doc.SelectSingleNode("//ExpressionsToBlock");
             if (node2 != null)
             {
-                expressionsFailure = new XmlSerializer(typeof(EventViewerExpressionsToBlock)).Deserialize(new XmlNodeReader(node2)) as EventViewerExpressionsToBlock;
+                try
+                {
+                    expressionsFailure = new XmlSerializer(typeof(EventViewerExpressionsToBlock)).Deserialize(new XmlNodeReader(node2)) as EventViewerExpressionsToBlock;
+                }
+                catch (Exception ex)
+                {
+                    expressionsFailure = new EventViewerExpressionsToBlock { Groups = new List<EventViewerExpressionGroup>() };
+                    Logger.Error("Failed to load expressions to block", ex);
+                }
                 if (expressionsFailure != null)
                 {
                     foreach (EventViewerExpressionGroup group in expressionsFailure.Groups)
@@ -254,7 +262,15 @@ namespace DigitalRuby.IPBanCore
             node2 = doc.SelectSingleNode("//ExpressionsToNotify");
             if (node2 != null)
             {
-                expressionsSuccess = new XmlSerializer(typeof(EventViewerExpressionsToNotify)).Deserialize(new XmlNodeReader(node2)) as EventViewerExpressionsToNotify;
+                try
+                {
+                    expressionsSuccess = new XmlSerializer(typeof(EventViewerExpressionsToNotify)).Deserialize(new XmlNodeReader(node2)) as EventViewerExpressionsToNotify;
+                }
+                catch (Exception ex)
+                {
+                    expressionsSuccess = new EventViewerExpressionsToNotify { Groups = new List<EventViewerExpressionGroup>() };
+                    Logger.Error("Failed to load expressions to notify: {0}", ex);
+                }
                 if (expressionsSuccess != null)
                 {
                     foreach (EventViewerExpressionGroup group in expressionsSuccess.Groups)
@@ -280,8 +296,8 @@ namespace DigitalRuby.IPBanCore
             }
             catch (Exception ex)
             {
-                Logger.Error(ex);
-                logFiles = new IPBanLogFileToParse[0];
+                Logger.Error("Failed to load log files to parse", ex);
+                logFiles = emptyLogFilesToParseArray;
             }
             GetConfig<string>("ProcessToRunOnBan", ref processToRunOnBan);
             GetConfig<bool>("UseDefaultBannedIPAddressHandler", ref useDefaultBannedIPAddressHandler);
