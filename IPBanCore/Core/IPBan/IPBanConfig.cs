@@ -865,8 +865,8 @@ namespace DigitalRuby.IPBanCore
         /// <returns>Groups that match</returns>
         public IEnumerable<EventViewerExpressionGroup> WindowsEventViewerGetGroupsMatchingKeywords(ulong keywords)
         {
-            return WindowsEventViewerExpressionsToBlock.Groups.Where(g => (g.KeywordsULONG == keywords))
-                .Union(expressionsSuccess.Groups.Where(g => (g.KeywordsULONG == keywords)));
+            return WindowsEventViewerExpressionsToBlock?.Groups.Where(g => (g.KeywordsULONG == keywords))
+                .Union(expressionsSuccess?.Groups.Where(g => (g.KeywordsULONG == keywords)));
         }
 
         /// <summary>

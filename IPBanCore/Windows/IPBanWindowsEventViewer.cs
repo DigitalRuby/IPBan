@@ -308,7 +308,7 @@ namespace DigitalRuby.IPBanCore
 
         private string GetEventLogQueryString(List<string> ignored)
         {
-            if (service.Config is null)
+            if (service.Config is null || service.Config.WindowsEventViewerExpressionsToBlock is null)
             {
                 return null;
             }
