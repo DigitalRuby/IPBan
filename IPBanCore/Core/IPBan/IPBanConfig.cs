@@ -285,7 +285,8 @@ namespace DigitalRuby.IPBanCore
             }
             try
             {
-                if (new XmlSerializer(typeof(IPBanLogFilesToParse)).Deserialize(new XmlNodeReader(doc.SelectSingleNode("//LogFilesToParse"))) is IPBanLogFilesToParse logFilesToParse)
+                XmlNode logFilesToParseNode = doc.SelectSingleNode("//LogFilesToParse");
+                if (logFilesToParseNode != null && new XmlSerializer(typeof(IPBanLogFilesToParse)).Deserialize(new XmlNodeReader(logFilesToParseNode)) is IPBanLogFilesToParse logFilesToParse)
                 {
                     logFiles = logFilesToParse.LogFiles;
                 }
