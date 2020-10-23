@@ -513,10 +513,16 @@ namespace DigitalRuby.IPBanCore
             }
 
             // check for binary file
-            if (bytesEnd < 0 && read > maxLineLength)
+            if (bytesEnd < 0)
             {
-                file.IsBinaryFile = true;
-                Logger.Warn($"Aborting parsing log file {file.FileName}, file may be a binary file");
+                if (read > maxLineLength)
+                {
+                    // max line length bytes without a new line
+                    file.IsBinaryFile = true;
+                    Logger.Warn($"Aborting parsing log file {file.FileName}, file may be a binary file");
+                }
+                // reset position try again on next cycle
+                fs.Position = file.LastPosition;
                 return;
             }
 
