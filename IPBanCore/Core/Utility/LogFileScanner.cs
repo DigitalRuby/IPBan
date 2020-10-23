@@ -513,7 +513,7 @@ namespace DigitalRuby.IPBanCore
             }
 
             // check for binary file
-            if (bytesEnd < 0)
+            if (!foundNewLine)
             {
                 if (read > maxLineLength)
                 {
