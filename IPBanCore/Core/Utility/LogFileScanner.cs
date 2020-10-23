@@ -513,7 +513,7 @@ namespace DigitalRuby.IPBanCore
             }
 
             // check for binary file
-            if (bytesEnd < 0)
+            if (bytesEnd < 0 && read > maxLineLength)
             {
                 file.IsBinaryFile = true;
                 Logger.Warn($"Aborting parsing log file {file.FileName}, file may be a binary file");
