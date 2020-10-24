@@ -205,11 +205,9 @@ namespace DigitalRuby.IPBanCore
                             }
                             else
                             {
-                                maxFailedLoginAttempts = Config.FailedLoginAttemptsBeforeBan;
+                                // see if there is an override for max failed login attempts
+                                maxFailedLoginAttempts = (failedLogin.FailedLoginThreshold > 0 ? failedLogin.FailedLoginThreshold : Config.FailedLoginAttemptsBeforeBan);
                             }
-
-                            // see if there is an override for max failed login attempts
-                            maxFailedLoginAttempts = Math.Max(failedLogin.FailedLoginThreshold, maxFailedLoginAttempts);
 
                             DateTime now = failedLogin.Timestamp;
 
