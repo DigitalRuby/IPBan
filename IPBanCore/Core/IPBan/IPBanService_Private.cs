@@ -883,6 +883,11 @@ namespace DigitalRuby.IPBanCore
                     // we don't want to count multiple events that all map to the same ip address that happen rapidly
                     // multiple logs or event viewer entries can trigger quickly, piling up the counter too fast,
                     // locking out even a single failed login for example
+                    if (newEvent.Type == IPAddressEventType.SuccessfulLogin)
+                    {
+                        // for success logins increase time to log between events as some events (SSH) are reported multiple times
+                        minTimeBetweenEvents = TimeSpan.FromSeconds(15.0);
+                    }
                     if ((UtcNow - existing.Timestamp) >= minTimeBetweenEvents)
                     {
                         // update to the latest timestamp of the event
