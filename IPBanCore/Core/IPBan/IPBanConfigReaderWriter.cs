@@ -44,6 +44,7 @@ namespace DigitalRuby.IPBanCore
         private string localConfigString;
         private static string lastConfigValue;
         private static DateTime lastConfigWriteTime;
+        private static DateTime lastConfigIntervalTime;
 
         private static readonly TimeSpan forceLoadInterval = TimeSpan.FromMinutes(5.0);
 
@@ -116,10 +117,11 @@ namespace DigitalRuby.IPBanCore
 
                         // if enough time has elapsed, force a reload anyway, in case of dns entries and the
                         // like in the config that need to be re-resolved
-                        IPBanService.UtcNow - lastWriteTime > forceLoadInterval)
+                        IPBanService.UtcNow - lastConfigIntervalTime > forceLoadInterval)
                     {
                         lastConfigWriteTime = lastWriteTime;
                         lastConfigValue = currentConfig;
+                        lastConfigIntervalTime = IPBanService.UtcNow;
                         result = currentConfig;
                     }
                 });
