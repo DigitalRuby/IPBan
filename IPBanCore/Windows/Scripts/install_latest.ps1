@@ -30,7 +30,7 @@ $ErrorActionPreference = "Stop"
 $tempPath = [System.IO.Path]::GetTempPath()
 [bool] $isUninstall = ($uninstall -eq "u" -or $uninstall -eq "uninstall")
 
-if ([Environment]::Is64BitOperatingSystem -neq $True)
+if ([System.Environment]::Is64BitOperatingSystem -neq $True)
 {
     $FILE_NAME = "IPBan-Windows-x86_$VERSION_UNDERSCORES.zip"
 }
