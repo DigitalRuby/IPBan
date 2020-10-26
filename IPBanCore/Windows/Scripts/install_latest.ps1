@@ -23,7 +23,6 @@ $VERSION_DOTS = "1.5.8"
 $VERSION_UNDERSCORES = $VERSION_DOTS -replace "\.","_"
 $FILE_NAME = "IPBan-Windows-x64_$VERSION_UNDERSCORES.zip"
 $INSTALL_PATH = "C:/Program Files/IPBan"
-$INSTALL_EXE = "$INSTALL_PATH/DigitalRuby.IPBan.exe"
 $SERVICE_NAME = "IPBan"
 $ErrorActionPreference = "Stop"
 $tempPath = [System.IO.Path]::GetTempPath()
@@ -36,6 +35,7 @@ if ([System.Environment]::Is64BitOperatingSystem -ne $True)
 }
 
 $CONFIG_FILE = "$INSTALL_PATH/ipban.config"
+$INSTALL_EXE = "$INSTALL_PATH/DigitalRuby.IPBan.exe"
 
 if (Get-Service $SERVICE_NAME -ErrorAction SilentlyContinue)
 {
