@@ -33,6 +33,7 @@ $tempPath = [System.IO.Path]::GetTempPath()
 if ([System.Environment]::Is64BitOperatingSystem -ne $True)
 {
     $FILE_NAME = "IPBan-Windows-x86_$VERSION_UNDERSCORES.zip"
+    $INSTALL_PATH = "C:/Program Files (x86)/IPBan"
 }
 
 if (Get-Service $SERVICE_NAME -ErrorAction SilentlyContinue)
