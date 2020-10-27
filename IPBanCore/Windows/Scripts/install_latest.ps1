@@ -23,14 +23,19 @@ $VERSION_DOTS = "1.5.8"
 $VERSION_UNDERSCORES = $VERSION_DOTS -replace "\.","_"
 $FILE_NAME = "IPBan-Windows-x64_$VERSION_UNDERSCORES.zip"
 $INSTALL_PATH = "C:/Program Files/IPBan"
-$INSTALL_EXE = "$INSTALL_PATH/DigitalRuby.IPBan.exe"
-$CONFIG_FILE = "$INSTALL_PATH/ipban.config"
 $SERVICE_NAME = "IPBan"
-
 $ErrorActionPreference = "Stop"
-
 $tempPath = [System.IO.Path]::GetTempPath()
 [bool] $isUninstall = ($uninstall -eq "u" -or $uninstall -eq "uninstall")
+
+if ([System.Environment]::Is64BitOperatingSystem -ne $True)
+{
+    $FILE_NAME = "IPBan-Windows-x86_$VERSION_UNDERSCORES.zip"
+    $INSTALL_PATH = "C:/Program Files (x86)/IPBan"
+}
+
+$CONFIG_FILE = "$INSTALL_PATH/ipban.config"
+$INSTALL_EXE = "$INSTALL_PATH/DigitalRuby.IPBan.exe"
 
 if (Get-Service $SERVICE_NAME -ErrorAction SilentlyContinue)
 {
