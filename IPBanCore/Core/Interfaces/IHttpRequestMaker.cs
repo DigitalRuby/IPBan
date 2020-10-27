@@ -101,7 +101,7 @@ namespace DigitalRuby.IPBanCore
         /// </summary>
         public static long LocalRequestCount { get { return localRequestCount; } }
 
-        public Task<byte[]> MakeRequestAsync(Uri uri, string postJson = null, IEnumerable<KeyValuePair<string, object>> headers = null,
+        public async Task<byte[]> MakeRequestAsync(Uri uri, string postJson = null, IEnumerable<KeyValuePair<string, object>> headers = null,
             CancellationToken cancelToken = default)
         {
             if (uri.Host.StartsWith("localhost", StringComparison.OrdinalIgnoreCase) ||
@@ -146,12 +146,18 @@ namespace DigitalRuby.IPBanCore
                     client.Headers[header.Key] = header.Value.ToHttpHeaderString();
                 }
             }
+            byte[] response;
             if (string.IsNullOrWhiteSpace(postJson))
             {
-                return client.DownloadDataTaskAsync(uri);
+                response = await client.DownloadDataTaskAsync(uri);
             }
-            client.Headers["Content-Type"] = "application/json";
-            return client.UploadDataTaskAsync(uri, "POST", Encoding.UTF8.GetBytes(postJson));
+            else
+            {
+                client.Headers["Content-Type"] = "application/json";
+                response = await client.UploadDataTaskAsync(uri, "POST", Encoding.UTF8.GetBytes(postJson));
+            }
+            //var responseHeaders = client.ResponseHeaders.ToHttpHeaderString();
+            return response;
         }
 
         public IWebProxy Proxy { get; set; }
