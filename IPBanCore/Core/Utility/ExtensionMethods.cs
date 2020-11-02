@@ -495,7 +495,7 @@ namespace DigitalRuby.IPBanCore
             string addressAsString = ip.ToString();
 
             // equivalent of 127.0.0.1 in IPv6
-            if (addressAsString == "::1")
+            if (string.IsNullOrWhiteSpace(addressAsString) || addressAsString == "::1")
             {
                 return true;
             }
