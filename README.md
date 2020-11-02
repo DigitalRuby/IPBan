@@ -54,7 +54,7 @@ Please note that for IPBan Pro, you can find install instructions at https://ipb
 
 **Linux**
 
-- IPBan is supported on Ubuntu and Debian operating systems.
+- IPBan is supported on most Linux operating systems.
 - Easy one click install:
 ```
 sudo -i; bash <(wget -qO- https://raw.githubusercontent.com/DigitalRuby/IPBan/master/IPBanCore/Linux/Scripts/Install.sh)
