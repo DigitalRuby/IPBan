@@ -107,45 +107,45 @@ namespace DigitalRuby.IPBanCore
         }
 
         /// <inheritdoc />
-        public virtual Task<bool> BlockIPAddresses(string ruleNamePrefix, IEnumerable<string> ipAddresses, IEnumerable<PortRange> allowedPorts = null, CancellationToken cancelToken = default) => Task.FromResult<bool>(false);
+        public abstract Task<bool> BlockIPAddresses(string ruleNamePrefix, IEnumerable<string> ipAddresses, IEnumerable<PortRange> allowedPorts = null, CancellationToken cancelToken = default);
 
         /// <inheritdoc />
-        public virtual Task<bool> BlockIPAddressesDelta(string ruleNamePrefix, IEnumerable<IPBanFirewallIPAddressDelta> ipAddresses, IEnumerable<PortRange> allowedPorts = null, CancellationToken cancelToken = default) => Task.FromResult<bool>(false);
+        public abstract Task<bool> BlockIPAddressesDelta(string ruleNamePrefix, IEnumerable<IPBanFirewallIPAddressDelta> ipAddresses, IEnumerable<PortRange> allowedPorts = null, CancellationToken cancelToken = default);
 
         /// <inheritdoc />
-        public virtual Task<bool> BlockIPAddresses(string ruleNamePrefix, IEnumerable<IPAddressRange> ranges, IEnumerable<PortRange> allowedPorts = null, CancellationToken cancelToken = default) => Task.FromResult<bool>(false);
+        public abstract Task<bool> BlockIPAddresses(string ruleNamePrefix, IEnumerable<IPAddressRange> ranges, IEnumerable<PortRange> allowedPorts = null, CancellationToken cancelToken = default);
 
         /// <inheritdoc />
-        public virtual Task<bool> AllowIPAddresses(IEnumerable<string> ipAddresses, CancellationToken cancelToken = default) => Task.FromResult<bool>(false);
+        public abstract Task<bool> AllowIPAddresses(IEnumerable<string> ipAddresses, CancellationToken cancelToken = default);
 
         /// <inheritdoc />
-        public virtual Task<bool> AllowIPAddresses(string ruleNamePrefix, IEnumerable<IPAddressRange> ipAddresses, IEnumerable<PortRange> allowedPorts = null, CancellationToken cancelToken = default) => Task.FromResult<bool>(false);
+        public abstract Task<bool> AllowIPAddresses(string ruleNamePrefix, IEnumerable<IPAddressRange> ipAddresses, IEnumerable<PortRange> allowedPorts = null, CancellationToken cancelToken = default);
 
         /// <inheritdoc />
-        public virtual bool IsIPAddressBlocked(string ipAddress, out string ruleName, int port = -1) { ruleName = null; return false; }
+        public abstract bool IsIPAddressBlocked(string ipAddress, out string ruleName, int port = -1);
 
         /// <inheritdoc />
-        public virtual bool IsIPAddressAllowed(string ipAddress, int port = -1) => false;
+        public abstract bool IsIPAddressAllowed(string ipAddress, int port = -1);
 
         /// <inheritdoc />
-        public virtual IEnumerable<string> GetRuleNames(string ruleNamePrefix = null) => new string[0];
+        public abstract IEnumerable<string> GetRuleNames(string ruleNamePrefix = null);
 
         /// <inheritdoc />
-        public virtual bool DeleteRule(string ruleName) => false;
+        public abstract bool DeleteRule(string ruleName);
 
         /// <inheritdoc />
-        public virtual IEnumerable<string> EnumerateBannedIPAddresses() => new string[0];
+        public abstract IEnumerable<string> EnumerateBannedIPAddresses();
 
         /// <inheritdoc />
-        public virtual IEnumerable<string> EnumerateAllowedIPAddresses() => new string[0];
+        public abstract IEnumerable<string> EnumerateAllowedIPAddresses();
 
         /// <inheritdoc />
-        public virtual IEnumerable<IPAddressRange> EnumerateIPAddresses(string ruleNamePrefix = null) => new IPAddressRange[0];
+        public abstract IEnumerable<IPAddressRange> EnumerateIPAddresses(string ruleNamePrefix = null);
 
         /// <summary>
         /// Truncate
         /// </summary>
-        public virtual void Truncate() { }
+        public abstract void Truncate();
 
         /// <summary>
         /// Rule prefix - defaults to 'IPBan_'

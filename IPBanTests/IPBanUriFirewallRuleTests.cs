@@ -8,21 +8,18 @@ using DigitalRuby.IPBanCore;
 using System;
 using System.IO;
 using System.Text;
+using System.Linq;
 
 namespace DigitalRuby.IPBanTests
 {
     [TestFixture]
-    public class IPBanUriFirewallRuleTests : IIsWhitelisted, IIPBanFirewall, IHttpRequestMaker
+    public class IPBanUriFirewallRuleTests : IIsWhitelisted, IHttpRequestMaker
     {
         private static readonly IPAddressRange range1 = IPAddressRange.Parse("99.99.99.99");
         private static readonly IPAddressRange range2 = IPAddressRange.Parse("100.100.100.100/31");
         private static readonly IPAddressRange range3 = IPAddressRange.Parse("89.99.99.99");
 
-        private readonly HashSet<IPAddressRange> whitelist = new HashSet<IPAddressRange>();
-        private readonly List<IPAddressRange> blocklist = new List<IPAddressRange>();
-        private string blockRule;
-        private int blockCount;
-        private int isWhitelistedCount;
+        private readonly IPBanMemoryFirewall memoryFirewall = new IPBanMemoryFirewall();
 
         private string GetTestFile()
         {
@@ -39,18 +36,18 @@ namespace DigitalRuby.IPBanTests
             try
             {
                 Uri uriObj = (tempFile == null ? new Uri(uri) : new Uri("file://" + tempFile));
-                using IPBanUriFirewallRule rule = new IPBanUriFirewallRule(this, this, this, "TestPrefix", TimeSpan.FromMinutes(1.0), uriObj);
+                using IPBanUriFirewallRule rule = new IPBanUriFirewallRule(memoryFirewall, this, this, "TestPrefix", TimeSpan.FromMinutes(1.0), uriObj);
                 if (tempFile != null)
                 {
                     File.WriteAllText(tempFile, GetTestFile());
                 }
-                whitelist.Add(range3);
                 await rule.Update();
-                Assert.AreEqual(1, blockCount);
-                Assert.Contains(range1, blocklist);
-                Assert.Contains(range2, blocklist);
-                Assert.AreEqual(3, isWhitelistedCount);
-                Assert.AreEqual("TestPrefix", blockRule);
+                Assert.AreEqual(1, memoryFirewall.GetRuleNames("TestPrefix").ToArray().Length);
+                var ranges = memoryFirewall.EnumerateIPAddresses("TestPrefix").ToArray();
+                Assert.Contains(range1, ranges);
+                Assert.Contains(range2, ranges);
+                Assert.Contains(range3, ranges);
+                Assert.AreEqual(0, memoryFirewall.EnumerateAllowedIPAddresses().ToArray().Length);
             }
             finally
             {
@@ -61,47 +58,24 @@ namespace DigitalRuby.IPBanTests
             }
         }
 
-        public Task<bool> BlockIPAddresses(string ruleNamePrefix, IEnumerable<IPAddressRange> ranges, IEnumerable<PortRange> allowedPorts = null, CancellationToken cancelToken = default)
-        {
-            blockRule = ruleNamePrefix;
-            blockCount++;
-            blocklist.AddRange(ranges);
-            return Task.FromResult(true);
-        }
-
-        public bool IsWhitelisted(IPAddressRange range)
-        {
-            isWhitelistedCount++;
-            return whitelist.Contains(range);
-        }
-
         public Task<byte[]> MakeRequestAsync(Uri uri, string postJson = null, IEnumerable<KeyValuePair<string, object>> headers = null,
             CancellationToken cancelToken = default)
         {
             return Task.FromResult(Encoding.UTF8.GetBytes(GetTestFile()));
         }
 
-        public void Dispose()
-        {
-        }
-
         [SetUp]
         public void Setup()
         {
-            whitelist.Clear();
-            blocklist.Clear();
-            blockRule = null;
-            blockCount = 0;
-            isWhitelistedCount = 0;
+            memoryFirewall.Truncate();
         }
 
         [Test]
         public async Task TestNoOp()
         {
-            using IPBanUriFirewallRule rule = new IPBanUriFirewallRule(this, this, this, "TestPrefix", TimeSpan.FromMinutes(1.0), new Uri("file://c:/temp/qweoqpwejqowtempfirewall.txt"));
+            using IPBanUriFirewallRule rule = new IPBanUriFirewallRule(memoryFirewall, this, this, "TestPrefix", TimeSpan.FromMinutes(1.0), new Uri("file://c:/temp/qweoqpwejqowtempfirewall.txt"));
             await rule.Update();
-            Assert.AreEqual(0, blockCount);
-            Assert.AreEqual(0, isWhitelistedCount);
+            Assert.AreEqual(0, memoryFirewall.EnumerateIPAddresses().ToArray().Length);
         }
 
         [Test]
@@ -114,6 +88,16 @@ namespace DigitalRuby.IPBanTests
         public async Task TestUrl()
         {
             await TestFileInternal("http://localhost");
+        }
+
+        public bool IsWhitelisted(string entry)
+        {
+            return memoryFirewall.IsIPAddressAllowed(entry);
+        }
+
+        public bool IsWhitelisted(IPAddressRange range)
+        {
+            return memoryFirewall.IsIPAddressAllowed(range.ToString());
         }
     }
 }
