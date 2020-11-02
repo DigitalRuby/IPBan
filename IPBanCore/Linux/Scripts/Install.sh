@@ -22,7 +22,7 @@ cp /opt/ipban/ipban.sqlite /tmp>/dev/null || :
 cp /opt/ipban/ipban.config /tmp>/dev/null || :
 
 # download latest release and extract to /opt/ipban
-sudo wget https://github.com/DigitalRuby/IPBan/releases/download/$VERSION_DOTS/$FILE_NAME; unzip -qq $FILE_NAME; rm $FILE_NAME;
+sudo wget https://github.com/DigitalRuby/IPBan/releases/download/$VERSION_DOTS/$FILE_NAME; sudo unzip -qq $FILE_NAME; sudo rm $FILE_NAME;
 
 # allow execute permissions for /opt/ipban/DigitalRuby.IPBan
 sudo chmod +x /opt/ipban/DigitalRuby.IPBan
