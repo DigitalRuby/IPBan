@@ -22,6 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+using System;
 using System.Collections.Generic;
 using System.Security.Policy;
 using System.Threading;
@@ -91,6 +92,7 @@ namespace DigitalRuby.IPBanCore
         {
             if (!Disposed)
             {
+                GC.SuppressFinalize(this);
                 Disposed = true;
                 OnDispose();
             }
