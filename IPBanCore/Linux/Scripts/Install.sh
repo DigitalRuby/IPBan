@@ -6,8 +6,12 @@ FILE_NAME="IPBan-Linux-x64_$VERSION_UNDERSCORES.zip"
 # sudo -i;
 # bash <(wget -qO- https://raw.githubusercontent.com/DigitalRuby/IPBan/master/IPBanCore/Linux/Scripts/Install.sh)
 
-# install unzipper, install iptables and ipset, make folder /opt/ipban
-sudo apt-get -q -y install unzip; sudo apt-get install -q -y iptables; sudo apt-get install -q -y ipset; sudo apt-get -q -y update; sudo mkdir /opt/ipban -p; cd /opt/ipban;
+# install unzipper, install iptables and ipset
+sudo apt -q -y install unzip iptables ipset || true; sudo apt -q -y update || true;
+sudo yum -q -y install unzip iptables ipset || true; sudo yum -q -y update || true;
+
+# make folder /opt/ipban
+sudo mkdir /opt/ipban -p; cd /opt/ipban;
 
 # stop service
 sudo systemctl stop ipban
