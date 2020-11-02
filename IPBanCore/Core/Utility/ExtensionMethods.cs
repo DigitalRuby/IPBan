@@ -472,6 +472,10 @@ namespace DigitalRuby.IPBanCore
             if (ip.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
             {
                 byte[] bytes = ip.GetAddressBytes();
+                if (bytes is null || bytes.Length < 4)
+                {
+                    return true;
+                }
                 switch (bytes[0])
                 {
                     case 10:

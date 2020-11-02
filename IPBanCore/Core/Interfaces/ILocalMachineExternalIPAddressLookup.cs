@@ -93,7 +93,7 @@ namespace DigitalRuby.IPBanCore
                 catch (Exception _ex)
                 {
                     ex = _ex;
-                    await Task.Delay(600);
+                    await Task.Delay(1000);
                 }
             }
 
