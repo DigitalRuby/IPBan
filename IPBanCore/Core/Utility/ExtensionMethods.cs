@@ -465,74 +465,84 @@ namespace DigitalRuby.IPBanCore
         /// <returns>Returns true if the IP is internal, false if it is external</returns>
         public static bool IsInternal(this System.Net.IPAddress ip)
         {
-            if (ip.IsIPv4MappedToIPv6)
+            try
             {
-                ip = ip.MapToIPv4();
-            }
-            if (ip.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
-            {
-                byte[] bytes = ip.GetAddressBytes();
-                if (bytes is null || bytes.Length < 4)
+                if (ip.IsIPv4MappedToIPv6)
+                {
+                    ip = ip.MapToIPv4();
+                }
+                if (ip.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
+                {
+                    byte[] bytes = ip.GetAddressBytes();
+                    if (bytes is null || bytes.Length < 4)
+                    {
+                        return true;
+                    }
+                    switch (bytes[0])
+                    {
+                        case 10:
+                        case 127:
+                            return true;
+                        case 172:
+                            return bytes[1] >= 16 && bytes[1] < 32;
+                        case 192:
+                            return bytes[1] == 168;
+                        case 0:
+                            return true;
+                        default:
+                            return false;
+                    }
+                }
+
+                string addressAsString = ip.ToString();
+
+                // equivalent of 127.0.0.1 in IPv6
+                if (string.IsNullOrWhiteSpace(addressAsString) ||
+                    addressAsString.Length < 3 ||
+                    addressAsString == "::1")
                 {
                     return true;
                 }
-                switch (bytes[0])
+
+                // The original IPv6 Site Local addresses (fec0::/10) are deprecated. Unfortunately IsIPv6SiteLocal only checks for the original deprecated version:
+                else if (ip.IsIPv6SiteLocal)
                 {
-                    case 10:
-                    case 127:
-                        return true;
-                    case 172:
-                        return bytes[1] >= 16 && bytes[1] < 32;
-                    case 192:
-                        return bytes[1] == 168;
-                    case 0:
-                        return true;
-                    default:
-                        return false;
+                    return true;
                 }
+
+                string firstWord = addressAsString.Split(new[] { ':' }, StringSplitOptions.RemoveEmptyEntries)[0];
+
+                // These days Unique Local Addresses (ULA) are used in place of Site Local. 
+                // ULA has two variants: 
+                //      fc00::/8 is not defined yet, but might be used in the future for internal-use addresses that are registered in a central place (ULA Central). 
+                //      fd00::/8 is in use and does not have to registered anywhere.
+                if (firstWord.Length >= 4 && firstWord.Substring(0, 2) == "fc")
+                {
+                    return true;
+                }
+                else if (firstWord.Length >= 4 && firstWord.Substring(0, 2) == "fd")
+                {
+                    return true;
+                }
+                // Link local addresses (prefixed with fe80) are not routable
+                else if (firstWord == "fe80")
+                {
+                    return true;
+                }
+                // Discard Prefix
+                else if (firstWord == "100")
+                {
+                    return true;
+                }
+
+                // Any other IP address is not Unique Local Address (ULA)
+                return false;
             }
-
-            string addressAsString = ip.ToString();
-
-            // equivalent of 127.0.0.1 in IPv6
-            if (string.IsNullOrWhiteSpace(addressAsString) || addressAsString == "::1")
+            catch (Exception ex)
             {
+                Logger.Warn("Invalid ip isinternal check: {0}, {1}", ip, ex);
                 return true;
             }
-
-            // The original IPv6 Site Local addresses (fec0::/10) are deprecated. Unfortunately IsIPv6SiteLocal only checks for the original deprecated version:
-            else if (ip.IsIPv6SiteLocal)
-            {
-                return true;
-            }
-
-            string firstWord = addressAsString.Split(new[] { ':' }, StringSplitOptions.RemoveEmptyEntries)[0];
-
-            // These days Unique Local Addresses (ULA) are used in place of Site Local. 
-            // ULA has two variants: 
-            //      fc00::/8 is not defined yet, but might be used in the future for internal-use addresses that are registered in a central place (ULA Central). 
-            //      fd00::/8 is in use and does not have to registered anywhere.
-            if (firstWord.Length >= 4 && firstWord.Substring(0, 2) == "fc")
-            {
-                return true;
-            }
-            else if (firstWord.Length >= 4 && firstWord.Substring(0, 2) == "fd")
-            {
-                return true;
-            }
-            // Link local addresses (prefixed with fe80) are not routable
-            else if (firstWord == "fe80")
-            {
-                return true;
-            }
-            // Discard Prefix
-            else if (firstWord == "100")
-            {
-                return true;
-            }
-
-            // Any other IP address is not Unique Local Address (ULA)
-            return false;
         }
 
         /// <summary>
