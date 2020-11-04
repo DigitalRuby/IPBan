@@ -502,6 +502,21 @@ namespace DigitalRuby.IPBanCore
                     version.Version.Minor < 2);
             }
         }
+
+        /// <summary>
+        /// Determine if system is Windows 8 or Windows Server 2012 - these systems are unable to log
+        /// ip addresses is NLA is enabled
+        /// </summary>
+        public static bool IsWindows8OrServer2012
+        {
+            get
+            {
+                var version = System.Environment.OSVersion;
+                return (version.Platform == PlatformID.Win32NT &&
+                    version.Version.Major == 6 &&
+                    version.Version.Minor > 1 && version.Version.Minor < 4);
+            }
+        }
     }
 
     /// <summary>
