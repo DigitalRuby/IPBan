@@ -102,12 +102,12 @@ namespace DigitalRuby.IPBanCore
         /// <summary>
         /// Check for config change
         /// </summary>
-        /// <returns>Task of config string, will be a null string if no change</returns>
-        public async Task<string> CheckForConfigChange()
+        /// <returns>Task of config string and force bool, will be a null string if no change</returns>
+        public async Task<(string, bool)> CheckForConfigChange()
         {
+            (string, bool) result = new(null, false);
             if (UseFile)
             {
-                string result = null;
                 await Locker.LockActionAsync(async () =>
                 {
                     DateTime lastWriteTime = File.GetLastWriteTimeUtc(Path);
@@ -117,12 +117,12 @@ namespace DigitalRuby.IPBanCore
 
                         // if enough time has elapsed, force a reload anyway, in case of dns entries and the
                         // like in the config that need to be re-resolved
-                        IPBanService.UtcNow - lastConfigIntervalTime > forceLoadInterval)
+                        (result.Item2 = IPBanService.UtcNow - lastConfigIntervalTime > forceLoadInterval))
                     {
                         lastConfigWriteTime = lastWriteTime;
                         lastConfigValue = currentConfig;
                         lastConfigIntervalTime = IPBanService.UtcNow;
-                        result = currentConfig;
+                        result.Item1 = currentConfig;
                     }
                 });
                 return result;
@@ -130,9 +130,9 @@ namespace DigitalRuby.IPBanCore
             else if (GlobalConfigString != localConfigString)
             {
                 localConfigString = GlobalConfigString;
-                return localConfigString;
+                return new(localConfigString, false);
             }
-            return null;
+            return result;
         }
 
         /// <summary>

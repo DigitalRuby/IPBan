@@ -79,17 +79,22 @@ namespace DigitalRuby.IPBanCore
             try
             {
                 ConfigFilePath = (!File.Exists(ConfigFilePath) ? Path.Combine(AppContext.BaseDirectory, IPBanConfig.DefaultFileName) : ConfigFilePath);
-                string newXml = await ConfigReaderWriter.CheckForConfigChange();
-                if (!string.IsNullOrWhiteSpace(newXml))
+                var configChange = await ConfigReaderWriter.CheckForConfigChange();
+                if (!string.IsNullOrWhiteSpace(configChange.Item1))
                 {
                     IPBanConfig oldConfig = Config;
-                    IPBanConfig newConfig = IPBanConfig.LoadFromXml(newXml, DnsLookup, DnsList, RequestMaker);
+                    IPBanConfig newConfig = IPBanConfig.LoadFromXml(configChange.Item1, DnsLookup, DnsList, RequestMaker);
                     ConfigChanged?.Invoke(newConfig);
                     whitelistChanged = (Config is null || Config.Whitelist != newConfig.Whitelist || Config.WhitelistRegex != newConfig.WhitelistRegex);
                     Config = newConfig;
                     LoadFirewall(oldConfig);
                     ParseAndAddUriFirewallRules(newConfig);
-                    Logger.Info("Config file changed");
+
+                    // if the config change was not a force refresh with no actual config values changed, log it
+                    if (!configChange.Item2)
+                    {
+                        Logger.Info("Config file changed");
+                    }
                 }
             }
             catch (Exception ex)
