@@ -55,4 +55,4 @@ Compress-Archive -Path ./package/linux-x64/* -DestinationPath ./package/IPBan-Li
 Compress-Archive -Path ./package/win-x64/* -DestinationPath ./package/IPBan-Windows-x64_$version.zip; CheckFail
 Compress-Archive -Path ./package/win-x86/* -DestinationPath ./package/IPBan-Windows-x86_$version.zip; CheckFail
 
-& taskkill /im dotnet.exe /F | $null
+& taskkill /im dotnet.exe /F >nul 2>&1
