@@ -12,6 +12,7 @@
 	  <GenerateSerializationAssemblies>Off</GenerateSerializationAssemblies>
 	  <AssemblyVersion>1.5.8</AssemblyVersion>
 	  <FileVersion>1.5.8</FileVersion>
+    <IsTrimmable>false</IsTrimmable>
   </PropertyGroup>
 
   <ItemGroup>
