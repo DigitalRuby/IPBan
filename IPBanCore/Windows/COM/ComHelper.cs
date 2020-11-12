@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 
-namespace IPBanCore.Windows.COM
+namespace DigitalRuby.IPBanCore.Windows.COM
 {
     // ReSharper disable once HollowTypeName
     internal static class ComHelper

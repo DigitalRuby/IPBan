@@ -1,7 +1,7 @@
 ﻿using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-namespace IPBanCore.Windows.COM
+namespace DigitalRuby.IPBanCore.Windows.COM
 {
     [Guid("8267BBE3-F890-491C-B7B6-2DB1EF0E5D2B")]
     [ComImport]

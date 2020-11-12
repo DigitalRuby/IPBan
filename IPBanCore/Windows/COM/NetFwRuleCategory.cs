@@ -1,4 +1,4 @@
-﻿namespace IPBanCore.Windows.COM
+﻿namespace DigitalRuby.IPBanCore.Windows.COM
 {
     public enum NetFwRuleCategory
     {

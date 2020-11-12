@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq;
 
-namespace IPBanCore.Windows.COM
+namespace DigitalRuby.IPBanCore.Windows.COM
 {
     internal class ComClassProgIdAttribute : Attribute
     {

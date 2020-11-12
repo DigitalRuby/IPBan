@@ -38,7 +38,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 
-using IPBanCore.Windows.COM;
+using DigitalRuby.IPBanCore.Windows.COM;
 
 #endregion Imports
 
