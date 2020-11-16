@@ -442,7 +442,7 @@ namespace DigitalRuby.IPBanCore
                                     WorkingDirectory = Path.GetDirectoryName(program),
                                     Arguments = arguments
                                 };
-                                Process.Start(psi);
+                                using Process p = Process.Start(psi);
                             }
                             else
                             {
@@ -768,7 +768,7 @@ namespace DigitalRuby.IPBanCore
                             // pass -c to tell the update executable to delete itself when done
                             // pass -d for a directory which tells the .exe where this service lives
                             string args = "-c \"-d=" + AppContext.BaseDirectory + "\"";
-                            Process.Start(tempFile, args);
+                            ProcessUtility.CreateDetachedProcess(tempFile, args);
                         }
                     }
                     else if (urlType == UrlType.Config && bytes.Length != 0)

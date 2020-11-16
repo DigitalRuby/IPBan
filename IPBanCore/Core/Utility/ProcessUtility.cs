@@ -197,6 +197,7 @@ namespace DigitalRuby.IPBanCore
 
                 Logger.Warn("Running detached process {0} {1}", info.FileName, info.Arguments);
 
+                // do not get a reference and do not dispose, this process is orphaned from this process
                 Process.Start(info);
             }
         }

@@ -123,7 +123,8 @@ namespace DigitalRuby.IPBanCore
                 // Linux
                 else if (Directory.Exists(@"/var/log"))
                 {
-                    string processName = System.Diagnostics.Process.GetCurrentProcess().ProcessName;
+                    using Process currentProcess = Process.GetCurrentProcess();
+                    string processName = currentProcess.ProcessName;
                     File.AppendAllText($"/var/log/ipbancustom_{ProcessName}.log", $"{DateTime.UtcNow:u}, ipban success login, ip address: {remoteIpAddress}, source: {source}, user: {userName}\n");
                 }
             }

@@ -174,7 +174,8 @@ namespace DigitalRuby.IPBanCore
             Name = FriendlyName = OSUtility.Linux;
             isLinux = true;
             string tempFile = GetTempFileName();
-            Process.Start("/bin/bash", "-c \"cat /etc/*release* > " + tempFile + "\"").WaitForExit();
+            using Process p = Process.Start("/bin/bash", "-c \"cat /etc/*release* > " + tempFile + "\"");
+            p.WaitForExit();
             System.Threading.Tasks.Task.Delay(100); // wait a small bit for file to really be closed
             string versionText = File.ReadAllText(tempFile).Trim();
             ExtensionMethods.FileDeleteWithRetry(tempFile);
@@ -289,7 +290,7 @@ namespace DigitalRuby.IPBanCore
             {
                 Logger.Info($"Executing process {program} {args}...");
 
-                var process = new Process
+                using var process = new Process
                 {
                     StartInfo = new ProcessStartInfo(program, args)
                     {
