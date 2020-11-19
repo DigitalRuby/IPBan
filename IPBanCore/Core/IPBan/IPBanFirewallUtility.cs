@@ -104,6 +104,7 @@ namespace DigitalRuby.IPBanCore
             {
                 int priority = int.MinValue;
                 Type firewallType = typeof(IIPBanFirewall);
+                Type fallbackType = null;
                 IReadOnlyCollection<Type> allTypes = ExtensionMethods.GetAllTypes();
 
                 var q =
@@ -139,6 +140,7 @@ namespace DigitalRuby.IPBanCore
                         }
                         firewallType = result.FirewallType;
                         priority = result.OS.Priority;
+                        fallbackType = result.OS.FallbackFirewallType;
                     }
                 }
                 if (firewallType is null || firewallType == typeof(IIPBanFirewall))
@@ -149,7 +151,19 @@ namespace DigitalRuby.IPBanCore
                 {
                     return existing;
                 }
-                return Activator.CreateInstance(firewallType, new object[] { rulePrefix }) as IIPBanFirewall;
+                try
+                {
+                    return Activator.CreateInstance(firewallType, new object[] { rulePrefix }) as IIPBanFirewall;
+                }
+                catch
+                {
+                    // see if there's a fallback
+                    if (fallbackType is null)
+                    {
+                        throw;
+                    }
+                    return Activator.CreateInstance(fallbackType, new object[] { rulePrefix }) as IIPBanFirewall;
+                }
             }
             catch (Exception ex)
             {

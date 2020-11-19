@@ -559,6 +559,11 @@ namespace DigitalRuby.IPBanCore
         public int MinorVersionMinimum { get; set; }
 
         /// <summary>
+        /// Optional fallback firewall type if the constructor fails
+        /// </summary>
+        public Type FallbackFirewallType { get; set; }
+
+        /// <summary>
         /// Require an environment variable to exist (key=value syntax)
         /// </summary>
         public string RequireEnvironmentVariable { get; set; }

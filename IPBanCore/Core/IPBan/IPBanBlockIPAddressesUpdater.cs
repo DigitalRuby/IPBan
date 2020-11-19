@@ -32,21 +32,26 @@ using System.Threading.Tasks;
 
 namespace DigitalRuby.IPBanCore
 {
+    /// <summary>
+    /// Block ip addresses for any ban*.txt files
+    /// </summary>
     public class IPBanBlockIPAddressesUpdater : IUpdater
     {
-        private IIPAddressEventHandler service;
-        private readonly string textFilePath;
+        private readonly IIPAddressEventHandler service;
+        private readonly string textFilePathDir;
+        private readonly string textFilePathMask;
 
         /// <summary>
         /// Constructor
         /// </summary>
         /// <param name="service">Service</param>
-        /// <param name="textFilePath">Path to text file to ban ip addresses from</param>
-        public IPBanBlockIPAddressesUpdater(IIPAddressEventHandler service, string textFilePath)
+        /// <param name="textFilePathMask">Path / mask to text file to ban ip addresses from</param>
+        public IPBanBlockIPAddressesUpdater(IIPAddressEventHandler service, string textFilePathMask)
         {
             service.ThrowIfNull();
             this.service = service;
-            this.textFilePath = textFilePath;
+            this.textFilePathDir = Path.GetDirectoryName(textFilePathMask);
+            this.textFilePathMask = Path.GetFileName(textFilePathMask);
         }
 
         /// <summary>
@@ -54,6 +59,7 @@ namespace DigitalRuby.IPBanCore
         /// </summary>
         public void Dispose()
         {
+            GC.SuppressFinalize(this);
         }
 
         /// <summary>
@@ -64,10 +70,10 @@ namespace DigitalRuby.IPBanCore
         {
             try
             {
-                if (File.Exists(textFilePath))
+                foreach (string file in Directory.GetFiles(textFilePathDir, textFilePathMask, SearchOption.TopDirectoryOnly))
                 {
-                    string[] lines = (await File.ReadAllLinesAsync(textFilePath, cancelToken)).Where(l => IPAddress.TryParse(l, out _)).ToArray();
-                    Logger.Warn("Queueing {0} ip addresses to ban from {1} file", lines.Length, textFilePath);
+                    string[] lines = (await File.ReadAllLinesAsync(file, cancelToken)).Where(l => IPAddress.TryParse(l, out _)).ToArray();
+                    Logger.Warn("Queueing {0} ip addresses to ban from {1} file", lines.Length, file);
                     List<IPAddressLogEvent> bans = new List<IPAddressLogEvent>();
                     foreach (string[] pieces in lines.Select(l => l.Split(',')))
                     {
@@ -80,7 +86,7 @@ namespace DigitalRuby.IPBanCore
                         bans.Add(new IPAddressLogEvent(ipAddress, string.Empty, source, 1, IPAddressEventType.Blocked));
                     }
                     service.AddIPAddressLogEvents(bans);
-                    ExtensionMethods.FileDeleteWithRetry(textFilePath);
+                    ExtensionMethods.FileDeleteWithRetry(file);
                 }
             }
             catch (Exception ex)

@@ -32,21 +32,26 @@ using System.Threading.Tasks;
 
 namespace DigitalRuby.IPBanCore
 {
+    /// <summary>
+    /// Unban ip addresses for any unban*.txt files
+    /// </summary>
     public class IPBanUnblockIPAddressesUpdater : IUpdater
     {
-        private IIPAddressEventHandler service;
-        private readonly string textFilePath;
+        private readonly IIPAddressEventHandler service;
+        private readonly string textFilePathDir;
+        private readonly string textFilePathMask;
 
         /// <summary>
         /// Constructor
         /// </summary>
         /// <param name="service">Service</param>
-        /// <param name="textFilePath">Path to text file to unban ip addresses from</param>
-        public IPBanUnblockIPAddressesUpdater(IIPAddressEventHandler service, string textFilePath)
+        /// <param name="textFilePathMask">Path to text file / mask to unban ip addresses from</param>
+        public IPBanUnblockIPAddressesUpdater(IIPAddressEventHandler service, string textFilePathMask)
         {
             service.ThrowIfNull();
             this.service = service;
-            this.textFilePath = textFilePath;
+            this.textFilePathDir = Path.GetDirectoryName(textFilePathMask);
+            this.textFilePathMask = Path.GetFileName(textFilePathMask);
         }
 
         /// <summary>
@@ -54,6 +59,7 @@ namespace DigitalRuby.IPBanCore
         /// </summary>
         public void Dispose()
         {
+            GC.SuppressFinalize(this);
         }
 
         /// <summary>
@@ -64,12 +70,12 @@ namespace DigitalRuby.IPBanCore
         {
             try
             {
-                if (File.Exists(textFilePath))
+                foreach (string file in Directory.GetFiles(textFilePathDir, textFilePathMask, SearchOption.TopDirectoryOnly))
                 {
-                    string[] lines = (await File.ReadAllLinesAsync(textFilePath, cancelToken)).Where(l => IPAddress.TryParse(l, out _)).ToArray();
-                    Logger.Warn("Queueing {0} ip addresses to unban from {1} file", lines.Length, textFilePath);
+                    string[] lines = (await File.ReadAllLinesAsync(file, cancelToken)).Where(l => IPAddress.TryParse(l, out _)).ToArray();
+                    Logger.Warn("Queueing {0} ip addresses to unban from {1} file", lines.Length, file);
                     UnblockIPAddresses(lines);
-                    ExtensionMethods.FileDeleteWithRetry(textFilePath);
+                    ExtensionMethods.FileDeleteWithRetry(file);
                 }
             }
             catch (Exception ex)
