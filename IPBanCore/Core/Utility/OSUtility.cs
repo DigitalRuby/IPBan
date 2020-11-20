@@ -90,11 +90,17 @@ namespace DigitalRuby.IPBanCore
         /// </summary>
         public static string Description { get; private set; }
 
+        /// <summary>
+        /// Whether the OS uses the yum package manager (Linux only). If false, apt is used, if true yum is used.
+        /// </summary>
+        public static bool UsesYumPackageManager { get; private set; }
+
         private static readonly string tempFolder;
 
         private static bool isWindows;
         private static bool isLinux;
         private static bool isMac;
+
 
         private static string processVerb;
 
@@ -196,6 +202,11 @@ namespace DigitalRuby.IPBanCore
                     Version = ExtractRegex(versionText, "^Version_Id=(?<value>.+)$", Version);
                 }
             }
+
+            UsesYumPackageManager = FriendlyName.Contains("centos", StringComparison.OrdinalIgnoreCase) ||
+                OSUtility.FriendlyName.Contains("fedora", StringComparison.OrdinalIgnoreCase) ||
+                OSUtility.FriendlyName.Contains("red hat", StringComparison.OrdinalIgnoreCase) ||
+                OSUtility.FriendlyName.Contains("redhat", StringComparison.OrdinalIgnoreCase);
         }
 
         private static void LoadVersionFromWindows()
