@@ -25,5 +25,12 @@ namespace DigitalRuby.IPBanTests
             Assert.IsTrue(total > 0);
             Assert.IsTrue(avail > 0);
         }
+
+        [Test]
+        public void TestGetMacAddress()
+        {
+            string mac = NetworkUtility.GetMacAddress();
+            Assert.GreaterOrEqual(12, mac.Length);
+        }
     }
 }

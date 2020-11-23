@@ -56,5 +56,31 @@ namespace DigitalRuby.IPBanCore
 
             return dnsServers;
         }
+
+        /// <summary>
+        /// Get computer mac address in hex.
+        /// </summary>
+        /// <returns>Mac address or empty string if no network adapter found</returns>
+        public static string GetMacAddress()
+        {
+            const int minMacLength = 12;
+            string macAddress = string.Empty;
+            string possibleMacAddress;
+            long maxSpeed = -1;
+            foreach (NetworkInterface nic in NetworkInterface.GetAllNetworkInterfaces())
+            {
+                var props = nic.GetIPProperties();
+                if (nic.OperationalStatus == OperationalStatus.Up && nic.NetworkInterfaceType == NetworkInterfaceType.Ethernet)
+                {
+                    if (nic.Speed > maxSpeed && !string.IsNullOrEmpty(possibleMacAddress = nic.GetPhysicalAddress().ToString()) &&
+                        possibleMacAddress.Length >= minMacLength)
+                    {
+                        maxSpeed = nic.Speed;
+                        macAddress = possibleMacAddress;
+                    }
+                }
+            }
+            return macAddress;
+        }
     }
 }
