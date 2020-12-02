@@ -147,7 +147,22 @@ namespace DigitalRuby.IPBanCore
                 {
                     throw new ArgumentException("Firewall is null, at least one type should implement IIPBanFirewall");
                 }
-                if (existing != null && existing.GetType().Equals(firewallType))
+                RequiredOperatingSystemAttribute fallbackAttr = fallbackType?.GetCustomAttribute<RequiredOperatingSystemAttribute>();
+                Type existingType = existing?.GetType();
+                if (existingType != null && // if we have an existing firewall and
+                (
+                    firewallType.Equals(existingType)) || // if the existing firewall is the desired type or
+                    (
+                        fallbackType != null && // we have a fallback type and
+                        (
+                            fallbackType.Equals(existingType) || // the existing firewall is the fallback type or
+                            (
+                                // the fallback firewall has another fallback firewall and it matches the existing type
+                                fallbackAttr?.FallbackFirewallType != null && fallbackAttr.FallbackFirewallType.Equals(existingType)
+                            )
+                        )
+                    )
+                )
                 {
                     return existing;
                 }
@@ -155,14 +170,28 @@ namespace DigitalRuby.IPBanCore
                 {
                     return Activator.CreateInstance(firewallType, new object[] { rulePrefix }) as IIPBanFirewall;
                 }
-                catch
+                catch (Exception ex)
                 {
                     // see if there's a fallback
                     if (fallbackType is null)
                     {
                         throw;
                     }
-                    return Activator.CreateInstance(fallbackType, new object[] { rulePrefix }) as IIPBanFirewall;
+                    Logger.Error(ex, "Failed to create firewall of type {0}, falling back to firewall type {1}", firewallType, fallbackType);
+                    try
+                    {
+                        return Activator.CreateInstance(fallbackType, new object[] { rulePrefix }) as IIPBanFirewall;
+                    }
+                    catch (Exception ex2)
+                    {
+                        // last fallback attempt
+                        if (fallbackAttr is null || fallbackAttr.FallbackFirewallType is null)
+                        {
+                            throw;
+                        }
+                        Logger.Error(ex2, "Failed to create firewall of type {0}, falling back to final attempt with firewall type {1}", firewallType, fallbackType);
+                        return Activator.CreateInstance(fallbackAttr.FallbackFirewallType, new object[] { rulePrefix }) as IIPBanFirewall;
+                    }
                 }
             }
             catch (Exception ex)
