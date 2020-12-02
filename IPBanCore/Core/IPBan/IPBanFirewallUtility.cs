@@ -185,11 +185,11 @@ namespace DigitalRuby.IPBanCore
                     catch (Exception ex2)
                     {
                         // last fallback attempt
-                        if (fallbackAttr is null || fallbackAttr.FallbackFirewallType is null)
+                        if (fallbackAttr?.FallbackFirewallType is null)
                         {
                             throw;
                         }
-                        Logger.Error(ex2, "Failed to create firewall of type {0}, falling back to final attempt with firewall type {1}", firewallType, fallbackType);
+                        Logger.Error(ex2, "Failed to create firewall of type {0}, falling back to final attempt with firewall type {1}", fallbackType, fallbackAttr.FallbackFirewallType);
                         return Activator.CreateInstance(fallbackAttr.FallbackFirewallType, new object[] { rulePrefix }) as IIPBanFirewall;
                     }
                 }
