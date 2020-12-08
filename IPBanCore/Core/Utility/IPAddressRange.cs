@@ -485,6 +485,45 @@ namespace DigitalRuby.IPBanCore
         }
 
         /// <summary>
+        /// Return a combined ip address range of all ip addresses if all ip addresses are consecutive
+        /// </summary>
+        /// <param name="ips">IP addresses</param>
+        /// <returns>IPAddressRange or null if ip addresses are not consecutive</returns>
+        public static IPAddressRange TryCreateFromIPAddresses(params IPAddress[] ips)
+        {
+            return TryCreateFromIPAddressRanges(ips.Select(i => new IPAddressRange(i)).ToArray());
+        }
+
+        /// <summary>
+        /// Return a combined ip address range of all ranges if all ranges are consecutive
+        /// </summary>
+        /// <param name="ranges">IP address ranges</param>
+        /// <returns>IPAddressRange or null if ip address ranges are not consecutive</returns>
+        public static IPAddressRange TryCreateFromIPAddressRanges(params IPAddressRange[] ranges)
+        {
+            IPAddressRange first = null;
+            IPAddressRange current = null;
+            foreach (IPAddressRange range in ranges.OrderBy(i => i))
+            {
+                if (first is null)
+                {
+                    first = range;
+                }
+
+                if (current is null)
+                {
+                    current = range;
+                }
+                else if (!current.End.TryIncrement(out IPAddress incrementedIp) || !incrementedIp.Equals(range.Begin))
+                {
+                    return null;
+                }
+                current = range;
+            }
+            return new IPAddressRange(first.Begin, current.End);
+        }
+
+        /// <summary>
         /// Convert ip address range to string implicit
         /// </summary>
         /// <param name="range">Ip address range</param>

@@ -141,5 +141,35 @@ namespace DigitalRuby.IPBanTests
             Assert.IsFalse(System.Net.IPAddress.Parse("::2").IsLocalHost());
             Assert.IsFalse(((System.Net.IPAddress)null).IsLocalHost());
         }
+
+        [Test]
+        public void TestTryCreateIPAddressRangeFromIPAddresses()
+        {
+            var ip1 = System.Net.IPAddress.Parse("1.1.1.1");
+            var ip2 = System.Net.IPAddress.Parse("1.1.1.2");
+            var ip3 = System.Net.IPAddress.Parse("1.1.1.3");
+            var ip4 = System.Net.IPAddress.Parse("1.1.1.4");
+            var ip5 = IPAddressRange.Parse("1.1.1.5-1.1.1.10");
+            var ip6 = System.Net.IPAddress.Parse("255.255.255.254");
+            var ip7 = System.Net.IPAddress.Parse("255.255.255.255");
+
+            IPAddressRange range = IPAddressRange.TryCreateFromIPAddressRanges(ip1, ip2, ip3, ip4);
+            Assert.AreEqual("1.1.1.1/1.1.1.4", range.ToString());
+            range = IPAddressRange.TryCreateFromIPAddresses(ip1, ip2, ip3, ip4);
+            Assert.AreEqual("1.1.1.1/1.1.1.4", range.ToString());
+
+            range = IPAddressRange.TryCreateFromIPAddressRanges(ip1, ip2, ip3, ip4, ip5);
+            Assert.AreEqual("1.1.1.1/1.1.1.10", range.ToString());
+
+            range = IPAddressRange.TryCreateFromIPAddressRanges(ip6, ip7);
+            Assert.AreEqual("255.255.255.254/255.255.255.255", range.ToString());
+            range = IPAddressRange.TryCreateFromIPAddresses(ip6, ip7);
+            Assert.AreEqual("255.255.255.254/255.255.255.255", range.ToString());
+
+            range = IPAddressRange.TryCreateFromIPAddressRanges(ip1, ip3);
+            Assert.IsNull(range);
+            range = IPAddressRange.TryCreateFromIPAddresses(ip1, ip3);
+            Assert.IsNull(range);
+        }
     }
 }
