@@ -979,6 +979,8 @@ namespace DigitalRuby.IPBanCore
                 // same remote ip address
                 foreach (IPAddressLogEvent evt in events)
                 {
+                    Logger.Trace("Processing log event {0}...", evt);
+
                     if (!IPBanFirewallUtility.TryNormalizeIPAddress(evt.IPAddress, out string normalizedIPAddress))
                     {
                         continue;
