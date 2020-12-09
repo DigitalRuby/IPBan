@@ -417,7 +417,7 @@ namespace DigitalRuby.IPBanCore
 
         public override Task<bool> AllowIPAddresses(string ruleNamePrefix, IEnumerable<IPAddressRange> ipAddresses, IEnumerable<PortRange> allowedPorts = null, CancellationToken cancelToken = default)
         {
-            var allowedIPList = ipAddresses.Select(i => IPAddressRange.Parse(i)).ToList();
+            var allowedIPList = ipAddresses.ToList();
             var allowedPortList = allowedPorts?.ToList();
             lock (this)
             {
