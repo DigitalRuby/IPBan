@@ -520,6 +520,10 @@ namespace DigitalRuby.IPBanCore
                 }
                 current = range;
             }
+            if (first is null || current is null)
+            {
+                return null;
+            }
             return new IPAddressRange(first.Begin, current.End);
         }
 
