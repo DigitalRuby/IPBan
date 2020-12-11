@@ -771,4 +771,7 @@
   <data name="FailedLoginThresholdTooltip" xml:space="preserve">
     <value>Override the failed login threshold or 0 for default</value>
   </data>
+  <data name="IsIPAddressBanned" xml:space="preserve">
+    <value>Is IP Address Banned</value>
+  </data>
 </root>

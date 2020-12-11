@@ -835,6 +835,15 @@ namespace DigitalRuby.IPBanCore {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Is IP Address Banned.
+        /// </summary>
+        public static string IsIPAddressBanned {
+            get {
+                return ResourceManager.GetString("IsIPAddressBanned", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Last Update.
         /// </summary>
         public static string LastUpdate {
