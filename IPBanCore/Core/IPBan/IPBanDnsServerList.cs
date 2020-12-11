@@ -58,7 +58,7 @@ namespace DigitalRuby.IPBanCore
         /// <inheritdoc />
         public void Dispose()
         {
-            
+            GC.SuppressFinalize(this);
         }
 
         /// <inheritdoc />
@@ -86,11 +86,12 @@ namespace DigitalRuby.IPBanCore
             {
                 try
                 {
-                    dnsServers = new HashSet<IPAddress>(NetworkUtility.GetLocalDnsServers());
+                    HashSet<IPAddress> newDnsServers = new HashSet<IPAddress>(NetworkUtility.GetLocalDnsServers());
                     foreach (var ip in Dns.GetHostAddresses(Dns.GetHostName()))
                     {
-                        dnsServers.Add(ip);
+                        newDnsServers.Add(ip);
                     }
+                    dnsServers = newDnsServers;
                     lastDnsServersUpdate = IPBanService.UtcNow;
                 }
                 catch (Exception ex)
