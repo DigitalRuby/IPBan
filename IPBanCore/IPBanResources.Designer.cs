@@ -376,7 +376,7 @@ namespace DigitalRuby.IPBanCore {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Enable SSL.
+        ///   Looks up a localized string similar to Force SSL.
         /// </summary>
         public static string EnableSSL {
             get {

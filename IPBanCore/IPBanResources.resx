@@ -221,7 +221,7 @@
     <comment>Edit machine user name and password</comment>
   </data>
   <data name="EnableSSL" xml:space="preserve">
-    <value>Enable SSL</value>
+    <value>Force SSL</value>
     <comment>Whether to enable ssl (i.e. https instead of http)</comment>
   </data>
   <data name="EnableSSLTooltip" xml:space="preserve">
