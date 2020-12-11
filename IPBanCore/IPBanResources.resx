@@ -225,7 +225,7 @@
     <comment>Whether to enable ssl (i.e. https instead of http)</comment>
   </data>
   <data name="EnableSSLTooltip" xml:space="preserve">
-    <value>Whether to enable SSL (secure socket layer)</value>
+    <value>Whether to enable SSL (secure socket layer) immediately on connection. Leave false to auto-detect.</value>
   </data>
   <data name="Error" xml:space="preserve">
     <value>Error</value>

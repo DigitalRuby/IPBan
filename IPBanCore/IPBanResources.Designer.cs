@@ -385,7 +385,7 @@ namespace DigitalRuby.IPBanCore {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Whether to enable SSL (secure socket layer).
+        ///   Looks up a localized string similar to Whether to enable SSL (secure socket layer) immediately on connection. Leave false to auto-detect..
         /// </summary>
         public static string EnableSSLTooltip {
             get {
