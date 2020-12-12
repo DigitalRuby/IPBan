@@ -28,6 +28,9 @@ using System.Threading.Tasks;
 
 namespace DigitalRuby.IPBanCore
 {
+    /// <summary>
+    /// Read/write config safely
+    /// </summary>
     public class IPBanConfigReaderWriter
     {
         /// <summary>
@@ -108,6 +111,11 @@ namespace DigitalRuby.IPBanCore
             (string, bool) result = new(null, false);
             if (UseFile)
             {
+                if (!File.Exists(Path))
+                {
+                    return (string.Empty, false);
+                }
+
                 await Locker.LockActionAsync(async () =>
                 {
                     DateTime lastWriteTime = File.GetLastWriteTimeUtc(Path);

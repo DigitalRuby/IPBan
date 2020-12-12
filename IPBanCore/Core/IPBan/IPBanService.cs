@@ -275,15 +275,6 @@ namespace DigitalRuby.IPBanCore
         }
 
         /// <summary>
-        /// Read configuration
-        /// </summary>
-        /// <returns>Configuration xml</returns>
-        public Task<string> ReadConfigAsync()
-        {
-            return ConfigReaderWriter.ReadConfigAsync();
-        }
-
-        /// <summary>
         /// Stop the service, dispose of all resources
         /// </summary>
         public void Dispose()

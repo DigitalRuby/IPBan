@@ -36,6 +36,8 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml;
+using System.Xml.Linq;
 
 #endregion Imports
 
@@ -73,17 +75,72 @@ namespace DigitalRuby.IPBanCore
                 }
             }
         }
-        
+
+        private static string MergeXml(string xmlBase, string xmlOverride)
+        {
+            if (string.IsNullOrWhiteSpace(xmlOverride))
+            {
+                return xmlBase;
+            }
+
+            XmlDocument docBase = new XmlDocument();
+            docBase.LoadXml(xmlBase);
+            XmlDocument docOverride = new XmlDocument();
+            docOverride.LoadXml(xmlOverride);
+
+            XmlNode logFilesBase = docBase.SelectSingleNode("/configuration/LogFilesToParse/LogFiles");
+            XmlNode logFilesOverride = docOverride.SelectSingleNode("/configuration/LogFilesToParse/LogFiles");
+            foreach (XmlNode overrideNode in logFilesOverride)
+            {
+                logFilesBase.AppendChild(docBase.ImportNode(overrideNode, true));
+            }
+
+            XmlNode expressionsBlockBase = docBase.SelectSingleNode("/configuration/ExpressionsToBlock/Groups");
+            XmlNode expressionsBlockOverride = docOverride.SelectSingleNode("/configuration/ExpressionsToBlock/Groups");
+            foreach (XmlNode overrideNode in expressionsBlockOverride)
+            {
+                expressionsBlockBase.AppendChild(docBase.ImportNode(overrideNode, true));
+            }
+
+            XmlNode expressionsNotifyBase = docBase.SelectSingleNode("/configuration/ExpressionsToNotify/Groups");
+            XmlNode expressionsNotifyOverride = docOverride.SelectSingleNode("/configuration/ExpressionsToNotify/Groups");
+            foreach (XmlNode overrideNode in expressionsNotifyOverride)
+            {
+                expressionsNotifyBase.AppendChild(docBase.ImportNode(overrideNode, true));
+            }
+
+            XmlNode appSettingsBase = docBase.SelectSingleNode("/configuration/appSettings");
+            XmlNode appSettingsOverride = docOverride.SelectSingleNode("/configuration/appSettings");
+            foreach (XmlNode overrideNode in appSettingsOverride)
+            {
+                string xpath = "/configuration/appSettings/add[@key='" + overrideNode.Attributes["key"].Value + "']";
+                XmlNode existing = appSettingsBase.SelectSingleNode(xpath);
+                if (existing != null)
+                {
+                    existing.Attributes["value"].Value = overrideNode.Attributes["value"].Value;
+                }
+            }
+
+            return docBase.OuterXml;
+        }
+
         internal async Task UpdateConfiguration()
         {
             try
             {
                 ConfigFilePath = (!File.Exists(ConfigFilePath) ? Path.Combine(AppContext.BaseDirectory, IPBanConfig.DefaultFileName) : ConfigFilePath);
                 var configChange = await ConfigReaderWriter.CheckForConfigChange();
-                if (!string.IsNullOrWhiteSpace(configChange.Item1))
+                var configChangeOverride = await ConfigOverrideReaderWriter.CheckForConfigChange();
+                if (!string.IsNullOrWhiteSpace(configChange.Item1) ||
+                    !string.IsNullOrWhiteSpace(configChangeOverride.Item1))
                 {
+                    // merge override xml
+                    string baseXml = configChange.Item1;
+                    string overrideXml = configChangeOverride.Item1;
+                    string finalXml = MergeXml(baseXml, overrideXml);
+
                     IPBanConfig oldConfig = Config;
-                    IPBanConfig newConfig = IPBanConfig.LoadFromXml(configChange.Item1, DnsLookup, DnsList, RequestMaker);
+                    IPBanConfig newConfig = IPBanConfig.LoadFromXml(finalXml, DnsLookup, DnsList, RequestMaker);
                     ConfigChanged?.Invoke(newConfig);
                     whitelistChanged = (Config is null || Config.Whitelist != newConfig.Whitelist || Config.WhitelistRegex != newConfig.WhitelistRegex);
                     Config = newConfig;

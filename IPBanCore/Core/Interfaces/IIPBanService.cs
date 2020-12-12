@@ -58,7 +58,7 @@ namespace DigitalRuby.IPBanCore
         /// Read configuration
         /// </summary>
         /// <returns>Task with xml config</returns>
-        Task<string> ReadConfigAsync();
+        Task<string> ReadConfigAsync() => throw new NotImplementedException();
     }
 
     /// <summary>

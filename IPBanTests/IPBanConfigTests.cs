@@ -220,7 +220,7 @@ namespace DigitalRuby.IPBanTests
 
                 AssertLogFilesToParse(cfg);
                 AssertEventViewer(cfg);
-                string xml = await service.ReadConfigAsync();
+                string xml = await service.ConfigReaderWriter.ReadConfigAsync();
                 IPBanConfig prod = IPBanConfig.LoadFromXml(xml);
                 Assert.IsTrue(prod.UseDefaultBannedIPAddressHandler);
             }

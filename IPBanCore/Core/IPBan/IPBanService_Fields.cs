@@ -74,7 +74,11 @@ namespace DigitalRuby.IPBanCore
         public string ConfigFilePath
         {
             get { return ConfigReaderWriter.Path; }
-            set { ConfigReaderWriter.Path = value; }
+            set
+            {
+                ConfigReaderWriter.Path = value;
+                ConfigOverrideReaderWriter.Path = value.Replace("ipban.config", "ipban.override.config");
+            }
         }
 
         /// <summary>
@@ -126,6 +130,11 @@ namespace DigitalRuby.IPBanCore
         /// Config reader/writer
         /// </summary>
         public IPBanConfigReaderWriter ConfigReaderWriter { get; } = new IPBanConfigReaderWriter();
+
+        /// <summary>
+        /// Config override reader/writer
+        /// </summary>
+        public IPBanConfigReaderWriter ConfigOverrideReaderWriter { get; } = new IPBanConfigReaderWriter();
 
         /// <summary>
         /// Version of the software
