@@ -524,29 +524,35 @@ namespace DigitalRuby.IPBanCore
             lock (this)
             {
                 List<IPAddressRange> results = new List<IPAddressRange>();
-                string prefix = ScrubRuleNamePrefix(string.Empty, ruleNamePrefix);
+                string prefix = ScrubRuleNamePrefix(BlockRulePrefix, ruleNamePrefix);
                 foreach (var rule in blockRules)
                 {
-                    if (rule.Key.EndsWith(prefix, StringComparison.OrdinalIgnoreCase))
+                    if (string.IsNullOrWhiteSpace(ruleNamePrefix) ||
+                        rule.Key.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
                     {
                         results.AddRange(rule.Value.EnumerateIPAddressesRanges());
                     }
                 }
                 foreach (var rule in blockRulesRanges)
                 {
-                    if (rule.Key.EndsWith(prefix, StringComparison.OrdinalIgnoreCase))
+                    if (string.IsNullOrWhiteSpace(ruleNamePrefix) ||
+                        rule.Key.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
                     {
                         results.AddRange(rule.Value.EnumerateIPAddressesRanges());
                     }
                 }
+
+                prefix = ScrubRuleNamePrefix(AllowRulePrefix, ruleNamePrefix);
                 foreach (var rule in allowRuleRanges)
                 {
-                    if (rule.Key.EndsWith(prefix, StringComparison.OrdinalIgnoreCase))
+                    if (string.IsNullOrWhiteSpace(ruleNamePrefix) ||
+                        rule.Key.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
                     {
                         results.AddRange(rule.Value.EnumerateIPAddressesRanges());
                     }
                 }
-                if (allowRule.Name.EndsWith(prefix, StringComparison.OrdinalIgnoreCase))
+                if (string.IsNullOrWhiteSpace(ruleNamePrefix) ||
+                    allowRule.Name.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
                 {
                     results.AddRange(allowRule.EnumerateIPAddressesRanges());
                 }

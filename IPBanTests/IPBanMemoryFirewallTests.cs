@@ -22,12 +22,12 @@ namespace DigitalRuby.IPBanTests
             string[] blockIP = new string[] { allowIP, "100.100.100.100" };
             IPBanMemoryFirewall f = new IPBanMemoryFirewall();
             f.AllowIPAddresses(new string[] { allowIP }).Sync();
-            f.AllowIPAddresses("TestRule", new IPAddressRange[] { IPAddressRange.Parse(allowIP2) }).Sync();
+            f.AllowIPAddresses("TestRuleAllow", new IPAddressRange[] { IPAddressRange.Parse(allowIP2) }).Sync();
             f.BlockIPAddresses(null, blockIP.Concat(new string[] { allowIP, allowIP2, ipv6_1, ipv6_2 })).Sync();
             IPAddressRange range = new IPAddressRange(IPAddress.Parse(ipv6_2), IPAddress.Parse(ipv6_1));
-            f.BlockIPAddresses("TestRule", new IPAddressRange[] { range }, new PortRange[0]);
+            f.BlockIPAddresses("TestRuleBlock", new IPAddressRange[] { range }, new PortRange[0]);
             string[] banned = f.EnumerateBannedIPAddresses().ToArray();
-            IPAddressRange[] banned2 = f.EnumerateIPAddresses("Block_TestRule").ToArray();
+            IPAddressRange[] banned2 = f.EnumerateIPAddresses("TestRuleBlock").ToArray();
             Assert.AreEqual(0, f.GetRuleNames("CB").Count());
             Assert.IsTrue(f.IsIPAddressAllowed(allowIP));
             Assert.IsFalse(f.IsIPAddressBlocked(allowIP, out _));
