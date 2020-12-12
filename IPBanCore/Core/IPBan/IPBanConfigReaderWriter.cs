@@ -37,19 +37,14 @@ namespace DigitalRuby.IPBanCore
         /// Config locker, useful when multiple threads have spawned test services and need to sync
         /// But still works great for the normal usage of a single thread and process
         /// </summary>
-        public static ActionLockerAsync Locker { get; private set; } = new ActionLockerAsync();
-
-        /// <summary>
-        /// Only use if UseFile is false, mainly for testing
-        /// </summary>
-        public static string GlobalConfigString { get; set; } = string.Empty; // force different from local config string for first entry
-
-        private string localConfigString;
-        private static string lastConfigValue;
-        private static DateTime lastConfigWriteTime;
-        private static DateTime lastConfigIntervalTime;
+        public static ActionLockerAsync ConfigLocker { get; private set; } = new ActionLockerAsync();
 
         private static readonly TimeSpan forceLoadInterval = TimeSpan.FromMinutes(5.0);
+
+        private string localConfigString;
+        private string lastConfigValue;
+        private DateTime lastConfigWriteTime;
+        private DateTime lastConfigIntervalTime;
 
         /// <summary>
         /// Read config
@@ -62,7 +57,7 @@ namespace DigitalRuby.IPBanCore
             {
                 if (acquireLock)
                 {
-                    return await Locker.LockFunctionAsync(async () => await File.ReadAllTextAsync(Path));
+                    return await ConfigLocker.LockFunctionAsync(async () => await File.ReadAllTextAsync(Path));
                 }
                 else
                 {
@@ -83,9 +78,13 @@ namespace DigitalRuby.IPBanCore
         /// <returns>Task</returns>
         public async Task WriteConfigAsync(string config)
         {
-            if (UseFile)
+            if (!Enabled)
             {
-                await Locker.LockActionAsync(async () =>
+                return;
+            }
+            else if (UseFile)
+            {
+                await ConfigLocker.LockActionAsync(async () =>
                 {
                     // don't perform needless file write if config is identical
                     string existingConfig = await File.ReadAllTextAsync(Path);
@@ -105,18 +104,22 @@ namespace DigitalRuby.IPBanCore
         /// <summary>
         /// Check for config change
         /// </summary>
-        /// <returns>Task of config string and force bool, will be a null string if no change</returns>
+        /// <returns>Task of config string and bool to indicate a force reload, will be a null string if no change</returns>
         public async Task<(string, bool)> CheckForConfigChange()
         {
             (string, bool) result = new(null, false);
-            if (UseFile)
+            if (!Enabled)
+            {
+                return result;
+            }
+            else if (UseFile)
             {
                 if (!File.Exists(Path))
                 {
                     return (string.Empty, false);
                 }
 
-                await Locker.LockActionAsync(async () =>
+                await ConfigLocker.LockActionAsync(async () =>
                 {
                     DateTime lastWriteTime = File.GetLastWriteTimeUtc(Path);
                     string currentConfig = await ReadConfigAsync(false);
@@ -144,6 +147,11 @@ namespace DigitalRuby.IPBanCore
         }
 
         /// <summary>
+        /// Whether the reader/writer is enabled
+        /// </summary>
+        public bool Enabled { get; set; } = true;
+
+        /// <summary>
         /// If UseFile, the path to the config file
         /// </summary>
         public string Path { get; set; }
@@ -151,6 +159,11 @@ namespace DigitalRuby.IPBanCore
         /// <summary>
         /// Whether to use the path (file) for config. If false, a string in memory is used.
         /// </summary>
-        public static bool UseFile { get; set; } = true;
+        public bool UseFile { get; set; } = true;
+
+        /// <summary>
+        /// Only use if UseFile is false, mainly for testing to force different from local config string for first entry
+        /// </summary>
+        public string GlobalConfigString { get; set; } = string.Empty;
     }
 }
