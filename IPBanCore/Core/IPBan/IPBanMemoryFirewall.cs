@@ -370,7 +370,7 @@ namespace DigitalRuby.IPBanCore
         private string ScrubRuleNamePrefix(string prefix, string ruleNamePrefix)
         {
             // in memory firewall does not have a count limit per rule, so remove the trailing underscore if any
-            return (prefix + (ruleNamePrefix ?? string.Empty)).Trim('_');
+            return (prefix + (ruleNamePrefix ?? string.Empty) + RuleSuffix).Trim('_');
         }
 
         protected override void OnDispose()
@@ -558,9 +558,14 @@ namespace DigitalRuby.IPBanCore
         {
             lock (this)
             {
-                string prefix = ScrubRuleNamePrefix(string.Empty, ruleNamePrefix);
+                string prefix1 = ScrubRuleNamePrefix(AllowRulePrefix, ruleNamePrefix);
+                string prefix2 = ScrubRuleNamePrefix(BlockRulePrefix, ruleNamePrefix);
+                string prefix3 = ScrubRuleNamePrefix(RulePrefix, ruleNamePrefix);
                 IEnumerable<string> ruleNames = new string[] { AllowRuleName }.Union(allowRuleRanges.Keys).Union(blockRules.Keys).Union(blockRulesRanges.Keys);
-                return ruleNames.Where(r => string.IsNullOrWhiteSpace(ruleNamePrefix) || r.EndsWith(prefix, StringComparison.OrdinalIgnoreCase)).ToArray();
+                return ruleNames.Where(r => string.IsNullOrWhiteSpace(ruleNamePrefix) ||
+                    r.StartsWith(prefix1, StringComparison.OrdinalIgnoreCase) ||
+                    r.StartsWith(prefix2, StringComparison.OrdinalIgnoreCase) ||
+                    r.StartsWith(prefix3, StringComparison.OrdinalIgnoreCase)).ToArray();
             }
         }
 
