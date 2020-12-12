@@ -199,7 +199,7 @@ namespace DigitalRuby.IPBanCore
             // deserialize with XmlDocument, the .net core Configuration class is quite buggy
             XmlDocument doc = new XmlDocument();
             doc.LoadXml(xml);
-            foreach (XmlNode node in doc.SelectNodes("//appSettings/add"))
+            foreach (XmlNode node in doc.SelectNodes("/configuration/appSettings/add"))
             {
                 appSettings[node.Attributes["key"].Value] = node.Attributes["value"].Value;
             }
@@ -236,7 +236,7 @@ namespace DigitalRuby.IPBanCore
             string blacklistRegexString = GetConfig<string>("BlacklistRegex", string.Empty);
             PopulateList(whitelist, whitelistRanges, whitelistOther, ref whitelistRegex, whitelistString, whitelistRegexString);
             PopulateList(blackList, blackListRanges, blackListOther, ref blackListRegex, blacklistString, blacklistRegexString);
-            XmlNode node2 = doc.SelectSingleNode("//ExpressionsToBlock");
+            XmlNode node2 = doc.SelectSingleNode("/configuration/ExpressionsToBlock");
             if (node2 != null)
             {
                 try
@@ -259,7 +259,7 @@ namespace DigitalRuby.IPBanCore
                     }
                 }
             }
-            node2 = doc.SelectSingleNode("//ExpressionsToNotify");
+            node2 = doc.SelectSingleNode("/configuration/ExpressionsToNotify");
             if (node2 != null)
             {
                 try
@@ -285,7 +285,7 @@ namespace DigitalRuby.IPBanCore
             }
             try
             {
-                XmlNode logFilesToParseNode = doc.SelectSingleNode("//LogFilesToParse");
+                XmlNode logFilesToParseNode = doc.SelectSingleNode("/configuration/LogFilesToParse");
                 if (logFilesToParseNode != null && new XmlSerializer(typeof(IPBanLogFilesToParse)).Deserialize(new XmlNodeReader(logFilesToParseNode)) is IPBanLogFilesToParse logFilesToParse)
                 {
                     logFiles = logFilesToParse.LogFiles;
@@ -914,6 +914,11 @@ namespace DigitalRuby.IPBanCore
             string replace = $@"<add key=""{key}"" value=""{newValue}"" />";
             return Regex.Replace(config, find, replace, RegexOptions.IgnoreCase);
         }
+
+        /// <summary>
+        /// All app settings key/values
+        /// </summary>
+        public IReadOnlyDictionary<string, string> AppSettings => appSettings;
 
         /// <summary>
         /// Number of failed login attempts before a ban is initiated
