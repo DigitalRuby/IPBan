@@ -910,10 +910,31 @@ namespace DigitalRuby.IPBanCore
         public static string ChangeConfigAppSetting(string config, string key, string newValue)
         {
             newValue ??= string.Empty;
-            newValue = newValue.Replace("\"", "&quot;").Replace("'", "&apos;");
-            string find = $@"\<add key=""{key}"" value=""[^""]*"" *\/\>";
-            string replace = $@"<add key=""{key}"" value=""{newValue}"" />";
-            return Regex.Replace(config, find, replace, RegexOptions.IgnoreCase);
+
+            XmlDocument doc = new XmlDocument();
+            doc.LoadXml(config);
+            XmlNode appSettings = doc.SelectSingleNode($"/configuration/appSettings");
+            if (appSettings is null)
+            {
+                throw new InvalidOperationException("Unable to find appSettings in config");
+            }
+            XmlNode existingSetting = doc.SelectSingleNode($"/configuration/appSettings/add[@key='{key}']");
+            if (existingSetting is null)
+            {
+                existingSetting = doc.CreateElement("add");
+                XmlAttribute keyAttr = doc.CreateAttribute("key");
+                keyAttr.Value = key;
+                existingSetting.Attributes.Append(keyAttr);
+                XmlAttribute valueAttr = doc.CreateAttribute("value");
+                valueAttr.Value = newValue;
+                existingSetting.Attributes.Append(valueAttr);
+                appSettings.AppendChild(existingSetting);
+            }
+            else
+            {
+                existingSetting.Attributes["value"].Value = newValue;
+            }
+            return doc.OuterXml;
         }
 
         /// <summary>
