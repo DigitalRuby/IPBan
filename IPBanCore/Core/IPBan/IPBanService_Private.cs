@@ -684,7 +684,7 @@ namespace DigitalRuby.IPBanCore
                             if (span < banTimes[i])
                             {
                                 // this is the next span to ban
-                                Logger.Info("Ban duration {0} at index {1} expired for ip {2}", banTimes[i], i, ipAddress);
+                                Logger.Info("Ban duration {0} at index {1} expired for ip {2}", banTimes[i], i, ipAddress.IPAddress);
                                 break;
                             }
                         }
