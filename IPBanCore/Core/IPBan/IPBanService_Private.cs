@@ -131,14 +131,14 @@ namespace DigitalRuby.IPBanCore
                 ConfigFilePath = (!File.Exists(ConfigFilePath) ? Path.Combine(AppContext.BaseDirectory, IPBanConfig.DefaultFileName) : ConfigFilePath);
                 var configChange = await ConfigReaderWriter.CheckForConfigChange();
                 var configChangeOverride = await ConfigOverrideReaderWriter.CheckForConfigChange();
-                if (!string.IsNullOrWhiteSpace(configChange.Item1) ||
-                    !string.IsNullOrWhiteSpace(configChangeOverride.Item1))
+                if (!string.IsNullOrWhiteSpace(configChange) ||
+                    !string.IsNullOrWhiteSpace(configChangeOverride))
                 {
                     // merge override xml
-                    string baseXml = configChange.Item1 ?? Config.Xml;
-                    string overrideXml = configChangeOverride.Item1;
+                    string baseXml = configChange ?? Config.Xml;
+                    string overrideXml = configChangeOverride;
                     string finalXml = MergeXml(baseXml, overrideXml);
-
+                    bool configChanged = Config is null || finalXml != Config.Xml;
                     IPBanConfig oldConfig = Config;
                     IPBanConfig newConfig = IPBanConfig.LoadFromXml(finalXml, DnsLookup, DnsList, RequestMaker);
                     ConfigChanged?.Invoke(newConfig);
@@ -147,11 +147,10 @@ namespace DigitalRuby.IPBanCore
                     LoadFirewall(oldConfig);
                     ParseAndAddUriFirewallRules(newConfig);
 
-                    // if the config change was not a force refresh with no actual config values changed, log it
-                    if (!configChange.Item2 || !configChangeOverride.Item2)
+                    if (configChanged)
                     {
                         Logger.Info("Config file changed");
-                    }
+                    } // else config was force refreshed but no actual change
                 }
             }
             catch (Exception ex)

@@ -104,10 +104,10 @@ namespace DigitalRuby.IPBanCore
         /// <summary>
         /// Check for config change
         /// </summary>
-        /// <returns>Task of config string and bool to indicate a force reload, will be a null string if no change</returns>
-        public async Task<(string, bool)> CheckForConfigChange()
+        /// <returns>Task of config string, will be a null string if no change</returns>
+        public async Task<string> CheckForConfigChange()
         {
-            (string, bool) result = new(null, false);
+            string result = null;
             if (!Enabled)
             {
                 return result;
@@ -116,7 +116,7 @@ namespace DigitalRuby.IPBanCore
             {
                 if (!File.Exists(Path))
                 {
-                    return (string.Empty, false);
+                    return result;
                 }
 
                 await ConfigLocker.LockActionAsync(async () =>
@@ -128,12 +128,12 @@ namespace DigitalRuby.IPBanCore
 
                         // if enough time has elapsed, force a reload anyway, in case of dns entries and the
                         // like in the config that need to be re-resolved
-                        (result.Item2 = IPBanService.UtcNow - lastConfigIntervalTime > forceLoadInterval))
+                        (IPBanService.UtcNow - lastConfigIntervalTime > forceLoadInterval))
                     {
                         lastConfigWriteTime = lastWriteTime;
                         lastConfigValue = currentConfig;
                         lastConfigIntervalTime = IPBanService.UtcNow;
-                        result.Item1 = currentConfig;
+                        result = currentConfig;
                     }
                 });
                 return result;
@@ -141,7 +141,7 @@ namespace DigitalRuby.IPBanCore
             else if (GlobalConfigString != localConfigString)
             {
                 localConfigString = GlobalConfigString;
-                return new(localConfigString, false);
+                return localConfigString;
             }
             return result;
         }
