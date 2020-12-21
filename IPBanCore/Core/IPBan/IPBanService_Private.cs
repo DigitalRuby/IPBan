@@ -148,7 +148,7 @@ namespace DigitalRuby.IPBanCore
                     ParseAndAddUriFirewallRules(newConfig);
 
                     // if the config change was not a force refresh with no actual config values changed, log it
-                    if (!configChange.Item2)
+                    if (!configChange.Item2 || !configChangeOverride.Item2)
                     {
                         Logger.Info("Config file changed");
                     }
