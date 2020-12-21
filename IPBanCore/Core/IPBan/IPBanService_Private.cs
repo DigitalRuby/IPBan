@@ -142,9 +142,9 @@ namespace DigitalRuby.IPBanCore
                     string baseXml = configChange ?? Config?.Xml;
                     string overrideXml = configChangeOverride;
                     string finalXml = MergeXml(baseXml, overrideXml);
-                    bool configChanged = Config is null || finalXml != Config.Xml;
                     IPBanConfig oldConfig = Config;
                     IPBanConfig newConfig = IPBanConfig.LoadFromXml(finalXml, DnsLookup, DnsList, RequestMaker);
+                    bool configChanged = oldConfig is null || oldConfig.Xml != newConfig.Xml;
                     ConfigChanged?.Invoke(newConfig);
                     whitelistChanged = (Config is null || Config.Whitelist != newConfig.Whitelist || Config.WhitelistRegex != newConfig.WhitelistRegex);
                     Config = newConfig;
