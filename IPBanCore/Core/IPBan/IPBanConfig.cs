@@ -199,7 +199,7 @@ namespace DigitalRuby.IPBanCore
             // deserialize with XmlDocument, the .net core Configuration class is quite buggy
             XmlDocument doc = new XmlDocument();
             doc.LoadXml(xml);
-            Xml = xml;
+            Xml = doc.OuterXml;
             foreach (XmlNode node in doc.SelectNodes("/configuration/appSettings/add"))
             {
                 appSettings[node.Attributes["key"].Value] = node.Attributes["value"].Value;
