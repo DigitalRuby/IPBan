@@ -190,15 +190,13 @@ namespace DigitalRuby.IPBanCore
             }
         }
 
-        private IPBanConfig(string xml, IDnsLookup dns = null, IDnsServerList dnsList = null, IHttpRequestMaker httpRequestMaker = null)
+        private IPBanConfig(XmlDocument doc, IDnsLookup dns = null, IDnsServerList dnsList = null, IHttpRequestMaker httpRequestMaker = null)
         {
             this.dns = dns ?? DefaultDnsLookup.Instance;
             this.dnsList = dnsList;
             this.httpRequestMaker = httpRequestMaker;
 
             // deserialize with XmlDocument, the .net core Configuration class is quite buggy
-            XmlDocument doc = new XmlDocument();
-            doc.LoadXml(xml);
             foreach (XmlNode node in doc.SelectNodes("/configuration/appSettings/add"))
             {
                 appSettings[node.Attributes["key"].Value] = node.Attributes["value"].Value;
@@ -765,6 +763,22 @@ namespace DigitalRuby.IPBanCore
         /// <param name="httpRequestMaker">Http request maker, null for none</param>
         /// <returns>IPBanConfig</returns>
         public static IPBanConfig LoadFromXml(string xml, IDnsLookup dns = null, IDnsServerList dnsList = null,
+            IHttpRequestMaker httpRequestMaker = null)
+        {
+            XmlDocument doc = new XmlDocument();
+            doc.LoadXml(xml);
+            return new IPBanConfig(doc, dns, dnsList, httpRequestMaker);
+        }
+
+        /// <summary>
+        /// Load IPBan config from XML
+        /// </summary>
+        /// <param name="xml">XML document</param>
+        /// <param name="dns">Dns lookup for resolving ip addresses, null for default</param>
+        /// <param name="dnsList">Dns server list, null for none</param>
+        /// <param name="httpRequestMaker">Http request maker, null for none</param>
+        /// <returns>IPBanConfig</returns>
+        public static IPBanConfig LoadFromXml(XmlDocument xml, IDnsLookup dns = null, IDnsServerList dnsList = null,
             IHttpRequestMaker httpRequestMaker = null)
         {
             return new IPBanConfig(xml, dns, dnsList, httpRequestMaker);

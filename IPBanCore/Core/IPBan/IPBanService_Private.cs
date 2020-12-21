@@ -76,19 +76,21 @@ namespace DigitalRuby.IPBanCore
             }
         }
 
-        private static string MergeXml(string xmlBase, string xmlOverride)
+        private static XmlDocument MergeXml(string xmlBase, string xmlOverride)
         {
             if (string.IsNullOrWhiteSpace(xmlBase))
             {
                 throw new ArgumentException("Cannot merge null base xml");
             }
-            else if (string.IsNullOrWhiteSpace(xmlOverride))
-            {
-                return xmlBase;
-            }
 
             XmlDocument docBase = new XmlDocument();
             docBase.LoadXml(xmlBase);
+
+            if (string.IsNullOrWhiteSpace(xmlOverride))
+            {
+                return docBase;
+            }
+
             XmlDocument docOverride = new XmlDocument();
             docOverride.LoadXml(xmlOverride);
 
@@ -125,7 +127,7 @@ namespace DigitalRuby.IPBanCore
                 }
             }
 
-            return docBase.OuterXml;
+            return docBase;
         }
 
         internal async Task UpdateConfiguration()
@@ -141,7 +143,7 @@ namespace DigitalRuby.IPBanCore
                     // merge override xml
                     string baseXml = configChange ?? Config?.Xml;
                     string overrideXml = configChangeOverride;
-                    string finalXml = MergeXml(baseXml, overrideXml);
+                    XmlDocument finalXml = MergeXml(baseXml, overrideXml);
                     IPBanConfig oldConfig = Config;
                     IPBanConfig newConfig = IPBanConfig.LoadFromXml(finalXml, DnsLookup, DnsList, RequestMaker);
                     bool configChanged = oldConfig is null || oldConfig.Xml != newConfig.Xml;
