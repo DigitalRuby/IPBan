@@ -774,4 +774,7 @@
   <data name="IsIPAddressBanned" xml:space="preserve">
     <value>Is IP Address Banned</value>
   </data>
+  <data name="IPAddressEventFlags_WhoIs" xml:space="preserve">
+    <value>Who Is</value>
+  </data>
 </root>

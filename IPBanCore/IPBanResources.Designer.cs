@@ -736,6 +736,15 @@ namespace DigitalRuby.IPBanCore {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Who Is.
+        /// </summary>
+        public static string IPAddressEventFlags_WhoIs {
+            get {
+                return ResourceManager.GetString("IPAddressEventFlags_WhoIs", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to IP Address Events.
         /// </summary>
         public static string IPAddressEvents {

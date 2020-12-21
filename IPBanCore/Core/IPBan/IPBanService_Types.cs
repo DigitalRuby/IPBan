@@ -116,5 +116,10 @@ namespace DigitalRuby.IPBanCore
         /// Failed login of matched user name
         /// </summary>
         FailedLogin = 8,
+
+        /// <summary>
+        /// Notify whois for domains
+        /// </summary>
+        WhoIs = 16
     }
 }
