@@ -135,7 +135,7 @@ namespace DigitalRuby.IPBanCore
                     !string.IsNullOrWhiteSpace(configChangeOverride))
                 {
                     // merge override xml
-                    string baseXml = configChange ?? Config.Xml;
+                    string baseXml = configChange ?? Config?.Xml;
                     string overrideXml = configChangeOverride;
                     string finalXml = MergeXml(baseXml, overrideXml);
                     bool configChanged = Config is null || finalXml != Config.Xml;
