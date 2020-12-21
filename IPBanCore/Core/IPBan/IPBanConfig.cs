@@ -199,7 +199,6 @@ namespace DigitalRuby.IPBanCore
             // deserialize with XmlDocument, the .net core Configuration class is quite buggy
             XmlDocument doc = new XmlDocument();
             doc.LoadXml(xml);
-            Xml = doc.OuterXml;
             foreach (XmlNode node in doc.SelectNodes("/configuration/appSettings/add"))
             {
                 appSettings[node.Attributes["key"].Value] = node.Attributes["value"].Value;
@@ -335,6 +334,9 @@ namespace DigitalRuby.IPBanCore
 
             // parse firewall block rules, one per line
             ParseFirewallBlockRules();
+
+            // set the xml
+            Xml = doc.OuterXml;
         }
 
         private bool IsMatch(string entry, System.Net.IPAddress entryIPAddress, HashSet<System.Net.IPAddress> set, HashSet<IPAddressRange> ranges, HashSet<string> others, Regex regex)
