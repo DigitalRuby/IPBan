@@ -78,7 +78,11 @@ namespace DigitalRuby.IPBanCore
 
         private static string MergeXml(string xmlBase, string xmlOverride)
         {
-            if (string.IsNullOrWhiteSpace(xmlOverride))
+            if (string.IsNullOrWhiteSpace(xmlBase))
+            {
+                throw new ArgumentException("Cannot merge null base xml");
+            }
+            else if (string.IsNullOrWhiteSpace(xmlOverride))
             {
                 return xmlBase;
             }
