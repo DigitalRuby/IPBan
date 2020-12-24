@@ -82,5 +82,31 @@ namespace DigitalRuby.IPBanCore
             }
             return macAddress;
         }
+
+        /// <summary>
+        /// Get all ips of local machine
+        /// </summary>
+        /// <returns>All ips of local machine</returns>
+        public static IReadOnlyCollection<string> GetAllIPAddresses()
+        {
+            HashSet<string> ipSet = new HashSet<string>();
+            foreach (NetworkInterface netInterface in NetworkInterface.GetAllNetworkInterfaces())
+            {
+                if (netInterface.OperationalStatus == OperationalStatus.Up)
+                {
+                    IPInterfaceProperties ipProps = netInterface.GetIPProperties();
+                    foreach (UnicastIPAddressInformation addr in ipProps.UnicastAddresses)
+                    {
+                        if (!addr.Address.IsLocalHost())
+                        {
+                            string ipString = addr.Address.ToString();
+                            ipString = System.Text.RegularExpressions.Regex.Replace(ipString, "%.*$", string.Empty);
+                            ipSet.Add(ipString);
+                        }
+                    }
+                }
+            }
+            return ipSet;
+        }
     }
 }

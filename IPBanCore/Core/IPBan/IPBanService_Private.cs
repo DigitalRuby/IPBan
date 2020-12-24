@@ -228,6 +228,18 @@ namespace DigitalRuby.IPBanCore
                 }
             }
 
+            if (string.IsNullOrWhiteSpace(OtherIPAddressesString))
+            {
+                try
+                {
+                    OtherIPAddressesString = string.Join(',', NetworkUtility.GetAllIPAddresses().Select(i => i.ToString()));
+                }
+                catch
+                {
+                    // ignore
+                }
+            }
+
             if (string.IsNullOrWhiteSpace(RemoteIPAddressString))
             {
                 try

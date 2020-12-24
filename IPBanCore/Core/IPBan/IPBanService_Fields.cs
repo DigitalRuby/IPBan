@@ -152,6 +152,11 @@ namespace DigitalRuby.IPBanCore
         public string RemoteIPAddressString { get; set; }
 
         /// <summary>
+        /// Other ip addresses, comma separated
+        /// </summary>
+        public string OtherIPAddressesString { get; set; }
+
+        /// <summary>
         /// Fully qualified domain name
         /// </summary>
         public string FQDN { get; set; }

@@ -777,4 +777,8 @@
   <data name="IPAddressEventFlags_WhoIs" xml:space="preserve">
     <value>Who Is</value>
   </data>
+  <data name="ChangeCredentials" xml:space="preserve">
+    <value>Change Credentials</value>
+    <comment>Change user/password</comment>
+  </data>
 </root>

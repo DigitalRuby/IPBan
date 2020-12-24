@@ -169,6 +169,15 @@ namespace DigitalRuby.IPBanCore {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Change Credentials.
+        /// </summary>
+        public static string ChangeCredentials {
+            get {
+                return ResourceManager.GetString("ChangeCredentials", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to City.
         /// </summary>
         public static string City {
