@@ -115,6 +115,19 @@ namespace DigitalRuby.IPBanCore
         /// </summary>
         public const string FileName = "ipban.sqlite";
 
+        private long GetInt64(object value)
+        {
+            try
+            {
+                return (value is null || value == DBNull.Value ? 0 : Convert.ToInt64(value));
+            }
+            catch
+            {
+                Logger.Info("Unable to convert value '{0}' to Int64, using default value of 0", value);
+                return 0;
+            }
+        }
+
         private IPAddressEntry ParseIPAddressEntry(SqliteDataReader reader)
         {
             string ipAddress = reader.GetString(0);
@@ -125,8 +138,8 @@ namespace DigitalRuby.IPBanCore
             object banEndDateObj = reader.GetValue(5);
             string userName = reader.GetString(6);
             string source = reader.GetString(7);
-            long banDateLong = (banDateObj is null || banDateObj == DBNull.Value ? 0 : Convert.ToInt64(banDateObj));
-            long banEndDateLong = (banEndDateObj is null || banEndDateObj == DBNull.Value ? 0 : Convert.ToInt64(banEndDateObj));
+            long banDateLong = GetInt64(banDateObj);
+            long banEndDateLong = GetInt64(banEndDateObj);
             DateTime? banDate = (banDateLong == 0 ? (DateTime?)null : banDateLong.ToDateTimeUnixMilliseconds());
             DateTime? banEndDate = (banDateLong == 0 ? (DateTime?)null : banEndDateLong.ToDateTimeUnixMilliseconds());
             DateTime lastFailedLoginDt = lastFailedLogin.ToDateTimeUnixMilliseconds();
