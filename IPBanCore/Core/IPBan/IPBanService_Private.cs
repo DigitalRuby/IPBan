@@ -349,7 +349,7 @@ namespace DigitalRuby.IPBanCore
                     }
                 }
                 CommitTransaction(transaction);
-                ExecuteExternalProcessForBannedIPAddresses(bannedIpAddresses);
+                ExecuteExternalProcessForIPAddresses(Config.ProcessToRunOnBan, bannedIpAddresses);
             }
             catch (Exception ex)
             {
@@ -480,53 +480,46 @@ namespace DigitalRuby.IPBanCore
             }
         }
 
-        private void ExecuteExternalProcessForBannedIPAddresses(IReadOnlyCollection<IPAddressLogEvent> bannedIPAddresses)
+        private void ExecuteExternalProcessForIPAddresses(string programToRun, IReadOnlyCollection<IPAddressLogEvent> bannedIPAddresses)
         {
-            if (bannedIPAddresses.Count == 0)
+            if (bannedIPAddresses.Count == 0 || string.IsNullOrWhiteSpace(programToRun))
             {
                 return;
             }
-
-            // kick off external process and delegate notification in another thread
-            string programToRunConfigString = (Config.ProcessToRunOnBan ?? string.Empty).Trim();
-            if (string.IsNullOrWhiteSpace(programToRunConfigString))
-            {
-                return;
-            }
-
             RunTask(() =>
             {
                 foreach (var bannedIp in bannedIPAddresses)
                 {
-                    // Run a process if one is in config
-                    if (!string.IsNullOrWhiteSpace(programToRunConfigString))
+                    if (bannedIp is null || string.IsNullOrWhiteSpace(bannedIp.IPAddress))
                     {
-                        try
+                        continue;
+                    }
+
+                    try
+                    {
+                        string[] pieces = programToRun.Split('|');
+                        if (pieces.Length == 2)
                         {
-                            string[] pieces = programToRunConfigString.Split('|');
-                            if (pieces.Length == 2)
+                            string program = Path.GetFullPath(pieces[0]);
+                            string arguments = pieces[1].Replace("###IPADDRESS###", bannedIp.IPAddress)
+                                .Replace("###SOURCE###", bannedIp.Source ?? string.Empty)
+                                .Replace("###USERNAME###", bannedIp.UserName ?? string.Empty);
+                            ProcessStartInfo psi = new ProcessStartInfo
                             {
-                                string program = Path.GetFullPath(pieces[0]);
-                                string arguments = pieces[1].Replace("###IPADDRESS###", bannedIp.IPAddress)
-                                    .Replace("###SOURCE###", bannedIp.Source)
-                                    .Replace("###USERNAME###", bannedIp.UserName);
-                                ProcessStartInfo psi = new ProcessStartInfo
-                                {
-                                    FileName = program,
-                                    WorkingDirectory = Path.GetDirectoryName(program),
-                                    Arguments = arguments
-                                };
-                                using Process p = Process.Start(psi);
-                            }
-                            else
-                            {
-                                throw new ArgumentException("Invalid config option for process to run on ban: " + programToRunConfigString);
-                            }
+                                FileName = program,
+                                WorkingDirectory = Path.GetDirectoryName(program),
+                                Arguments = arguments
+                            };
+                            using Process p = Process.Start(psi);
                         }
-                        catch (Exception ex)
+                        else
                         {
-                            Logger.Error("Failed to execute process on ban", ex);
+                            throw new ArgumentException("Invalid config option for process to run: " + programToRun);
                         }
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Error("Failed to execute process " + programToRun, ex);
                     }
                 }
             });
@@ -728,20 +721,22 @@ namespace DigitalRuby.IPBanCore
 
         private async Task UpdateExpiredIPAddressStates()
         {
-            HashSet<string> unbanIPAddressesToNotifyDelegate = (IPBanDelegate is null ? null : new HashSet<string>());
+            HashSet<string> unbannedIPAddresses = new HashSet<string>();
             DateTime now = UtcNow;
             DateTime failLoginCutOff = (now - Config.ExpireTime);
             DateTime banCutOff = now;
             object transaction = DB.BeginTransaction();
             try
             {
-                HandleWhitelistChanged(transaction, unbanIPAddressesToNotifyDelegate);
-                HandleExpiredLoginsAndBans(failLoginCutOff, banCutOff, transaction, unbanIPAddressesToNotifyDelegate);
+                HandleWhitelistChanged(transaction, unbannedIPAddresses);
+                HandleExpiredLoginsAndBans(failLoginCutOff, banCutOff, transaction, unbannedIPAddresses);
+                ExecuteExternalProcessForIPAddresses(Config.ProcessToRunOnUnban, unbannedIPAddresses
+                    .Select(i => new IPAddressLogEvent(i, null, null, 0, IPAddressEventType.Unblocked)).ToArray());
 
                 // notify delegate of all unbanned ip addresses
                 if (IPBanDelegate != null)
                 {
-                    foreach (string ip in unbanIPAddressesToNotifyDelegate)
+                    foreach (string ip in unbannedIPAddresses)
                     {
                         await IPBanDelegate.IPAddressBanned(ip, null, null, MachineGuid, OSName, OSVersion, UtcNow, false);
                     }
@@ -1046,6 +1041,7 @@ namespace DigitalRuby.IPBanCore
             }
 
             List<IPAddressLogEvent> bannedIPs = new List<IPAddressLogEvent>();
+            List<IPAddressLogEvent> unbannedIPs = new List<IPAddressLogEvent>();
             object transaction = BeginTransaction();
             try
             {
@@ -1089,6 +1085,7 @@ namespace DigitalRuby.IPBanCore
                         case IPAddressEventType.Unblocked:
                             DB.SetIPAddressesState(new string[] { evt.IPAddress }, IPBanDB.IPAddressState.RemovePending, transaction);
                             firewallNeedsBlockedIPAddressesUpdate = true;
+                            unbannedIPs.Add(evt);
                             break;
                     }
                 }
@@ -1099,7 +1096,8 @@ namespace DigitalRuby.IPBanCore
                 RollbackTransaction(transaction);
                 Logger.Error(ex);
             }
-            ExecuteExternalProcessForBannedIPAddresses(bannedIPs);
+            ExecuteExternalProcessForIPAddresses(Config.ProcessToRunOnBan, bannedIPs);
+            ExecuteExternalProcessForIPAddresses(Config.ProcessToRunOnUnban, unbannedIPs);
             return Task.CompletedTask;
         }
 

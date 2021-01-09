@@ -209,6 +209,7 @@ namespace DigitalRuby.IPBanTests
                 Assert.AreEqual("IPBan_", cfg.FirewallRulePrefix);
                 Assert.AreEqual(TimeSpan.FromSeconds(1.0), cfg.MinimumTimeBetweenFailedLoginAttempts);
                 Assert.IsEmpty(cfg.ProcessToRunOnBan);
+                Assert.IsEmpty(cfg.ProcessToRunOnUnban);
                 Assert.IsFalse(cfg.ResetFailedLoginCountForUnbannedIPAddresses);
                 Assert.IsTrue(cfg.UseDefaultBannedIPAddressHandler);
                 Assert.IsEmpty(cfg.UserNameWhitelist);

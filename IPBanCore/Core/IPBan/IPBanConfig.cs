@@ -147,6 +147,7 @@ namespace DigitalRuby.IPBanCore
         private readonly Regex userNameWhitelistRegex;
         private readonly int failedLoginAttemptsBeforeBanUserNameWhitelist = 20;
         private readonly string processToRunOnBan;
+        private readonly string processToRunOnUnban;
         private readonly bool useDefaultBannedIPAddressHandler;
         private readonly string getUrlUpdate;
         private readonly string getUrlStart;
@@ -299,6 +300,9 @@ namespace DigitalRuby.IPBanCore
                 logFiles = emptyLogFilesToParseArray;
             }
             GetConfig<string>("ProcessToRunOnBan", ref processToRunOnBan);
+            processToRunOnBan = processToRunOnBan?.Trim();
+            GetConfig<string>("ProcessToRunOnUnban", ref processToRunOnUnban);
+            processToRunOnUnban = processToRunOnUnban?.Trim();
             GetConfig<bool>("UseDefaultBannedIPAddressHandler", ref useDefaultBannedIPAddressHandler);
 
             string userNameWhitelistString = GetConfig<string>("UserNameWhitelist", string.Empty);
@@ -1073,9 +1077,14 @@ namespace DigitalRuby.IPBanCore
         public int FailedLoginAttemptsBeforeBanUserNameWhitelist { get { return failedLoginAttemptsBeforeBanUserNameWhitelist; } }
 
         /// <summary>
-        /// Process to run on ban. See ReplaceUrl of IPBanService for place-holders.
+        /// Process to run on ban. See ReplaceUrl in IPBanService.cs for place-holders.
         /// </summary>
         public string ProcessToRunOnBan { get { return processToRunOnBan; } }
+
+        /// <summary>
+        /// Process to run on unban. See ReplaceUrl in IPBanService.cs for place-holders.
+        /// </summary>
+        public string ProcessToRunOnUnban { get { return processToRunOnUnban; } }
 
         /// <summary>
         /// Whether to use the default banned ip address handler
