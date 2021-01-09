@@ -482,7 +482,7 @@ namespace DigitalRuby.IPBanCore
 
         private void ExecuteExternalProcessForIPAddresses(string programToRun, IReadOnlyCollection<IPAddressLogEvent> bannedIPAddresses)
         {
-            if (bannedIPAddresses.Count == 0 || string.IsNullOrWhiteSpace(programToRun))
+            if (bannedIPAddresses?.Count == 0 || string.IsNullOrWhiteSpace(programToRun))
             {
                 return;
             }
