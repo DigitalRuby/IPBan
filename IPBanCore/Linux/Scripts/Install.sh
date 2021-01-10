@@ -5,7 +5,7 @@
 #
 # Should you ever wish to update IPBan, just re-run this script and it will auto-update and preserve your ipban.sqlite and ipban.config files!
 #
-# To uninstall: sudo systemctl stop ipban; sudo rm /opt/ipban -r
+# To uninstall: sudo systemctl stop ipban; sudo systemctl disable ipban; sudo rm /opt/ipban -r
 #
 
 VERSION_DOTS="1.5.9"
