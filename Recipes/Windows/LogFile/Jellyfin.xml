@@ -1,0 +1,50 @@
+<!-- Jellyfin failed logins, Windows -->
+<LogFile>
+
+	<Source>Jellyfin</Source>
+
+	<!--
+	  Log file path/mask to scan
+	-->
+	<PathAndMask>
+	  C:\SpettacoloUtility\jellyfin\data\log\log_{year-local}{month-local}{day-local}.log
+	</PathAndMask>
+
+	<!--
+	  Failed login regex
+
+	Jellyfin Example
+	[2021-01-01 19:08:02.384 +01:00] [INF] [101] Jellyfin.Server.Implementations.Users.UserManager: Authentication request for "gsdsdgsd" has been denied (IP: "87.101.94.228").
+	[2021-01-01 22:14:22.211 +01:00] [INF] [137] Jellyfin.Server.Implementations.Users.UserManager: Authentication request for "Roby" has succeeded.
+	-->
+
+	<FailedLoginRegex>
+	  <![CDATA[
+		  Authentication\s+request\s+for\s+\S+?(?<username>[^\s]+)\S+\s+has\s+been\s+denied\s+\(IP:\s+"(?<ipaddress>[^,]+)"\)
+	  ]]>
+	</FailedLoginRegex>
+
+	<!-- For a SuccessfulLoginRegex, this will be a successful login and handled differently (IPBAN PRO only) -->
+
+	<!-- Not tried on runtime, I don't have PRO version (only tested on regex101.com)-->
+	<!-- NOTE: There's no IP on successful Login-->
+
+	<SuccessfulLoginRegex>
+	  <![CDATA[
+		Authentication\s+request\s+for\s+\S+?(?<username>[^\s]+)\S+\s+has\s+succeeded
+	  ]]>
+	</SuccessfulLoginRegex>
+
+	<!-- Specify specific platforms here (Windows or Linux) -->
+	<PlatformRegex>Windows</PlatformRegex>
+
+	<!-- How often to parse and check for new files, etc. - in milliseconds -->
+	<PingInterval>10000</PingInterval>
+
+	<!-- 16 MB max size before deleting files and starting over -->
+	<MaxFileSize>16777216</MaxFileSize>
+
+	<!-- Override failed login threshold or leave 0 for default -->
+	<FailedLoginThreshold>0</FailedLoginThreshold>
+
+</LogFile>
