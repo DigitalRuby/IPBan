@@ -1,4 +1,14 @@
-VERSION_DOTS="1.5.8"
+#
+# One click install script for IPBan for Linux
+# (c) 2011-Present Digital Ruby, LLC
+# https://www.digitalruby.com
+#
+# Should you ever wish to update IPBan, just re-run this script and it will auto-update and preserve your ipban.sqlite and ipban.config files!
+#
+# To uninstall: sudo systemctl stop ipban; sudo rm /opt/ipban -r
+#
+
+VERSION_DOTS="1.5.9"
 VERSION_UNDERSCORES=${VERSION_DOTS//./_}
 FILE_NAME="IPBan-Linux-x64_$VERSION_UNDERSCORES.zip"
 
