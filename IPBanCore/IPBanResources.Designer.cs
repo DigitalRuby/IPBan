@@ -1204,11 +1204,29 @@ namespace DigitalRuby.IPBanCore {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Run an external process when a ban occurs. Separate the process and any arguments with a pipe (|). ###IPADDRESS### will be replaced with the actual IP which was banned. The pipe is required. Example: c:\system files\on_ip_banned.exe|###IPADDRESS### -q.
+        ///   Looks up a localized string similar to Run an external process when a ban occurs. Separate the process and any arguments with a pipe (|). ###IPADDRESS### will be replaced with the actual IP which was banned. The pipe is required. Example: c:\system\files\on_ip_banned.exe|###IPADDRESS### -q.
         /// </summary>
         public static string ProcessToRunOnBanTooltip {
             get {
                 return ResourceManager.GetString("ProcessToRunOnBanTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Process to Run on Unban.
+        /// </summary>
+        public static string ProcessToRunOnUnban {
+            get {
+                return ResourceManager.GetString("ProcessToRunOnUnban", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Run an external process when a ban is removed. Separate the process and any arguments with a pipe (|). ###IPADDRESS### will be replaced with the actual IP which was unbanned. The pipe is required. Example: c:\system\files\on_ip_unbanned.exe|###IPADDRESS### -q.
+        /// </summary>
+        public static string ProcessToRunOnUnbanTooltip {
+            get {
+                return ResourceManager.GetString("ProcessToRunOnUnbanTooltip", resourceCulture);
             }
         }
         

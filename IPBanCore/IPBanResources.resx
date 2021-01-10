@@ -406,7 +406,7 @@
     <value>Process to Run on Ban</value>
   </data>
   <data name="ProcessToRunOnBanTooltip" xml:space="preserve">
-    <value>Run an external process when a ban occurs. Separate the process and any arguments with a pipe (|). ###IPADDRESS### will be replaced with the actual IP which was banned. The pipe is required. Example: c:\system files\on_ip_banned.exe|###IPADDRESS### -q</value>
+    <value>Run an external process when a ban occurs. Separate the process and any arguments with a pipe (|). ###IPADDRESS### will be replaced with the actual IP which was banned. The pipe is required. Example: c:\system\files\on_ip_banned.exe|###IPADDRESS### -q</value>
   </data>
   <data name="PublicAPIKey" xml:space="preserve">
     <value>Public API Key</value>
@@ -780,5 +780,11 @@
   <data name="ChangeCredentials" xml:space="preserve">
     <value>Change Credentials</value>
     <comment>Change user/password</comment>
+  </data>
+  <data name="ProcessToRunOnUnban" xml:space="preserve">
+    <value>Process to Run on Unban</value>
+  </data>
+  <data name="ProcessToRunOnUnbanTooltip" xml:space="preserve">
+    <value>Run an external process when a ban is removed. Separate the process and any arguments with a pipe (|). ###IPADDRESS### will be replaced with the actual IP which was unbanned. The pipe is required. Example: c:\system\files\on_ip_unbanned.exe|###IPADDRESS### -q</value>
   </data>
 </root>
