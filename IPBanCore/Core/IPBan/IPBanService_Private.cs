@@ -96,34 +96,46 @@ namespace DigitalRuby.IPBanCore
 
             XmlNode logFilesBase = docBase.SelectSingleNode("/configuration/LogFilesToParse/LogFiles");
             XmlNode logFilesOverride = docOverride.SelectSingleNode("/configuration/LogFilesToParse/LogFiles");
-            foreach (XmlNode overrideNode in logFilesOverride)
+            if (logFilesBase is not null && logFilesOverride is not null)
             {
-                logFilesBase.AppendChild(docBase.ImportNode(overrideNode, true));
+                foreach (XmlNode overrideNode in logFilesOverride)
+                {
+                    logFilesBase.AppendChild(docBase.ImportNode(overrideNode, true));
+                }
             }
 
             XmlNode expressionsBlockBase = docBase.SelectSingleNode("/configuration/ExpressionsToBlock/Groups");
             XmlNode expressionsBlockOverride = docOverride.SelectSingleNode("/configuration/ExpressionsToBlock/Groups");
-            foreach (XmlNode overrideNode in expressionsBlockOverride)
+            if (expressionsBlockBase is not null && expressionsBlockOverride is not null)
             {
-                expressionsBlockBase.AppendChild(docBase.ImportNode(overrideNode, true));
+                foreach (XmlNode overrideNode in expressionsBlockOverride)
+                {
+                    expressionsBlockBase.AppendChild(docBase.ImportNode(overrideNode, true));
+                }
             }
 
             XmlNode expressionsNotifyBase = docBase.SelectSingleNode("/configuration/ExpressionsToNotify/Groups");
             XmlNode expressionsNotifyOverride = docOverride.SelectSingleNode("/configuration/ExpressionsToNotify/Groups");
-            foreach (XmlNode overrideNode in expressionsNotifyOverride)
+            if (expressionsNotifyBase is not null && expressionsNotifyOverride is not null)
             {
-                expressionsNotifyBase.AppendChild(docBase.ImportNode(overrideNode, true));
+                foreach (XmlNode overrideNode in expressionsNotifyOverride)
+                {
+                    expressionsNotifyBase.AppendChild(docBase.ImportNode(overrideNode, true));
+                }
             }
 
             XmlNode appSettingsBase = docBase.SelectSingleNode("/configuration/appSettings");
             XmlNode appSettingsOverride = docOverride.SelectSingleNode("/configuration/appSettings");
-            foreach (XmlNode overrideNode in appSettingsOverride)
+            if (appSettingsBase is not null && appSettingsOverride is not null)
             {
-                string xpath = "/configuration/appSettings/add[@key='" + overrideNode.Attributes["key"].Value + "']";
-                XmlNode existing = appSettingsBase.SelectSingleNode(xpath);
-                if (existing != null)
+                foreach (XmlNode overrideNode in appSettingsOverride)
                 {
-                    existing.Attributes["value"].Value = overrideNode.Attributes["value"].Value;
+                    string xpath = "/configuration/appSettings/add[@key='" + overrideNode.Attributes["key"].Value + "']";
+                    XmlNode existing = appSettingsBase.SelectSingleNode(xpath);
+                    if (existing != null)
+                    {
+                        existing.Attributes["value"].Value = overrideNode.Attributes["value"].Value;
+                    }
                 }
             }
 
