@@ -52,6 +52,10 @@ if (Test-Path -Path $INSTALL_PATH)
         {
             copy "$INSTALL_PATH/ipban.config" $tempPath
         }
+        if (Test-Path "$INSTALL_PATH/ipban.override.config")
+        {
+            copy "$INSTALL_PATH/ipban.override.config" $tempPath
+        }
         if (Test-Path "$INSTALL_PATH/ipban.sqlite")
         {
             copy "$INSTALL_PATH/ipban.sqlite" $tempPath
@@ -82,6 +86,11 @@ if (Test-Path -Path "$tempPath/ipban.config")
 {
     & copy "$tempPath/ipban.config" "$INSTALL_PATH"
     & rm "$tempPath/ipban.config"
+}
+if (Test-Path -Path "$tempPath/ipban.override.config")
+{
+    & copy "$tempPath/ipban.override.config" "$INSTALL_PATH"
+    & rm "$tempPath/ipban.override.config"
 }
 if (Test-Path -Path "$tempPath/ipban.sqlite")
 {

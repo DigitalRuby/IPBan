@@ -100,7 +100,10 @@ namespace DigitalRuby.IPBanCore
             {
                 foreach (XmlNode overrideNode in logFilesOverride)
                 {
-                    logFilesBase.AppendChild(docBase.ImportNode(overrideNode, true));
+                    if (overrideNode.NodeType == XmlNodeType.Element)
+                    {
+                        logFilesBase.AppendChild(docBase.ImportNode(overrideNode, true));
+                    }
                 }
             }
 
@@ -110,7 +113,10 @@ namespace DigitalRuby.IPBanCore
             {
                 foreach (XmlNode overrideNode in expressionsBlockOverride)
                 {
-                    expressionsBlockBase.AppendChild(docBase.ImportNode(overrideNode, true));
+                    if (overrideNode.NodeType == XmlNodeType.Element)
+                    {
+                        expressionsBlockBase.AppendChild(docBase.ImportNode(overrideNode, true));
+                    }
                 }
             }
 
@@ -120,7 +126,10 @@ namespace DigitalRuby.IPBanCore
             {
                 foreach (XmlNode overrideNode in expressionsNotifyOverride)
                 {
-                    expressionsNotifyBase.AppendChild(docBase.ImportNode(overrideNode, true));
+                    if (overrideNode.NodeType == XmlNodeType.Element)
+                    {
+                        expressionsNotifyBase.AppendChild(docBase.ImportNode(overrideNode, true));
+                    }
                 }
             }
 
@@ -130,11 +139,14 @@ namespace DigitalRuby.IPBanCore
             {
                 foreach (XmlNode overrideNode in appSettingsOverride)
                 {
-                    string xpath = "/configuration/appSettings/add[@key='" + overrideNode.Attributes["key"].Value + "']";
-                    XmlNode existing = appSettingsBase.SelectSingleNode(xpath);
-                    if (existing != null)
+                    if (overrideNode.NodeType == XmlNodeType.Element)
                     {
-                        existing.Attributes["value"].Value = overrideNode.Attributes["value"].Value;
+                        string xpath = "/configuration/appSettings/add[@key='" + overrideNode.Attributes["key"].Value + "']";
+                        XmlNode existing = appSettingsBase.SelectSingleNode(xpath);
+                        if (existing != null)
+                        {
+                            existing.Attributes["value"].Value = overrideNode.Attributes["value"].Value;
+                        }
                     }
                 }
             }
