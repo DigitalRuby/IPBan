@@ -701,12 +701,13 @@ namespace DigitalRuby.IPBanCore
                     // if more than one ban time, we have tiered ban times where the ban time increases 
                     if (banTimes.Length > 1)
                     {
-                        for (i = 0; i < banTimes.Length; i++)
+                        // Skip first ban time as it was already used. This also ensures that the i - 1 below won't cause an error.
+                        for (i = 1; i < banTimes.Length; i++)
                         {
                             if (span < banTimes[i])
                             {
                                 // this is the next span to ban
-                                Logger.Info("Ban duration {0} at index {1} expired for ip {2}", banTimes[i], i, ipAddress.IPAddress);
+                                Logger.Info("Ban duration {0} expired for ip {1}", banTimes[i - 1], ipAddress.IPAddress);
                                 break;
                             }
                         }

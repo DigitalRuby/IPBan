@@ -206,18 +206,7 @@ namespace DigitalRuby.IPBanCore
             GetConfig<int>("FailedLoginAttemptsBeforeBan", ref failedLoginAttemptsBeforeBan, 1, 50);
             GetConfig<bool>("ResetFailedLoginCountForUnbannedIPAddresses", ref resetFailedLoginCountForUnbannedIPAddresses);
             GetConfigArray<TimeSpan>("BanTime", ref banTimes, emptyTimeSpanArray);
-            for (int i = 0; i < banTimes.Length; i++)
-            {
-                // according to documentation, a ban time of 0 should become max ban time
-                if (banTimes[i].Ticks <= 0)
-                {
-                    banTimes[i] = maxBanTimeSpan;
-                }
-                else
-                {
-                    banTimes[i] = banTimes[i].Clamp(TimeSpan.FromMinutes(1.0), maxBanTimeSpan);
-                }
-            }
+            MakeBanTimesValid(ref banTimes);
             GetConfig<bool>("ClearBannedIPAddressesOnRestart", ref clearBannedIPAddressesOnRestart);
             GetConfig<bool>("ClearFailedLoginsOnSuccessfulLogin", ref clearFailedLoginsOnSuccessfulLogin);
             GetConfig<TimeSpan>("ExpireTime", ref expireTime, TimeSpan.Zero, maxBanTimeSpan);
@@ -340,6 +329,37 @@ namespace DigitalRuby.IPBanCore
             // set the xml
             Xml = doc.OuterXml;
         }
+
+        private void MakeBanTimesValid(ref TimeSpan[] banTimes)
+        {
+            var newBanTimes = new List<TimeSpan>();
+            TimeSpan max = TimeSpan.MinValue;
+            for (int i = 0; i < banTimes.Length; i++)
+            {
+                // according to documentation, a ban time of 0 should become max ban time
+                if (banTimes[i].Ticks <= 0)
+                {
+                    banTimes[i] = maxBanTimeSpan;
+                }
+                else
+                {
+                    banTimes[i] = banTimes[i].Clamp(TimeSpan.FromMinutes(1.0), maxBanTimeSpan);
+                }
+                // Ensure all times are in strictly ascending order. We remember the up to i largest span in max. If a new span is smaller we have an issue.
+                // It is not enough to check banTimes[i-1] >= banTimes[i]. Example: 5,2,3 -> 2 would be skipped but not 3 which is also violating the order.
+                if (i > 0 && max >= banTimes[i])
+                {
+                    Logger.Error($"BanTime: Multiple time spans must be in strictly ascending order. This is not the case for {banTimes[i]}. Ignoring this entry.");
+                }
+                else
+                {
+                    max = banTimes[i];
+                    newBanTimes.Add(max);
+                }
+            }
+            banTimes = newBanTimes.ToArray();
+        }
+
 
         private bool IsMatch(string entry, System.Net.IPAddress entryIPAddress, HashSet<System.Net.IPAddress> set, HashSet<IPAddressRange> ranges, HashSet<string> others, Regex regex)
         {
@@ -956,7 +976,7 @@ namespace DigitalRuby.IPBanCore
             }
             return doc.OuterXml;
         }
-
+        
         /// <summary>
         /// Raw xml
         /// </summary>
