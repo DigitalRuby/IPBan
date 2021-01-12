@@ -348,7 +348,9 @@ namespace DigitalRuby.IPBanCore
                 // Ensure all times are in strictly ascending order. We remember the up to i largest span in max. If a new span is smaller we have an issue.
                 // It is not enough to check banTimes[i-1] >= banTimes[i]. Example: 5,2,3 -> 2 would be skipped but not 3 which is also violating the order.
                 if (i > 0 && max >= banTimes[i])
+                {
                     Logger.Error($"BanTime: Multiple time spans must be in strictly ascending order. This is not the case for {banTimes[i]}. Ignoring this entry.");
+                }
                 else
                 {
                     max = banTimes[i];
