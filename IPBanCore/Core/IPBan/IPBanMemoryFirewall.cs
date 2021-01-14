@@ -85,6 +85,8 @@ namespace DigitalRuby.IPBanCore
 
         private class MemoryFirewallRuleRanges : IComparer<IPV4Range>, IComparer<IPV6Range>, IMemoryFirewallRuleRanges
         {
+            private static readonly List<PortRange> emptyPortRanges = new List<PortRange>(0);
+
             private readonly List<IPV4Range> ipv4 = new List<IPV4Range>();
             private readonly List<IPV6Range> ipv6 = new List<IPV6Range>();
             private readonly List<PortRange> portRanges;
@@ -101,7 +103,7 @@ namespace DigitalRuby.IPBanCore
             {
                 List<IPAddressRange> ipRangesSorted = new List<IPAddressRange>(ipRanges);
                 ipRangesSorted.Sort();
-                allowedPorts ??= new List<PortRange>(0);
+                allowedPorts ??= emptyPortRanges;
                 Block = block;
                 Name = name;
                 foreach (IPAddressRange range in ipRangesSorted)
