@@ -71,6 +71,15 @@ namespace DigitalRuby.IPBanCore
         }
 
         /// <summary>
+        /// ToString
+        /// </summary>
+        /// <returns>String</returns>
+        public override string ToString()
+        {
+            return $"{Begin.ToIPAddress()}/{End.ToIPAddress()}";
+        }
+
+        /// <summary>
         /// Constructor
         /// </summary>
         /// <param name="range">IPAddressRange</param>

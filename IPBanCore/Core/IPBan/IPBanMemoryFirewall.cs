@@ -403,6 +403,7 @@ namespace DigitalRuby.IPBanCore
 
         public override Task<bool> AllowIPAddresses(string ruleNamePrefix, IEnumerable<IPAddressRange> ipAddresses, IEnumerable<PortRange> allowedPorts = null, CancellationToken cancelToken = default)
         {
+            // for performance, ranges is assumed to be sorted
             var allowedIPList = ipAddresses.ToList();
             var allowedPortList = allowedPorts?.ToList();
             string ruleName = ScrubRuleNamePrefix(AllowRulePrefix, ruleNamePrefix);
@@ -415,6 +416,7 @@ namespace DigitalRuby.IPBanCore
 
         public override Task<bool> BlockIPAddresses(string ruleNamePrefix, IEnumerable<string> ipAddresses, IEnumerable<PortRange> allowedPorts = null, CancellationToken cancelToken = default)
         {
+            // for performance, ranges is assumed to be sorted
             string ruleName = ScrubRuleNamePrefix(BlockRulePrefix, ruleNamePrefix);
             lock (this)
             {
@@ -429,6 +431,7 @@ namespace DigitalRuby.IPBanCore
 
         public override Task<bool> BlockIPAddressesDelta(string ruleNamePrefix, IEnumerable<IPBanFirewallIPAddressDelta> ipAddresses, IEnumerable<PortRange> allowedPorts = null, CancellationToken cancelToken = default)
         {
+            // for performance, ranges is assumed to be sorted
             string ruleName = ScrubRuleNamePrefix(BlockRulePrefix, ruleNamePrefix);
             lock (this)
             {
