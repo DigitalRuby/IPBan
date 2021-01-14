@@ -104,7 +104,7 @@ namespace DigitalRuby.IPBanCore
                 allowedPorts ??= new List<PortRange>(0);
                 Block = block;
                 Name = name;
-                foreach (IPAddressRange range in ipRanges)
+                foreach (IPAddressRange range in ipRangesSorted)
                 {
                     // optimized storage, no pointers or other overhead
                     if (range.Begin.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
