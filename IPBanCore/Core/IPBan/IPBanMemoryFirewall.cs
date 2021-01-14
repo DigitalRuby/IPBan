@@ -97,8 +97,10 @@ namespace DigitalRuby.IPBanCore
 
             public string Name { get; }
 
-            public MemoryFirewallRuleRanges(List<IPAddressRange> ipRanges, List<PortRange> allowedPorts, bool block, string name)
+            public MemoryFirewallRuleRanges(IEnumerable<IPAddressRange> ipRanges, List<PortRange> allowedPorts, bool block, string name)
             {
+                List<IPAddressRange> ipRangesSorted = new List<IPAddressRange>(ipRanges);
+                ipRangesSorted.Sort();
                 allowedPorts ??= new List<PortRange>(0);
                 Block = block;
                 Name = name;
@@ -403,20 +405,17 @@ namespace DigitalRuby.IPBanCore
 
         public override Task<bool> AllowIPAddresses(string ruleNamePrefix, IEnumerable<IPAddressRange> ipAddresses, IEnumerable<PortRange> allowedPorts = null, CancellationToken cancelToken = default)
         {
-            // for performance, ranges is assumed to be sorted
-            var allowedIPList = ipAddresses.ToList();
             var allowedPortList = allowedPorts?.ToList();
             string ruleName = ScrubRuleNamePrefix(AllowRulePrefix, ruleNamePrefix);
             lock (this)
             {
-                allowRuleRanges[ruleName] = new MemoryFirewallRuleRanges(allowedIPList, allowedPortList, false, ruleName); 
+                allowRuleRanges[ruleName] = new MemoryFirewallRuleRanges(ipAddresses, allowedPortList, false, ruleName); 
             }
             return Task.FromResult<bool>(true);
         }
 
         public override Task<bool> BlockIPAddresses(string ruleNamePrefix, IEnumerable<string> ipAddresses, IEnumerable<PortRange> allowedPorts = null, CancellationToken cancelToken = default)
         {
-            // for performance, ranges is assumed to be sorted
             string ruleName = ScrubRuleNamePrefix(BlockRulePrefix, ruleNamePrefix);
             lock (this)
             {
@@ -431,7 +430,6 @@ namespace DigitalRuby.IPBanCore
 
         public override Task<bool> BlockIPAddressesDelta(string ruleNamePrefix, IEnumerable<IPBanFirewallIPAddressDelta> ipAddresses, IEnumerable<PortRange> allowedPorts = null, CancellationToken cancelToken = default)
         {
-            // for performance, ranges is assumed to be sorted
             string ruleName = ScrubRuleNamePrefix(BlockRulePrefix, ruleNamePrefix);
             lock (this)
             {
@@ -446,13 +444,11 @@ namespace DigitalRuby.IPBanCore
 
         public override Task<bool> BlockIPAddresses(string ruleNamePrefix, IEnumerable<IPAddressRange> ranges, IEnumerable<PortRange> allowedPorts = null, CancellationToken cancelToken = default)
         {
-            // for performance, ranges is assumed to be sorted
-            List<IPAddressRange> rangesList = new List<IPAddressRange>(ranges);
             var portList = allowedPorts?.ToList();
             string ruleName = ScrubRuleNamePrefix(BlockRulePrefix, ruleNamePrefix);
             lock (this)
             {
-                blockRulesRanges[ruleName] = new MemoryFirewallRuleRanges(rangesList, portList, true, ruleName);
+                blockRulesRanges[ruleName] = new MemoryFirewallRuleRanges(ranges, portList, true, ruleName);
             }
             return Task.FromResult<bool>(true);
         }
