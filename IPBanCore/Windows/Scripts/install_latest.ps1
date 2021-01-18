@@ -19,6 +19,12 @@ param
 	[Parameter(Mandatory=$False, Position = 0)] [String]$uninstall
 )
 
+if ($PSVersionTable.PSVersion.Major -lt 5 || ($PSVersionTable.PSVersion.Major -eq 5 -and $PSVersionTable.PSVersion.Minor -lt 1))
+{
+    & echo "This script requires powershell 5.1 or greater"
+    exit -1
+}
+
 $VERSION_DOTS = "1.5.9"
 $VERSION_UNDERSCORES = $VERSION_DOTS -replace "\.","_"
 $FILE_NAME = "IPBan-Windows-x64_$VERSION_UNDERSCORES.zip"
@@ -40,7 +46,13 @@ if (Get-Service $SERVICE_NAME -ErrorAction SilentlyContinue)
 {
     # create install path, ensure clean slate
     & echo "Removing existing service"
-    Stop-Service -Name $SERVICE_NAME -Force
+    try
+    {
+        Stop-Service -Name $SERVICE_NAME -Force
+    }
+    catch
+    {
+    }
     & sc.exe delete $SERVICE_NAME
 }
 if (Test-Path -Path $INSTALL_PATH)
@@ -71,7 +83,7 @@ if ($isUninstall -eq $True)
 }
 
 # download zip file
-& mkdir -Path $INSTALL_PATH
+& mkdir -p $INSTALL_PATH
 $Url = "https://github.com/DigitalRuby/IPBan/releases/download/$VERSION_DOTS/$FILE_NAME"
 & echo "Downloading ipban from $Url"
 $ZipFile = "$INSTALL_PATH/IPBan.zip"
