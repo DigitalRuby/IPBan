@@ -19,7 +19,7 @@ param
 	[Parameter(Mandatory=$False, Position = 0)] [String]$uninstall
 )
 
-if ($PSVersionTable.PSVersion.Major -lt 5 || ($PSVersionTable.PSVersion.Major -eq 5 -and $PSVersionTable.PSVersion.Minor -lt 1))
+if ($PSVersionTable.PSVersion.Major -lt 5 -or ($PSVersionTable.PSVersion.Major -eq 5 -and $PSVersionTable.PSVersion.Minor -lt 1))
 {
     & echo "This script requires powershell 5.1 or greater"
     exit -1
