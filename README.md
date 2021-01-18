@@ -41,6 +41,7 @@ Please note that for IPBan Pro, you can find install instructions at https://ipb
 ```
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; iex ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/DigitalRuby/IPBan/master/IPBanCore/Windows/Scripts/install_latest.ps1'))
 ```
+Note: Powershell 5.1 or greater is required.
 
 ***Additional Windows Notes***
 - It is highly recommended to disable NTLM logins and only allow NTLM2 logins. Use secpol -> local policies -> security options -> network security restrict ntlm incoming ntlm traffic -> deny all accounts. You must disable NLA if you do this or you will be locked out of your machine (Control Panel -> System and Security -> System -> Advanced Settings -> Remote Tab (uncheck NLA)).
