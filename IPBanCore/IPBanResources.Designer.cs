@@ -1393,6 +1393,15 @@ namespace DigitalRuby.IPBanCore {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Remove all license keys and reset usage..
+        /// </summary>
+        public static string RemoveAllLicenseKeys {
+            get {
+                return ResourceManager.GetString("RemoveAllLicenseKeys", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Reset Failed Login Count on Unban.
         /// </summary>
         public static string ResetFailedLoginCountForUnbannedIPAddresses {

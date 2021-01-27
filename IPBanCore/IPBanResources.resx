@@ -802,4 +802,7 @@
     <value>Used</value>
     <comment>Number of licenses used</comment>
   </data>
+  <data name="RemoveAllLicenseKeys" xml:space="preserve">
+    <value>Remove all license keys and reset usage.</value>
+  </data>
 </root>
