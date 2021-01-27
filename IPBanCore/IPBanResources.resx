@@ -787,4 +787,19 @@
   <data name="ProcessToRunOnUnbanTooltip" xml:space="preserve">
     <value>Run an external process when a ban is removed. Separate the process and any arguments with a pipe (|). ###IPADDRESS### will be replaced with the actual IP which was unbanned. The pipe is required. Example: c:\system\files\on_ip_unbanned.exe|###IPADDRESS### -q</value>
   </data>
+  <data name="Licenses" xml:space="preserve">
+    <value>Licenses</value>
+    <comment>Like a software license</comment>
+  </data>
+  <data name="Available" xml:space="preserve">
+    <value>Available</value>
+    <comment>Number of licenses available</comment>
+  </data>
+  <data name="EnterLicenseKeys" xml:space="preserve">
+    <value>Enter license keys, one per line</value>
+  </data>
+  <data name="Used" xml:space="preserve">
+    <value>Used</value>
+    <comment>Number of licenses used</comment>
+  </data>
 </root>

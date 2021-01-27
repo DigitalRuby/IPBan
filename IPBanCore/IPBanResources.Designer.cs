@@ -106,6 +106,15 @@ namespace DigitalRuby.IPBanCore {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Available.
+        /// </summary>
+        public static string Available {
+            get {
+                return ResourceManager.GetString("Available", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Ban Count.
         /// </summary>
         public static string BanCount {
@@ -399,6 +408,15 @@ namespace DigitalRuby.IPBanCore {
         public static string EnableSSLTooltip {
             get {
                 return ResourceManager.GetString("EnableSSLTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Enter license keys, one per line.
+        /// </summary>
+        public static string EnterLicenseKeys {
+            get {
+                return ResourceManager.GetString("EnterLicenseKeys", resourceCulture);
             }
         }
         
@@ -867,6 +885,15 @@ namespace DigitalRuby.IPBanCore {
         public static string LastUpdate {
             get {
                 return ResourceManager.GetString("LastUpdate", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Licenses.
+        /// </summary>
+        public static string Licenses {
+            get {
+                return ResourceManager.GetString("Licenses", resourceCulture);
             }
         }
         
@@ -1731,6 +1758,15 @@ namespace DigitalRuby.IPBanCore {
         public static string UpdateClients {
             get {
                 return ResourceManager.GetString("UpdateClients", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Used.
+        /// </summary>
+        public static string Used {
+            get {
+                return ResourceManager.GetString("Used", resourceCulture);
             }
         }
         
