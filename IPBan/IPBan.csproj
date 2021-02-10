@@ -4,9 +4,9 @@
 		<OutputType>Exe</OutputType>
 		<TargetFrameworks>net5.0</TargetFrameworks>
 		<PlatformTarget>AnyCPU</PlatformTarget>
-    <Version>1.5.9</Version>
-    <AssemblyVersion>1.5.9</AssemblyVersion>
-    <FileVersion>1.5.9</FileVersion>
+    <Version>1.6.0</Version>
+    <AssemblyVersion>1.6.0</AssemblyVersion>
+    <FileVersion>1.6.0</FileVersion>
 		<Company>Digital Ruby, LLC</Company>
 		<Copyright>(c) 2010 Digital Ruby, LLC</Copyright>
 		<GenerateAssemblyInfo>false</GenerateAssemblyInfo>
