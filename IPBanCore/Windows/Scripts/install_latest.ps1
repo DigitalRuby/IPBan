@@ -25,7 +25,7 @@ if ($PSVersionTable.PSVersion.Major -lt 5 -or ($PSVersionTable.PSVersion.Major -
     exit -1
 }
 
-$VERSION_DOTS = "1.5.9"
+$VERSION_DOTS = "1.6.0"
 $VERSION_UNDERSCORES = $VERSION_DOTS -replace "\.","_"
 $FILE_NAME = "IPBan-Windows-x64_$VERSION_UNDERSCORES.zip"
 $INSTALL_PATH = "C:/Program Files/IPBan"
