@@ -1,3 +1,6 @@
 sc.exe stop IPBAN
 sc.exe delete IPBAN
-rmdir c:/ipban /s
+mkdir -p c:/ipban
+mkdir -p "C:/Program Files/IPBan"
+rmdir /s /q c:/ipban
+rmdir /s /q "C:/Program Files/IPBan"
