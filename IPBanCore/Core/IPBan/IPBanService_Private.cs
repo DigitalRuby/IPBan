@@ -524,8 +524,8 @@ namespace DigitalRuby.IPBanCore
 
             RunTask(() =>
             {
-                string program = Path.GetFullPath(pieces[0]);
-                string args = pieces[1];
+                string programFullPath = Path.GetFullPath(pieces[0]);
+                string programArgs = pieces[1];
 
                 foreach (var bannedIp in bannedIPAddresses)
                 {
@@ -534,22 +534,23 @@ namespace DigitalRuby.IPBanCore
                         continue;
                     }
 
+                    string replacedArgs = programArgs.Replace("###IPADDRESS###", bannedIp.IPAddress)
+                        .Replace("###SOURCE###", bannedIp.Source ?? string.Empty)
+                        .Replace("###USERNAME###", bannedIp.UserName ?? string.Empty);
+
                     try
                     {
-                        string arguments = args.Replace("###IPADDRESS###", bannedIp.IPAddress)
-                            .Replace("###SOURCE###", bannedIp.Source ?? string.Empty)
-                            .Replace("###USERNAME###", bannedIp.UserName ?? string.Empty);
                         ProcessStartInfo psi = new ProcessStartInfo
                         {
-                            FileName = program,
-                            WorkingDirectory = Path.GetDirectoryName(program),
-                            Arguments = arguments
+                            FileName = programFullPath,
+                            WorkingDirectory = Path.GetDirectoryName(programFullPath),
+                            Arguments = replacedArgs
                         };
                         using Process p = Process.Start(psi);
                     }
                     catch (Exception ex)
                     {
-                        Logger.Error("Failed to execute process " + programToRun, ex);
+                        Logger.Error(ex, "Failed to execute process {0} {1}", programFullPath, replacedArgs);
                     }
                 }
             });
