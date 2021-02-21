@@ -805,4 +805,12 @@
   <data name="RemoveAllLicenseKeys" xml:space="preserve">
     <value>Remove all license keys and reset usage.</value>
   </data>
+  <data name="Allowed" xml:space="preserve">
+    <value>Allowed</value>
+    <comment>Allowed number of uses, etc.</comment>
+  </data>
+  <data name="Machine" xml:space="preserve">
+    <value>Machine</value>
+    <comment>A computer</comment>
+  </data>
 </root>

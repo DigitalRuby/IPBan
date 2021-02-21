@@ -70,6 +70,15 @@ namespace DigitalRuby.IPBanCore {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Allowed.
+        /// </summary>
+        public static string Allowed {
+            get {
+                return ResourceManager.GetString("Allowed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Allow Ports.
         /// </summary>
         public static string AllowPorts {
@@ -948,6 +957,15 @@ namespace DigitalRuby.IPBanCore {
         public static string LogParsing {
             get {
                 return ResourceManager.GetString("LogParsing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Machine.
+        /// </summary>
+        public static string Machine {
+            get {
+                return ResourceManager.GetString("Machine", resourceCulture);
             }
         }
         
