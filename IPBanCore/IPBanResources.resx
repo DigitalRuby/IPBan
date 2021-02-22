@@ -813,4 +813,8 @@
     <value>Machine</value>
     <comment>A computer</comment>
   </data>
+  <data name="Enabled" xml:space="preserve">
+    <value>Enabled</value>
+    <comment>Is the service enabled?</comment>
+  </data>
 </root>
