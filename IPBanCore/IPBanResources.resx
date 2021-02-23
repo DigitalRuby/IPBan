@@ -817,4 +817,8 @@
     <value>Enabled</value>
     <comment>Is the service enabled?</comment>
   </data>
+  <data name="ConnectedClients" xml:space="preserve">
+    <value>Connected Clients</value>
+    <comment>Number of connected clients</comment>
+  </data>
 </root>

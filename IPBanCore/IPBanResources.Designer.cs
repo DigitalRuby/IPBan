@@ -250,6 +250,15 @@ namespace DigitalRuby.IPBanCore {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Connected Clients.
+        /// </summary>
+        public static string ConnectedClients {
+            get {
+                return ResourceManager.GetString("ConnectedClients", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Country.
         /// </summary>
         public static string Country {
