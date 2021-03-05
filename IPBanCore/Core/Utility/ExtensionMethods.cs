@@ -893,12 +893,13 @@ namespace DigitalRuby.IPBanCore
         /// <param name="allowLocal">Whether to return localhost ip</param>
         /// <param name="addressFamily">Desired address family or null for all</param>
         /// <returns>Local ip address or empty array if unable to determine. If no address family match, falls back to an ipv6 attempt.</returns>
-        public static async Task<System.Net.IPAddress[]> GetLocalIPAddressesAsync(this IDnsLookup dns, bool allowLocal = true, System.Net.Sockets.AddressFamily? addressFamily = System.Net.Sockets.AddressFamily.InterNetwork)
+        public static async Task<System.Net.IPAddress[]> GetLocalIPAddressesAsync(this IDnsLookup dns,
+            bool allowLocal = true, System.Net.Sockets.AddressFamily? addressFamily = null)
         {
             try
             {
                 // append ipv4 first, then the ipv6 then the remote ip
-                List<IPAddress> ips = new List<IPAddress>();
+                List<IPAddress> ips = new();
                 string hostName = await dns.GetHostNameAsync();
                 IPAddress[] hostAddresses = await dns.GetHostAddressesAsync(hostName);
                 ips.AddRange(hostAddresses.Where(i => !i.IsLocalHost()));
@@ -920,7 +921,7 @@ namespace DigitalRuby.IPBanCore
                 }
 
                 return ips.Where(ip => (allowLocal || !ip.IsLocalHost()) &&
-                    (addressFamily is null || ip.AddressFamily == addressFamily)).ToArray();
+                    (addressFamily is null || ip.AddressFamily == addressFamily.Value)).ToArray();
             }
             catch
             {
