@@ -76,7 +76,7 @@ namespace DigitalRuby.IPBanCore
 
         private T ExecuteScalar<T>(string cmdText, params object[] param)
         {
-            using (SqliteConnection connection = new SqliteConnection(connString))
+            using (SqliteConnection connection = new(connString))
             {
                 connection.Open();
                 using (SqliteCommand command = connection.CreateCommand())
@@ -93,7 +93,7 @@ namespace DigitalRuby.IPBanCore
 
         private SqliteDataReader ExecuteReader(string query, params object[] param)
         {
-            SqliteConnection connection = new SqliteConnection(connString);
+            SqliteConnection connection = new(connString);
             connection.Open();
             SqliteCommand command = connection.CreateCommand();
             command.CommandText = query;
@@ -208,7 +208,7 @@ namespace DigitalRuby.IPBanCore
         public int AddMany(IEnumerable<string> texts)
         {
             int count = 0;
-            using (SqliteConnection conn = new SqliteConnection(connString))
+            using (SqliteConnection conn = new(connString))
             {
                 conn.Open();
                 using (SqliteTransaction tran = conn.BeginTransaction(System.Data.IsolationLevel.ReadCommitted))
@@ -231,7 +231,7 @@ namespace DigitalRuby.IPBanCore
         public int DeleteMany(IEnumerable<string> texts)
         {
             int count = 0;
-            using (SqliteConnection conn = new SqliteConnection(connString))
+            using (SqliteConnection conn = new(connString))
             {
                 conn.Open();
                 using (SqliteTransaction tran = conn.BeginTransaction(System.Data.IsolationLevel.ReadCommitted))

@@ -178,8 +178,8 @@ namespace DigitalRuby.IPBanCore
         /// </summary>
         public static readonly Encoding Utf8EncodingNoPrefix = new UTF8Encoding(false);
 
-        private static readonly DateTime unixEpoch = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
-        private static readonly XmlSerializerNamespaces emptyXmlNs = new XmlSerializerNamespaces();
+        private static readonly DateTime unixEpoch = new(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
+        private static readonly XmlSerializerNamespaces emptyXmlNs = new();
         private static readonly System.Net.IPAddress[] localHostIP = new System.Net.IPAddress[] { System.Net.IPAddress.Parse("127.0.0.1"), System.Net.IPAddress.Parse("::1") };
 
         static ExtensionMethods()
@@ -250,8 +250,8 @@ namespace DigitalRuby.IPBanCore
                 return null;
             }
 
-            StringWriter xml = new StringWriter();
-            XmlSerializer serializer = new XmlSerializer(obj.GetType());
+            StringWriter xml = new();
+            XmlSerializer serializer = new(obj.GetType());
             using (XmlWriter writer = XmlWriter.Create(xml, new XmlWriterSettings { Indent = true, NewLineHandling = NewLineHandling.None, OmitXmlDeclaration = true }))
             {
                 serializer.Serialize(writer, obj, emptyXmlNs);
@@ -331,7 +331,7 @@ namespace DigitalRuby.IPBanCore
             {
                 return null;
             }
-            SecureString secure = new SecureString();
+            SecureString secure = new();
             foreach (char c in unsecure)
             {
                 secure.AppendChar(c);
@@ -360,11 +360,9 @@ namespace DigitalRuby.IPBanCore
         /// <returns>Sha-256 hex string</returns>
         public static string ToSHA256String(this string s)
         {
-            s = (s ?? string.Empty);
-            using (SHA256Managed hasher = new SHA256Managed())
-            {
-                return BitConverter.ToString(hasher.ComputeHash(Encoding.UTF8.GetBytes(s))).Replace("-", string.Empty);
-            }
+            s ??= string.Empty;
+            using SHA256Managed hasher = new();
+            return BitConverter.ToString(hasher.ComputeHash(Encoding.UTF8.GetBytes(s))).Replace("-", string.Empty);
         }
 
         /// <summary>
@@ -805,7 +803,7 @@ namespace DigitalRuby.IPBanCore
             {
                 return allAssemblies;
             }
-            List<Assembly> assemblies = new List<Assembly>();
+            List<Assembly> assemblies = new();
             assemblies.AddRange(AppDomain.CurrentDomain.GetAssemblies());
 
             // attempt to load plugins
@@ -869,7 +867,7 @@ namespace DigitalRuby.IPBanCore
                 return allTypes;
             }
             IReadOnlyCollection<Assembly> assemblies = GetAllAssemblies();
-            List<Type> types = new List<Type>();
+            List<Type> types = new();
             foreach (Assembly assembly in assemblies)
             {
                 try
@@ -959,7 +957,7 @@ namespace DigitalRuby.IPBanCore
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 using WindowsIdentity identity = WindowsIdentity.GetCurrent();
-                WindowsPrincipal principal = new WindowsPrincipal(identity);
+                WindowsPrincipal principal = new(identity);
                 if (!principal.IsInRole(WindowsBuiltInRole.Administrator))
                 {
                     throw new InvalidOperationException("Application must be run as administrator");
@@ -1240,7 +1238,7 @@ namespace DigitalRuby.IPBanCore
         /// <returns>Task that finishes when all value tasks have finished</returns>
         public static Task WhenAll(this IEnumerable<ValueTask> tasks)
         {
-            List<Task> valueTaskTasks = new List<Task>();
+            List<Task> valueTaskTasks = new();
             foreach (ValueTask task in tasks)
             {
                 valueTaskTasks.Add(task.AsTask());
@@ -1256,7 +1254,7 @@ namespace DigitalRuby.IPBanCore
         /// <returns>Task that finishes when all value tasks have finished</returns>
         public static Task WhenAll<T>(this IEnumerable<ValueTask<T>> tasks)
         {
-            List<Task> valueTaskTasks = new List<Task>();
+            List<Task> valueTaskTasks = new();
             foreach (ValueTask<T> task in tasks)
             {
                 valueTaskTasks.Add(task.AsTask());

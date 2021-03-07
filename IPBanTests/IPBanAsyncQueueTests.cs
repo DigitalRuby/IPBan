@@ -40,7 +40,7 @@ namespace DigitalRuby.IPBanTests
         public void TestEnqueueDequeue()
         {
             TimeSpan timeout = TimeSpan.FromMilliseconds(1.0);
-            AsyncQueue<int> queue = new AsyncQueue<int>();
+            AsyncQueue<int> queue = new();
             queue.Enqueue(1);
             queue.EnqueueRange(new int[] { 2, 3 });
             Assert.AreEqual(1, queue.TryDequeueAsync(timeout).Sync().Value);
@@ -51,10 +51,10 @@ namespace DigitalRuby.IPBanTests
         [Test]
         public void TestMultipleThreads()
         {
-            AsyncQueue<int> queue = new AsyncQueue<int>();
+            AsyncQueue<int> queue = new();
             int count = 0;
-            List<Task> tasks = new List<Task>();
-            CancellationTokenSource cancelToken = new CancellationTokenSource();
+            List<Task> tasks = new();
+            CancellationTokenSource cancelToken = new();
 
             for (int i = 0; i < 10; i++)
             {

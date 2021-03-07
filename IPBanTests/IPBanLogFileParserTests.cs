@@ -38,8 +38,8 @@ namespace DigitalRuby.IPBanTests
     {
         private static readonly string tempPath = LogFileScanner.NormalizeGlob(Path.Combine(OSUtility.TempFolder, "LogFileParserTest"), out _, out _);
 
-        private readonly List<IPAddressLogEvent> failedIPAddresses = new List<IPAddressLogEvent>();
-        private readonly List<IPAddressLogEvent> successIPAddresses = new List<IPAddressLogEvent>();
+        private readonly List<IPAddressLogEvent> failedIPAddresses = new();
+        private readonly List<IPAddressLogEvent> successIPAddresses = new();
 
         private string fullPath;
         private string pathAndMask;
@@ -82,7 +82,7 @@ namespace DigitalRuby.IPBanTests
             using LogFileScanner scanner = SetupLogFileScanner(failureRegex: "__prefix__(?<ipaddress>.+)__suffix(__(?<username>.*?)__end)?",
                 successRegex: "success_prefix__(?<ipaddress>.+)__suffix(__(?<username>.*?)__end)?");
             {
-                using StreamWriter writer = new StreamWriter(CreateFile(), Encoding.UTF8) { AutoFlush = true };
+                using StreamWriter writer = new(CreateFile(), Encoding.UTF8) { AutoFlush = true };
 
                 // scan once before writing any data, otherwise scanner starts at end of file and will miss
                 // the first data written
@@ -133,7 +133,7 @@ namespace DigitalRuby.IPBanTests
 
             ExtensionMethods.FileDeleteWithRetry(fullPath);
             {
-                using StreamWriter writer = new StreamWriter(CreateFile(), Encoding.UTF8)
+                using StreamWriter writer = new(CreateFile(), Encoding.UTF8)
                 {
                     AutoFlush = true
                 };
@@ -289,7 +289,7 @@ namespace DigitalRuby.IPBanTests
             string successRegexTimestampFormat = null,
             string source = "SSH")
         {
-            IPBanIPAddressLogFileScannerOptions options = new IPBanIPAddressLogFileScannerOptions
+            IPBanIPAddressLogFileScannerOptions options = new()
             {
                 Dns = TestDnsLookup.Instance,
                 LoginHandler = this,

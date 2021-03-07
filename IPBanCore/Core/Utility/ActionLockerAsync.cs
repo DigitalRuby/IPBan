@@ -33,7 +33,7 @@ namespace DigitalRuby.IPBanCore
     /// </summary>
     public class ActionLockerAsync
     {
-        private readonly SemaphoreSlim locker = new SemaphoreSlim(1, 1);
+        private readonly SemaphoreSlim locker = new(1, 1);
 
         /// <summary>
         /// Lock an action around async acquisition of the lock

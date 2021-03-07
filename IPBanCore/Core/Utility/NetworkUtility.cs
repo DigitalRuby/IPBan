@@ -41,7 +41,7 @@ namespace DigitalRuby.IPBanCore
         /// <returns>All dns servers for this local machine</returns>
         public static IReadOnlyCollection<IPAddress> GetLocalDnsServers()
         {
-            List<IPAddress> dnsServers = new List<IPAddress>();
+            List<IPAddress> dnsServers = new();
             NetworkInterface[] networkInterfaces = NetworkInterface.GetAllNetworkInterfaces();
 
             foreach (NetworkInterface networkInterface in networkInterfaces)
@@ -89,7 +89,7 @@ namespace DigitalRuby.IPBanCore
         /// <returns>All ips of local machine</returns>
         public static IReadOnlyCollection<string> GetAllIPAddresses()
         {
-            HashSet<string> ipSet = new HashSet<string>();
+            HashSet<string> ipSet = new();
             foreach (NetworkInterface netInterface in NetworkInterface.GetAllNetworkInterfaces())
             {
                 if (netInterface.OperationalStatus == OperationalStatus.Up)

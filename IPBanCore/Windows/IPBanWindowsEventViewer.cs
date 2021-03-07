@@ -43,7 +43,7 @@ namespace DigitalRuby.IPBanCore
     /// </summary>
     public class IPBanWindowsEventViewer : IUpdater
     {
-        private static readonly Regex invalidXmlRegex = new Regex(@"(?<![\uD800-\uDBFF])[\uDC00-\uDFFF]|[\uD800-\uDBFF](?![\uDC00-\uDFFF])|[\x00-\x08\x0B\x0C\x0E-\x1F\x7F-\x9F\uFEFF\uFFFE\uFFFF]", RegexOptions.Compiled);
+        private static readonly Regex invalidXmlRegex = new(@"(?<![\uD800-\uDBFF])[\uDC00-\uDFFF]|[\uD800-\uDBFF](?![\uDC00-\uDFFF])|[\x00-\x08\x0B\x0C\x0E-\x1F\x7F-\x9F\uFEFF\uFFFE\uFFFF]", RegexOptions.Compiled);
 
         private readonly IIPBanService service;
         private EventLogQuery query;
@@ -270,12 +270,12 @@ namespace DigitalRuby.IPBanCore
         private XmlDocument ParseXml(string xml)
         {
             xml = invalidXmlRegex.Replace(xml, string.Empty);
-            XmlTextReader reader = new XmlTextReader(new StringReader(xml))
+            XmlTextReader reader = new(new StringReader(xml))
             {
                 Namespaces = false
             };
             XmlReader outerReader = XmlReader.Create(reader, new XmlReaderSettings { CheckCharacters = false });
-            XmlDocument doc = new XmlDocument();
+            XmlDocument doc = new();
             doc.Load(outerReader);
 
             return doc;
@@ -315,9 +315,9 @@ namespace DigitalRuby.IPBanCore
                 return null;
             }
 
-            StringBuilder queryString = new StringBuilder("<QueryList>");
+            StringBuilder queryString = new("<QueryList>");
             int id = 0;
-            HashSet<string> logNames = new HashSet<string>(System.Diagnostics.Eventing.Reader.EventLogSession.GlobalSession.GetLogNames());
+            HashSet<string> logNames = new(System.Diagnostics.Eventing.Reader.EventLogSession.GlobalSession.GetLogNames());
             foreach (EventViewerExpressionGroup group in service.Config.WindowsEventViewerExpressionsToBlock.Groups)
             {
                 if (!logNames.Contains(group.Path) ||
@@ -339,7 +339,7 @@ namespace DigitalRuby.IPBanCore
         private void SetupEventLogWatcher()
         {
             // note- this code will throw when Windows reboots, especially after patches
-            List<string> ignored = new List<string>();
+            List<string> ignored = new();
             string queryString = GetEventLogQueryString(ignored);
             if (queryString != null && queryString != previousQueryString)
             {

@@ -83,7 +83,7 @@ namespace DigitalRuby.IPBanCore
                 throw new ArgumentException("Cannot merge null base xml");
             }
 
-            XmlDocument docBase = new XmlDocument();
+            XmlDocument docBase = new();
             docBase.LoadXml(xmlBase);
 
             if (string.IsNullOrWhiteSpace(xmlOverride))
@@ -91,7 +91,7 @@ namespace DigitalRuby.IPBanCore
                 return docBase;
             }
 
-            XmlDocument docOverride = new XmlDocument();
+            XmlDocument docOverride = new();
             docOverride.LoadXml(xmlOverride);
 
             XmlNode logFilesBase = docBase.SelectSingleNode("/configuration/LogFilesToParse/LogFiles");
@@ -284,7 +284,7 @@ namespace DigitalRuby.IPBanCore
 
         private async Task ProcessPendingFailedLogins(IReadOnlyList<IPAddressLogEvent> ipAddresses)
         {
-            List<IPAddressLogEvent> bannedIpAddresses = new List<IPAddressLogEvent>();
+            List<IPAddressLogEvent> bannedIpAddresses = new();
             object transaction = BeginTransaction();
             try
             {
@@ -540,7 +540,7 @@ namespace DigitalRuby.IPBanCore
 
                     try
                     {
-                        ProcessStartInfo psi = new ProcessStartInfo
+                        ProcessStartInfo psi = new()
                         {
                             FileName = programFullPath,
                             WorkingDirectory = Path.GetDirectoryName(programFullPath),
@@ -629,7 +629,7 @@ namespace DigitalRuby.IPBanCore
             else
             {
                 // check for updated / new / removed block rules
-                List<string> deleteList = new List<string>(oldConfig.ExtraRules.Select(r => r.Name));
+                List<string> deleteList = new(oldConfig.ExtraRules.Select(r => r.Name));
 
                 // cleanup rules that are no longer in the config
                 foreach (string newRule in Config.ExtraRules.Select(r => r.Name))
@@ -757,7 +757,7 @@ namespace DigitalRuby.IPBanCore
 
         private async Task UpdateExpiredIPAddressStates()
         {
-            HashSet<string> unbannedIPAddresses = new HashSet<string>();
+            HashSet<string> unbannedIPAddresses = new();
             DateTime now = UtcNow;
             DateTime failLoginCutOff = (now - Config.ExpireTime);
             DateTime banCutOff = now;
@@ -1076,8 +1076,8 @@ namespace DigitalRuby.IPBanCore
                 pendingLogEvents.Clear();
             }
 
-            List<IPAddressLogEvent> bannedIPs = new List<IPAddressLogEvent>();
-            List<IPAddressLogEvent> unbannedIPs = new List<IPAddressLogEvent>();
+            List<IPAddressLogEvent> bannedIPs = new();
+            List<IPAddressLogEvent> unbannedIPs = new();
             object transaction = BeginTransaction();
             try
             {
@@ -1150,8 +1150,8 @@ namespace DigitalRuby.IPBanCore
 
         private void ParseAndAddUriFirewallRules(IPBanConfig newConfig)
         {
-            List<IPBanUriFirewallRule> toRemove = new List<IPBanUriFirewallRule>(updaters.Where(u => u is IPBanUriFirewallRule).Select(u => u as IPBanUriFirewallRule));
-            using StringReader reader = new StringReader(newConfig.FirewallUriRules);
+            List<IPBanUriFirewallRule> toRemove = new(updaters.Where(u => u is IPBanUriFirewallRule).Select(u => u as IPBanUriFirewallRule));
+            using StringReader reader = new(newConfig.FirewallUriRules);
             string line;
             while ((line = reader.ReadLine()) != null)
             {
@@ -1164,7 +1164,7 @@ namespace DigitalRuby.IPBanCore
                         if (Uri.TryCreate(pieces[2], UriKind.Absolute, out Uri uri))
                         {
                             string rulePrefix = pieces[0];
-                            IPBanUriFirewallRule newRule = new IPBanUriFirewallRule(Firewall, this, RequestMaker, rulePrefix, interval, uri);
+                            IPBanUriFirewallRule newRule = new(Firewall, this, RequestMaker, rulePrefix, interval, uri);
                             if (updaters.Where(u => u.Equals(newRule)).FirstOrDefault() is IPBanUriFirewallRule existingRule)
                             {
                                 // exact duplicate rule, do nothing

@@ -44,13 +44,13 @@ namespace DigitalRuby.IPBanCore
         };
 
         // batch failed logins every cycle
-        private readonly List<IPAddressLogEvent> pendingFailedLogins = new List<IPAddressLogEvent>();
-        private readonly List<IPAddressLogEvent> pendingSuccessfulLogins = new List<IPAddressLogEvent>();
-        private readonly List<IPAddressLogEvent> pendingLogEvents = new List<IPAddressLogEvent>();
-        private readonly HashSet<IUpdater> updaters = new HashSet<IUpdater>();
-        private readonly SemaphoreSlim stopEvent = new SemaphoreSlim(0, 1);
-        private readonly Dictionary<string, AsyncQueue<Func<CancellationToken, Task>>> firewallQueue = new Dictionary<string, AsyncQueue<Func<CancellationToken, Task>>>();
-        private readonly SemaphoreSlim cycleLock = new SemaphoreSlim(1, 1);
+        private readonly List<IPAddressLogEvent> pendingFailedLogins = new();
+        private readonly List<IPAddressLogEvent> pendingSuccessfulLogins = new();
+        private readonly List<IPAddressLogEvent> pendingLogEvents = new();
+        private readonly HashSet<IUpdater> updaters = new();
+        private readonly SemaphoreSlim stopEvent = new(0, 1);
+        private readonly Dictionary<string, AsyncQueue<Func<CancellationToken, Task>>> firewallQueue = new();
+        private readonly SemaphoreSlim cycleLock = new(1, 1);
 
         private System.Threading.Timer cycleTimer;
         private bool firewallNeedsBlockedIPAddressesUpdate;

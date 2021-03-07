@@ -90,7 +90,7 @@ namespace DigitalRuby.IPBanCore
             public bool IsBinaryFile { get; internal set; }
         }
 
-        private readonly HashSet<WatchedFile> watchedFiles = new HashSet<WatchedFile>();
+        private readonly HashSet<WatchedFile> watchedFiles = new();
         private readonly System.Timers.Timer fileProcessingTimer;
         private readonly long maxFileSize;
         private readonly Encoding encoding;
@@ -171,7 +171,7 @@ namespace DigitalRuby.IPBanCore
         /// <returns>Found files</returns>
         public static IReadOnlyCollection<WatchedFile> GetFiles(string pathAndMask)
         {
-            List<WatchedFile> files = new List<WatchedFile>();
+            List<WatchedFile> files = new();
 
             // pull out the directory portion of the path/mask, accounting for * syntax in the folder name
             string replacedPathAndMask = ReplacePathVars(pathAndMask);
@@ -181,7 +181,7 @@ namespace DigitalRuby.IPBanCore
             Matcher fileMatcher = new Matcher(StringComparison.OrdinalIgnoreCase).AddInclude(globPortion);
 
             // get the base directory that does not have glob syntax
-            DirectoryInfoWrapper baseDir = new DirectoryInfoWrapper(new DirectoryInfo(dirPortion));
+            DirectoryInfoWrapper baseDir = new(new DirectoryInfo(dirPortion));
 
             // read in existing files that match the mask in the directory being watched
             foreach (var file in fileMatcher.Execute(baseDir).Files)
@@ -236,7 +236,7 @@ namespace DigitalRuby.IPBanCore
                         // if the length changed, we need to parse data from the file
                         if (len != file.LastLength)
                         {
-                            using FileStream fs = new FileStream(file.FileName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                            using FileStream fs = new(file.FileName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
                             file.LastLength = len;
                             ProcessFile(file, fs);
                         }
@@ -362,8 +362,8 @@ namespace DigitalRuby.IPBanCore
         /// <param name="cancelToken">Cancel token</param>
         public static void Replay(string sourceFile, string destFile, int delay, CancellationToken cancelToken = default)
         {
-            FileInfo info = new FileInfo(sourceFile);
-            Random r = new Random();
+            FileInfo info = new(sourceFile);
+            Random r = new();
             long pos = 0;
             ExtensionMethods.FileDeleteWithRetry(destFile);
             File.WriteAllText(destFile, string.Empty);
@@ -419,7 +419,7 @@ namespace DigitalRuby.IPBanCore
             if (File.Exists(fileName))
             {
                 // by opening and seeking to the end, the os will flush the file and any pending data to disk
-                using FileStream fs = new FileStream(fileName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite, 16);
+                using FileStream fs = new(fileName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite, 16);
                 if (fs.Length != 0)
                 {
                     // force read a byte, this gets the file data flushed properly
@@ -446,7 +446,7 @@ namespace DigitalRuby.IPBanCore
         private HashSet<WatchedFile> GetCurrentWatchedFiles()
         {
             // read in existing files that match the mask in the directory being watched
-            HashSet<WatchedFile> watchedFilesCopy = new HashSet<WatchedFile>();
+            HashSet<WatchedFile> watchedFilesCopy = new();
             foreach (WatchedFile file in LogFileScanner.GetFiles(PathAndMask))
             {
                 watchedFilesCopy.Add(file);

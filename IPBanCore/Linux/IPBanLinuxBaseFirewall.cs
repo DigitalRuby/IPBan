@@ -152,7 +152,7 @@ namespace DigitalRuby.IPBanCore
             commandLine = string.Format(commandLine, args);
             string bash = "-c \"" + program + " " + commandLine.Replace("\"", "\\\"") + "\"";
             Logger.Debug("Running firewall process: {0} {1}", program, commandLine);
-            using (Process p = new Process
+            using (Process p = new()
             {
                 StartInfo = new ProcessStartInfo
                 {
@@ -165,7 +165,7 @@ namespace DigitalRuby.IPBanCore
             })
             {
                 p.Start();
-                List<string> lineList = new List<string>();
+                List<string> lineList = new();
                 string line;
                 while ((line = p.StandardOutput.ReadLine()) != null)
                 {

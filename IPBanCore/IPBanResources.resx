@@ -821,4 +821,16 @@
     <value>Connected Clients</value>
     <comment>Number of connected clients</comment>
   </data>
+  <data name="Administrator" xml:space="preserve">
+    <value>Administrator</value>
+    <comment>Administrator of the software</comment>
+  </data>
+  <data name="Guest" xml:space="preserve">
+    <value>Guest</value>
+    <comment>A guest user of the software</comment>
+  </data>
+  <data name="Role" xml:space="preserve">
+    <value>Role</value>
+    <comment>Role of current user, i.e. guest or admin, etc.</comment>
+  </data>
 </root>

@@ -39,8 +39,8 @@ namespace DigitalRuby.IPBanTests
     public class IPBanLogFileIntegrationTests : IIPBanDelegate
     {
         private IPBanService service;
-        private readonly List<IPAddressLogEvent> failedEvents = new List<IPAddressLogEvent>();
-        private readonly List<IPAddressLogEvent> successfulEvents = new List<IPAddressLogEvent>();
+        private readonly List<IPAddressLogEvent> failedEvents = new();
+        private readonly List<IPAddressLogEvent> successfulEvents = new();
 
         [SetUp]
         public void Setup()
@@ -109,7 +109,7 @@ namespace DigitalRuby.IPBanTests
             pathAndMaskOverride = Path.Combine(AppContext.BaseDirectory, pathAndMaskOverride).Replace('\\', '/');
             service = IPBanService.CreateAndStartIPBanTestService<IPBanService>(configFileModifier: config =>
             {
-                XmlDocument doc = new XmlDocument();
+                XmlDocument doc = new();
                 doc.LoadXml(config);
                 XmlNode exchange = doc.SelectSingleNode(pathAndMaskXPath);
                 XmlNode pathAndMask = exchange["PathAndMask"];
@@ -119,7 +119,7 @@ namespace DigitalRuby.IPBanTests
             service.IPBanDelegate = this;
 
             // read all the files, save contents in memory temporarily
-            Dictionary<string, string> files = new Dictionary<string, string>();
+            Dictionary<string, string> files = new();
             foreach (var file in LogFileScanner.GetFiles(pathAndMaskOverride))
             {
                 files[file.FileName] = File.ReadAllText(file.FileName);

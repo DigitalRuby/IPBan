@@ -82,7 +82,7 @@ namespace DigitalRuby.IPBanCore
         {
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                MEMORYSTATUSEX mem = new MEMORYSTATUSEX();
+                MEMORYSTATUSEX mem = new();
                 GlobalMemoryStatusEx(mem);
                 availableMemory = (long)mem.ullAvailPhys;
                 totalMemory = (long)mem.ullTotalPhys;

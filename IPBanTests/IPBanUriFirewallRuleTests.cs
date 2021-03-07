@@ -19,7 +19,7 @@ namespace DigitalRuby.IPBanTests
         private static readonly IPAddressRange range2 = IPAddressRange.Parse("100.100.100.100/31");
         private static readonly IPAddressRange range3 = IPAddressRange.Parse("89.99.99.99");
 
-        private readonly IPBanMemoryFirewall memoryFirewall = new IPBanMemoryFirewall();
+        private readonly IPBanMemoryFirewall memoryFirewall = new();
 
         private string GetTestFile()
         {
@@ -36,7 +36,7 @@ namespace DigitalRuby.IPBanTests
             try
             {
                 Uri uriObj = (tempFile == null ? new Uri(uri) : new Uri("file://" + tempFile));
-                using IPBanUriFirewallRule rule = new IPBanUriFirewallRule(memoryFirewall, this, this, "TestPrefix", TimeSpan.FromMinutes(1.0), uriObj);
+                using IPBanUriFirewallRule rule = new(memoryFirewall, this, this, "TestPrefix", TimeSpan.FromMinutes(1.0), uriObj);
                 if (tempFile != null)
                 {
                     File.WriteAllText(tempFile, GetTestFile());
@@ -73,7 +73,7 @@ namespace DigitalRuby.IPBanTests
         [Test]
         public async Task TestNoOp()
         {
-            using IPBanUriFirewallRule rule = new IPBanUriFirewallRule(memoryFirewall, this, this, "TestPrefix", TimeSpan.FromMinutes(1.0), new Uri("file://c:/temp/qweoqpwejqowtempfirewall.txt"));
+            using IPBanUriFirewallRule rule = new(memoryFirewall, this, this, "TestPrefix", TimeSpan.FromMinutes(1.0), new Uri("file://c:/temp/qweoqpwejqowtempfirewall.txt"));
             await rule.Update();
             Assert.AreEqual(0, memoryFirewall.EnumerateIPAddresses().ToArray().Length);
         }

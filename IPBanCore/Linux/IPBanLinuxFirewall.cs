@@ -82,8 +82,8 @@ namespace DigitalRuby.IPBanCore
 
         public override async Task<bool> BlockIPAddressesDelta(string ruleNamePrefix, IEnumerable<IPBanFirewallIPAddressDelta> ipAddresses, IEnumerable<PortRange> allowedPorts = null, CancellationToken cancelToken = default)
         {
-            List<IPBanFirewallIPAddressDelta> deltas4 = new List<IPBanFirewallIPAddressDelta>(ipAddresses.Where(i => IPAddress.Parse(i.IPAddress).AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork));
-            List<IPBanFirewallIPAddressDelta> deltas6 = new List<IPBanFirewallIPAddressDelta>(ipAddresses.Where(i => IPAddress.Parse(i.IPAddress).AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6));
+            List<IPBanFirewallIPAddressDelta> deltas4 = new(ipAddresses.Where(i => IPAddress.Parse(i.IPAddress).AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork));
+            List<IPBanFirewallIPAddressDelta> deltas6 = new(ipAddresses.Where(i => IPAddress.Parse(i.IPAddress).AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6));
             bool result = await base.BlockIPAddressesDelta(ruleNamePrefix, deltas4, allowedPorts, cancelToken);
             if (result)
             {

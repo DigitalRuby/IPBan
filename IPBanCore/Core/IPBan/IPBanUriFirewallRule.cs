@@ -184,9 +184,9 @@ namespace DigitalRuby.IPBanCore
 
         private Task ProcessResult(string text, CancellationToken cancelToken)
         {
-            using StringReader reader = new StringReader(text);
+            using StringReader reader = new(text);
             string line;
-            List<IPAddressRange> ranges = new List<IPAddressRange>();
+            List<IPAddressRange> ranges = new();
             int lines = 0;
 
             while ((line = reader.ReadLine()) != null)

@@ -46,14 +46,14 @@ namespace DigitalRuby.IPBanTests
         {
             IPBanService.UtcNow = new DateTime(2020, 1, 1);
             DateTime now = IPBanService.UtcNow;
-            using IPBanDB db = new IPBanDB();
+            using IPBanDB db = new();
             db.Truncate(true);
             const string ip = "10.10.10.10";
             int year = now.Year;
-            DateTime dt1 = new DateTime(year - 1, 1, 1, 1, 1, 1, 1, DateTimeKind.Utc);
-            DateTime dt2 = new DateTime(year, 1, 1, 1, 1, 1, 1, DateTimeKind.Utc);
-            DateTime dt3 = new DateTime(year + 1, 1, 1, 1, 1, 1, 1, DateTimeKind.Utc);
-            DateTime dt4 = new DateTime(year + 2, 1, 1, 1, 1, 1, 1, DateTimeKind.Utc);
+            DateTime dt1 = new(year - 1, 1, 1, 1, 1, 1, 1, DateTimeKind.Utc);
+            DateTime dt2 = new(year, 1, 1, 1, 1, 1, 1, DateTimeKind.Utc);
+            DateTime dt3 = new(year + 1, 1, 1, 1, 1, 1, 1, DateTimeKind.Utc);
+            DateTime dt4 = new(year + 2, 1, 1, 1, 1, 1, 1, DateTimeKind.Utc);
             int count = db.IncrementFailedLoginCount(ip, "testuser", "testsource", dt1, 1);
             Assert.IsTrue(db.TryGetIPAddress(ip, out IPBanDB.IPAddressEntry entry));
             Assert.AreEqual(entry.UserName, "testuser");

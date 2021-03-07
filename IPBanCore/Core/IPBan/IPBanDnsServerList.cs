@@ -38,7 +38,7 @@ namespace DigitalRuby.IPBanCore
     {
         private static readonly TimeSpan dnsServerUpdateInterval = TimeSpan.FromMinutes(1.0);
         private DateTime lastDnsServersUpdate;
-        private HashSet<IPAddress> dnsServers = new HashSet<IPAddress>();
+        private HashSet<IPAddress> dnsServers = new();
 
         /// <summary>
         /// Constructor
@@ -86,7 +86,7 @@ namespace DigitalRuby.IPBanCore
             {
                 try
                 {
-                    HashSet<IPAddress> newDnsServers = new HashSet<IPAddress>(NetworkUtility.GetLocalDnsServers());
+                    HashSet<IPAddress> newDnsServers = new(NetworkUtility.GetLocalDnsServers());
                     foreach (var ip in Dns.GetHostAddresses(Dns.GetHostName()))
                     {
                         newDnsServers.Add(ip);

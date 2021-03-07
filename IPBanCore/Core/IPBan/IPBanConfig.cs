@@ -104,7 +104,7 @@ namespace DigitalRuby.IPBanCore
         /// </summary>
         public const string DefaultFileName = "ipban.config";
 
-        private static readonly HashSet<string> ignoreListEntries = new HashSet<string>
+        private static readonly HashSet<string> ignoreListEntries = new()
         {
             "0.0.0.0", "::0", "127.0.0.1", "::1", "localhost"
         };
@@ -117,7 +117,7 @@ namespace DigitalRuby.IPBanCore
             new KeyValuePair<string, object>("User-Agent", "ipban.com")
         };
 
-        private readonly Dictionary<string, string> appSettings = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        private readonly Dictionary<string, string> appSettings = new(StringComparer.OrdinalIgnoreCase);
         private readonly IPBanLogFileToParse[] logFiles;
         private readonly TimeSpan[] banTimes = new TimeSpan[] { TimeSpan.FromDays(1.0d) };
         private readonly TimeSpan expireTime = TimeSpan.FromDays(1.0d);
@@ -129,20 +129,20 @@ namespace DigitalRuby.IPBanCore
         private readonly string firewallRulePrefix = "IPBan_";
 
         // black list data structures
-        private readonly HashSet<System.Net.IPAddress> blackList = new HashSet<System.Net.IPAddress>();
+        private readonly HashSet<System.Net.IPAddress> blackList = new();
         private readonly Regex blackListRegex;
-        private readonly HashSet<IPAddressRange> blackListRanges = new HashSet<IPAddressRange>();
-        private readonly HashSet<string> blackListOther = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        private readonly HashSet<IPAddressRange> blackListRanges = new();
+        private readonly HashSet<string> blackListOther = new(StringComparer.OrdinalIgnoreCase);
 
         // white list data structures
-        private readonly HashSet<System.Net.IPAddress> whitelist = new HashSet<System.Net.IPAddress>();
+        private readonly HashSet<System.Net.IPAddress> whitelist = new();
         private readonly Regex whitelistRegex;
-        private readonly HashSet<IPAddressRange> whitelistRanges = new HashSet<IPAddressRange>();
-        private readonly HashSet<string> whitelistOther = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        private readonly HashSet<IPAddressRange> whitelistRanges = new();
+        private readonly HashSet<string> whitelistOther = new(StringComparer.OrdinalIgnoreCase);
 
         private readonly bool clearBannedIPAddressesOnRestart;
         private readonly bool clearFailedLoginsOnSuccessfulLogin;
-        private readonly HashSet<string> userNameWhitelist = new HashSet<string>(StringComparer.Ordinal);
+        private readonly HashSet<string> userNameWhitelist = new(StringComparer.Ordinal);
         private readonly int userNameWhitelistMaximumEditDistance = 2;
         private readonly Regex userNameWhitelistRegex;
         private readonly int failedLoginAttemptsBeforeBanUserNameWhitelist = 20;
@@ -158,7 +158,7 @@ namespace DigitalRuby.IPBanCore
         private readonly IDnsLookup dns;
         private readonly IDnsServerList dnsList;
         private readonly IHttpRequestMaker httpRequestMaker;
-        private readonly List<IPBanFirewallRule> extraRules = new List<IPBanFirewallRule>();
+        private readonly List<IPBanFirewallRule> extraRules = new();
         private readonly EventViewerExpressionsToBlock expressionsFailure;
         private readonly EventViewerExpressionsToNotify expressionsSuccess;
 
@@ -423,7 +423,7 @@ namespace DigitalRuby.IPBanCore
 
             if (!string.IsNullOrWhiteSpace(setValue))
             {
-                List<string> entries = new List<string>();
+                List<string> entries = new();
                 foreach (string entry in setValue.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(e => e.Trim()))
                 {
                     string entryWithoutComment = entry;
@@ -435,7 +435,7 @@ namespace DigitalRuby.IPBanCore
                     entryWithoutComment = entryWithoutComment.Trim();
                     entries.Add(entryWithoutComment);
                 }
-                List<Task> entryTasks = new List<Task>();
+                List<Task> entryTasks = new();
 
                 // iterate in parallel for performance
                 foreach (string entry in entries)
@@ -469,7 +469,7 @@ namespace DigitalRuby.IPBanCore
                                     {
                                         // assume url list of ips, newline delimited
                                         byte[] ipListBytes = null;
-                                        Uri uri = new Uri(entryWithoutComment);
+                                        Uri uri = new(entryWithoutComment);
                                         await ExtensionMethods.RetryAsync(async () => ipListBytes = await httpRequestMaker.MakeRequestAsync(uri, null, ipListHeaders));
                                         string ipList = Encoding.UTF8.GetString(ipListBytes);
                                         if (!string.IsNullOrWhiteSpace(ipList))
@@ -557,7 +557,7 @@ namespace DigitalRuby.IPBanCore
                 string[] pieces = firewallRuleString.Split(';');
                 if (pieces.Length == 5)
                 {
-                    IPBanFirewallRule firewallRuleObj = new IPBanFirewallRule
+                    IPBanFirewallRule firewallRuleObj = new()
                     {
                         Block = (pieces[1].Equals("block", StringComparison.OrdinalIgnoreCase)),
                         IPAddressRanges = pieces[2].Split(',').Select(p => IPAddressRange.Parse(p)).ToList(),
@@ -604,7 +604,7 @@ namespace DigitalRuby.IPBanCore
             }
         }
 
-        private static readonly ConcurrentDictionary<string, Regex> regexCache = new ConcurrentDictionary<string, Regex>();
+        private static readonly ConcurrentDictionary<string, Regex> regexCache = new();
         /// <summary>
         /// Get a regex from text
         /// </summary>
@@ -620,7 +620,7 @@ namespace DigitalRuby.IPBanCore
             }
 
             string[] lines = text.Split('\n');
-            StringBuilder sb = new StringBuilder();
+            StringBuilder sb = new();
             foreach (string line in lines)
             {
                 string trimmedLine = line.Trim();
@@ -653,7 +653,7 @@ namespace DigitalRuby.IPBanCore
             }
 
             string[] lines = text.Split('\n', StringSplitOptions.RemoveEmptyEntries);
-            StringBuilder sb = new StringBuilder();
+            StringBuilder sb = new();
             foreach (string line in lines)
             {
                 string trimmedLine = line.Trim();
@@ -754,7 +754,7 @@ namespace DigitalRuby.IPBanCore
             {
                 var converter = TypeDescriptor.GetConverter(typeof(T));
                 string[] items = (appSettings[key] ?? string.Empty).Split('|', ';', ',');
-                List<T> list = new List<T>();
+                List<T> list = new();
                 foreach (string item in items)
                 {
                     string normalizedItem = item.Trim();
@@ -789,7 +789,7 @@ namespace DigitalRuby.IPBanCore
         public static IPBanConfig LoadFromXml(string xml, IDnsLookup dns = null, IDnsServerList dnsList = null,
             IHttpRequestMaker httpRequestMaker = null)
         {
-            XmlDocument doc = new XmlDocument();
+            XmlDocument doc = new();
             doc.LoadXml(xml);
             return new IPBanConfig(doc, dns, dnsList, httpRequestMaker);
         }
@@ -951,7 +951,7 @@ namespace DigitalRuby.IPBanCore
         {
             newValue ??= string.Empty;
 
-            XmlDocument doc = new XmlDocument();
+            XmlDocument doc = new();
             doc.LoadXml(config);
             XmlNode appSettings = doc.SelectSingleNode($"/configuration/appSettings");
             if (appSettings is null)

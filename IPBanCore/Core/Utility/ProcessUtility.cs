@@ -183,7 +183,7 @@ namespace DigitalRuby.IPBanCore
                 OSUtility.StartProcessAndWait("sudo", "chmod +x \"" + fileName + "\"");
 
                 // use Linux at, should have been installed earlier
-                ProcessStartInfo info = new ProcessStartInfo
+                ProcessStartInfo info = new()
                 {
                     // Linux uses nohup and " &" to detach the process
                     // sudo -b to force it into the background

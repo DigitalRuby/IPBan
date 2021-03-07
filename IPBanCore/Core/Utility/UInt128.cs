@@ -48,7 +48,7 @@ namespace DigitalRuby.IPBanCore
         /// <summary>
         /// The maximum value of this type.
         /// </summary>
-        public static readonly UInt128 MaxValue = new UInt128(ulong.MaxValue, ulong.MaxValue);
+        public static readonly UInt128 MaxValue = new(ulong.MaxValue, ulong.MaxValue);
 
         /// <summary>
         /// A Zero UInt128 value.

@@ -57,7 +57,7 @@ namespace DigitalRuby.IPBanCore
         /// <summary>
         /// Cache policy
         /// </summary>
-        RequestCachePolicy CachePolicy { get => new RequestCachePolicy(RequestCacheLevel.NoCacheNoStore); set { } }
+        RequestCachePolicy CachePolicy { get => new(RequestCacheLevel.NoCacheNoStore); set { } }
     }
 
     /// <summary>

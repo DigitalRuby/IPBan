@@ -296,8 +296,8 @@ namespace DigitalRuby.IPBanCore
         /// <exception cref="ApplicationException">Exit code did not match allowed exit codes</exception>
         public static string StartProcessAndWait(int timeoutMilliseconds, string program, string args, params int[] allowedExitCodes)
         {
-            StringBuilder output = new StringBuilder();
-            Thread thread = new Thread(new ParameterizedThreadStart((_state) =>
+            StringBuilder output = new();
+            Thread thread = new(new ParameterizedThreadStart((_state) =>
             {
                 Logger.Info($"Executing process {program} {args}...");
 
@@ -379,8 +379,8 @@ namespace DigitalRuby.IPBanCore
                 if (isWindows)
                 {
                     // Windows: WMI
-                    SelectQuery query = new SelectQuery("Win32_UserAccount");
-                    ManagementObjectSearcher searcher = new ManagementObjectSearcher(query);
+                    SelectQuery query = new("Win32_UserAccount");
+                    ManagementObjectSearcher searcher = new(query);
                     foreach (ManagementObject user in searcher.Get())
                     {
                         if (user["Disabled"] is null || user["Disabled"].Equals(false))

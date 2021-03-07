@@ -36,7 +36,7 @@ namespace DigitalRuby.IPBanTests
     [TestFixture]
     public class IPBanFirewallTests
     {
-        private static readonly Dictionary<string, string> firewallAndOsType = new Dictionary<string, string>();
+        private static readonly Dictionary<string, string> firewallAndOsType = new();
         private IIPBanFirewall firewall;
 
         [SetUp]
@@ -67,7 +67,7 @@ namespace DigitalRuby.IPBanTests
         [Test]
         public void TestBlockClearsOutExtraRules()
         {
-            List<string> ips = new List<string>(2020);
+            List<string> ips = new(2020);
             for (int i = 0; i < 2020; i++)
             {
                 string ip = "99.99." + ((i & 0x0000FF00) >> 8).ToString() + "." + (i & 0x000000FF).ToString();
@@ -180,7 +180,7 @@ namespace DigitalRuby.IPBanTests
         [Test]
         public void TestBlockDelta()
         {
-            Random r = new Random();
+            Random r = new();
             byte[] ipBytes = new byte[4];
             string[] ips = new string[5005];
             for (int i = 0; i < ips.Length; i++)

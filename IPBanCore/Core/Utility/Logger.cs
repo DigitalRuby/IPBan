@@ -122,7 +122,7 @@ namespace DigitalRuby.IPBanCore
                 public void Dispose() { }
             }
 
-            private static readonly EmptyDisposable emptyDisposable = new EmptyDisposable();
+            private static readonly EmptyDisposable emptyDisposable = new();
             private readonly NLog.Logger logger;
 
             public NLogWrapper(NLog.Logger logger)
@@ -232,7 +232,7 @@ namespace DigitalRuby.IPBanCore
 
         private static string FormatException(Exception ex)
         {
-            StringBuilder b = new StringBuilder();
+            StringBuilder b = new();
             while (ex != null)
             {
                 b.Append(ex.ToString());

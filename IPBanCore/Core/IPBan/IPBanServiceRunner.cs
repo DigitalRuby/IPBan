@@ -42,7 +42,7 @@ namespace DigitalRuby.IPBanCore
     {
         private static bool hostServiceSetup;
 
-        private readonly CancellationTokenSource cancelToken = new CancellationTokenSource();
+        private readonly CancellationTokenSource cancelToken = new();
         private readonly Func<CancellationToken, Task> onRun;
         private readonly Func<CancellationToken, Task> onStop;
         private readonly IHost host;
@@ -132,7 +132,7 @@ namespace DigitalRuby.IPBanCore
         {
             try
             {
-                using IPBanServiceRunner runner = new IPBanServiceRunner(onRun, onStop);
+                using IPBanServiceRunner runner = new(onRun, onStop);
                 await runner.RunAsync();
             }
             catch (OperationCanceledException)

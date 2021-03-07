@@ -75,7 +75,7 @@ namespace DigitalRuby.IPBanCore
             // don't overrun array
             count = Math.Min(count, ipAddresses.Count - index);
 
-            StringBuilder b = new StringBuilder(count * 16);
+            StringBuilder b = new(count * 16);
             foreach (string ipAddress in ipAddresses.Skip(index).Take(count))
             {
                 if (ipAddress.TryNormalizeIPAddress(out string firewallIPAddress))
@@ -288,7 +288,7 @@ namespace DigitalRuby.IPBanCore
             // powershell example
             // (New-Object -ComObject HNetCfg.FwPolicy2).rules | Where-Object { $_.Name -match '^prefix' } | ForEach-Object { Write-Output "$($_.Name)" }
             // TODO: Revisit COM interface in .NET core 3.0
-            List<INetFwRule> rules = new List<INetFwRule>();
+            List<INetFwRule> rules = new();
             var e = policy.Rules.GetEnumeratorVariant();
             object[] results = new object[64];
             int count;
@@ -385,7 +385,7 @@ namespace DigitalRuby.IPBanCore
 
             try
             {
-                List<string> ipAddressesList = new List<string>();
+                List<string> ipAddressesList = new();
                 foreach (string ipAddress in ipAddresses)
                 {
                     if (cancelToken.IsCancellationRequested)
@@ -460,7 +460,7 @@ namespace DigitalRuby.IPBanCore
                 !manager.LocalPolicy.CurrentProfile.FirewallEnabled)
             {
                 // read firewall state from powershell script
-                ProcessStartInfo psScript = new ProcessStartInfo("powershell", "Get-NetfirewallProfile -PolicyStore ActiveStore")
+                ProcessStartInfo psScript = new("powershell", "Get-NetfirewallProfile -PolicyStore ActiveStore")
                 {
                     RedirectStandardOutput = true,
                     CreateNoWindow = true,
@@ -500,12 +500,12 @@ namespace DigitalRuby.IPBanCore
             string prefix = (string.IsNullOrWhiteSpace(ruleNamePrefix) ? BlockRulePrefix : RulePrefix + ruleNamePrefix).TrimEnd('_') + "_";
             int ruleIndex;
             INetFwRule[] rules = EnumerateRulesMatchingPrefix(prefix).ToArray();
-            List<HashSet<string>> remoteIPAddresses = new List<HashSet<string>>();
-            List<bool> ruleChanges = new List<bool>();
+            List<HashSet<string>> remoteIPAddresses = new();
+            List<bool> ruleChanges = new();
             for (int i = 0; i < rules.Length; i++)
             {
                 string[] ipList = rules[i].RemoteAddresses.Split(',');
-                HashSet<string> ipSet = new HashSet<string>();
+                HashSet<string> ipSet = new();
                 foreach (string ip in ipList)
                 {
                     // trim out submask
@@ -634,7 +634,7 @@ namespace DigitalRuby.IPBanCore
                             }
                             else
                             {
-                                HashSet<string> set = new HashSet<string>(rule.RemoteAddresses.Split(',').Select(i2 => IPAddressRange.Parse(i2).Begin.ToString()));
+                                HashSet<string> set = new(rule.RemoteAddresses.Split(',').Select(i2 => IPAddressRange.Parse(i2).Begin.ToString()));
                                 if (set.Contains(ipAddress))
                                 {
                                     ruleName = firewallRuleName;

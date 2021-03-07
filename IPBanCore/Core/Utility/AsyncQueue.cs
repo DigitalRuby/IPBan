@@ -36,7 +36,7 @@ namespace DigitalRuby.IPBanCore
     /// <typeparam name="T">Type of object in the queue</typeparam>
     public class AsyncQueue<T>
     {
-        private readonly BufferBlock<T> queue = new BufferBlock<T>();
+        private readonly BufferBlock<T> queue = new();
 
         /// <summary>
         /// Add an item to the queue, causing TryDequeueAsync to return an item

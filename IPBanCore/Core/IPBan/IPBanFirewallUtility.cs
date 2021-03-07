@@ -298,7 +298,7 @@ namespace DigitalRuby.IPBanCore
             {
                 return null;
             }
-            List<PortRange> blockPortRanges = new List<PortRange>();
+            List<PortRange> blockPortRanges = new();
             int currentPort = 0;
             foreach (PortRange range in allowPortRanges.Where(r => r.IsValid).OrderBy(r => r.MinPort).ThenBy(r => r.MaxPort))
             {
@@ -330,7 +330,7 @@ namespace DigitalRuby.IPBanCore
                 return null;
             }
             IReadOnlyCollection<PortRange> blockPortRanges = GetBlockPortRanges(allowPortRanges);
-            StringBuilder portRangeStringBuilder = new StringBuilder();
+            StringBuilder portRangeStringBuilder = new();
             foreach (PortRange portRange in blockPortRanges)
             {
                 AppendRange(portRangeStringBuilder, portRange);
@@ -351,7 +351,7 @@ namespace DigitalRuby.IPBanCore
         /// <returns>Port range string to allow (i.e. 80,443,1000-10010)</returns>
         public static string GetPortRangeStringAllow(IEnumerable<PortRange> allowPortRanges)
         {
-            StringBuilder b = new StringBuilder();
+            StringBuilder b = new();
             if (allowPortRanges != null)
             {
                 int lastMax = -1;

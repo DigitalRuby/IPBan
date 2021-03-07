@@ -38,7 +38,7 @@ namespace DigitalRuby.IPBanCore
     public class IPBanLogFileManager : IUpdater
     {
         private readonly IIPBanService service;
-        private readonly HashSet<IPBanLogFileScanner> logFilesToParse = new HashSet<IPBanLogFileScanner>();
+        private readonly HashSet<IPBanLogFileScanner> logFilesToParse = new();
 
         /// <summary>
         /// Log files to parse
@@ -101,7 +101,7 @@ namespace DigitalRuby.IPBanCore
                         if (noMatchingLogFile && platformMatches)
                         {
                             // log files use a timer internally and do not need to be updated regularly
-                            IPBanIPAddressLogFileScannerOptions options = new IPBanIPAddressLogFileScannerOptions
+                            IPBanIPAddressLogFileScannerOptions options = new()
                             {
                                 Dns = service.DnsLookup,
                                 LoginHandler = service,
@@ -115,7 +115,7 @@ namespace DigitalRuby.IPBanCore
                                 Source = newFile.Source,
                                 FailedLoginThreshold = newFile.FailedLoginThreshold
                             };
-                            IPBanLogFileScanner scanner = new IPBanLogFileScanner(options);
+                            IPBanLogFileScanner scanner = new(options);
                             logFilesToParse.Add(scanner);
                             Logger.Info("Adding log file to parse: {0}", pathAndMask);
                         }

@@ -266,7 +266,7 @@ namespace DigitalRuby.IPBanCore
         public async Task WriteConfigAsync(string xml)
         {
             // Ensure valid xml before writing the file
-            XmlDocument doc = new XmlDocument();
+            XmlDocument doc = new();
             using (XmlReader xmlReader = XmlReader.Create(new StringReader(xml), new XmlReaderSettings { CheckCharacters = false }))
             {
                 doc.Load(xmlReader);

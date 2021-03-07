@@ -98,7 +98,7 @@ namespace DigitalRuby.IPBanCore
         /// Conver to an ip address range
         /// </summary>
         /// <returns>IPAddressRange</returns>
-        public IPAddressRange ToIPAddressRange() => new IPAddressRange(Begin.ToIPAddress(), End.ToIPAddress());
+        public IPAddressRange ToIPAddressRange() => new(Begin.ToIPAddress(), End.ToIPAddress());
 
         /// <summary>
         /// IComparer against another IPV4Range

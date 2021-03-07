@@ -35,7 +35,7 @@ namespace DigitalRuby.IPBanTests
     [TestFixture]
     public class IPBanStringSetTests
     {
-        private readonly Random random = new Random();
+        private readonly Random random = new();
         private string RandomString(int length)
         {
             const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
@@ -46,11 +46,11 @@ namespace DigitalRuby.IPBanTests
         [Test]
         public void TestStringSet()
         {
-            using (StringSet set = new StringSet("test", true))
+            using (StringSet set = new("test", true))
             {
                 set.Clear();
-                List<string> strings = new List<string>();
-                Random r = new Random();
+                List<string> strings = new();
+                Random r = new();
                 for (int i = 0; i < 1000; i++)
                 {
                     strings.Add(RandomString(64));

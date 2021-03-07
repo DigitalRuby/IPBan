@@ -74,7 +74,7 @@ namespace DigitalRuby.IPBanCore
                 {
                     string[] lines = (await File.ReadAllLinesAsync(file, cancelToken)).Where(l => IPAddress.TryParse(l, out _)).ToArray();
                     Logger.Warn("Queueing {0} ip addresses to ban from {1} file", lines.Length, file);
-                    List<IPAddressLogEvent> bans = new List<IPAddressLogEvent>();
+                    List<IPAddressLogEvent> bans = new();
                     foreach (string[] pieces in lines.Select(l => l.Split(',')))
                     {
                         if (pieces.Length < 1)

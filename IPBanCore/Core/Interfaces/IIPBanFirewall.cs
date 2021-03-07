@@ -214,7 +214,7 @@ namespace DigitalRuby.IPBanCore
         public override string ToString()
         {
             // name
-            StringBuilder b = new StringBuilder(Name);
+            StringBuilder b = new(Name);
             b.Append(';');
 
             b.Append(Block ? "block" : "allow");
