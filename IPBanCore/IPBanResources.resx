@@ -833,4 +833,10 @@
     <value>Role</value>
     <comment>Role of current user, i.e. guest or admin, etc.</comment>
   </data>
+  <data name="NotificationWebHook" xml:space="preserve">
+    <value>Notification Web Hook</value>
+  </data>
+  <data name="NotificationWebHookTooltip" xml:space="preserve">
+    <value>POST a JSON object to an end point for every notification. Contains Subject, Body and ToAddresses fields.</value>
+  </data>
 </root>

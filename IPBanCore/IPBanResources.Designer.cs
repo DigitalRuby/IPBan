@@ -1150,6 +1150,24 @@ namespace DigitalRuby.IPBanCore {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Notification Web Hook.
+        /// </summary>
+        public static string NotificationWebHook {
+            get {
+                return ResourceManager.GetString("NotificationWebHook", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to POST a JSON object to an end point for every notification. Contains Subject, Body and ToAddresses fields..
+        /// </summary>
+        public static string NotificationWebHookTooltip {
+            get {
+                return ResourceManager.GetString("NotificationWebHookTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Notify Only.
         /// </summary>
         public static string NotifyOnly {
