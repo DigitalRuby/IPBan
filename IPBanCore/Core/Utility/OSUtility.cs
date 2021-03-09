@@ -31,6 +31,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Management;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -172,7 +173,8 @@ namespace DigitalRuby.IPBanCore
                 FriendlyName = "Unknown";
             }
 
-            Logger.Warn("OS version detected: {0}", OSString());
+            Logger.Warn("OS version detected: {0}, app version: {1}",
+                OSString(), Assembly.GetEntryAssembly()?.GetName().Version?.ToString(3));
         }
 
         private static void LoadVersionFromLinux()
