@@ -1,4 +1,4 @@
-﻿#
+#
 # One click install script for IPBan for Windows
 # (c) 2011-Present Digital Ruby, LLC
 # https://www.digitalruby.com
@@ -87,6 +87,9 @@ if ($isUninstall -eq $True)
 $Url = "https://github.com/DigitalRuby/IPBan/releases/download/$VERSION_DOTS/$FILE_NAME"
 & echo "Downloading ipban from $Url"
 $ZipFile = "$INSTALL_PATH/IPBan.zip"
+
+# Forcing the Invoke-RestMethod PowerShell cmdlet to use TLS 1.2 to avoid error "The request was aborted: Could not create SSL/TLS secure channel."
+[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 Invoke-WebRequest -Uri $Url -OutFile $ZipFile 
 
 # extract zip file, cleanup zip file
