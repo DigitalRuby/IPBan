@@ -1,6 +1,6 @@
-If you want new features or have bug reports, please consider donating. 
+If you want new features, please consider donating. 
 
-I've spent many hundreds of hours providing this code free for the benefit of all.
+For new ideas and feature requests, please use the discussions area here: https://github.com/DigitalRuby/IPBan/discussions/categories/ideas
 
 Thank you.
 
