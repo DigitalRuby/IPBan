@@ -592,6 +592,15 @@ namespace DigitalRuby.IPBanCore {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Failed Log Level.
+        /// </summary>
+        public static string FailedLoginLogLevel {
+            get {
+                return ResourceManager.GetString("FailedLoginLogLevel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Failed Login Regex.
         /// </summary>
         public static string FailedLoginRegex {
@@ -975,6 +984,15 @@ namespace DigitalRuby.IPBanCore {
         public static string LoginFailed {
             get {
                 return ResourceManager.GetString("LoginFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Log Level.
+        /// </summary>
+        public static string LogLevel {
+            get {
+                return ResourceManager.GetString("LogLevel", resourceCulture);
             }
         }
         
@@ -1731,6 +1749,15 @@ namespace DigitalRuby.IPBanCore {
         public static string Success {
             get {
                 return ResourceManager.GetString("Success", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Successful Log Level.
+        /// </summary>
+        public static string SuccessfulLoginLogLevel {
+            get {
+                return ResourceManager.GetString("SuccessfulLoginLogLevel", resourceCulture);
             }
         }
         

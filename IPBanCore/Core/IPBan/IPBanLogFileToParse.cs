@@ -63,11 +63,23 @@ namespace DigitalRuby.IPBanCore
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public ExtensionMethods.XmlCData FailedLoginRegex { get; set; } = string.Empty;
 
+        /// <summary>
+        /// Failed login timestamp format
+        /// </summary>
         [DisplayFormat(ConvertEmptyStringToNull = false)]
         [Required(AllowEmptyStrings = true)]
         [LocalizedDisplayName(nameof(IPBanResources.FailedLoginRegexTimestampFormat))]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public string FailedLoginRegexTimestampFormat { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Failed login log level
+        /// </summary>
+        [DisplayFormat(ConvertEmptyStringToNull = false)]
+        [Required(AllowEmptyStrings = true)]
+        [LocalizedDisplayName(nameof(IPBanResources.FailedLoginLogLevel))]
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        public LogLevel FailedLoginLogLevel { get; set; } = LogLevel.Warning;
 
         /// <summary>
         /// Successful login regex
@@ -78,11 +90,23 @@ namespace DigitalRuby.IPBanCore
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public ExtensionMethods.XmlCData SuccessfulLoginRegex { get; set; } = string.Empty;
 
+        /// <summary>
+        /// Successful login timestamp format
+        /// </summary>
         [DisplayFormat(ConvertEmptyStringToNull = false)]
         [Required(AllowEmptyStrings = true)]
         [LocalizedDisplayName(nameof(IPBanResources.SuccessfulLoginRegexTimestampFormat))]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public string SuccessfulLoginRegexTimestampFormat { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Successful login log level
+        /// </summary>
+        [DisplayFormat(ConvertEmptyStringToNull = false)]
+        [Required(AllowEmptyStrings = true)]
+        [LocalizedDisplayName(nameof(IPBanResources.SuccessfulLoginLogLevel))]
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        public LogLevel SuccessfulLoginLogLevel { get; set; } = LogLevel.Warning;
 
         /// <summary>
         /// Platform regex, i.e. Windows, Linux, etc.

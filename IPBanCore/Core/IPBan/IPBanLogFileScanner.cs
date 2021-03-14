@@ -50,6 +50,16 @@ namespace DigitalRuby.IPBanCore
         public int FailedLoginThreshold { get; }
 
         /// <summary>
+        /// Failed login log level
+        /// </summary>
+        public LogLevel FailedLogLevel { get; }
+
+        /// <summary>
+        /// Successful login log level
+        /// </summary>
+        public LogLevel SuccessfulLogLevel { get; }
+
+        /// <summary>
         /// Create a log file scanner
         /// </summary>
         /// <param name="options">Options</param>
@@ -60,6 +70,8 @@ namespace DigitalRuby.IPBanCore
             options.Dns.ThrowIfNull(nameof(options.Dns));
             Source = options.Source;
             FailedLoginThreshold = options.FailedLoginThreshold;
+            FailedLogLevel = options.FailedLogLevel;
+            SuccessfulLogLevel = options.SuccessfulLogLevel;
 
             this.loginHandler = options.LoginHandler;
             this.dns = options.Dns;
@@ -79,16 +91,24 @@ namespace DigitalRuby.IPBanCore
             ParseRegex(regexSuccess, text, true, regexSuccessTimestampFormat);
         }
 
-        private void ParseRegex(Regex regex, string text, bool notifyOnly, string timestampFormat)
+        private void ParseRegex(Regex regex, string text, bool successful, string timestampFormat)
         {
             List<IPAddressLogEvent> events = new();
-            IPAddressEventType type = (notifyOnly ? IPAddressEventType.SuccessfulLogin : IPAddressEventType.FailedLogin);
+            IPAddressEventType type = (successful ? IPAddressEventType.SuccessfulLogin : IPAddressEventType.FailedLogin);
             foreach (IPAddressLogEvent info in IPBanService.GetIPAddressEventsFromRegex(regex, text, timestampFormat, type, dns))
             {
                 info.Source ??= Source; // apply default source only if we don't already have a source
                 if (info.FailedLoginThreshold <= 0)
                 {
                     info.FailedLoginThreshold = FailedLoginThreshold;
+                }
+                if (successful)
+                {
+                    info.LogLevel = SuccessfulLogLevel;
+                }
+                else
+                {
+                    info.LogLevel = FailedLogLevel;
                 }
                 events.Add(info);
 
@@ -159,5 +179,15 @@ namespace DigitalRuby.IPBanCore
         /// Failed login threshold or 0 for default
         /// </summary>
         public int FailedLoginThreshold { get; set; }
+
+        /// <summary>
+        /// Log level for failed logins
+        /// </summary>
+        public LogLevel FailedLogLevel { get; set; }
+
+        /// <summary>
+        /// Log level for successful logins
+        /// </summary>
+        public LogLevel SuccessfulLogLevel { get; set; }
     }
 }

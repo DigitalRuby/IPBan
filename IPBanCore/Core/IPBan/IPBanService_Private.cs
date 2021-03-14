@@ -297,7 +297,7 @@ namespace DigitalRuby.IPBanCore
                         string source = failedLogin.Source;
                         if (IsWhitelisted(ipAddress))
                         {
-                            Logger.Warn("Login failure, ignoring whitelisted ip address {0}, {1}, {2}", ipAddress, userName, source);
+                            Logger.Log(failedLogin.LogLevel, "Login failure, ignoring whitelisted ip address {0}, {1}, {2}", ipAddress, userName, source);
                         }
                         else
                         {
@@ -325,7 +325,7 @@ namespace DigitalRuby.IPBanCore
                             int incrementCount = (failedLogin.Count < 1 ? maxFailedLoginAttempts : failedLogin.Count);
                             int newCount = ipDB.IncrementFailedLoginCount(ipAddress, userName, source, UtcNow, incrementCount, transaction);
 
-                            Logger.Warn(now, "Login failure: {0}, {1}, {2}, {3}", ipAddress, userName, source, newCount);
+                            Logger.Log(failedLogin.LogLevel, now, "Login failure: {0}, {1}, {2}, {3}", ipAddress, userName, source, newCount);
 
                             // if the ip address is black listed or the ip address has reached the maximum failed login attempts before ban, ban the ip address
                             if (configBlacklisted || newCount >= maxFailedLoginAttempts)
@@ -336,7 +336,7 @@ namespace DigitalRuby.IPBanCore
                                 if (ipDB.TryGetIPAddressState(ipAddress, out IPBanDB.IPAddressState? state, transaction) &&
                                     (state.Value == IPBanDB.IPAddressState.Active || state.Value == IPBanDB.IPAddressState.AddPending))
                                 {
-                                    Logger.Warn(now, "IP {0}, {1}, {2} ban pending.", ipAddress, userName, source);
+                                    Logger.Log(failedLogin.LogLevel, now, "IP {0}, {1}, {2} ban pending.", ipAddress, userName, source);
                                 }
                                 else
                                 {
@@ -386,7 +386,7 @@ namespace DigitalRuby.IPBanCore
         {
             foreach (IPAddressLogEvent info in ipAddresses)
             {
-                Logger.Warn("Login succeeded, address: {0}, user name: {1}, source: {2}", info.IPAddress, info.UserName, info.Source);
+                Logger.Log(info.LogLevel, "Login succeeded, address: {0}, user name: {1}, source: {2}", info.IPAddress, info.UserName, info.Source);
                 if (Config.ClearFailedLoginsOnSuccessfulLogin)
                 {
                     DB.DeleteIPAddress(info.IPAddress);

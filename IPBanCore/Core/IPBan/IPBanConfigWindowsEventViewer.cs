@@ -239,6 +239,15 @@ namespace DigitalRuby.IPBanCore
         [LocalizedDisplayName(nameof(IPBanResources.FailedLoginThreshold))]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public int FailedLoginThreshold { get; set; }
+
+        /// <summary>
+        /// Log level for event
+        /// </summary>
+        [DisplayFormat(ConvertEmptyStringToNull = false)]
+        [Required(AllowEmptyStrings = true)]
+        [LocalizedDisplayName(nameof(IPBanResources.LogLevel))]
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        public LogLevel LogLevel { get; set; } = LogLevel.Warning;
     }
 
     /// <summary>

@@ -839,4 +839,13 @@
   <data name="NotificationWebHookTooltip" xml:space="preserve">
     <value>POST a JSON object to an end point for every notification. Contains Subject, Body and ToAddresses fields.</value>
   </data>
+  <data name="FailedLoginLogLevel" xml:space="preserve">
+    <value>Failed Log Level</value>
+  </data>
+  <data name="SuccessfulLoginLogLevel" xml:space="preserve">
+    <value>Successful Log Level</value>
+  </data>
+  <data name="LogLevel" xml:space="preserve">
+    <value>Log Level</value>
+  </data>
 </root>

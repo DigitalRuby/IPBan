@@ -43,7 +43,8 @@ namespace DigitalRuby.IPBanTests
     {
         private void AssertLogFileToParse(IPBanLogFileToParse file, string failedLoginRegex, string failedLoginRegexTimestampFormat,
             int maxFileSize, string pathAndMask, int pingInterval, string platformRegex,
-            string source, string successfulLoginRegex, string successfulLoginRegexTimestampFormat)
+            string source, string successfulLoginRegex, string successfulLoginRegexTimestampFormat,
+            LogLevel failedLogLevel = LogLevel.Warning, LogLevel successLogLevel = LogLevel.Warning)
         {
             Assert.AreEqual(IPBanConfig.ParseRegex(failedLoginRegex)?.ToString(), IPBanConfig.ParseRegex(file.FailedLoginRegex)?.ToString());
             Assert.AreEqual(failedLoginRegexTimestampFormat, file.FailedLoginRegexTimestampFormat);
@@ -54,6 +55,8 @@ namespace DigitalRuby.IPBanTests
             Assert.AreEqual(source, file.Source);
             Assert.AreEqual(IPBanConfig.ParseRegex(successfulLoginRegex)?.ToString(), IPBanConfig.ParseRegex(file.SuccessfulLoginRegex)?.ToString());
             Assert.AreEqual(successfulLoginRegexTimestampFormat, file.SuccessfulLoginRegexTimestampFormat);
+            Assert.AreEqual(failedLogLevel, file.FailedLoginLogLevel);
+            Assert.AreEqual(successLogLevel, file.SuccessfulLoginLogLevel);
         }
 
         private void AssertLogFilesToParse(IPBanConfig cfg)
@@ -150,6 +153,7 @@ namespace DigitalRuby.IPBanTests
                 Assert.AreEqual(expressions[i++], group.Expressions[groupIndex].XPath?.Trim());
                 Assert.AreEqual(expressions[i++], (regex is null ? string.Empty : regex.ToString()));
             }
+            Assert.AreEqual(LogLevel.Warning, group.LogLevel);
         }
 
         private void AssertEventViewer(IPBanConfig cfg)

@@ -106,7 +106,8 @@ namespace DigitalRuby.IPBanCore
             XmlDocument doc = ParseXml(xml);
             IPAddressLogEvent info = ExtractEventViewerXml(doc);
             if (info != null && info.IPAddress != null &&
-                (info.Type == IPAddressEventType.FailedLogin || info.Type == IPAddressEventType.SuccessfulLogin))
+                (info.Type == IPAddressEventType.FailedLogin ||
+                info.Type == IPAddressEventType.SuccessfulLogin))
             {
                 if (!FindSourceAndUserNameForInfo(info, doc))
                 {
@@ -151,14 +152,19 @@ namespace DigitalRuby.IPBanCore
         private IPAddressLogEvent ExtractEventViewerXml(XmlDocument doc)
         {
             XmlNode keywordsNode = doc.SelectSingleNode("//Keywords");
+            if (keywordsNode is null)
+            {
+                return null;
+            }
+
             string keywordsText = keywordsNode.InnerText;
             if (keywordsText.StartsWith("0x"))
             {
-                keywordsText = keywordsText.Substring(2);
+                keywordsText = keywordsText[2..];
             }
             ulong keywordsULONG = ulong.Parse(keywordsText, NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture);
             IPAddressLogEvent info;
-            bool foundNotifyOnly = false;
+            bool successfulLogin = false;
             string userName = null;
             string source = null;
             string ipAddress = null;
@@ -166,105 +172,104 @@ namespace DigitalRuby.IPBanCore
             int count = 1;
             bool mismatch;
             int failedLoginThreshold = 0;
+            LogLevel logLevel = LogLevel.Warning;
 
-            if (keywordsNode != null)
+            // we must match on keywords
+            foreach (EventViewerExpressionGroup group in service.Config.WindowsEventViewerGetGroupsMatchingKeywords(keywordsULONG))
             {
-                // we must match on keywords
-                foreach (EventViewerExpressionGroup group in service.Config.WindowsEventViewerGetGroupsMatchingKeywords(keywordsULONG))
+                logLevel = group.LogLevel;
+
+                // we must match all the expressions, if even one does not match, null everything out and move on
+                foreach (EventViewerExpression expression in group.Expressions)
                 {
-                    // we must match all the expressions, if even one does not match, null everything out and move on
-                    foreach (EventViewerExpression expression in group.Expressions)
+                    // find all the nodes, try and get an ip from any of them, all must match
+                    XmlNodeList nodes = doc.SelectNodes(expression.XPath);
+
+                    if (nodes.Count == 0)
                     {
-                        // find all the nodes, try and get an ip from any of them, all must match
-                        XmlNodeList nodes = doc.SelectNodes(expression.XPath);
-
-                        if (nodes.Count == 0)
+                        if (expression.XPathIsOptional)
                         {
-                            if (expression.XPathIsOptional)
-                            {
-                                // optional expression, continue on...
-                                continue;
-                            }
+                            // optional expression, continue on...
+                            continue;
+                        }
 
-                            Logger.Debug("No nodes found for xpath {0}", expression.XPath);
+                        Logger.Debug("No nodes found for xpath {0}", expression.XPath);
+                        userName = source = ipAddress = null;
+                        timestamp = null;
+                        successfulLogin = false;
+                        count = 1;
+                        break;
+                    }
+
+                    // if there is a regex, it must match
+                    if (string.IsNullOrWhiteSpace(expression.Regex))
+                    {
+                        // if empty regex, we are just checking for the existance of the element
+                        Logger.Debug("No regex, so counting as a match");
+                    }
+                    else
+                    {
+                        // try and find an ip from any of the nodes
+                        mismatch = true;
+
+                        // at least one of the nodes must match the regex
+                        foreach (XmlNode node in nodes)
+                        {
+                            // if we get a match, stop checking nodes
+                            info = IPBanService.GetIPAddressEventsFromRegex(expression.RegexObject, node.InnerText,
+                                dns: service.DnsLookup).FirstOrDefault();
+                            if (info is not null)
+                            {
+                                mismatch = false;
+                                if (group.NotifyOnly)
+                                {
+                                    successfulLogin = true;
+                                }
+                                else if (successfulLogin)
+                                {
+                                    throw new InvalidDataException("Conflicting expressions in event viewer, both failed and success logins matched keywords " + group.Keywords);
+                                }
+
+                                // assign values from the regex
+                                userName ??= info.UserName;
+                                source ??= info.Source;
+                                ipAddress ??= info.IPAddress;
+                                timestamp ??= info.Timestamp;
+                                count = Math.Max(info.Count, count);
+                            }
+                        }
+                        if (mismatch)
+                        {
+                            // match fail, we have to match ALL the nodes or we get null ip and do not ban
+                            Logger.Debug("Regex {0} did not match any nodes with xpath {1}", expression.Regex, expression.XPath);
                             userName = source = ipAddress = null;
                             timestamp = null;
-                            foundNotifyOnly = false;
+                            successfulLogin = false;
                             count = 1;
                             break;
                         }
-
-                        // if there is a regex, it must match
-                        if (string.IsNullOrWhiteSpace(expression.Regex))
-                        {
-                            // if empty regex, we are just checking for the existance of the element
-                            Logger.Debug("No regex, so counting as a match");
-                        }
-                        else
-                        {
-                            // try and find an ip from any of the nodes
-                            mismatch = true;
-
-                            // at least one of the nodes must match the regex
-                            foreach (XmlNode node in nodes)
-                            {
-                                // if we get a match, stop checking nodes
-                                info = IPBanService.GetIPAddressEventsFromRegex(expression.RegexObject, node.InnerText,
-                                    dns: service.DnsLookup).FirstOrDefault();
-                                if (info != null)
-                                {
-                                    mismatch = false;
-                                    if (group.NotifyOnly)
-                                    {
-                                        foundNotifyOnly = true;
-                                    }
-                                    else if (foundNotifyOnly)
-                                    {
-                                        throw new InvalidDataException("Conflicting expressions in event viewer, both failed and success logins matched keywords " + group.Keywords);
-                                    }
-
-                                    // assign values from the regex
-                                    userName ??= info.UserName;
-                                    source ??= info.Source;
-                                    ipAddress ??= info.IPAddress;
-                                    timestamp ??= info.Timestamp;
-                                    count = Math.Max(info.Count, count);
-                                }
-                            }
-                            if (mismatch)
-                            {
-                                // match fail, we have to match ALL the nodes or we get null ip and do not ban
-                                Logger.Debug("Regex {0} did not match any nodes with xpath {1}", expression.Regex, expression.XPath);
-                                userName = source = ipAddress = null;
-                                timestamp = null;
-                                foundNotifyOnly = false;
-                                count = 1;
-                                break;
-                            }
-                        }
                     }
+                }
 
-                    // we found everything we need, we are done
-                    if (ipAddress != null)
-                    {
-                        // use default source if we didn't find a source override
-                        source ??= group.Source;
-                        failedLoginThreshold = group.FailedLoginThreshold;
-                        break;
-                    }
+                // we found everything we need, we are done
+                if (ipAddress is not null)
+                {
+                    // use default source if we didn't find a source override
+                    source ??= group.Source;
+                    failedLoginThreshold = group.FailedLoginThreshold;
+                    break;
                 }
             }
 
-            // if we found an ip, return a match
-            if (ipAddress != null)
+            // if no ip, no match
+            if (ipAddress is null)
             {
-                IPAddressEventType type = (foundNotifyOnly ? IPAddressEventType.SuccessfulLogin : IPAddressEventType.FailedLogin);
-                return new IPAddressLogEvent(ipAddress, userName, source, count, type,
-                    timestamp is null ? default : timestamp.Value, false, failedLoginThreshold);
+                return null;
             }
 
-            // no matches
-            return null;
+            IPAddressEventType type = (successfulLogin ? IPAddressEventType.SuccessfulLogin : IPAddressEventType.FailedLogin);
+            return new IPAddressLogEvent(ipAddress, userName, source, count, type,
+                timestamp is null ? default : timestamp.Value, false, failedLoginThreshold, logLevel);
         }
 
         private XmlDocument ParseXml(string xml)
