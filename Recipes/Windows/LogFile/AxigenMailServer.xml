@@ -1,16 +1,16 @@
 <!-- Axigen mail server failed logins, Windows -->
 <LogFile>
 
-	<Source>Axigen</Source>
+  <Source>Axigen</Source>
 
-	<!--
+  <!--
 	  Log file path/mask to scan
 	-->
-	<PathAndMask>
+  <PathAndMask>
     C:/Program Files/Axigen Mail Server/log/everything.txt
   </PathAndMask>
 
-	<!--
+  <!--
 	2021-03-13 21:48:06 +0100 02 Server2019 SMTP-IN:00004CFF: Authentication error for user 'notexists@domain.com': Account not found locally
 	2021-03-13 21:48:06 +0100 08 Server2019 SMTP-IN:00004CFF: closing session from [44.44.44.44:51979]
   
@@ -18,33 +18,33 @@
 	2021-03-14 19:19:45 +0100 08 Server2019 IMAP:00005783: Closing connection from [55.55.55.55:58221]
 	-->
 
-	<FailedLoginRegex>
-	  <![CDATA[
+  <FailedLoginRegex>
+    <![CDATA[
 		  ^(?<timestamp>.*?)\s[0-9][0-9]\s.*?Authentication\serror\sfor\suser\s'(?<username>[^']+)'.*?Closing\s(?:connection|session)\sfrom\s\[(?<ipaddress>[^:]+)
 	  ]]>
-	</FailedLoginRegex>
+  </FailedLoginRegex>
 
-	<!--
+  <!--
 	2021-03-14 18:08:05 +0100 08 Server2019 IMAP:000056A7: [192.168.1.100:143] connection accepted from [55.55.55.55:52339]
 	2021-03-14 18:08:05 +0100 08 Server2019 IMAP:000056A7: User [exists@domain.com] successfully authorized!
 	-->
 
-	<SuccessfulLoginRegex>
-	  <![CDATA[
+  <SuccessfulLoginRegex>
+    <![CDATA[
 			^(?<timestamp>.*?)\s[0-9][0-9]\s.*?\sconnection\saccepted\sfrom\s\[(?<ipaddress>[^:]+).*?User\s\[(?<username>[^\]]+)\]\ssuccessfully\sauthorized
 	  ]]>
-	</SuccessfulLoginRegex>
+  </SuccessfulLoginRegex>
 
-	<!-- Specify specific platforms here (Windows or Linux) -->
-	<PlatformRegex>Windows</PlatformRegex>
+  <!-- Specify specific platforms here (Windows or Linux) -->
+  <PlatformRegex>Windows</PlatformRegex>
 
-	<!-- How often to parse and check for new files, etc. - in milliseconds -->
-	<PingInterval>10000</PingInterval>
+  <!-- How often to parse and check for new files, etc. - in milliseconds -->
+  <PingInterval>10000</PingInterval>
 
-	<!-- Axigen will regenerate the file daily -->
-	<MaxFileSize>0</MaxFileSize>
+  <!-- Axigen will regenerate the file daily -->
+  <MaxFileSize>0</MaxFileSize>
 
-	<!-- Override failed login threshold or leave 0 for default -->
-	<FailedLoginThreshold>0</FailedLoginThreshold>
+  <!-- Override failed login threshold or leave 0 for default -->
+  <FailedLoginThreshold>0</FailedLoginThreshold>
 
 </LogFile>
