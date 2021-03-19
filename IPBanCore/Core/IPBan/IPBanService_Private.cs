@@ -345,7 +345,7 @@ namespace DigitalRuby.IPBanCore
                                     // if delegate and non-zero count, forward on - count of 0 means it was from external source, like a delegate
                                     if (IPBanDelegate != null && !failedLogin.External)
                                     {
-                                        await IPBanDelegate.LoginAttemptFailed(ipAddress, source, userName, MachineGuid, OSName, OSVersion, UtcNow);
+                                        await IPBanDelegate.LoginAttemptFailed(ipAddress, source, userName, MachineGuid, OSName, OSVersion, incrementCount, UtcNow);
                                     }
                                     AddBannedIPAddress(ipAddress, source, userName, bannedIpAddresses, now,
                                         configBlacklisted, newCount, string.Empty, transaction, failedLogin.External);
@@ -359,10 +359,10 @@ namespace DigitalRuby.IPBanCore
                                     Logger.Warn("Login failed for known active user {0}", userName);
                                 }
 
-                                // if delegate and non-zero count, forward on - count of 0 means it was from external source, like a delegate
+                                // if delegate and non-zero count, forward on
                                 if (IPBanDelegate != null && !failedLogin.External)
                                 {
-                                    await IPBanDelegate.LoginAttemptFailed(ipAddress, source, userName, MachineGuid, OSName, OSVersion, UtcNow);
+                                    await IPBanDelegate.LoginAttemptFailed(ipAddress, source, userName, MachineGuid, OSName, OSVersion, incrementCount, UtcNow);
                                 }
                             }
                         }
@@ -402,7 +402,7 @@ namespace DigitalRuby.IPBanCore
                         foreach (IPAddressLogEvent info in ipAddresses)
                         {
                             // pass the success login on
-                            IPBanDelegate.LoginAttemptSucceeded(info.IPAddress, info.Source, info.UserName, MachineGuid, OSName, OSVersion, info.Timestamp);
+                            IPBanDelegate.LoginAttemptSucceeded(info.IPAddress, info.Source, info.UserName, MachineGuid, OSName, OSVersion, info.Count, info.Timestamp);
                         }
                     }
                     catch (Exception ex)

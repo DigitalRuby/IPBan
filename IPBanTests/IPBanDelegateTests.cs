@@ -116,13 +116,13 @@ namespace DigitalRuby.IPBanTests
             return Task.CompletedTask;
         }
 
-        Task IIPBanDelegate.LoginAttemptFailed(string ip, string source, string userName, string machineGuid, string osName, string osVersion, DateTime timestamp)
+        Task IIPBanDelegate.LoginAttemptFailed(string ip, string source, string userName, string machineGuid, string osName, string osVersion, int count, DateTime timestamp)
         {
             AddEvent(nameof(IIPBanDelegate.LoginAttemptFailed), ip, source, userName);
             return Task.CompletedTask;
         }
 
-        Task IIPBanDelegate.LoginAttemptSucceeded(string ip, string source, string userName, string machineGuid, string osName, string osVersion, DateTime timestamp)
+        Task IIPBanDelegate.LoginAttemptSucceeded(string ip, string source, string userName, string machineGuid, string osName, string osVersion, int count, DateTime timestamp)
         {
             AddEvent(nameof(IIPBanDelegate.LoginAttemptSucceeded), ip, source, userName);
             return Task.CompletedTask;

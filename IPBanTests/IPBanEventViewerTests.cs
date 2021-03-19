@@ -366,16 +366,16 @@ namespace DigitalRuby.IPBanTests
             return Task.CompletedTask;
         }
 
-        Task IIPBanDelegate.LoginAttemptFailed(string ip, string source, string userName, string machineGuid, string osName, string osVersion, DateTime timestamp)
+        Task IIPBanDelegate.LoginAttemptFailed(string ip, string source, string userName, string machineGuid, string osName, string osVersion, int count, DateTime timestamp)
         {
             return Task.CompletedTask;
         }
 
-        Task IIPBanDelegate.LoginAttemptSucceeded(string ip, string source, string userName, string machineGuid, string osName, string osVersion, DateTime timestamp)
+        Task IIPBanDelegate.LoginAttemptSucceeded(string ip, string source, string userName, string machineGuid, string osName, string osVersion, int count, DateTime timestamp)
         {
             string key = ip + "_" + (source?.ToString()) + "_" + (userName?.ToString());
-            successEvents.TryGetValue(key, out int count);
-            successEvents[key] = ++count;
+            successEvents.TryGetValue(key, out int count2);
+            successEvents[key] = ++count2;
             return Task.CompletedTask;
         }
 

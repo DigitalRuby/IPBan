@@ -510,9 +510,9 @@ namespace DigitalRuby.IPBanTests
                 this.service = service;
             }
 
-            public Task LoginAttemptFailed(string ipAddress, string source, string userName, string machineGuid, string osName, string osVersion, DateTime timestamp)
+            public Task LoginAttemptFailed(string ipAddress, string source, string userName, string machineGuid, string osName, string osVersion, int count, DateTime timestamp)
             {
-                var events = new IPAddressLogEvent[] { new IPAddressLogEvent(ipAddress, userName, source, 1, IPAddressEventType.Blocked, IPBanService.UtcNow, true) };
+                var events = new IPAddressLogEvent[] { new IPAddressLogEvent(ipAddress, userName, source, count, IPAddressEventType.Blocked, IPBanService.UtcNow, true) };
                 service.AddIPAddressLogEvents(events);
                 return Task.CompletedTask;
             }

@@ -36,6 +36,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="TestData\LogFiles\Apache\everything.log">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="TestData\LogFiles\Exchange\smtp_auth_successful.log">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

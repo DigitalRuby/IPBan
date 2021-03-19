@@ -59,15 +59,15 @@ namespace DigitalRuby.IPBanTests
 
         public void Dispose() { }
 
-        Task IIPBanDelegate.LoginAttemptFailed(string ip, string source, string userName, string machineGuid, string osName, string osVersion, DateTime timestamp)
+        Task IIPBanDelegate.LoginAttemptFailed(string ip, string source, string userName, string machineGuid, string osName, string osVersion, int count, DateTime timestamp)
         {
-            failedEvents.Add(new IPAddressLogEvent(ip, userName, source, 1, IPAddressEventType.FailedLogin, timestamp));
+            failedEvents.Add(new IPAddressLogEvent(ip, userName, source, count, IPAddressEventType.FailedLogin, timestamp));
             return Task.CompletedTask;
         }
 
-        Task IIPBanDelegate.LoginAttemptSucceeded(string ip, string source, string userName, string machineGuid, string osName, string osVersion, DateTime timestamp)
+        Task IIPBanDelegate.LoginAttemptSucceeded(string ip, string source, string userName, string machineGuid, string osName, string osVersion, int count, DateTime timestamp)
         {
-            successfulEvents.Add(new IPAddressLogEvent(ip, userName, source, 1, IPAddressEventType.SuccessfulLogin, timestamp));
+            successfulEvents.Add(new IPAddressLogEvent(ip, userName, source, count, IPAddressEventType.SuccessfulLogin, timestamp));
             return Task.CompletedTask;
         }
 
@@ -103,17 +103,67 @@ namespace DigitalRuby.IPBanTests
             }
         }
 
-        private async Task RunTest(string pathAndMaskXPath, string pathAndMaskOverride)
+        [Test]
+        public async Task TestLogFilesApache()
+        {
+            string path = Path.Combine(AppContext.BaseDirectory, "TestData/LogFiles/Apache/everything.log");
+            await RunTest(null, path, doc =>
+            {
+                XmlNode logFiles = doc.SelectSingleNode("//LogFiles");
+                XmlNode logFile = doc.CreateElement("LogFile");
+                XmlNode source = doc.CreateElement("Source");
+                source.InnerText = "Apache";
+                logFile.AppendChild(source);
+                XmlNode pathAndMask = doc.CreateElement("PathAndMask");
+                pathAndMask.InnerText = path;
+                logFile.AppendChild(pathAndMask);
+                XmlNode failedLoginRegex = doc.CreateElement("FailedLoginRegex");
+                failedLoginRegex.InnerText = @"\n(?<ipaddress>[^\s]+)[^\[]+\[(?<timestamp>[^\]]+)\]\s""(?:\\x|[^\n]+?\s(?:301|40[04])\s[0-9\-])[^\n]*";
+                logFile.AppendChild(failedLoginRegex);
+                XmlNode failedLoginRegexTimestampFormat = doc.CreateElement("FailedLoginRegexTimestampFormat");
+                failedLoginRegexTimestampFormat.InnerText = "dd/MMM/yyyy:HH:mm:ss zzzz";
+                logFile.AppendChild(failedLoginRegexTimestampFormat);
+                XmlNode platformRegex = doc.CreateElement("PlatformRegex");
+                platformRegex.InnerText = ".";
+                logFile.AppendChild(platformRegex);
+                XmlNode pingInterval = doc.CreateElement("PingInterval");
+                pingInterval.InnerText = "10000";
+                logFile.AppendChild(pingInterval);
+                XmlNode maxFileSize = doc.CreateElement("MaxFileSize");
+                maxFileSize.InnerText = "0";
+                logFile.AppendChild(maxFileSize);
+                XmlNode failedLoginThreshold = doc.CreateElement("FailedLoginThreshold");
+                failedLoginThreshold.InnerText = "0";
+                logFile.AppendChild(failedLoginThreshold);
+                logFiles.AppendChild(logFile);
+
+                XmlNode minTimeBetweenFailures = doc.SelectSingleNode("//add[@key='MinimumTimeBetweenFailedLoginAttempts']");
+                minTimeBetweenFailures.Attributes["value"].Value = "00:00:00:00";
+            });
+
+            Assert.AreEqual(0, successfulEvents.Count);
+            Assert.AreEqual(1, failedEvents.Count);
+            Assert.AreEqual(6, failedEvents.First().Count);
+        }
+
+        private async Task RunTest(string pathAndMaskXPath, string pathAndMaskOverride, Action<XmlDocument> modifier = null)
         {
             // create a test service with log file path/mask overriden
-            pathAndMaskOverride = Path.Combine(AppContext.BaseDirectory, pathAndMaskOverride).Replace('\\', '/');
+            if (!string.IsNullOrWhiteSpace(pathAndMaskOverride))
+            {
+                pathAndMaskOverride = Path.Combine(AppContext.BaseDirectory, pathAndMaskOverride).Replace('\\', '/');
+            }
             service = IPBanService.CreateAndStartIPBanTestService<IPBanService>(configFileModifier: config =>
             {
                 XmlDocument doc = new();
                 doc.LoadXml(config);
-                XmlNode exchange = doc.SelectSingleNode(pathAndMaskXPath);
-                XmlNode pathAndMask = exchange["PathAndMask"];
-                pathAndMask.InnerText = pathAndMaskOverride;
+                if (!string.IsNullOrWhiteSpace(pathAndMaskXPath))
+                {
+                    XmlNode logFileNode = doc.SelectSingleNode(pathAndMaskXPath);
+                    XmlNode pathAndMask = logFileNode["PathAndMask"];
+                    pathAndMask.InnerText = pathAndMaskOverride;
+                }
+                modifier?.Invoke(doc);
                 return doc.OuterXml;
             });
             service.IPBanDelegate = this;

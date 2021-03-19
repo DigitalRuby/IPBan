@@ -245,9 +245,10 @@ namespace DigitalRuby.IPBanCore
         /// <param name="machineGuid">Machine guid</param>
         /// <param name="osName">OS name</param>
         /// <param name="osVersion">OS version</param>
+        /// <param name="count">Number of failures</param>
         /// <param name="timestamp">Timestamp</param>
         /// <returns>Task</returns>
-        Task LoginAttemptFailed(string ip, string source, string userName, string machineGuid, string osName, string osVersion, DateTime timestamp) => Task.CompletedTask;
+        Task LoginAttemptFailed(string ip, string source, string userName, string machineGuid, string osName, string osVersion, int count, DateTime timestamp) => Task.CompletedTask;
 
         /// <summary>
         /// Notify when a login attempt succeeds
@@ -258,8 +259,9 @@ namespace DigitalRuby.IPBanCore
         /// <param name="machineGuid">Machine guid</param>
         /// <param name="osName">OS name</param>
         /// <param name="osVersion">OS version</param>
+        /// <param name="count">Number of successes</param>
         /// <param name="timestamp">Timestamp</param>
         /// <returns>Task</returns>
-        Task LoginAttemptSucceeded(string ip, string source, string userName, string machineGuid, string osName, string osVersion, DateTime timestamp) => Task.CompletedTask;
+        Task LoginAttemptSucceeded(string ip, string source, string userName, string machineGuid, string osName, string osVersion, int count, DateTime timestamp) => Task.CompletedTask;
     }
 }

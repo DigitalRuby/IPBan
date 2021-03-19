@@ -159,7 +159,7 @@ namespace DigitalRuby.IPBanCore
             }
 
             // remove control chars
-            text = new string(text.Where(c => c == '\n' || c == '\t' || !char.IsControl(c)).ToArray()).Trim();
+            text = new string(text.Where(c => c == '\n' || c == '\t' || !char.IsControl(c)).ToArray());
 
             // go through all the matches and pull out event info
             MatchCollection matches = regex.Matches(text);
