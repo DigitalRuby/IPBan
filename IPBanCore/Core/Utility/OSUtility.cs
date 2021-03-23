@@ -103,7 +103,7 @@ namespace DigitalRuby.IPBanCore
         private static bool isMac;
 
 
-        private static string processVerb;
+        private static readonly string processVerb;
 
         static OSUtility()
         {
