@@ -1852,7 +1852,7 @@ namespace DigitalRuby.IPBanCore {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to An unexpected error has ocurred. Please email support@digitalruby.com for help..
+        ///   Looks up a localized string similar to An unexpected error has ocurred. Please email support@ipban.com for help..
         /// </summary>
         public static string UnexpectedError {
             get {
