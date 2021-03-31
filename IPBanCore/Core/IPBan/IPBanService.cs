@@ -253,8 +253,11 @@ namespace DigitalRuby.IPBanCore
                 // see if there is a repeat indicator in the message
                 int repeatCount = ExtractRepeatCount(match, text);
 
-                // return an event for this match
-                yield return new IPAddressLogEvent(ipAddress, userName, source, repeatCount, eventType, timestamp);
+                if (!string.IsNullOrWhiteSpace(ipAddress))
+                {
+                    // return an event for this match
+                    yield return new IPAddressLogEvent(ipAddress, userName, source, repeatCount, eventType, timestamp);
+                }
             }
         }
 
