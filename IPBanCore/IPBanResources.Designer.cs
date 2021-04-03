@@ -952,6 +952,15 @@ namespace DigitalRuby.IPBanCore {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Local IP Address.
+        /// </summary>
+        public static string LocalIP {
+            get {
+                return ResourceManager.GetString("LocalIP", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Ping Interval.
         /// </summary>
         public static string LogFilePingInterval {

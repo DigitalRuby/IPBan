@@ -848,4 +848,7 @@
   <data name="LogLevel" xml:space="preserve">
     <value>Log Level</value>
   </data>
+  <data name="LocalIP" xml:space="preserve">
+    <value>Local IP Address</value>
+  </data>
 </root>
