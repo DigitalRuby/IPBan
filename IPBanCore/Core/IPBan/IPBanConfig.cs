@@ -361,7 +361,7 @@ namespace DigitalRuby.IPBanCore
         }
 
 
-        private bool IsMatch(string entry, System.Net.IPAddress entryIPAddress, HashSet<System.Net.IPAddress> set, HashSet<IPAddressRange> ranges, HashSet<string> others, Regex regex)
+        private static bool IsMatch(string entry, System.Net.IPAddress entryIPAddress, HashSet<System.Net.IPAddress> set, HashSet<IPAddressRange> ranges, HashSet<string> others, Regex regex)
         {
             if (!string.IsNullOrWhiteSpace(entry))
             {
@@ -447,7 +447,7 @@ namespace DigitalRuby.IPBanCore
                         if (entryWithoutComment.StartsWith("user:", StringComparison.OrdinalIgnoreCase))
                         {
                             isUserName = true;
-                            entryWithoutComment = entryWithoutComment.Substring("user:".Length);
+                            entryWithoutComment = entryWithoutComment["user:".Length..];
                         }
                         else
                         {
@@ -499,7 +499,7 @@ namespace DigitalRuby.IPBanCore
                                         exceptionRetry: _ex =>
                                         {
                                             // ignore host not found errors
-                                            return (!(_ex is System.Net.Sockets.SocketException socketEx) ||
+                                            return (_ex is not System.Net.Sockets.SocketException socketEx ||
                                                 socketEx.SocketErrorCode != System.Net.Sockets.SocketError.HostNotFound);
                                         });
 
