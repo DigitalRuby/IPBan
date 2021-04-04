@@ -365,11 +365,28 @@ namespace DigitalRuby.IPBanTests
         }
 
         [Test]
+        public async Task TestNoInternalFailedLoginsOrBans()
+        {
+            service.AddIPAddressLogEvents(new IPAddressLogEvent[]
+            {
+                new IPAddressLogEvent("10.11.12.13", "TestUser", "RDP", 9, IPAddressEventType.FailedLogin)
+            });
+            await service.RunCycleAsync();
+            service.AddIPAddressLogEvents(new IPAddressLogEvent[]
+            {
+                new IPAddressLogEvent("10.11.12.13", "TestUser", "RDP", 9, IPAddressEventType.FailedLogin)
+            });
+            await service.RunCycleAsync();
+
+            Assert.IsFalse(service.Firewall.IsIPAddressBlocked("10.11.12.13"));
+        }
+
+        [Test]
         public async Task TestBanOverrideFailedLoginThreshold()
         {
             service.AddIPAddressLogEvents(new IPAddressLogEvent[]
             {
-                new IPAddressLogEvent("10.11.12.13", "TestUser", "RDP", 9, IPAddressEventType.FailedLogin,
+                new IPAddressLogEvent("11.11.12.13", "TestUser", "RDP", 9, IPAddressEventType.FailedLogin,
                     new DateTime(2020, 01, 01), failedLoginThreshold: 10)
             });
 
@@ -378,12 +395,12 @@ namespace DigitalRuby.IPBanTests
 
             service.AddIPAddressLogEvents(new IPAddressLogEvent[]
             {
-                new IPAddressLogEvent("10.11.12.13", "TestUser", "RDP", 1, IPAddressEventType.FailedLogin,
+                new IPAddressLogEvent("11.11.12.13", "TestUser", "RDP", 1, IPAddressEventType.FailedLogin,
                     new DateTime(2020, 01, 01), failedLoginThreshold: 10)
             });
 
             await service.RunCycleAsync();
-            Assert.IsTrue(service.Firewall.IsIPAddressBlocked("10.11.12.13"));
+            Assert.IsTrue(service.Firewall.IsIPAddressBlocked("11.11.12.13"));
         }
 
         private async Task TestMultipleBanTimespansAsync(bool resetFailedLogin)
@@ -670,9 +687,9 @@ namespace DigitalRuby.IPBanTests
         [Test]
         public void TestIPWhitelistRegex()
         {
-            RunConfigBanTest("WhitelistRegex", "^10.0.([0-1]).([0-9]|[1-9][0-9]|1([0-9][0-9])|2([0-4][0-9]|5[0-5]))$", "192.168.99.99", "10.0.0.1", -1);
-            RunConfigBanTest("WhitelistRegex", "^(10.0.0.*)|(99.99.99.[0-9])$", "192.168.99.99", "10.0.0.1", -1);
-            RunConfigBanTest("WhitelistRegex", "^(10.0.0.*)|(99.99.99.[0-9])$", "192.168.99.99", "99.99.99.1", -1);
+            RunConfigBanTest("WhitelistRegex", "^11.0.([0-1]).([0-9]|[1-9][0-9]|1([0-9][0-9])|2([0-4][0-9]|5[0-5]))$", "193.168.99.99", "11.0.0.1", -1);
+            RunConfigBanTest("WhitelistRegex", "^(11.0.0.*)|(99.99.99.[0-9])$", "193.168.99.99", "11.0.0.1", -1);
+            RunConfigBanTest("WhitelistRegex", "^(11.0.0.*)|(99.99.99.[0-9])$", "193.168.99.99", "99.99.99.1", -1);
         }
 
         [Test]
@@ -686,9 +703,9 @@ namespace DigitalRuby.IPBanTests
         [Test]
         public void TestIPBlacklistRegex()
         {
-            RunConfigBanTest("BlacklistRegex", "^10.0.([0-1]).([0-9]|[1-9][0-9]|1([0-9][0-9])|2([0-4][0-9]|5[0-5]))$", "10.0.0.1", "192.168.99.100", 1);
-            RunConfigBanTest("BlacklistRegex", "^(10.0.0.*)|(99.99.99.[0-9])$", "10.0.0.1", "192.168.99.99", 1);
-            RunConfigBanTest("BlacklistRegex", "^(10.0.0.*)|(99.99.99.[0-9])$", "99.99.99.1", "192.168.99.98", 1);
+            RunConfigBanTest("BlacklistRegex", "^11.0.([0-1]).([0-9]|[1-9][0-9]|1([0-9][0-9])|2([0-4][0-9]|5[0-5]))$", "11.0.0.1", "193.168.99.100", 1);
+            RunConfigBanTest("BlacklistRegex", "^(11.0.0.*)|(99.99.99.[0-9])$", "11.0.0.1", "193.168.99.99", 1);
+            RunConfigBanTest("BlacklistRegex", "^(11.0.0.*)|(99.99.99.[0-9])$", "99.99.99.1", "193.168.99.98", 1);
             RunConfigBanTest("BlacklistRegex", ".", "99.99.99.2", null);
         }
 

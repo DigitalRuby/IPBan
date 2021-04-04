@@ -293,6 +293,13 @@ namespace DigitalRuby.IPBanCore
                     try
                     {
                         string ipAddress = failedLogin.IPAddress;
+
+                        // internal ip failed logins should not be processed
+                        if (!IPAddress.TryParse(ipAddress, out System.Net.IPAddress ipAddressObj) || ipAddressObj.IsInternal())
+                        {
+                            continue;
+                        }
+
                         string userName = failedLogin.UserName;
                         string source = failedLogin.Source;
                         if (IsWhitelisted(ipAddress))
