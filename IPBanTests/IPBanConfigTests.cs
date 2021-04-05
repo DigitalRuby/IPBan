@@ -82,7 +82,7 @@ namespace DigitalRuby.IPBanTests
                 "Linux", "IPBanCustom",
 
                 "C:/Program Files/Microsoft/Exchange Server/*/TransportRoles/Logs/FrontEnd/ProtocolLog/**.log",
-                @"^(?<timestamp>[0-9TZ\-:\.]+),(?:[^,\n]*,){3}(?:(?<ipaddress>[^,\n]+),(?<username>[^,\n]*),.*?AuthFailed[^\n]*|(?:[^,\n]*,)(?<ipaddress>[^,\n]+),(?:[^,\n]*,){2}.*?\sof\sLogonDenied\n.*?User\sName:\s(?<username>[^\n]*))\n|(?:[^,\n]*,)(?<ipaddress>[^,\n]+),(?:[^,\n]*,).*?504\s5\.7\.4\sUnrecognized\sauthentication\stype[^\n]*\n",
+                @"^(?<timestamp>[0-9TZ\-:\.]+),(?:[^,\n]*,){3}(?:(?<ipaddress>[^,\n]+),(?<username>[^,\n]*),.*?AuthFailed[^\n]*\n|(?:[^,\n]*,)(?<ipaddress>[^,\n]+),(?:[^,\n]*,){2}.*?\sof\sLogonDenied\n.*?User\sName:\s(?<username>[^\n]*))\n|(?:[^,\n]*,)(?<ipaddress>[^,\n]+),(?:[^,\n]*,).*?504\s5\.7\.4\sUnrecognized\sauthentication\stype[^\n]*\n",
                 @"",
                 @"^(?<timestamp>[0-9TZ\-:\.]+)?,(?:[^,\n]*,){4}(?<ipaddress>[^,\n]+),(?:[^,\n]*),(?<username>[^,\n]*),authenticated",
                 @"",
