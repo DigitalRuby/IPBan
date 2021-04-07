@@ -205,70 +205,10 @@ namespace DigitalRuby.IPBanCore
             string blacklistRegexString = GetConfig<string>("BlacklistRegex", string.Empty);
             whitelistFilter = new IPBanFilter(whitelistString, whitelistRegexString, httpRequestMaker, dns, dnsList);
             blacklistFilter = new IPBanFilter(blacklistString, blacklistRegexString, httpRequestMaker, dns, dnsList);
-            XmlNode node2 = doc.SelectSingleNode("/configuration/ExpressionsToBlock");
-            if (node2 != null)
-            {
-                try
-                {
-                    expressionsFailure = new XmlSerializer(typeof(EventViewerExpressionsToBlock)).Deserialize(new XmlNodeReader(node2)) as EventViewerExpressionsToBlock;
-                }
-                catch (Exception ex)
-                {
-                    expressionsFailure = new EventViewerExpressionsToBlock { Groups = new List<EventViewerExpressionGroup>() };
-                    Logger.Error("Failed to load expressions to block", ex);
-                }
-                if (expressionsFailure != null)
-                {
-                    foreach (EventViewerExpressionGroup group in expressionsFailure.Groups)
-                    {
-                        foreach (EventViewerExpression expression in group.Expressions)
-                        {
-                            expression.Regex = (expression.Regex?.ToString() ?? string.Empty).Trim();
-                        }
-                    }
-                }
-            }
-            node2 = doc.SelectSingleNode("/configuration/ExpressionsToNotify");
-            if (node2 != null)
-            {
-                try
-                {
-                    expressionsSuccess = new XmlSerializer(typeof(EventViewerExpressionsToNotify)).Deserialize(new XmlNodeReader(node2)) as EventViewerExpressionsToNotify;
-                }
-                catch (Exception ex)
-                {
-                    expressionsSuccess = new EventViewerExpressionsToNotify { Groups = new List<EventViewerExpressionGroup>() };
-                    Logger.Error("Failed to load expressions to notify: {0}", ex);
-                }
-                if (expressionsSuccess != null)
-                {
-                    foreach (EventViewerExpressionGroup group in expressionsSuccess.Groups)
-                    {
-                        group.NotifyOnly = true;
-                        foreach (EventViewerExpression expression in group.Expressions)
-                        {
-                            expression.Regex = (expression.Regex?.ToString() ?? string.Empty).Trim();
-                        }
-                    }
-                }
-            }
-            try
-            {
-                XmlNode logFilesToParseNode = doc.SelectSingleNode("/configuration/LogFilesToParse");
-                if (logFilesToParseNode != null && new XmlSerializer(typeof(IPBanLogFilesToParse)).Deserialize(new XmlNodeReader(logFilesToParseNode)) is IPBanLogFilesToParse logFilesToParse)
-                {
-                    logFiles = logFilesToParse.LogFiles;
-                }
-                else
-                {
-                    logFiles = emptyLogFilesToParseArray;
-                }
-            }
-            catch (Exception ex)
-            {
-                Logger.Error("Failed to load log files to parse", ex);
-                logFiles = emptyLogFilesToParseArray;
-            }
+            expressionsFailure = ParseEventViewer<EventViewerExpressionsToBlock>(doc, "/configuration/ExpressionsToBlock");
+            expressionsSuccess = ParseEventViewer<EventViewerExpressionsToNotify>(doc, "/configuration/ExpressionsToNotify");
+            logFiles = ParseLogFiles(doc, "/configuration/LogFilesToParse");
+
             GetConfig<string>("ProcessToRunOnBan", ref processToRunOnBan);
             processToRunOnBan = processToRunOnBan?.Trim();
             GetConfig<string>("ProcessToRunOnUnban", ref processToRunOnUnban);
@@ -339,6 +279,55 @@ namespace DigitalRuby.IPBanCore
                 }
             }
             banTimes = newBanTimes.ToArray();
+        }
+
+        private static T ParseEventViewer<T>(XmlDocument doc, string path) where T : EventViewerExpressions, new()
+        {
+            XmlNode node = doc.SelectSingleNode(path);
+            T eventViewerExpressions = null;
+            if (node != null)
+            {
+                try
+                {
+                    eventViewerExpressions = new XmlSerializer(typeof(T)).Deserialize(new XmlNodeReader(node)) as T;
+                }
+                catch (Exception ex)
+                {
+                    Logger.Error("Failed to load event viewer expressions of type " + typeof(T).FullName, ex);
+                    eventViewerExpressions = new T { Groups = new List<EventViewerExpressionGroup>() };
+                }
+                foreach (EventViewerExpressionGroup group in eventViewerExpressions.Groups)
+                {
+                    foreach (EventViewerExpression expression in group.Expressions)
+                    {
+                        expression.Regex = (expression.Regex?.ToString() ?? string.Empty).Trim();
+                    }
+                }
+            }
+            return eventViewerExpressions;
+        }
+
+        private static IPBanLogFileToParse[] ParseLogFiles(XmlDocument doc, string path)
+        {
+            IPBanLogFileToParse[] logFiles;
+            try
+            {
+                XmlNode logFilesToParseNode = doc.SelectSingleNode(path);
+                if (logFilesToParseNode != null && new XmlSerializer(typeof(IPBanLogFilesToParse)).Deserialize(new XmlNodeReader(logFilesToParseNode)) is IPBanLogFilesToParse logFilesToParse)
+                {
+                    logFiles = logFilesToParse.LogFiles;
+                }
+                else
+                {
+                    logFiles = emptyLogFilesToParseArray;
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Error("Failed to load log files from xml", ex);
+                logFiles = emptyLogFilesToParseArray;
+            }
+            return logFiles;
         }
 
         private void ParseFirewallBlockRules()
