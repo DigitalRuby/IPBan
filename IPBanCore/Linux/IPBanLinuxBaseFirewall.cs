@@ -137,7 +137,7 @@ namespace DigitalRuby.IPBanCore
             return Path.Combine(AppContext.BaseDirectory, "ipban" + TableSuffix);
         }
 
-        protected string GetSetFileName()
+        protected static string GetSetFileName()
         {
             return Path.Combine(AppContext.BaseDirectory, "ipban.set");
         }
@@ -147,7 +147,7 @@ namespace DigitalRuby.IPBanCore
             return RunProcess(program, requireExitCode, out _, commandLine, args);
         }
 
-        protected int RunProcess(string program, bool requireExitCode, out IReadOnlyList<string> lines, string commandLine, params object[] args)
+        protected static int RunProcess(string program, bool requireExitCode, out IReadOnlyList<string> lines, string commandLine, params object[] args)
         {
             commandLine = string.Format(commandLine, args);
             string bash = "-c \"" + program + " " + commandLine.Replace("\"", "\\\"") + "\"";

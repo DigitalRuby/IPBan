@@ -115,7 +115,7 @@ namespace DigitalRuby.IPBanCore
         /// </summary>
         public const string FileName = "ipban.sqlite";
 
-        private long GetInt64(object value)
+        private static long GetInt64(object value)
         {
             try
             {

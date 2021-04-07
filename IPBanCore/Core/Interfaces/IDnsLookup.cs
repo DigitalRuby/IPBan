@@ -41,6 +41,13 @@ namespace DigitalRuby.IPBanCore
         Task<IPAddress[]> GetHostAddressesAsync(string hostNameOrAddress);
 
         /// <summary>
+        /// Get a host entry
+        /// </summary>
+        /// <param name="hostNameOrAddress">Host name or ip address</param>
+        /// <returns>Host entry</returns>
+        Task<IPHostEntry> GetHostEntryAsync(string hostNameOrAddress);
+
+        /// <summary>
         /// Get host name of local machine
         /// </summary>
         /// <param name="hostNameOrAddress">Host name or ip address to get host name for or null for local machine host name</param>
@@ -122,7 +129,12 @@ namespace DigitalRuby.IPBanCore
 
         Task<System.Net.IPAddress[]> IDnsLookup.GetHostAddressesAsync(string hostNameOrAddress)
         {
-            return Task.FromResult(new System.Net.IPAddress[1] { System.Net.IPAddress.Parse("10.10.10.10") });
+            return Task.FromResult(new [] { System.Net.IPAddress.Parse("10.10.10.10") });
+        }
+
+        Task<IPHostEntry> IDnsLookup.GetHostEntryAsync(string hostNameOrAddress)
+        {
+            return Task.FromResult(new IPHostEntry { AddressList = new[] { System.Net.IPAddress.Parse("10.10.10.10") }, HostName = hostNameOrAddress });
         }
 
         async Task<string> IDnsLookup.GetHostNameAsync(string hostNameOrAddress)

@@ -215,13 +215,13 @@ namespace DigitalRuby.IPBanCore
 
         private void CommitTransaction(object transaction)
         {
-            ipDB.CommitTransaction(transaction);
+            SqliteDB.CommitTransaction(transaction);
         }
 
         private void RollbackTransaction(object transaction)
         {
             // if already committed, nothing happens
-            ipDB.RollbackTransaction(transaction);
+            SqliteDB.RollbackTransaction(transaction);
         }
 
         private async Task SetNetworkInfo()
@@ -788,11 +788,11 @@ namespace DigitalRuby.IPBanCore
             catch (Exception ex)
             {
                 Logger.Error(ex);
-                DB.RollbackTransaction(transaction);
+                SqliteDB.RollbackTransaction(transaction);
             }
             finally
             {
-                DB.CommitTransaction(transaction);
+                SqliteDB.CommitTransaction(transaction);
             }
         }
 

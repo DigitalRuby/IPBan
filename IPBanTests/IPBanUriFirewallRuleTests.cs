@@ -21,7 +21,7 @@ namespace DigitalRuby.IPBanTests
 
         private readonly IPBanMemoryFirewall memoryFirewall = new();
 
-        private string GetTestFile()
+        private static string GetTestFile()
         {
             return $"# Comment\n{range1.ToCidrString()}\n\n{range2.ToCidrString()}\n{range3.ToCidrString()}\n";
         }

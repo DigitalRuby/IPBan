@@ -369,7 +369,7 @@ namespace DigitalRuby.IPBanCore
         /// Commit a transaction
         /// </summary>
         /// <param name="transaction">Transaction</param>
-        public void CommitTransaction(object transaction)
+        public static void CommitTransaction(object transaction)
         {
             if (transaction is SqliteDBTransaction tran)
             {
@@ -381,7 +381,7 @@ namespace DigitalRuby.IPBanCore
         /// Rollback a transaction. If the transaction is already commited, nothing happens.
         /// </summary>
         /// <param name="transaction">Transaction to rollback</param>
-        public void RollbackTransaction(object transaction)
+        public static void RollbackTransaction(object transaction)
         {
             if (transaction is SqliteDBTransaction tran && tran.DBConnection != null)
             {

@@ -244,7 +244,7 @@ namespace DigitalRuby.IPBanCore
             Xml = doc.OuterXml;
         }
 
-        private void MakeBanTimesValid(ref TimeSpan[] banTimes)
+        private static void MakeBanTimesValid(ref TimeSpan[] banTimes)
         {
             var newBanTimes = new List<TimeSpan>();
             TimeSpan max = TimeSpan.MinValue;

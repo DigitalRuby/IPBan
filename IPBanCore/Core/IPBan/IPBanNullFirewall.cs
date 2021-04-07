@@ -101,7 +101,7 @@ namespace DigitalRuby.IPBanCore
             return new string[0];
         }
 
-        public bool IsIPAddressAllowed(string ipAddress)
+        public bool IsIPAddressAllowed(string ipAddress, int port = -1)
         {
             return false;
         }
@@ -110,11 +110,6 @@ namespace DigitalRuby.IPBanCore
         {
             ruleName = null;
             return false;
-        }
-
-        public bool IsIPAddressAllowed(string ipAddress, int port = -1)
-        {
-            throw new System.NotImplementedException();
         }
 
         public void Truncate()

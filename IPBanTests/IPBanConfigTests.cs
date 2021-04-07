@@ -41,7 +41,7 @@ namespace DigitalRuby.IPBanTests
     [TestFixture]
     public class IPBanConfigTests : IDnsLookup
     {
-        private void AssertLogFileToParse(IPBanLogFileToParse file, string failedLoginRegex, string failedLoginRegexTimestampFormat,
+        private static void AssertLogFileToParse(IPBanLogFileToParse file, string failedLoginRegex, string failedLoginRegexTimestampFormat,
             int maxFileSize, string pathAndMask, int pingInterval, string platformRegex,
             string source, string successfulLoginRegex, string successfulLoginRegexTimestampFormat,
             LogLevel failedLogLevel = LogLevel.Warning, LogLevel successLogLevel = LogLevel.Warning)
@@ -133,7 +133,7 @@ namespace DigitalRuby.IPBanTests
             }
         }
 
-        private void AssertEventViewerGroup(EventViewerExpressionGroup group, string keywords, int windowsMinimumMajorVersion, int windowsMinimumMinorVersion,
+        private static void AssertEventViewerGroup(EventViewerExpressionGroup group, string keywords, int windowsMinimumMajorVersion, int windowsMinimumMinorVersion,
             bool notifyOnly, string path, string source, params string[] expressions)
         {
             Assert.NotNull(group);
@@ -277,6 +277,11 @@ namespace DigitalRuby.IPBanTests
             {
                 return Task.FromResult<IPAddress[]>(new IPAddress[] { IPAddress.Parse("99.88.77.66") });
             }
+            throw new NotImplementedException();
+        }
+
+        Task<IPHostEntry> IDnsLookup.GetHostEntryAsync(string hostNameOrAddress)
+        {
             throw new NotImplementedException();
         }
 

@@ -65,7 +65,7 @@ namespace DigitalRuby.IPBanCore
         private static readonly Type ruleType = Type.GetTypeFromCLSID(new Guid(clsidFwRule));
         private static readonly char[] firewallEntryDelimiters = new char[] { '/', '-' };
 
-        private string CreateRuleStringForIPAddresses(IReadOnlyList<string> ipAddresses, int index, int count)
+        private static string CreateRuleStringForIPAddresses(IReadOnlyList<string> ipAddresses, int index, int count)
         {
             if (count == 0 || index >= ipAddresses.Count)
             {
@@ -93,7 +93,7 @@ namespace DigitalRuby.IPBanCore
             return b.ToString();
         }
 
-        private bool GetOrCreateRule(string ruleName, string remoteIPAddresses, NetFwAction action, IEnumerable<PortRange> allowedPorts = null)
+        private static bool GetOrCreateRule(string ruleName, string remoteIPAddresses, NetFwAction action, IEnumerable<PortRange> allowedPorts = null)
         {
             remoteIPAddresses = (remoteIPAddresses ?? string.Empty).Trim();
             bool emptyIPAddressString = string.IsNullOrWhiteSpace(remoteIPAddresses) || remoteIPAddresses == "*";
@@ -283,7 +283,7 @@ namespace DigitalRuby.IPBanCore
             }
         }
 
-        private IEnumerable<INetFwRule> EnumerateRulesMatchingPrefix(string ruleNamePrefix)
+        private static IEnumerable<INetFwRule> EnumerateRulesMatchingPrefix(string ruleNamePrefix)
         {
             // powershell example
             // (New-Object -ComObject HNetCfg.FwPolicy2).rules | Where-Object { $_.Name -match '^prefix' } | ForEach-Object { Write-Output "$($_.Name)" }
