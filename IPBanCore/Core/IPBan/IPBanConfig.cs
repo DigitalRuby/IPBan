@@ -104,18 +104,9 @@ namespace DigitalRuby.IPBanCore
         /// </summary>
         public const string DefaultFileName = "ipban.config";
 
-        private static readonly HashSet<string> ignoreListEntries = new()
-        {
-            "0.0.0.0", "::0", "127.0.0.1", "::1", "localhost"
-        };
-
         private static readonly TimeSpan[] emptyTimeSpanArray = new TimeSpan[] { TimeSpan.Zero };
         private static readonly IPBanLogFileToParse[] emptyLogFilesToParseArray = new IPBanLogFileToParse[0];
         private static readonly TimeSpan maxBanTimeSpan = TimeSpan.FromDays(90.0);
-        private static readonly IEnumerable<KeyValuePair<string, object>> ipListHeaders = new KeyValuePair<string, object>[]
-        {
-            new KeyValuePair<string, object>("User-Agent", "ipban.com")
-        };
 
         private readonly Dictionary<string, string> appSettings = new(StringComparer.OrdinalIgnoreCase);
         private readonly IPBanLogFileToParse[] logFiles;
@@ -127,18 +118,8 @@ namespace DigitalRuby.IPBanCore
         private readonly int failedLoginAttemptsBeforeBan = 5;
         private readonly bool resetFailedLoginCountForUnbannedIPAddresses;
         private readonly string firewallRulePrefix = "IPBan_";
-
-        // black list data structures
-        private readonly HashSet<System.Net.IPAddress> blackList = new();
-        private readonly Regex blackListRegex;
-        private readonly HashSet<IPAddressRange> blackListRanges = new();
-        private readonly HashSet<string> blackListOther = new(StringComparer.OrdinalIgnoreCase);
-
-        // white list data structures
-        private readonly HashSet<System.Net.IPAddress> whitelist = new();
-        private readonly Regex whitelistRegex;
-        private readonly HashSet<IPAddressRange> whitelistRanges = new();
-        private readonly HashSet<string> whitelistOther = new(StringComparer.OrdinalIgnoreCase);
+        private readonly IPBanFilter whitelistFilter;
+        private readonly IPBanFilter blacklistFilter;
 
         private readonly bool clearBannedIPAddressesOnRestart;
         private readonly bool clearFailedLoginsOnSuccessfulLogin;
@@ -222,8 +203,8 @@ namespace DigitalRuby.IPBanCore
             string whitelistRegexString = GetConfig<string>("WhitelistRegex", string.Empty);
             string blacklistString = GetConfig<string>("Blacklist", string.Empty);
             string blacklistRegexString = GetConfig<string>("BlacklistRegex", string.Empty);
-            PopulateList(whitelist, whitelistRanges, whitelistOther, ref whitelistRegex, whitelistString, whitelistRegexString);
-            PopulateList(blackList, blackListRanges, blackListOther, ref blackListRegex, blacklistString, blacklistRegexString);
+            whitelistFilter = new IPBanFilter(whitelistString, whitelistRegexString, httpRequestMaker, dns, dnsList);
+            blacklistFilter = new IPBanFilter(blacklistString, blacklistRegexString, httpRequestMaker, dns, dnsList);
             XmlNode node2 = doc.SelectSingleNode("/configuration/ExpressionsToBlock");
             if (node2 != null)
             {
@@ -358,188 +339,6 @@ namespace DigitalRuby.IPBanCore
                 }
             }
             banTimes = newBanTimes.ToArray();
-        }
-
-
-        private static bool IsMatch(string entry, System.Net.IPAddress entryIPAddress, HashSet<System.Net.IPAddress> set, HashSet<IPAddressRange> ranges, HashSet<string> others, Regex regex)
-        {
-            if (!string.IsNullOrWhiteSpace(entry))
-            {
-                entry = entry.Trim().Normalize();
-                if (entryIPAddress != null || System.Net.IPAddress.TryParse(entry, out entryIPAddress))
-                {
-                    // direct ip match in set or match in range of ip address list
-                    if (set.Contains(entryIPAddress) || ranges.Any(r => r.Contains(entryIPAddress)))
-                    {
-                        return true;
-                    }
-                }
-                else if (others.Contains(entry))
-                {
-                    // direct string match in other set
-                    return true;
-                }
-
-                // fallback to regex match
-                if (!(regex is null))
-                {
-                    // try the regex as last resort
-                    return regex.IsMatch(entry);
-                }
-            }
-
-            return false;
-        }
-
-        private void PopulateList(HashSet<System.Net.IPAddress> set,
-            HashSet<IPAddressRange> ranges,
-            HashSet<string> others,
-            ref Regex regex,
-            string setValue,
-            string regexValue)
-        {
-            setValue = (setValue ?? string.Empty).Trim();
-            regexValue = (regexValue ?? string.Empty).Replace("*", @"[0-9A-Fa-f]+?").Trim();
-            set.Clear();
-            regex = null;
-
-            void AddIPAddressRange(IPAddressRange range)
-            {
-                if (range.Begin.Equals(range.End))
-                {
-                    lock (set)
-                    {
-                        set.Add(range.Begin);
-                    }
-                }
-                else
-                {
-                    lock (ranges)
-                    {
-                        ranges.Add(range);
-                    }
-                }
-            }
-
-            if (!string.IsNullOrWhiteSpace(setValue))
-            {
-                List<string> entries = new();
-                foreach (string entry in setValue.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(e => e.Trim()))
-                {
-                    string entryWithoutComment = entry;
-                    int pos = entryWithoutComment.IndexOf('?');
-                    if (pos >= 0)
-                    {
-                        entryWithoutComment = entryWithoutComment.Substring(0, pos);
-                    }
-                    entryWithoutComment = entryWithoutComment.Trim();
-                    entries.Add(entryWithoutComment);
-                }
-                List<Task> entryTasks = new();
-
-                // iterate in parallel for performance
-                foreach (string entry in entries)
-                {
-                    string entryWithoutComment = entry;
-                    entryTasks.Add(Task.Run(async () =>
-                    {
-                        bool isUserName;
-                        if (entryWithoutComment.StartsWith("user:", StringComparison.OrdinalIgnoreCase))
-                        {
-                            isUserName = true;
-                            entryWithoutComment = entryWithoutComment["user:".Length..];
-                        }
-                        else
-                        {
-                            isUserName = false;
-                        }
-                        if (!ignoreListEntries.Contains(entryWithoutComment))
-                        {
-                            if (!isUserName && IPAddressRange.TryParse(entryWithoutComment, out IPAddressRange rangeFromEntry))
-                            {
-                                AddIPAddressRange(rangeFromEntry);
-                            }
-                            else if (!isUserName &&
-                                (entryWithoutComment.StartsWith("https://", StringComparison.OrdinalIgnoreCase) ||
-                                entryWithoutComment.StartsWith("http://", StringComparison.OrdinalIgnoreCase)))
-                            {
-                                try
-                                {
-                                    if (httpRequestMaker != null)
-                                    {
-                                        // assume url list of ips, newline delimited
-                                        byte[] ipListBytes = null;
-                                        Uri uri = new(entryWithoutComment);
-                                        await ExtensionMethods.RetryAsync(async () => ipListBytes = await httpRequestMaker.MakeRequestAsync(uri, null, ipListHeaders));
-                                        string ipList = Encoding.UTF8.GetString(ipListBytes);
-                                        if (!string.IsNullOrWhiteSpace(ipList))
-                                        {
-                                            foreach (string item in ipList.Split('\n'))
-                                            {
-                                                if (IPAddressRange.TryParse(item.Trim(), out IPAddressRange ipRangeFromUrl))
-                                                {
-                                                    AddIPAddressRange(ipRangeFromUrl);
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                                catch (Exception ex)
-                                {
-                                    Logger.Error(ex, "Failed to get ip list from url {0}", entryWithoutComment);
-                                }
-                            }
-                            else if (!isUserName && Uri.CheckHostName(entryWithoutComment) != UriHostNameType.Unknown)
-                            {
-                                try
-                                {
-                                    // add entries for each ip address that matches the dns entry
-                                    IPAddress[] addresses = null;
-                                    await ExtensionMethods.RetryAsync(async () => addresses = await dns.GetHostAddressesAsync(entryWithoutComment),
-                                        exceptionRetry: _ex =>
-                                        {
-                                            // ignore host not found errors
-                                            return (_ex is not System.Net.Sockets.SocketException socketEx ||
-                                                socketEx.SocketErrorCode != System.Net.Sockets.SocketError.HostNotFound);
-                                        });
-
-                                    lock (set)
-                                    {
-                                        foreach (IPAddress adr in addresses)
-                                        {
-                                            set.Add(adr);
-                                        }
-                                    }
-                                }
-                                catch (Exception ex)
-                                {
-                                    Logger.Debug("Unable to resolve dns for {0}: {1}", entryWithoutComment, ex.Message);
-
-                                    lock (others)
-                                    {
-                                        // eat exception, nothing we can do
-                                        others.Add(entryWithoutComment);
-                                    }
-                                }
-                            }
-                            else
-                            {
-                                lock (others)
-                                {
-                                    others.Add(entryWithoutComment);
-                                }
-                            }
-                        }
-                    }));
-                }
-
-                Task.WhenAll(entryTasks).Sync();
-            }
-
-            if (!string.IsNullOrWhiteSpace(regexValue))
-            {
-                regex = ParseRegex(regexValue);
-            }
         }
 
         private void ParseFirewallBlockRules()
@@ -815,17 +614,7 @@ namespace DigitalRuby.IPBanCore
         /// <returns>True if whitelisted, false otherwise</returns>
         public bool IsWhitelisted(string entry)
         {
-            System.Net.IPAddress ipAddress = null;
-
-            // if we have a dns list and the parameter is an ip address and the ip address
-            // is one of our dns servers, it is whitelisted
-            if (dnsList != null &&
-                IPAddress.TryParse(entry, out ipAddress) &&
-                dnsList.ContainsIPAddress(ipAddress))
-            {
-                return true;
-            }
-            return IsMatch(entry, ipAddress, whitelist, whitelistRanges, whitelistOther, whitelistRegex);
+            return whitelistFilter.IsFiltered(entry);
         }
 
         /// <summary>
@@ -835,24 +624,7 @@ namespace DigitalRuby.IPBanCore
         /// <returns>True if range is whitelisted, false otherwise</returns>
         public bool IsWhitelisted(IPAddressRange range)
         {
-            // if we have a dns list and one of our dns servers is in the range, the range is whitelisted
-            if (dnsList != null && dnsList.ContainsIPAddressRange(range))
-            {
-                return true;
-            }
-
-            // if the whitelist ip address set contains the range or
-            // the whitelist range set contains the range,
-            // the passed in range is considered whitelisted
-            else if (whitelist.Any(i => range.Contains(i)) ||
-                whitelistRanges.Any(r => r.Contains(range)))
-            {
-                return true;
-            }
-
-            // it's possible the whitelist other list or whitelist regex will match, but it's too performance
-            // intensive to scan every range in the incoming range to check, oh well...
-            return false;
+            return whitelistFilter.IsFiltered(range);
         }
 
         /// <summary>
@@ -862,18 +634,17 @@ namespace DigitalRuby.IPBanCore
         /// <returns>True if blacklisted, false otherwise</returns>
         public bool IsBlackListed(string entry)
         {
-            System.Net.IPAddress ipAddress = null;
+            return !IsWhitelisted(entry) && blacklistFilter.IsFiltered(entry);
+        }
 
-            // if we have a dns list and the parameter is an ip address and the ip address
-            // is one of our dns servers, it is not blacklisted
-            if (dnsList != null &&
-                IPAddress.TryParse(entry, out ipAddress) &&
-                dnsList.ContainsIPAddress(ipAddress))
-            {
-                return false;
-            }
-
-            return IsMatch(entry, ipAddress, blackList, blackListRanges, blackListOther, blackListRegex);
+        /// <summary>
+        /// Check if an ip address range is blacklisted. If any blacklist ip or range intersects, the range is blacklisted.
+        /// </summary>
+        /// <param name="range">Range</param>
+        /// <returns>True if range is blacklisted, false otherwise</returns>
+        public bool IsBlacklisted(IPAddressRange range)
+        {
+            return !IsWhitelisted(range) && blacklistFilter.IsFiltered(range);
         }
 
         /// <summary>
@@ -1055,30 +826,24 @@ namespace DigitalRuby.IPBanCore
         public bool ClearFailedLoginsOnSuccessfulLogin { get { return clearFailedLoginsOnSuccessfulLogin; } }
 
         /// <summary>
-        /// Get all ip address ranges in the blacklist
-        /// </summary>
-        public IReadOnlyCollection<IPAddressRange> BlackList
-        {
-            get { return blackList.Select(b => new IPAddressRange(b)).Union(blackListRanges).ToArray(); }
-        }
-
-        /// <summary>
-        /// Black list regex
-        /// </summary>
-        public string BlackListRegex { get { return (blackListRegex is null ? string.Empty : blackListRegex.ToString()); } }
-
-        /// <summary>
         /// Get all ip address ranges in the whitelist
         /// </summary>
-        public IReadOnlyCollection<IPAddressRange> Whitelist
-        {
-            get { return whitelist.Select(b => new IPAddressRange(b)).Union(whitelistRanges).ToArray(); }
-        }
+        public IReadOnlyCollection<IPAddressRange> Whitelist => whitelistFilter.IPAddressRanges;
 
         /// <summary>
         /// White list regex
         /// </summary>
-        public string WhitelistRegex { get { return (whitelistRegex is null ? string.Empty : whitelistRegex.ToString()); } }
+        public string WhitelistRegex => whitelistFilter.Regex;
+
+        /// <summary>
+        /// Get all ip address ranges in the blacklist
+        /// </summary>
+        public IReadOnlyCollection<IPAddressRange> BlackList => blacklistFilter.IPAddressRanges;
+
+        /// <summary>
+        /// Black list regex
+        /// </summary>
+        public string BlackListRegex => blacklistFilter.Regex;
 
         /// <summary>
         /// White list user names. Any user name found not in the list is banned, unless the list is empty, in which case no checking is done.
