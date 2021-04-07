@@ -136,9 +136,6 @@ namespace DigitalRuby.IPBanCore
         private readonly string getUrlConfig;
         private readonly string externalIPAddressUrl;
         private readonly string firewallUriRules;
-        private readonly IDnsLookup dns;
-        private readonly IDnsServerList dnsList;
-        private readonly IHttpRequestMaker httpRequestMaker;
         private readonly List<IPBanFirewallRule> extraRules = new();
         private readonly EventViewerExpressionsToBlock expressionsFailure;
         private readonly EventViewerExpressionsToNotify expressionsSuccess;
@@ -174,11 +171,7 @@ namespace DigitalRuby.IPBanCore
 
         private IPBanConfig(XmlDocument doc, IDnsLookup dns = null, IDnsServerList dnsList = null, IHttpRequestMaker httpRequestMaker = null)
         {
-            this.dns = dns ?? DefaultDnsLookup.Instance;
-            this.dnsList = dnsList;
-            this.httpRequestMaker = httpRequestMaker;
-
-            // deserialize with XmlDocument, the .net core Configuration class is quite buggy
+            // deserialize with XmlDocument for fine grained control
             foreach (XmlNode node in doc.SelectNodes("/configuration/appSettings/add"))
             {
                 appSettings[node.Attributes["key"].Value] = node.Attributes["value"].Value;
@@ -205,8 +198,8 @@ namespace DigitalRuby.IPBanCore
             string blacklistRegexString = GetConfig<string>("BlacklistRegex", string.Empty);
             whitelistFilter = new IPBanFilter(whitelistString, whitelistRegexString, httpRequestMaker, dns, dnsList);
             blacklistFilter = new IPBanFilter(blacklistString, blacklistRegexString, httpRequestMaker, dns, dnsList);
-            expressionsFailure = ParseEventViewer<EventViewerExpressionsToBlock>(doc, "/configuration/ExpressionsToBlock");
-            expressionsSuccess = ParseEventViewer<EventViewerExpressionsToNotify>(doc, "/configuration/ExpressionsToNotify");
+            expressionsFailure = ParseEventViewer<EventViewerExpressionsToBlock>(doc, "/configuration/ExpressionsToBlock", false);
+            expressionsSuccess = ParseEventViewer<EventViewerExpressionsToNotify>(doc, "/configuration/ExpressionsToNotify", true);
             logFiles = ParseLogFiles(doc, "/configuration/LogFilesToParse");
 
             GetConfig<string>("ProcessToRunOnBan", ref processToRunOnBan);
@@ -281,7 +274,7 @@ namespace DigitalRuby.IPBanCore
             banTimes = newBanTimes.ToArray();
         }
 
-        private static T ParseEventViewer<T>(XmlDocument doc, string path) where T : EventViewerExpressions, new()
+        private static T ParseEventViewer<T>(XmlDocument doc, string path, bool notifyOnly) where T : EventViewerExpressions, new()
         {
             XmlNode node = doc.SelectSingleNode(path);
             T eventViewerExpressions = null;
@@ -298,6 +291,7 @@ namespace DigitalRuby.IPBanCore
                 }
                 foreach (EventViewerExpressionGroup group in eventViewerExpressions.Groups)
                 {
+                    group.NotifyOnly = notifyOnly;
                     foreach (EventViewerExpression expression in group.Expressions)
                     {
                         expression.Regex = (expression.Regex?.ToString() ?? string.Empty).Trim();
