@@ -79,26 +79,27 @@ namespace DigitalRuby.IPBanCore
 
         public void Dispose()
         {
+            System.GC.SuppressFinalize(this);
         }
 
         public IEnumerable<string> EnumerateAllowedIPAddresses()
         {
-            return new string[0];
+            return System.Array.Empty<string>();
         }
 
         public IEnumerable<string> EnumerateBannedIPAddresses()
         {
-            return new string[0];
+            return System.Array.Empty<string>();
         }
 
         public IEnumerable<IPAddressRange> EnumerateIPAddresses(string ruleNamePrefix = null)
         {
-            return new IPAddressRange[0];
+            return System.Array.Empty<IPAddressRange>();
         }
 
         public IEnumerable<string> GetRuleNames(string ruleNamePrefix = null)
         {
-            return new string[0];
+            return System.Array.Empty<string>();
         }
 
         public bool IsIPAddressAllowed(string ipAddress, int port = -1)

@@ -54,16 +54,14 @@ namespace DigitalRuby.IPBanCore
             }
             try
             {
-                using (SqliteCommand command = conn.CreateCommand())
+                using SqliteCommand command = conn.CreateCommand();
+                command.CommandText = cmdText;
+                command.Transaction = tran;
+                for (int i = 0; i < param.Length; i++)
                 {
-                    command.CommandText = cmdText;
-                    command.Transaction = tran;
-                    for (int i = 0; i < param.Length; i++)
-                    {
-                        command.Parameters.Add(new SqliteParameter("@Param" + i, param[i] ?? DBNull.Value));
-                    }
-                    return command.ExecuteNonQuery();
+                    command.Parameters.Add(new SqliteParameter("@Param" + i, param[i] ?? DBNull.Value));
                 }
+                return command.ExecuteNonQuery();
             }
             finally
             {
@@ -76,19 +74,15 @@ namespace DigitalRuby.IPBanCore
 
         private T ExecuteScalar<T>(string cmdText, params object[] param)
         {
-            using (SqliteConnection connection = new(connString))
+            using SqliteConnection connection = new(connString);
+            connection.Open();
+            using SqliteCommand command = connection.CreateCommand();
+            command.CommandText = cmdText;
+            for (int i = 0; i < param.Length; i++)
             {
-                connection.Open();
-                using (SqliteCommand command = connection.CreateCommand())
-                {
-                    command.CommandText = cmdText;
-                    for (int i = 0; i < param.Length; i++)
-                    {
-                        command.Parameters.Add(new SqliteParameter("@Param" + i, param[i] ?? DBNull.Value));
-                    }
-                    return (T)Convert.ChangeType(command.ExecuteScalar(), typeof(T));
-                }
+                command.Parameters.Add(new SqliteParameter("@Param" + i, param[i] ?? DBNull.Value));
             }
+            return (T)Convert.ChangeType(command.ExecuteScalar(), typeof(T));
         }
 
         private SqliteDataReader ExecuteReader(string query, params object[] param)
@@ -191,12 +185,10 @@ namespace DigitalRuby.IPBanCore
         /// <returns>Strings</returns>
         public IEnumerable<string> Enumerate()
         {
-            using (SqliteDataReader reader = ExecuteReader("SELECT String FROM Strings ORDER BY String"))
+            using SqliteDataReader reader = ExecuteReader("SELECT String FROM Strings ORDER BY String");
+            while (reader.Read())
             {
-                while (reader.Read())
-                {
-                    yield return reader.GetString(0);
-                }
+                yield return reader.GetString(0);
             }
         }
 
@@ -211,14 +203,12 @@ namespace DigitalRuby.IPBanCore
             using (SqliteConnection conn = new(connString))
             {
                 conn.Open();
-                using (SqliteTransaction tran = conn.BeginTransaction(System.Data.IsolationLevel.ReadCommitted))
+                using SqliteTransaction tran = conn.BeginTransaction(System.Data.IsolationLevel.ReadCommitted);
+                foreach (string text in texts)
                 {
-                    foreach (string text in texts)
-                    {
-                        count += ExecuteNonQuery(conn, tran, "INSERT OR IGNORE INTO Strings (String) VALUES(@Param0)", text);
-                    }
-                    tran.Commit();
+                    count += ExecuteNonQuery(conn, tran, "INSERT OR IGNORE INTO Strings (String) VALUES(@Param0)", text);
                 }
+                tran.Commit();
             }
             return count;
         }
@@ -234,14 +224,12 @@ namespace DigitalRuby.IPBanCore
             using (SqliteConnection conn = new(connString))
             {
                 conn.Open();
-                using (SqliteTransaction tran = conn.BeginTransaction(System.Data.IsolationLevel.ReadCommitted))
+                using SqliteTransaction tran = conn.BeginTransaction(System.Data.IsolationLevel.ReadCommitted);
+                foreach (string text in texts)
                 {
-                    foreach (string text in texts)
-                    {
-                        count += ExecuteNonQuery(conn, tran, "DELETE FROM Strings WHERE String = @Param0", text);
-                    }
-                    tran.Commit();
+                    count += ExecuteNonQuery(conn, tran, "DELETE FROM Strings WHERE String = @Param0", text);
                 }
+                tran.Commit();
             }
             return count;
         }

@@ -193,13 +193,13 @@ namespace DigitalRuby.IPBanCore
             }
         }
 
-        private void CreateBlockRule(IReadOnlyList<string> ipAddresses, int index, int count, string ruleName, IEnumerable<PortRange> allowedPorts = null)
+        private static void CreateBlockRule(IReadOnlyList<string> ipAddresses, int index, int count, string ruleName, IEnumerable<PortRange> allowedPorts = null)
         {
             string remoteIpString = CreateRuleStringForIPAddresses(ipAddresses, index, count);
             GetOrCreateRule(ruleName, remoteIpString, NetFwAction.Block, allowedPorts);
         }
 
-        private void CreateAllowRule(IReadOnlyList<string> ipAddresses, int index, int count, string ruleName, IEnumerable<PortRange> allowedPorts = null)
+        private static void CreateAllowRule(IReadOnlyList<string> ipAddresses, int index, int count, string ruleName, IEnumerable<PortRange> allowedPorts = null)
         {
             string remoteIpString = CreateRuleStringForIPAddresses(ipAddresses, index, count);
             GetOrCreateRule(ruleName, remoteIpString, NetFwAction.Allow, allowedPorts);
@@ -253,7 +253,7 @@ namespace DigitalRuby.IPBanCore
             }
         }
 
-        private bool DeleteRules(string ruleNamePrefix, int startIndex = 0)
+        private static bool DeleteRules(string ruleNamePrefix, int startIndex = 0)
         {
             try
             {
@@ -371,7 +371,7 @@ namespace DigitalRuby.IPBanCore
             */
         }
 
-        private Task<bool> BlockOrAllowIPAddresses(string ruleNamePrefix, bool block, IEnumerable<string> ipAddresses, IEnumerable<PortRange> allowedPorts = null, CancellationToken cancelToken = default)
+        private static Task<bool> BlockOrAllowIPAddresses(string ruleNamePrefix, bool block, IEnumerable<string> ipAddresses, IEnumerable<PortRange> allowedPorts = null, CancellationToken cancelToken = default)
         {
 
 #if ENABLE_FIREWALL_PROFILING

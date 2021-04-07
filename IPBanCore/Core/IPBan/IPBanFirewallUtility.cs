@@ -397,106 +397,104 @@ namespace DigitalRuby.IPBanCore
                 yield break;
             }
 
-            using (IEnumerator<IPAddressRange> rangeEnum = ranges.OrderBy(r => r).GetEnumerator())
-            using (IEnumerator<IPAddressRange> filterEnum = filter.OrderBy(r => r).GetEnumerator())
+            using IEnumerator<IPAddressRange> rangeEnum = ranges.OrderBy(r => r).GetEnumerator();
+            using IEnumerator<IPAddressRange> filterEnum = filter.OrderBy(r => r).GetEnumerator();
+            // if no ranges left, we are done
+            if (!rangeEnum.MoveNext())
             {
-                // if no ranges left, we are done
-                if (!rangeEnum.MoveNext())
+                yield break;
+            }
+
+            IPAddressRange currentFilter = (filterEnum.MoveNext() ? filterEnum.Current : null);
+            IPAddressRange currentRange = rangeEnum.Current;
+            while (true)
+            {
+                // if no more filter, just continue returning ranges as is
+                if (currentFilter is null)
                 {
-                    yield break;
+                    yield return currentRange;
+                    if (!rangeEnum.MoveNext())
+                    {
+                        break;
+                    }
+                    continue;
                 }
 
-                IPAddressRange currentFilter = (filterEnum.MoveNext() ? filterEnum.Current : null);
-                IPAddressRange currentRange = rangeEnum.Current;
-                while (true)
+                int compare = currentFilter.Begin.CompareTo(currentRange.End);
+                if (compare > 0)
                 {
-                    // if no more filter, just continue returning ranges as is
-                    if (currentFilter is null)
+                    // current filter begin is after the range end, just return the range as is
+                    yield return currentRange;
+                    if (!rangeEnum.MoveNext())
                     {
-                        yield return currentRange;
-                        if (!rangeEnum.MoveNext())
-                        {
-                            break;
-                        }
-                        continue;
+                        break;
                     }
+                    currentRange = rangeEnum.Current;
+                }
+                else
+                {
+                    compare = currentFilter.End.CompareTo(currentRange.Begin);
 
-                    int compare = currentFilter.Begin.CompareTo(currentRange.End);
-                    if (compare > 0)
+                    // check if the current filter end is before the range begin
+                    if (compare < 0)
                     {
-                        // current filter begin is after the range end, just return the range as is
-                        yield return currentRange;
-                        if (!rangeEnum.MoveNext())
-                        {
-                            break;
-                        }
-                        currentRange = rangeEnum.Current;
+                        // current filter end is before the range begin, move to next filter
+                        currentFilter = (filterEnum.MoveNext() ? filterEnum.Current : null);
                     }
                     else
                     {
-                        compare = currentFilter.End.CompareTo(currentRange.Begin);
-
-                        // check if the current filter end is before the range begin
-                        if (compare < 0)
+                        // the current filter is inside the current range, filter
+                        int compareBegin = currentFilter.Begin.CompareTo(currentRange.Begin);
+                        int compareEnd = currentFilter.End.CompareTo(currentRange.End);
+                        if (compareBegin <= 0)
                         {
-                            // current filter end is before the range begin, move to next filter
-                            currentFilter = (filterEnum.MoveNext() ? filterEnum.Current : null);
-                        }
-                        else
-                        {
-                            // the current filter is inside the current range, filter
-                            int compareBegin = currentFilter.Begin.CompareTo(currentRange.Begin);
-                            int compareEnd = currentFilter.End.CompareTo(currentRange.End);
-                            if (compareBegin <= 0)
+                            // filter begin is less than or equal to the range begin
+                            if (compareEnd < 0 && currentFilter.End.TryIncrement(out IPAddress begin))
                             {
-                                // filter begin is less than or equal to the range begin
-                                if (compareEnd < 0 && currentFilter.End.TryIncrement(out IPAddress begin))
-                                {
-                                    // set the range to have the filtered portion removed
-                                    currentRange = new IPAddressRange(begin, currentRange.End);
+                                // set the range to have the filtered portion removed
+                                currentRange = new IPAddressRange(begin, currentRange.End);
 
-                                    // move to next filter
-                                    currentFilter = (filterEnum.MoveNext() ? filterEnum.Current : currentFilter);
-                                }
-                                else
-                                {
-                                    // else the filter has blocked out this entire range, ignore it
-                                    if (!rangeEnum.MoveNext())
-                                    {
-                                        break;
-                                    }
-                                    currentRange = rangeEnum.Current;
-                                }
+                                // move to next filter
+                                currentFilter = (filterEnum.MoveNext() ? filterEnum.Current : currentFilter);
                             }
                             else
                             {
-                                // if compareBegin was >= the ip address range begin, we won't get here
-                                // this means the current filter begin must be greater than 0
-                                if (!currentFilter.Begin.TryDecrement(out IPAddress end))
+                                // else the filter has blocked out this entire range, ignore it
+                                if (!rangeEnum.MoveNext())
                                 {
-                                    throw new InvalidOperationException("Current filter should have been able to decrement the begin ip address");
+                                    break;
                                 }
+                                currentRange = rangeEnum.Current;
+                            }
+                        }
+                        else
+                        {
+                            // if compareBegin was >= the ip address range begin, we won't get here
+                            // this means the current filter begin must be greater than 0
+                            if (!currentFilter.Begin.TryDecrement(out IPAddress end))
+                            {
+                                throw new InvalidOperationException("Current filter should have been able to decrement the begin ip address");
+                            }
 
-                                // filter begin is after the range begin, return the range begin and one before the filter begin
-                                yield return new IPAddressRange(currentRange.Begin, end);
-                                if (!currentFilter.End.TryIncrement(out IPAddress newBegin))
-                                {
-                                    newBegin = currentFilter.End;
-                                }
+                            // filter begin is after the range begin, return the range begin and one before the filter begin
+                            yield return new IPAddressRange(currentRange.Begin, end);
+                            if (!currentFilter.End.TryIncrement(out IPAddress newBegin))
+                            {
+                                newBegin = currentFilter.End;
+                            }
 
-                                if (newBegin.CompareTo(currentRange.End) > 0)
+                            if (newBegin.CompareTo(currentRange.End) > 0)
+                            {
+                                // end of range, get a new range
+                                if (!rangeEnum.MoveNext())
                                 {
-                                    // end of range, get a new range
-                                    if (!rangeEnum.MoveNext())
-                                    {
-                                        break;
-                                    }
-                                    currentRange = rangeEnum.Current;
+                                    break;
                                 }
-                                else
-                                {
-                                    currentRange = new IPAddressRange(newBegin, currentRange.End);
-                                }
+                                currentRange = rangeEnum.Current;
+                            }
+                            else
+                            {
+                                currentRange = new IPAddressRange(newBegin, currentRange.End);
                             }
                         }
                     }

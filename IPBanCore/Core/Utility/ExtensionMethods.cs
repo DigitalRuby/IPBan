@@ -925,7 +925,7 @@ namespace DigitalRuby.IPBanCore
             {
                 // eat exception, delicious
             }
-            return new System.Net.IPAddress[0];
+            return Array.Empty<IPAddress>();
         }
 
         /// <summary>

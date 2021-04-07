@@ -573,7 +573,7 @@ namespace DigitalRuby.IPBanCore
                 throw new ArgumentNullException(nameof(subnetMask));
 
             var length = Bits.GetBitMaskLength(subnetMask.GetAddressBytes());
-            if (length is null) throw new ArgumentException("Not a valid subnet mask", "subnetMask");
+            if (length is null) throw new ArgumentException("Not a valid subnet mask", nameof(subnetMask));
             return length.Value;
         }
 
@@ -607,7 +607,7 @@ namespace DigitalRuby.IPBanCore
         /// <returns>True if equal, false otherwise</returns>
         public override bool Equals(object obj)
         {
-            if (obj is null || !(obj is IPAddressRange other))
+            if (obj is null || obj is not IPAddressRange other)
             {
                 return false;
             }
@@ -707,7 +707,7 @@ namespace DigitalRuby.IPBanCore
 
         private bool TryGetValue(IEnumerable<KeyValuePair<string, string>> items, string key, out string value)
         {
-            items = items ?? GetDictionaryItems();
+            items ??= GetDictionaryItems();
             var foundItem = items.FirstOrDefault(item => item.Key == key);
             value = foundItem.Value;
             return foundItem.Key != null;

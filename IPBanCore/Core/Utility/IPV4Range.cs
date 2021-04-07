@@ -63,7 +63,7 @@ namespace DigitalRuby.IPBanCore
 
         public override bool Equals(object obj)
         {
-            if (!(obj is IPV4Range range))
+            if (obj is not IPV4Range range)
             {
                 return false;
             }

@@ -90,6 +90,7 @@ namespace DigitalRuby.IPBanCore
             /// </summary>
             public void Dispose()
             {
+                GC.SuppressFinalize(this);
                 config.WriteConfigAsync(origConfig).Sync();
             }
 
@@ -105,7 +106,7 @@ namespace DigitalRuby.IPBanCore
         public const string DefaultFileName = "ipban.config";
 
         private static readonly TimeSpan[] emptyTimeSpanArray = new TimeSpan[] { TimeSpan.Zero };
-        private static readonly IPBanLogFileToParse[] emptyLogFilesToParseArray = new IPBanLogFileToParse[0];
+        private static readonly IPBanLogFileToParse[] emptyLogFilesToParseArray = Array.Empty<IPBanLogFileToParse>();
         private static readonly TimeSpan maxBanTimeSpan = TimeSpan.FromDays(90.0);
 
         private readonly Dictionary<string, string> appSettings = new(StringComparer.OrdinalIgnoreCase);
@@ -372,7 +373,7 @@ namespace DigitalRuby.IPBanCore
             {
                 if (regex != null)
                 {
-                    new Regex(regex, options);
+                    _ = new Regex(regex, options);
                 }
                 return null;
             }

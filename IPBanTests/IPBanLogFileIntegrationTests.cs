@@ -57,7 +57,7 @@ namespace DigitalRuby.IPBanTests
             service = null;
         }
 
-        public void Dispose() { }
+        public void Dispose() => GC.SuppressFinalize(this);
 
         Task IIPBanDelegate.LoginAttemptFailed(string ip, string source, string userName, string machineGuid, string osName, string osVersion, int count, DateTime timestamp)
         {

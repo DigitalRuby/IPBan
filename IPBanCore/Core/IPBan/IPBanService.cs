@@ -174,14 +174,14 @@ namespace DigitalRuby.IPBanCore
                 Group userNameGroup = match.Groups["username"];
                 if (userNameGroup != null && userNameGroup.Success)
                 {
-                    userName = (userName ?? userNameGroup.Value.Trim(regexTrimChars));
+                    userName ??= userNameGroup.Value.Trim(regexTrimChars);
                 }
 
                 // check for source
                 Group sourceGroup = match.Groups["source"];
                 if (sourceGroup != null && sourceGroup.Success)
                 {
-                    source = (source ?? sourceGroup.Value.Trim(regexTrimChars));
+                    source ??= sourceGroup.Value.Trim(regexTrimChars);
                 }
 
                 // check for groups with a custom source name
@@ -190,7 +190,7 @@ namespace DigitalRuby.IPBanCore
                     if (group.Success && group.Name != null &&
                         string.IsNullOrWhiteSpace(source) && group.Name.StartsWith(customSourcePrefix))
                     {
-                        source = group.Name.Substring(customSourcePrefix.Length);
+                        source = group.Name[customSourcePrefix.Length..];
                     }
                 }
 

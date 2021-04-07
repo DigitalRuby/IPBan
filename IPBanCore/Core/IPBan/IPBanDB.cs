@@ -288,15 +288,13 @@ namespace DigitalRuby.IPBanCore
             {
                 byte[] ipBytes = ipAddressObj.GetAddressBytes();
                 SqliteDBTransaction tran = transaction as SqliteDBTransaction;
-                using (SqliteDataReader reader = ExecuteReader("SELECT IPAddressText, LastFailedLogin, FailedLoginCount, BanDate," +
+                using SqliteDataReader reader = ExecuteReader("SELECT IPAddressText, LastFailedLogin, FailedLoginCount, BanDate," +
                     "State, BanEndDate, UserName, Source FROM IPAddresses WHERE IPAddress = @Param0",
-                    tran?.DBConnection, tran?.DBTransaction, ipBytes))
+                    tran?.DBConnection, tran?.DBTransaction, ipBytes);
+                if (reader.Read())
                 {
-                    if (reader.Read())
-                    {
-                        entry = ParseIPAddressEntry(reader);
-                        return true;
-                    }
+                    entry = ParseIPAddressEntry(reader);
+                    return true;
                 }
             }
             entry = null;
@@ -337,25 +335,23 @@ namespace DigitalRuby.IPBanCore
             {
                 byte[] ipBytes = ipAddressObj.GetAddressBytes();
                 SqliteDBTransaction tran = transaction as SqliteDBTransaction;
-                using (SqliteDataReader reader = ExecuteReader("SELECT BanDate, BanEndDate FROM IPAddresses WHERE IPAddress = @Param0", tran?.DBConnection, tran?.DBTransaction, ipBytes))
+                using SqliteDataReader reader = ExecuteReader("SELECT BanDate, BanEndDate FROM IPAddresses WHERE IPAddress = @Param0", tran?.DBConnection, tran?.DBTransaction, ipBytes);
+                if (reader.Read())
                 {
-                    if (reader.Read())
+                    DateTime? banDate = null;
+                    DateTime? banEndDate = null;
+                    object val = reader.GetValue(0);
+                    object val2 = reader.GetValue(1);
+                    if (val != null && val != DBNull.Value)
                     {
-                        DateTime? banDate = null;
-                        DateTime? banEndDate = null;
-                        object val = reader.GetValue(0);
-                        object val2 = reader.GetValue(1);
-                        if (val != null && val != DBNull.Value)
-                        {
-                            banDate = ((long)val).ToDateTimeUnixMilliseconds();
-                        }
-                        if (val2 != null && val2 != DBNull.Value)
-                        {
-                            banEndDate = ((long)val2).ToDateTimeUnixMilliseconds();
-                        }
-                        banDates = new KeyValuePair<DateTime?, DateTime?>(banDate, banEndDate);
-                        return true;
+                        banDate = ((long)val).ToDateTimeUnixMilliseconds();
                     }
+                    if (val2 != null && val2 != DBNull.Value)
+                    {
+                        banEndDate = ((long)val2).ToDateTimeUnixMilliseconds();
+                    }
+                    banDates = new KeyValuePair<DateTime?, DateTime?>(banDate, banEndDate);
+                    return true;
                 }
             }
             banDates = new KeyValuePair<DateTime?, DateTime?>(null, null);
@@ -375,7 +371,7 @@ namespace DigitalRuby.IPBanCore
             int count = 0;
             SqliteDBTransaction tran = transaction as SqliteDBTransaction;
             bool commit = (tran is null);
-            tran = (tran ?? BeginTransaction() as SqliteDBTransaction);
+            tran ??= BeginTransaction() as SqliteDBTransaction;
             try
             {
                 foreach (Tuple<string, DateTime, DateTime> ipAddress in ipAddresses)
@@ -447,7 +443,7 @@ namespace DigitalRuby.IPBanCore
             int stateInt = (int)state;
             SqliteDBTransaction tran = transaction as SqliteDBTransaction;
             bool commit = (transaction is null);
-            tran = (tran ?? BeginTransaction() as SqliteDBTransaction);
+            tran ??= BeginTransaction() as SqliteDBTransaction;
             try
             {
                 foreach (string ipAddress in ipAddresses)
@@ -493,7 +489,7 @@ namespace DigitalRuby.IPBanCore
             bool added;
             SqliteDBTransaction tran = transaction as SqliteDBTransaction;
             bool dispose = (tran is null);
-            tran = (tran ?? BeginTransaction() as SqliteDBTransaction);
+            tran ??= BeginTransaction() as SqliteDBTransaction;
             SqliteDataReader reader;
 
             // C# can't yield inside a try/catch, so we have to split it up
@@ -603,16 +599,14 @@ namespace DigitalRuby.IPBanCore
                 banCutOffUnix = banCutOff.Value.ToUnixMillisecondsLong();
             }
             SqliteDBTransaction tran = transaction as SqliteDBTransaction;
-            using (SqliteDataReader reader = ExecuteReader(@"SELECT IPAddressText, LastFailedLogin, FailedLoginCount, BanDate, State, BanEndDate, UserName, Source
+            using SqliteDataReader reader = ExecuteReader(@"SELECT IPAddressText, LastFailedLogin, FailedLoginCount, BanDate, State, BanEndDate, UserName, Source
                 FROM IPAddresses
                 WHERE (@Param0 IS NULL AND @Param1 IS NULL) OR (@Param0 IS NOT NULL AND State = 3 AND LastFailedLogin <= @Param0) OR (@Param1 IS NOT NULL AND State IN (0, 1) AND BanEndDate <= @Param1)
                 ORDER BY IPAddress",
-                tran?.DBConnection, tran?.DBTransaction, failLoginCutOffUnix, banCutOffUnix))
+                tran?.DBConnection, tran?.DBTransaction, failLoginCutOffUnix, banCutOffUnix);
+            while (reader.Read())
             {
-                while (reader.Read())
-                {
-                    yield return ParseIPAddressEntry(reader);
-                }
+                yield return ParseIPAddressEntry(reader);
             }
         }
 
@@ -622,12 +616,10 @@ namespace DigitalRuby.IPBanCore
         /// <returns>IP addresses with non-null ban dates</returns>
         public IEnumerable<string> EnumerateBannedIPAddresses()
         {
-            using (SqliteDataReader reader = ExecuteReader("SELECT IPAddressText FROM IPAddresses WHERE BanDate IS NOT NULL AND State = 0 ORDER BY IPAddress", null, null))
+            using SqliteDataReader reader = ExecuteReader("SELECT IPAddressText FROM IPAddresses WHERE BanDate IS NOT NULL AND State = 0 ORDER BY IPAddress", null, null);
+            while (reader.Read())
             {
-                while (reader.Read())
-                {
-                    yield return reader.GetString(0);// ParseIPAddressEntry(reader);
-                }
+                yield return reader.GetString(0);// ParseIPAddressEntry(reader);
             }
         }
 
@@ -644,17 +636,15 @@ namespace DigitalRuby.IPBanCore
             try
             {
                 OpenConnection(conn);
-                using (SqliteTransaction tran = conn.BeginTransaction(TransactionLevel))
+                using SqliteTransaction tran = conn.BeginTransaction(TransactionLevel);
+                foreach (string ipAddress in ipAddresses)
                 {
-                    foreach (string ipAddress in ipAddresses)
+                    if (IPAddress.TryParse(ipAddress, out IPAddress ipAddressObj))
                     {
-                        if (IPAddress.TryParse(ipAddress, out IPAddress ipAddressObj))
-                        {
-                            count += ExecuteNonQuery("DELETE FROM IPAddresses WHERE IPAddress = @Param0", conn, tran, ipAddressObj.GetAddressBytes());
-                        }
+                        count += ExecuteNonQuery("DELETE FROM IPAddresses WHERE IPAddress = @Param0", conn, tran, ipAddressObj.GetAddressBytes());
                     }
-                    tran.Commit();
                 }
+                tran.Commit();
             }
             finally
             {
@@ -672,13 +662,11 @@ namespace DigitalRuby.IPBanCore
         {
             byte[] start = range.Begin.GetAddressBytes();
             byte[] end = range.End.GetAddressBytes();
-            using (SqliteDataReader reader = ExecuteReader("SELECT IPAddressText FROM IPAddresses WHERE IPAddress BETWEEN @Param0 AND @Param1 AND length(IPAddress) = length(@Param0) AND length(IPAddress) = length(@Param1); " +
-                "DELETE FROM IPAddresses WHERE IPAddress BETWEEN @Param0 AND @Param1 AND length(IPAddress) = length(@Param0) AND length(IPAddress) = length(@Param1);", null, null, start, end))
+            using SqliteDataReader reader = ExecuteReader("SELECT IPAddressText FROM IPAddresses WHERE IPAddress BETWEEN @Param0 AND @Param1 AND length(IPAddress) = length(@Param0) AND length(IPAddress) = length(@Param1); " +
+                "DELETE FROM IPAddresses WHERE IPAddress BETWEEN @Param0 AND @Param1 AND length(IPAddress) = length(@Param0) AND length(IPAddress) = length(@Param1);", null, null, start, end);
+            while (reader.Read())
             {
-                while (reader.Read())
-                {
-                    yield return reader.GetString(0);
-                }
+                yield return reader.GetString(0);
             }
         }
 

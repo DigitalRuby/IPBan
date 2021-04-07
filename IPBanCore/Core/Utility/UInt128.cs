@@ -334,8 +334,7 @@ namespace DigitalRuby.IPBanCore
         /// </remarks>
         public static bool TryParse(string value, NumberStyles style, IFormatProvider provider, out UInt128 result)
         {
-            BigInteger bigIntegerValue;
-            bool success = BigInteger.TryParse(value, style, provider, out bigIntegerValue);
+            bool success = BigInteger.TryParse(value, style, provider, out BigInteger bigIntegerValue);
             if (success && (bigIntegerValue < 0 || bigIntegerValue > MaxValue))
             {
                 result = Zero;
@@ -668,7 +667,7 @@ namespace DigitalRuby.IPBanCore
         {
             string bigIntegerString = ((BigInteger)this).ToString(format, formatProvider);
             if (MostSignificant >> 63 == 1 && bigIntegerString[0] == '0')
-                return bigIntegerString.Substring(1);
+                return bigIntegerString[1..];
             return bigIntegerString;
         }
 

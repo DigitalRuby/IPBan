@@ -152,7 +152,7 @@ namespace DigitalRuby.IPBanCore
             commandLine = string.Format(commandLine, args);
             string bash = "-c \"" + program + " " + commandLine.Replace("\"", "\\\"") + "\"";
             Logger.Debug("Running firewall process: {0} {1}", program, commandLine);
-            using (Process p = new()
+            using Process p = new()
             {
                 StartInfo = new ProcessStartInfo
                 {
@@ -162,27 +162,25 @@ namespace DigitalRuby.IPBanCore
                     CreateNoWindow = true,
                     RedirectStandardOutput = true
                 }
-            })
+            };
+            p.Start();
+            List<string> lineList = new();
+            string line;
+            while ((line = p.StandardOutput.ReadLine()) != null)
             {
-                p.Start();
-                List<string> lineList = new();
-                string line;
-                while ((line = p.StandardOutput.ReadLine()) != null)
-                {
-                    lineList.Add(line);
-                }
-                lines = lineList;
-                if (!p.WaitForExit(60000))
-                {
-                    Logger.Error("Process {0} {1} timed out", program, commandLine);
-                    p.Kill();
-                }
-                if (requireExitCode && p.ExitCode != 0)
-                {
-                    Logger.Error("Process {0} {1} had exit code {2}", program, commandLine, p.ExitCode);
-                }
-                return p.ExitCode;
+                lineList.Add(line);
             }
+            lines = lineList;
+            if (!p.WaitForExit(60000))
+            {
+                Logger.Error("Process {0} {1} timed out", program, commandLine);
+                p.Kill();
+            }
+            if (requireExitCode && p.ExitCode != 0)
+            {
+                Logger.Error("Process {0} {1} had exit code {2}", program, commandLine, p.ExitCode);
+            }
+            return p.ExitCode;
         }
 
         protected bool CreateOrUpdateRule(string ruleName, string action, string hashType, int maxCount, IEnumerable<PortRange> allowedPorts, CancellationToken cancelToken)
@@ -470,7 +468,7 @@ namespace DigitalRuby.IPBanCore
                     pos += setText.Length;
                     int start = pos;
                     while (++pos < line.Length && line[pos] != ' ') { }
-                    yield return line.Substring(start, pos - start);
+                    yield return line[start..pos];
                 }
             }
         }

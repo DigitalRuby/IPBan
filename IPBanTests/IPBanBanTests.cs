@@ -43,7 +43,6 @@ namespace DigitalRuby.IPBanTests
 
         private const string ip1 = "99.99.99.97";
         private const string ip2 = "99.99.99.98";
-        private const string ip3 = "99.99.99.99";
         private static readonly IPAddressLogEvent info1 = new(ip1, "test_user", "RDP", 98, IPAddressEventType.FailedLogin);
         private static readonly IPAddressLogEvent info2 = new(ip2, "test_user2", "SSH", 99, IPAddressEventType.FailedLogin);
         private static readonly IPAddressLogEvent info3 = new(ip1, "test_user", "RDP", 1, IPAddressEventType.FailedLogin);
@@ -546,7 +545,6 @@ namespace DigitalRuby.IPBanTests
             const string userName = "TEST";
             const string source = "RDP";
             const IPAddressEventType type = IPAddressEventType.FailedLogin;
-            KeyValuePair<DateTime?, DateTime?> banDates;
             service.IPBanDelegate = new ExternalBlocker(service);
 
             IPAddressLogEvent[] events = new IPAddressLogEvent[1];
@@ -572,7 +570,7 @@ namespace DigitalRuby.IPBanTests
                 // run cycle again, should get pinged by external blocker and ip should be blocked
                 await service.RunCycleAsync();
                 Assert.IsTrue(service.Firewall.IsIPAddressBlocked(ipAddress));
-                Assert.IsTrue(service.DB.TryGetBanDates(ipAddress, out banDates));
+                Assert.IsTrue(service.DB.TryGetBanDates(ipAddress, out KeyValuePair<DateTime?, DateTime?> banDates));
                 Assert.AreEqual(IPBanService.UtcNow, banDates.Key);
                 Assert.AreEqual(IPBanService.UtcNow.AddMinutes(1.0), banDates.Value);
 

@@ -213,12 +213,12 @@ namespace DigitalRuby.IPBanCore
             return ipDB.BeginTransaction();
         }
 
-        private void CommitTransaction(object transaction)
+        private static void CommitTransaction(object transaction)
         {
             SqliteDB.CommitTransaction(transaction);
         }
 
-        private void RollbackTransaction(object transaction)
+        private static void RollbackTransaction(object transaction)
         {
             // if already committed, nothing happens
             SqliteDB.RollbackTransaction(transaction);
@@ -323,9 +323,9 @@ namespace DigitalRuby.IPBanCore
 
                             // check for the target user name for additional blacklisting checks
                             bool ipBlacklisted = Config.IsBlackListed(ipAddress);
-                            bool userBlacklisted = (ipBlacklisted ? false : Config.IsBlackListed(userName));
-                            bool userFailsWhitelistRegex = (userBlacklisted ? false : Config.UserNameFailsUserNameWhitelistRegex(userName));
-                            bool editDistanceBlacklisted = (ipBlacklisted || userBlacklisted || userFailsWhitelistRegex ? false : !Config.IsUserNameWithinMaximumEditDistanceOfUserNameWhitelist(userName));
+                            bool userBlacklisted = (!ipBlacklisted && Config.IsBlackListed(userName));
+                            bool userFailsWhitelistRegex = (!userBlacklisted && Config.UserNameFailsUserNameWhitelistRegex(userName));
+                            bool editDistanceBlacklisted = (!ipBlacklisted && !userBlacklisted && !userFailsWhitelistRegex && !Config.IsUserNameWithinMaximumEditDistanceOfUserNameWhitelist(userName));
                             bool configBlacklisted = ipBlacklisted || userBlacklisted || userFailsWhitelistRegex || editDistanceBlacklisted;
 
                             // if the event came in with a count of 0 that means it is an automatic ban

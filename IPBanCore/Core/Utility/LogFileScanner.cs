@@ -59,7 +59,7 @@ namespace DigitalRuby.IPBanCore
             /// <inheritdoc />
             public override bool Equals(object obj)
             {
-                if (!(obj is WatchedFile other))
+                if (obj is not WatchedFile other)
                 {
                     return false;
                 }

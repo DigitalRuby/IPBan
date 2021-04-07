@@ -164,20 +164,18 @@ namespace DigitalRuby.IPBanCore
             }
             try
             {
-                using (SqliteCommand command = conn.CreateCommand())
+                using SqliteCommand command = conn.CreateCommand();
+                if (command.Transaction != null && tran != null && tran != command.Transaction)
                 {
-                    if (command.Transaction != null && tran != null && tran != command.Transaction)
-                    {
-                        throw new InvalidOperationException("Connection created a command with an existing transaction that does not match passed transaction, this is an error condition");
-                    }
-                    command.CommandText = cmdText;
-                    command.Transaction = command.Transaction ?? tran;
-                    for (int i = 0; i < parameters.Length; i++)
-                    {
-                        command.Parameters.Add(new SqliteParameter("@Param" + i, parameters[i] ?? DBNull.Value));
-                    }
-                    return command.ExecuteNonQuery();
+                    throw new InvalidOperationException("Connection created a command with an existing transaction that does not match passed transaction, this is an error condition");
                 }
+                command.CommandText = cmdText;
+                command.Transaction ??= tran;
+                for (int i = 0; i < parameters.Length; i++)
+                {
+                    command.Parameters.Add(new SqliteParameter("@Param" + i, parameters[i] ?? DBNull.Value));
+                }
+                return command.ExecuteNonQuery();
             }
             finally
             {
@@ -224,23 +222,21 @@ namespace DigitalRuby.IPBanCore
             }
             try
             {
-                using (SqliteCommand command = conn.CreateCommand())
+                using SqliteCommand command = conn.CreateCommand();
+                command.CommandText = cmdText;
+                command.Transaction = tran;
+                for (int i = 0; i < parameters.Length; i++)
                 {
-                    command.CommandText = cmdText;
-                    command.Transaction = tran;
-                    for (int i = 0; i < parameters.Length; i++)
-                    {
-                        command.Parameters.Add(new SqliteParameter("@Param" + i, parameters[i] ?? DBNull.Value));
-                    }
-                    object resultObj = command.ExecuteScalar();
-                    if (resultObj is null || resultObj == DBNull.Value)
-                    {
-                        result = default;
-                        return false;
-                    }
-                    result = (T)Convert.ChangeType(resultObj, typeof(T));
-                    return true;
+                    command.Parameters.Add(new SqliteParameter("@Param" + i, parameters[i] ?? DBNull.Value));
                 }
+                object resultObj = command.ExecuteScalar();
+                if (resultObj is null || resultObj == DBNull.Value)
+                {
+                    result = default;
+                    return false;
+                }
+                result = (T)Convert.ChangeType(resultObj, typeof(T));
+                return true;
             }
             finally
             {

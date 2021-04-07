@@ -59,7 +59,7 @@ namespace DigitalRuby.IPBanTests
             Assert.AreEqual(successLogLevel, file.SuccessfulLoginLogLevel);
         }
 
-        private void AssertLogFilesToParse(IPBanConfig cfg)
+        private static void AssertLogFilesToParse(IPBanConfig cfg)
         {
             const int maxFileSize = 16777216;
             const int pingInterval = 10000;
@@ -156,7 +156,7 @@ namespace DigitalRuby.IPBanTests
             Assert.AreEqual(LogLevel.Warning, group.LogLevel);
         }
 
-        private void AssertEventViewer(IPBanConfig cfg)
+        private static void AssertEventViewer(IPBanConfig cfg)
         {
             if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {

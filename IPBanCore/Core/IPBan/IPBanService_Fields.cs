@@ -73,7 +73,7 @@ namespace DigitalRuby.IPBanCore
         /// </summary>
         public string ConfigFilePath
         {
-            get { return ConfigReaderWriter.Path; }
+            get => ConfigReaderWriter.Path;
             set
             {
                 ConfigReaderWriter.Path = value;
@@ -222,8 +222,8 @@ namespace DigitalRuby.IPBanCore
         /// </summary>
         public static DateTime UtcNow
         {
-            get { return utcNow ?? DateTime.UtcNow; }
-            set { utcNow = (value == default ? null : (DateTime?)value); }
+            get => utcNow ?? DateTime.UtcNow;
+            set => utcNow = (value == default ? null : (DateTime?)value);
         }
 
         /// <summary>

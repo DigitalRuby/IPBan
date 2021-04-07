@@ -357,9 +357,7 @@ namespace DigitalRuby.IPBanTests
             Assert.AreEqual(5, successEvents["98.196.175.165_RRAS_username"]);
 }
 
-        void IDisposable.Dispose()
-        {
-        }
+        void IDisposable.Dispose() => GC.SuppressFinalize(this);
 
         Task IIPBanDelegate.IPAddressBanned(string ip, string source, string userName, string machineGuid, string osName, string osVersion, DateTime timestamp, bool banned)
         {

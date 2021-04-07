@@ -126,7 +126,7 @@ namespace DigitalRuby.IPBanCore
         /// <returns>True if equal, false otherwise</returns>
         public override bool Equals(object obj)
         {
-            if (!(obj is IPBanUriFirewallRule rule))
+            if (obj is not IPBanUriFirewallRule rule)
             {
                 return false;
             }
