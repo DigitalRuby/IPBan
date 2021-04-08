@@ -32,5 +32,18 @@ namespace DigitalRuby.IPBanTests
             string mac = NetworkUtility.GetMacAddress();
             Assert.GreaterOrEqual(12, mac.Length);
         }
+
+        [Test]
+        public void TestGetUserNameIsActive()
+        {
+            bool result = OSUtility.UserIsActive("root");
+            Assert.AreEqual(result, OSUtility.UserIsActive("root"));
+
+            result = OSUtility.UserIsActive(Environment.UserName);
+            Assert.AreEqual(result, OSUtility.UserIsActive(Environment.UserName));
+
+            // try something not exist, make sure false
+            Assert.IsFalse(OSUtility.UserIsActive("asdoijasdoajspdojaspdojaspodjaspodjs"));
+        }
     }
 }

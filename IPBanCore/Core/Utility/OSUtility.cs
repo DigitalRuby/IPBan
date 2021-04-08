@@ -25,6 +25,7 @@ SOFTWARE.
 #pragma warning disable CA1416 // Validate platform compatibility
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
@@ -363,6 +364,10 @@ namespace DigitalRuby.IPBanCore
             return output.ToString();
         }
 
+        private static Dictionary<string, bool> users = new(StringComparer.OrdinalIgnoreCase);
+        private static DateTime usersExpire = IPBanService.UtcNow;
+        private static readonly TimeSpan usersExpireTimeSpan = TimeSpan.FromMinutes(10.0);
+
         /// <summary>
         /// Check if a user name is active on the local machine
         /// </summary>
@@ -376,72 +381,83 @@ namespace DigitalRuby.IPBanCore
             }
             userName = userName.Trim();
 
+            // check cache first
+            bool enabled;
+            if (usersExpire > IPBanService.UtcNow)
+            {
+                users.TryGetValue(userName, out enabled);
+                return enabled;
+            }
+
             try
             {
                 if (isWindows)
                 {
                     // Windows: WMI
-                    SelectQuery query = new("Win32_UserAccount");
-                    ManagementObjectSearcher searcher = new(query);
-                    foreach (ManagementObject user in searcher.Get())
+                    if (usersExpire <= IPBanService.UtcNow)
                     {
-                        if (user["Disabled"] is null || user["Disabled"].Equals(false))
+                        lock (users)
                         {
-                            string possibleMatch = user["Name"]?.ToString();
-                            if (possibleMatch != null && possibleMatch.Equals(userName, StringComparison.OrdinalIgnoreCase))
+                            Dictionary<string, bool> newUsers = new(StringComparer.OrdinalIgnoreCase);
+                            SelectQuery query = new("Win32_UserAccount");
+                            ManagementObjectSearcher searcher = new(query);
+                            foreach (ManagementObject user in searcher.Get())
                             {
-                                return true;
+                                string foundUserName = user["Name"]?.ToString();
+                                if (!string.IsNullOrWhiteSpace(foundUserName))
+                                {
+                                    newUsers[foundUserName] = user["Disabled"] is null || user["Disabled"].Equals(false);
+                                }
                             }
+                            usersExpire = IPBanService.UtcNow + usersExpireTimeSpan;
+                            users = newUsers;
                         }
                     }
                 }
                 else if (isLinux)
                 {
                     // Linux: /etc/passwd
-                    if (File.Exists("/etc/passwd"))
+                    if (File.Exists("/etc/passwd") && File.Exists("/etc/shadow"))
                     {
-                        bool enabled = false;
-                        string[] lines;
-                        if (File.Exists("/etc/shadow"))
+                        // check for cache expire and refill if needed
+                        if (usersExpire <= IPBanService.UtcNow)
                         {
-                            lines = File.ReadAllLines("/etc/shadow");
-                            // example line:
-                            // root:!$1$Fp$SSSuo3L.xA5s/kMEEIloU1:18049:0:99999:7:::
-                            foreach (string[] pieces in lines.Select(l => l.Split(':')).Where(p => p.Length == 9))
+                            lock (users)
                             {
-                                string checkUserName = pieces[0].Trim();
-                                if (checkUserName.Equals(userName))
-                                {
-                                    string pwdHash = pieces[1].Trim();
-                                    if (pwdHash.Length != 0 && pwdHash[0] != '*' && pwdHash[0] != '!')
-                                    {
-                                        enabled = true;
-                                        break;
-                                    }
-                                    else
-                                    {
-                                        return false;
-                                    }
-                                }
-                            }
-                        }
+                                Dictionary<string, bool> newUsers = new(StringComparer.OrdinalIgnoreCase);
 
-                        if (enabled)
-                        {
-                            // user is OK in shadow file, check passwd file
-                            lines = File.ReadAllLines("/etc/passwd");
-                            // example line:
-                            // root:x:0:0:root:/root:/bin/bash
-                            foreach (string[] pieces in lines.Select(l => l.Split(':')).Where(p => p.Length == 7))
-                            {
-                                // x means shadow file is where the password is at
-                                string checkUserName = pieces[0].Trim();
-                                string nologin = pieces[6];
-                                if (checkUserName.Equals(userName) && nologin.IndexOf("nologin", StringComparison.OrdinalIgnoreCase) < 0 &&
-                                    !nologin.Contains("/bin/false"))
+                                // enabled users must have an entry in password hash file
+                                string[] lines = File.ReadAllLines("/etc/shadow");
+
+                                // example line:
+                                // root:!$1$Fp$SSSuo3L.xA5s/kMEEIloU1:18049:0:99999:7:::
+                                foreach (string[] pieces in lines.Select(l => l.Split(':')).Where(p => p.Length == 9))
                                 {
-                                    return true;
+                                    string checkUserName = pieces[0].Trim();
+                                    string pwdHash = pieces[1].Trim();
+                                    bool hasPwdHash = (pwdHash.Length != 0 && pwdHash[0] != '*' && pwdHash[0] != '!');
+                                    newUsers[checkUserName] = hasPwdHash;
                                 }
+
+                                // filter out nologin users
+                                lines = File.ReadAllLines("/etc/passwd");
+
+                                // example line:
+                                // root:x:0:0:root:/root:/bin/bash
+                                foreach (string[] pieces in lines.Select(l => l.Split(':')).Where(p => p.Length == 7))
+                                {
+                                    // x means shadow file is where the password is at
+                                    string checkUserName = pieces[0].Trim();
+                                    string nologin = pieces[6];
+                                    bool cannotLogin = (nologin.Contains("nologin", StringComparison.OrdinalIgnoreCase) ||
+                                        nologin.Contains("/bin/false", StringComparison.OrdinalIgnoreCase));
+                                    if (cannotLogin)
+                                    {
+                                        newUsers[checkUserName] = false;
+                                    }
+                                }
+                                usersExpire = IPBanService.UtcNow + usersExpireTimeSpan;
+                                users = newUsers;
                             }
                         }
                     }
@@ -453,7 +469,8 @@ namespace DigitalRuby.IPBanCore
                 Logger.Error("Error determining if user is active", ex);
             }
 
-            return false;
+            users.TryGetValue(userName, out enabled);
+            return enabled;
         }
 
         /// <summary>

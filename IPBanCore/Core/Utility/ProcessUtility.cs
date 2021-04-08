@@ -165,10 +165,10 @@ namespace DigitalRuby.IPBanCore
         /// <param name="arguments">Arguments</param>
         public static void CreateDetachedProcess(string fileName, string arguments)
         {
+            Logger.Warn("Running detached process {0} {1}", fileName, arguments);
+
             if (OSUtility.IsWindows)
             {
-                Logger.Warn("Running detached process {0} {1}", fileName, arguments);
-
                 var processInformation = new ProcessUtility.PROCESS_INFORMATION();
                 var startupInfo = new ProcessUtility.STARTUPINFO();
                 var sa = new ProcessUtility.SECURITY_ATTRIBUTES();
@@ -195,10 +195,8 @@ namespace DigitalRuby.IPBanCore
                     WorkingDirectory = Path.GetDirectoryName(fileName)
                 };
 
-                Logger.Warn("Running detached process {0} {1}", info.FileName, info.Arguments);
-
-                // do not get a reference and do not dispose, this process is orphaned from this process
-                Process.Start(info);
+                // start and cleanup our reference to the process, dispose does not kill the process
+                using Process process = Process.Start(info);
             }
         }
     }
