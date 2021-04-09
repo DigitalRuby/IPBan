@@ -195,8 +195,8 @@ namespace DigitalRuby.IPBanCore
                     WorkingDirectory = Path.GetDirectoryName(fileName)
                 };
 
-                // start and cleanup our reference to the process, dispose does not kill the process
-                using Process process = Process.Start(info);
+                // start detached process, do not dispose
+                Process.Start(info);
             }
         }
     }
