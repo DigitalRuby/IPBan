@@ -83,13 +83,13 @@ namespace DigitalRuby.IPBanCore.Windows.COM
         [MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime)]
         void EnableRuleGroup(
             [In] int profileTypesBitmask,
-            [MarshalAs(UnmanagedType.BStr)] [In] string group,
+            [MarshalAs(UnmanagedType.BStr)][In] string group,
             [In] bool enable
         );
 
         [DispId(10)]
         [MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime)]
-        bool IsRuleGroupEnabled([In] int profileTypesBitmask, [MarshalAs(UnmanagedType.BStr)] [In] string group);
+        bool IsRuleGroupEnabled([In] int profileTypesBitmask, [MarshalAs(UnmanagedType.BStr)][In] string group);
 
         [DispId(11)]
         [MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime)]
@@ -113,7 +113,7 @@ namespace DigitalRuby.IPBanCore.Windows.COM
 
         [DispId(14)]
         [MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime)]
-        bool get_IsRuleGroupCurrentlyEnabled([MarshalAs(UnmanagedType.BStr)] [In] string group);
+        bool get_IsRuleGroupCurrentlyEnabled([MarshalAs(UnmanagedType.BStr)][In] string group);
 
         [DispId(15)]
         NetFwModifyState LocalPolicyModifyState

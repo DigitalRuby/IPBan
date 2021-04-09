@@ -186,7 +186,7 @@ namespace DigitalRuby.IPBanCore
         /// Rule name
         /// </summary>
         public string Name { get; set; }
-        
+
         /// <summary>
         /// True to block, false to allow
         /// </summary>

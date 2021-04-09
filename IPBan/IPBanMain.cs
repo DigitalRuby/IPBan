@@ -22,11 +22,11 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+using DigitalRuby.IPBanCore;
+
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-
-using DigitalRuby.IPBanCore;
 
 namespace DigitalRuby.IPBan
 {

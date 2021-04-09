@@ -154,7 +154,7 @@ namespace DigitalRuby.IPBanCore
         /// Optional date/time format if RegexFailure has a timestamp group
         /// </summary>
         public string RegexFailureTimestampFormat { get; set; }
-        
+
         /// <summary>
         /// Regular expression for successful logins, see RegexFailure for regex group names.
         /// </summary>

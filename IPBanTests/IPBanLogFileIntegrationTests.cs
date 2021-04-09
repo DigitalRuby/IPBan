@@ -22,16 +22,16 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+using DigitalRuby.IPBanCore;
+
+using NUnit.Framework;
+
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
-using DigitalRuby.IPBanCore;
-
-using NUnit.Framework;
 
 namespace DigitalRuby.IPBanTests
 {
@@ -45,7 +45,7 @@ namespace DigitalRuby.IPBanTests
         [SetUp]
         public void Setup()
         {
-            
+
         }
 
         [TearDown]

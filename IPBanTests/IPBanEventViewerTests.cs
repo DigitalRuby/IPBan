@@ -22,16 +22,15 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+using DigitalRuby.IPBanCore;
+
+using NUnit.Framework;
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
-using System.Xml;
-
-using DigitalRuby.IPBanCore;
-
-using NUnit.Framework;
 
 namespace DigitalRuby.IPBanTests
 {
@@ -361,7 +360,7 @@ namespace DigitalRuby.IPBanTests
             Assert.AreEqual(5, successEvents["74.76.76.76_RDP_administrateur"]);
             Assert.AreEqual(5, successEvents["88.88.88.88_SSH_success_user"]);
             Assert.AreEqual(5, successEvents["98.196.175.165_RRAS_username"]);
-}
+        }
 
         void IDisposable.Dispose() => GC.SuppressFinalize(this);
 

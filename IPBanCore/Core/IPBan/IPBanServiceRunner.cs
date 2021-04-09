@@ -22,15 +22,13 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+
 using System;
 using System.IO;
-using System.Threading.Tasks;
 using System.Threading;
-
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using System.Diagnostics;
+using System.Threading.Tasks;
 
 namespace DigitalRuby.IPBanCore
 {

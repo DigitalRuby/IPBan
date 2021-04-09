@@ -1,9 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using DigitalRuby.IPBanCore;
 
-using DigitalRuby.IPBanCore;
 using NUnit.Framework;
+
+using System;
 
 namespace DigitalRuby.IPBanTests
 {

@@ -25,15 +25,12 @@ SOFTWARE.
 #region Imports
 
 using Microsoft.Extensions.Logging;
+
 using NLog;
 using NLog.Config;
-using NLog.Time;
+
 using System;
-using System.Collections.Generic;
-using System.Configuration;
 using System.IO;
-using System.Linq;
-using System.Reflection;
 using System.Text;
 
 #endregion Imports

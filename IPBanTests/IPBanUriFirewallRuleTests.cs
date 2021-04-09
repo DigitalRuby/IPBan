@@ -1,14 +1,14 @@
-﻿using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
+﻿using DigitalRuby.IPBanCore;
 
 using NUnit.Framework;
 
-using DigitalRuby.IPBanCore;
 using System;
+using System.Collections.Generic;
 using System.IO;
-using System.Text;
 using System.Linq;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace DigitalRuby.IPBanTests
 {

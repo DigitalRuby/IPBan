@@ -23,11 +23,9 @@ SOFTWARE.
 */
 
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
-using System.Text;
 
 #pragma warning disable IDE0059 // Unnecessary assignment of a value
 #pragma warning disable IDE0051 // Remove unused private members

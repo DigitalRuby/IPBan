@@ -32,7 +32,6 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Security;
 using System.Security.Cryptography;
@@ -1314,5 +1313,5 @@ namespace DigitalRuby.IPBanCore
                 ExtensionMethods.FileDeleteWithRetry(file, 1000);
             }
         }
-        }
+    }
 }

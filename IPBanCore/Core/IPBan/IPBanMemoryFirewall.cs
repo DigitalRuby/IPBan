@@ -411,7 +411,7 @@ namespace DigitalRuby.IPBanCore
             string ruleName = ScrubRuleNamePrefix(AllowRulePrefix, ruleNamePrefix);
             lock (this)
             {
-                allowRuleRanges[ruleName] = new MemoryFirewallRuleRanges(ipAddresses, allowedPortList, false, ruleName); 
+                allowRuleRanges[ruleName] = new MemoryFirewallRuleRanges(ipAddresses, allowedPortList, false, ruleName);
             }
             return Task.FromResult<bool>(true);
         }

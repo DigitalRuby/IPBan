@@ -25,10 +25,8 @@ SOFTWARE.
 #pragma warning disable CA1416 // Validate platform compatibility
 
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Management;
@@ -37,8 +35,6 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
-using System.Threading.Tasks;
-using System.Xml;
 
 namespace DigitalRuby.IPBanCore
 {
@@ -366,7 +362,12 @@ namespace DigitalRuby.IPBanCore
 
         private static Dictionary<string, bool> users = new(StringComparer.OrdinalIgnoreCase);
         private static DateTime usersExpire = IPBanService.UtcNow;
-        private static readonly TimeSpan usersExpireTimeSpan = TimeSpan.FromMinutes(10.0);
+
+        /// <summary>
+        /// The amount of time to cache the users found in the <see cref="UserIsActive(string)"/> method.
+        /// Default is 1 day.
+        /// </summary>
+        public static TimeSpan UserIsActiveCacheTime { get; set; } = TimeSpan.FromDays(1.0);
 
         /// <summary>
         /// Check if a user name is active on the local machine
@@ -403,13 +404,15 @@ namespace DigitalRuby.IPBanCore
                             ManagementObjectSearcher searcher = new(query);
                             foreach (ManagementObject user in searcher.Get())
                             {
+#pragma warning disable CA1507 // Use nameof to express symbol names
                                 string foundUserName = user["Name"]?.ToString();
+#pragma warning restore CA1507 // Use nameof to express symbol names
                                 if (!string.IsNullOrWhiteSpace(foundUserName))
                                 {
                                     newUsers[foundUserName] = user["Disabled"] is null || user["Disabled"].Equals(false);
                                 }
                             }
-                            usersExpire = IPBanService.UtcNow + usersExpireTimeSpan;
+                            usersExpire = IPBanService.UtcNow + UserIsActiveCacheTime;
                             users = newUsers;
                         }
                     }
@@ -456,7 +459,7 @@ namespace DigitalRuby.IPBanCore
                                         newUsers[checkUserName] = false;
                                     }
                                 }
-                                usersExpire = IPBanService.UtcNow + usersExpireTimeSpan;
+                                usersExpire = IPBanService.UtcNow + UserIsActiveCacheTime;
                                 users = newUsers;
                             }
                         }

@@ -11,8 +11,8 @@ namespace DigitalRuby.IPBanCore.Windows.COM
         [MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime)]
         // ReSharper disable once TooManyArguments
         void RestrictService(
-            [MarshalAs(UnmanagedType.BStr)] [In] string serviceName,
-            [MarshalAs(UnmanagedType.BStr)] [In] string appName,
+            [MarshalAs(UnmanagedType.BStr)][In] string serviceName,
+            [MarshalAs(UnmanagedType.BStr)][In] string appName,
             [In] bool restrictService,
             [In] bool serviceSIDRestricted
         );
@@ -20,8 +20,8 @@ namespace DigitalRuby.IPBanCore.Windows.COM
         [DispId(2)]
         [MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime)]
         bool ServiceRestricted(
-            [MarshalAs(UnmanagedType.BStr)] [In] string serviceName,
-            [MarshalAs(UnmanagedType.BStr)] [In] string appName
+            [MarshalAs(UnmanagedType.BStr)][In] string serviceName,
+            [MarshalAs(UnmanagedType.BStr)][In] string appName
         );
 
         [DispId(3)]

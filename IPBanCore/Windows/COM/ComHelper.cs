@@ -23,7 +23,7 @@ namespace DigitalRuby.IPBanCore.Windows.COM
 
                     if (typeByProgId != null)
                     {
-                        return (T) Activator.CreateInstance(typeByProgId);
+                        return (T)Activator.CreateInstance(typeByProgId);
                     }
                 }
 
@@ -31,7 +31,7 @@ namespace DigitalRuby.IPBanCore.Windows.COM
 
                 if (typeByClassId != null)
                 {
-                    return (T) Activator.CreateInstance(typeByClassId);
+                    return (T)Activator.CreateInstance(typeByClassId);
                 }
             }
             catch (COMException e)

@@ -30,11 +30,8 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
-using System.Net;
-using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Serialization;
 
@@ -731,7 +728,7 @@ namespace DigitalRuby.IPBanCore
             }
             return doc.OuterXml;
         }
-        
+
         /// <summary>
         /// Raw xml
         /// </summary>
@@ -838,7 +835,7 @@ namespace DigitalRuby.IPBanCore
         /// <summary>
         /// User name whitelist regex, or empty if not set.
         /// </summary>
-        public string UserNameWhitelistRegex {  get { return (userNameWhitelistRegex is null ? string.Empty : userNameWhitelistRegex.ToString()); } }
+        public string UserNameWhitelistRegex { get { return (userNameWhitelistRegex is null ? string.Empty : userNameWhitelistRegex.ToString()); } }
 
         /// <summary>
         /// Number of failed logins before banning a user name in the user name whitelist

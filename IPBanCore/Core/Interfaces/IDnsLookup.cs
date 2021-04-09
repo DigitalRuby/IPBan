@@ -129,7 +129,7 @@ namespace DigitalRuby.IPBanCore
 
         Task<System.Net.IPAddress[]> IDnsLookup.GetHostAddressesAsync(string hostNameOrAddress)
         {
-            return Task.FromResult(new [] { System.Net.IPAddress.Parse("10.10.10.10") });
+            return Task.FromResult(new[] { System.Net.IPAddress.Parse("10.10.10.10") });
         }
 
         Task<IPHostEntry> IDnsLookup.GetHostEntryAsync(string hostNameOrAddress)

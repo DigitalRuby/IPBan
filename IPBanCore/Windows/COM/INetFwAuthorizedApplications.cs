@@ -27,12 +27,12 @@ namespace DigitalRuby.IPBanCore.Windows.COM
 
         [DispId(3)]
         [MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime)]
-        void Remove([MarshalAs(UnmanagedType.BStr)] [In] string imageFileName);
+        void Remove([MarshalAs(UnmanagedType.BStr)][In] string imageFileName);
 
         [DispId(4)]
         [MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime)]
         [return: MarshalAs(UnmanagedType.Interface)]
-        INetFwAuthorizedApplication Item([MarshalAs(UnmanagedType.BStr)] [In] string imageFileName);
+        INetFwAuthorizedApplication Item([MarshalAs(UnmanagedType.BStr)][In] string imageFileName);
 
         [DispId(-4)]
         IEnumVARIANT GetEnumeratorVariant();

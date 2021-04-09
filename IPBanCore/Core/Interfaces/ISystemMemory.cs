@@ -27,8 +27,6 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 
-using DigitalRuby.IPBanCore;
-
 namespace DigitalRuby.IPBanCore
 {
     /// <summary>

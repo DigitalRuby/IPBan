@@ -26,6 +26,8 @@ SOFTWARE.
 
 #region Imports
 
+using DigitalRuby.IPBanCore.Windows.COM;
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -37,8 +39,6 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-
-using DigitalRuby.IPBanCore.Windows.COM;
 
 #endregion Imports
 

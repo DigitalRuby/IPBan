@@ -33,10 +33,10 @@ namespace DigitalRuby.IPBanCore.Windows.COM
         [MethodImpl(MethodImplOptions.InternalCall, MethodCodeType = MethodCodeType.Runtime)]
         // ReSharper disable once TooManyArguments
         void IsPortAllowed(
-            [MarshalAs(UnmanagedType.BStr)] [In] string imageFileName,
+            [MarshalAs(UnmanagedType.BStr)][In] string imageFileName,
             [In] NetFwIPVersion ipVersion,
             [In] int portNumber,
-            [MarshalAs(UnmanagedType.BStr)] [In] string localAddress,
+            [MarshalAs(UnmanagedType.BStr)][In] string localAddress,
             [In] NetFwIPProtocol ipProtocol,
             out object allowed,
             out object restricted
@@ -47,7 +47,7 @@ namespace DigitalRuby.IPBanCore.Windows.COM
         // ReSharper disable once TooManyArguments
         void IsIcmpTypeAllowed(
             [In] NetFwIPVersion ipVersion,
-            [MarshalAs(UnmanagedType.BStr)] [In] string localAddress,
+            [MarshalAs(UnmanagedType.BStr)][In] string localAddress,
             [In] byte type,
             out object allowed,
             out object restricted
