@@ -165,6 +165,7 @@ namespace DigitalRuby.IPBanCore
         /// <param name="arguments">Arguments</param>
         public static void CreateDetachedProcess(string fileName, string arguments)
         {
+            arguments ??= string.Empty;
             Logger.Warn("Running detached process {0} {1}", fileName, arguments);
 
             if (OSUtility.IsWindows)
@@ -185,8 +186,6 @@ namespace DigitalRuby.IPBanCore
                 // use Linux at, should have been installed earlier
                 ProcessStartInfo info = new()
                 {
-                    // Linux uses nohup and " &" to detach the process
-                    // sudo -b to force it into the background
                     Arguments = "-c \"echo sudo \\\"" + fileName + "\\\" " + arguments.Replace("\"", "\\\"") + " | at now\"",
                     CreateNoWindow = true,
                     FileName = "/bin/bash",
@@ -196,7 +195,7 @@ namespace DigitalRuby.IPBanCore
                 };
 
                 // start detached process, do not dispose
-                Process.Start(info);
+                using Process process = Process.Start(info);
             }
         }
     }
