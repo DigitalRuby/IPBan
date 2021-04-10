@@ -295,6 +295,7 @@ namespace DigitalRuby.IPBanCore
 
             try
             {
+                GC.SuppressFinalize(this);
                 cycleLock.WaitAsync().Sync();
                 IsRunning = false;
                 GetUrl(UrlType.Stop).Sync();
@@ -397,28 +398,6 @@ namespace DigitalRuby.IPBanCore
         public Task<bool> WaitAsync(int timeoutMilliseconds)
         {
             return stopEvent.WaitAsync(timeoutMilliseconds);
-        }
-
-        /// <summary>
-        /// Check if an entry is whitelisted
-        /// </summary>
-        /// <param name="entry">Entry</param>
-        /// <returns>True if whitelisted, false otherwise</returns>
-        public bool IsWhitelisted(string entry)
-        {
-            IPBanConfig config = Config;
-            return (config != null && config.IsWhitelisted(entry));
-        }
-
-        /// <summary>
-        /// Check if an ip address range is whitelisted
-        /// </summary>
-        /// <param name="range">Range</param>
-        /// <returns>True if whitelisted, false otherwise</returns>
-        public bool IsWhitelisted(IPAddressRange range)
-        {
-            IPBanConfig config = Config;
-            return (config != null && Config.IsWhitelisted(range));
         }
 
         /// <summary>
@@ -642,5 +621,11 @@ namespace DigitalRuby.IPBanCore
                 IPBanService.UtcNow = default;
             }
         }
+
+        /// <inheritdoc />
+        public bool IsWhitelisted(string entry) => Config.IsWhitelisted(entry);
+
+        /// <inheritdoc />
+        public bool IsWhitelisted(IPAddressRange range) => Config.IsWhitelisted(range);
     }
 }

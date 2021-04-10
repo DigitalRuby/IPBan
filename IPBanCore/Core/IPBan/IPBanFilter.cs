@@ -35,7 +35,7 @@ namespace DigitalRuby.IPBanCore
     /// <summary>
     /// Parse and create a filter for ips, user names, ip list from urls, regex, etc.
     /// </summary>
-    public class IPBanFilter
+    public class IPBanFilter : IIPBanFilter
     {
         private static readonly HashSet<string> ignoreListEntries = new()
         {
@@ -56,6 +56,7 @@ namespace DigitalRuby.IPBanCore
         private readonly HashSet<IPAddressRange> ranges = new();
         private readonly HashSet<string> others = new(StringComparer.OrdinalIgnoreCase);
         private readonly IDnsServerList dnsList;
+        private readonly IIPBanFilter counterFilter;
 
         private void AddIPAddressRange(IPAddressRange range)
         {
@@ -75,20 +76,13 @@ namespace DigitalRuby.IPBanCore
             }
         }
 
-        private bool IsMatch(string entry, System.Net.IPAddress entryIPAddress)
+        private bool IsNonIPMatch(string entry)
         {
             if (!string.IsNullOrWhiteSpace(entry))
             {
                 entry = entry.Trim().Normalize();
-                if (entryIPAddress != null || System.Net.IPAddress.TryParse(entry, out entryIPAddress))
-                {
-                    // direct ip match in set or match in range of ip address list
-                    if (set.Contains(entryIPAddress) || ranges.Any(r => r.Contains(entryIPAddress)))
-                    {
-                        return true;
-                    }
-                }
-                else if (others.Contains(entry))
+
+                if (others.Contains(entry))
                 {
                     // direct string match in other set
                     return true;
@@ -113,10 +107,12 @@ namespace DigitalRuby.IPBanCore
         /// <param name="httpRequestMaker">Http request maker in case urls are present in the value</param>
         /// <param name="dns">Dns lookup in case dns entries are present in the value</param>
         /// <param name="dnsList">Dns servers, these are never filtered</param>
+        /// <param name="counterFilter">Filter to check first and return false if contains</param>
         public IPBanFilter(string value, string regexValue, IHttpRequestMaker httpRequestMaker, IDnsLookup dns,
-            IDnsServerList dnsList)
+            IDnsServerList dnsList, IIPBanFilter counterFilter)
         {
             this.dnsList = dnsList;
+            this.counterFilter = counterFilter;
 
             value = (value ?? string.Empty).Trim();
             regexValue = (regexValue ?? string.Empty).Replace("*", @"[0-9A-Fa-f]+?").Trim();
@@ -242,41 +238,67 @@ namespace DigitalRuby.IPBanCore
             }
         }
 
-        /// <summary>
-        /// Check if an entry is filtered
-        /// </summary>
-        /// <param name="entry">Entry</param>
-        /// <returns>True if whitelisted, false otherwise</returns>
-        public bool IsFiltered(string entry)
+        /// <inheritdoc />
+        public bool Equals(IIPBanFilter other)
         {
-            System.Net.IPAddress ipAddress = null;
-
-            // if we have a dns list and the parameter is an ip address and the ip address
-            // is one of our dns servers, it is not filtered
-            if (dnsList != null &&
-                IPAddress.TryParse(entry, out ipAddress) &&
-                dnsList.ContainsIPAddress(ipAddress))
+            if (object.ReferenceEquals(this, other))
+            {
+                return true;
+            }
+            else if (other is not IPBanFilter otherFilter)
             {
                 return false;
             }
-            return IsMatch(entry, ipAddress);
+            else if (!set.SetEquals(otherFilter.set))
+            {
+                return false;
+            }
+            else if (!ranges.SetEquals(otherFilter.ranges))
+            {
+                return false;
+            }
+            else if (regex is not null ^ otherFilter.regex is not null)
+            {
+                return false;
+            }
+            else if (regex is not null && otherFilter.regex is not null &&
+                !regex.ToString().Equals(otherFilter.Regex.ToString()))
+            {
+                return false;
+            }
+            return true;
         }
 
-        /// <summary>
-        /// Check if an ip address range is filtered. If any ip or range intersects, the range is filtered.
-        /// </summary>
-        /// <param name="range">Range</param>
-        /// <returns>True if range is whitelisted, false otherwise</returns>
+        /// <inheritdoc />
+        public bool IsFiltered(string entry)
+        {
+            if (System.Net.IPAddress.TryParse(entry, out System.Net.IPAddress ipAddressObj) &&
+                IsFiltered(new IPAddressRange(ipAddressObj)))
+            {
+                return true;
+            }
+            else if (counterFilter is not null && counterFilter.IsFiltered(entry))
+            {
+                return false;
+            }
+
+            // default behavior
+            return IsNonIPMatch(entry);
+        }
+
+        /// <inheritdoc/>
         public bool IsFiltered(IPAddressRange range)
         {
-            // if we have a dns list and one of our dns servers is in the range, the range is not filtered
-            if (dnsList != null && dnsList.ContainsIPAddressRange(range))
+            // if we have a counter filter or a dns list and one of our dns servers is in the range, the range is not filtered
+            if ((counterFilter is not null && counterFilter.IsFiltered(range)) ||
+                (dnsList != null && dnsList.ContainsIPAddressRange(range)))
             {
                 return false;
             }
 
             // if the set or ranges contains the range, it is filtered
-            else if (set.Any(i => range.Contains(i)) || ranges.Any(r => r.Contains(range)))
+            else if ((range.Begin.Equals(range.End) && set.Contains(range.Begin)) ||
+                (set.Any(i => range.Contains(i)) || ranges.Any(r => r.Contains(range))))
             {
                 return true;
             }
@@ -294,6 +316,6 @@ namespace DigitalRuby.IPBanCore
         /// <summary>
         /// Get the regex filter
         /// </summary>
-        public string Regex { get { return (regex is null ? string.Empty : regex.ToString()); } }
+        public Regex Regex => regex;
     }
 }

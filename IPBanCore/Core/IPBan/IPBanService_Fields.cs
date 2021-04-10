@@ -122,6 +122,16 @@ namespace DigitalRuby.IPBanCore
         public IPBanConfig Config { get; private set; }
 
         /// <summary>
+        /// Whitelist
+        /// </summary>
+        public IIPBanFilter Whitelist => Config.WhitelistFilter;
+
+        /// <summary>
+        /// Blacklist
+        /// </summary>
+        public IIPBanFilter Blacklist => Config.BlacklistFilter;
+
+        /// <summary>
         /// Config changed event
         /// </summary>
         public event Action<IPBanConfig> ConfigChanged;

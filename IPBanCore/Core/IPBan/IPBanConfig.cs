@@ -194,8 +194,8 @@ namespace DigitalRuby.IPBanCore
             string whitelistRegexString = GetConfig<string>("WhitelistRegex", string.Empty);
             string blacklistString = GetConfig<string>("Blacklist", string.Empty);
             string blacklistRegexString = GetConfig<string>("BlacklistRegex", string.Empty);
-            whitelistFilter = new IPBanFilter(whitelistString, whitelistRegexString, httpRequestMaker, dns, dnsList);
-            blacklistFilter = new IPBanFilter(blacklistString, blacklistRegexString, httpRequestMaker, dns, dnsList);
+            whitelistFilter = new IPBanFilter(whitelistString, whitelistRegexString, httpRequestMaker, dns, dnsList, null);
+            blacklistFilter = new IPBanFilter(blacklistString, blacklistRegexString, httpRequestMaker, dns, dnsList, whitelistFilter);
             expressionsFailure = ParseEventViewer<EventViewerExpressionsToBlock>(doc, "/configuration/ExpressionsToBlock", false);
             expressionsSuccess = ParseEventViewer<EventViewerExpressionsToNotify>(doc, "/configuration/ExpressionsToNotify", true);
             logFiles = ParseLogFiles(doc, "/configuration/LogFilesToParse");
@@ -589,46 +589,6 @@ namespace DigitalRuby.IPBanCore
         }
 
         /// <summary>
-        /// Check if an entry is whitelisted
-        /// </summary>
-        /// <param name="entry">Entry</param>
-        /// <returns>True if whitelisted, false otherwise</returns>
-        public bool IsWhitelisted(string entry)
-        {
-            return whitelistFilter.IsFiltered(entry);
-        }
-
-        /// <summary>
-        /// Check if an ip address range is whitelisted. If any whitelist ip or range intersects, the range is whitelisted.
-        /// </summary>
-        /// <param name="range">Range</param>
-        /// <returns>True if range is whitelisted, false otherwise</returns>
-        public bool IsWhitelisted(IPAddressRange range)
-        {
-            return whitelistFilter.IsFiltered(range);
-        }
-
-        /// <summary>
-        /// Check if an ip address, dns name or user name is blacklisted
-        /// </summary>
-        /// <param name="entry">IP address, dns name or user name</param>
-        /// <returns>True if blacklisted, false otherwise</returns>
-        public bool IsBlackListed(string entry)
-        {
-            return !IsWhitelisted(entry) && blacklistFilter.IsFiltered(entry);
-        }
-
-        /// <summary>
-        /// Check if an ip address range is blacklisted. If any blacklist ip or range intersects, the range is blacklisted.
-        /// </summary>
-        /// <param name="range">Range</param>
-        /// <returns>True if range is blacklisted, false otherwise</returns>
-        public bool IsBlacklisted(IPAddressRange range)
-        {
-            return !IsWhitelisted(range) && blacklistFilter.IsFiltered(range);
-        }
-
-        /// <summary>
         /// Check if a user name fails the user name whitelist regex. If the regex is empty, method returns false.
         /// </summary>
         /// <param name="userName">User name</param>
@@ -729,6 +689,12 @@ namespace DigitalRuby.IPBanCore
             return doc.OuterXml;
         }
 
+        /// <inheritdoc />
+        public bool IsWhitelisted(string entry) => whitelistFilter.IsFiltered(entry);
+
+        /// <inheritdoc />
+        public bool IsWhitelisted(IPAddressRange range) => whitelistFilter.IsFiltered(range);
+
         /// <summary>
         /// Raw xml
         /// </summary>
@@ -807,24 +773,14 @@ namespace DigitalRuby.IPBanCore
         public bool ClearFailedLoginsOnSuccessfulLogin { get { return clearFailedLoginsOnSuccessfulLogin; } }
 
         /// <summary>
-        /// Get all ip address ranges in the whitelist
+        /// Whitelist
         /// </summary>
-        public IReadOnlyCollection<IPAddressRange> Whitelist => whitelistFilter.IPAddressRanges;
+        public IIPBanFilter WhitelistFilter => whitelistFilter;
 
         /// <summary>
-        /// White list regex
+        /// Blacklist
         /// </summary>
-        public string WhitelistRegex => whitelistFilter.Regex;
-
-        /// <summary>
-        /// Get all ip address ranges in the blacklist
-        /// </summary>
-        public IReadOnlyCollection<IPAddressRange> BlackList => blacklistFilter.IPAddressRanges;
-
-        /// <summary>
-        /// Black list regex
-        /// </summary>
-        public string BlackListRegex => blacklistFilter.Regex;
+        public IIPBanFilter BlacklistFilter => blacklistFilter;
 
         /// <summary>
         /// White list user names. Any user name found not in the list is banned, unless the list is empty, in which case no checking is done.

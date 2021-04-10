@@ -171,7 +171,7 @@ namespace DigitalRuby.IPBanCore
                     IPBanConfig newConfig = IPBanConfig.LoadFromXml(finalXml, DnsLookup, DnsList, RequestMaker);
                     bool configChanged = oldConfig is null || oldConfig.Xml != newConfig.Xml;
                     ConfigChanged?.Invoke(newConfig);
-                    whitelistChanged = (Config is null || Config.Whitelist != newConfig.Whitelist || Config.WhitelistRegex != newConfig.WhitelistRegex);
+                    whitelistChanged = (Config is null || !Config.WhitelistFilter.Equals(newConfig.WhitelistFilter));
                     Config = newConfig;
                     LoadFirewall(oldConfig);
                     ParseAndAddUriFirewallRules(newConfig);
@@ -321,8 +321,8 @@ namespace DigitalRuby.IPBanCore
                             DateTime now = failedLogin.Timestamp;
 
                             // check for the target user name for additional blacklisting checks
-                            bool ipBlacklisted = Config.IsBlackListed(ipAddress);
-                            bool userBlacklisted = (!ipBlacklisted && Config.IsBlackListed(userName));
+                            bool ipBlacklisted = Config.BlacklistFilter.IsFiltered(ipAddress);
+                            bool userBlacklisted = (!ipBlacklisted && Config.BlacklistFilter.IsFiltered(userName));
                             bool userFailsWhitelistRegex = (!userBlacklisted && Config.UserNameFailsUserNameWhitelistRegex(userName));
                             bool editDistanceBlacklisted = (!ipBlacklisted && !userBlacklisted && !userFailsWhitelistRegex && !Config.IsUserNameWithinMaximumEditDistanceOfUserNameWhitelist(userName));
                             bool configBlacklisted = ipBlacklisted || userBlacklisted || userFailsWhitelistRegex || editDistanceBlacklisted;
@@ -658,8 +658,8 @@ namespace DigitalRuby.IPBanCore
             SetupWindowsEventViewer();
 
             // add/update global rules
-            Firewall.AllowIPAddresses("GlobalWhitelist", Config.Whitelist);
-            Firewall.BlockIPAddresses("GlobalBlacklist", Config.BlackList);
+            Firewall.AllowIPAddresses("GlobalWhitelist", Config.WhitelistFilter.IPAddressRanges);
+            Firewall.BlockIPAddresses("GlobalBlacklist", Config.BlacklistFilter.IPAddressRanges);
 
             // add/update user specified rules
             foreach (IPBanFirewallRule rule in Config.ExtraRules)
@@ -711,7 +711,7 @@ namespace DigitalRuby.IPBanCore
             foreach (IPBanDB.IPAddressEntry ipAddress in ipDB.EnumerateIPAddresses(failLoginCutOff, banCutOff, transaction))
             {
                 // never un-ban a blacklisted entry
-                if (Config.IsBlackListed(ipAddress.IPAddress) && !Config.IsWhitelisted(ipAddress.IPAddress))
+                if (Config.BlacklistFilter.IsFiltered(ipAddress.IPAddress))
                 {
                     Logger.Debug("Not unbanning blacklisted ip {0}", ipAddress.IPAddress);
                     continue;

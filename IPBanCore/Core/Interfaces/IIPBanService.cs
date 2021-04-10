@@ -109,13 +109,6 @@ namespace DigitalRuby.IPBanCore
         void RunFirewallTask(Func<CancellationToken, Task> action, string name = null);
 
         /// <summary>
-        /// Check if an ip is whitelisted
-        /// </summary>
-        /// <param name="ip">IP address</param>
-        /// <returns>True if whitelisted, false otherwise</returns>
-        bool IsWhitelisted(string ip);
-
-        /// <summary>
         /// Whether the service is running
         /// </summary>
         bool IsRunning { get; }
@@ -134,6 +127,16 @@ namespace DigitalRuby.IPBanCore
         /// Config changed event
         /// </summary>
         event Action<IPBanConfig> ConfigChanged;
+
+        /// <summary>
+        /// Whitelist
+        /// </summary>
+        IIPBanFilter Whitelist { get; }
+
+        /// <summary>
+        /// Blacklist
+        /// </summary>
+        IIPBanFilter Blacklist { get; }
 
         /// <summary>
         /// Local ip address string

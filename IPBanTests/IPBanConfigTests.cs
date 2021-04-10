@@ -200,8 +200,8 @@ namespace DigitalRuby.IPBanTests
                 Assert.IsNotNull(cfg);
                 Assert.AreEqual(TimeSpan.FromDays(1.0), cfg.BanTimes.First());
                 Assert.AreEqual(1, cfg.BanTimes.Length);
-                Assert.IsEmpty(cfg.BlackList);
-                Assert.IsEmpty(cfg.BlackListRegex);
+                Assert.IsEmpty(cfg.BlacklistFilter.IPAddressRanges);
+                Assert.IsTrue(string.IsNullOrEmpty(cfg.BlacklistFilter.Regex?.ToString()));
                 Assert.IsFalse(cfg.ClearBannedIPAddressesOnRestart);
                 Assert.AreEqual(TimeSpan.FromSeconds(15.0), cfg.CycleTime);
                 Assert.AreEqual(TimeSpan.FromDays(1.0), cfg.ExpireTime);
@@ -216,8 +216,8 @@ namespace DigitalRuby.IPBanTests
                 Assert.IsTrue(cfg.UseDefaultBannedIPAddressHandler);
                 Assert.IsEmpty(cfg.UserNameWhitelist);
                 Assert.IsEmpty(cfg.UserNameWhitelistRegex);
-                Assert.IsEmpty(cfg.Whitelist);
-                Assert.IsEmpty(cfg.WhitelistRegex);
+                Assert.IsEmpty(cfg.WhitelistFilter.IPAddressRanges);
+                Assert.IsTrue(string.IsNullOrEmpty(cfg.WhitelistFilter.Regex?.ToString()));
                 Assert.AreEqual(0, cfg.ExtraRules.Count);
                 Assert.AreEqual(cfg.FirewallUriRules.Trim(), "EmergingThreats,01:00:00:00,https://rules.emergingthreats.net/fwrules/emerging-Block-IPs.txt");
 
@@ -243,7 +243,7 @@ namespace DigitalRuby.IPBanTests
                 "<appSettings><add key='Whitelist' value='99.99.99.99?TestIP?2020-05-25," +
                 "88.88.88.88?TestIP2?2020-05-24' /></appSettings></configuration>",
                 DefaultDnsLookup.Instance);
-            Assert.AreEqual(string.Join(",", config.Whitelist.OrderBy(i => i)), "88.88.88.88,99.99.99.99");
+            Assert.AreEqual(string.Join(",", config.WhitelistFilter.IPAddressRanges.OrderBy(i => i)), "88.88.88.88,99.99.99.99");
             Assert.IsTrue(config.IsWhitelisted("99.99.99.99"));
             Assert.IsTrue(config.IsWhitelisted("88.88.88.88"));
             Assert.IsFalse(config.IsWhitelisted("77.77.77.77"));
@@ -255,8 +255,8 @@ namespace DigitalRuby.IPBanTests
             IPBanConfig config = IPBanConfig.LoadFromXml("<?xml version='1.0'?><configuration>" +
                 "<appSettings><add key='Whitelist' value='test.com' /></appSettings></configuration>",
                 this);
-            Assert.IsTrue(config.IsWhitelisted("99.88.77.66"));
-            Assert.IsFalse(config.IsBlackListed("99.88.77.66"));
+            Assert.IsTrue(config.WhitelistFilter.IsFiltered("99.88.77.66"));
+            Assert.IsFalse(config.BlacklistFilter.IsFiltered("99.88.77.66"));
         }
 
         [Test]
@@ -265,8 +265,8 @@ namespace DigitalRuby.IPBanTests
             IPBanConfig config = IPBanConfig.LoadFromXml("<?xml version='1.0'?><configuration>" +
                 "<appSettings><add key='Blacklist' value='test.com' /></appSettings></configuration>",
                 this);
-            Assert.IsFalse(config.IsWhitelisted("99.88.77.66"));
-            Assert.IsTrue(config.IsBlackListed("99.88.77.66"));
+            Assert.IsFalse(config.WhitelistFilter.IsFiltered("99.88.77.66"));
+            Assert.IsTrue(config.BlacklistFilter.IsFiltered("99.88.77.66"));
         }
 
         public Task<IPAddress[]> GetHostAddressesAsync(string hostNameOrAddress)
