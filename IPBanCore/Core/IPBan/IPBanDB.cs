@@ -128,7 +128,7 @@ namespace DigitalRuby.IPBanCore
             }
         }
 
-        private IPAddressEntry ParseIPAddressEntry(SqliteDataReader reader)
+        private static IPAddressEntry ParseIPAddressEntry(SqliteDataReader reader)
         {
             string ipAddress = reader.GetString(0);
             long lastFailedLogin = reader.GetInt64(1);
