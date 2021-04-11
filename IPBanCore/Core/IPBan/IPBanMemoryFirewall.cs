@@ -217,7 +217,9 @@ namespace DigitalRuby.IPBanCore
                 Name = name;
             }
 
+#pragma warning disable IDE0060 // Remove unused parameter
             public void SetIPAddresses(IEnumerable<string> ipAddresses, IEnumerable<PortRange> allowPorts)
+#pragma warning restore IDE0060 // Remove unused parameter
             {
                 ipv4.Clear();
                 ipv6.Clear();
