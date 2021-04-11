@@ -258,9 +258,14 @@ namespace DigitalRuby.IPBanCore
                 throw new ArgumentException("Begin ip address must be less than or equal the end ip address", nameof(begin));
             }
 
-            // re-create to remove annoying % sign garbage and get a separate copy
-            Begin = new IPAddress(begin.GetAddressBytes());
-            End = new IPAddress(end.GetAddressBytes());
+            // remnove scope id for ipv6
+            if (begin.AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6)
+            {
+                begin.ScopeId = end.ScopeId = 0;
+            }
+
+            Begin = begin;
+            End = end;
         }
 
         /// <summary>

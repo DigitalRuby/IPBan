@@ -702,6 +702,140 @@ namespace DigitalRuby.IPBanTests
                 temp.Is(null);
             }
         }
-    }
 
+        [Test]
+        public void TestFilterIPAddressRanges()
+        {
+            IPAddressRange[] expected = new IPAddressRange[]
+            {
+                "1.1.1.1-1.1.1.3",
+                "2.2.2.2",
+                "3.3.3.1-3.3.3.3",
+                "3.3.3.10-3.3.3.15",
+                "6.6.6.6-6.6.6.12",
+                "6.6.6.18-6.6.6.19",
+                "6.6.6.31-6.6.6.98",
+                "2620:0:2d0:2df::1-2620:0:2d0:2df::6",
+                "2620:0:2d0:2df::78-2620:0:2d0:2df::79"
+            };
+
+            IPAddressRange[] filter = new IPAddressRange[]
+            {
+                "0.0.0.0-1.1.1.0",
+                "1.1.1.4-2.2.2.1",
+                "2.2.2.3-3.3.3.0",
+                "3.3.3.4-3.3.3.9",
+                "3.3.3.16-5.5.5.255",
+                "6.6.6.13-6.6.6.17",
+                "6.6.6.20-6.6.6.30",
+                "6.6.6.99-255.255.255.255",
+                "2620:0:2d0:2df::7-2620:0:2d0:2df::77"
+            };
+
+            IPAddressRange[] ranges = new IPAddressRange[]
+            {
+                "0.0.0.1-1.1.1.0", // filtered out
+                "1.1.1.1-2.2.2.1", // filtered down
+                "2.2.2.2-2.2.2.255", // filtered down
+                "3.3.3.0-5.5.5.5", // filtered 2x
+                "6.6.6.6-7.7.7.7", // filtered 3x
+                "10.10.10.10-11.11.11.11", // filtered out
+                "2620:0:2d0:2df::1-2620:0:2d0:2df::79" // filtered down
+            };
+
+            TestFilterIPAddressRangesHelper(expected, null, filter, ranges);
+        }
+
+        [Test]
+        public void TestFilterIPAddressRangesNulls()
+        {
+            TestFilterIPAddressRangesHelper(System.Array.Empty<IPAddressRange>(), null, null, null);
+            TestFilterIPAddressRangesHelper(System.Array.Empty<IPAddressRange>(), null, new IPAddressRange[] { "1.1.1.1-2.2.2.2" }, null);
+            TestFilterIPAddressRangesHelper(new IPAddressRange[] { "1.1.1.1-2.2.2.2" }, null, null, new IPAddressRange[] { "1.1.1.1-2.2.2.2" });
+        }
+
+        [Test]
+        public void TestFilterIPAddressRangeFilterNoIntersect()
+        {
+            TestFilterIPAddressRangesHelper
+            (
+                new IPAddressRange[] { "1.1.1.1-2.2.2.2" },
+                null,
+                new IPAddressRange[] { "0.0.0.0-1.1.1.0", "2.2.2.3-2.2.2.255" },
+                new IPAddressRange[] { "1.1.1.1-2.2.2.2" }
+            );
+        }
+
+        [Test]
+        public void TestFilterAllIPV4()
+        {
+            TestFilterIPAddressRangesHelper
+            (
+                System.Array.Empty<IPAddressRange>(),
+                null,
+                new IPAddressRange[] { "0.0.0.0-255.255.255.255" },
+                new IPAddressRange[] { "0.0.0.0-2.2.2.2", "5.5.5.5-6.6.6.6" }
+            );
+        }
+
+        [Test]
+        public void TestIPAddressIsLocalHost()
+        {
+            Assert.IsTrue(System.Net.IPAddress.Parse("127.0.0.1").IsLocalHost());
+            Assert.IsTrue(System.Net.IPAddress.Parse("::1").IsLocalHost());
+            Assert.IsFalse(System.Net.IPAddress.Parse("127.0.0.2").IsLocalHost());
+            Assert.IsFalse(System.Net.IPAddress.Parse("::2").IsLocalHost());
+            Assert.IsFalse(((System.Net.IPAddress)null).IsLocalHost());
+        }
+
+        [Test]
+        public void TestTryCreateIPAddressRangeFromIPAddresses()
+        {
+            var ip1 = System.Net.IPAddress.Parse("1.1.1.1");
+            var ip2 = System.Net.IPAddress.Parse("1.1.1.2");
+            var ip3 = System.Net.IPAddress.Parse("1.1.1.3");
+            var ip4 = System.Net.IPAddress.Parse("1.1.1.4");
+            var ip5 = IPAddressRange.Parse("1.1.1.5-1.1.1.10");
+            var ip6 = System.Net.IPAddress.Parse("255.255.255.254");
+            var ip7 = System.Net.IPAddress.Parse("255.255.255.255");
+            var ip8 = IPAddressRange.Parse("1.1.1.11-1.1.1.22");
+
+            IPAddressRange range = IPAddressRange.TryCreateFromIPAddressRanges(ip1, ip2, ip3, ip4);
+            Assert.AreEqual("1.1.1.1-1.1.1.4", range.ToString());
+            range = IPAddressRange.TryCreateFromIPAddresses(ip1, ip2, ip3, ip4);
+            Assert.AreEqual("1.1.1.1-1.1.1.4", range.ToString());
+
+            range = IPAddressRange.TryCreateFromIPAddressRanges(ip1, ip2, ip3, ip4, ip5);
+            Assert.AreEqual("1.1.1.1-1.1.1.10", range.ToString());
+
+            range = IPAddressRange.TryCreateFromIPAddressRanges(ip4, ip7);
+            Assert.IsNull(range);
+            range = IPAddressRange.TryCreateFromIPAddresses(ip6, ip7);
+            Assert.AreEqual("255.255.255.254-255.255.255.255", range.ToString());
+            range = IPAddressRange.TryCreateFromIPAddressRanges(ip5, ip8);
+            Assert.AreEqual("1.1.1.5-1.1.1.22", range.ToString());
+
+            range = IPAddressRange.TryCreateFromIPAddressRanges(ip1, ip3);
+            Assert.IsNull(range);
+            range = IPAddressRange.TryCreateFromIPAddresses(ip1, ip3);
+            Assert.IsNull(range);
+        }
+
+        private static void TestFilterIPAddressRangesHelper(IPAddressRange[] expected, string message, IPAddressRange[] filter, params IPAddressRange[] ranges)
+        {
+            int index = 0;
+            foreach (IPAddressRange range in IPBanFirewallUtility.FilterRanges(ranges, filter))
+            {
+                if (index >= expected.Length)
+                {
+                    Assert.Fail("Too many filtered results, expected max count of {0}", expected.Length - 1);
+                }
+
+                // nunit areequal is strange, it calls enumerators and other crap, why it doesn't just do .Equals is beyond me...
+                IPAddressRange existing = expected[index++];
+                IPAddressRange actual = range;
+                Assert.That(existing.Equals(actual), message);
+            }
+        }
+    }
 }
