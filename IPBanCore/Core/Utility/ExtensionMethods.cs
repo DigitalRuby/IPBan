@@ -193,11 +193,27 @@ namespace DigitalRuby.IPBanCore
         /// <param name="name">Parameter name</param>
         /// <param name="message">Message</param>
         /// <returns>Object</returns>
-        public static T ThrowIfNull<T>(this T obj, string name = null, string message = null) where T : class
+        public static T ThrowIfNull<T>(this T obj, string name = null, string message = null)
         {
             if (obj is null)
             {
                 throw new ArgumentNullException(name ?? string.Empty, message);
+            }
+            return obj;
+        }
+
+        /// <summary>
+        /// Throw ArgumentException if obj is null
+        /// </summary>
+        /// <param name="obj">Object</param>
+        /// <param name="name">Parameter name</param>
+        /// <param name="message">Message</param>
+        /// <returns>Object</returns>
+        public static T ThrowArgumentExceptionIfNull<T>(this T obj, string name = null, string message = null)
+        {
+            if (obj is null)
+            {
+                throw new ArgumentException(name ?? string.Empty, message);
             }
             return obj;
         }
@@ -475,20 +491,14 @@ namespace DigitalRuby.IPBanCore
                     {
                         return true;
                     }
-                    switch (bytes[0])
+                    return bytes[0] switch
                     {
-                        case 10:
-                        case 127:
-                            return true;
-                        case 172:
-                            return bytes[1] >= 16 && bytes[1] < 32;
-                        case 192:
-                            return bytes[1] == 168;
-                        case 0:
-                            return true;
-                        default:
-                            return false;
-                    }
+                        10 or 127 => true,
+                        172 => bytes[1] >= 16 && bytes[1] < 32,
+                        192 => bytes[1] == 168,
+                        0 => true,
+                        _ => false,
+                    };
                 }
 
                 string addressAsString = ip.ToString();
@@ -658,6 +668,139 @@ namespace DigitalRuby.IPBanCore
                 ulong* ulongPtr = (ulong*)ptr;
                 return new UInt128(*ulongPtr, *(++ulongPtr));
             }
+        }
+
+        /// <summary>
+        /// Increment an ip address
+        /// </summary>
+        /// <param name="ipAddress">Ip address to increment</param>
+        /// <param name="result">Incremented ip address or null if failure</param>
+        /// <returns>True if incremented, false if ip address was at max value</returns>
+        public static bool TryIncrement(this IPAddress ipAddress, out IPAddress result)
+        {
+            byte[] bytes = ipAddress.GetAddressBytes();
+
+            for (int k = bytes.Length - 1; k >= 0; k--)
+            {
+                if (bytes[k] == byte.MaxValue)
+                {
+                    bytes[k] = 0;
+                    continue;
+                }
+
+                bytes[k]++;
+
+                result = new IPAddress(bytes);
+                return true;
+            }
+
+            // all bytes are already max values, no increment possible
+            result = null;
+            return false;
+        }
+
+        /// <summary>
+        /// Decrement an ip address
+        /// </summary>
+        /// <param name="ipAddress">Ip address to decrement</param>
+        /// <param name="result">Decremented ip address or null if failure</param>
+        /// <returns>True if decremented, false if ip address was at min value</returns>
+        public static bool TryDecrement(this IPAddress ipAddress, out IPAddress result)
+        {
+            byte[] bytes = ipAddress.GetAddressBytes();
+
+            for (int k = bytes.Length - 1; k >= 0; k--)
+            {
+                if (bytes[k] == 0)
+                {
+                    bytes[k] = byte.MaxValue;
+                    continue;
+                }
+
+                bytes[k]--;
+                result = new IPAddress(bytes);
+                return true;
+            }
+
+            // all bytes are already min values, no decrement possible
+            result = null;
+            return false;
+        }
+
+        /// <summary>
+        /// Compare two ip address for sort order
+        /// </summary>
+        /// <param name="ip1">First ip address</param>
+        /// <param name="ip2">Second ip address</param>
+        /// <returns>CompareTo result (negative less than, 0 equal, 1 greater than)</returns>
+        public static int CompareTo(this IPAddress ip1, IPAddress ip2)
+        {
+            if (ip1 is null)
+            {
+                return (ip2 is null ? 0 : -1);
+            }
+            else if (ip1.AddressFamily != ip2.AddressFamily)
+            {
+                return ip1.AddressFamily.CompareTo(ip2.AddressFamily);
+            }
+
+            byte[] bytes1 = ip1.GetAddressBytes();
+            byte[] bytes2 = ip2.GetAddressBytes();
+            for (int byteIndex = 0; byteIndex < bytes1.Length; byteIndex++)
+            {
+                int result = bytes1[byteIndex].CompareTo(bytes2[byteIndex]);
+                if (result != 0)
+                {
+                    return result;
+                }
+            }
+            return 0;
+        }
+
+        /// <summary>
+        /// Get a firewall ip address, clean and normalize
+        /// </summary>
+        /// <param name="ipAddress">IP address string</param>
+        /// <param name="normalizedIP">The normalized ip string, ready to go in the firewall or null if invalid ip address</param>
+        /// <returns>True if ip address can go in the firewall, false otherwise</returns>
+        public static bool TryNormalizeIPAddress(this string ipAddress, out string normalizedIP)
+        {
+            normalizedIP = (ipAddress ?? string.Empty).Trim();
+            if (string.IsNullOrWhiteSpace(normalizedIP) ||
+                normalizedIP == "-" ||
+                normalizedIP == "0.0.0.0" ||
+                normalizedIP == "127.0.0.1" ||
+                normalizedIP == "::0" ||
+                normalizedIP == "::1" ||
+                !IPAddressRange.TryParse(normalizedIP, out IPAddressRange range))
+            {
+                // try parsing assuming the ip is followed by a port
+                int pos = normalizedIP.LastIndexOf(':');
+                if (pos >= 0)
+                {
+                    normalizedIP = normalizedIP.Substring(0, pos);
+                    if (!IPAddressRange.TryParse(normalizedIP, out range))
+                    {
+                        normalizedIP = null;
+                        return false;
+                    }
+                }
+                else
+                {
+                    normalizedIP = null;
+                    return false;
+                }
+            }
+            try
+            {
+                normalizedIP = (range.Begin.Equals(range.End) ? range.Begin.ToString() : range.ToCidrString());
+            }
+            catch (Exception ex)
+            {
+                Logger.Debug("Failed to normalize ip {0}, it is not a single ip or cidr range: {1}", ipAddress, ex);
+                return false;
+            }
+            return true;
         }
 
         /// <summary>
@@ -939,10 +1082,12 @@ namespace DigitalRuby.IPBanCore
         }
 
 #pragma warning disable IDE1006
+#pragma warning disable CA1401
 
         [DllImport("libc")]
         public static extern uint getuid();
 
+#pragma warning restore CA1401
 #pragma warning restore IDE1006
 
 #if !IPBAN_API

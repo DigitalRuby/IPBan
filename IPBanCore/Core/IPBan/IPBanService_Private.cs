@@ -1093,7 +1093,7 @@ namespace DigitalRuby.IPBanCore
                 {
                     Logger.Trace("Processing log event {0}...", evt);
 
-                    if (!IPBanFirewallUtility.TryNormalizeIPAddress(evt.IPAddress, out string normalizedIPAddress))
+                    if (!evt.IPAddress.TryNormalizeIPAddress(out string normalizedIPAddress))
                     {
                         continue;
                     }

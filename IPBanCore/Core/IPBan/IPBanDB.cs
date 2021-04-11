@@ -378,6 +378,10 @@ namespace DigitalRuby.IPBanCore
                 {
                     if (IPAddress.TryParse(ipAddress.Item1, out IPAddress ipAddressObj))
                     {
+                        if (ipAddressObj.IsIPv4MappedToIPv6)
+                        {
+                            ipAddressObj = ipAddressObj.MapToIPv4();
+                        }
                         count += SetBanDateInternal(ipAddressObj, ipAddress.Item2, ipAddress.Item3, now, tran.DBConnection, tran.DBTransaction);
                     }
                 }

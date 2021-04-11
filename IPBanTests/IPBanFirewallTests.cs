@@ -36,7 +36,6 @@ namespace DigitalRuby.IPBanTests
     [TestFixture]
     public class IPBanFirewallTests
     {
-        private static readonly Dictionary<string, string> firewallAndOsType = new();
         private IIPBanFirewall firewall;
 
         [SetUp]
@@ -115,7 +114,7 @@ namespace DigitalRuby.IPBanTests
             }
             foreach (string origIP in toBlock)
             {
-                if (IPBanFirewallUtility.TryNormalizeIPAddress(origIP, out string normalizedIP))
+                if (ExtensionMethods.TryNormalizeIPAddress(origIP, out string normalizedIP))
                 {
                     Assert.IsTrue(bannedIP.Contains(normalizedIP));
                 }
@@ -276,11 +275,11 @@ namespace DigitalRuby.IPBanTests
         [Test]
         public void TestParseIP()
         {
-            Assert.IsTrue(IPBanFirewallUtility.TryNormalizeIPAddress("1.1.1.1", out _));
-            Assert.IsTrue(IPBanFirewallUtility.TryNormalizeIPAddress("1.1.1.1:8080", out _));
-            Assert.IsTrue(IPBanFirewallUtility.TryNormalizeIPAddress("1.1.1.1/24", out _)); // fe80::c872:be03:5c94:4af2%8
-            Assert.IsTrue(IPBanFirewallUtility.TryNormalizeIPAddress("fe80::c872:be03:5c94:4af2%8", out _));
-            Assert.IsFalse(IPBanFirewallUtility.TryNormalizeIPAddress("a.1.1.1", out _));
+            Assert.IsTrue(ExtensionMethods.TryNormalizeIPAddress("1.1.1.1", out _));
+            Assert.IsTrue(ExtensionMethods.TryNormalizeIPAddress("1.1.1.1:8080", out _));
+            Assert.IsTrue(ExtensionMethods.TryNormalizeIPAddress("1.1.1.1/24", out _)); // fe80::c872:be03:5c94:4af2%8
+            Assert.IsTrue(ExtensionMethods.TryNormalizeIPAddress("fe80::c872:be03:5c94:4af2%8", out _));
+            Assert.IsFalse(ExtensionMethods.TryNormalizeIPAddress("a.1.1.1", out _));
         }
     }
 }

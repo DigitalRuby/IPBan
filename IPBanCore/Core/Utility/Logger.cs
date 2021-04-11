@@ -264,16 +264,16 @@ namespace DigitalRuby.IPBanCore
         /// <returns>NLog log level</returns>
         public static NLog.LogLevel GetNLogLevel(IPBanCore.LogLevel logLevel)
         {
-            switch (logLevel)
+            return logLevel switch
             {
-                case IPBanCore.LogLevel.Critical: return NLog.LogLevel.Fatal;
-                case IPBanCore.LogLevel.Debug: return NLog.LogLevel.Debug;
-                case IPBanCore.LogLevel.Error: return NLog.LogLevel.Error;
-                case IPBanCore.LogLevel.Information: return NLog.LogLevel.Info;
-                case IPBanCore.LogLevel.Trace: return NLog.LogLevel.Trace;
-                case IPBanCore.LogLevel.Warning: return NLog.LogLevel.Warn;
-                default: return NLog.LogLevel.Off;
-            }
+                IPBanCore.LogLevel.Critical => NLog.LogLevel.Fatal,
+                IPBanCore.LogLevel.Debug => NLog.LogLevel.Debug,
+                IPBanCore.LogLevel.Error => NLog.LogLevel.Error,
+                IPBanCore.LogLevel.Information => NLog.LogLevel.Info,
+                IPBanCore.LogLevel.Trace => NLog.LogLevel.Trace,
+                IPBanCore.LogLevel.Warning => NLog.LogLevel.Warn,
+                _ => NLog.LogLevel.Off,
+            };
         }
 
         /// <summary>
@@ -283,16 +283,16 @@ namespace DigitalRuby.IPBanCore
         /// <returns>NLog log level</returns>
         public static NLog.LogLevel GetNLogLevel(Microsoft.Extensions.Logging.LogLevel logLevel)
         {
-            switch (logLevel)
+            return logLevel switch
             {
-                case Microsoft.Extensions.Logging.LogLevel.Critical: return NLog.LogLevel.Fatal;
-                case Microsoft.Extensions.Logging.LogLevel.Debug: return NLog.LogLevel.Debug;
-                case Microsoft.Extensions.Logging.LogLevel.Error: return NLog.LogLevel.Error;
-                case Microsoft.Extensions.Logging.LogLevel.Information: return NLog.LogLevel.Info;
-                case Microsoft.Extensions.Logging.LogLevel.Trace: return NLog.LogLevel.Trace;
-                case Microsoft.Extensions.Logging.LogLevel.Warning: return NLog.LogLevel.Warn;
-                default: return NLog.LogLevel.Off;
-            }
+                Microsoft.Extensions.Logging.LogLevel.Critical => NLog.LogLevel.Fatal,
+                Microsoft.Extensions.Logging.LogLevel.Debug => NLog.LogLevel.Debug,
+                Microsoft.Extensions.Logging.LogLevel.Error => NLog.LogLevel.Error,
+                Microsoft.Extensions.Logging.LogLevel.Information => NLog.LogLevel.Info,
+                Microsoft.Extensions.Logging.LogLevel.Trace => NLog.LogLevel.Trace,
+                Microsoft.Extensions.Logging.LogLevel.Warning => NLog.LogLevel.Warn,
+                _ => NLog.LogLevel.Off,
+            };
         }
 
         /// <summary>
@@ -621,6 +621,7 @@ namespace DigitalRuby.IPBanCore
             Timestamp = (timestamp == default ? IPBanService.UtcNow : timestamp);
             External = external;
             FailedLoginThreshold = failedLoginThreshold;
+            LogLevel = logLevel;
         }
 
         /// <summary>

@@ -111,7 +111,7 @@ namespace DigitalRuby.IPBanTests
             count = db.IncrementFailedLoginCount("9.9.9.9", null, null, dt2, 1);
             Assert.AreEqual(1, count);
             count = 0;
-            range = new IPAddressRange { Begin = System.Net.IPAddress.Parse("::5.5.5.0"), End = System.Net.IPAddress.Parse("::5.5.5.255") };
+            range = new IPAddressRange(System.Net.IPAddress.Parse("::5.5.5.0"), System.Net.IPAddress.Parse("::5.5.5.255"));
             foreach (string ipAddress in db.DeleteIPAddresses(range))
             {
                 Assert.AreEqual(ipAddress, "::5.5.5.5");
