@@ -21,7 +21,7 @@ namespace DigitalRuby.IPBanCore
     {
         public static class Bits
         {
-            public static void ValidateSubnetMaskIsLinear(byte[] maskBytes)
+            public static void ValidateSubnetMaskIsLinear(byte[] maskBytes, string ipRangeString)
             {
                 var f = maskBytes[0] & 0x80; // 0x00: The bit should be 0, 0x80: The bit should be 1
                 for (var i = 0; i < maskBytes.Length; i++)
@@ -33,12 +33,12 @@ namespace DigitalRuby.IPBanCore
                         switch (f)
                         {
                             case 0x00:
-                                if (bit != 0x00) throw new FormatException("The subnet mask is not linear.");
+                                if (bit != 0x00) throw new FormatException("The subnet mask is not linear: " + ipRangeString);
                                 break;
                             case 0x80:
                                 if (bit == 0x00) f = 0x00;
                                 break;
-                            default: throw new Exception();
+                            default: throw new FormatException("The subnet mask is not linear, bad bit: " + ipRangeString);
                         }
                         maskByte <<= 1;
                     }
@@ -385,7 +385,7 @@ namespace DigitalRuby.IPBanCore
                 {
                     var baseAdrBytes = IPAddress.Parse(stripScopeId(m4.Groups["adr"].Value)).GetAddressBytes();
                     var maskBytes = IPAddress.Parse(m4.Groups["bitmask"].Value).GetAddressBytes();
-                    Bits.ValidateSubnetMaskIsLinear(maskBytes);
+                    Bits.ValidateSubnetMaskIsLinear(maskBytes, ipRangeString);
                     baseAdrBytes = Bits.And(baseAdrBytes, maskBytes);
                     return new IPAddressRange(new IPAddress(baseAdrBytes), new IPAddress(Bits.Or(baseAdrBytes, Bits.Not(maskBytes))));
                 }
