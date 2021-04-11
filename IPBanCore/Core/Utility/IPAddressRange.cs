@@ -332,7 +332,7 @@ namespace DigitalRuby.IPBanCore
         {
             try
             {
-                if (ipRangeString == null) throw new ArgumentNullException(nameof(ipRangeString));
+                ipRangeString.ThrowIfNull(nameof(ipRangeString));
 
                 // trim white spaces.
                 ipRangeString = ipRangeString.Trim();
@@ -369,7 +369,7 @@ namespace DigitalRuby.IPBanCore
                     var end = m3.Groups["end"].Value;
                     if (begin.Contains('.') && !end.Contains('.'))
                     {
-                        if (end.Contains('%')) throw new FormatException("The end of IPv4 range shortcut notation contains scope id.");
+                        if (end.Contains('%')) throw new FormatException("The end of IPv4 range shortcut notation contains scope id: " + ipRangeString);
                         var lastDotAt = begin.LastIndexOf('.');
                         end = begin.Substring(0, lastDotAt + 1) + end;
                     }
@@ -390,7 +390,7 @@ namespace DigitalRuby.IPBanCore
                     return new IPAddressRange(new IPAddress(baseAdrBytes), new IPAddress(Bits.Or(baseAdrBytes, Bits.Not(maskBytes))));
                 }
 
-                throw new FormatException("Unknown IP range string.");
+                throw new FormatException("Unknown IP range string: " + ipRangeString);
             }
             catch
             {
