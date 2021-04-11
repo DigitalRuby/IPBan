@@ -851,4 +851,7 @@
   <data name="LocalIP" xml:space="preserve">
     <value>Local IP Address</value>
   </data>
+  <data name="UpdateAvailable" xml:space="preserve">
+    <value>Update Available</value>
+  </data>
 </root>
