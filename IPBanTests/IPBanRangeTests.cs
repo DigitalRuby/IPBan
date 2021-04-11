@@ -176,6 +176,7 @@ namespace DigitalRuby.IPBanTests
             var ip5 = IPAddressRange.Parse("1.1.1.5-1.1.1.10");
             var ip6 = System.Net.IPAddress.Parse("255.255.255.254");
             var ip7 = System.Net.IPAddress.Parse("255.255.255.255");
+            var ip8 = IPAddressRange.Parse("1.1.1.11-1.1.1.22");
 
             IPAddressRange range = IPAddressRange.TryCreateFromIPAddressRanges(ip1, ip2, ip3, ip4);
             Assert.AreEqual("1.1.1.1-1.1.1.4", range.ToString());
@@ -189,6 +190,8 @@ namespace DigitalRuby.IPBanTests
             Assert.IsNull(range);
             range = IPAddressRange.TryCreateFromIPAddresses(ip6, ip7);
             Assert.AreEqual("255.255.255.254-255.255.255.255", range.ToString());
+            range = IPAddressRange.TryCreateFromIPAddressRanges(ip5, ip8);
+            Assert.AreEqual("1.1.1.5-1.1.1.22", range.ToString());
 
             range = IPAddressRange.TryCreateFromIPAddressRanges(ip1, ip3);
             Assert.IsNull(range);

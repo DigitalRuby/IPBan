@@ -191,17 +191,17 @@ namespace DigitalRuby.IPBanCore
         }
 
         // Pattern 1. CIDR range: "192.168.0.0/24", "fe80::%lo0/10"
-        private static readonly Regex m1_regex = new Regex(@"^(?<adr>([\d.]+)|([\da-f:]+(:[\d.]+)?(%\w+)?))[ \t]*/[ \t]*(?<maskLen>\d+)$", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        private static readonly Regex m1_regex = new(@"^(?<adr>([\d.]+)|([\da-f:]+(:[\d.]+)?(%\w+)?))[ \t]*/[ \t]*(?<maskLen>\d+)$", RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
         // Pattern 2. Uni address: "127.0.0.1", "::1%eth0"
-        private static readonly Regex m2_regex = new Regex(@"^(?<adr>([\d.]+)|([\da-f:]+(:[\d.]+)?(%\w+)?))$", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        private static readonly Regex m2_regex = new(@"^(?<adr>([\d.]+)|([\da-f:]+(:[\d.]+)?(%\w+)?))$", RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
         // Pattern 3. Begin end range: "169.254.0.0-169.254.0.255", "fe80::1%23-fe80::ff%23"
         //            also shortcut notation: "192.168.1.1-7" (IPv4 only)
-        private static readonly Regex m3_regex = new Regex(@"^(?<begin>([\d.]+)|([\da-f:]+(:[\d.]+)?(%\w+)?))[ \t]*[\-–][ \t]*(?<end>([\d.]+)|([\da-f:]+(:[\d.]+)?(%\w+)?))$", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        private static readonly Regex m3_regex = new(@"^(?<begin>([\d.]+)|([\da-f:]+(:[\d.]+)?(%\w+)?))[ \t]*[\-–][ \t]*(?<end>([\d.]+)|([\da-f:]+(:[\d.]+)?(%\w+)?))$", RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
         // Pattern 4. Bit mask range: "192.168.0.0/255.255.255.0"
-        private static readonly Regex m4_regex = new Regex(@"^(?<adr>([\d.]+)|([\da-f:]+(:[\d.]+)?(%\w+)?))[ \t]*/[ \t]*(?<bitmask>[\da-f\.:]+)$", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        private static readonly Regex m4_regex = new(@"^(?<adr>([\d.]+)|([\da-f:]+(:[\d.]+)?(%\w+)?))[ \t]*/[ \t]*(?<bitmask>[\da-f\.:]+)$", RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
         /// <summary>
         /// Begin ip address
@@ -338,7 +338,7 @@ namespace DigitalRuby.IPBanCore
                 ipRangeString = ipRangeString.Trim();
 
                 // define local funtion to strip scope id in ip address string.
-                string stripScopeId(string ipaddressString) => ipaddressString.Split('%')[0];
+                static string stripScopeId(string ipaddressString) => ipaddressString.Split('%')[0];
 
                 // Pattern 1. CIDR range: "192.168.0.0/24", "fe80::/10%eth0"
                 var m1 = m1_regex.Match(ipRangeString);

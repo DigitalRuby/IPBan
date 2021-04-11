@@ -691,8 +691,7 @@ namespace DigitalRuby.IPBanTests
         public void TryParse(string input, bool expectedReturn)
         {
             Console.WriteLine("TestCase: \"{0}\", Expected: {1}", input, expectedReturn);
-            IPAddressRange temp;
-            var result = IPAddressRange.TryParse(input, out temp);
+            var result = IPAddressRange.TryParse(input, out IPAddressRange temp);
             result.Is(expectedReturn);
             if (expectedReturn)
             {
