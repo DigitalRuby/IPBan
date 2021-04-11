@@ -276,7 +276,7 @@ namespace DigitalRuby.IPBanCore
                         {
                             try
                             {
-                                if (hashType != hashTypeCidrMask || range.Begin.Equals(range.End))
+                                if (hashType != hashTypeCidrMask || range.Single)
                                 {
                                     writer.WriteLine($"add {ruleName} {range.Begin} -exist");
                                 }
@@ -356,7 +356,7 @@ namespace DigitalRuby.IPBanCore
                             {
                                 if (delta.Added)
                                 {
-                                    if (range.Begin.Equals(range.End))
+                                    if (range.Single)
                                     {
                                         writer.WriteLine($"add {ruleName} {range.Begin} -exist");
                                     }
@@ -367,7 +367,7 @@ namespace DigitalRuby.IPBanCore
                                 }
                                 else
                                 {
-                                    if (range.Begin.Equals(range.End))
+                                    if (range.Single)
                                     {
                                         writer.WriteLine($"del {ruleName} {range.Begin} -exist");
                                     }

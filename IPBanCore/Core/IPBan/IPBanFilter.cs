@@ -60,7 +60,7 @@ namespace DigitalRuby.IPBanCore
 
         private void AddIPAddressRange(IPAddressRange range)
         {
-            if (range.Begin.Equals(range.End))
+            if (range.Single)
             {
                 lock (set)
                 {
@@ -272,8 +272,8 @@ namespace DigitalRuby.IPBanCore
         /// <inheritdoc />
         public bool IsFiltered(string entry)
         {
-            if (System.Net.IPAddress.TryParse(entry, out System.Net.IPAddress ipAddressObj) &&
-                IsFiltered(new IPAddressRange(ipAddressObj)))
+            if (IPAddressRange.TryParse(entry, out IPAddressRange ipAddressRange) &&
+                IsFiltered(ipAddressRange))
             {
                 return true;
             }
@@ -297,7 +297,7 @@ namespace DigitalRuby.IPBanCore
             }
 
             // if the set or ranges contains the range, it is filtered
-            else if ((range.Begin.Equals(range.End) && set.Contains(range.Begin)) ||
+            else if ((range.Single && set.Contains(range.Begin)) ||
                 (set.Any(i => range.Contains(i)) || ranges.Any(r => r.Contains(range))))
             {
                 return true;

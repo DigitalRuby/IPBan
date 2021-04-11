@@ -475,7 +475,7 @@ namespace DigitalRuby.IPBanCore
                 {
                     foreach (IPAddressRange range in rule.Value.EnumerateIPAddressesRanges())
                     {
-                        if (range.Begin.Equals(range.End))
+                        if (range.Single)
                         {
                             ips.Add(range.Begin.ToString());
                         }
@@ -508,7 +508,7 @@ namespace DigitalRuby.IPBanCore
                 {
                     foreach (IPAddressRange range in rule.EnumerateIPAddressesRanges())
                     {
-                        if (range.Begin.Equals(range.End))
+                        if (range.Single)
                         {
                             if (!IsIPAddressAllowed(range.Begin, out _))
                             {

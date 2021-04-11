@@ -793,7 +793,7 @@ namespace DigitalRuby.IPBanCore
             }
             try
             {
-                normalizedIP = (range.Begin.Equals(range.End) ? range.Begin.ToString() : range.ToCidrString());
+                normalizedIP = (range.Single ? range.Begin.ToString() : range.ToCidrString());
             }
             catch (Exception ex)
             {

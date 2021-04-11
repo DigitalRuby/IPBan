@@ -214,9 +214,14 @@ namespace DigitalRuby.IPBanCore
         public IPAddress End { get; }
 
         /// <summary>
+        /// Gets whether this is a single ip address
+        /// </summary>
+        public bool Single { get; }
+
+        /// <summary>
         /// Creates an empty range object, equivalent to "0.0.0.0/0".
         /// </summary>
-        public IPAddressRange() : this(new IPAddress(0L)) { }
+        public IPAddressRange() : this(new IPAddress(0L)) { Single = true; }
 
         /// <summary>
         /// Creates a new range with the same start/end address (range of one)
@@ -230,6 +235,7 @@ namespace DigitalRuby.IPBanCore
                 singleAddress = singleAddress.MapToIPv4();
             }
             Begin = End = singleAddress;
+            Single = true;
         }
 
         /// <summary>
@@ -266,6 +272,7 @@ namespace DigitalRuby.IPBanCore
 
             Begin = begin;
             End = end;
+            Single = Begin.Equals(End);
         }
 
         /// <summary>
@@ -291,6 +298,7 @@ namespace DigitalRuby.IPBanCore
             baseAdrBytes = Bits.And(baseAdrBytes, maskBytes);
             Begin = new IPAddress(baseAdrBytes);
             End = new IPAddress(Bits.Or(baseAdrBytes, Bits.Not(maskBytes)));
+            Single = Begin.Equals(End);
         }
 
         /// <summary>
@@ -594,7 +602,7 @@ namespace DigitalRuby.IPBanCore
             byte[] byteBegin = Begin.GetAddressBytes();
 
             // Handle single IP
-            if (Begin.Equals(End))
+            if (Single)
             {
                 return byteBegin.Length * 8;
             }
@@ -621,7 +629,7 @@ namespace DigitalRuby.IPBanCore
         /// <param name="displaySingleSubnet">Whether to display the cidr string even if this is a single ip address.</param>
         public string ToCidrString(bool displaySingleSubnet = true)
         {
-            if (displaySingleSubnet || !Begin.Equals(End))
+            if (displaySingleSubnet || !Single)
             {
                 return Begin.ToString() + "/" + GetPrefixLength().ToString(CultureInfo.InvariantCulture);
             }
@@ -639,6 +647,7 @@ namespace DigitalRuby.IPBanCore
         {
             this.Begin = IPAddress.Parse(TryGetValue(items, nameof(Begin), out var value1) ? value1 : throw new KeyNotFoundException());
             this.End = IPAddress.Parse(TryGetValue(items, nameof(End), out var value2) ? value2 : throw new KeyNotFoundException());
+            Single = Begin.Equals(End);
         }
 
         /// <summary>
