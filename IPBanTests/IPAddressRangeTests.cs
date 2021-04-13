@@ -811,7 +811,7 @@ namespace DigitalRuby.IPBanTests
             range = IPAddressRange.TryCreateFromIPAddressRanges(ip4, ip7);
             Assert.IsNull(range);
             range = IPAddressRange.TryCreateFromIPAddresses(ip6, ip7);
-            Assert.AreEqual("255.255.255.254-255.255.255.255", range.ToString());
+            Assert.AreEqual("255.255.255.254/31", range.ToString());
             range = IPAddressRange.TryCreateFromIPAddressRanges(ip5, ip8);
             Assert.AreEqual("1.1.1.5-1.1.1.22", range.ToString());
 
