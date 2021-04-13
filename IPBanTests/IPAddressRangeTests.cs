@@ -376,9 +376,9 @@ namespace DigitalRuby.IPBanTests
 
         [Test]
         [TestCase("192.168.60.2", "192.168.60.2")]
-        [TestCase("192.168.60.2/24", "192.168.60.0-192.168.60.255")]
+        [TestCase("192.168.60.2/24", "192.168.60.0/24")]
         [TestCase("fe80::d503:4ee:3882:c586", "fe80::d503:4ee:3882:c586")]
-        [TestCase("fe80::d503:4ee:3882:c586/120", "fe80::d503:4ee:3882:c500-fe80::d503:4ee:3882:c5ff")]
+        [TestCase("fe80::d503:4ee:3882:c586/120", "fe80::d503:4ee:3882:c500/120")]
         public void ToString_Output(string input, string expected)
         {
             Console.WriteLine("TestCase: \"{0}\", Expected: \"{1}\"", input, expected);

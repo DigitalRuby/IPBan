@@ -611,7 +611,7 @@ namespace DigitalRuby.IPBanCore
                     }
                 }
             }
-            throw new FormatException(string.Format("{0} is not a CIDR Subnet", ToString()));
+            throw new FormatException(string.Format("{0} is not a CIDR Subnet", ToString('-')));
         }
 
         /// <summary>
