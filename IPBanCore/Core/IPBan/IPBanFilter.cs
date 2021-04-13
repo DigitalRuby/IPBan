@@ -295,7 +295,6 @@ namespace DigitalRuby.IPBanCore
             {
                 return false;
             }
-
             // if the set or ranges contains the range, it is filtered
             else if ((range.Single && set.Contains(range.Begin)) ||
                 (set.Any(i => range.Contains(i)) || ranges.Any(r => r.Contains(range))))

@@ -424,16 +424,7 @@ namespace DigitalRuby.IPBanCore
         /// <returns>True if ip range string is parsed successfully, false otherwise</returns>
         public static bool TryParse(string ipRangeString, out IPAddressRange ipRange)
         {
-            try
-            {
-                ipRange = IPAddressRange.Parse(ipRangeString, false);
-                return (ipRange != null);
-            }
-            catch
-            {
-                ipRange = null;
-                return false;
-            }
+            return (ipRange = IPAddressRange.Parse(ipRangeString, false)) is not null;
         }
 
         /// <summary>
