@@ -241,15 +241,16 @@ namespace DigitalRuby.IPBanCore
         /// <summary>
         /// Creates a new range with the same start/end address (range of one)
         /// </summary>
-        /// <param name="singleAddress"></param>
-        public IPAddressRange(IPAddress singleAddress)
+        /// <param name="singleAddress">Single ip address</param>
+        /// <param name="ownsIP">Whether this instance owns the ip object</param>
+        public IPAddressRange(IPAddress singleAddress, bool ownsIP = false)
         {
             singleAddress.ThrowIfNull(nameof(singleAddress));
             if (singleAddress.IsIPv4MappedToIPv6)
             {
                 singleAddress = singleAddress.MapToIPv4();
             }
-            Begin = End = singleAddress;
+            Begin = End = singleAddress.RemoveScopeId(ownsIP);
             Single = true;
         }
 
@@ -258,7 +259,10 @@ namespace DigitalRuby.IPBanCore
         /// Throws an exception if Begin comes after End, or the
         /// addresses are not in the same family.
         /// </summary>
-        public IPAddressRange(IPAddress begin, IPAddress end)
+        /// <param name="begin">Start ip address</param>
+        /// <param name="end">End ip address</param>
+        /// <param name="ownsIP">Whether this instance owns the start and end ip objects</param>
+        public IPAddressRange(IPAddress begin, IPAddress end, bool ownsIP = false)
         {
             begin.ThrowIfNull(nameof(begin));
             end.ThrowIfNull(nameof(end));
@@ -278,15 +282,8 @@ namespace DigitalRuby.IPBanCore
             {
                 throw new ArgumentException("Begin ip address must be less than or equal the end ip address", nameof(begin));
             }
-
-            // remnove scope id for ipv6
-            if (begin.AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6)
-            {
-                begin.ScopeId = end.ScopeId = 0;
-            }
-
-            Begin = begin;
-            End = end;
+            Begin = begin.RemoveScopeId(ownsIP);
+            End = end.RemoveScopeId(ownsIP);
             Single = Begin.Equals(End);
         }
 
@@ -372,14 +369,11 @@ namespace DigitalRuby.IPBanCore
                 // trim white spaces.
                 ipRangeString = ipRangeString.Trim();
 
-                // define local funtion to strip scope id in ip address string.
-                static string stripScopeId(string ipaddressString) => ipaddressString.Split('%')[0];
-
                 // Pattern 1. CIDR range: "192.168.0.0/24", "fe80::/10%eth0"
                 var m1 = m1_regex.Match(ipRangeString);
                 if (m1.Success)
                 {
-                    var baseAdrBytes = IPAddress.Parse(stripScopeId(m1.Groups["adr"].Value)).GetAddressBytes();
+                    var baseAdrBytes = IPAddress.Parse(m1.Groups["adr"].Value).GetAddressBytes();
                     var maskLen = int.Parse(m1.Groups["maskLen"].Value);
                     if (baseAdrBytes.Length * 8 < maskLen)
                     {
@@ -391,14 +385,14 @@ namespace DigitalRuby.IPBanCore
                     }
                     var maskBytes = Bits.GetBitMask(baseAdrBytes.Length, maskLen);
                     baseAdrBytes = Bits.And(baseAdrBytes, maskBytes);
-                    return new IPAddressRange(new IPAddress(baseAdrBytes), new IPAddress(Bits.Or(baseAdrBytes, Bits.Not(maskBytes))));
+                    return new IPAddressRange(new IPAddress(baseAdrBytes), new IPAddress(Bits.Or(baseAdrBytes, Bits.Not(maskBytes))), true);
                 }
 
                 // Pattern 2. Uni address: "127.0.0.1", ":;1"
                 var m2 = m2_regex.Match(ipRangeString);
                 if (m2.Success)
                 {
-                    return new IPAddressRange(IPAddress.Parse(stripScopeId(ipRangeString)));
+                    return new IPAddressRange(IPAddress.Parse(ipRangeString), true);
                 }
 
                 // Pattern 3. Begin end range: "169.254.0.0-169.254.0.255"
@@ -423,23 +417,21 @@ namespace DigitalRuby.IPBanCore
                         end = begin.Substring(0, lastDotAt + 1) + end;
                     }
 
-                    return new IPAddressRange(
-                        begin: IPAddress.Parse(stripScopeId(begin)),
-                        end: IPAddress.Parse(stripScopeId(end)));
+                    return new IPAddressRange(IPAddress.Parse(begin), IPAddress.Parse(end), true);
                 }
 
                 // Pattern 4. Bit mask range: "192.168.0.0/255.255.255.0"
                 var m4 = m4_regex.Match(ipRangeString);
                 if (m4.Success)
                 {
-                    var baseAdrBytes = IPAddress.Parse(stripScopeId(m4.Groups["adr"].Value)).GetAddressBytes();
+                    var baseAdrBytes = IPAddress.Parse(m4.Groups["adr"].Value).GetAddressBytes();
                     var maskBytes = IPAddress.Parse(m4.Groups["bitmask"].Value).GetAddressBytes();
                     if (!Bits.ValidateSubnetMaskIsLinear(maskBytes, ipRangeString, throwException))
                     {
                         return null;
                     }
                     baseAdrBytes = Bits.And(baseAdrBytes, maskBytes);
-                    return new IPAddressRange(new IPAddress(baseAdrBytes), new IPAddress(Bits.Or(baseAdrBytes, Bits.Not(maskBytes))));
+                    return new IPAddressRange(new IPAddress(baseAdrBytes), new IPAddress(Bits.Or(baseAdrBytes, Bits.Not(maskBytes))), true);
                 }
 
                 if (throwException)

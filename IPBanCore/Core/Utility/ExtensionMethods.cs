@@ -472,6 +472,28 @@ namespace DigitalRuby.IPBanCore
         }
 
         /// <summary>
+        /// Remove the scope id from the ip address if there is a scope id
+        /// </summary>
+        /// <param name="ipAddress">IP address to remove scope id from</param>
+        /// <returns>This ip address if no scope id removed, otherwise a new ip address with scope removed if ownsIP is false, or the same ip
+        /// with scope removed if ownsIP is true</returns>
+        public static IPAddress RemoveScopeId(this IPAddress ipAddress, bool ownsIP = false)
+        {
+            if (ipAddress.AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6)
+            {
+                if (ownsIP)
+                {
+                    ipAddress.ScopeId = 0;
+                }
+                else
+                {
+                    return new IPAddress(ipAddress.GetAddressBytes());
+                }
+            }
+            return ipAddress;
+        }
+
+        /// <summary>
         /// An extension method to determine if an IP address is internal, as specified in RFC1918
         /// </summary>
         /// <param name="ip">The IP address that will be tested</param>
