@@ -491,24 +491,13 @@ namespace DigitalRuby.IPBanTests
         }
 
         [Test]
-        [TestCase("192.168.0.0-192.168.0.254", typeof(FormatException))]
-        [TestCase("fe80::-fe80:ffff:ffff:ffff:ffff:ffff:ffff:fffe", typeof(FormatException))]
-        public void ToCidrString_ThrowsOnNonCidr(string input, Type expectedException)
+        [TestCase("192.168.0.0-192.168.0.254", "192.168.0.0-192.168.0.254")]
+        [TestCase("fe80::-fe80:ffff:ffff:ffff:ffff:ffff:ffff:fffe", "fe80::-fe80:ffff:ffff:ffff:ffff:ffff:ffff:fffe")]
+        public void ToCidrString_NonCidrRanges(string input, string output)
         {
-            Console.WriteLine("TestCase: \"{0}\", Expected Exception: {1}", input, expectedException.Name);
-            try
-            {
-                IPAddressRange.Parse(input).ToCidrString();
-                Assert.Fail("Expected exception of type {0} to be thrown for input \"{1}\"", expectedException.Name, input);
-            }
-            catch (AssertionException)
-            {
-                throw; // allow Assert.Fail to pass through 
-            }
-            catch (Exception ex)
-            {
-                ex.GetType().Is(expectedException);
-            }
+            Console.WriteLine("TestCase: \"{0}\", Expected output: {1}", input, output);
+            string s = IPAddressRange.Parse(input).ToCidrString();
+            Assert.AreEqual(output, s);
         }
 
         [Test]

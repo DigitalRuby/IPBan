@@ -551,14 +551,7 @@ namespace DigitalRuby.IPBanCore
         /// <returns>String</returns>
         public override string ToString()
         {
-            try
-            {
-                return ToCidrString(false);
-            }
-            catch
-            {
-                return ToString('-');
-            }
+            return ToCidrString(false);
         }
 
         /// <summary>
@@ -587,8 +580,9 @@ namespace DigitalRuby.IPBanCore
         /// <summary>
         /// Get prefix / cidr mask length
         /// </summary>
-        /// <returns>Prefix / cidr mask length</returns>
-        public int GetPrefixLength()
+        /// <param name="throwException">True to throw exception if not a cidr subnet, false to return -1</param>
+        /// <returns>Prefix / cidr mask length or -1 if not a cidr subnet and throwException is false</returns>
+        public int GetPrefixLength(bool throwException = true)
         {
             byte[] byteBegin = Begin.GetAddressBytes();
 
@@ -599,30 +593,39 @@ namespace DigitalRuby.IPBanCore
             }
 
             int length = byteBegin.Length * 8;
-
             for (int i = 0; i < length; i++)
             {
                 byte[] mask = Bits.GetBitMask(byteBegin.Length, i);
-                if (new IPAddress(Bits.And(byteBegin, mask)).Equals(Begin))
+                if (new IPAddress(Bits.And(byteBegin, mask)).Equals(Begin) &&
+                    new IPAddress(Bits.Or(byteBegin, Bits.Not(mask))).Equals(End))
                 {
-                    if (new IPAddress(Bits.Or(byteBegin, Bits.Not(mask))).Equals(End))
-                    {
-                        return i;
-                    }
+                    return i;
                 }
             }
-            throw new FormatException(string.Format("{0} is not a CIDR Subnet", ToString('-')));
+            if (throwException)
+            {
+                throw new FormatException(string.Format("{0} is not a CIDR Subnet", ToString('-')));
+            }
+            return -1;
         }
 
         /// <summary>
-        /// Returns a Cidr String if this matches exactly a Cidr subnet
+        /// Returns a Cidr String if this matches exactly a Cidr subnet, otherwise a range string.
         /// </summary>
         /// <param name="displaySingleSubnet">Whether to display the cidr string even if this is a single ip address.</param>
         public string ToCidrString(bool displaySingleSubnet = true)
         {
             if (displaySingleSubnet || !Single)
             {
-                return Begin.ToString() + "/" + GetPrefixLength().ToString(CultureInfo.InvariantCulture);
+                int prefixLength = GetPrefixLength(false);
+                if (prefixLength >= 0)
+                {
+                    return Begin.ToString() + "/" + prefixLength.ToString(CultureInfo.InvariantCulture);
+                }
+                else
+                {
+                    return ToString('-');
+                }
             }
             return Begin.ToString();
         }
