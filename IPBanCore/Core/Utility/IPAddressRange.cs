@@ -21,7 +21,7 @@ namespace DigitalRuby.IPBanCore
     {
         public static class Bits
         {
-            public static void ValidateSubnetMaskIsLinear(byte[] maskBytes, string ipRangeString)
+            public static bool ValidateSubnetMaskIsLinear(byte[] maskBytes, string ipRangeString, bool throwException)
             {
                 var f = maskBytes[0] & 0x80; // 0x00: The bit should be 0, 0x80: The bit should be 1
                 for (var i = 0; i < maskBytes.Length; i++)
@@ -33,16 +33,31 @@ namespace DigitalRuby.IPBanCore
                         switch (f)
                         {
                             case 0x00:
-                                if (bit != 0x00) throw new FormatException("The subnet mask is not linear: " + ipRangeString);
+                                if (bit != 0x00)
+                                {
+                                    if (throwException)
+                                    {
+                                        throw new FormatException("The subnet mask is not linear: " + ipRangeString);
+                                    }
+                                    return false;
+                                }
                                 break;
                             case 0x80:
                                 if (bit == 0x00) f = 0x00;
                                 break;
-                            default: throw new FormatException("The subnet mask is not linear, bad bit: " + ipRangeString);
+                            default:
+                            {
+                                if (throwException)
+                                {
+                                    throw new FormatException("The subnet mask is not linear, bad bit: " + ipRangeString);
+                                }
+                                return false;
+                            }
                         }
                         maskByte <<= 1;
                     }
                 }
+                return true;
             }
             public static byte[] Not(byte[] bytes)
             {
@@ -345,7 +360,14 @@ namespace DigitalRuby.IPBanCore
         {
             try
             {
-                ipRangeString.ThrowIfNull(nameof(ipRangeString));
+                if (throwException)
+                {
+                    ipRangeString.ThrowIfNull(nameof(ipRangeString));
+                }
+                else if (ipRangeString is null)
+                {
+                    return null;
+                }
 
                 // trim white spaces.
                 ipRangeString = ipRangeString.Trim();
@@ -382,7 +404,17 @@ namespace DigitalRuby.IPBanCore
                     var end = m3.Groups["end"].Value;
                     if (begin.Contains('.') && !end.Contains('.'))
                     {
-                        if (end.Contains('%')) throw new FormatException("The end of IPv4 range shortcut notation contains scope id: " + ipRangeString);
+                        if (end.Contains('%'))
+                        {
+                            if (throwException)
+                            {
+                                throw new FormatException("The end of IPv4 range shortcut notation contains scope id: " + ipRangeString);
+                            }
+                            else
+                            {
+                                return null;
+                            }
+                        }
                         var lastDotAt = begin.LastIndexOf('.');
                         end = begin.Substring(0, lastDotAt + 1) + end;
                     }
@@ -398,12 +430,18 @@ namespace DigitalRuby.IPBanCore
                 {
                     var baseAdrBytes = IPAddress.Parse(stripScopeId(m4.Groups["adr"].Value)).GetAddressBytes();
                     var maskBytes = IPAddress.Parse(m4.Groups["bitmask"].Value).GetAddressBytes();
-                    Bits.ValidateSubnetMaskIsLinear(maskBytes, ipRangeString);
+                    if (!Bits.ValidateSubnetMaskIsLinear(maskBytes, ipRangeString, throwException))
+                    {
+                        return null;
+                    }
                     baseAdrBytes = Bits.And(baseAdrBytes, maskBytes);
                     return new IPAddressRange(new IPAddress(baseAdrBytes), new IPAddress(Bits.Or(baseAdrBytes, Bits.Not(maskBytes))));
                 }
 
-                throw new FormatException("Unknown IP range string: " + ipRangeString);
+                if (throwException)
+                {
+                    throw new FormatException("Unknown IP range string: " + ipRangeString);
+                }
             }
             catch
             {
