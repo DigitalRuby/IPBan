@@ -381,7 +381,14 @@ namespace DigitalRuby.IPBanCore
                 {
                     var baseAdrBytes = IPAddress.Parse(stripScopeId(m1.Groups["adr"].Value)).GetAddressBytes();
                     var maskLen = int.Parse(m1.Groups["maskLen"].Value);
-                    if (baseAdrBytes.Length * 8 < maskLen) throw new FormatException();
+                    if (baseAdrBytes.Length * 8 < maskLen)
+                    {
+                        if (throwException)
+                        {
+                            throw new FormatException("Invalid mask length for " + ipRangeString);
+                        }
+                        return null;
+                    }
                     var maskBytes = Bits.GetBitMask(baseAdrBytes.Length, maskLen);
                     baseAdrBytes = Bits.And(baseAdrBytes, maskBytes);
                     return new IPAddressRange(new IPAddress(baseAdrBytes), new IPAddress(Bits.Or(baseAdrBytes, Bits.Not(maskBytes))));
@@ -410,10 +417,7 @@ namespace DigitalRuby.IPBanCore
                             {
                                 throw new FormatException("The end of IPv4 range shortcut notation contains scope id: " + ipRangeString);
                             }
-                            else
-                            {
-                                return null;
-                            }
+                            return null;
                         }
                         var lastDotAt = begin.LastIndexOf('.');
                         end = begin.Substring(0, lastDotAt + 1) + end;
