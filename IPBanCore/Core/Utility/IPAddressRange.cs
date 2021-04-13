@@ -475,20 +475,13 @@ namespace DigitalRuby.IPBanCore
         /// <param name="range">Ip address range</param>
         public static implicit operator string(IPAddressRange range)
         {
-            try
-            {
-                return range.ToCidrString();
-            }
-            catch
-            {
-                return range.ToString();
-            }
+            return range.ToString();
         }
 
         /// <summary>
         /// Convert ip address range to string implicit
         /// </summary>
-        /// <param name="s">Ip address range string</param>
+        /// <param name="s">Ip address range string or null if failure to parse</param>
         public static implicit operator IPAddressRange(string s)
         {
             return (string.IsNullOrWhiteSpace(s) ? null : IPAddressRange.Parse(s));
@@ -497,7 +490,7 @@ namespace DigitalRuby.IPBanCore
         /// <summary>
         /// Convert ip address range to string implicit
         /// </summary>
-        /// <param name="ip">Ip address</param>
+        /// <param name="ip">Ip address string or null if ip is null</param>
         public static implicit operator IPAddressRange(IPAddress ip)
         {
             return (ip is null ? null : new IPAddressRange(ip));
@@ -547,7 +540,7 @@ namespace DigitalRuby.IPBanCore
         /// </summary>
         /// <param name="separator">Separator</param>
         /// <returns>String</returns>
-        public string ToString(char separator = '-')
+        public string ToString(char separator)
         {
             return Equals(Begin, End) ? Begin.ToString() : string.Format("{0}{1}{2}", Begin, separator, End);
         }
@@ -558,7 +551,14 @@ namespace DigitalRuby.IPBanCore
         /// <returns>String</returns>
         public override string ToString()
         {
-            return ToString('-');
+            try
+            {
+                return ToCidrString(false);
+            }
+            catch
+            {
+                return ToString('-');
+            }
         }
 
         /// <summary>
