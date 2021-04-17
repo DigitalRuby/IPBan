@@ -203,6 +203,7 @@ namespace DigitalRuby.IPBanCore
         {
             private readonly HashSet<uint> ipv4 = new();
             private readonly HashSet<UInt128> ipv6 = new();
+            private readonly List<PortRange> allowPorts = new();
 
             public IEnumerable<string> IPV4 => ipv4.Select(i => i.ToIPAddress().ToString());
             public IEnumerable<string> IPV6 => ipv6.Select(i => i.ToIPAddress().ToString());
@@ -217,12 +218,11 @@ namespace DigitalRuby.IPBanCore
                 Name = name;
             }
 
-#pragma warning disable IDE0060 // Remove unused parameter
             public void SetIPAddresses(IEnumerable<string> ipAddresses, IEnumerable<PortRange> allowPorts)
-#pragma warning restore IDE0060 // Remove unused parameter
             {
                 ipv4.Clear();
                 ipv6.Clear();
+                this.allowPorts.Clear();
                 foreach (string ipAddress in ipAddresses)
                 {
                     if (IPAddress.TryParse(ipAddress, out IPAddress ipAddressObj))
@@ -237,11 +237,13 @@ namespace DigitalRuby.IPBanCore
                         }
                     }
                 }
+                if (allowPorts is not null)
+                {
+                    this.allowPorts.AddRange(allowPorts);
+                }
             }
 
-#pragma warning disable IDE0060 // Remove unused parameter
             public void AddIPAddressesDelta(IEnumerable<IPBanFirewallIPAddressDelta> deltas, IEnumerable<PortRange> allowPorts = null)
-#pragma warning restore IDE0060 // Remove unused parameter
             {
                 foreach (IPBanFirewallIPAddressDelta delta in deltas)
                 {
@@ -267,6 +269,11 @@ namespace DigitalRuby.IPBanCore
                             ipv6.Remove(ipAddressObj.ToUInt128());
                         }
                     }
+                }
+                this.allowPorts.Clear();
+                if (allowPorts is not null)
+                {
+                    this.allowPorts.AddRange(allowPorts);
                 }
             }
 
@@ -304,32 +311,41 @@ namespace DigitalRuby.IPBanCore
                 return ipv6.Remove(ipv6UInt128);
             }
 
-            public bool Contains(System.Net.IPAddress ipAddressObj)
+            public bool Contains(System.Net.IPAddress ipAddressObj, int port)
             {
-                if (ipAddressObj.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
+                if (IsPortAllowed(port))
+                {
+                    return false;
+                }
+                else if (ipAddressObj.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
                 {
                     return ipv4.Contains(ipAddressObj.ToUInt32());
                 }
                 return ipv6.Contains(ipAddressObj.ToUInt128());
             }
 
-            public bool Contains(string ipAddress)
+            public bool Contains(string ipAddress, int port)
             {
                 if (IPAddress.TryParse(ipAddress, out IPAddress ipAddressObj))
                 {
-                    return Contains(ipAddressObj);
+                    return Contains(ipAddressObj, port);
                 }
                 return false;
             }
 
-            public bool Contains(uint ipv4UInt)
+            public bool Contains(uint ipv4UInt, int port)
             {
-                return ipv4.Contains(ipv4UInt);
+                return !IsPortAllowed(port) && ipv4.Contains(ipv4UInt);
             }
 
-            public bool Contains(UInt128 ipv6UInt128)
+            public bool Contains(UInt128 ipv6UInt128, int port)
             {
-                return ipv6.Contains(ipv6UInt128);
+                return !IsPortAllowed(port) && ipv6.Contains(ipv6UInt128);
+            }
+
+            public bool IsPortAllowed(int port)
+            {
+                return (port >= 0 && allowPorts.Any(p => p.Contains(port)));
             }
         }
 
@@ -595,7 +611,7 @@ namespace DigitalRuby.IPBanCore
         {
             lock (this)
             {
-                if (allowRule.Contains(ipAddressObj))
+                if (allowRule.Contains(ipAddressObj, port))
                 {
                     ruleName = allowRule.Name;
                     return true;
@@ -632,7 +648,7 @@ namespace DigitalRuby.IPBanCore
                     uint ipv4 = ipAddressObj.ToUInt32();
                     foreach (KeyValuePair<string, MemoryFirewallRule> rule in blockRules)
                     {
-                        if (rule.Value.Contains(ipv4))
+                        if (rule.Value.Contains(ipv4, port))
                         {
                             ruleName = rule.Key;
                             return true;
@@ -652,7 +668,7 @@ namespace DigitalRuby.IPBanCore
                     UInt128 ipv6 = ipAddressObj.ToUInt128();
                     foreach (KeyValuePair<string, MemoryFirewallRule> rule in blockRules)
                     {
-                        if (rule.Value.Contains(ipv6))
+                        if (rule.Value.Contains(ipv6, port))
                         {
                             ruleName = rule.Key;
                             return true;
