@@ -161,7 +161,7 @@ namespace DigitalRuby.IPBanCore
                             {
                                 try
                                 {
-                                    if (httpRequestMaker != null)
+                                    if (httpRequestMaker is not null)
                                     {
                                         // assume url list of ips, newline delimited
                                         byte[] ipListBytes = null;
@@ -189,21 +189,24 @@ namespace DigitalRuby.IPBanCore
                             {
                                 try
                                 {
-                                    // add entries for each ip address that matches the dns entry
-                                    IPAddress[] addresses = null;
-                                    await ExtensionMethods.RetryAsync(async () => addresses = await dns.GetHostAddressesAsync(entryWithoutComment),
-                                        exceptionRetry: _ex =>
-                                        {
+                                    if (dns is not null)
+                                    {
+                                        // add entries for each ip address that matches the dns entry
+                                        IPAddress[] addresses = null;
+                                        await ExtensionMethods.RetryAsync(async () => addresses = await dns.GetHostAddressesAsync(entryWithoutComment),
+                                            exceptionRetry: _ex =>
+                                            {
                                             // ignore host not found errors
                                             return (_ex is not System.Net.Sockets.SocketException socketEx ||
-                                                socketEx.SocketErrorCode != System.Net.Sockets.SocketError.HostNotFound);
-                                        });
+                                                    socketEx.SocketErrorCode != System.Net.Sockets.SocketError.HostNotFound);
+                                            });
 
-                                    lock (set)
-                                    {
-                                        foreach (IPAddress adr in addresses)
+                                        lock (set)
                                         {
-                                            set.Add(adr);
+                                            foreach (IPAddress adr in addresses)
+                                            {
+                                                set.Add(adr);
+                                            }
                                         }
                                     }
                                 }
