@@ -854,4 +854,10 @@
   <data name="UpdateAvailable" xml:space="preserve">
     <value>Update Available</value>
   </data>
+  <data name="AllowedPorts" xml:space="preserve">
+    <value>Allowed Ports</value>
+  </data>
+  <data name="AllowedPortsTooltip" xml:space="preserve">
+    <value>Allowed port/port-ranges (comma separated). Empty to not allow any ports. Example: 80, 443, 500-510.</value>
+  </data>
 </root>

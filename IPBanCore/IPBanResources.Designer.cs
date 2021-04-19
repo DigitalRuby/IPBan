@@ -88,6 +88,24 @@ namespace DigitalRuby.IPBanCore {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Allowed Ports.
+        /// </summary>
+        public static string AllowedPorts {
+            get {
+                return ResourceManager.GetString("AllowedPorts", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Allowed port/port-ranges (comma separated). Empty to not allow any ports. Example: 80, 443, 500-510..
+        /// </summary>
+        public static string AllowedPortsTooltip {
+            get {
+                return ResourceManager.GetString("AllowedPortsTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Allow Ports.
         /// </summary>
         public static string AllowPorts {
