@@ -97,7 +97,7 @@ namespace DigitalRuby.IPBanCore {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Allowed port/port-ranges (comma separated). Empty to not allow any ports. Example: 80, 443, 500-510..
+        ///   Looks up a localized string similar to Allowed port/port-ranges (comma separated). Empty to not allow any ports. Example: 80, 443, 500-510. Only supported on WinDivert and WFP firewalls..
         /// </summary>
         public static string AllowedPortsTooltip {
             get {
@@ -300,6 +300,24 @@ namespace DigitalRuby.IPBanCore {
         public static string CountryBlacklist {
             get {
                 return ResourceManager.GetString("CountryBlacklist", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to First Failed Login.
+        /// </summary>
+        public static string CountryBlacklistFirstFailedLogin {
+            get {
+                return ResourceManager.GetString("CountryBlacklistFirstFailedLogin", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Whether to wait until first failed login from a bad country before banning (checked) or to pro-actively add the entire country to the firewall if possible (unchecked). If checked, allowed ports is ignored..
+        /// </summary>
+        public static string CountryBlacklistFirstFailedLoginTooltip {
+            get {
+                return ResourceManager.GetString("CountryBlacklistFirstFailedLoginTooltip", resourceCulture);
             }
         }
         
