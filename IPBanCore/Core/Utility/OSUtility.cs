@@ -626,7 +626,7 @@ namespace DigitalRuby.IPBanCore
                         MinorVersionMinimum <= os.Version.Minor);
 
                 bool matchEnvVar = true;
-                if (RequireEnvironmentVariable != null)
+                if (!string.IsNullOrWhiteSpace(RequireEnvironmentVariable))
                 {
                     string[] pieces = RequireEnvironmentVariable.Split('=');
                     if (pieces.Length == 2 && !string.IsNullOrWhiteSpace(pieces[0]) && !string.IsNullOrWhiteSpace(pieces[1]))
