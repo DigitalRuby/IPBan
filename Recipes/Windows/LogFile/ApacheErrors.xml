@@ -1,0 +1,17 @@
+<!-- Apache errors, Windows -->
+<LogFile>
+	<Source>Apache</Source>
+	<PathAndMask>C:/Program Files/Apache/logs/error.log</PathAndMask>
+	<FailedLoginRegex>
+		<![CDATA[
+			^\[(?<timestamp>[^\]]+)\](.+\:error\])(.+\[client\s(?<ipaddress>[^:]+))
+		]]>
+	</FailedLoginRegex>
+	<FailedLoginRegexTimestampFormat>ddd MMM dd HH:mm:ss.ffffff yyyy</FailedLoginRegexTimestampFormat>
+	<SuccessfulLoginRegex></SuccessfulLoginRegex>
+	<SuccessfulLoginRegexTimestampFormat></SuccessfulLoginRegexTimestampFormat>
+	<PlatformRegex>Windows</PlatformRegex>
+	<PingInterval>10000</PingInterval>
+	<MaxFileSize>0</MaxFileSize>
+	<FailedLoginThreshold>0</FailedLoginThreshold>
+</LogFile>

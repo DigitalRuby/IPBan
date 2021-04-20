@@ -101,7 +101,7 @@ namespace DigitalRuby.IPBanTests
                 "Windows", "MailEnable",
 
                 "C:/Program Files/Tomcat/logs/**/*access_log*.txt",
-                @"^(?<ipaddress>[^\s]+)\s.*?\[(?<timestamp>.*?)\].*?((php|md5sum|cgi-bin|joomla).*?\s404\s[0-9]+|\s400\s-)$",
+                @"^(?<ipaddress>[^\s]+)\s.*?\[(?<timestamp>.*?)\].*?(?:(?:\s40[034]\s(-|[0-9]+))|((php|md5sum|cgi-bin|joomla).*?\s404\s[0-9]+|\s400\s-))[^\n]*",
                 @"dd/MMM/yyyy:HH:mm:ss zzzz",
                 @"",
                 @"",

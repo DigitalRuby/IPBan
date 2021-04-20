@@ -629,17 +629,10 @@ namespace DigitalRuby.IPBanCore
                 if (RequireEnvironmentVariable != null)
                 {
                     string[] pieces = RequireEnvironmentVariable.Split('=');
-                    if (pieces.Length == 2)
+                    if (pieces.Length == 2 && !string.IsNullOrWhiteSpace(pieces[0]) && !string.IsNullOrWhiteSpace(pieces[1]))
                     {
                         string value = Environment.GetEnvironmentVariable(pieces[0]);
-                        if (value is null)
-                        {
-                            matchEnvVar = false;
-                        }
-                        else if (pieces[1].Length != 0)
-                        {
-                            matchEnvVar = pieces[1].Equals(value, StringComparison.OrdinalIgnoreCase);
-                        }
+                        matchEnvVar = pieces[1].Equals(value, StringComparison.OrdinalIgnoreCase);
                     }
                 }
 

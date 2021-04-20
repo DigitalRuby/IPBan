@@ -1,0 +1,17 @@
+<!-- hMailServer, Windows -->
+<LogFile>
+	<Source>hMailServer</Source>
+	<PathAndMask>C:/Program Files (x86)/hMailServer/Logs/hmailserver_{year-local}-{month-local}-{day-local}.log</PathAndMask>
+	<FailedLoginRegex>
+		<![CDATA[
+			"SMTPD"[^"]+"(?<timestamp>[^"]+)"[^"]+"(?<ipaddress>[^"]+)"[^"]+"SENT:.+(334|530|535)"?
+		]]>
+	</FailedLoginRegex>
+	<FailedLoginRegexTimestampFormat>MM/dd/YY	" HH:mm:ss</FailedLoginRegexTimestampFormat>
+	<SuccessfulLoginRegex></SuccessfulLoginRegex>
+	<SuccessfulLoginRegexTimestampFormat></SuccessfulLoginRegexTimestampFormat>
+	<PlatformRegex>Windows</PlatformRegex>
+	<PingInterval>10000</PingInterval>
+	<MaxFileSize>0</MaxFileSize>
+	<FailedLoginThreshold>0</FailedLoginThreshold>
+</LogFile>

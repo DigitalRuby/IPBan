@@ -71,7 +71,6 @@ namespace DigitalRuby.IPBanCore
                 var array = q.OrderBy(f => f.OS.Priority).ToArray();
                 foreach (var result in array)
                 {
-                    // look up the requested firewall by os name
                     bool matchPriority = priority < result.OS.Priority;
                     if (matchPriority)
                     {

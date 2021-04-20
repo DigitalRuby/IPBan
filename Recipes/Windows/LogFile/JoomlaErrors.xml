@@ -1,0 +1,17 @@
+<!-- Joomla errors, Windows -->
+<LogFile>
+	<Source>Joomla</Source>
+	<PathAndMask>C:/Users/Administrator/WEB/WWW/**/administrator/logs/error.php</PathAndMask>
+	<FailedLoginRegex>
+		<![CDATA[
+			^(?<timestamp>.+)\d.+INFO\s(?<ipaddress>.+)\Djoomlafailure\D
+		]]>
+	</FailedLoginRegex>
+	<FailedLoginRegexTimestampFormat></FailedLoginRegexTimestampFormat>
+	<SuccessfulLoginRegex></SuccessfulLoginRegex>
+	<SuccessfulLoginRegexTimestampFormat></SuccessfulLoginRegexTimestampFormat>
+	<PlatformRegex>Windows</PlatformRegex>
+	<PingInterval>10000</PingInterval>
+	<MaxFileSize>0</MaxFileSize>
+	<FailedLoginThreshold>0</FailedLoginThreshold>
+</LogFile>
