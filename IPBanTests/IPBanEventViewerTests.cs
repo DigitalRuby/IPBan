@@ -82,6 +82,11 @@ namespace DigitalRuby.IPBanTests
             {
                 new
                 (
+                    @"<Event xmlns='http://schemas.microsoft.com/win/2004/08/events/event'><System><Provider Name='Microsoft-Windows-RemoteDesktopServices-RdpCoreTS' Guid='{1139C61B-B549-4251-8ED3-27250A1EDEC8}'/><EventID>140</EventID><Version>0</Version><Level>3</Level><Task>4</Task><Opcode>14</Opcode><Keywords>0x4000000000000000</Keywords><TimeCreated SystemTime='2020-05-30T21:35:42.077609500Z'/><EventRecordID>3230629</EventRecordID><Correlation ActivityID='{F4201097-CCED-4F8B-BC9A-6E34FC360000}'/><Execution ProcessID='2084' ThreadID='6188'/><Channel>Microsoft-Windows-RemoteDesktopServices-RdpCoreTS/Operational</Channel><Computer>my.domain.com</Computer><Security UserID='S-1-5-20'/></System><EventData><Data Name='IPString'>212.92.107.115</Data></EventData><RenderingInfo Culture='en-US'><Message>A connection from the client computer with an IP address of 212.92.107.115 failed because the user name or password is not correct.</Message><Level>Warning</Level><Task>RemoteFX module</Task><Opcode>ProtocolExchange</Opcode><Channel>Microsoft-Windows-RemoteDesktopServices-RdpCoreTS/Operational</Channel><Provider></Provider><Keywords></Keywords></RenderingInfo></Event>",
+                    "212.92.107.115,,RDP,0"
+                ),
+                new
+                (
                     @"<Event xmlns='http://schemas.microsoft.com/win/2004/08/events/event'><System><Provider Name='Microsoft-Windows-Security-Auditing' Guid='{54849625-5478-4994-a5ba-3e3b0328c30d}' /><EventID>4625</EventID><Version>0</Version><Level>0</Level><Task>12544</Task><Opcode>0</Opcode><Keywords>0x8010000000000000</Keywords><TimeCreated SystemTime='2021-04-07T15:59:41.8109921Z' /><EventRecordID>13384143</EventRecordID><Correlation ActivityID='{1be9c669-2b89-0002-9ac6-e91b892bd701}' /><Execution ProcessID='888' ThreadID='9132' /><Channel>Security</Channel><Computer>BF-mymedia</Computer><Security /></System><EventData><Data Name='SubjectUserSid'>S-1-0-0</Data><Data Name='SubjectUserName'>-</Data><Data Name='SubjectDomainName'>-</Data><Data Name='SubjectLogonId'>0x0</Data><Data Name='TargetUserSid'>S-1-0-0</Data><Data Name='TargetUserName'>administrator</Data><Data Name='TargetDomainName'></Data><Data Name='Status'>0xc000006d</Data><Data Name='FailureReason'>%%2313</Data><Data Name='SubStatus'>0xc000006a</Data><Data Name='LogonType'>3</Data><Data Name='LogonProcessName'>NtLmSsp </Data><Data Name='AuthenticationPackageName'>NTLM</Data><Data Name='WorkstationName'>-</Data><Data Name='TransmittedServices'>-</Data><Data Name='LmPackageName'>-</Data><Data Name='KeyLength'>0</Data><Data Name='ProcessId'>0x0</Data><Data Name='ProcessName'>-</Data><Data Name='IpAddress'>41.42.43.44</Data><Data Name='IpPort'>0</Data></EventData></Event>",
                     "41.42.43.44,administrator,RDP,0"
                 ),
@@ -344,6 +349,7 @@ namespace DigitalRuby.IPBanTests
                 "192.169.217.183",
                 "196.65.47.84",
                 "212.48.88.133",
+                "212.92.107.115",
                 "218.10.17.192",
                 "222.186.61.16"
             };
