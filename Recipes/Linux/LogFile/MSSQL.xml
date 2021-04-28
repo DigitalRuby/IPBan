@@ -1,0 +1,17 @@
+<!-- MSSQL failed logins, Linux -->
+<LogFile>
+	<Source>MSSQL</Source>
+	<PathAndMask>/var/log/syslog</PathAndMask>
+	<FailedLoginRegex>
+		<![CDATA[
+			^login\sfailed\sfor\suser\s'(?<username>[^']+)'\.\sreason:\spassword\sdid\snot\smatch[^\[]+\[client:\s(?<ipaddress>[^\]]+)[^\n]*
+		]]>
+	</FailedLoginRegex>
+	<FailedLoginRegexTimestampFormat></FailedLoginRegexTimestampFormat>
+	<SuccessfulLoginRegex></SuccessfulLoginRegex>
+	<SuccessfulLoginRegexTimestampFormat></SuccessfulLoginRegexTimestampFormat>
+	<PlatformRegex>Linux</PlatformRegex>
+	<PingInterval>10000</PingInterval>
+	<MaxFileSize>0</MaxFileSize>
+	<FailedLoginThreshold>0</FailedLoginThreshold>
+</LogFile>
