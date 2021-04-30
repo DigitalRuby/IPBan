@@ -7,7 +7,7 @@
 	  Log file path/mask to scan
 	-->
 	<PathAndMask>
-	  C:/SpettacoloUtility/jellyfin/data/log/log_{year-local}{month-local}{day-local}.log
+	  C:/ProgramData/Jellyfin/Server/log/log_{year-local}{month-local}{day-local}.log
 	</PathAndMask>
 
 	<!--
