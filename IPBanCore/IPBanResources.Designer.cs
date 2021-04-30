@@ -376,6 +376,15 @@ namespace DigitalRuby.IPBanCore {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Any changes made to the administrator account will propagate to clients automatically..
+        /// </summary>
+        public static string CredentialPropagation {
+            get {
+                return ResourceManager.GetString("CredentialPropagation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Cycle Time.
         /// </summary>
         public static string CycleTime {
