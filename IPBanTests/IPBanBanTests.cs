@@ -139,7 +139,7 @@ namespace DigitalRuby.IPBanTests
         }
 
         [Test]
-        public void TestSuccessIPAddressesEventViewer()
+        public void TestSuccessEventViewer()
         {
             if (OSUtility.IsWindows)
             {
@@ -147,6 +147,18 @@ namespace DigitalRuby.IPBanTests
                 service.EventViewer.ProcessEventViewerXml(xml);
                 service.RunCycleAsync().Sync();
                 Assert.IsFalse(service.Firewall.IsIPAddressBlocked("44.55.66.77"));
+            }
+        }
+
+        [Test]
+        public void TestFailureEventViewer()
+        {
+            if (OSUtility.IsWindows)
+            {
+                const string xml = @"<Event xmlns='http://schemas.microsoft.com/win/2004/08/events/event'><System><Provider Name='Microsoft-Windows-Security-Auditing' Guid='{54849625-5478-4994-A5BA-3E3B0328C30D}'/><EventID>4625</EventID><Version>0</Version><Level>0</Level><Task>12544</Task><Opcode>0</Opcode><Keywords>0x8010000000000000</Keywords><TimeCreated SystemTime='2020-03-04T20:58:52.555949300Z'/><EventRecordID>38600046</EventRecordID><Correlation ActivityID='{75ECDDC3-EDB3-0003-CBDD-EC75B3EDD501}'/><Execution ProcessID='696' ThreadID='4092'/><Channel>Security</Channel><Computer>MYCOMPUTER</Computer><Security/></System><EventData><Data Name='SubjectUserSid'>S-1-0-0</Data><Data Name='SubjectUserName'>-</Data><Data Name='SubjectDomainName'>-</Data><Data Name='SubjectLogonId'>0x0</Data><Data Name='TargetUserSid'>S-1-0-0</Data><Data Name='TargetUserName'>administrator</Data><Data Name='TargetDomainName'></Data><Data Name='Status'>0xc000006d</Data><Data Name='FailureReason'>%%2313</Data><Data Name='SubStatus'>0xc000006a</Data><Data Name='LogonType'>3</Data><Data Name='LogonProcessName'>NtLmSsp </Data><Data Name='AuthenticationPackageName'>NTLM</Data><Data Name='WorkstationName'>-</Data><Data Name='TransmittedServices'>-</Data><Data Name='LmPackageName'>-</Data><Data Name='KeyLength'>0</Data><Data Name='ProcessId'>0x0</Data><Data Name='ProcessName'>-</Data><Data Name='IpAddress'>33.32.31.30</Data><Data Name='IpPort'>51292</Data></EventData></Event>";
+                service.EventViewer.ProcessEventViewerXml(xml);
+                service.RunCycleAsync().Sync();
+                Assert.IsFalse(service.Firewall.IsIPAddressBlocked("33.32.31.30"));
             }
         }
 
