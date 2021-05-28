@@ -88,6 +88,7 @@ namespace DigitalRuby.IPBanCore
             query = null;
             if (watcher != null)
             {
+                GC.SuppressFinalize(this);
                 watcher.Dispose();
                 watcher = null;
                 service.RemoveUpdater(this);
