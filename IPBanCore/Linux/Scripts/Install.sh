@@ -48,6 +48,7 @@ After=network.target
 [Service]
 Type=notify
 WorkingDirectory=/opt/ipban
+Environment="DOTNET_BUNDLE_EXTRACT_BASE_DIR=%h/.net/bundling"
 ExecStart=/opt/ipban/DigitalRuby.IPBan
 Restart=on-failure
 KillSignal=SIGINT
