@@ -93,8 +93,8 @@ namespace DigitalRuby.IPBanTests
                 @"",
                 "Windows", "SmarterMail",
 
-                "C:/Program Files (x86)/Mail Enable/Logging/SMTP/SMTP-Activity-*.log\nC:/Program Files/Mail Enable/Logging/SMTP/SMTP-Activity-*.log",
-                @"^(?<timestamp>(?:\d\d.){5}\d\d)(?:\t.*?){4}(?<ipaddress>.*?)\t.*?Invalid\sUsername\sor\sPassword(?:\t.*?){2}\t(?<username>.*?)$",
+                "C:/Program Files (x86)/Mail Enable/Logging/SMTP/SMTP-Activity-*.log\nC:/Program Files/Mail Enable/Logging/SMTP/SMTP-Activity-*.log\nC:/Program Files (x86)/Mail Enable/Logging/IMAP\nC:/Program Files/Mail Enable/Logging/IMAP",
+                @"^(?<timestamp>[0-9\/:\s]+)SMTP\-IN\s+[^\s]+\s+[^\s]+\s(?<ipaddress>[^\s]+)\s+[^\s]+\s+[^\s]+\s+[^\s]+\s+Invalid\sUsername\sor\sPassword\s+[^\s]+\s+[^\s]+\s+(?<username>[^\n]+)$|^(?<timestamp>[0-9\/:\s]+)IMAP\-IN\s+[^\s]+\s+(?<ipaddress>[^\s]+)\s+LOGIN\s+LOGIN\s+""(?<username>[^""]+)""\s+""[^""]+""\s+[^\s]+\s+NO\s+LOGIN\s+Failed\s+[^\s]+\s+Invalid\s+username\s+or\s+password[^\n]*$",
                 @"MM/dd/yy HH:mm:ss",
                 @"",
                 @"",
