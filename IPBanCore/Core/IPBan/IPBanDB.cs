@@ -257,6 +257,7 @@ namespace DigitalRuby.IPBanCore
         {
             if (IPAddress.TryParse(ipAddress, out IPAddress ipAddressObj))
             {
+                ipAddressObj = ipAddressObj.MapToIPv4IfIPv6();
                 byte[] ipBytes = ipAddressObj.GetAddressBytes();
                 long timestamp = dateTime.ToUnixMillisecondsLong();
                 SqliteDBTransaction tran = transaction as SqliteDBTransaction;
@@ -286,6 +287,7 @@ namespace DigitalRuby.IPBanCore
         {
             if (IPAddress.TryParse(ipAddress, out IPAddress ipAddressObj))
             {
+                ipAddressObj = ipAddressObj.MapToIPv4IfIPv6();
                 byte[] ipBytes = ipAddressObj.GetAddressBytes();
                 SqliteDBTransaction tran = transaction as SqliteDBTransaction;
                 using SqliteDataReader reader = ExecuteReader("SELECT IPAddressText, LastFailedLogin, FailedLoginCount, BanDate," +
@@ -315,6 +317,7 @@ namespace DigitalRuby.IPBanCore
         {
             if (IPAddress.TryParse(ipAddress, out IPAddress ipAddressObj))
             {
+                ipAddressObj = ipAddressObj.MapToIPv4IfIPv6();
                 SqliteDBTransaction tran = transaction as SqliteDBTransaction;
                 int count = SetBanDateInternal(ipAddressObj, banStartDate, banEndDate, now, tran?.DBConnection, tran?.DBTransaction);
                 return (count != 0);
@@ -333,6 +336,7 @@ namespace DigitalRuby.IPBanCore
         {
             if (IPAddress.TryParse(ipAddress, out IPAddress ipAddressObj))
             {
+                ipAddressObj = ipAddressObj.MapToIPv4IfIPv6();
                 byte[] ipBytes = ipAddressObj.GetAddressBytes();
                 SqliteDBTransaction tran = transaction as SqliteDBTransaction;
                 using SqliteDataReader reader = ExecuteReader("SELECT BanDate, BanEndDate FROM IPAddresses WHERE IPAddress = @Param0", tran?.DBConnection, tran?.DBTransaction, ipBytes);
@@ -378,10 +382,7 @@ namespace DigitalRuby.IPBanCore
                 {
                     if (IPAddress.TryParse(ipAddress.Item1, out IPAddress ipAddressObj))
                     {
-                        if (ipAddressObj.IsIPv4MappedToIPv6)
-                        {
-                            ipAddressObj = ipAddressObj.MapToIPv4();
-                        }
+                        ipAddressObj = ipAddressObj.MapToIPv4IfIPv6();
                         count += SetBanDateInternal(ipAddressObj, ipAddress.Item2, ipAddress.Item3, now, tran.DBConnection, tran.DBTransaction);
                     }
                 }
@@ -416,6 +417,7 @@ namespace DigitalRuby.IPBanCore
         {
             if (IPAddress.TryParse(ipAddress, out IPAddress ipAddressObj))
             {
+                ipAddressObj = ipAddressObj.MapToIPv4IfIPv6();
                 SqliteDBTransaction tran = transaction as SqliteDBTransaction;
                 byte[] ipBytes = ipAddressObj.GetAddressBytes();
                 if (ExecuteScalar<int>("SELECT State FROM IPAddresses WHERE IPAddress = @Param0",
@@ -454,6 +456,7 @@ namespace DigitalRuby.IPBanCore
                 {
                     if (IPAddress.TryParse(ipAddress, out IPAddress ipAddressObj))
                     {
+                        ipAddressObj = ipAddressObj.MapToIPv4IfIPv6();
                         byte[] ipBytes = ipAddressObj.GetAddressBytes();
                         count += ExecuteNonQuery("UPDATE IPAddresses SET State = @Param0 WHERE IPAddress = @Param1", tran.DBConnection, tran.DBTransaction, stateInt, ipBytes);
                     }
@@ -576,6 +579,7 @@ namespace DigitalRuby.IPBanCore
         {
             if (IPAddress.TryParse(ipAddress, out IPAddress ipAddressObj))
             {
+                ipAddressObj = ipAddressObj.MapToIPv4IfIPv6();
                 SqliteDBTransaction ipDBTransaction = transaction as SqliteDBTransaction;
                 byte[] ipBytes = ipAddressObj.GetAddressBytes();
                 return (ExecuteNonQuery("DELETE FROM IPAddresses WHERE IPAddress = @Param0", ipDBTransaction?.DBConnection, ipDBTransaction?.DBTransaction, ipBytes) != 0);
@@ -645,6 +649,7 @@ namespace DigitalRuby.IPBanCore
                 {
                     if (IPAddress.TryParse(ipAddress, out IPAddress ipAddressObj))
                     {
+                        ipAddressObj = ipAddressObj.MapToIPv4IfIPv6();
                         count += ExecuteNonQuery("DELETE FROM IPAddresses WHERE IPAddress = @Param0", conn, tran, ipAddressObj.GetAddressBytes());
                     }
                 }

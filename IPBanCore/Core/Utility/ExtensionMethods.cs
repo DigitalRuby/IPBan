@@ -374,6 +374,24 @@ namespace DigitalRuby.IPBanCore
         }
 
         /// <summary>
+        /// Map ip address to ipv4 if it is an ipv6 address mapped to ipv4
+        /// </summary>
+        /// <param name="ip">IP address</param>
+        /// <returns>IP address mapped to ipv4 if mapped to ipv4 in ipv6 format</returns>
+        public static System.Net.IPAddress MapToIPv4IfIPv6(this System.Net.IPAddress ip)
+        {
+            if (ip is null)
+            {
+                return ip;
+            }
+            else if (ip.IsIPv4MappedToIPv6)
+            {
+                return ip.MapToIPv4();
+            }
+            return ip;
+        }
+
+        /// <summary>
         /// An extension method to determine if an IP address is internal, as specified in RFC1918
         /// </summary>
         /// <param name="ip">The IP address that will be tested</param>
@@ -382,10 +400,7 @@ namespace DigitalRuby.IPBanCore
         {
             try
             {
-                if (ip.IsIPv4MappedToIPv6)
-                {
-                    ip = ip.MapToIPv4();
-                }
+                ip = ip.MapToIPv4IfIPv6();
                 if (ip.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
                 {
                     byte[] bytes = ip.GetAddressBytes();

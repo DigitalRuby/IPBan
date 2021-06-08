@@ -104,10 +104,7 @@ namespace DigitalRuby.IPBanCore
             string ipString = Encoding.UTF8.GetString(bytes).Split(',').Last().Trim();
             if (System.Net.IPAddress.TryParse(ipString, out System.Net.IPAddress ipAddress))
             {
-                if (ipAddress.IsIPv4MappedToIPv6)
-                {
-                    ipAddress = ipAddress.MapToIPv4();
-                }
+                ipAddress = ipAddress.MapToIPv4IfIPv6();
             }
             else
             {

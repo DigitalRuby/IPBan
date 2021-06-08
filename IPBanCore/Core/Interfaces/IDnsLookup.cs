@@ -103,11 +103,7 @@ namespace DigitalRuby.IPBanCore
                 {
                     throw new ApplicationException("Unable to determine local ip address, is the network adapter enabled?");
                 }
-                if (local.IsIPv4MappedToIPv6)
-                {
-                    return local.MapToIPv4();
-                }
-                return local;
+                return local.MapToIPv4IfIPv6();
             }
             catch
             {
