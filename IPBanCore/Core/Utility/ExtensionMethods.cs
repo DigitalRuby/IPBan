@@ -352,43 +352,14 @@ namespace DigitalRuby.IPBanCore
         }
 
         /// <summary>
-        /// Remove the scope id from the ip address if there is a scope id
-        /// </summary>
-        /// <param name="ipAddress">IP address to remove scope id from</param>
-        /// <returns>This ip address if no scope id removed, otherwise a new ip address with scope removed if ownsIP is false, or the same ip
-        /// with scope removed if ownsIP is true</returns>
-        public static IPAddress RemoveScopeId(this IPAddress ipAddress, bool ownsIP = false)
-        {
-            if (ipAddress.AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6)
-            {
-                if (ownsIP)
-                {
-                    ipAddress.ScopeId = 0;
-                }
-                else
-                {
-                    return new IPAddress(ipAddress.GetAddressBytes());
-                }
-            }
-            return ipAddress;
-        }
-
-        /// <summary>
-        /// Map ip address to ipv4 if it is an ipv6 address mapped to ipv4
+        /// Clean ip address - remove scope and convert to ipv4 if ipv6 mapped to ipv4
         /// </summary>
         /// <param name="ip">IP address</param>
-        /// <returns>IP address mapped to ipv4 if mapped to ipv4 in ipv6 format</returns>
-        public static System.Net.IPAddress MapToIPv4IfIPv6(this System.Net.IPAddress ip)
+        /// <param name="ownsIP">Whether this ip is owned by the caller</param>
+        /// <returns>Cleaned ip address</returns>
+        public static System.Net.IPAddress Clean(this System.Net.IPAddress ip, bool ownsIP = false)
         {
-            if (ip is null)
-            {
-                return ip;
-            }
-            else if (ip.IsIPv4MappedToIPv6)
-            {
-                return ip.MapToIPv4();
-            }
-            return ip;
+            return ip.RemoveScopeId(ownsIP).MapToIPv4IfIPv6();
         }
 
         /// <summary>
@@ -400,7 +371,7 @@ namespace DigitalRuby.IPBanCore
         {
             try
             {
-                ip = ip.MapToIPv4IfIPv6();
+                ip = ip.Clean();
                 if (ip.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
                 {
                     byte[] bytes = ip.GetAddressBytes();
@@ -541,13 +512,12 @@ namespace DigitalRuby.IPBanCore
         }
 
         /// <summary>
-        /// Get a UInt128 from an ipv6 address. The UInt128 will be in the byte order of the CPU by default.
+        /// Get a UInt128 from an ipv6 address. The UInt128 will be in the byte order of the CPU.
         /// </summary>
         /// <param name="ip">IPV6 address</param>
-        /// <param name="swap">Whether to swap bytes for CPU order</param>
         /// <returns>UInt128</returns>
         /// <exception cref="InvalidOperationException">Not an ipv6 address</exception>
-        public static unsafe UInt128 ToUInt128(this IPAddress ip, bool swap = true)
+        public static unsafe UInt128 ToUInt128(this IPAddress ip)
         {
             if (ip is null || ip.AddressFamily != System.Net.Sockets.AddressFamily.InterNetworkV6)
             {
@@ -555,20 +525,14 @@ namespace DigitalRuby.IPBanCore
             }
 
             byte[] bytes = ip.GetAddressBytes();
-            if (swap)
+            if (BitConverter.IsLittleEndian)
             {
+                // reverse big endian (network order) to little endian
                 bytes = bytes.Reverse().ToArray();
-                ulong l1 = BitConverter.ToUInt64(bytes, 0);
-                ulong l2 = BitConverter.ToUInt64(bytes, 8);
-                return new UInt128(l2, l1);
             }
-            else
-            {
-                bytes = bytes.ToArray();
-                ulong l1 = BitConverter.ToUInt64(bytes, 0);
-                ulong l2 = BitConverter.ToUInt64(bytes, 8);
-                return new UInt128(l1, l2);
-            }
+            ulong l1 = BitConverter.ToUInt64(bytes, 0);
+            ulong l2 = BitConverter.ToUInt64(bytes, 8);
+            return new UInt128(l2, l1);
         }
 
         /// <summary>
@@ -1358,6 +1322,10 @@ namespace DigitalRuby.IPBanCore
             return tcs.Task;
         }
 
+        /// <summary>
+        /// Cleanup database files
+        /// </summary>
+        /// <param name="folder">Folder</param>
         public static void RemoveDatabaseFiles(string folder = null)
         {
             folder ??= AppContext.BaseDirectory;
@@ -1374,6 +1342,47 @@ namespace DigitalRuby.IPBanCore
             {
                 ExtensionMethods.FileDeleteWithRetry(file, 1000);
             }
+        }
+
+        /// <summary>
+        /// Remove the scope id from the ip address if there is a scope id
+        /// </summary>
+        /// <param name="ipAddress">IP address to remove scope id from</param>
+        /// <param name="ownsIP">Whether this ip is owned by the caller</param>
+        /// <returns>This ip address if no scope id removed, otherwise a new ip address with scope removed if ownsIP is false, or the same ip
+        /// with scope removed if ownsIP is true</returns>
+        private static IPAddress RemoveScopeId(this IPAddress ipAddress, bool ownsIP = false)
+        {
+            if (ipAddress.AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6)
+            {
+                if (ownsIP)
+                {
+                    ipAddress.ScopeId = 0;
+                }
+                else
+                {
+                    return new IPAddress(ipAddress.GetAddressBytes());
+                }
+            }
+            return ipAddress;
+        }
+
+        /// <summary>
+        /// Map ip address to ipv4 if it is an ipv6 address mapped to ipv4
+        /// </summary>
+        /// <param name="ip">IP address</param>
+        /// <returns>IP address mapped to ipv4 if mapped to ipv4 in ipv6 format</returns>
+        private static System.Net.IPAddress MapToIPv4IfIPv6(this System.Net.IPAddress ip)
+        {
+            if (ip is null)
+            {
+                return ip;
+            }
+            else if (ip.IsIPv4MappedToIPv6)
+            {
+                return ip.MapToIPv4();
+            }
+            return ip;
         }
     }
 }

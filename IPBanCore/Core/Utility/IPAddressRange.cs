@@ -246,8 +246,7 @@ namespace DigitalRuby.IPBanCore
         public IPAddressRange(IPAddress singleAddress, bool ownsIP = false)
         {
             singleAddress.ThrowIfNull(nameof(singleAddress));
-            singleAddress = singleAddress.MapToIPv4IfIPv6();
-            Begin = End = singleAddress.RemoveScopeId(ownsIP);
+            Begin = End = singleAddress.Clean();
             Single = true;
         }
 
@@ -263,8 +262,8 @@ namespace DigitalRuby.IPBanCore
         {
             begin.ThrowIfNull(nameof(begin));
             end.ThrowIfNull(nameof(end));
-            begin = begin.MapToIPv4IfIPv6();
-            end = end.MapToIPv4IfIPv6();
+            begin = begin.Clean(ownsIP);
+            end = end.Clean(ownsIP);
             if (begin.AddressFamily != end.AddressFamily)
             {
                 throw new ArgumentException("Begin ip and end ip must be of the same address family", nameof(end));
@@ -273,8 +272,8 @@ namespace DigitalRuby.IPBanCore
             {
                 throw new ArgumentException("Begin ip address must be less than or equal the end ip address", nameof(begin));
             }
-            Begin = begin.RemoveScopeId(ownsIP);
-            End = end.RemoveScopeId(ownsIP);
+            Begin = begin;
+            End = end;
             Single = Begin.Equals(End);
         }
 
@@ -288,7 +287,7 @@ namespace DigitalRuby.IPBanCore
         public IPAddressRange(IPAddress baseAddress, int maskLength)
         {
             baseAddress.ThrowIfNull(nameof(baseAddress));
-            baseAddress = baseAddress.MapToIPv4IfIPv6();
+            baseAddress = baseAddress.Clean();
             var baseAdrBytes = baseAddress.GetAddressBytes();
             if (baseAdrBytes.Length * 8 < maskLength)
             {
@@ -309,7 +308,7 @@ namespace DigitalRuby.IPBanCore
         public bool Contains(IPAddress ipAddress)
         {
             ipAddress.ThrowIfNull(nameof(ipAddress));
-            ipAddress = ipAddress.MapToIPv4IfIPv6();
+            ipAddress = ipAddress.Clean();
             if (ipAddress.AddressFamily != Begin.AddressFamily)
             {
                 return false;

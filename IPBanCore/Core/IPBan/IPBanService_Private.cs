@@ -299,6 +299,9 @@ namespace DigitalRuby.IPBanCore
                             continue;
                         }
 
+                        // normalize for firewall
+                        ipAddressObj = ipAddressObj.Clean();
+                        ipAddress = ipAddressObj.ToString();
                         string userName = failedLogin.UserName;
                         string source = failedLogin.Source;
                         if (IsWhitelisted(ipAddress))
@@ -390,13 +393,20 @@ namespace DigitalRuby.IPBanCore
 
         private Task ProcessPendingSuccessfulLogins(IEnumerable<IPAddressLogEvent> ipAddresses)
         {
+            List<IPAddressLogEvent> finalList = new();
             foreach (IPAddressLogEvent info in ipAddresses)
             {
-                Logger.Log(info.LogLevel, "Login succeeded, address: {0}, user name: {1}, source: {2}", info.IPAddress, info.UserName, info.Source);
-                if (Config.ClearFailedLoginsOnSuccessfulLogin)
+                if (System.Net.IPAddress.TryParse(info.IPAddress, out System.Net.IPAddress ipAddressObj))
                 {
-                    DB.DeleteIPAddress(info.IPAddress);
-                    firewallNeedsBlockedIPAddressesUpdate = true;
+                    finalList.Add(info);
+                    string ipString = ipAddressObj.ToString();
+                    Logger.Log(info.LogLevel, "Login succeeded, address: {0}, user name: {1}, source: {2}",
+                        info.IPAddress, info.UserName, info.Source);
+                    if (Config.ClearFailedLoginsOnSuccessfulLogin)
+                    {
+                        DB.DeleteIPAddress(ipString);
+                        firewallNeedsBlockedIPAddressesUpdate = true;
+                    }
                 }
             }
             if (IPBanDelegate != null)
@@ -405,7 +415,7 @@ namespace DigitalRuby.IPBanCore
                 {
                     try
                     {
-                        foreach (IPAddressLogEvent info in ipAddresses)
+                        foreach (IPAddressLogEvent info in finalList)
                         {
                             // pass the success login on
                             IPBanDelegate.LoginAttemptSucceeded(info.IPAddress, info.Source, info.UserName, MachineGuid, OSName, OSVersion, info.Count, info.Timestamp);
