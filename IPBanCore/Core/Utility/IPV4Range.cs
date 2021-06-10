@@ -93,10 +93,10 @@ namespace DigitalRuby.IPBanCore
         }
 
         /// <summary>
-        /// Conver to an ip address range
+        /// Convert to an ip address range
         /// </summary>
         /// <returns>IPAddressRange</returns>
-        public IPAddressRange ToIPAddressRange() => new(Begin.ToIPAddress(), End.ToIPAddress());
+        public IPAddressRange ToIPAddressRange() => new(Begin.ToIPAddress(), End.ToIPAddress(), true);
 
         /// <summary>
         /// IComparer against another IPV4Range
