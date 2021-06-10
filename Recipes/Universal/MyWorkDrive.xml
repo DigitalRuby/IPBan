@@ -1,0 +1,32 @@
+<!-- MyWorkDrive failed logins, Windows and Linux
+
+Example failure:
+<Log><Date>2020-12-24 16:36:08</Date><Username>username</Username><IPAddress>55.55.55.56</IPAddress><Message>Login (Web) - failure - https://url.com</Message><URL>https://url.com</URL></Log>
+
+Example success:
+<Log><Date>2020-12-24 16:36:08</Date><Username>username</Username><IPAddress>55.55.55.56</IPAddress><Message>Login (Web) - success - https://url.com</Message><URL>https://url.com</URL></Log>
+
+-->
+<LogFile>
+	<Source>MyWorkDrive</Source>
+	<PathAndMask>
+		C:/Program Files (x86)/Wanpath/MyWorkDrive/Logs/**/*.xml
+		/var/log/myworkdrive/**/*.xml
+	</PathAndMask>
+	<FailedLoginRegex>
+		<![CDATA[
+			\<Log\>\<Date\>(?<timestamp>[^\<]+)\<\/Date\>\<Username\>(?<username>[^\<]+)\<\/Username\>\<IPAddress\>[^\<]+\<\/IPAddress\>\<Message\>[^\n]*?login[^\n]*?-\sfailure\s-[^\n]+
+		]]>
+	</FailedLoginRegex>
+	<FailedLoginRegexTimestampFormat></FailedLoginRegexTimestampFormat>
+	<SuccessfulLoginRegex>
+		<![CDATA[
+			\<Log\>\<Date\>(?<timestamp>[^\<]+)\<\/Date\>\<Username\>(?<username>[^\<]+)\<\/Username\>\<IPAddress\>[^\<]+\<\/IPAddress\>\<Message\>[^\n]*?login[^\n]*?-\ssuccess\s-[^\n]+
+		]]>
+	</SuccessfulLoginRegex>
+	<SuccessfulLoginRegexTimestampFormat></SuccessfulLoginRegexTimestampFormat>
+	<PlatformRegex>Windows|Linux</PlatformRegex>
+	<PingInterval>10000</PingInterval>
+	<MaxFileSize>0</MaxFileSize>
+	<FailedLoginThreshold>0</FailedLoginThreshold>
+</LogFile>
