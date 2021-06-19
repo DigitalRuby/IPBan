@@ -396,7 +396,9 @@ namespace DigitalRuby.IPBanCore
             List<IPAddressLogEvent> finalList = new();
             foreach (IPAddressLogEvent info in ipAddresses)
             {
-                if (System.Net.IPAddress.TryParse(info.IPAddress, out System.Net.IPAddress ipAddressObj))
+                // if we have a valid ip that is not internal, process the successful login
+                if (System.Net.IPAddress.TryParse(info.IPAddress, out System.Net.IPAddress ipAddressObj) &&
+                    !ipAddressObj.IsInternal())
                 {
                     finalList.Add(info);
                     string ipString = ipAddressObj.ToString();
@@ -447,9 +449,15 @@ namespace DigitalRuby.IPBanCore
             List<IPAddressLogEvent> bannedIpAddresses, DateTime startBanDate, bool configBlacklisted,
             int counter, string extraInfo, object transaction, bool external)
         {
-            // never ban whitelisted ip addresses
-            if (IsWhitelisted(ipAddress))
+            // if bad ip or internal ip, ignore
+            if (!System.Net.IPAddress.TryParse(ipAddress, out System.Net.IPAddress ipAddressObj) ||
+                ipAddressObj.IsInternal())
             {
+                return;
+            }
+            else if (IsWhitelisted(ipAddress))
+            {
+                // never ban whitelisted ip addresses
                 Logger.Info("Ignoring ban request for whitelisted ip address {0}", ipAddress);
                 return;
             }
@@ -493,9 +501,7 @@ namespace DigitalRuby.IPBanCore
             {
                 return;
             }
-            else if (BannedIPAddressHandler != null &&
-                System.Net.IPAddress.TryParse(ipAddress, out System.Net.IPAddress ipAddressObj) &&
-                !ipAddressObj.IsInternal())
+            else if (BannedIPAddressHandler != null)
             {
                 try
                 {
