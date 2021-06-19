@@ -168,10 +168,10 @@ namespace DigitalRuby.IPBanTests
             // add the external event to the service
             service.AddIPAddressLogEvents(new IPAddressLogEvent[]
             {
-                new IPAddressLogEvent("10.11.12.13", "TestUser", "RDP", 0, IPAddressEventType.Blocked, new DateTime(2020, 01, 01))
+                new IPAddressLogEvent("11.11.12.13", "TestUser", "RDP", 0, IPAddressEventType.Blocked, new DateTime(2020, 01, 01))
             });
             service.RunCycleAsync().Sync();
-            Assert.IsTrue(service.Firewall.IsIPAddressBlocked("10.11.12.13", out _));
+            Assert.IsTrue(service.Firewall.IsIPAddressBlocked("11.11.12.13", out _));
         }
 
         [Test]
