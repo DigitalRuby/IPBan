@@ -168,10 +168,12 @@ namespace DigitalRuby.IPBanTests
             // add the external event to the service
             service.AddIPAddressLogEvents(new IPAddressLogEvent[]
             {
-                new IPAddressLogEvent("11.11.12.13", "TestUser", "RDP", 0, IPAddressEventType.Blocked, new DateTime(2020, 01, 01))
+                new IPAddressLogEvent("11.11.12.13", "TestDomain\\TestUser", "RDP", 0, IPAddressEventType.Blocked, new DateTime(2020, 01, 01))
             });
             service.RunCycleAsync().Sync();
             Assert.IsTrue(service.Firewall.IsIPAddressBlocked("11.11.12.13", out _));
+            Assert.IsTrue(service.DB.TryGetIPAddress("11.11.12.13", out IPBanDB.IPAddressEntry entry));
+            Assert.IsNotNull(entry.BanStartDate);
         }
 
         [Test]
@@ -231,13 +233,14 @@ namespace DigitalRuby.IPBanTests
         {
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             {
-                // prime Linux log files
-                IPBanPlugin.IPBanLoginFailed("SSH", "User1", "78.88.88.88");
+                // prime linux log file
+                IPBanPlugin.IPBanLoginFailed("SSH", "TestDomain\\User1", "78.88.88.88");
             }
             service.RunCycleAsync().Sync();
+
             for (int i = 0; i < 5; i++)
             {
-                IPBanPlugin.IPBanLoginFailed("SSH", "User1", "88.88.88.88");
+                IPBanPlugin.IPBanLoginFailed("SSH", "TestDomain\\User1", "88.88.88.88");
                 service.RunCycleAsync().Sync();
 
                 // attempt to read failed logins, if they do not match, sleep a bit and try again
@@ -246,6 +249,14 @@ namespace DigitalRuby.IPBanTests
                     System.Threading.Thread.Sleep(100);
                     service.RunCycleAsync().Sync();
                 }
+
+                if (i == 0)
+                {
+                    Assert.IsTrue(service.DB.TryGetIPAddress("88.88.88.88", out IPBanDB.IPAddressEntry entry));
+                    Assert.AreEqual("User1", entry.UserName);
+                    Assert.AreEqual("SSH", entry.Source);
+                }
+
                 IPBanService.UtcNow += TimeSpan.FromMinutes(5.0);
             }
             service.RunCycleAsync().Sync();

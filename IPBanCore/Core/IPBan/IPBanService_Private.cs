@@ -1113,6 +1113,14 @@ namespace DigitalRuby.IPBanCore
                     {
                         continue;
                     }
+
+                    // remove domain prefix from username
+                    int pos = evt.UserName.IndexOfAny(userNamePrefixChars);
+                    if (pos >= 0)
+                    {
+                        evt.UserName = evt.UserName[++pos..];
+                    }
+
                     evt.IPAddress = normalizedIPAddress;
                     switch (evt.Type)
                     {
