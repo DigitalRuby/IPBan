@@ -1115,11 +1115,14 @@ namespace DigitalRuby.IPBanCore
                     }
 
                     // remove domain prefix from username
-                    evt.UserName = (evt.UserName ?? string.Empty).Trim();
-                    int pos = evt.UserName.IndexOfAny(userNamePrefixChars);
-                    if (pos >= 0)
+                    if (evt.UserName != null)
                     {
-                        evt.UserName = evt.UserName[++pos..];
+                        evt.UserName = evt.UserName.Trim();
+                        int pos = evt.UserName.IndexOfAny(userNamePrefixChars);
+                        if (pos >= 0)
+                        {
+                            evt.UserName = evt.UserName[++pos..];
+                        }
                     }
 
                     evt.IPAddress = normalizedIPAddress;
