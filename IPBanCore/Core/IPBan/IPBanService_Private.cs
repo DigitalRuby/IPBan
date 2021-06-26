@@ -1115,6 +1115,7 @@ namespace DigitalRuby.IPBanCore
                     }
 
                     // remove domain prefix from username
+                    evt.UserName = (evt.UserName ?? string.Empty).Trim();
                     int pos = evt.UserName.IndexOfAny(userNamePrefixChars);
                     if (pos >= 0)
                     {
