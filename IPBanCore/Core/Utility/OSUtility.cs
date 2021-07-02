@@ -281,9 +281,8 @@ namespace DigitalRuby.IPBanCore
         /// <exception cref="ApplicationException">Exit code did not match allowed exit codes</exception>
         public static string StartProcessAndWait(string program, string args, params int[] allowedExitCodes)
         {
-            return StartProcessAndWait(60000, program, args, allowedExitCodes);
+            return StartProcessAndWait(60000, program, args, out _, allowedExitCodes);
         }
-
         /// <summary>
         /// Easy way to execute processes. If the process has not finished after timeoutMilliseconds, it is forced killed.
         /// </summary>
@@ -293,9 +292,43 @@ namespace DigitalRuby.IPBanCore
         /// <param name="allowedExitCodes">Allowed exit codes, if null or empty it is not checked, otherwise a mismatch will throw an exception.</param>
         /// <returns>Output</returns>
         /// <exception cref="ApplicationException">Exit code did not match allowed exit codes</exception>
-        public static string StartProcessAndWait(int timeoutMilliseconds, string program, string args, params int[] allowedExitCodes)
+        public static string StartProcessAndWait(int timeoutMilliseconds, string program, string args,
+            params int[] allowedExitCodes)
+        {
+            return StartProcessAndWait(timeoutMilliseconds, program, args, out _, allowedExitCodes);
+        }
+
+        /// <summary>
+        /// Easy way to execute processes. If the process has not finished after 60 seconds, it is forced killed.
+        /// </summary>
+        /// <param name="program">Program to run</param>
+        /// <param name="args">Arguments</param>
+        /// <param name="exitCode">Receives the exit code</param>
+        /// <param name="allowedExitCodes">Allowed exit codes, if null or empty it is not checked, otherwise a mismatch will throw an exception.</param>
+        /// <returns>Output</returns>
+        /// <exception cref="ApplicationException">Exit code did not match allowed exit codes</exception>
+        public static string StartProcessAndWait(string program, string args,
+            out int exitCode, params int[] allowedExitCodes)
+        {
+            return StartProcessAndWait(60000, program, args, out exitCode, allowedExitCodes);
+        }
+
+        /// <summary>
+        /// Easy way to execute processes. If the process has not finished after timeoutMilliseconds, it is forced killed.
+        /// </summary>
+        /// <param name="timeoutMilliseconds">Timeout in milliseconds</param>
+        /// <param name="program">Program to run</param>
+        /// <param name="args">Arguments</param>
+        /// <param name="exitCode">Receives the exit code</param>
+        /// <param name="allowedExitCodes">Allowed exit codes, if null or empty it is not checked, otherwise a mismatch will throw an exception.</param>
+        /// <returns>Output</returns>
+        /// <exception cref="ApplicationException">Exit code did not match allowed exit codes</exception>
+        public static string StartProcessAndWait(int timeoutMilliseconds, string program, string args,
+        out int exitCode, params int[] allowedExitCodes)
         {
             StringBuilder output = new();
+            int _exitCode = -1;
+            Exception _ex = null;
             Thread thread = new(new ParameterizedThreadStart((_state) =>
             {
                 Logger.Info($"Executing process {program} {args}...");
@@ -346,14 +379,20 @@ namespace DigitalRuby.IPBanCore
                     }
                     process.Kill();
                 }
+                _exitCode = process.ExitCode;
                 if (allowedExitCodes.Length != 0 && Array.IndexOf(allowedExitCodes, process.ExitCode) < 0)
                 {
-                    throw new ApplicationException($"Program {program} {args}: failed with exit code {process.ExitCode}, output: {output}");
+                    _ex = new ApplicationException($"Program {program} {args}: failed with exit code {process.ExitCode}, output: {output}");
                 }
             }));
             thread.Start();
             int timeout = (timeoutMilliseconds < 1 ? Timeout.Infinite : timeoutMilliseconds + 5000);
-            if (!thread.Join(timeout))
+            exitCode = _exitCode;
+            if (_ex is not null)
+            {
+                throw _ex;
+            }
+            else if (!thread.Join(timeout))
             {
                 throw new ApplicationException("Timed out waiting for process result");
             }
