@@ -537,10 +537,16 @@ namespace DigitalRuby.IPBanCore
         /// <param name="configFileName">Config file name</param>
         /// <param name="defaultBannedIPAddressHandlerUrl">Url for banned ip handling or null to not handle banned ip</param>
         /// <param name="configFileModifier">Change config file (param are file text, returns new file text)</param>
+        /// <param name="cleanup">Whether to cleanup files first before starting the service</param>
         /// <returns>Service</returns>
         public static T CreateAndStartIPBanTestService<T>(string directory = null, string configFileName = null, string defaultBannedIPAddressHandlerUrl = null,
-            Func<string, string> configFileModifier = null) where T : IPBanService
+            Func<string, string> configFileModifier = null, bool cleanup = true) where T : IPBanService
         {
+            if (!UnitTestDetector.Running)
+            {
+                return default;
+            }
+
             NLog.Time.TimeSource.Current = new TestTimeSource();
             string defaultNLogConfig = $@"<?xml version=""1.0""?>
 <nlog xmlns=""http://www.nlog-project.org/schemas/NLog.xsd"" xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" throwExceptions=""false"" internalLogToConsole=""false"" internalLogToConsoleError=""false"" internalLogLevel=""Trace"">
@@ -555,13 +561,11 @@ namespace DigitalRuby.IPBanCore
 </nlog>";
             File.WriteAllText(Path.Combine(AppContext.BaseDirectory, "nlog.config"), defaultNLogConfig);
 
-            string logFilePath = Path.Combine(AppContext.BaseDirectory, "logfile.txt");
-            if (File.Exists(logFilePath))
+            if (cleanup)
             {
-                File.Delete(logFilePath);
+                CleanupIPBanTestFiles();
             }
 
-            ExtensionMethods.RemoveDatabaseFiles();
             DefaultHttpRequestMaker.DisableLiveRequests = true;
             if (string.IsNullOrWhiteSpace(directory))
             {
@@ -602,11 +606,35 @@ namespace DigitalRuby.IPBanCore
         }
 
         /// <summary>
+        /// Cleanup test files
+        /// </summary>
+        public static void CleanupIPBanTestFiles()
+        {
+            if (!UnitTestDetector.Running)
+            {
+                return;
+            }
+
+            DefaultHttpRequestMaker.DisableLiveRequests = true;
+            string logFilePath = Path.Combine(AppContext.BaseDirectory, "logfile.txt");
+            if (File.Exists(logFilePath))
+            {
+                File.Delete(logFilePath);
+            }
+            ExtensionMethods.RemoveDatabaseFiles();
+        }
+
+        /// <summary>
         /// Dispose of an IPBanService created with CreateAndStartIPBanTestService
         /// </summary>
         /// <param name="service">Service to dispose</param>
         public static void DisposeIPBanTestService(IPBanService service)
         {
+            if (!UnitTestDetector.Running)
+            {
+                return;
+            }
+
             if (service != null)
             {
                 if (File.Exists(Path.Combine(AppContext.BaseDirectory, "nlog.config")))

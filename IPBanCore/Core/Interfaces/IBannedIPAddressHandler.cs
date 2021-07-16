@@ -78,9 +78,12 @@ namespace DigitalRuby.IPBanCore
 
 #if DEBUG
 
-            await Task.Yield();
+            if (!UnitTestDetector.Running)
+            {
+                return;
+            }
 
-#else
+#endif
 
             if (requestMaker is null)
             {
@@ -123,9 +126,6 @@ namespace DigitalRuby.IPBanCore
             {
                 // don't care, this is not fatal
             }
-
-#endif
-
         }
 
         /// <summary>
