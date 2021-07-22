@@ -230,7 +230,7 @@ namespace DigitalRuby.IPBanCore
                 string serverName = System.Environment.MachineName;
                 try
                 {
-                    FQDN = await DnsLookup.GetHostNameAsync();
+                    FQDN = await DnsLookup.GetHostNameAsync(serverName);
                 }
                 catch
                 {
