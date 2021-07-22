@@ -243,7 +243,7 @@ namespace DigitalRuby.IPBanCore
                 {
                     FQDN = await DnsLookup.GetHostNameAsync();
                     if (!string.IsNullOrWhiteSpace(domainName) &&
-                        !FQDN.StartsWith(domainName, StringComparison.OrdinalIgnoreCase))
+                        !FQDN.StartsWith(domainName + ".", StringComparison.OrdinalIgnoreCase))
                     {
                         FQDN = domainName + "." + FQDN;
                     }
