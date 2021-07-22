@@ -228,9 +228,25 @@ namespace DigitalRuby.IPBanCore
             if (string.IsNullOrWhiteSpace(FQDN))
             {
                 string serverName = System.Environment.MachineName;
+                string domainName = null;
+                if (OperatingSystem.IsWindows())
+                {
+                    try
+                    {
+                        domainName = System.DirectoryServices.ActiveDirectory.Domain.GetComputerDomain().Name;
+                    }
+                    catch
+                    {
+                    }
+                }
                 try
                 {
-                    FQDN = await DnsLookup.GetHostNameAsync(serverName);
+                    FQDN = await DnsLookup.GetHostNameAsync();
+                    if (!string.IsNullOrWhiteSpace(domainName) &&
+                        !FQDN.StartsWith(domainName, StringComparison.OrdinalIgnoreCase))
+                    {
+                        FQDN = domainName + "." + FQDN;
+                    }
                 }
                 catch
                 {
