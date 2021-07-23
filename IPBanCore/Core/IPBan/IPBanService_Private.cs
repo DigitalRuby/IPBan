@@ -310,7 +310,8 @@ namespace DigitalRuby.IPBanCore
                         string ipAddress = failedLogin.IPAddress;
 
                         // internal ip failed logins should not be processed
-                        if (!IPAddress.TryParse(ipAddress, out System.Net.IPAddress ipAddressObj) || ipAddressObj.IsInternal())
+                        if (!IPAddress.TryParse(ipAddress, out System.Net.IPAddress ipAddressObj) ||
+                            (!Config.ProcessInternalIPAddresses && ipAddressObj.IsInternal()))
                         {
                             continue;
                         }
@@ -414,7 +415,7 @@ namespace DigitalRuby.IPBanCore
             {
                 // if we have a valid ip that is not internal, process the successful login
                 if (System.Net.IPAddress.TryParse(info.IPAddress, out System.Net.IPAddress ipAddressObj) &&
-                    !ipAddressObj.IsInternal())
+                    (Config.ProcessInternalIPAddresses || !ipAddressObj.IsInternal()))
                 {
                     finalList.Add(info);
                     string ipString = ipAddressObj.ToString();
@@ -467,7 +468,7 @@ namespace DigitalRuby.IPBanCore
         {
             // if bad ip or internal ip, ignore
             if (!System.Net.IPAddress.TryParse(ipAddress, out System.Net.IPAddress ipAddressObj) ||
-                ipAddressObj.IsInternal())
+                (!Config.ProcessInternalIPAddresses && ipAddressObj.IsInternal()))
             {
                 return;
             }

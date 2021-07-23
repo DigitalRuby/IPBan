@@ -869,4 +869,10 @@
   <data name="CredentialPropagation" xml:space="preserve">
     <value>Any changes made to the administrator account will propagate to clients automatically.</value>
   </data>
+  <data name="ProcessInternalIPAddresses" xml:space="preserve">
+    <value>Process Internal IP Addresses</value>
+  </data>
+  <data name="ProcessInternalIPAddressesTooltip" xml:space="preserve">
+    <value>Whether to process internal ip addresses</value>
+  </data>
 </root>

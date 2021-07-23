@@ -203,6 +203,8 @@ namespace DigitalRuby.IPBanTests
                 Assert.IsEmpty(cfg.BlacklistFilter.IPAddressRanges);
                 Assert.IsTrue(string.IsNullOrEmpty(cfg.BlacklistFilter.Regex?.ToString()));
                 Assert.IsFalse(cfg.ClearBannedIPAddressesOnRestart);
+                Assert.IsFalse(cfg.ClearFailedLoginsOnSuccessfulLogin);
+                Assert.IsFalse(cfg.ProcessInternalIPAddresses);
                 Assert.AreEqual(TimeSpan.FromSeconds(15.0), cfg.CycleTime);
                 Assert.AreEqual(TimeSpan.FromDays(1.0), cfg.ExpireTime);
                 Assert.AreEqual("https://checkip.amazonaws.com/", cfg.ExternalIPAddressUrl);

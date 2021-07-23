@@ -121,6 +121,7 @@ namespace DigitalRuby.IPBanCore
 
         private readonly bool clearBannedIPAddressesOnRestart;
         private readonly bool clearFailedLoginsOnSuccessfulLogin;
+        private readonly bool processInternalIPAddresses;
         private readonly HashSet<string> userNameWhitelist = new(StringComparer.Ordinal);
         private readonly int userNameWhitelistMaximumEditDistance = 2;
         private readonly Regex userNameWhitelistRegex;
@@ -181,6 +182,7 @@ namespace DigitalRuby.IPBanCore
             MakeBanTimesValid(ref banTimes);
             GetConfig<bool>("ClearBannedIPAddressesOnRestart", ref clearBannedIPAddressesOnRestart);
             GetConfig<bool>("ClearFailedLoginsOnSuccessfulLogin", ref clearFailedLoginsOnSuccessfulLogin);
+            GetConfig<bool>("ProcessInternalIPAddresses", ref processInternalIPAddresses);
             GetConfig<TimeSpan>("ExpireTime", ref expireTime, TimeSpan.Zero, maxBanTimeSpan);
             if (expireTime.TotalMinutes < 1.0)
             {
@@ -771,6 +773,11 @@ namespace DigitalRuby.IPBanCore
         /// Whether to clear failed logins when an ip has a successful login (default false)
         /// </summary>
         public bool ClearFailedLoginsOnSuccessfulLogin { get { return clearFailedLoginsOnSuccessfulLogin; } }
+
+        /// <summary>
+        /// Whether to process internal ip addresses (default false)
+        /// </summary>
+        public bool ProcessInternalIPAddresses { get { return processInternalIPAddresses; } }
 
         /// <summary>
         /// Whitelist

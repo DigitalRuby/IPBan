@@ -1366,6 +1366,24 @@ namespace DigitalRuby.IPBanCore {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Process Internal IP Addresses.
+        /// </summary>
+        public static string ProcessInternalIPAddresses {
+            get {
+                return ResourceManager.GetString("ProcessInternalIPAddresses", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Whether to process internal ip addresses.
+        /// </summary>
+        public static string ProcessInternalIPAddressesTooltip {
+            get {
+                return ResourceManager.GetString("ProcessInternalIPAddressesTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Process to Run on Ban.
         /// </summary>
         public static string ProcessToRunOnBan {
