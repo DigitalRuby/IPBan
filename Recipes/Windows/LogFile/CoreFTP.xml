@@ -1,0 +1,21 @@
+<!-- Core FTP server, Windows -->
+<LogFile>
+	<Source>CoreFTP</Source>
+	<PathAndMask>C:\Program Files\CoreFTPServer\logs\{year-local}{month-local}*.log</PathAndMask>
+	<FailedLoginRegex>
+		<![CDATA[
+	^\[(?<timestamp>\d{8} \d\d:\d\d:\d\d)\]\s+\[(?<ipaddress>\d+\.\d+\.\d+\.\d+)\]\spassword\ssent,\sfailed\.\.\..*$
+		]]>
+	</FailedLoginRegex>
+	<FailedLoginRegexTimestampFormat>YYYYMMdd HH:mm:ss</FailedLoginRegexTimestampFormat>
+	<SuccessfulLoginRegex>
+		<![CDATA[
+	^\[(?<timestamp>\d{8} \d\d:\d\d:\d\d)\]\s+\[(?<ipaddress>\d+\.\d+\.\d+\.\d+)\]\sUSER-PASS\s\((?<username>[^)]+)\)\ssuccess.*$
+		]]>
+	</SuccessfulLoginRegex>
+	<SuccessfulLoginRegexTimestampFormat>YYYYMMdd HH:mm:ss</SuccessfulLoginRegexTimestampFormat>
+	<PlatformRegex>Windows</PlatformRegex>
+	<PingInterval>10000</PingInterval>
+	<MaxFileSize>0</MaxFileSize>
+	<FailedLoginThreshold>3</FailedLoginThreshold>
+</LogFile>
