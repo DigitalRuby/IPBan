@@ -1,0 +1,21 @@
+<!-- 
+** Integrate IPBan with AbuseIPDB.com service on a Windows host **
+
+Prerequisities:
+ - Powershell 7.x from https://aka.ms/powershell-release?tag=stable
+ - AbuseIPDB account & API key (please change below)
+ - Task scheduler job every 5 hours (don't hit the daily limit of your subscription):
+     - command: "c:\Program Files\PowerShell\7\pwsh.exe"
+     - args: -Command "Invoke-WebRequest -Uri 'https://api.abuseipdb.com/api/v2/blacklist?key=000000000000000000000000000000000000000000000000000000000000000000000000000000000&plaintext&limit=10000' -OutFile C:\windows\temp\abuseipdb_blacklist.txt"
+
+-->
+<appSettings>
+   <!-- read blacklist from temp file every hour -->
+   <add key="FirewallUriRules" value="
+AbuseIPDB,00:01:00:00,file://c:/windows/temp/abuseipdb_blacklist.txt
+   "/>
+  
+   <!-- report banned IPs back to AbuseIPDB -->
+   <add key="ProcessToRunOnBan" value="C:\Program Files\PowerShell\7\pwsh.exe|-Command &quot;Invoke-WebRequest -Uri 'https://api.abuseipdb.com/api/v2/report?ip=###IPADDRESS###&amp;categories=18' -Method 'POST' -Headers @{'Accept'='application/json';'Key'='00000000000000000000000000000000000000000000000000000000000000000000000000000000'}&quot;"/>
+  
+</appSettings>
