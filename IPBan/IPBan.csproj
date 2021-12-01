@@ -27,7 +27,6 @@
 		<PublishTrimmed>true</PublishTrimmed>
 		<GenerateSerializationAssemblies>Off</GenerateSerializationAssemblies>
 		<ApplicationIcon>../ipban_favicon.ico</ApplicationIcon>
-		<EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
 		<IsTrimmable>false</IsTrimmable>
 	</PropertyGroup>
 
