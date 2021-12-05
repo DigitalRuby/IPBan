@@ -4,12 +4,8 @@
 		<OutputType>Exe</OutputType>
 		<TargetFrameworks>net5.0</TargetFrameworks>
 		<PlatformTarget>AnyCPU</PlatformTarget>
-		<Version>1.6.1</Version>
-		<AssemblyVersion>1.6.1</AssemblyVersion>
-		<FileVersion>1.6.1</FileVersion>
 		<Company>Digital Ruby, LLC</Company>
 		<Copyright>(c) 2010 Digital Ruby, LLC</Copyright>
-		<GenerateAssemblyInfo>false</GenerateAssemblyInfo>
 		<OutputType>Exe</OutputType>
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 		<TargetLatestRuntimePatch>true</TargetLatestRuntimePatch>
