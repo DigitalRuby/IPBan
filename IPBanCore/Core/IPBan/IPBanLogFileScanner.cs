@@ -76,11 +76,35 @@ namespace DigitalRuby.IPBanCore
             this.loginHandler = options.LoginHandler;
             this.dns = options.Dns;
 
-            this.regexFailure = IPBanConfig.ParseRegex(options.RegexFailure, true);
+            this.regexFailure = options.RegexFailure;
             this.regexFailureTimestampFormat = options.RegexFailureTimestampFormat;
 
-            this.regexSuccess = IPBanConfig.ParseRegex(options.RegexSuccess, true);
+            this.regexSuccess = options.RegexSuccess;
             this.regexSuccessTimestampFormat = options.RegexSuccessTimestampFormat;
+        }
+
+        /// <summary>
+        /// Check if this log file scanner matches all the provided options
+        /// </summary>
+        /// <param name="options">Options</param>
+        /// <returns>True if matches options, false otherwise</returns>
+        public bool MatchesOptions(IPBanIPAddressLogFileScannerOptions options)
+        {
+            if (options is null)
+            {
+                return false;
+            }
+
+            return Source == options.Source &&
+                FailedLoginThreshold == options.FailedLoginThreshold &&
+                FailedLogLevel == options.FailedLogLevel &&
+                SuccessfulLogLevel == options.SuccessfulLogLevel &&
+                this.loginHandler == options.LoginHandler &&
+                this.dns == options.Dns &&
+                this.regexFailure?.ToString() == options.RegexFailure?.ToString() &&
+                this.regexFailureTimestampFormat == options.RegexFailureTimestampFormat &&
+                this.regexSuccess?.ToString() == options.RegexSuccess?.ToString() &&
+                this.regexSuccessTimestampFormat == options.RegexSuccessTimestampFormat;
         }
 
         /// <inheritdoc />
@@ -148,7 +172,7 @@ namespace DigitalRuby.IPBanCore
         /// Regular expression for failed logins, should at minimum have an ipaddress group, but can also have
         /// a timestamp group, source group and username group.
         /// </summary>
-        public string RegexFailure { get; set; }
+        public Regex RegexFailure { get; set; }
 
         /// <summary>
         /// Optional date/time format if RegexFailure has a timestamp group
@@ -158,7 +182,7 @@ namespace DigitalRuby.IPBanCore
         /// <summary>
         /// Regular expression for successful logins, see RegexFailure for regex group names.
         /// </summary>
-        public string RegexSuccess { get; set; }
+        public Regex RegexSuccess { get; set; }
 
         /// <summary>
         /// Optional date/time format if RegexSuccess has a timestamp group

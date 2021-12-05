@@ -6,10 +6,10 @@
     <PreserveCompilationContext>true</PreserveCompilationContext>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
     <PackageId>DigitalRuby.IPBanCore</PackageId>
-    <Version>1.6.0</Version>
-    <AssemblyVersion>1.6.0</AssemblyVersion>
-    <FileVersion>1.6.0</FileVersion>
-		<Authors>Jeff Johnson</Authors>
+    <Version>1.6.1</Version>
+    <AssemblyVersion>1.6.1</AssemblyVersion>
+    <FileVersion>1.6.1</FileVersion>
+	<Authors>Jeff Johnson</Authors>
     <Company>Digital Ruby, LLC</Company>
     <Product>IPBan</Product>
     <Description>IPBan is the leading solution to block hackers and botnets. Easily monitor events for all kinds of sources and put the bad ip addresses in the firewall automatically.</Description>

@@ -387,15 +387,25 @@ namespace DigitalRuby.IPBanTests
         }
 
         [Test]
-        public void TestUserNameWhitelistBan()
+        public async Task TestUserNameWhitelistBan()
         {
             using IPBanConfig.TempConfigChanger configChanger = new(service, xml =>
             {
                 return IPBanConfig.ChangeConfigAppSetting(xml, "UserNameWhitelist", "OnlyMe");
             }, out string newConfig);
 
-            // TODO: ensure non OnlyMe users are banned immediately
-            // TODO: ensure OnlyMe user gets 20 failed logins before ban
+            service.AddIPAddressLogEvents(new IPAddressLogEvent[]
+            {
+                // should ban, we have a user name whitelist
+                new IPAddressLogEvent("99.99.99.90", "ftp_1", "RDP", 1, IPAddressEventType.FailedLogin),
+
+                // should not ban after 19 attempts, user is whitelisted
+                new IPAddressLogEvent("99.99.99.99", "onlyme", "RDP", 19, IPAddressEventType.FailedLogin)
+            });
+            await service.RunCycleAsync();
+
+            Assert.IsTrue(service.Firewall.IsIPAddressBlocked("99.99.99.90", out _));
+            Assert.IsFalse(service.Firewall.IsIPAddressBlocked("99.99.99.99", out _));
         }
 
         [Test]

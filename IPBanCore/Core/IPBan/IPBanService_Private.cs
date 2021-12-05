@@ -179,7 +179,12 @@ namespace DigitalRuby.IPBanCore
                     if (configChanged)
                     {
                         Logger.Info("Config file changed");
-                    } // else config was force refreshed but no actual change
+                    }
+                    else
+                    {
+                        Logger.Debug("Config file force reloaded");
+                    }
+                    Logger.Debug("New config: " + Config.Xml);
                 }
             }
             catch (Exception ex)
@@ -328,7 +333,10 @@ namespace DigitalRuby.IPBanCore
                         else
                         {
                             int maxFailedLoginAttempts;
-                            if (Config.IsWhitelisted(userName))
+                            bool hasUserNameWhitelist = false;
+                            bool userNameWhitelisted = Config.IsWhitelisted(userName) ||
+                                Config.IsUserNameWithinMaximumEditDistanceOfUserNameWhitelist(userName, out hasUserNameWhitelist);
+                            if (userNameWhitelisted)
                             {
                                 maxFailedLoginAttempts = Config.FailedLoginAttemptsBeforeBanUserNameWhitelist;
                             }
@@ -344,7 +352,8 @@ namespace DigitalRuby.IPBanCore
                             bool ipBlacklisted = Config.BlacklistFilter.IsFiltered(ipAddress);
                             bool userBlacklisted = (!ipBlacklisted && Config.BlacklistFilter.IsFiltered(userName));
                             bool userFailsWhitelistRegex = (!userBlacklisted && Config.UserNameFailsUserNameWhitelistRegex(userName));
-                            bool editDistanceBlacklisted = (!ipBlacklisted && !userBlacklisted && !userFailsWhitelistRegex && !Config.IsUserNameWithinMaximumEditDistanceOfUserNameWhitelist(userName));
+                            bool editDistanceBlacklisted = (!ipBlacklisted && !userBlacklisted && !userFailsWhitelistRegex &&
+                                (hasUserNameWhitelist && !userNameWhitelisted));
                             bool configBlacklisted = ipBlacklisted || userBlacklisted || userFailsWhitelistRegex || editDistanceBlacklisted;
 
                             // if the event came in with a count of 0 that means it is an automatic ban

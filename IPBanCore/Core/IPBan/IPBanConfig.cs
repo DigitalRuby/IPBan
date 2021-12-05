@@ -448,6 +448,12 @@ namespace DigitalRuby.IPBanCore
             return sb.ToString().Trim();
         }
 
+        /// <inheritdoc />
+        public override string ToString()
+        {
+            return Xml;
+        }
+
         /// <summary>
         /// Get a value from configuration manager app settings
         /// </summary>
@@ -610,14 +616,17 @@ namespace DigitalRuby.IPBanCore
         /// If the user name whitelist is empty, this method returns true.
         /// </summary>
         /// <param name="userName">User name</param>
+        /// <param name="hasUserNameWhitelist">Whether a user name whitelist is defined</param>
         /// <returns>True if within max edit distance of any whitelisted user name, false otherwise.</returns>
-        public bool IsUserNameWithinMaximumEditDistanceOfUserNameWhitelist(string userName)
+        public bool IsUserNameWithinMaximumEditDistanceOfUserNameWhitelist(string userName, out bool hasUserNameWhitelist)
         {
             if (userNameWhitelist.Count == 0)
             {
-                return true;
+                hasUserNameWhitelist = false;
+                return false;
             }
 
+            hasUserNameWhitelist = true;
             userName = userName.Normalize().ToUpperInvariant().Trim();
             foreach (string userNameToCheckAgainst in userNameWhitelist)
             {
