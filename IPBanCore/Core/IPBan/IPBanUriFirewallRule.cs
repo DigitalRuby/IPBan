@@ -38,6 +38,15 @@ namespace DigitalRuby.IPBanCore
     /// </summary>
     public class IPBanUriFirewallRule : IUpdater
     {
+        private static readonly string[] commentDelimiters = new[]
+        {
+            "#",
+            "'",
+            "REM",
+            ";",
+            "//"
+        };
+
         private static readonly TimeSpan fiveSeconds = TimeSpan.FromSeconds(5.0);
         private static readonly TimeSpan thirtySeconds = TimeSpan.FromSeconds(30.0);
 
@@ -98,6 +107,7 @@ namespace DigitalRuby.IPBanCore
         /// </summary>
         public void Dispose()
         {
+            GC.SuppressFinalize(this);
             httpClient?.Dispose();
         }
 
@@ -197,10 +207,17 @@ namespace DigitalRuby.IPBanCore
                     break;
                 }
 
-                // trim line, ignore if necessary
+                foreach (string commentDelimiter in commentDelimiters)
+                {
+                    int pos = line.IndexOf(commentDelimiter);
+                    if (pos >= 0)
+                    {
+                        line = line[..pos];
+                    }
+                }
                 line = line.Trim();
-                if (line.Length == 0 || line.StartsWith("#") || line.StartsWith("'") || line.StartsWith("REM") ||
-                    !IPAddressRange.TryParse(line, out IPAddressRange range))
+
+                if (line.Length == 0 || !IPAddressRange.TryParse(line, out IPAddressRange range))
                 {
                     continue;
                 }
