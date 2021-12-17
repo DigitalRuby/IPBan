@@ -292,8 +292,8 @@ namespace DigitalRuby.IPBanCore
             var e = policy.Rules.GetEnumeratorVariant();
             object[] results = new object[64];
             int count;
-            IntPtr bufferLengthPointer = Marshal.AllocCoTaskMem(Marshal.SizeOf(typeof(int)));
             bool matchAll = (string.IsNullOrWhiteSpace(ruleNamePrefix) || ruleNamePrefix == "*");
+            IntPtr bufferLengthPointer = Marshal.AllocCoTaskMem(Marshal.SizeOf(typeof(int)));
             try
             {
                 do
