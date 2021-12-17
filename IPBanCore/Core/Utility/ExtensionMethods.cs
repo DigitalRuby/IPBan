@@ -26,6 +26,7 @@ SOFTWARE.
 
 using System;
 using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -133,6 +134,7 @@ namespace DigitalRuby.IPBanCore
             return Encoding.UTF8.GetString(bytes);
         }
 
+        private static readonly ConcurrentDictionary<Type, XmlSerializer> toStringXmlSerializers = new();
         /// <summary>
         /// Convert an object to an xml fragment
         /// </summary>
@@ -146,7 +148,7 @@ namespace DigitalRuby.IPBanCore
             }
 
             StringWriter xml = new();
-            XmlSerializer serializer = new(obj.GetType());
+            XmlSerializer serializer = toStringXmlSerializers.GetOrAdd(obj.GetType(), new XmlSerializer(obj.GetType()));
             using (XmlWriter writer = XmlWriter.Create(xml, new XmlWriterSettings { Indent = true, NewLineHandling = NewLineHandling.None, OmitXmlDeclaration = true }))
             {
                 serializer.Serialize(writer, obj, emptyXmlNs);
