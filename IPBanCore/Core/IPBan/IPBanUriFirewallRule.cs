@@ -173,7 +173,7 @@ namespace DigitalRuby.IPBanCore
                 }
                 catch (Exception ex)
                 {
-                    if (!(ex is OperationCanceledException))
+                    if (ex is not OperationCanceledException)
                     {
                         Logger.Error(ex);
                     }

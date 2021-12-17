@@ -116,7 +116,7 @@ namespace DigitalRuby.IPBanCore
             }
             catch (Exception ex)
             {
-                if (!(ex is OperationCanceledException))
+                if (ex is not OperationCanceledException)
                 {
                     Logger.Error($"Error on {nameof(IPBanService)}.{nameof(RunCycleAsync)}", ex);
                 }
@@ -222,7 +222,7 @@ namespace DigitalRuby.IPBanCore
                     //  the different ip regex.
                     int lastColon = tempIPAddress.LastIndexOf(':');
                     bool isValidIPAddress = IPAddress.TryParse(tempIPAddress, out IPAddress tmp);
-                    if (isValidIPAddress || (lastColon >= 0 && IPAddress.TryParse(tempIPAddress.Substring(0, lastColon), out tmp)))
+                    if (isValidIPAddress || (lastColon >= 0 && IPAddress.TryParse(tempIPAddress[..lastColon], out tmp)))
                     {
                         ipAddress = tmp.ToString();
                     }
@@ -374,7 +374,7 @@ namespace DigitalRuby.IPBanCore
                 }
                 catch (Exception ex)
                 {
-                    if (!(ex is OperationCanceledException))
+                    if (ex is not OperationCanceledException)
                     {
                         Logger.Error($"Error in {nameof(IPBanService)}.{nameof(IPBanService.RunAsync)}", ex);
                     }
@@ -503,7 +503,7 @@ namespace DigitalRuby.IPBanCore
                                 }
                                 catch (Exception ex)
                                 {
-                                    if (!(ex is OperationCanceledException))
+                                    if (ex is not OperationCanceledException)
                                     {
                                         Logger.Error(ex);
                                     }

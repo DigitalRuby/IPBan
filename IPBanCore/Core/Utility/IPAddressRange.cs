@@ -398,7 +398,7 @@ namespace DigitalRuby.IPBanCore
                             return null;
                         }
                         var lastDotAt = begin.LastIndexOf('.');
-                        end = begin.Substring(0, lastDotAt + 1) + end;
+                        end = begin[..(lastDotAt + 1)] + end;
                     }
 
                     return new IPAddressRange(IPAddress.Parse(begin), IPAddress.Parse(end), true);

@@ -428,7 +428,7 @@ namespace DigitalRuby.IPBanCore
             }
             catch (Exception ex)
             {
-                if (!(ex is OperationCanceledException))
+                if (ex is not OperationCanceledException)
                 {
                     Logger.Error(ex);
                 }
@@ -512,7 +512,7 @@ namespace DigitalRuby.IPBanCore
                     int pos = ip.IndexOf('/');
                     if (pos >= 0)
                     {
-                        ipSet.Add(ip.Substring(0, pos));
+                        ipSet.Add(ip[..pos]);
                     }
                     else
                     {
@@ -652,7 +652,7 @@ namespace DigitalRuby.IPBanCore
             }
             catch (Exception ex)
             {
-                if (!(ex is OperationCanceledException))
+                if (ex is not OperationCanceledException)
                 {
                     Logger.Error(ex);
                 }
@@ -690,7 +690,7 @@ namespace DigitalRuby.IPBanCore
             }
             catch (Exception ex)
             {
-                if (!(ex is OperationCanceledException))
+                if (ex is not OperationCanceledException)
                 {
                     Logger.Error(ex);
                 }
@@ -748,7 +748,7 @@ namespace DigitalRuby.IPBanCore
                     }
                     else
                     {
-                        yield return ip.Substring(0, pos);
+                        yield return ip[..pos];
                     }
                 }
                 i += MaxIpAddressesPerRule;
@@ -782,7 +782,7 @@ namespace DigitalRuby.IPBanCore
                     }
                     else
                     {
-                        yield return ip.Substring(0, pos);
+                        yield return ip[..pos];
                     }
                 }
             }
@@ -835,7 +835,7 @@ namespace DigitalRuby.IPBanCore
                 Match m = Regex.Match(localIP, "\\.[0-9]+$");
                 if (m.Success)
                 {
-                    string remoteIPAddresses = localIP.Substring(0, m.Index) + ".0/24";
+                    string remoteIPAddresses = localIP[..m.Index] + ".0/24";
                     GetOrCreateRule(ruleName, remoteIPAddresses, NetFwAction.Allow);
                 }
             }

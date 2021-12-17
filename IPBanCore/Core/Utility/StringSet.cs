@@ -124,6 +124,7 @@ namespace DigitalRuby.IPBanCore
         /// </summary>
         public void Dispose()
         {
+            GC.SuppressFinalize(this);
             GC.Collect();
             GC.WaitForPendingFinalizers();
             if (autoDelete)

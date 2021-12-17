@@ -67,6 +67,8 @@ namespace DigitalRuby.IPBanCore
         /// <inheritdoc />
         public void Dispose()
         {
+            GC.SuppressFinalize(this);
+
             service.ConfigChanged -= UpdateLogFiles;
             foreach (LogFileScanner file in logFilesToParse)
             {

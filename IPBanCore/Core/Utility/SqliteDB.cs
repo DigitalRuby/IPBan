@@ -49,8 +49,8 @@ namespace DigitalRuby.IPBanCore
 
             ~SqliteDBTransaction()
             {
+                // calls dispose
                 Rollback();
-                Dispose();
             }
 
             /// <summary>
@@ -58,6 +58,8 @@ namespace DigitalRuby.IPBanCore
             /// </summary>
             public void Dispose()
             {
+                GC.SuppressFinalize(this);
+
                 try
                 {
                     if (DBTransaction != null)

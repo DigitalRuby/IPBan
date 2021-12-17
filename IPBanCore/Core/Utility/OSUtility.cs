@@ -218,7 +218,7 @@ namespace DigitalRuby.IPBanCore
                 int pos = friendlyName.IndexOf(' ');
                 if (pos > 0)
                 {
-                    string firstWord = friendlyName.Substring(0, pos);
+                    string firstWord = friendlyName[..pos];
 
                     // as long as there are no extended chars, prepend Microsoft prefix
                     // some os will prepend Microsoft in another language

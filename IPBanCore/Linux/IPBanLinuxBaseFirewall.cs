@@ -212,7 +212,7 @@ namespace DigitalRuby.IPBanCore
                 {
                     // rule number is first piece of the line
                     int index = line.IndexOf(' ');
-                    int ruleNum = int.Parse(line.Substring(0, index));
+                    int ruleNum = int.Parse(line[..index]);
 
                     // replace the rule with the new info
                     RunProcess(IpTablesProcess, true, $"-R INPUT {ruleNum} -m state --state NEW -m set{portString}--match-set \"{ruleName}\" src -j {action}");
@@ -483,7 +483,7 @@ namespace DigitalRuby.IPBanCore
                 {
                     // rule number is first piece of the line
                     int index = line.IndexOf(' ');
-                    int ruleNum = int.Parse(line.Substring(0, index));
+                    int ruleNum = int.Parse(line[..index]);
 
                     // remove the rule from iptables
                     RunProcess(IpTablesProcess, true, $"-D INPUT {ruleNum}");
@@ -507,7 +507,7 @@ namespace DigitalRuby.IPBanCore
             }
             catch (Exception ex)
             {
-                if (!(ex is OperationCanceledException))
+                if (ex is not OperationCanceledException)
                 {
                     Logger.Error(ex);
                 }
@@ -524,7 +524,7 @@ namespace DigitalRuby.IPBanCore
             }
             catch (Exception ex)
             {
-                if (!(ex is OperationCanceledException))
+                if (ex is not OperationCanceledException)
                 {
                     Logger.Error(ex);
                 }
@@ -542,7 +542,7 @@ namespace DigitalRuby.IPBanCore
             }
             catch (Exception ex)
             {
-                if (!(ex is OperationCanceledException))
+                if (ex is not OperationCanceledException)
                 {
                     Logger.Error(ex);
                 }
@@ -558,7 +558,7 @@ namespace DigitalRuby.IPBanCore
             }
             catch (Exception ex)
             {
-                if (!(ex is OperationCanceledException))
+                if (ex is not OperationCanceledException)
                 {
                     Logger.Error(ex);
                 }
@@ -575,7 +575,7 @@ namespace DigitalRuby.IPBanCore
             }
             catch (Exception ex)
             {
-                if (!(ex is OperationCanceledException))
+                if (ex is not OperationCanceledException)
                 {
                     Logger.Error(ex);
                 }

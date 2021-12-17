@@ -126,7 +126,7 @@ namespace DigitalRuby.IPBanCore
                     int pos = entryWithoutComment.IndexOf('?');
                     if (pos >= 0)
                     {
-                        entryWithoutComment = entryWithoutComment.Substring(0, pos);
+                        entryWithoutComment = entryWithoutComment[..pos];
                     }
                     entryWithoutComment = entryWithoutComment.Trim();
                     entries.Add(entryWithoutComment);

@@ -411,11 +411,11 @@ namespace DigitalRuby.IPBanCore
                 // ULA has two variants: 
                 //      fc00::/8 is not defined yet, but might be used in the future for internal-use addresses that are registered in a central place (ULA Central). 
                 //      fd00::/8 is in use and does not have to registered anywhere.
-                if (firstWord.Length >= 4 && firstWord.Substring(0, 2) == "fc")
+                if (firstWord.Length >= 4 && firstWord[..2] == "fc")
                 {
                     return true;
                 }
-                else if (firstWord.Length >= 4 && firstWord.Substring(0, 2) == "fd")
+                else if (firstWord.Length >= 4 && firstWord[..2] == "fd")
                 {
                     return true;
                 }
@@ -659,7 +659,7 @@ namespace DigitalRuby.IPBanCore
                 int pos = normalizedIP.LastIndexOf(':');
                 if (pos >= 0)
                 {
-                    normalizedIP = normalizedIP.Substring(0, pos);
+                    normalizedIP = normalizedIP[..pos];
                     if (!IPAddressRange.TryParse(normalizedIP, out range))
                     {
                         normalizedIP = null;
@@ -962,14 +962,12 @@ namespace DigitalRuby.IPBanCore
             return new LockedEnumerable<T>(obj);
         }
 
-#pragma warning disable IDE1006
 #pragma warning disable CA1401
 
         [DllImport("libc")]
         public static extern uint getuid();
 
 #pragma warning restore CA1401
-#pragma warning restore IDE1006
 
 #if !IPBAN_API
 
