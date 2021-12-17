@@ -89,6 +89,7 @@ namespace DigitalRuby.IPBanCore
                     {
                         if (IsRunning)
                         {
+                            GC.Collect(int.MaxValue, GCCollectionMode.Forced, true, true);
                             await UpdateConfiguration();
                             await SetNetworkInfo();
                             await UpdateDelegate();
