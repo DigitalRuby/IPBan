@@ -73,6 +73,28 @@ namespace DigitalRuby.IPBanCore
         }
 
         /// <summary>
+        /// Equals
+        /// </summary>
+        /// <param name="r1">Bytes1</param>
+        /// <param name="r2">Bytes2</param>
+        /// <returns>True if equal</returns>
+        public static bool operator ==(ByteArrayKey r1, ByteArrayKey r2)
+        {
+            return r1.Equals(r2);
+        }
+
+        /// <summary>
+        /// Not equals
+        /// </summary>
+        /// <param name="r1">Bytes1</param>
+        /// <param name="r2">Bytes2</param>
+        /// <returns>True if not equal</returns>
+        public static bool operator !=(ByteArrayKey r1, ByteArrayKey r2)
+        {
+            return !r1.Equals(r2);
+        }
+
+        /// <summary>
         /// Get hash code for the bytes
         /// </summary>
         /// <returns>Hash code</returns>

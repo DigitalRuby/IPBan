@@ -16,10 +16,10 @@ variables:
 
 steps:
     - task: UseDotNet@2
-      displayName: 'Install .Net Core SDK'
+      displayName: 'Install .Net SDK'
       inputs:
         packageType: 'sdk'
-        version: '5.x'
+        version: '6.x'
         includePreviewVersions: true
         installationPath: $(Agent.ToolsDirectory)/dotnet_latest
 

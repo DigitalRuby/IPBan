@@ -130,6 +130,7 @@ namespace DigitalRuby.IPBanTests
 
         void IDisposable.Dispose()
         {
+            GC.SuppressFinalize(this);
             AddEvent(nameof(IIPBanDelegate.Dispose));
         }
     }

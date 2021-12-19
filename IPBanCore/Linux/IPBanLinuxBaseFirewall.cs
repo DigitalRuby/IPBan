@@ -80,7 +80,7 @@ namespace DigitalRuby.IPBanCore
             }
         }
 
-        private void DeleteSet(string ruleName)
+        private static void DeleteSet(string ruleName)
         {
             RunProcess("ipset", true, out IReadOnlyList<string> lines, "list -n");
             foreach (string line in lines)
@@ -142,7 +142,7 @@ namespace DigitalRuby.IPBanCore
             return Path.Combine(AppContext.BaseDirectory, "ipban.set");
         }
 
-        protected int RunProcess(string program, bool requireExitCode, string commandLine, params object[] args)
+        protected static int RunProcess(string program, bool requireExitCode, string commandLine, params object[] args)
         {
             return RunProcess(program, requireExitCode, out _, commandLine, args);
         }
@@ -479,7 +479,7 @@ namespace DigitalRuby.IPBanCore
             string ruleNameWithSpaces = " " + ruleName + " ";
             foreach (string line in lines)
             {
-                if (line.IndexOf(ruleNameWithSpaces, StringComparison.OrdinalIgnoreCase) >= 0)
+                if (line.Contains(ruleNameWithSpaces, StringComparison.OrdinalIgnoreCase))
                 {
                     // rule number is first piece of the line
                     int index = line.IndexOf(' ');

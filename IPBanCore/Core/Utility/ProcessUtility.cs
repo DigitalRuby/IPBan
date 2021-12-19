@@ -109,7 +109,7 @@ namespace DigitalRuby.IPBanCore
             public bool bInheritHandle;
         }
 
-        [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Auto)]
+        [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
         private static extern bool CreateProcess(
             string lpApplicationName,
             string lpCommandLine,
@@ -122,7 +122,7 @@ namespace DigitalRuby.IPBanCore
             [In] ref STARTUPINFO lpStartupInfo,
             out PROCESS_INFORMATION lpProcessInformation);
 
-        [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Auto)]
+        [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
         private static extern bool CreateProcess(
             string lpApplicationName,
             string lpCommandLine,

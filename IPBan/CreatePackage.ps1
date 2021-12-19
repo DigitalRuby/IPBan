@@ -2,7 +2,7 @@ param([Parameter(Mandatory=$true)] [String]$version)
 
 # powershell -ExecutionPolicy Bypass
 
-$netFrameworkVersion = "net5.0"
+$netFrameworkVersion = "net6.0"
 $publishTrimmed = $True
 $trimMode = "Link"
 $versionDots = $version.Replace('_', '.')

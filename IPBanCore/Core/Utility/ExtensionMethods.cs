@@ -28,6 +28,7 @@ using System;
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -135,11 +136,13 @@ namespace DigitalRuby.IPBanCore
         }
 
         private static readonly ConcurrentDictionary<Type, XmlSerializer> toStringXmlSerializers = new();
+
         /// <summary>
         /// Convert an object to an xml fragment
         /// </summary>
         /// <param name="obj">Object</param>
         /// <returns>Xml fragment or null if obj is null</returns>
+        [UnconditionalSuppressMessage("Trimming", "IL2026:Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code", Justification = "jjxtra")]
         public static string ToStringXml(this object obj)
         {
             if (obj is null)
@@ -258,7 +261,7 @@ namespace DigitalRuby.IPBanCore
         public static string ToSHA256String(this string s)
         {
             s ??= string.Empty;
-            using SHA256Managed hasher = new();
+            using var hasher = SHA256.Create();
             return BitConverter.ToString(hasher.ComputeHash(Encoding.UTF8.GetBytes(s))).Replace("-", string.Empty);
         }
 
@@ -818,10 +821,12 @@ namespace DigitalRuby.IPBanCore
         }
 
         private static Assembly[] allAssemblies;
+
         /// <summary>
         /// Get all assemblies
         /// </summary>
         /// <returns>Assemblies</returns>
+        [UnconditionalSuppressMessage("Trimming", "IL2026:Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code", Justification = "jjxtra")]
         public static IReadOnlyCollection<Assembly> GetAllAssemblies()
         {
             if (allAssemblies != null)
@@ -881,10 +886,12 @@ namespace DigitalRuby.IPBanCore
         }
 
         private static Type[] allTypes;
+
         /// <summary>
         /// Get all types from all assemblies
         /// </summary>
         /// <returns>List of all types</returns>
+        [UnconditionalSuppressMessage("Trimming", "IL2026:Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code", Justification = "jjxtra")]
         public static IReadOnlyCollection<Type> GetAllTypes()
         {
             if (allTypes != null)
@@ -1184,6 +1191,7 @@ namespace DigitalRuby.IPBanCore
         /// </summary>
         /// <param name="typeString"></param>
         /// <returns>System.Type or null if none found</returns>
+        [UnconditionalSuppressMessage("Trimming", "IL2026:Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code", Justification = "jjxtra")]
         public static Type GetTypeFromString(string typeString)
         {
             Type type = Type.GetType(typeString);

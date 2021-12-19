@@ -26,6 +26,7 @@ using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Cache;
+using System.Net.Http;
 using System.Reflection;
 using System.Text;
 using System.Threading;
@@ -48,16 +49,6 @@ namespace DigitalRuby.IPBanCore
         /// <returns>Task of response byte[]</returns>
         Task<byte[]> MakeRequestAsync(Uri uri, string postJson = null, IEnumerable<KeyValuePair<string, object>> headers = null,
             CancellationToken cancelToken = default) => throw new NotImplementedException();
-
-        /// <summary>
-        /// Web proxy (optional)
-        /// </summary>
-        IWebProxy Proxy { get => null; set { } }
-
-        /// <summary>
-        /// Cache policy
-        /// </summary>
-        RequestCachePolicy CachePolicy { get => new(RequestCacheLevel.NoCacheNoStore); set { } }
     }
 
     /// <summary>
@@ -65,19 +56,7 @@ namespace DigitalRuby.IPBanCore
     /// </summary>
     public class DefaultHttpRequestMaker : IHttpRequestMaker
     {
-        private class WebClientWithTimeout : WebClient
-        {
-            protected override WebRequest GetWebRequest(Uri uri)
-            {
-                WebRequest w = base.GetWebRequest(uri);
-                w.Timeout = 30000;
-                if (w is HttpWebRequest req)
-                {
-                    req.ReadWriteTimeout = 30000;
-                }
-                return w;
-            }
-        }
+        private static readonly HttpClient client = new();
 
         /// <summary>
         /// Singleton of DefaultHttpRequestMaker
@@ -118,49 +97,42 @@ namespace DigitalRuby.IPBanCore
             {
                 Interlocked.Increment(ref liveRequestCount);
             }
-            using WebClient client = new WebClientWithTimeout();
             Assembly versionAssembly = Assembly.GetEntryAssembly();
             if (versionAssembly is null)
             {
-                versionAssembly = Assembly.GetAssembly(Type.GetType("IPBanService"));
+                versionAssembly = Assembly.GetAssembly(typeof(IPBanService));
                 if (versionAssembly is null)
                 {
                     versionAssembly = GetType().Assembly;
                 }
             }
-            client.UseDefaultCredentials = true;
-            client.Headers["User-Agent"] = versionAssembly.GetName().Name;
-            client.Proxy = Proxy ?? client.Proxy;
-            if (DisableLiveRequests)
-            {
-                client.Headers["Cache-Control"] = "no-cache";
-            }
-            else
-            {
-                client.CachePolicy = (CachePolicy ?? client.CachePolicy);
-            }
+            HttpRequestMessage msg = new();
+            msg.RequestUri = uri;
+            msg.Headers.Add("User-Agent", versionAssembly.GetName().Name);
+            msg.Headers.Add("Cache-Control", "no-cache");
             if (headers != null)
             {
                 foreach (KeyValuePair<string, object> header in headers)
                 {
-                    client.Headers[header.Key] = header.Value.ToHttpHeaderString();
+                    msg.Headers.Add(header.Key, header.Value.ToHttpHeaderString());
                 }
             }
             byte[] response;
             if (string.IsNullOrWhiteSpace(postJson))
             {
-                response = await client.DownloadDataTaskAsync(uri);
+                msg.Method = HttpMethod.Get;
             }
             else
             {
-                client.Headers["Content-Type"] = "application/json";
-                response = await client.UploadDataTaskAsync(uri, "POST", Encoding.UTF8.GetBytes(postJson));
+                msg.Method = HttpMethod.Post;
+                msg.Content = new StringContent(postJson, Encoding.UTF8, "application/json");
             }
-            //var responseHeaders = client.ResponseHeaders.ToHttpHeaderString();
+
+            var responseMsg = await client.SendAsync(msg, cancelToken);
+            responseMsg.EnsureSuccessStatusCode();
+            response = await responseMsg.Content.ReadAsByteArrayAsync(cancelToken);
+
             return response;
         }
-
-        public IWebProxy Proxy { get; set; }
-        public RequestCachePolicy CachePolicy { get; set; } = new RequestCachePolicy(RequestCacheLevel.Default);
     }
 }

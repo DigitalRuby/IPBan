@@ -6,6 +6,7 @@ namespace DigitalRuby.IPBanCore.Windows.COM
     // ReSharper disable once HollowTypeName
     internal static class ComHelper
     {
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Interoperability", "CA1416:Validate platform compatibility", Justification = "jjxtra")]
         public static T CreateInstance<T>()
         {
             if (!IsSupported<T>())
@@ -43,6 +44,7 @@ namespace DigitalRuby.IPBanCore.Windows.COM
             throw new NotSupportedException("Can not create a new instance of this interface in current environment.");
         }
 
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Interoperability", "CA1416:Validate platform compatibility", Justification = "jjxtra")]
         public static bool IsSupported<T>()
         {
             if (!typeof(T).IsInterface)

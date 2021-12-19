@@ -102,7 +102,8 @@ namespace DigitalRuby.IPBanCore
                 DateTime now = IPBanService.UtcNow;
                 string timestamp = now.ToString("o");
                 string url = $"/IPSubmitBanned?ip={ipAddress.UrlEncode()}&osname={osName.UrlEncode()}&osversion={osVersion.UrlEncode()}&source={source.UrlEncode()}&timestamp={timestamp.UrlEncode()}&userName={userName.UrlEncode()}&version={assemblyVersion.UrlEncode()}";
-                string hash = Convert.ToBase64String(new SHA256Managed().ComputeHash(Encoding.UTF8.GetBytes(url + IPBanResources.IPBanKey1)));
+                using var hasher = SHA256.Create();
+                string hash = Convert.ToBase64String(hasher.ComputeHash(Encoding.UTF8.GetBytes(url + IPBanResources.IPBanKey1)));
                 url += "&hash=" + hash.UrlEncode();
                 url = BaseUrl + url;
                 string timestampUnix = now.ToUnixMillisecondsLong().ToString(CultureInfo.InvariantCulture);

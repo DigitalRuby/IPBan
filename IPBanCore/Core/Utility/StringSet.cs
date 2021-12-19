@@ -127,6 +127,7 @@ namespace DigitalRuby.IPBanCore
             GC.SuppressFinalize(this);
             GC.Collect();
             GC.WaitForPendingFinalizers();
+            SqliteConnection.ClearAllPools();
             if (autoDelete)
             {
                 ExtensionMethods.FileDeleteWithRetry(dbPath);

@@ -22,10 +22,13 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-using Microsoft.Data.Sqlite;
+//#define CONNECTION_LEAK_DEBUG // turn on for connection leak debugging
 
 using System;
+using System.Collections.Generic;
 using System.IO;
+
+using Microsoft.Data.Sqlite;
 
 namespace DigitalRuby.IPBanCore
 {
@@ -33,15 +36,50 @@ namespace DigitalRuby.IPBanCore
     {
         private readonly string additionalPragmas;
 
+#if CONNECTION_LEAK_DEBUG
+
+        private readonly Dictionary<SqliteConnection, string> connections = new();
+
+#endif
+
+        protected class SqliteDataReaderWrapper : IDisposable
+        {
+            private readonly SqliteDB db;
+            private readonly SqliteConnection conn;
+            private readonly SqliteDataReader reader;
+            private readonly bool closeConn;
+
+            public SqliteDataReaderWrapper(SqliteDB db, SqliteConnection conn, SqliteDataReader reader, bool closeConn)
+            {
+                this.db = db;
+                this.conn = conn;
+                this.reader = reader;
+                this.closeConn = closeConn;
+            }
+
+            public void Dispose()
+            {
+                reader.Dispose();
+                if (closeConn)
+                {
+                    db.CloseConnection(conn);
+                }
+            }
+
+            public SqliteDataReader Reader => reader;
+        }
+
         /// <summary>
         /// Wraps a transaction
         /// </summary>
         protected class SqliteDBTransaction : IDisposable
         {
+            private readonly SqliteDB db;
             private readonly bool disposeConnection;
 
-            public SqliteDBTransaction(SqliteConnection conn, bool disposeConnection)
+            public SqliteDBTransaction(SqliteDB db, SqliteConnection conn, bool disposeConnection)
             {
+                this.db = db;
                 DBConnection = conn;
                 this.disposeConnection = disposeConnection;
                 DBTransaction = DBConnection.BeginTransaction(TransactionLevel);
@@ -68,14 +106,11 @@ namespace DigitalRuby.IPBanCore
                         DBTransaction.Dispose();
                         DBTransaction = null;
                     }
-                    if (DBConnection != null)
+                    if (disposeConnection)
                     {
-                        if (disposeConnection)
-                        {
-                            DBConnection.Dispose();
-                        }
-                        DBConnection = null;
+                        db.CloseConnection(DBConnection);
                     }
+                    DBConnection = null;
                 }
                 catch
                 {
@@ -253,25 +288,39 @@ namespace DigitalRuby.IPBanCore
         /// <param name="cmdText">Query text</param>
         /// <param name="conn">Connection</param>
         /// <param name="tran">Transaction</param>
+        /// <param name="rollbackTransactionIfException">Whether to rollback transaction if there is an exception</param>
         /// <param name="parameters">Parameters</param>
         /// <returns>Data reader</returns>
-        protected SqliteDataReader ExecuteReader(string cmdText, SqliteConnection conn = null, SqliteTransaction tran = null, params object[] parameters)
+        protected SqliteDataReaderWrapper ExecuteReader(string cmdText, SqliteConnection conn = null, SqliteTransaction tran = null,
+            bool rollbackTransactionIfException = false, params object[] parameters)
         {
-            bool closeConnection = false;
-            if (conn is null)
+            try
             {
-                conn = CreateConnection();
-                OpenConnection(conn);
-                closeConnection = true;
+                bool closeConnection = false;
+                if (conn is null)
+                {
+                    conn = CreateConnection();
+                    OpenConnection(conn);
+                    closeConnection = true;
+                }
+                SqliteCommand command = conn.CreateCommand();
+                command.CommandText = cmdText;
+                command.Transaction = tran;
+                for (int i = 0; i < parameters.Length; i++)
+                {
+                    command.Parameters.Add(new SqliteParameter("@Param" + i.ToStringInvariant(), parameters[i] ?? DBNull.Value));
+                }
+                var reader = command.ExecuteReader();
+                return new(this, conn, reader, closeConnection);
             }
-            SqliteCommand command = conn.CreateCommand();
-            command.CommandText = cmdText;
-            command.Transaction = tran;
-            for (int i = 0; i < parameters.Length; i++)
+            catch
             {
-                command.Parameters.Add(new SqliteParameter("@Param" + i.ToStringInvariant(), parameters[i] ?? DBNull.Value));
+                if (rollbackTransactionIfException)
+                {
+                    tran?.Rollback();
+                }
+                throw;
             }
-            return command.ExecuteReader((closeConnection && conn != InMemoryConnection ? System.Data.CommandBehavior.CloseConnection : System.Data.CommandBehavior.Default));
         }
 
         /// <summary>
@@ -280,7 +329,19 @@ namespace DigitalRuby.IPBanCore
         /// <returns>Connection</returns>
         protected SqliteConnection CreateConnection()
         {
-            return (InMemoryConnection ?? new SqliteConnection(ConnectionString));
+            if (InMemoryConnection is not null)
+            {
+                return InMemoryConnection;
+            }
+            var conn = new SqliteConnection(ConnectionString);
+
+#if CONNECTION_LEAK_DEBUG
+
+            connections[conn] = Environment.StackTrace;
+
+#endif
+
+            return conn;
         }
 
         /// <summary>
@@ -289,7 +350,7 @@ namespace DigitalRuby.IPBanCore
         /// <param name="conn">Connection</param>
         protected void OpenConnection(SqliteConnection conn)
         {
-            if (conn != InMemoryConnection)
+            if (conn != InMemoryConnection && conn is not null)
             {
                 conn.Open();
                 ExecuteNonQuery($"PRAGMA auto_vacuum = INCREMENTAL; PRAGMA journal_mode = WAL; PRAGMA busy_timeout = 30000; PRAGMA synchronous = NORMAL; PRAGMA foreign_keys = ON; PRAGMA temp_store = MEMORY; {additionalPragmas}", conn, (SqliteTransaction)null);
@@ -302,9 +363,24 @@ namespace DigitalRuby.IPBanCore
         /// <param name="conn">Connection</param>
         protected void CloseConnection(SqliteConnection conn)
         {
-            if (conn != InMemoryConnection)
+            if (conn != InMemoryConnection && conn is not null
+
+#if CONNECTION_LEAK_DEBUG
+
+                && connections.ContainsKey(conn)
+                
+#endif
+
+            )
             {
                 conn.Close();
+
+#if CONNECTION_LEAK_DEBUG
+
+                connections.Remove(conn);
+
+#endif
+
             }
         }
 
@@ -336,7 +412,7 @@ namespace DigitalRuby.IPBanCore
                 {
                     dbPath += ".sqlite";
                 }
-                ConnectionString = $"Data Source={dbPath}";
+                ConnectionString = $"Data Source={dbPath};Cache=Shared;";
             }
             this.additionalPragmas = (additionalPragmas ?? string.Empty).Trim();
             OnInitialize();
@@ -347,7 +423,19 @@ namespace DigitalRuby.IPBanCore
         /// </summary>
         public virtual void Dispose()
         {
+            GC.SuppressFinalize(this);
             InMemoryConnection?.Dispose();
+
+#if CONNECTION_LEAK_DEBUG
+
+            if (connections.Count != 0)
+            {
+                throw new ApplicationException("Leaked connections were not disposed of properly, check connections and transactions are disposed");
+            }
+
+#endif
+
+            SqliteConnection.ClearAllPools();
         }
 
         /// <summary>
@@ -358,7 +446,7 @@ namespace DigitalRuby.IPBanCore
         {
             SqliteConnection conn = CreateConnection();
             OpenConnection(conn);
-            return new SqliteDBTransaction(conn, conn != InMemoryConnection);
+            return new SqliteDBTransaction(this, conn, conn != InMemoryConnection);
         }
 
         /// <summary>

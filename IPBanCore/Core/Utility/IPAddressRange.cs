@@ -246,7 +246,7 @@ namespace DigitalRuby.IPBanCore
         public IPAddressRange(IPAddress singleAddress, bool ownsIP = false)
         {
             singleAddress.ThrowIfNull(nameof(singleAddress));
-            Begin = End = singleAddress.Clean();
+            Begin = End = singleAddress.Clean(ownsIP);
             Single = true;
         }
 

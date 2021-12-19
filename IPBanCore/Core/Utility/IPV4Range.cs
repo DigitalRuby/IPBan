@@ -69,6 +69,28 @@ namespace DigitalRuby.IPBanCore
         }
 
         /// <summary>
+        /// Equals
+        /// </summary>
+        /// <param name="r1">Range1</param>
+        /// <param name="r2">Range2</param>
+        /// <returns>True if equal</returns>
+        public static bool operator ==(IPV4Range r1, IPV4Range r2)
+        {
+            return r1.Equals(r2);
+        }
+
+        /// <summary>
+        /// Not equals
+        /// </summary>
+        /// <param name="r1">Range1</param>
+        /// <param name="r2">Range2</param>
+        /// <returns>True if not equal</returns>
+        public static bool operator !=(IPV4Range r1, IPV4Range r2)
+        {
+            return !r1.Equals(r2);
+        }
+
+        /// <summary>
         /// ToString
         /// </summary>
         /// <returns>String</returns>

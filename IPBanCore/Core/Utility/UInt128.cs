@@ -248,7 +248,7 @@ namespace DigitalRuby.IPBanCore
         public static UInt128 Parse(string value, NumberStyles style, IFormatProvider provider)
         {
             if (value is null)
-                throw new ArgumentNullException("value");
+                throw new ArgumentNullException(nameof(value));
             if ((style & NumberStyles.HexNumber) == NumberStyles.HexNumber)
                 value = "0" + value;
             BigInteger bigIntegerValue = BigInteger.Parse(value, style, provider);
@@ -385,8 +385,7 @@ namespace DigitalRuby.IPBanCore
         /// <param name="obj">Another object to compare to. </param><filterpriority>2</filterpriority>
         public override bool Equals(object obj)
         {
-            return (obj is UInt128) &&
-                   Equals((UInt128)obj);
+            return (obj is UInt128 @int) && Equals(@int);
         }
 
         /// <summary>
