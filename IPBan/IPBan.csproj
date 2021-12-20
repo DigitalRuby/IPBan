@@ -24,6 +24,7 @@
 		<GenerateSerializationAssemblies>Off</GenerateSerializationAssemblies>
 		<ApplicationIcon>../ipban_favicon.ico</ApplicationIcon>
 		<IsTrimmable>false</IsTrimmable>
+		<BuiltInComInteropSupport>true</BuiltInComInteropSupport>
 	</PropertyGroup>
 
 	<ItemGroup>
