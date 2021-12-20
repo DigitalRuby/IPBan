@@ -172,6 +172,7 @@ namespace DigitalRuby.IPBanCore
         public void Shutdown()
         {
             cancelToken.Cancel();
+            cancelToken.Dispose();
         }
 
         /// <inheritdoc />
