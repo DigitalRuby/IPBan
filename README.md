@@ -13,7 +13,7 @@ Please visit <a href='https://ipban.com'>https://ipban.com</a> to learn about IP
 You can also visit the ipban discord at https://discord.gg/Mf59n8PfTH to chat with me or other IPBan users.
 
 **Requirements**
-- IPBan requires .NET 5 SDK to build and debug code. For an IDE, I suggest Visual Studio Community 2019 for Windows, or VS code for Linux. All are free. You can build a self contained executable to eliminate the need for dotnet core on the server machine, or just download the precompiled binaries.
+- IPBan requires .NET 6 SDK to build and debug code. For an IDE, I suggest Visual Studio Community for Windows, or VS code for Linux. All are free. You can build a self contained executable to eliminate the need for dotnet core on the server machine, or just download the precompiled binaries.
 - Running and/or debugging code requires that you run your IDE or terminal as administrator or root.
 - Officially supported platforms: Windows 8.1 or newer (x86, x64), Windows Server 2012 or newer (x86, x64), Linux (Ubuntu, Debian, CentOS, RedHat x64). Windows Server 2008 will work with some tweaks, but it is basically at end of life, so no longer officially supported. Please note that for CentOS and RedHat Linux, you will need to manually install iptables and ipset using yum package manager.
 - Mac OS X not supported at this time.
