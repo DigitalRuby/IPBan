@@ -35,6 +35,10 @@ using System.Threading.Tasks;
 
 namespace DigitalRuby.IPBanCore
 {
+    /// <summary>
+    /// Linux firewall base class
+    /// </summary>
+    [System.Diagnostics.CodeAnalysis.DynamicallyAccessedMembers(System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.All)]
     public abstract class IPBanLinuxBaseFirewall : IPBanBaseFirewall
     {
         private readonly AddressFamily addressFamily;

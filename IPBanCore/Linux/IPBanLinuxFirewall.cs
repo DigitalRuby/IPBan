@@ -30,8 +30,12 @@ using System.Threading.Tasks;
 
 namespace DigitalRuby.IPBanCore
 {
+    /// <summary>
+    /// Linux firewall implementation
+    /// </summary>
     [RequiredOperatingSystem(OSUtility.Linux)]
     [CustomName("Default")]
+    [System.Diagnostics.CodeAnalysis.DynamicallyAccessedMembers(System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.All)]
     public class IPBanLinuxFirewall : IPBanLinuxBaseFirewall
     {
         /// <summary>

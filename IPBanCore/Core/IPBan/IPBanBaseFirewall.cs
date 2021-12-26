@@ -32,6 +32,7 @@ namespace DigitalRuby.IPBanCore
     /// <summary>
     /// Base firewall class that all firewall implementations should inherit from
     /// </summary>
+    [System.Diagnostics.CodeAnalysis.DynamicallyAccessedMembers(System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.All)]
     public abstract class IPBanBaseFirewall : IIPBanFirewall
     {
         protected bool Disposed { get; private set; }

@@ -23,8 +23,8 @@
 		<PublishTrimmed>true</PublishTrimmed>
 		<GenerateSerializationAssemblies>Off</GenerateSerializationAssemblies>
 		<ApplicationIcon>../ipban_favicon.ico</ApplicationIcon>
-		<IsTrimmable>false</IsTrimmable>
 		<BuiltInComInteropSupport>true</BuiltInComInteropSupport>
+		<IsTrimmable>false</IsTrimmable>
 	</PropertyGroup>
 
 	<ItemGroup>

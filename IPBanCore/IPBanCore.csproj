@@ -1,78 +1,77 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
-    <RootNamespace>DigitalRuby.IPBanCore</RootNamespace>
-    <PreserveCompilationContext>true</PreserveCompilationContext>
-    <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
-    <PackageId>DigitalRuby.IPBanCore</PackageId>
-    <Version>1.6.1</Version>
-    <AssemblyVersion>1.6.1</AssemblyVersion>
-    <FileVersion>1.6.1</FileVersion>
-	<Authors>Jeff Johnson</Authors>
-    <Company>Digital Ruby, LLC</Company>
-    <Product>IPBan</Product>
-    <Description>IPBan is the leading solution to block hackers and botnets. Easily monitor events for all kinds of sources and put the bad ip addresses in the firewall automatically.</Description>
-    <Copyright>(c) 2012 Digital Ruby, LLC</Copyright>
-    <PackageProjectUrl>https://github.com/DigitalRuby/IPBan</PackageProjectUrl>
-    <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
-    <RepositoryUrl>https://github.com/DigitalRuby/IPBan</RepositoryUrl>
-    <RepositoryType>git</RepositoryType>
-    <PackageTags>windows linux firewall hacker botnet block rule security software service email smtp rdp remote desktop ssh auto</PackageTags>
-    <PackageReleaseNotes>Upgrade to .NET core 5</PackageReleaseNotes>
+	<PropertyGroup>
+		<TargetFramework>net6.0</TargetFramework>
+		<RootNamespace>DigitalRuby.IPBanCore</RootNamespace>
+		<PreserveCompilationContext>true</PreserveCompilationContext>
+		<PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+		<PackageId>DigitalRuby.IPBanCore</PackageId>
+		<Version>1.7.0</Version>
+		<AssemblyVersion>1.7.0</AssemblyVersion>
+		<FileVersion>1.7.0</FileVersion>
+		<Authors>Jeff Johnson</Authors>
+		<Company>Digital Ruby, LLC</Company>
+		<Product>IPBan</Product>
+		<Description>IPBan is the leading solution to block hackers and botnets. Easily monitor events for all kinds of sources and put the bad ip addresses in the firewall automatically.</Description>
+		<Copyright>(c) 2012 Digital Ruby, LLC</Copyright>
+		<PackageProjectUrl>https://github.com/DigitalRuby/IPBan</PackageProjectUrl>
+		<PackageLicenseFile>LICENSE.md</PackageLicenseFile>
+		<RepositoryUrl>https://github.com/DigitalRuby/IPBan</RepositoryUrl>
+		<RepositoryType>git</RepositoryType>
+		<PackageTags>windows linux firewall hacker botnet block rule security software service email smtp rdp remote desktop ssh auto</PackageTags>
+		<PackageReleaseNotes>Upgrade to .NET core 5</PackageReleaseNotes>
 		<PublishTrimmed>true</PublishTrimmed>
-    <NeutralLanguage>en</NeutralLanguage>
-    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
-    <AssemblyName>DigitalRuby.IPBanCore</AssemblyName>
-    <ApplicationIcon />
-    <OutputType>Library</OutputType>
-    <StartupObject />
-	  <GenerateSerializationAssemblies>Off</GenerateSerializationAssemblies>
-    <IsTrimmable>false</IsTrimmable>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-  </PropertyGroup>
+		<NeutralLanguage>en</NeutralLanguage>
+		<GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+		<AssemblyName>DigitalRuby.IPBanCore</AssemblyName>
+		<ApplicationIcon />
+		<OutputType>Library</OutputType>
+		<StartupObject />
+		<GenerateSerializationAssemblies>Off</GenerateSerializationAssemblies>
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+		<IsTrimmable>false</IsTrimmable>	</PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Microsoft.Data.Sqlite" Version="6.0.1" />
-    <PackageReference Include="Microsoft.Extensions.FileSystemGlobbing" Version="6.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Hosting" Version="6.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Hosting.Systemd" Version="6.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" Version="6.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Logging" Version="6.0.0" />
-    <PackageReference Include="Microsoft.Windows.Compatibility" Version="6.0.0" />
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
-    <PackageReference Include="NLog" Version="4.7.13" />
-    <PackageReference Include="System.Configuration.ConfigurationManager" Version="6.0.0" />
-    <PackageReference Include="System.Threading.Tasks.Dataflow" Version="6.0.0" />
-  </ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="Microsoft.Data.Sqlite" Version="6.0.1" />
+		<PackageReference Include="Microsoft.Extensions.FileSystemGlobbing" Version="6.0.0" />
+		<PackageReference Include="Microsoft.Extensions.Hosting" Version="6.0.0" />
+		<PackageReference Include="Microsoft.Extensions.Hosting.Systemd" Version="6.0.0" />
+		<PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" Version="6.0.0" />
+		<PackageReference Include="Microsoft.Extensions.Logging" Version="6.0.0" />
+		<PackageReference Include="Microsoft.Windows.Compatibility" Version="6.0.0" />
+		<PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+		<PackageReference Include="NLog" Version="4.7.13" />
+		<PackageReference Include="System.Configuration.ConfigurationManager" Version="6.0.0" />
+		<PackageReference Include="System.Threading.Tasks.Dataflow" Version="6.0.0" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <Content Include="ipban.override.config">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="ipban.config">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-  </ItemGroup>
+	<ItemGroup>
+		<Content Include="ipban.override.config">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
+		<Content Include="ipban.config">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
+	</ItemGroup>
 
-  <ItemGroup>
-    <None Include="../LICENSE.md" Pack="true" PackagePath="" />
-  </ItemGroup>
+	<ItemGroup>
+		<None Include="../LICENSE.md" Pack="true" PackagePath="" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <Compile Update="IPBanResources.Designer.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>IPBanResources.resx</DependentUpon>
-    </Compile>
-  </ItemGroup>
-
-  <ItemGroup>
-    <EmbeddedResource Update="IPBanResources.resx">
-      <CustomToolNamespace>DigitalRuby.IPBanCore</CustomToolNamespace>
-      <LastGenOutput>IPBanResources.Designer.cs</LastGenOutput>
-      <Generator>PublicResXFileCodeGenerator</Generator>
-    </EmbeddedResource>
-  </ItemGroup>
+	<ItemGroup>
+		<Compile Update="IPBanResources.Designer.cs">
+			<DesignTime>True</DesignTime>
+			<AutoGen>True</AutoGen>
+			<DependentUpon>IPBanResources.resx</DependentUpon>
+		</Compile>
+	</ItemGroup>
+	
+	<ItemGroup>
+		<EmbeddedResource Update="IPBanResources.resx">
+			<CustomToolNamespace>DigitalRuby.IPBanCore</CustomToolNamespace>
+			<LastGenOutput>IPBanResources.Designer.cs</LastGenOutput>
+			<Generator>PublicResXFileCodeGenerator</Generator>
+		</EmbeddedResource>
+	</ItemGroup>
 
 </Project>

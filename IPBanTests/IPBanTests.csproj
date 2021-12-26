@@ -1,47 +1,47 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFrameworks>net6.0</TargetFrameworks>
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <IsPackable>false</IsPackable>
-    <RootNamespace>DigitalRuby.IPBanTests</RootNamespace>
-    <AssemblyName>DigitalRuby.IPBanTests</AssemblyName>
-    <PreserveCompilationContext>true</PreserveCompilationContext>
-    <LangVersion>latest</LangVersion>
-    <GenerateSerializationAssemblies>Off</GenerateSerializationAssemblies>
-    <IsTrimmable>false</IsTrimmable>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFrameworks>net6.0</TargetFrameworks>
+		<PlatformTarget>AnyCPU</PlatformTarget>
+		<IsPackable>false</IsPackable>
+		<RootNamespace>DigitalRuby.IPBanTests</RootNamespace>
+		<AssemblyName>DigitalRuby.IPBanTests</AssemblyName>
+		<PreserveCompilationContext>true</PreserveCompilationContext>
+		<LangVersion>latest</LangVersion>
+		<GenerateSerializationAssemblies>Off</GenerateSerializationAssemblies>
+		<IsTrimmable>false</IsTrimmable>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <Compile Remove="package\**" />
-    <EmbeddedResource Remove="package\**" />
-    <None Remove="package\**" />
-  </ItemGroup>
+	<ItemGroup>
+		<Compile Remove="package\**" />
+		<EmbeddedResource Remove="package\**" />
+		<None Remove="package\**" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Microsoft.TestPlatform.TestHost" Version="17.0.0" />
-    <PackageReference Include="nunit" Version="3.13.2" />
-    <PackageReference Include="NUnit3TestAdapter" Version="4.1.0">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.0.0" />
-  </ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="Microsoft.TestPlatform.TestHost" Version="17.0.0" />
+		<PackageReference Include="nunit" Version="3.13.2" />
+		<PackageReference Include="NUnit3TestAdapter" Version="4.1.0">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.0.0" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\IPBanCore\IPBanCore.csproj" />
-  </ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\IPBanCore\IPBanCore.csproj" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <None Update="TestData\LogFiles\Apache\everything.log">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="TestData\LogFiles\Exchange\smtp_auth_successful.log">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="TestData\LogFiles\Exchange\smtp_auth_unsuccessful.log">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
+	<ItemGroup>
+		<None Update="TestData\LogFiles\Apache\everything.log">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+		<None Update="TestData\LogFiles\Exchange\smtp_auth_successful.log">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+		<None Update="TestData\LogFiles\Exchange\smtp_auth_unsuccessful.log">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+	</ItemGroup>
 
 </Project>
