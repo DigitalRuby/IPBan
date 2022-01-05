@@ -238,7 +238,7 @@ namespace DigitalRuby.IPBanCore
                 {
                     try
                     {
-                        domainName = System.DirectoryServices.ActiveDirectory.Domain.GetComputerDomain().Name;
+                        domainName = System.Net.NetworkInformation.IPGlobalProperties.GetIPGlobalProperties().DomainName;
                     }
                     catch
                     {
@@ -257,6 +257,8 @@ namespace DigitalRuby.IPBanCore
                 {
                     FQDN = serverName;
                 }
+
+                Logger.Info("FQDN: {0}", FQDN);
             }
 
             if (string.IsNullOrWhiteSpace(LocalIPAddressString))

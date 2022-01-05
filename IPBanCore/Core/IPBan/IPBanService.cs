@@ -44,6 +44,7 @@ namespace DigitalRuby.IPBanCore
     /// Base ipban service class. Configuration, firewall and many other properties will
     /// not be initialized until the first RunCycle is called.
     /// </summary>
+    [System.Diagnostics.CodeAnalysis.DynamicallyAccessedMembers(System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.All)]
     public partial class IPBanService : IIPBanService, IIsWhitelisted
     {
         /// <summary>
