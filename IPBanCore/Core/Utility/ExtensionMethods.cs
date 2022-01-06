@@ -900,7 +900,16 @@ namespace DigitalRuby.IPBanCore
             }
             IReadOnlyCollection<Assembly> assemblies = GetAllAssemblies();
             List<Type> types = new();
-            foreach (Assembly assembly in assemblies)
+            string prefix = Assembly.GetEntryAssembly()?.GetName().Name ?? string.Empty;
+            int pos = prefix.IndexOf('.');
+            if (pos >= 0)
+            {
+                pos++;
+                prefix = prefix[..pos];
+            }
+            foreach (Assembly assembly in assemblies.Where(a => a.FullName is null ||
+                string.IsNullOrWhiteSpace(prefix) ||
+                a.FullName.StartsWith(prefix)))
             {
                 try
                 {
