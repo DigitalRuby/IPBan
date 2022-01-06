@@ -908,6 +908,7 @@ namespace DigitalRuby.IPBanCore
                 prefix = prefix[..pos];
             }
             foreach (Assembly assembly in assemblies.Where(a => a.FullName is null ||
+                UnitTestDetector.Running ||
                 string.IsNullOrWhiteSpace(prefix) ||
                 a.FullName.StartsWith(prefix)))
             {
