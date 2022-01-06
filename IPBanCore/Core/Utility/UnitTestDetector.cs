@@ -43,6 +43,12 @@ namespace DigitalRuby.IPBanCore
         {
             try
             {
+                if ((System.Reflection.Assembly.GetEntryAssembly()?.GetName().Name ?? string.Empty).StartsWith("testhost", StringComparison.OrdinalIgnoreCase))
+                {
+                    Running = true;
+                    return;
+                }
+
                 foreach (System.Reflection.Assembly assem in AppDomain.CurrentDomain.GetAssemblies())
                 {
                     if (assem.FullName.ToLowerInvariant().StartsWith("nunit.framework"))

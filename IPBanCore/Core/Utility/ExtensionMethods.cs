@@ -823,9 +823,9 @@ namespace DigitalRuby.IPBanCore
         private static Assembly[] allAssemblies;
 
         /// <summary>
-        /// Get all assemblies
+        /// Get all assemblies, including referenced assemblies. This method will be cached beyond the first call.
         /// </summary>
-        /// <returns>Assemblies</returns>
+        /// <returns>All referenced assemblies</returns>
         [UnconditionalSuppressMessage("Trimming", "IL2026:Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code", Justification = "jjxtra")]
         public static IReadOnlyCollection<Assembly> GetAllAssemblies()
         {
@@ -833,56 +833,66 @@ namespace DigitalRuby.IPBanCore
             {
                 return allAssemblies;
             }
-            List<Assembly> assemblies = new();
-            assemblies.AddRange(AppDomain.CurrentDomain.GetAssemblies());
 
-            // attempt to load plugins
-            string pluginPath = Path.Combine(AppContext.BaseDirectory, "plugins");
-            try
+            var allAssembliesHashSet = new HashSet<Assembly>();
+            foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies().ToArray())
             {
-                if (Directory.Exists(pluginPath))
+                allAssembliesHashSet.Add(assembly);
+                AssemblyName[] references = assembly.GetReferencedAssemblies();
+                foreach (AssemblyName reference in references)
                 {
-                    foreach (string pluginFile in Directory.GetFiles(pluginPath, "*.dll"))
-                    {
-                        try
-                        {
-                            assemblies.Add(Assembly.LoadFile(pluginFile));
-                        }
-                        catch (Exception ex)
-                        {
-                            Logger.Error(ex, "Failed to load plugin at {0}", pluginFile);
-                        }
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Logger.Error(ex, "Failed to load plugins from {0}", pluginPath);
-            }
-
-            // load assembly references
-            foreach (Assembly assembly in assemblies.ToArray())
-            {
-                foreach (AssemblyName referencedAssemblyName in assembly.GetReferencedAssemblies())
-                {
-
                     try
                     {
-                        if (!assemblies.Any(x => x.GetName().FullName.Equals(referencedAssemblyName.FullName, StringComparison.OrdinalIgnoreCase)))
-                        {
-                            Assembly referencedAssembly = Assembly.Load(referencedAssemblyName);
-                            assemblies.Add(referencedAssembly);
-                        }
+                        Assembly referenceAssembly = Assembly.Load(reference);
+                        allAssembliesHashSet.Add(referenceAssembly);
                     }
                     catch
                     {
-                        // ignore
+                        // don't care, if the assembly can't be loaded there's nothing more to be done
                     }
                 }
             }
 
-            allAssemblies = assemblies.ToArray();
-            return allAssemblies;
+            // get referenced assemblies does not include every assembly if no code was referenced from that assembly
+            string path = AppContext.BaseDirectory;
+            string[] appFiles = Directory.GetFiles(path);
+            string pluginPath = Path.Combine(path, "plugins");
+            if (Directory.Exists(pluginPath))
+            {
+                string[] pluginFiles = Directory.GetFiles(pluginPath);
+                appFiles = appFiles.Concat(pluginFiles).ToArray();
+            }
+            foreach (string dllFile in appFiles.Where(f => f.EndsWith(".dll", StringComparison.OrdinalIgnoreCase)))
+            {
+                try
+                {
+                    bool exists = false;
+                    foreach (Assembly assembly in allAssembliesHashSet)
+                    {
+                        try
+                        {
+                            exists = assembly.Location.Equals(dllFile, StringComparison.OrdinalIgnoreCase);
+                            if (exists)
+                            {
+                                break;
+                            }
+                        }
+                        catch
+                        {
+                            // some assemblies will throw upon attempt to access Location property...
+                        }
+                    }
+                    if (!exists)
+                    {
+                        allAssembliesHashSet.Add(Assembly.LoadFrom(dllFile));
+                    }
+                }
+                catch
+                {
+                    // nothing to be done
+                }
+            }
+            return allAssemblies = allAssembliesHashSet.ToArray();
         }
 
         private static Type[] allTypes;
@@ -900,6 +910,8 @@ namespace DigitalRuby.IPBanCore
             }
             IReadOnlyCollection<Assembly> assemblies = GetAllAssemblies();
             List<Type> types = new();
+
+            // prefix to entry assembly first pattern to greatly reduce ram usage
             string prefix = Assembly.GetEntryAssembly()?.GetName().Name ?? string.Empty;
             int pos = prefix.IndexOf('.');
             if (pos >= 0)
@@ -907,8 +919,14 @@ namespace DigitalRuby.IPBanCore
                 pos++;
                 prefix = prefix[..pos];
             }
+
+            // no filter if running unit tests
+            if (UnitTestDetector.Running)
+            {
+                prefix = null;
+            }
+
             foreach (Assembly assembly in assemblies.Where(a => a.FullName is null ||
-                UnitTestDetector.Running ||
                 string.IsNullOrWhiteSpace(prefix) ||
                 a.FullName.StartsWith(prefix)))
             {
@@ -922,8 +940,7 @@ namespace DigitalRuby.IPBanCore
                     // ignore
                 }
             }
-            allTypes = types.ToArray();
-            return allTypes;
+            return allTypes = types.ToArray();
         }
 
         /// <summary>

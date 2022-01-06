@@ -38,12 +38,12 @@ function CodeSign($folder, $checkFail)
 # IPBan Linux x64
 & "c:/program files/dotnet/dotnet.exe" restore -r linux-x64; CheckFail
 & "c:/program files/dotnet/dotnet.exe" clean -c Release; CheckFail
-& "c:/program files/dotnet/dotnet.exe" publish IPBan.csproj --self-contained -f $netFrameworkVersion -o package/linux-x64 -c Release -r linux-x64 /p:Version=$versionDots /p:AssemblyVersion=$versionDots /p:FileVersion=$versionDots /p:PublishTrimmed=$publishTrimmed /p:PublishSingleFile=true /p:IncludeNativeLibrariesForSelfExtract=true; CheckFail
+& "c:/program files/dotnet/dotnet.exe" publish IPBan.csproj --self-contained -f $netFrameworkVersion -o package/linux-x64 -c Release -r linux-x64 /p:DebuggerSupport=false /p:CopyOutputSymbolsToPublishDirectory=false /p:Version=$versionDots /p:AssemblyVersion=$versionDots /p:FileVersion=$versionDots /p:PublishTrimmed=$publishTrimmed /p:PublishSingleFile=true /p:IncludeNativeLibrariesForSelfExtract=true; CheckFail
 
 # IPBan Windows x64
 & "c:/program files/dotnet/dotnet.exe" restore -r win-x64; CheckFail
 & "c:/program files/dotnet/dotnet.exe" clean -c Release; CheckFail
-& "c:/program files/dotnet/dotnet.exe" publish IPBan.csproj --self-contained -f $netFrameworkVersion -o package/win-x64 -c Release -r win-x64 /p:Version=$versionDots /p:AssemblyVersion=$versionDots /p:FileVersion=$versionDots /p:PublishTrimmed=$publishTrimmed /p:PublishSingleFile=true /p:IncludeNativeLibrariesForSelfExtract=true; CheckFail
+& "c:/program files/dotnet/dotnet.exe" publish IPBan.csproj --self-contained -f $netFrameworkVersion -o package/win-x64 -c Release -r win-x64 /p:DebuggerSupport=false /p:CopyOutputSymbolsToPublishDirectory=false /p:Version=$versionDots /p:AssemblyVersion=$versionDots /p:FileVersion=$versionDots /p:PublishTrimmed=$publishTrimmed /p:PublishSingleFile=true /p:IncludeNativeLibrariesForSelfExtract=true; CheckFail
 CodeSign package/win-x64 CheckFail
 
 # IPBan Windows x86
