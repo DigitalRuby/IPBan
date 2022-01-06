@@ -1,0 +1,30 @@
+﻿<!-- Filezilla logins, Windows
+Example failed login:
+(000175) 1/5/2022 19:04:11 PM - (not logged in) (22.55.10.170)> 331 Password required for www
+(000175) 1/5/2022 19:04:11 PM - (not logged in) (22.55.10.170)> PASS www
+(000175) 1/5/2022 19:04:11 PM - (not logged in) (22.55.10.170)> 530 Login or password incorrect!
+
+Example success login:
+(000487) 12/21/2021 14:07:08 PM - username (22.55.10.170)> 230 Logged on
+-->
+<LogFile>
+	<Source>Filezilla</Source>
+	<PathAndMask>C:\Program Files (x86)\FileZilla Server\Logs</PathAndMask>
+	<FailedLoginRegex>
+		<![CDATA[
+			[^\s]+\s(?<timestamp>[^\-]+)-\s\(not\slogged\sin\)\s\((?<ipaddress>[^])]+)\)\>\s331\sPassword\srequired\sfor\s(?<username>[^\n]+)\n[^\n]+\n[^\n]+530\sLogin\sor\spassword\sincorrect
+		]]>
+	</FailedLoginRegex>
+	<FailedLoginRegexTimestampFormat></FailedLoginRegexTimestampFormat>
+	<SuccessfulLoginRegex>
+		<![CDATA[
+			[^\s]+\s(?<timestamp>[^\-]+)-\s(?<username>[^\s]+)\s\((?<ipaddress>[^\)]+)\)\>\s230\sLogged\son
+		]]>
+	</SuccessfulLoginRegex>
+	<SuccessfulLoginRegexTimestampFormat></SuccessfulLoginRegexTimestampFormat>
+	<PlatformRegex>Windows</PlatformRegex>
+	<PingInterval>10000</PingInterval>
+	<MaxFileSize>0</MaxFileSize>
+	<FailedLoginThreshold>0</FailedLoginThreshold>
+</LogFile>
+
