@@ -254,7 +254,8 @@ namespace DigitalRuby.IPBanCore
             // FALSE username
             // TRUE  disabledusername
             string output = StartProcessAndWait("wmic", "useraccount get disabled,name");
-            foreach (string line in output.Split('\n'))
+            string[] lines = output.Split('\n').Skip(1).ToArray();
+            foreach (string line in lines)
             {
                 string trimmedLine = line.Trim();
                 int pos = trimmedLine.IndexOf(' ');
@@ -373,65 +374,50 @@ namespace DigitalRuby.IPBanCore
         /// <returns>Output</returns>
         /// <exception cref="ApplicationException">Exit code did not match allowed exit codes</exception>
         public static string StartProcessAndWait(int timeoutMilliseconds, string program, string args,
-        out int exitCode, params int[] allowedExitCodes)
+            out int exitCode, params int[] allowedExitCodes)
         {
             StringBuilder output = new();
             int _exitCode = -1;
             Exception _ex = null;
             Thread thread = new(new ParameterizedThreadStart((_state) =>
             {
-                Logger.Info($"Executing process {program} {args}...");
-
-                using var process = new Process
+                try
                 {
-                    StartInfo = new ProcessStartInfo(program, args)
+                    Logger.Info($"Executing process {program} {args}...");
+
+                    var startInfo = new ProcessStartInfo(program, args)
                     {
                         CreateNoWindow = true,
                         UseShellExecute = false,
                         WindowStyle = ProcessWindowStyle.Hidden,
-                        RedirectStandardOutput = true,
                         RedirectStandardError = true,
+                        RedirectStandardOutput = true,
                         Verb = processVerb
-                    }
-                };
+                    };
+                    using var process = new Process
+                    {
+                        StartInfo = startInfo
+                    };
 
-                process.OutputDataReceived += (object sender, DataReceivedEventArgs e) =>
-                {
-                    if (!string.IsNullOrEmpty(e.Data))
+                    process.Start();
+                    if (!process.WaitForExit(timeoutMilliseconds))
                     {
-                        lock (output)
-                        {
-                            output.Append("[OUT]: ");
-                            output.AppendLine(e.Data);
-                        }
+                        output.Append("Terminating process due to timeout");
+                        process.Kill();
                     }
-                };
-                process.ErrorDataReceived += (object sender, DataReceivedEventArgs e) =>
-                {
-                    if (!string.IsNullOrEmpty(e.Data))
+                    string stdOut = process.StandardOutput.ReadToEnd();
+                    string stdErr = process.StandardError.ReadToEnd();
+                    output.Append(stdOut);
+                    output.Append(stdErr);
+                    _exitCode = process.ExitCode;
+                    if (allowedExitCodes.Length != 0 && Array.IndexOf(allowedExitCodes, process.ExitCode) < 0)
                     {
-                        lock (output)
-                        {
-                            output.Append("[ERR]: ");
-                            output.AppendLine(e.Data);
-                        }
+                        _ex = new ApplicationException($"Program {program} {args}: failed with exit code {process.ExitCode}, output: {output}");
                     }
-                };
-                process.Start();
-                process.BeginOutputReadLine();
-                process.BeginErrorReadLine();
-                if (!process.WaitForExit(timeoutMilliseconds))
-                {
-                    lock (output)
-                    {
-                        output.Append("[ERR]: Terminating process due to timeout");
-                    }
-                    process.Kill();
                 }
-                _exitCode = process.ExitCode;
-                if (allowedExitCodes.Length != 0 && Array.IndexOf(allowedExitCodes, process.ExitCode) < 0)
+                catch (Exception ex)
                 {
-                    _ex = new ApplicationException($"Program {program} {args}: failed with exit code {process.ExitCode}, output: {output}");
+                    _ex = ex;
                 }
             }));
             thread.Start();
@@ -476,20 +462,22 @@ namespace DigitalRuby.IPBanCore
             {
                 try
                 {
-                    usersExpire = IPBanService.UtcNow + UserIsActiveCacheTime;
                     Dictionary<string, bool> newUsers = new(StringComparer.OrdinalIgnoreCase);
-
-                    if (isWindows)
+                    lock (users)
                     {
-                        PopulateUsersWindows(newUsers);
-                    }
-                    else if (isLinux)
-                    {
-                        PopulateUsersLinux(newUsers);
-                    }
-                    // TODO: MAC
+                        if (isWindows)
+                        {
+                            PopulateUsersWindows(newUsers);
+                        }
+                        else if (isLinux)
+                        {
+                            PopulateUsersLinux(newUsers);
+                        }
+                        // TODO: MAC
 
-                    users = newUsers;
+                        usersExpire = IPBanService.UtcNow + UserIsActiveCacheTime;
+                        users = newUsers;
+                    }
                 }
                 catch (Exception ex)
                 {
