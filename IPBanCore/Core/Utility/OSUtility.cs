@@ -29,7 +29,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Management;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -248,19 +247,69 @@ namespace DigitalRuby.IPBanCore
             catch { return ""; }
         }
 
-        /* WMI can hang/crash the process, especially after Windows updates, don't use for now
-        private static string GetFriendlyNameFromWmi()
+        private static void PopulateUsersWindows(Dictionary<string, bool> newUsers)
         {
-            string result = string.Empty;
-            ManagementObjectSearcher searcher = new ManagementObjectSearcher("SELECT Caption FROM Win32_OperatingSystem");
-            foreach (ManagementObject os in searcher.Get())
+            // Windows: WMIC
+            // wmic useraccount get disabled,name
+            // FALSE username
+            // TRUE  disabledusername
+            string output = StartProcessAndWait("wmic", "useraccount get disabled,name");
+            foreach (string line in output.Split('\n'))
             {
-                result = os["Caption"].ToString();
-                break;
+                string trimmedLine = line.Trim();
+                int pos = trimmedLine.IndexOf(' ');
+                if (pos >= 0)
+                {
+                    string disabled = trimmedLine[..pos].Trim();
+                    string foundUserName = trimmedLine[pos..].Trim();
+                    _ = bool.TryParse(disabled, out bool disabledBool);
+                    newUsers[foundUserName] = !disabledBool;
+                }
             }
-            return result;
         }
-        */
+
+        private static void PopulateUsersLinux(Dictionary<string, bool> newUsers)
+        {
+            // Linux: /etc/passwd
+            if (File.Exists("/etc/passwd") &&
+                File.Exists("/etc/shadow"))
+            {
+                // check for cache expire and refill if needed
+                if (usersExpire <= IPBanService.UtcNow)
+                {
+                    // enabled users must have an entry in password hash file
+                    string[] lines = File.ReadAllLines("/etc/shadow");
+
+                    // example line:
+                    // root:!$1$Fp$SSSuo3L.xA5s/kMEEIloU1:18049:0:99999:7:::
+                    foreach (string[] pieces in lines.Select(l => l.Split(':')).Where(p => p.Length == 9))
+                    {
+                        string checkUserName = pieces[0].Trim();
+                        string pwdHash = pieces[1].Trim();
+                        bool hasPwdHash = (pwdHash.Length != 0 && pwdHash[0] != '*' && pwdHash[0] != '!');
+                        newUsers[checkUserName] = hasPwdHash;
+                    }
+
+                    // filter out nologin users
+                    lines = File.ReadAllLines("/etc/passwd");
+
+                    // example line:
+                    // root:x:0:0:root:/root:/bin/bash
+                    foreach (string[] pieces in lines.Select(l => l.Split(':')).Where(p => p.Length == 7))
+                    {
+                        // x means shadow file is where the password is at
+                        string checkUserName = pieces[0].Trim();
+                        string nologin = pieces[6];
+                        bool cannotLogin = (nologin.Contains("nologin", StringComparison.OrdinalIgnoreCase) ||
+                            nologin.Contains("/bin/false", StringComparison.OrdinalIgnoreCase));
+                        if (cannotLogin)
+                        {
+                            newUsers[checkUserName] = false;
+                        }
+                    }
+                }
+            }
+        }
 
         /// <summary>
         /// Get a string representing the operating system
@@ -399,7 +448,7 @@ namespace DigitalRuby.IPBanCore
             return output.ToString();
         }
 
-        private static Dictionary<string, bool> users = new(StringComparer.OrdinalIgnoreCase);
+        private static Dictionary<string, bool> users = new(StringComparer.OrdinalIgnoreCase); // user name, enabled
         private static DateTime usersExpire = IPBanService.UtcNow;
 
         /// <summary>
@@ -423,7 +472,8 @@ namespace DigitalRuby.IPBanCore
 
             // check cache first
             bool enabled;
-            if (usersExpire > IPBanService.UtcNow)
+            bool cacheValid = (usersExpire > IPBanService.UtcNow);
+            if (cacheValid)
             {
                 users.TryGetValue(userName, out enabled);
                 return enabled;
@@ -431,80 +481,20 @@ namespace DigitalRuby.IPBanCore
 
             try
             {
+                usersExpire = IPBanService.UtcNow + UserIsActiveCacheTime;
+                Dictionary<string, bool> newUsers = new(StringComparer.OrdinalIgnoreCase);
+
                 if (isWindows)
                 {
-                    // Windows: WMI
-                    if (usersExpire <= IPBanService.UtcNow)
-                    {
-                        lock (users)
-                        {
-                            Dictionary<string, bool> newUsers = new(StringComparer.OrdinalIgnoreCase);
-                            SelectQuery query = new("Win32_UserAccount");
-                            ManagementObjectSearcher searcher = new(query);
-                            foreach (ManagementObject user in searcher.Get())
-                            {
-#pragma warning disable CA1507 // Use nameof to express symbol names
-                                string foundUserName = user["Name"]?.ToString();
-#pragma warning restore CA1507 // Use nameof to express symbol names
-                                if (!string.IsNullOrWhiteSpace(foundUserName))
-                                {
-                                    newUsers[foundUserName] = user["Disabled"] is null || user["Disabled"].Equals(false);
-                                }
-                            }
-                            usersExpire = IPBanService.UtcNow + UserIsActiveCacheTime;
-                            users = newUsers;
-                        }
-                    }
+                    PopulateUsersWindows(newUsers);
                 }
                 else if (isLinux)
                 {
-                    // Linux: /etc/passwd
-                    if (File.Exists("/etc/passwd") && File.Exists("/etc/shadow"))
-                    {
-                        // check for cache expire and refill if needed
-                        if (usersExpire <= IPBanService.UtcNow)
-                        {
-                            lock (users)
-                            {
-                                Dictionary<string, bool> newUsers = new(StringComparer.OrdinalIgnoreCase);
-
-                                // enabled users must have an entry in password hash file
-                                string[] lines = File.ReadAllLines("/etc/shadow");
-
-                                // example line:
-                                // root:!$1$Fp$SSSuo3L.xA5s/kMEEIloU1:18049:0:99999:7:::
-                                foreach (string[] pieces in lines.Select(l => l.Split(':')).Where(p => p.Length == 9))
-                                {
-                                    string checkUserName = pieces[0].Trim();
-                                    string pwdHash = pieces[1].Trim();
-                                    bool hasPwdHash = (pwdHash.Length != 0 && pwdHash[0] != '*' && pwdHash[0] != '!');
-                                    newUsers[checkUserName] = hasPwdHash;
-                                }
-
-                                // filter out nologin users
-                                lines = File.ReadAllLines("/etc/passwd");
-
-                                // example line:
-                                // root:x:0:0:root:/root:/bin/bash
-                                foreach (string[] pieces in lines.Select(l => l.Split(':')).Where(p => p.Length == 7))
-                                {
-                                    // x means shadow file is where the password is at
-                                    string checkUserName = pieces[0].Trim();
-                                    string nologin = pieces[6];
-                                    bool cannotLogin = (nologin.Contains("nologin", StringComparison.OrdinalIgnoreCase) ||
-                                        nologin.Contains("/bin/false", StringComparison.OrdinalIgnoreCase));
-                                    if (cannotLogin)
-                                    {
-                                        newUsers[checkUserName] = false;
-                                    }
-                                }
-                                usersExpire = IPBanService.UtcNow + UserIsActiveCacheTime;
-                                users = newUsers;
-                            }
-                        }
-                    }
+                    PopulateUsersLinux(newUsers);
                 }
                 // TODO: MAC
+
+                users = newUsers;
             }
             catch (Exception ex)
             {
