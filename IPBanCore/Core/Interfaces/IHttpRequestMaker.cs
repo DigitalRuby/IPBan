@@ -109,7 +109,6 @@ namespace DigitalRuby.IPBanCore
             HttpRequestMessage msg = new();
             msg.RequestUri = uri;
             msg.Headers.Add("User-Agent", versionAssembly.GetName().Name);
-            msg.Headers.Add("Cache-Control", "no-cache");
             if (headers != null)
             {
                 foreach (KeyValuePair<string, object> header in headers)
@@ -124,6 +123,7 @@ namespace DigitalRuby.IPBanCore
             }
             else
             {
+                msg.Headers.Add("Cache-Control", "no-cache");
                 msg.Method = HttpMethod.Post;
                 msg.Content = new StringContent(postJson, Encoding.UTF8, "application/json");
             }
