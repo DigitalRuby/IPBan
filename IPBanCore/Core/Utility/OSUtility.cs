@@ -275,38 +275,34 @@ namespace DigitalRuby.IPBanCore
             if (File.Exists("/etc/passwd") &&
                 File.Exists("/etc/shadow"))
             {
-                // check for cache expire and refill if needed
-                if (usersExpire <= IPBanService.UtcNow)
+                // enabled users must have an entry in password hash file
+                string[] lines = File.ReadAllLines("/etc/shadow");
+
+                // example line:
+                // root:!$1$Fp$SSSuo3L.xA5s/kMEEIloU1:18049:0:99999:7:::
+                foreach (string[] pieces in lines.Select(l => l.Split(':')).Where(p => p.Length == 9))
                 {
-                    // enabled users must have an entry in password hash file
-                    string[] lines = File.ReadAllLines("/etc/shadow");
+                    string checkUserName = pieces[0].Trim();
+                    string pwdHash = pieces[1].Trim();
+                    bool hasPwdHash = (pwdHash.Length != 0 && pwdHash[0] != '*' && pwdHash[0] != '!');
+                    newUsers[checkUserName] = hasPwdHash;
+                }
 
-                    // example line:
-                    // root:!$1$Fp$SSSuo3L.xA5s/kMEEIloU1:18049:0:99999:7:::
-                    foreach (string[] pieces in lines.Select(l => l.Split(':')).Where(p => p.Length == 9))
+                // filter out nologin users
+                lines = File.ReadAllLines("/etc/passwd");
+
+                // example line:
+                // root:x:0:0:root:/root:/bin/bash
+                foreach (string[] pieces in lines.Select(l => l.Split(':')).Where(p => p.Length == 7))
+                {
+                    // x means shadow file is where the password is at
+                    string checkUserName = pieces[0].Trim();
+                    string nologin = pieces[6];
+                    bool cannotLogin = (nologin.Contains("nologin", StringComparison.OrdinalIgnoreCase) ||
+                        nologin.Contains("/bin/false", StringComparison.OrdinalIgnoreCase));
+                    if (cannotLogin)
                     {
-                        string checkUserName = pieces[0].Trim();
-                        string pwdHash = pieces[1].Trim();
-                        bool hasPwdHash = (pwdHash.Length != 0 && pwdHash[0] != '*' && pwdHash[0] != '!');
-                        newUsers[checkUserName] = hasPwdHash;
-                    }
-
-                    // filter out nologin users
-                    lines = File.ReadAllLines("/etc/passwd");
-
-                    // example line:
-                    // root:x:0:0:root:/root:/bin/bash
-                    foreach (string[] pieces in lines.Select(l => l.Split(':')).Where(p => p.Length == 7))
-                    {
-                        // x means shadow file is where the password is at
-                        string checkUserName = pieces[0].Trim();
-                        string nologin = pieces[6];
-                        bool cannotLogin = (nologin.Contains("nologin", StringComparison.OrdinalIgnoreCase) ||
-                            nologin.Contains("/bin/false", StringComparison.OrdinalIgnoreCase));
-                        if (cannotLogin)
-                        {
-                            newUsers[checkUserName] = false;
-                        }
+                        newUsers[checkUserName] = false;
                     }
                 }
             }
