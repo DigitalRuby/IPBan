@@ -471,37 +471,33 @@ namespace DigitalRuby.IPBanCore
             userName = userName.Trim();
 
             // check cache first
-            bool enabled;
-            bool cacheValid = (usersExpire > IPBanService.UtcNow);
-            if (cacheValid)
+            bool cacheExpired = (usersExpire <= IPBanService.UtcNow);
+            if (cacheExpired)
             {
-                users.TryGetValue(userName, out enabled);
-                return enabled;
-            }
-
-            try
-            {
-                usersExpire = IPBanService.UtcNow + UserIsActiveCacheTime;
-                Dictionary<string, bool> newUsers = new(StringComparer.OrdinalIgnoreCase);
-
-                if (isWindows)
+                try
                 {
-                    PopulateUsersWindows(newUsers);
+                    usersExpire = IPBanService.UtcNow + UserIsActiveCacheTime;
+                    Dictionary<string, bool> newUsers = new(StringComparer.OrdinalIgnoreCase);
+
+                    if (isWindows)
+                    {
+                        PopulateUsersWindows(newUsers);
+                    }
+                    else if (isLinux)
+                    {
+                        PopulateUsersLinux(newUsers);
+                    }
+                    // TODO: MAC
+
+                    users = newUsers;
                 }
-                else if (isLinux)
+                catch (Exception ex)
                 {
-                    PopulateUsersLinux(newUsers);
+                    Logger.Error("Error determining if user is active", ex);
                 }
-                // TODO: MAC
-
-                users = newUsers;
-            }
-            catch (Exception ex)
-            {
-                Logger.Error("Error determining if user is active", ex);
             }
 
-            users.TryGetValue(userName, out enabled);
+            users.TryGetValue(userName, out bool enabled);
             return enabled;
         }
 
