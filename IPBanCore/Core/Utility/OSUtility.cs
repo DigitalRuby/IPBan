@@ -461,18 +461,22 @@ namespace DigitalRuby.IPBanCore
                     Dictionary<string, bool> newUsers = new(StringComparer.OrdinalIgnoreCase);
                     lock (users)
                     {
-                        if (isWindows)
+                        cacheExpired = (usersExpire <= IPBanService.UtcNow);
+                        if (cacheExpired)
                         {
-                            PopulateUsersWindows(newUsers);
-                        }
-                        else if (isLinux)
-                        {
-                            PopulateUsersLinux(newUsers);
-                        }
-                        // TODO: MAC
+                            if (isWindows)
+                            {
+                                PopulateUsersWindows(newUsers);
+                            }
+                            else if (isLinux)
+                            {
+                                PopulateUsersLinux(newUsers);
+                            }
+                            // TODO: MAC
 
-                        usersExpire = IPBanService.UtcNow + UserIsActiveCacheTime;
-                        users = newUsers;
+                            usersExpire = IPBanService.UtcNow + UserIsActiveCacheTime;
+                            users = newUsers;
+                        }
                     }
                 }
                 catch (Exception ex)
