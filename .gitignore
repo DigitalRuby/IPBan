@@ -11,4 +11,4 @@ packages/
 *.cachefile
 *.user
 PublishProfiles/
-Properties/launchSettings.json
+launchSettings.json

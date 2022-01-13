@@ -42,11 +42,27 @@ namespace DigitalRuby.IPBan
         /// <returns>Task</returns>
         public static async Task Main(string[] args)
         {
-            if (args.Length != 0 && (args[0].Equals("info", StringComparison.OrdinalIgnoreCase) ||
-                args[0].Equals("-info", StringComparison.OrdinalIgnoreCase)))
+            if (args.Length != 0)
             {
-                Logger.Warn("System info: {0}", OSUtility.OSString());
-                return;
+                if (args[0].Equals("info", StringComparison.OrdinalIgnoreCase) ||
+                    args[0].Equals("-info", StringComparison.OrdinalIgnoreCase))
+                {
+                    Logger.Warn("System info: {0}", OSUtility.OSString());
+                    return;
+                }
+                else if (args[0].Contains("logfiletest"))
+                {
+                    if (args.Length != 6)
+                    {
+                        Console.WriteLine("Usage: filename regex-failure-file regex-failure-timestamp-format regex-success-file regex-success-timestamp-format");
+                        Console.WriteLine("Can use a . to not specify the timestamp format");
+                    }
+                    else
+                    {
+                        IPBanLogFileTester.RunLogFileTest(args[1], args[2], args[3], args[4], args[5]);
+                    }
+                    return;
+                }
             }
 
             IPBanService service = null;
