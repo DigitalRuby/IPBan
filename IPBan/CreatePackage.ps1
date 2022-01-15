@@ -29,7 +29,7 @@ function CodeSign($folder, $checkFail)
 		$certTimestampUrl = $env:IPBAN_SIGN_URL
 		$fullPath = $_.FullName
 		
-		& $signTool sign /q /t $certTimestampUrl /fd SHA256 /f $certFile /p $certPassword $fullPath; $checkFail
+		& $signTool sign /debug /q /t $certTimestampUrl /fd SHA256 /f $certFile /p $certPassword $fullPath; $checkFail
 	}
 }
 
