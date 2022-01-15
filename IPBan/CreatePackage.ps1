@@ -1,6 +1,6 @@
 param([Parameter(Mandatory=$true)] [String]$version)
 
-# powershell -ExecutionPolicy Bypass
+# Set-ExecutionPolicy -ExecutionPolicy Unrestricted -Scope LocalMachine
 
 $netFrameworkVersion = "net6.0"
 $publishTrimmed = $True
