@@ -459,7 +459,7 @@
     <comment>i.e. Change the current settings</comment>
   </data>
   <data name="SiteCopyright" xml:space="preserve">
-    <value>(c) 2018 Digital Ruby, LLC</value>
+    <value>(c) 2018-{0} Digital Ruby, LLC</value>
   </data>
   <data name="SiteLink" xml:space="preserve">
     <value>https://ipban.com</value>
