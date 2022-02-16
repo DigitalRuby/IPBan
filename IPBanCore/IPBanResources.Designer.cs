@@ -349,6 +349,15 @@ namespace DigitalRuby.IPBanCore {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Start typing and pick countries from the dropdown that appears.
+        /// </summary>
+        public static string CountryBlockHelpLabel {
+            get {
+                return ResourceManager.GetString("CountryBlockHelpLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to {0} ranges in the country block list.
         /// </summary>
         public static string CountryListEntryCount {

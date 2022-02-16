@@ -875,4 +875,7 @@
   <data name="ProcessInternalIPAddressesTooltip" xml:space="preserve">
     <value>Whether to process internal ip addresses</value>
   </data>
+  <data name="CountryBlockHelpLabel" xml:space="preserve">
+    <value>Start typing and pick countries from the dropdown that appears</value>
+  </data>
 </root>
