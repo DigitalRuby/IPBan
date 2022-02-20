@@ -79,7 +79,7 @@ namespace DigitalRuby.IPBanCore {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Aggregate and ban common user name ips.
+        ///   Looks up a localized string similar to Common failed user name ban.
         /// </summary>
         public static string AggregateBanUserNames {
             get {
@@ -88,7 +88,7 @@ namespace DigitalRuby.IPBanCore {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Common failed login user name will cause a ban of remote attacker ips if remote ips or attacked machines count for user name reaches a threshold of 5.
+        ///   Looks up a localized string similar to Threshold,hours to examine common user names and ban attackers that exceed threshold within hours timespan. Set to empty to disable this feature..
         /// </summary>
         public static string AggregateBanUserNamesTooltip {
             get {
