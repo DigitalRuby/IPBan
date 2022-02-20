@@ -79,6 +79,24 @@ namespace DigitalRuby.IPBanCore {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Aggregate and ban common user name ips.
+        /// </summary>
+        public static string AggregateBanUserNames {
+            get {
+                return ResourceManager.GetString("AggregateBanUserNames", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Common user names that fail from a common attacker ip to multiple machines will ban that ip.
+        /// </summary>
+        public static string AggregateBanUserNamesTooltip {
+            get {
+                return ResourceManager.GetString("AggregateBanUserNamesTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Allowed.
         /// </summary>
         public static string Allowed {

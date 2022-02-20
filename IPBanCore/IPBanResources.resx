@@ -878,4 +878,10 @@
   <data name="CountryBlockHelpLabel" xml:space="preserve">
     <value>Start typing and pick countries from the dropdown that appears</value>
   </data>
+  <data name="AggregateBanUserNames" xml:space="preserve">
+    <value>Aggregate and ban common user name ips</value>
+  </data>
+  <data name="AggregateBanUserNamesTooltip" xml:space="preserve">
+    <value>Common user names that fail from a common attacker ip to multiple machines will ban that ip</value>
+  </data>
 </root>
