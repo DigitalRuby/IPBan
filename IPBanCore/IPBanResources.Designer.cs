@@ -88,7 +88,7 @@ namespace DigitalRuby.IPBanCore {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Common user names that fail from a common attacker ip to multiple machines will ban that ip.
+        ///   Looks up a localized string similar to Common failed login user name will cause a ban of remote attacker ips if remote ips or attacked machines count for user name reaches a threshold of 5.
         /// </summary>
         public static string AggregateBanUserNamesTooltip {
             get {
