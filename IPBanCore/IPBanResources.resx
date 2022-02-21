@@ -879,7 +879,7 @@
     <value>Start typing and pick countries from the dropdown that appears</value>
   </data>
   <data name="AggregateBanUserNames" xml:space="preserve">
-    <value>Common failed user name ban</value>
+    <value>Common Failed User Name Ban</value>
   </data>
   <data name="AggregateBanUserNamesTooltip" xml:space="preserve">
     <value>Threshold,hours to examine common user names and ban attackers that exceed threshold within hours timespan. Set to empty to disable this feature.</value>

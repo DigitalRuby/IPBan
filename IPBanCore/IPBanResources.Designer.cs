@@ -79,7 +79,7 @@ namespace DigitalRuby.IPBanCore {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Common failed user name ban.
+        ///   Looks up a localized string similar to Common Failed User Name Ban.
         /// </summary>
         public static string AggregateBanUserNames {
             get {
