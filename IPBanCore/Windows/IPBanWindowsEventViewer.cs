@@ -270,7 +270,7 @@ namespace DigitalRuby.IPBanCore
 
             IPAddressEventType type = (successfulLogin ? IPAddressEventType.SuccessfulLogin : IPAddressEventType.FailedLogin);
             return new IPAddressLogEvent(ipAddress, userName, source, count, type,
-                timestamp is null ? default : timestamp.Value, false, failedLoginThreshold, logLevel);
+                timestamp is null ? default : timestamp.Value, false, string.Empty, failedLoginThreshold, logLevel);
         }
 
         private static XmlDocument ParseXml(string xml)

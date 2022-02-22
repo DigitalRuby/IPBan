@@ -385,7 +385,7 @@ namespace DigitalRuby.IPBanCore
                                         await IPBanDelegate.LoginAttemptFailed(ipAddress, source, userName, MachineGuid, OSName, OSVersion, incrementCount, UtcNow);
                                     }
                                     AddBannedIPAddress(ipAddress, source, userName, bannedIpAddresses, now,
-                                        configBlacklisted, newCount, string.Empty, transaction, failedLogin.External);
+                                        configBlacklisted, newCount, failedLogin.ExtraInfo, transaction, failedLogin.External);
                                 }
                             }
                             else
@@ -521,7 +521,7 @@ namespace DigitalRuby.IPBanCore
                 firewallNeedsBlockedIPAddressesUpdate = true;
             }
 
-            Logger.Warn(startBanDate, "Banning ip address: {0}, user name: {1}, config black listed: {2}, count: {3}, extra info: {4}, duration: {5}",
+            Logger.Warn(startBanDate, "Banning ip address: {0}, user name: {1}, config blacklisted: {2}, count: {3}, extra info: {4}, duration: {5}",
                 ipAddress, userName, configBlacklisted, counter, extraInfo, banTime);
 
             // if this is a delegate callback (counter of 0), exit out - we don't want to run handlers or processes for shared banned ip addresses
@@ -1176,7 +1176,7 @@ namespace DigitalRuby.IPBanCore
                             {
                                 // make sure the ip address is ban pending
                                 AddBannedIPAddress(evt.IPAddress, evt.Source, evt.UserName, bannedIPs,
-                                evt.Timestamp, false, evt.Count, string.Empty, transaction, evt.External);
+                                evt.Timestamp, false, evt.Count, evt.ExtraInfo, transaction, evt.External);
                             }
                             break;
 
