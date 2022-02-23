@@ -1,0 +1,26 @@
+<!--
+Example:
+2022-02-15 13:25:32,941 [7] INFO  SolarWinds.Sftp.Service.Listener - LogonFail Unknown Authentication failed for user username from IP 5.6.7.8; bad username or password.
+-->
+<LogFile>
+   <Source>SolarWinds</Source>
+   <PathAndMask>C:\ProgramData\SolarWinds\*.log</PathAndMask>
+   <FailedLoginRegex>
+   <![CDATA
+      ^(?<timestamp>[0-9\-\s\:]+),[^\-]+-\slogonfail\sunknown\sauthentication\sfailed\sfor\suser\s(?<username>[^\s]+)\sfrom\sip\s(?<ipaddress>[^\s]+)\sbad\susername\sor\spassword\.\n
+   ]]>
+   </FailedLoginRegex>
+   <FailedLoginRegexTimestampFormat />
+   <FailedLoginLogLevel>Warning</FailedLoginLogLevel>
+   <SuccessfulLoginRegex>
+   <![CDATA[[
+	  ^\s]+\s(?<timestamp>[^\-]+)-\s(?<username>[^\s]+)\s\((?<ipaddress>[^\)]+)\)\>\s230\sLogged\son
+   ]]>
+   </SuccessfulLoginRegex>
+   <SuccessfulLoginRegexTimestampFormat />
+   <SuccessfulLoginLogLevel>Warning</SuccessfulLoginLogLevel>
+   <PlatformRegex><![CDATA[Windows]]></PlatformRegex>
+   <PingInterval>10000</PingInterval>
+   <MaxFileSize>16777216</MaxFileSize>
+   <FailedLoginThreshold>0</FailedLoginThreshold>
+</LogFile>
