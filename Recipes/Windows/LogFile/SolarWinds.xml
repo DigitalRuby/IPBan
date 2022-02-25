@@ -6,14 +6,14 @@ Example:
    <Source>SolarWinds</Source>
    <PathAndMask>C:\ProgramData\SolarWinds\*.log</PathAndMask>
    <FailedLoginRegex>
-   <![CDATA[[
+   <![CDATA[
       ^(?<timestamp>[0-9\-\s\:]+),[^\-]+-\slogonfail\sunknown\sauthentication\sfailed\sfor\suser\s(?<username>[^\s]+)\sfrom\sip\s(?<ipaddress>[^\s]+)\sbad\susername\sor\spassword\.\n
    ]]>
    </FailedLoginRegex>
    <FailedLoginRegexTimestampFormat />
    <FailedLoginLogLevel>Warning</FailedLoginLogLevel>
    <SuccessfulLoginRegex>
-   <![CDATA[[
+   <![CDATA[
       ^(?<timestamp>[0-9\-\s\:]+),[^\-]+-\s(?<ipaddress>[^\s]+)\s(?<username>[^\s]+)[\s0-9]+[\sA-Z]+subsystem[A-Z\s]+allow\n
    ]]>
    </SuccessfulLoginRegex>
