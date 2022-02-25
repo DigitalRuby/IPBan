@@ -14,7 +14,7 @@ Example:
    <FailedLoginLogLevel>Warning</FailedLoginLogLevel>
    <SuccessfulLoginRegex>
    <![CDATA[[
-	  ^\s]+\s(?<timestamp>[^\-]+)-\s(?<username>[^\s]+)\s\((?<ipaddress>[^\)]+)\)\>\s230\sLogged\son
+	  ^(?<timestamp>[0-9\-\s\:]+),[^\-]+-\s(?<ipaddress>[^\s]+)\s(?<username>[^\s]+)[\s0-9]+[\sA-Z]+subsystem[A-Z\s]+allow\n
    ]]>
    </SuccessfulLoginRegex>
    <SuccessfulLoginRegexTimestampFormat />
