@@ -36,12 +36,13 @@ namespace DigitalRuby.IPBanTests
     [TestFixture]
     public class IPBanFirewallTests
     {
+        internal static readonly Type[] firewallTypes = new[] { typeof(IPBanWindowsFirewall), typeof(IPBanLinuxFirewall) };
         private IIPBanFirewall firewall;
 
         [SetUp]
         public void TestStart()
         {
-            firewall = IPBanFirewallUtility.CreateFirewall();
+            firewall = IPBanFirewallUtility.CreateFirewall(firewallTypes);
             Assert.AreNotEqual(typeof(IPBanMemoryFirewall), firewall.GetType());
 
             // clear all blocks

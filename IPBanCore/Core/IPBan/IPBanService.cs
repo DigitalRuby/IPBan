@@ -65,16 +65,7 @@ namespace DigitalRuby.IPBanCore
         /// <returns>IPBanService (if not found an exception is thrown)</returns>
         public static T CreateService<T>() where T : IPBanService
         {
-            Type typeOfT = typeof(T);
-
-            // if any derived class of IPBanService, use that
-            IReadOnlyCollection<Type> allTypes = ExtensionMethods.GetAllTypes();
-            var q =
-                from type in allTypes
-                where typeOfT.IsAssignableFrom(type)
-                select type;
-            Type instanceType = (q.FirstOrDefault() ?? typeof(IPBanService));
-            return Activator.CreateInstance(instanceType, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance, null, null, null) as T;
+            return Activator.CreateInstance(typeof(T), BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance, null, null, null) as T;
         }
 
         /// <summary>

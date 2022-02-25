@@ -224,6 +224,11 @@ namespace DigitalRuby.IPBanCore
         public bool UseWindowsEventViewer { get; set; } = true;
 
         /// <summary>
+        /// Firewall types
+        /// </summary>
+        public HashSet<Type> FirewallTypes { get; } = new() { typeof(IPBanWindowsFirewall), typeof(IPBanLinuxFirewall) };
+
+        /// <summary>
         /// Cancel token
         /// </summary>
         public CancellationToken CancelToken { get; private set; }

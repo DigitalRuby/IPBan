@@ -34,11 +34,13 @@ namespace DigitalRuby.IPBanCore
         /// <summary>
         /// Create a firewall
         /// </summary>
+        /// <param name="allTypes">All firewall types</param>
         /// <param name="config">Config</param>
         /// <param name="previousFirewall">Previous firewall, null if none</param>
         /// <returns>Newly created firewall</returns>
         /// <exception cref="ArgumentException">Bad config</exception>
-        IIPBanFirewall CreateFirewall(IPBanConfig config, IIPBanFirewall previousFirewall);
+        IIPBanFirewall CreateFirewall(System.Collections.Generic.IReadOnlyCollection<Type> allTypes,
+            IPBanConfig config, IIPBanFirewall previousFirewall);
     }
 
     /// <summary>
@@ -47,9 +49,11 @@ namespace DigitalRuby.IPBanCore
     public class DefaultFirewallCreator : IFirewallCreator
     {
         /// <inheritdoc />
-        public IIPBanFirewall CreateFirewall(IPBanConfig config, IIPBanFirewall previousFirewall)
+        public IIPBanFirewall CreateFirewall(System.Collections.Generic.IReadOnlyCollection<Type> allTypes,
+            IPBanConfig config,
+            IIPBanFirewall previousFirewall)
         {
-            return IPBanFirewallUtility.CreateFirewall(config.FirewallRulePrefix, previousFirewall);
+            return IPBanFirewallUtility.CreateFirewall(allTypes, config.FirewallRulePrefix, previousFirewall);
         }
     }
 }

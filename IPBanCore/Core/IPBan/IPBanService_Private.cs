@@ -654,7 +654,7 @@ namespace DigitalRuby.IPBanCore
         private void LoadFirewall(IPBanConfig oldConfig)
         {
             IIPBanFirewall existing = Firewall;
-            Firewall = FirewallCreator.CreateFirewall(Config, Firewall);
+            Firewall = FirewallCreator.CreateFirewall(FirewallTypes, Config, Firewall);
             if (existing != Firewall)
             {
                 AddUpdater(Firewall);

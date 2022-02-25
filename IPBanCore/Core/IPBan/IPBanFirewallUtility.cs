@@ -49,16 +49,19 @@ namespace DigitalRuby.IPBanCore
         /// <summary>
         /// Create a firewall
         /// </summary>
+        /// <param name="allTypes">Firewall types</param>
         /// <param name="rulePrefix">Rule prefix or null for default</param>
+        /// <param name="previousFirewall">Current firewall</param>
         /// <returns>Firewall</returns>
-        public static IIPBanFirewall CreateFirewall(string rulePrefix = null, IIPBanFirewall existing = null)
+        public static IIPBanFirewall CreateFirewall(IReadOnlyCollection<Type> allTypes,
+            string rulePrefix = null,
+            IIPBanFirewall previousFirewall = null)
         {
             try
             {
                 int priority = int.MinValue;
                 Type firewallType = typeof(IIPBanFirewall);
                 Type fallbackType = null;
-                IReadOnlyCollection<Type> allTypes = ExtensionMethods.GetAllTypes();
 
                 var q =
                     from fwType in allTypes
@@ -100,7 +103,7 @@ namespace DigitalRuby.IPBanCore
                     throw new ArgumentException("Firewall is null, at least one type should implement IIPBanFirewall");
                 }
                 RequiredOperatingSystemAttribute fallbackAttr = fallbackType?.GetCustomAttribute<RequiredOperatingSystemAttribute>();
-                Type existingType = existing?.GetType();
+                Type existingType = previousFirewall?.GetType();
                 if (existingType != null && // if we have an existing firewall and
                 (
                     firewallType.Equals(existingType)) || // if the existing firewall is the desired type or
@@ -116,7 +119,7 @@ namespace DigitalRuby.IPBanCore
                     )
                 )
                 {
-                    return existing;
+                    return previousFirewall;
                 }
                 try
                 {

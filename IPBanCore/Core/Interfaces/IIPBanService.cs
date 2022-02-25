@@ -207,6 +207,11 @@ namespace DigitalRuby.IPBanCore
         /// Authorization
         /// </summary>
         SecureString Authorization { get; }
+
+        /// <summary>
+        /// Firewall types
+        /// </summary>
+        HashSet<Type> FirewallTypes { get; }
     }
 
     /// <summary>
