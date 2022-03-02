@@ -775,6 +775,55 @@ namespace DigitalRuby.IPBanCore
         }
 
         /// <summary>
+        /// Attempt to get string
+        /// </summary>
+        /// <param name="elem">Element</param>
+        /// <param name="name">Property name</param>
+        /// <returns>String or null if not found</returns>
+        public static string GetString(this System.Text.Json.JsonElement elem, string name)
+        {
+            if (elem.TryGetProperty(name, out var elem2))
+            {
+                return elem2.ToString();
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Get datetime 
+        /// </summary>
+        /// <param name="elem">Element</param>
+        /// <param name="name">Property name</param>
+        /// <param name="defaultValue">Default value</param>
+        /// <returns>DateTime or defaultValue if not found</returns>
+        public static DateTime GetDateTime(this System.Text.Json.JsonElement elem, string name, DateTime defaultValue = default)
+        {
+            if (!elem.TryGetProperty(name, out var elem2) ||
+                !elem2.TryGetDateTime(out DateTime timeStamp))
+            {
+                timeStamp = defaultValue;
+            }
+            return timeStamp;
+        }
+
+        /// <summary>
+        /// Get bool
+        /// </summary>
+        /// <param name="elem">Element</param>
+        /// <param name="name">Property name</param>
+        /// <param name="defaultValue">Default value if not found</param>
+        /// <returns>Bool value or defaultValue if not found</returns>
+        public static bool GetBool(this System.Text.Json.JsonElement elem, string name, bool defaultValue = false)
+        {
+            string boolString = elem.GetString(name);
+            if (!bool.TryParse(boolString, out bool value))
+            {
+                value = defaultValue;
+            }
+            return value;
+        }
+
+        /// <summary>
         /// Clamp a timespan, if out of bounds it will be clamped. If timespan is less than 1 second, it will be set to timeMax.
         /// </summary>
         /// <param name="value">Value to clamp</param>
