@@ -100,12 +100,12 @@ namespace DigitalRuby.IPBanTests
                 @"",
                 "Windows", "MailEnable",
 
-                "C:/Program Files/Tomcat/logs/**/*access_log*.txt",
+                "C:/Program Files/Tomcat/logs/**/*access_log*.txt\n/var/log/httpd/access_log",
                 @"^(?<ipaddress>[^\s]+)\s.*?\[(?<timestamp>.*?)\].*?(?:(?:\s40[034]\s(-|[0-9]+))|((php|md5sum|cgi-bin|joomla).*?\s404\s[0-9]+|\s400\s-))[^\n]*",
                 @"dd/MMM/yyyy:HH:mm:ss zzzz",
                 @"",
                 @"",
-                "Windows", "Apache",
+                "Windows|Linux", "Apache",
 
                 "C:/IPBanCustomLogs/**/*.log",
                 @"(?<timestamp>\d\d\d\d-\d\d-\d\d\s\d\d:\d\d:\d\d(?:\.\d+)?Z?)?(?:,\s)?ipban\sfailed\slogin,\sip\saddress:\s(?<ipaddress>[^,\n]+),\ssource:\s(?<source>[^,\n]+)?,\suser:\s(?<username>[^\s,]+)?",
