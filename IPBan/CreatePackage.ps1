@@ -12,9 +12,10 @@ mkdir ./package
 # Convenience function to exit out if last command fail
 function CheckFail
 {
-	if (-Not ($?))
+	#if (-Not ($?))
+	if ($LASTEXITCODE -ne 0)
 	{
-		echo "Fatal error"
+		echo "Fatal error: $LASTEXITCODE"
 		exit -1
 	}
 }
@@ -36,20 +37,20 @@ function CodeSign($folder, $checkFail)
 & taskkill /im dotnet.exe /F
 
 # IPBan Linux x64
-& "c:/program files/dotnet/dotnet.exe" restore -r linux-x64; CheckFail
-& "c:/program files/dotnet/dotnet.exe" clean -c Release; CheckFail
-& "c:/program files/dotnet/dotnet.exe" publish IPBan.csproj --self-contained -f $netFrameworkVersion -o package/linux-x64 -c Release -r linux-x64 /p:DebuggerSupport=false /p:CopyOutputSymbolsToPublishDirectory=false /p:Version=$versionDots /p:AssemblyVersion=$versionDots /p:FileVersion=$versionDots /p:PublishTrimmed=$publishTrimmed /p:PublishSingleFile=true /p:IncludeNativeLibrariesForSelfExtract=true; CheckFail
+& dotnet restore -r linux-x64; CheckFail
+& dotnet clean -c Release; CheckFail
+& dotnet publish IPBan.csproj --self-contained -f $netFrameworkVersion -o package/linux-x64 -c Release -r linux-x64 /p:DebuggerSupport=false /p:CopyOutputSymbolsToPublishDirectory=false /p:Version=$versionDots /p:AssemblyVersion=$versionDots /p:FileVersion=$versionDots /p:PublishTrimmed=$publishTrimmed /p:PublishSingleFile=true /p:IncludeNativeLibrariesForSelfExtract=true; CheckFail
 
 # IPBan Windows x64
-& "c:/program files/dotnet/dotnet.exe" restore -r win-x64; CheckFail
-& "c:/program files/dotnet/dotnet.exe" clean -c Release; CheckFail
-& "c:/program files/dotnet/dotnet.exe" publish IPBan.csproj --self-contained -f $netFrameworkVersion -o package/win-x64 -c Release -r win-x64 /p:DebuggerSupport=false /p:CopyOutputSymbolsToPublishDirectory=false /p:Version=$versionDots /p:AssemblyVersion=$versionDots /p:FileVersion=$versionDots /p:PublishTrimmed=$publishTrimmed /p:PublishSingleFile=true /p:IncludeNativeLibrariesForSelfExtract=true; CheckFail
+& dotnet restore -r win-x64; CheckFail
+& dotnet clean -c Release; CheckFail
+& dotnet publish IPBan.csproj --self-contained -f $netFrameworkVersion -o package/win-x64 -c Release -r win-x64 /p:DebuggerSupport=false /p:CopyOutputSymbolsToPublishDirectory=false /p:Version=$versionDots /p:AssemblyVersion=$versionDots /p:FileVersion=$versionDots /p:PublishTrimmed=$publishTrimmed /p:PublishSingleFile=true /p:IncludeNativeLibrariesForSelfExtract=true; CheckFail
 CodeSign package/win-x64 CheckFail
 
 # IPBan Windows x86
-& "c:/program files (x86)/dotnet/dotnet.exe" restore -r win-x86; CheckFail
-& "c:/program files (x86)/dotnet/dotnet.exe" clean -c Release; CheckFail
-& "c:/program files (x86)/dotnet/dotnet.exe" publish IPBan.csproj --self-contained -f $netFrameworkVersion -o package/win-x86 -c Release -r win-x86 /p:Version=$versionDots /p:AssemblyVersion=$versionDots /p:FileVersion=$versionDots /p:PublishTrimmed=$publishTrimmed /p:PublishSingleFile=true /p:IncludeNativeLibrariesForSelfExtract=true; CheckFail
+& dotnet restore -r win-x86; CheckFail
+& dotnet clean -c Release; CheckFail
+& dotnet publish IPBan.csproj --self-contained -f $netFrameworkVersion -o package/win-x86 -c Release -r win-x86 /p:Version=$versionDots /p:AssemblyVersion=$versionDots /p:FileVersion=$versionDots /p:PublishTrimmed=$publishTrimmed /p:PublishSingleFile=true /p:IncludeNativeLibrariesForSelfExtract=true; CheckFail
 CodeSign package/win-x86 CheckFail
 
 Compress-Archive -Path ./package/linux-x64/* -DestinationPath ./package/IPBan-Linux-x64_$version.zip; CheckFail
