@@ -790,6 +790,23 @@ namespace DigitalRuby.IPBanCore
         }
 
         /// <summary>
+        /// Attempt to get int32
+        /// </summary>
+        /// <param name="elem">Element</param>
+        /// <param name="name">Property name</param>
+        /// <param name="defaultValue">Default value if not found</param>
+        /// <returns></returns>
+        public static int GetInt32(this System.Text.Json.JsonElement elem, string name, int defaultValue = 0)
+        {
+            if (!elem.TryGetProperty(name, out var elem2) ||
+                !int.TryParse(elem2.ToString(), NumberStyles.None, CultureInfo.InvariantCulture, out var value))
+            {
+                value = defaultValue;
+            }
+            return value;
+        }
+
+        /// <summary>
         /// Get datetime 
         /// </summary>
         /// <param name="elem">Element</param>
