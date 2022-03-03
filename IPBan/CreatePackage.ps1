@@ -22,7 +22,7 @@ function CheckFail
 function CodeSign($folder, $checkFail)
 {
 	echo "Code signing $folder"
-	Get-ChildItem $folder/* -r -inc *.exe,*.dll | Foreach-Object -Parallel {
+	Get-ChildItem $folder/* -r -inc *.exe,*.dll | Foreach-Object {
 		$signTool = $env:IPBAN_SIGN_TOOL
 		$certFile = $env:IPBAN_SIGN_FILE
 		$certPassword = $env:IPBAN_SIGN_PASSWORD
