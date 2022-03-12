@@ -558,52 +558,55 @@ namespace DigitalRuby.IPBanCore
         /// Execute unban process in background
         /// </summary>
         /// <param name="programToRun">Program to run</param>
-        /// <param name="bannedIPAddresses">IP addresses, should be a non-shared collection</param>
-        private void ExecuteExternalProcessForIPAddresses(string programToRun, IReadOnlyCollection<IPAddressLogEvent> bannedIPAddresses)
+        /// <param name="ipAddresses">IP addresses, should be a non-shared collection</param>
+        private void ExecuteExternalProcessForIPAddresses(string programToRun, IReadOnlyCollection<IPAddressLogEvent> ipAddresses)
         {
-            if (bannedIPAddresses is null || bannedIPAddresses.Count == 0 || string.IsNullOrWhiteSpace(programToRun))
+            if (ipAddresses is null || ipAddresses.Count == 0 || string.IsNullOrWhiteSpace(programToRun))
             {
                 return;
             }
-            string[] pieces = programToRun.Split('|');
-            if (pieces.Length != 2)
+            foreach (string process in programToRun.Split('\n'))
             {
-                throw new ArgumentException("Invalid config option for process to run: " + programToRun +
-                    " -- should be two strings, | delimited with program and arguments.");
-            }
-
-            RunTask(() =>
-            {
-                string programFullPath = Path.GetFullPath(pieces[0]);
-                string programArgs = pieces[1];
-
-                foreach (var bannedIp in bannedIPAddresses)
+                string[] pieces = process.Trim().Split('|');
+                if (pieces.Length != 2)
                 {
-                    if (bannedIp is null || string.IsNullOrWhiteSpace(bannedIp.IPAddress))
-                    {
-                        continue;
-                    }
-
-                    string replacedArgs = programArgs.Replace("###IPADDRESS###", bannedIp.IPAddress)
-                        .Replace("###SOURCE###", bannedIp.Source ?? string.Empty)
-                        .Replace("###USERNAME###", bannedIp.UserName ?? string.Empty);
-
-                    try
-                    {
-                        ProcessStartInfo psi = new()
-                        {
-                            FileName = programFullPath,
-                            WorkingDirectory = Path.GetDirectoryName(programFullPath),
-                            Arguments = replacedArgs
-                        };
-                        using Process p = Process.Start(psi);
-                    }
-                    catch (Exception ex)
-                    {
-                        Logger.Error(ex, "Failed to execute process {0} {1}", programFullPath, replacedArgs);
-                    }
+                    throw new ArgumentException("Invalid config option for process to run: " + programToRun +
+                        " -- should be two strings, | delimited with program and arguments.");
                 }
-            });
+
+                RunTask(() =>
+                {
+                    string programFullPath = Path.GetFullPath(pieces[0]);
+                    string programArgs = pieces[1];
+
+                    foreach (var bannedIp in ipAddresses)
+                    {
+                        if (string.IsNullOrWhiteSpace(bannedIp?.IPAddress))
+                        {
+                            continue;
+                        }
+
+                        string replacedArgs = programArgs.Replace("###IPADDRESS###", bannedIp.IPAddress)
+                            .Replace("###SOURCE###", bannedIp.Source ?? string.Empty)
+                            .Replace("###USERNAME###", bannedIp.UserName ?? string.Empty);
+
+                        try
+                        {
+                            ProcessStartInfo psi = new()
+                            {
+                                FileName = programFullPath,
+                                WorkingDirectory = Path.GetDirectoryName(programFullPath),
+                                Arguments = replacedArgs
+                            };
+                            using Process p = Process.Start(psi);
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.Error(ex, "Failed to execute process {0} {1}", programFullPath, replacedArgs);
+                        }
+                    }
+                });
+            }
         }
 
         private void UpdateBannedIPAddressesOnStart()
