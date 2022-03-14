@@ -5,12 +5,13 @@ Prerequisities:
  - Powershell 7.x from https://aka.ms/powershell-release?tag=stable
  - AbuseIPDB account & API key (please change below)
  - Task scheduler job every 5 hours (don't hit the daily limit of your subscription):
-     - command: "pwsh.exe"
+     - command: pwsh.exe
      - args: -Command "Invoke-WebRequest -Uri 'https://api.abuseipdb.com/api/v2/blacklist?key=MYAPIKEY&plaintext&limit=10000' -OutFile C:\windows\temp\abuseipdb_blacklist.txt"
  - Create report_abuse_db.ps1 in path with contents:
    $date = (Get-Date)
    $ipaddress=$args[0]
    Invoke-WebRequest -Uri "https://api.abuseipdb.com/api/v2/report?ip=$ipaddress&comment=Brute Force on $date&categories=18" -Method 'POST' -Headers @{'Accept'='application/json';'Key'='MYAPIKEY'}
+ - Restart the service
 -->
 
 <appSettings>
@@ -19,6 +20,6 @@ Prerequisities:
    <add key="FirewallUriRules" value="AbuseIPDB,00:01:00:00,file://c:/windows/temp/abuseipdb_blacklist.txt"/>
   
    <!-- report banned IPs back to AbuseIPDB -->
-   <add key="ProcessToRunOnBan" value="pwsh.exe|C:\path\to\report_abuse_db.ps1 ###IPADDRESS###"/>
+   <add key="ProcessToRunOnBan" value="report_abuse_db.ps1|###IPADDRESS###"/>
   
 </appSettings>
