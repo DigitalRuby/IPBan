@@ -181,7 +181,7 @@
     <comment>Country of the world</comment>
   </data>
   <data name="CountryBlacklist" xml:space="preserve">
-    <value>Country Blacklist</value>
+    <value>Country Blocklist</value>
   </data>
   <data name="CountryBlacklistInterval" xml:space="preserve">
     <value>Country Blacklist Interval</value>
@@ -883,5 +883,11 @@
   </data>
   <data name="AggregateBanUserNamesTooltip" xml:space="preserve">
     <value>Threshold,hours to examine common user names and ban attackers that exceed threshold within hours timespan. Set to empty to disable this feature.</value>
+  </data>
+  <data name="CountryBlacklistInvert" xml:space="preserve">
+    <value>Invert Country Blocklist</value>
+  </data>
+  <data name="CountryBlacklistInvertTooltip" xml:space="preserve">
+    <value>Whether to invert country block list (checked), so the countries specified are allow only and everything else is blocked. The default is to only block countries specified (unchecked).</value>
   </data>
 </root>

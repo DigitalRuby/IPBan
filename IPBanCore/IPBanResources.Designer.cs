@@ -313,7 +313,7 @@ namespace DigitalRuby.IPBanCore {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Country Blacklist.
+        ///   Looks up a localized string similar to Country Blocklist.
         /// </summary>
         public static string CountryBlacklist {
             get {
@@ -354,6 +354,24 @@ namespace DigitalRuby.IPBanCore {
         public static string CountryBlacklistIntervalTooltip {
             get {
                 return ResourceManager.GetString("CountryBlacklistIntervalTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invert Country Blocklist.
+        /// </summary>
+        public static string CountryBlacklistInvert {
+            get {
+                return ResourceManager.GetString("CountryBlacklistInvert", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Whether to invert country block list (checked), so the countries specified are allow only and everything else is blocked. The default is to only block countries specified (unchecked)..
+        /// </summary>
+        public static string CountryBlacklistInvertTooltip {
+            get {
+                return ResourceManager.GetString("CountryBlacklistInvertTooltip", resourceCulture);
             }
         }
         
