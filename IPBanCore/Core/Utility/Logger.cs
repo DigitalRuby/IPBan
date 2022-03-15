@@ -209,7 +209,7 @@ namespace DigitalRuby.IPBanCore
                 {
                     throw new IOException("Unable to create nlog configuration file, nlog.config file failed to write default config.");
                 }
-                nlogInstance = factory.GetCurrentClassLogger();
+                nlogInstance = factory.GetLogger("IPBan");
                 instance = new NLogWrapper(nlogInstance);
 
                 if (UnitTestDetector.Running)
