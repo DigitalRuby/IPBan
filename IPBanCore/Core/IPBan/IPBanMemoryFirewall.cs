@@ -149,32 +149,37 @@ namespace DigitalRuby.IPBanCore
 
             public bool Contains(uint ipAddress, int port)
             {
-                if (port > -1)
+                bool foundPort = port < 0 || portRanges.Count == 0;
+                if (!foundPort)
                 {
                     foreach (PortRange range in portRanges)
                     {
-                        if (port >= range.MinPort && port <= range.MaxPort)
+                        if (foundPort = (port >= range.MinPort && port <= range.MaxPort))
                         {
-                            return false;
+                            break;
                         }
                     }
                 }
-                return (ipv4.BinarySearch(new IPV4Range { Begin = ipAddress, End = ipAddress }, this) >= 0);
+                return (foundPort && ipv4.BinarySearch(new IPV4Range { Begin = ipAddress, End = ipAddress }, this) >= 0);
             }
 
             public bool Contains(UInt128 ipAddress, int port)
             {
-                if (port > -1)
+                bool foundPort = port < 0 || portRanges.Count == 0;
+                if (!foundPort)
                 {
                     foreach (PortRange range in portRanges)
                     {
                         if (port >= range.MinPort && port <= range.MaxPort)
                         {
-                            return false;
+                            if (foundPort = (port >= range.MinPort && port <= range.MaxPort))
+                            {
+                                break;
+                            }
                         }
                     }
                 }
-                return (ipv6.BinarySearch(new IPV6Range { Begin = ipAddress, End = ipAddress }, this) >= 0);
+                return (foundPort && ipv6.BinarySearch(new IPV6Range { Begin = ipAddress, End = ipAddress }, this) >= 0);
             }
 
             public IEnumerable<IPAddressRange> EnumerateIPAddressesRanges()
