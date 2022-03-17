@@ -622,8 +622,8 @@ namespace DigitalRuby.IPBanTests
 
         [Test]
         [TestCase(null, typeof(ArgumentNullException))]
-        [TestCase("", typeof(FormatException))]
-        [TestCase(" ", typeof(FormatException))]
+        [TestCase("", typeof(ArgumentNullException))]
+        [TestCase(" ", typeof(ArgumentNullException))]
         [TestCase("gvvdv", typeof(FormatException))]
         [TestCase("192.168.0.10/48", typeof(FormatException))] // out of CIDR range 
         [TestCase("192.168.0.10-192.168.0.5", typeof(ArgumentException))] // bigger to lower
