@@ -341,12 +341,12 @@ namespace DigitalRuby.IPBanCore
         {
             try
             {
-                if (throwException)
+                if (string.IsNullOrWhiteSpace(ipRangeString))
                 {
-                    ipRangeString.ThrowIfNull(nameof(ipRangeString));
-                }
-                else if (ipRangeString is null)
-                {
+                    if (throwException)
+                    {
+                        throw new ArgumentNullException(nameof(ipRangeString));
+                    }
                     return null;
                 }
 
@@ -502,7 +502,7 @@ namespace DigitalRuby.IPBanCore
         /// <param name="s">Ip address range string or null if failure to parse</param>
         public static implicit operator IPAddressRange(string s)
         {
-            return (string.IsNullOrWhiteSpace(s) ? null : IPAddressRange.Parse(s));
+            return IPAddressRange.Parse(s, false);
         }
 
         /// <summary>

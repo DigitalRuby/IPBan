@@ -641,12 +641,14 @@ namespace DigitalRuby.IPBanCore
             return IsIPAddressBlocked(ipAddress, out _, port);
         }
 
-        public bool IsIPAddressBlocked(System.Net.IPAddress ipAddressObj, out string ruleName, int port = -1)
+        public bool IsIPAddressBlocked(System.Net.IPAddress ipAddressObj, out string ruleName, out bool allowed, int port = -1)
         {
+            allowed = false;
             lock (this)
             {
                 if (IsIPAddressAllowed(ipAddressObj, out ruleName, port))
                 {
+                    allowed = true;
                     return false;
                 }
                 else if (ipAddressObj.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
@@ -701,7 +703,7 @@ namespace DigitalRuby.IPBanCore
                 ruleName = null;
                 return false;
             }
-            return IsIPAddressBlocked(ipAddressObj, out ruleName, port);
+            return IsIPAddressBlocked(ipAddressObj, out ruleName, out _, port);
         }
 
         public override void Truncate()
