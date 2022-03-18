@@ -332,6 +332,77 @@ namespace DigitalRuby.IPBanCore
         }
 
         /// <summary>
+        /// Computes difference of this ip address range with another range if range intersects this ip address range.
+        /// </summary>
+        /// <param name="range">IP address range to compute difference with</param>
+        /// <param name="left">The resulting difference (inclusive) from the left part of the difference or null if no left part remaining</param>
+        /// <param name="right">The resulting difference (inclusive) from the right part of the difference or null if no right part remaining</param>
+        /// <returns>True if left or right is not null, false otherwise</returns>
+        /// <remarks>
+        /// - If this range does not intersect the passed range, then left and right will be null<br/>
+        /// []<br/>
+        /// - If the passed range is entirely contained in this range with room on both ends, then left and right will be the remaining ranges<br/>
+        /// [LEFT-RANGE XXXXXXXXXX RIGHT-RANGE]<br/>
+        /// - If the passed range overlaps only the left part of this range, left will be null, right will be the remaining range<br/>
+        /// [XXXXXXXXXX RIGHT_RANGE]<br/>
+        /// - If the passed range overlaps only the right part of this range, right will be null, left will be the remaining range<br/>
+        /// [LEFT-RANGE XXXXXXXXXX]<br/>
+        /// </remarks>
+        /// <exception cref="InvalidOperationException">This address family not equal to range address family</exception>
+        /// <exception cref="ApplicationException">Something went wrong processing the chomp</exception>
+        public bool Chomp(IPAddressRange range, out IPAddressRange left, out IPAddressRange right)
+        {
+            range.ThrowIfNull(nameof(range));
+            if (range.Begin.AddressFamily != Begin.AddressFamily)
+            {
+                throw new InvalidOperationException($"Cannot chomp with different address families: {this} != {range}");
+            }
+
+            // check if the passed range is fully inside this range with room to spare on both ends
+            int cmpLeft = range.Begin.CompareTo(Begin);
+            int cmpRight = range.End.CompareTo(End);
+            if (cmpLeft > 0 && cmpRight < 0)
+            {
+                // full chomp, left and right will be set
+                if (!range.Begin.TryDecrement(out IPAddress end))
+                {
+                    throw new ApplicationException("Unexpected failed decrement of " + range.Begin);
+                }
+                left = new IPAddressRange(Begin, end);
+                if (!range.End.TryIncrement(out IPAddress start))
+                {
+                    throw new ApplicationException("Unexpected failed increment of " + range.End);
+                }
+                right = new IPAddressRange(start, End);
+                return true;
+            }
+            else if (cmpRight < 0 && range.End.CompareTo(Begin) >= 0)
+            {
+                // chomp with only right piece remaining
+                left = null;
+                if (!range.End.TryIncrement(out IPAddress start))
+                {
+                    throw new ApplicationException("Unexpected failed increment of " + range.End);
+                }
+                right = new IPAddressRange(start, End);
+                return true;
+            }
+            else if (cmpLeft > 0 && range.Begin.CompareTo(End) <= 0)
+            {
+                // chomp with only left piece remaining
+                if (!range.Begin.TryDecrement(out IPAddress end))
+                {
+                    throw new ApplicationException("Unexpected failed decrement of " + range.Begin);
+                }
+                left = new IPAddressRange(Begin, end);
+                right = null;
+                return true;
+            }
+            left = right = null;
+            return false;
+        }
+
+        /// <summary>
         /// Parse ip address
         /// </summary>
         /// <param name="ipRangeString">IP range string</param>

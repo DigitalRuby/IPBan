@@ -810,6 +810,44 @@ namespace DigitalRuby.IPBanTests
             Assert.IsNull(range);
         }
 
+        [TestCase("10.10.10.10-10.10.10.20", "9.9.9.9-10.10.10.9", false, null, null)]
+        [TestCase("9.9.9.9-10.10.10.9", "10.10.10.10-10.10.10.20", false, null, null)]
+        [TestCase("10.10.10.10-10.10.10.20", "9.9.9.9-11.11.11.11", false, null, null)]
+        [TestCase("10.10.10.10-10.10.10.20", "10.10.10.10-10.10.10.20", false, null, null)]
+        [TestCase("10.10.10.10-10.10.10.20", "10.10.10.15-10.10.10.20", true, "10.10.10.10-10.10.10.14", null)]
+        [TestCase("10.10.10.10-10.10.10.20", "10.10.10.10-10.10.10.15", true, null, "10.10.10.16-10.10.10.20")]
+        [TestCase("10.10.10.10-10.10.10.20", "10.10.10.15-10.10.10.25", true, "10.10.10.10-10.10.10.14", null)]
+        [TestCase("10.10.10.10-10.10.10.20", "10.10.10.5-10.10.10.15", true, null, "10.10.10.16-10.10.10.20")]
+        [TestCase("10.10.10.10-10.10.10.20", "10.10.10.11-10.10.10.19", true, "10.10.10.10", "10.10.10.20")]
+        [TestCase("10.10.10.10-10.10.10.20", "::1", false, null, null, typeof(InvalidOperationException))]
+        [TestCase("::1", "10.10.10.10-10.10.10.20", false, null, null, typeof(InvalidOperationException))]
+        [TestCase("10.10.10.10-10.10.10.20", null, false, null, null, typeof(ArgumentNullException))]
+
+        public void TestChomp(string baseRange, string range, bool expectedResult, string expectedLeft, string expectedRight,
+            Type expectedException = null)
+        {
+            bool result;
+            IPAddressRange leftObj, rightObj;
+            try
+            {
+                IPAddressRange baseRangeObj = IPAddressRange.Parse(baseRange);
+                IPAddressRange rangeObj = IPAddressRange.Parse(range);
+                result = baseRangeObj.Chomp(rangeObj, out leftObj, out rightObj);
+            }
+            catch (Exception ex)
+            {
+                Assert.AreEqual(ex.GetType(), expectedException);
+                return;
+            }
+            if (expectedException is not null)
+            {
+                Assert.Fail("Failed to throw expected exception type {0}", expectedException.Name);
+            }
+            Assert.AreEqual(expectedResult, result);
+            Assert.AreEqual(expectedLeft, leftObj?.ToString());
+            Assert.AreEqual(expectedRight, rightObj?.ToString());
+        }
+
         private static void TestFilterIPAddressRangesHelper(IPAddressRange[] expected, string message, IPAddressRange[] filter, params IPAddressRange[] ranges)
         {
             int index = 0;
