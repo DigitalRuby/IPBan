@@ -822,6 +822,7 @@ namespace DigitalRuby.IPBanTests
         [TestCase("10.10.10.10-10.10.10.20", "::1", false, null, null, typeof(InvalidOperationException))]
         [TestCase("::1", "10.10.10.10-10.10.10.20", false, null, null, typeof(InvalidOperationException))]
         [TestCase("10.10.10.10-10.10.10.20", null, false, null, null, typeof(ArgumentNullException))]
+        [TestCase("125.0.0.1-128.0.0.0", "127.0.0.0-127.255.255.255", true, "125.0.0.1-126.255.255.255", "128.0.0.0")]
 
         public void TestChomp(string baseRange, string range, bool expectedResult, string expectedLeft, string expectedRight,
             Type expectedException = null)
