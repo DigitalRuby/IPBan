@@ -337,16 +337,18 @@ namespace DigitalRuby.IPBanCore
         /// <param name="range">IP address range to compute difference with</param>
         /// <param name="left">The resulting difference (inclusive) from the left part of the difference or null if no left part remaining</param>
         /// <param name="right">The resulting difference (inclusive) from the right part of the difference or null if no right part remaining</param>
-        /// <returns>True if left or right is not null, false otherwise</returns>
+        /// <returns>True if a chomp was performed, false otherwise</returns>
         /// <remarks>
-        /// - If this range does not intersect the passed range, then left and right will be null<br/>
+        /// - If this range does not intersect the passed range, then left and right will be null, false is returned<br/>
         /// []<br/>
-        /// - If the passed range is entirely contained in this range with room on both ends, then left and right will be the remaining ranges<br/>
+        /// - If the passed range is entirely contained in this range with room on both ends, then left and right will be the remaining ranges, true is returned<br/>
         /// [LEFT-RANGE XXXXXXXXXX RIGHT-RANGE]<br/>
-        /// - If the passed range overlaps only the left part of this range, left will be null, right will be the remaining range<br/>
+        /// - If the passed range overlaps only the left part of this range, left will be null, right will be the remaining range, true is returned<br/>
         /// [XXXXXXXXXX RIGHT_RANGE]<br/>
-        /// - If the passed range overlaps only the right part of this range, right will be null, left will be the remaining range<br/>
+        /// - If the passed range overlaps only the right part of this range, right will be null, left will be the remaining range, true is returned<br/>
         /// [LEFT-RANGE XXXXXXXXXX]<br/>
+        /// - If the passed range exactly equals this range, left and right will be null, true is returned
+        /// [XXXXXXXXXX]
         /// </remarks>
         /// <exception cref="InvalidOperationException">This address family not equal to range address family</exception>
         /// <exception cref="ApplicationException">Something went wrong processing the chomp</exception>
@@ -374,6 +376,11 @@ namespace DigitalRuby.IPBanCore
                     throw new ApplicationException("Unexpected failed increment of " + range.End);
                 }
                 right = new IPAddressRange(start, End);
+                return true;
+            }
+            else if (cmpLeft == 0 && cmpRight == 0)
+            {
+                left = right = null;
                 return true;
             }
             else if (cmpRight < 0 && range.End.CompareTo(Begin) >= 0)
