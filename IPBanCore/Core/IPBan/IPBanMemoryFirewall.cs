@@ -90,7 +90,7 @@ namespace DigitalRuby.IPBanCore
 
             private readonly List<IPV4Range> ipv4 = new();
             private readonly List<IPV6Range> ipv6 = new();
-            private readonly List<PortRange> portRanges;
+            private readonly PortRange[] portRanges;
 
             public IEnumerable<string> IPV4 => ipv4.Select(r => r.ToIPAddressRange().ToString());
             public IEnumerable<string> IPV6 => ipv6.Select(r => r.ToIPAddressRange().ToString());
@@ -112,17 +112,11 @@ namespace DigitalRuby.IPBanCore
                     // optimized storage, no pointers or other overhead
                     if (range.Begin.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
                     {
-                        uint begin = range.Begin.ToUInt32();
-                        uint end = range.End.ToUInt32();
-                        Debug.Assert(end >= begin);
-                        ipv4.Add(new IPV4Range { Begin = begin, End = end });
+                        ipv4.Add(new IPV4Range(range));
                     }
                     else
                     {
-                        UInt128 begin = range.Begin.ToUInt128();
-                        UInt128 end = range.End.ToUInt128();
-                        Debug.Assert(end.CompareTo(begin) >= 0);
-                        ipv6.Add(new IPV6Range { Begin = begin, End = end });
+                        ipv6.Add(new IPV6Range(range));
                     }
                 }
                 ipv4.TrimExcess();
@@ -130,11 +124,11 @@ namespace DigitalRuby.IPBanCore
                 if (block)
                 {
                     string portString = IPBanFirewallUtility.GetBlockPortRangeString(allowedPorts);
-                    this.portRanges = (string.IsNullOrWhiteSpace(portString) ? new List<PortRange>(0) : portString.Split(',').Select(s => PortRange.Parse(s)).ToList());
+                    this.portRanges = (string.IsNullOrWhiteSpace(portString) ? Array.Empty<PortRange>() : portString.Split(',').Select(s => PortRange.Parse(s)).ToArray());
                 }
                 else
                 {
-                    this.portRanges = allowedPorts;
+                    this.portRanges = allowedPorts.ToArray();
                 }
             }
 
@@ -149,7 +143,7 @@ namespace DigitalRuby.IPBanCore
 
             public bool Contains(uint ipAddress, int port)
             {
-                bool foundPort = port < 0 || portRanges.Count == 0;
+                bool foundPort = port < 0 || portRanges.Length == 0;
                 if (!foundPort)
                 {
                     foreach (PortRange range in portRanges)
@@ -160,12 +154,12 @@ namespace DigitalRuby.IPBanCore
                         }
                     }
                 }
-                return (foundPort && ipv4.BinarySearch(new IPV4Range { Begin = ipAddress, End = ipAddress }, this) >= 0);
+                return (foundPort && ipv4.BinarySearch(new IPV4Range(ipAddress, ipAddress), this) >= 0);
             }
 
             public bool Contains(UInt128 ipAddress, int port)
             {
-                bool foundPort = port < 0 || portRanges.Count == 0;
+                bool foundPort = port < 0 || portRanges.Length == 0;
                 if (!foundPort)
                 {
                     foreach (PortRange range in portRanges)
@@ -179,7 +173,7 @@ namespace DigitalRuby.IPBanCore
                         }
                     }
                 }
-                return (foundPort && ipv6.BinarySearch(new IPV6Range { Begin = ipAddress, End = ipAddress }, this) >= 0);
+                return (foundPort && ipv6.BinarySearch(new IPV6Range(ipAddress, ipAddress), this) >= 0);
             }
 
             public IEnumerable<IPAddressRange> EnumerateIPAddressesRanges()

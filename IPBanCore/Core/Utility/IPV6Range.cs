@@ -29,17 +29,17 @@ namespace DigitalRuby.IPBanCore
     /// <summary>
     /// Range of ipv6 addresses
     /// </summary>
-    public struct IPV6Range : IComparable<IPV6Range>
+    public readonly struct IPV6Range : IComparable<IPV6Range>
     {
         /// <summary>
         /// Begin ip address
         /// </summary>
-        public UInt128 Begin;
+        public readonly UInt128 Begin;
 
         /// <summary>
         /// End ip address
         /// </summary>
-        public UInt128 End;
+        public readonly UInt128 End;
 
         /// <summary>
         /// Get hash code
@@ -112,6 +112,17 @@ namespace DigitalRuby.IPBanCore
             }
             Begin = range.Begin.ToUInt128();
             End = range.End.ToUInt128();
+        }
+
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="begin">Begin</param>
+        /// <param name="end">End</param>
+        public IPV6Range(in UInt128 begin, in UInt128 end)
+        {
+            Begin = begin;
+            End = end;
         }
 
         /// <summary>

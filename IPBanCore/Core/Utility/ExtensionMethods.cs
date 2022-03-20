@@ -379,8 +379,8 @@ namespace DigitalRuby.IPBanCore
                 ip = ip.Clean();
                 if (ip.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
                 {
-                    byte[] bytes = ip.GetAddressBytes();
-                    if (bytes is null || bytes.Length < 4)
+                    Span<byte> bytes = stackalloc byte[4];
+                    if (!ip.TryWriteBytes(bytes, out int byteCount))
                     {
                         return true;
                     }
@@ -478,12 +478,14 @@ namespace DigitalRuby.IPBanCore
         {
             if (ip != null)
             {
-                byte[] bytes = ip.GetAddressBytes();
-                if (bytes.Length == 4)
+                Span<byte> bytes = stackalloc byte[16];
+                ip.TryWriteBytes(bytes, out int byteCount);
+
+                if (byteCount == 4)
                 {
                     return (bytes[0] == 127 && bytes[1] == 0 && (bytes[2] == 0 || bytes[2] == 1) && bytes[3] == 1);
                 }
-                else if (bytes.Length == 16)
+                else if (byteCount == 16)
                 {
                     return (bytes[0] == 0 && bytes[1] == 0 && bytes[2] == 0 && bytes[3] == 0 &&
                         bytes[4] == 0 && bytes[5] == 0 && bytes[6] == 0 && bytes[7] == 0 &&
@@ -508,35 +510,45 @@ namespace DigitalRuby.IPBanCore
                 throw new InvalidOperationException(ip?.ToString() + " is not an ipv4 address");
             }
 
-            byte[] bytes = ip.GetAddressBytes();
+            Span<byte> bytes = stackalloc byte[4];
+            ip.TryWriteBytes(bytes, out int byteCount);
             if (swap && BitConverter.IsLittleEndian)
             {
-                bytes = bytes.Reverse().ToArray();
+                // reverse big endian (network order) to little endian
+                for (int i = 0; i < byteCount / 2; i++)
+                {
+                    (bytes[byteCount - i - 1], bytes[i]) = (bytes[i], bytes[byteCount - i - 1]);
+                }
             }
-            return BitConverter.ToUInt32(bytes, 0);
+            return BitConverter.ToUInt32(bytes);
         }
 
         /// <summary>
         /// Get a UInt128 from an ipv6 address. The UInt128 will be in the byte order of the CPU.
         /// </summary>
         /// <param name="ip">IPV6 address</param>
+        /// <param name="swap">Whether to make the byte order of the cpu (true) or network host order (false)</param>
         /// <returns>UInt128</returns>
         /// <exception cref="InvalidOperationException">Not an ipv6 address</exception>
-        public static unsafe UInt128 ToUInt128(this IPAddress ip)
+        public static unsafe UInt128 ToUInt128(this IPAddress ip, bool swap = true)
         {
             if (ip is null || ip.AddressFamily != System.Net.Sockets.AddressFamily.InterNetworkV6)
             {
                 throw new InvalidOperationException(ip?.ToString() + " is not an ipv6 address");
             }
 
-            byte[] bytes = ip.GetAddressBytes();
-            if (BitConverter.IsLittleEndian)
+            Span<byte> bytes = stackalloc byte[16];
+            ip.TryWriteBytes(bytes, out int byteCount);
+            if (swap && BitConverter.IsLittleEndian)
             {
                 // reverse big endian (network order) to little endian
-                bytes = bytes.Reverse().ToArray();
+                for (int i = 0; i < byteCount / 2; i++)
+                {
+                    (bytes[byteCount - i - 1], bytes[i]) = (bytes[i], bytes[byteCount - i - 1]);
+                }
             }
-            ulong l1 = BitConverter.ToUInt64(bytes, 0);
-            ulong l2 = BitConverter.ToUInt64(bytes, 8);
+            ulong l1 = BitConverter.ToUInt64(bytes[..8]);
+            ulong l2 = BitConverter.ToUInt64(bytes[8..]);
             return new UInt128(l2, l1);
         }
 
@@ -548,7 +560,8 @@ namespace DigitalRuby.IPBanCore
         /// <exception cref="InvalidOperationException">Not an ipv6 address</exception>
         public static unsafe UInt128 ToUInt128Raw(this IPAddress ip)
         {
-            byte[] bytes = ip.GetAddressBytes();
+            Span<byte> bytes = stackalloc byte[16];
+            ip.TryWriteBytes(bytes, out int byteCount);
             fixed (byte* ptr = bytes)
             {
                 ulong* ulongPtr = (ulong*)ptr;
@@ -564,9 +577,10 @@ namespace DigitalRuby.IPBanCore
         /// <returns>True if incremented, false if ip address was at max value</returns>
         public static bool TryIncrement(this IPAddress ipAddress, out IPAddress result)
         {
-            byte[] bytes = ipAddress.GetAddressBytes();
+            Span<byte> bytes = stackalloc byte[16];
+            ipAddress.TryWriteBytes(bytes, out int byteCount);
 
-            for (int k = bytes.Length - 1; k >= 0; k--)
+            for (int k = byteCount - 1; k >= 0; k--)
             {
                 if (bytes[k] == byte.MaxValue)
                 {
@@ -576,7 +590,7 @@ namespace DigitalRuby.IPBanCore
 
                 bytes[k]++;
 
-                result = new IPAddress(bytes);
+                result = new IPAddress(bytes[..byteCount]);
                 return true;
             }
 
@@ -593,9 +607,10 @@ namespace DigitalRuby.IPBanCore
         /// <returns>True if decremented, false if ip address was at min value</returns>
         public static bool TryDecrement(this IPAddress ipAddress, out IPAddress result)
         {
-            byte[] bytes = ipAddress.GetAddressBytes();
+            Span<byte> bytes = stackalloc byte[16];
+            ipAddress.TryWriteBytes(bytes, out int byteCount);
 
-            for (int k = bytes.Length - 1; k >= 0; k--)
+            for (int k = byteCount - 1; k >= 0; k--)
             {
                 if (bytes[k] == 0)
                 {
@@ -604,7 +619,7 @@ namespace DigitalRuby.IPBanCore
                 }
 
                 bytes[k]--;
-                result = new IPAddress(bytes);
+                result = new IPAddress(bytes[..byteCount]);
                 return true;
             }
 
@@ -630,11 +645,13 @@ namespace DigitalRuby.IPBanCore
                 return ip1.AddressFamily.CompareTo(ip2.AddressFamily);
             }
 
-            byte[] bytes1 = ip1.GetAddressBytes();
-            byte[] bytes2 = ip2.GetAddressBytes();
-            for (int byteIndex = 0; byteIndex < bytes1.Length; byteIndex++)
+            Span<byte> ip1Bytes = stackalloc byte[16];
+            Span<byte> ip2Bytes = stackalloc byte[16];
+            ip1.TryWriteBytes(ip1Bytes, out int count1);
+            ip2.TryWriteBytes(ip2Bytes, out int count2);
+            for (int byteIndex = 0; byteIndex < ip1Bytes.Length; byteIndex++)
             {
-                int result = bytes1[byteIndex].CompareTo(bytes2[byteIndex]);
+                int result = ip1Bytes[byteIndex].CompareTo(ip2Bytes[byteIndex]);
                 if (result != 0)
                 {
                     return result;
@@ -1462,7 +1479,9 @@ namespace DigitalRuby.IPBanCore
                 }
                 else
                 {
-                    return new IPAddress(ipAddress.GetAddressBytes());
+                    Span<byte> bytes = stackalloc byte[16];
+                    ipAddress.TryWriteBytes(bytes, out int byteCount);
+                    return new IPAddress(bytes[..byteCount]);
                 }
             }
             return ipAddress;
