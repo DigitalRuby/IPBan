@@ -24,6 +24,7 @@
 		<GenerateSerializationAssemblies>Off</GenerateSerializationAssemblies>
 		<ApplicationIcon>../ipban_favicon.ico</ApplicationIcon>
 		<BuiltInComInteropSupport>true</BuiltInComInteropSupport>
+		<ServerGarbageCollection>false</ServerGarbageCollection>
 	</PropertyGroup>
 
 	<ItemGroup>
