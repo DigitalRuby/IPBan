@@ -850,6 +850,26 @@ namespace DigitalRuby.IPBanTests
             Assert.AreEqual(expectedRight, rightObj?.ToString());
         }
 
+        [TestCase("2.19.128.0/20", "2.19.144.0/20", "2.19.128.0-2.19.159.255")]
+        [TestCase("2.19.144.0/20", "2.19.128.0/20", "2.19.128.0-2.19.159.255")]
+        [TestCase("1.1.1.1-2.2.2.2", "3.3.3.3-4.4.4.4", null)]
+        [TestCase("3.3.3.3-4.4.4.4", "1.1.1.1-2.2.2.2", null)]
+        public void TestCombine(string baseRange, string otherRange, string expected)
+        {
+            var r1 = IPAddressRange.Parse(baseRange);
+            var r2 = IPAddressRange.Parse(otherRange);
+            r1.TryCombine(r2, out IPAddressRange combined);
+            if (combined is null)
+            {
+                Assert.IsNull(expected);
+            }
+            else
+            {
+                string actual = combined.ToString('-');
+                Assert.AreEqual(expected, actual);
+            }
+        }
+
         private static void TestFilterIPAddressRangesHelper(IPAddressRange[] expected, string message, IPAddressRange[] filter, params IPAddressRange[] ranges)
         {
             int index = 0;

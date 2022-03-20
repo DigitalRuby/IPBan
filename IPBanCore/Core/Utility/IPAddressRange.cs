@@ -410,6 +410,47 @@ namespace DigitalRuby.IPBanCore
         }
 
         /// <summary>
+        /// Attempt to combine this ip address range with another ip address range if they intersect.
+        /// </summary>
+        /// <param name="range">Other ip address range</param>
+        /// <param name="combinedRange">Received combined range</param>
+        /// <returns>True if this ip address range intersects the other range, false otherwise</returns>
+        public bool TryCombine(IPAddressRange range, out IPAddressRange combinedRange)
+        {
+            combinedRange = null;
+
+            // we start after the other range ends
+            if (!range.End.TryIncrement(out IPAddress endPlusOne))
+            {
+                endPlusOne = range.End;
+            }
+
+            int cmp1 = Begin.CompareTo(endPlusOne);
+            if (cmp1 > 0)
+            {
+                return false;
+            }
+
+            // we end before the other range starts
+            // we start after the other range ends
+            if (!range.Begin.TryDecrement(out IPAddress beginMinusOne))
+            {
+                beginMinusOne = range.Begin;
+            }
+
+            int cmp2 = End.CompareTo(beginMinusOne);
+            if (cmp2 < 0)
+            {
+                return false;
+            }
+
+            int cmp3 = Begin.CompareTo(range.Begin);
+            int cmp4 = End.CompareTo(range.End);
+            combinedRange = new IPAddressRange(cmp3 <= 0 ? Begin : range.Begin, cmp4 >= 0 ? End : range.End, true);
+            return true;
+        }
+
+        /// <summary>
         /// Parse ip address
         /// </summary>
         /// <param name="ipRangeString">IP range string</param>

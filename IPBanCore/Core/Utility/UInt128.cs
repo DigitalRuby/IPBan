@@ -97,7 +97,7 @@ namespace DigitalRuby.IPBanCore
         /// </summary>
         /// <param name="value">The 128 bit value to convert.</param>
         /// <returns>The <see cref="BigInteger"/> value converted from the 128 bit value.</returns>
-        public static implicit operator BigInteger(UInt128 value)
+        public static implicit operator BigInteger(in UInt128 value)
         {
             return value.ToBigInteger();
         }
@@ -117,7 +117,7 @@ namespace DigitalRuby.IPBanCore
         /// </summary>
         /// <param name="value">The 128 bit value to convert.</param>
         /// <returns>The 64 bit value converted from the 128 bit value.</returns>
-        public static explicit operator ulong(UInt128 value)
+        public static explicit operator ulong(in UInt128 value)
         {
             return value.LeastSignificant;
         }
@@ -377,6 +377,17 @@ namespace DigitalRuby.IPBanCore
         }
 
         /// <summary>
+        /// Returns true iff the two values represent the same value. With in operator.
+        /// </summary>
+        /// <param name="other">The value to compare to.</param>
+        /// <returns>True iff the two values represent the same value.</returns>
+        public bool EqualsIn(in UInt128 other)
+        {
+            return MostSignificant == other.MostSignificant &&
+                   LeastSignificant == other.LeastSignificant;
+        }
+
+        /// <summary>
         /// Indicates whether this instance and a specified object are equal.
         /// </summary>
         /// <returns>
@@ -385,7 +396,7 @@ namespace DigitalRuby.IPBanCore
         /// <param name="obj">Another object to compare to. </param><filterpriority>2</filterpriority>
         public override bool Equals(object obj)
         {
-            return (obj is UInt128 @int) && Equals(@int);
+            return (obj is UInt128 @int) && EqualsIn(@int);
         }
 
         /// <summary>
@@ -407,12 +418,30 @@ namespace DigitalRuby.IPBanCore
         }
 
         /// <summary>
+        /// Compares the current object with another object of the same type. With in keyword
+        /// </summary>
+        /// <returns>
+        /// A value that indicates the relative order of the objects being compared.
+        /// The return value has the following meanings:
+        /// Less than zero - This object is less than the <paramref name="other"/>.
+        /// parameter.Zero - This object is equal to <paramref name="other"/>.
+        /// Greater than zero - This object is greater than <paramref name="other"/>. 
+        /// </returns>
+        /// <param name="other">An object to compare with this object.</param>
+        public int CompareToIn(in UInt128 other)
+        {
+            if (MostSignificant != other.MostSignificant)
+                return MostSignificant.CompareTo(other.MostSignificant);
+            return LeastSignificant.CompareTo(other.LeastSignificant);
+        }
+
+        /// <summary>
         /// Returns true iff the two values represent the same value.
         /// </summary>
         /// <param name="value1">The first value to compare.</param>
         /// <param name="value2">The second value to compare.</param>
         /// <returns>True iff the two values represent the same value.</returns>
-        public static bool operator ==(UInt128 value1, UInt128 value2)
+        public static bool operator ==(in UInt128 value1, in UInt128 value2)
         {
             return value1.Equals(value2);
         }
@@ -423,7 +452,7 @@ namespace DigitalRuby.IPBanCore
         /// <param name="value1">The first value to compare.</param>
         /// <param name="value2">The second value to compare.</param>
         /// <returns>True iff the two values represent different values.</returns>
-        public static bool operator !=(UInt128 value1, UInt128 value2)
+        public static bool operator !=(in UInt128 value1, in UInt128 value2)
         {
             return !(value1 == value2);
         }
@@ -434,7 +463,7 @@ namespace DigitalRuby.IPBanCore
         /// <param name="value1">The first value to compare.</param>
         /// <param name="value2">The second value to compare.</param>
         /// <returns>True iff the first value is smaller than the second value.</returns>
-        public static bool operator <(UInt128 value1, UInt128 value2)
+        public static bool operator <(in UInt128 value1, in UInt128 value2)
         {
             return value1.CompareTo(value2) < 0;
         }
@@ -445,7 +474,7 @@ namespace DigitalRuby.IPBanCore
         /// <param name="value1">The first value to compare.</param>
         /// <param name="value2">The second value to compare.</param>
         /// <returns>True iff the first value is greater than the second value.</returns>
-        public static bool operator >(UInt128 value1, UInt128 value2)
+        public static bool operator >(in UInt128 value1, in UInt128 value2)
         {
             return value1.CompareTo(value2) > 0;
         }
@@ -456,7 +485,7 @@ namespace DigitalRuby.IPBanCore
         /// <param name="value1">The first value to compare.</param>
         /// <param name="value2">The second value to compare.</param>
         /// <returns>True iff the first value is smaller than  or equal to the second value.</returns>
-        public static bool operator <=(UInt128 value1, UInt128 value2)
+        public static bool operator <=(in UInt128 value1, in UInt128 value2)
         {
             return value1.CompareTo(value2) <= 0;
         }
@@ -467,7 +496,7 @@ namespace DigitalRuby.IPBanCore
         /// <param name="value1">The first value to compare.</param>
         /// <param name="value2">The second value to compare.</param>
         /// <returns>True iff the first value is greater than  or equal to the second value.</returns>
-        public static bool operator >=(UInt128 value1, UInt128 value2)
+        public static bool operator >=(in UInt128 value1, in UInt128 value2)
         {
             return value1.CompareTo(value2) >= 0;
         }
@@ -478,7 +507,7 @@ namespace DigitalRuby.IPBanCore
         /// <param name="value">The value to shift.</param>
         /// <param name="numberOfBits">The number of bits to shift.</param>
         /// <returns>The value after it was shifted by the given number of bits.</returns>
-        public static UInt128 operator >>(UInt128 value, int numberOfBits)
+        public static UInt128 operator >>(in UInt128 value, int numberOfBits)
         {
             return RightShift(value, numberOfBits);
         }
@@ -489,7 +518,7 @@ namespace DigitalRuby.IPBanCore
         /// <param name="value">The value to shift.</param>
         /// <param name="numberOfBits">The number of bits to shift.</param>
         /// <returns>The value after it was shifted by the given number of bits.</returns>
-        public static UInt128 operator <<(UInt128 value, int numberOfBits)
+        public static UInt128 operator <<(in UInt128 value, int numberOfBits)
         {
             return LeftShift(value, numberOfBits);
         }
@@ -500,7 +529,7 @@ namespace DigitalRuby.IPBanCore
         /// <param name="value">The value to shift.</param>
         /// <param name="numberOfBits">The number of bits to shift.</param>
         /// <returns>The value after it was shifted by the given number of bits.</returns>
-        public static UInt128 RightShift(UInt128 value, int numberOfBits)
+        public static UInt128 RightShift(in UInt128 value, int numberOfBits)
         {
             if (numberOfBits >= 128)
                 return Zero;
@@ -517,7 +546,7 @@ namespace DigitalRuby.IPBanCore
         /// <param name="value">The value to shift.</param>
         /// <param name="numberOfBits">The number of bits to shift.</param>
         /// <returns>The value after it was shifted by the given number of bits.</returns>
-        public static UInt128 LeftShift(UInt128 value, int numberOfBits)
+        public static UInt128 LeftShift(in UInt128 value, int numberOfBits)
         {
             numberOfBits %= 128;
             if (numberOfBits >= 64)
@@ -533,7 +562,7 @@ namespace DigitalRuby.IPBanCore
         /// <param name="value1">The first value to do bitwise and.</param>
         /// <param name="value2">The second value to do bitwise and.</param>
         /// <returns>The two values after they were bitwise anded.</returns>
-        public static UInt128 operator &(UInt128 value1, UInt128 value2)
+        public static UInt128 operator &(in UInt128 value1, in UInt128 value2)
         {
             return BitwiseAnd(value1, value2);
         }
@@ -544,7 +573,7 @@ namespace DigitalRuby.IPBanCore
         /// <param name="value1">The first value to do bitwise and.</param>
         /// <param name="value2">The second value to do bitwise and.</param>
         /// <returns>The two values after they were bitwise anded.</returns>
-        public static UInt128 BitwiseAnd(UInt128 value1, UInt128 value2)
+        public static UInt128 BitwiseAnd(in UInt128 value1, in UInt128 value2)
         {
             return new UInt128(value1.MostSignificant & value2.MostSignificant, value1.LeastSignificant & value2.LeastSignificant);
         }
@@ -555,7 +584,7 @@ namespace DigitalRuby.IPBanCore
         /// <param name="value1">The first value to do bitwise or.</param>
         /// <param name="value2">The second value to do bitwise or.</param>
         /// <returns>The two values after they were bitwise ored.</returns>
-        public static UInt128 operator |(UInt128 value1, UInt128 value2)
+        public static UInt128 operator |(in UInt128 value1, in UInt128 value2)
         {
             return BitwiseOr(value1, value2);
         }
@@ -566,7 +595,7 @@ namespace DigitalRuby.IPBanCore
         /// <param name="value1">The first value to do bitwise or.</param>
         /// <param name="value2">The second value to do bitwise or.</param>
         /// <returns>The two values after they were bitwise ored.</returns>
-        public static UInt128 BitwiseOr(UInt128 value1, UInt128 value2)
+        public static UInt128 BitwiseOr(in UInt128 value1, in UInt128 value2)
         {
             return new UInt128(value1.MostSignificant | value2.MostSignificant, value1.LeastSignificant | value2.LeastSignificant);
         }
@@ -577,7 +606,7 @@ namespace DigitalRuby.IPBanCore
         /// <param name="value1">The first value to sum.</param>
         /// <param name="value2">The second value to sum.</param>
         /// <returns>The sum of the given values.</returns>
-        public static UInt128 operator +(UInt128 value1, UInt128 value2)
+        public static UInt128 operator +(in UInt128 value1, in UInt128 value2)
         {
             return Add(value1, value2);
         }
@@ -588,7 +617,7 @@ namespace DigitalRuby.IPBanCore
         /// <param name="value1">The first value to sum.</param>
         /// <param name="value2">The second value to sum.</param>
         /// <returns>The sum of the given values.</returns>
-        public static UInt128 Add(UInt128 value1, UInt128 value2)
+        public static UInt128 Add(in UInt128 value1, in UInt128 value2)
         {
             ulong leastSignificant = value1.LeastSignificant + value2.LeastSignificant;
             bool overflow = (leastSignificant < Math.Max(value1.LeastSignificant, value2.LeastSignificant));
@@ -601,7 +630,7 @@ namespace DigitalRuby.IPBanCore
         /// <param name="value1">The first value to sum.</param>
         /// <param name="value2">The second value to sum.</param>
         /// <returns>The result of substracting the second value from the first value.</returns>
-        public static UInt128 operator -(UInt128 value1, UInt128 value2)
+        public static UInt128 operator -(in UInt128 value1, in UInt128 value2)
         {
             return Subtract(value1, value2);
         }
@@ -612,7 +641,7 @@ namespace DigitalRuby.IPBanCore
         /// <param name="value1">The first value to sum.</param>
         /// <param name="value2">The second value to sum.</param>
         /// <returns>The result of substracting the second value from the first value.</returns>
-        public static UInt128 Subtract(UInt128 value1, UInt128 value2)
+        public static UInt128 Subtract(in UInt128 value1, in UInt128 value2)
         {
             ulong leastSignificant = value1.LeastSignificant - value2.LeastSignificant;
             bool overflow = (leastSignificant > value1.LeastSignificant);

@@ -644,20 +644,18 @@ namespace DigitalRuby.IPBanCore
             {
                 return ip1.AddressFamily.CompareTo(ip2.AddressFamily);
             }
-
-            Span<byte> ip1Bytes = stackalloc byte[16];
-            Span<byte> ip2Bytes = stackalloc byte[16];
-            ip1.TryWriteBytes(ip1Bytes, out int count1);
-            ip2.TryWriteBytes(ip2Bytes, out int count2);
-            for (int byteIndex = 0; byteIndex < ip1Bytes.Length; byteIndex++)
+            else if (ip1.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
             {
-                int result = ip1Bytes[byteIndex].CompareTo(ip2Bytes[byteIndex]);
-                if (result != 0)
-                {
-                    return result;
-                }
+                UInt32 u1 = ip1.ToUInt32();
+                UInt32 u2 = ip2.ToUInt32();
+                return u1.CompareTo(u2);
             }
-            return 0;
+            else
+            {
+                UInt128 u1 = ip1.ToUInt128();
+                UInt128 u2 = ip2.ToUInt128();
+                return u1.CompareToIn(u2);
+            }
         }
 
         /// <summary>
