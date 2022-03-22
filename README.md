@@ -8,7 +8,7 @@ IPBan Service
 
 <a href="https://ipban.com/newsletter">Sign up for the IPBan Mailing List</a>
 
-Please visit <a href='https://ipban.com'>https://ipban.com</a> to learn about IPBan Pro with advanced functions including shared ban lists, country blocking, central config management for all your machines and much more.
+Please visit <a href='https://ipban.com'>https://ipban.com</a> to learn about IPBan Pro with advanced functions including shared ban lists, country blocking, central config management with UI for all your machines, high performance WFP and WinDivert firewall, user name aggregation banning, and much more.
 
 You can also visit the ipban discord at https://discord.gg/Mf59n8PfTH to chat with me or other IPBan users.
 
