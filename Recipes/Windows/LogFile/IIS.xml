@@ -1,0 +1,22 @@
+﻿<!-- Bad IIS requests on Windows
+Examples:
+2022-03-22 00:00:01 1.2.3.4 POST /admin/ - 443 - 5.6.7.8 Mozilla/5.0+(X11;+Ubuntu;+Linux+x86_64;+rv:62.0)+Gecko/20100101+Firefox/62.0 - 404 5 0 1445 792 15
+
+-->
+<LogFile>
+	<Source>IIS</Source>
+	<PathAndMask>C:/logs/LogFiles/**/*.log</PathAndMask>
+	<FailedLoginRegex>
+		<![CDATA[
+			^(?<timestamp>\d\d\d\d\-\d\d\-\d\d\s\d\d\:\d\d\:\d\d)\s[^\s]+\sPOST\s\/admin\/\s-\s[0-9]+\s-\s(?<ipaddress>[^\s]+).*\s-\s404\s[^\n]+\n
+		]]>
+	</FailedLoginRegex>
+	<FailedLoginRegexTimestampFormat></FailedLoginRegexTimestampFormat>
+	<SuccessfulLoginRegex></SuccessfulLoginRegex>
+	<SuccessfulLoginRegexTimestampFormat></SuccessfulLoginRegexTimestampFormat>
+	<PlatformRegex>Windows</PlatformRegex>
+	<PingInterval>10000</PingInterval>
+	<MaxFileSize>0</MaxFileSize>
+	<FailedLoginThreshold>0</FailedLoginThreshold>
+</LogFile>
+
