@@ -8,7 +8,7 @@
 # To uninstall: sudo systemctl stop ipban; sudo systemctl disable ipban; sudo rm /opt/ipban -r
 #
 
-VERSION_DOTS="1.7.0"
+VERSION_DOTS="1.7.1"
 VERSION_UNDERSCORES=${VERSION_DOTS//./_}
 FILE_NAME="IPBan-Linux-x64_$VERSION_UNDERSCORES.zip"
 
