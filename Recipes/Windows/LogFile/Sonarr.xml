@@ -1,0 +1,16 @@
+ <LogFile>
+
+        <Source>Sonarr</Source>
+        <PathAndMask>C:/ProgramData/Sonarr/logs/sonarr.txt</PathAndMask>
+        <Recursive>true</Recursive>
+        <FailedLoginRegex>
+          <![CDATA[
+              (?<timestamp>.+?)\|Warn\|Auth\|Auth-Failure\sip\s(?<ipaddress>.+?)\s.+\s(?<username>.+)
+          ]]>
+        </FailedLoginRegex>
+        <PlatformRegex>Windows</PlatformRegex>
+        <PingInterval>10000</PingInterval>
+        <MaxFileSize>16777216</MaxFileSize>
+        <FailedLoginThreshold>0</FailedLoginThreshold>
+
+    </LogFile>
