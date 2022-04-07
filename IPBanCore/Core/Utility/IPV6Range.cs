@@ -117,6 +117,15 @@ namespace DigitalRuby.IPBanCore
         /// <summary>
         /// Constructor
         /// </summary>
+        /// <param name="single">Single value for both begin and end</param>
+        public IPV6Range(in UInt128 single)
+        {
+            Begin = End = single;
+        }
+
+        /// <summary>
+        /// Constructor
+        /// </summary>
         /// <param name="begin">Begin</param>
         /// <param name="end">End</param>
         public IPV6Range(in UInt128 begin, in UInt128 end)

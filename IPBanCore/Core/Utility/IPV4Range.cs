@@ -117,6 +117,15 @@ namespace DigitalRuby.IPBanCore
         /// <summary>
         /// Constructor
         /// </summary>
+        /// <param name="single">Single value for both begin and end</param>
+        public IPV4Range(uint single)
+        {
+            Begin = End = single;
+        }
+
+        /// <summary>
+        /// Constructor
+        /// </summary>
         /// <param name="begin">Begin</param>
         /// <param name="end">End</param>
         public IPV4Range(uint begin, uint end)
