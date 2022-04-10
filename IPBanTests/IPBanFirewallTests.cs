@@ -282,5 +282,34 @@ namespace DigitalRuby.IPBanTests
             Assert.IsTrue(ExtensionMethods.TryNormalizeIPAddress("fe80::c872:be03:5c94:4af2%8", out _));
             Assert.IsFalse(ExtensionMethods.TryNormalizeIPAddress("a.1.1.1", out _));
         }
+
+        [Test]
+        public void TestBlockPacketEvent()
+        {
+            PacketBlockEvent? packetBlockEvent = null;
+            void BlockPacketCallback(in PacketBlockEvent e)
+            {
+                packetBlockEvent = e;
+            }
+
+            firewall.PacketBlocked += BlockPacketCallback;
+            try
+            {
+                (firewall as IPBanBaseFirewall).SendPacketBlockEvent(new PacketBlockEvent
+                {
+                    IPAddress = "2.2.2.2",
+                    Port = 8000,
+                    RuleName = "test"
+                });
+                Assert.IsNotNull(packetBlockEvent);
+                Assert.AreEqual("2.2.2.2", packetBlockEvent.Value.IPAddress);
+                Assert.AreEqual(8000, packetBlockEvent.Value.Port);
+                Assert.AreEqual("test", packetBlockEvent.Value.RuleName);
+            }
+            finally
+            {
+                firewall.PacketBlocked -= BlockPacketCallback;
+            }
+        }
     }
 }

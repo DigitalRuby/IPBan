@@ -30,7 +30,7 @@ using System.Threading.Tasks;
 namespace DigitalRuby.IPBanCore
 {
     /// <summary>
-    /// Base firewall class that all firewall implementations should inherit from
+    /// Base firewall class that all firewall implementations should inherit from to get common default behavior and methods
     /// </summary>
     [System.Diagnostics.CodeAnalysis.DynamicallyAccessedMembers(System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.All)]
     public abstract class IPBanBaseFirewall : IIPBanFirewall
@@ -47,8 +47,22 @@ namespace DigitalRuby.IPBanCore
         /// </summary>
         protected virtual string RuleSuffix => string.Empty;
 
+        /// <summary>
+        /// Packet block event handler
+        /// </summary>
+        public event PacketBlockEventDelegate PacketBlocked;
+
         protected virtual void OnDispose()
         {
+        }
+
+        /// <summary>
+        /// Send a packet block event
+        /// </summary>
+        /// <param name="e">Packet block event to send</param>
+        public void SendPacketBlockEvent(in PacketBlockEvent e)
+        {
+            PacketBlocked?.Invoke(e);
         }
 
         /// <summary>

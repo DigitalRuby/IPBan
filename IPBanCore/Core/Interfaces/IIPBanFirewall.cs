@@ -150,6 +150,38 @@ namespace DigitalRuby.IPBanCore
         /// The rule prefix for the firewall
         /// </summary>
         string RulePrefix { get; }
+
+        /// <summary>
+        /// Fires when a packet is blocked. Not all firewall implementations will trigger this event.
+        /// </summary>
+        event PacketBlockEventDelegate PacketBlocked;
+    }
+
+    /// <summary>
+    /// Packet block event
+    /// </summary>
+    /// <param name="e">Event</param>
+    public delegate void PacketBlockEventDelegate(in PacketBlockEvent e);
+
+    /// <summary>
+    /// Packet block event
+    /// </summary>
+    public struct PacketBlockEvent
+    {
+        /// <summary>
+        /// IP address
+        /// </summary>
+        public string IPAddress { get; init; }
+
+        /// <summary>
+        /// Port if known, otherwise 0
+        /// </summary>
+        public int Port { get; init; }
+
+        /// <summary>
+        /// Rule name if known
+        /// </summary>
+        public string RuleName { get; init; }
     }
 
     /// <summary>
