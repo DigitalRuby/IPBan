@@ -169,19 +169,24 @@ namespace DigitalRuby.IPBanCore
     public struct PacketBlockEvent
     {
         /// <summary>
-        /// IP address
+        /// Remote IP address that was blocked
         /// </summary>
-        public string IPAddress { get; init; }
+        public string RemoteIPAddress { get; init; }
 
         /// <summary>
-        /// Port if known, otherwise 0
+        /// Local port if known, otherwise 0
         /// </summary>
-        public int Port { get; init; }
+        public int LocalPort { get; init; }
 
         /// <summary>
-        /// Rule name if known
+        /// Rule name if known, otherwise null
         /// </summary>
         public string RuleName { get; init; }
+
+        /// <summary>
+        /// RFC 1700 protocol
+        /// </summary>
+        public int Protocol { get; init; }
     }
 
     /// <summary>

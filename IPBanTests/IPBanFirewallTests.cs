@@ -297,13 +297,13 @@ namespace DigitalRuby.IPBanTests
             {
                 (firewall as IPBanBaseFirewall).SendPacketBlockEvent(new PacketBlockEvent
                 {
-                    IPAddress = "2.2.2.2",
-                    Port = 8000,
+                    RemoteIPAddress = "2.2.2.2",
+                    LocalPort = 8000,
                     RuleName = "test"
                 });
                 Assert.IsNotNull(packetBlockEvent);
-                Assert.AreEqual("2.2.2.2", packetBlockEvent.Value.IPAddress);
-                Assert.AreEqual(8000, packetBlockEvent.Value.Port);
+                Assert.AreEqual("2.2.2.2", packetBlockEvent.Value.RemoteIPAddress);
+                Assert.AreEqual(8000, packetBlockEvent.Value.LocalPort);
                 Assert.AreEqual("test", packetBlockEvent.Value.RuleName);
             }
             finally
