@@ -854,6 +854,7 @@ namespace DigitalRuby.IPBanTests
         [TestCase("2.19.144.0/20", "2.19.128.0/20", "2.19.128.0-2.19.159.255")]
         [TestCase("1.1.1.1-2.2.2.2", "3.3.3.3-4.4.4.4", null)]
         [TestCase("3.3.3.3-4.4.4.4", "1.1.1.1-2.2.2.2", null)]
+        [TestCase("1.1.1.1-1.1.1.1", "1.1.1.1-1.1.1.1", "1.1.1.1")]
         public void TestCombine(string baseRange, string otherRange, string expected)
         {
             var r1 = IPAddressRange.Parse(baseRange);
