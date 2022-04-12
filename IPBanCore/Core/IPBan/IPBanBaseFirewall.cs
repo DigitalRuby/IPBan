@@ -43,11 +43,6 @@ namespace DigitalRuby.IPBanCore
         protected string BlockRuleName { get; private set; }
 
         /// <summary>
-        /// Override in derived class to add additional rule string after the prefix
-        /// </summary>
-        protected virtual string RuleSuffix => string.Empty;
-
-        /// <summary>
         /// Packet block event handler
         /// </summary>
         public event PacketBlockEventDelegate PacketBlocked;
@@ -84,7 +79,6 @@ namespace DigitalRuby.IPBanCore
             {
                 RulePrefix = rulePrefix.Trim();
             }
-            RulePrefix += RuleSuffix;
             AllowRulePrefix = RulePrefix + "Allow_";
             BlockRulePrefix = RulePrefix + "Block_";
             AllowRuleName = AllowRulePrefix + "0";

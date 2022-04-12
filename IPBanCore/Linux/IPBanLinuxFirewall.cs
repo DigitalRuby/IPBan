@@ -48,9 +48,8 @@ namespace DigitalRuby.IPBanCore
             protected override string SetSuffix => ".set6";
             protected override string TableSuffix => ".tbl6";
             protected override string IpTablesProcess => ip6TablesProcess;
-            protected override string RuleSuffix => "6_";
 
-            public IPBanLinuxFirewall6(string rulePrefix, string dropChain) : base(rulePrefix, dropChain)
+            public IPBanLinuxFirewall6(string rulePrefix, string dropChain) : base(rulePrefix + "6_", dropChain)
             {
 
             }

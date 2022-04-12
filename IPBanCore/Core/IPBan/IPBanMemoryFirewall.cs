@@ -395,7 +395,7 @@ namespace DigitalRuby.IPBanCore
         private string ScrubRuleNamePrefix(string prefix, string ruleNamePrefix)
         {
             // in memory firewall does not have a count limit per rule, so remove the trailing underscore if any
-            return (prefix + (ruleNamePrefix ?? string.Empty) + RuleSuffix).Trim('_');
+            return (prefix + (ruleNamePrefix ?? string.Empty)).Trim('_');
         }
 
         protected override void OnDispose()
