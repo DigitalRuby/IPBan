@@ -30,7 +30,8 @@ using System.Threading.Tasks;
 namespace DigitalRuby.IPBanCore
 {
     /// <summary>
-    /// Base firewall class that all firewall implementations should inherit from to get common default behavior and methods
+    /// Base firewall class that all firewall implementations should inherit from to get common default behavior and methods.
+    /// All firewall classes should have a constructor with a single string parameter for the rule prefix.
     /// </summary>
     [System.Diagnostics.CodeAnalysis.DynamicallyAccessedMembers(System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.All)]
     public abstract class IPBanBaseFirewall : IIPBanFirewall
