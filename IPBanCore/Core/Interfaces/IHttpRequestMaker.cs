@@ -129,9 +129,11 @@ namespace DigitalRuby.IPBanCore
             }
 
             var responseMsg = await client.SendAsync(msg, cancelToken);
-            responseMsg.EnsureSuccessStatusCode();
             response = await responseMsg.Content.ReadAsByteArrayAsync(cancelToken);
-
+            if (!responseMsg.IsSuccessStatusCode)
+            {
+                throw new WebException("Request to url " + uri + " failed, status: " + responseMsg.StatusCode + ", response: " + Encoding.UTF8.GetString(response));
+            }
             return response;
         }
     }

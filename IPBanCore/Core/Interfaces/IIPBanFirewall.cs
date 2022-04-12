@@ -186,7 +186,7 @@ namespace DigitalRuby.IPBanCore
         /// <summary>
         /// RFC 1700 protocol
         /// </summary>
-        public int Protocol { get; init; }
+        public System.Net.Sockets.ProtocolType Protocol { get; init; }
     }
 
     /// <summary>
