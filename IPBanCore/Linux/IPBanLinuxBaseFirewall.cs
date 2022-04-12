@@ -58,6 +58,8 @@ namespace DigitalRuby.IPBanCore
         protected virtual string TableSuffix => ".tbl";
         protected virtual string IpTablesProcess => "iptables";
 
+        protected string DropChain { get; }
+
         private void RemoveAllTablesAndSets()
         {
             if (!IsIPV4)
@@ -200,7 +202,7 @@ namespace DigitalRuby.IPBanCore
             RunProcess(IpTablesProcess, true, out IReadOnlyList<string> lines, "-L --line-numbers");
             string portString = " ";
             bool replaced = false;
-            bool block = (action == "DROP");
+            bool block = (action == DropChain);
 
             if (allowedPortsArray != null && allowedPortsArray.Length != 0)
             {
@@ -426,7 +428,7 @@ namespace DigitalRuby.IPBanCore
 
         protected virtual void OnInitialize() { }
 
-        public IPBanLinuxBaseFirewall(string rulePrefix = null) : base(rulePrefix)
+        public IPBanLinuxBaseFirewall(string rulePrefix = null, string dropChain = "DROP") : base(rulePrefix)
         {
             /*
              // restore existing sets from disk
@@ -438,6 +440,7 @@ namespace DigitalRuby.IPBanCore
              }
             */
 
+            DropChain = dropChain;
             addressFamily = (IsIPV4 ? AddressFamily.InterNetwork : AddressFamily.InterNetworkV6);
             OnInitialize();
             RestoreSetsFromDisk();
@@ -507,7 +510,7 @@ namespace DigitalRuby.IPBanCore
             try
             {
                 string ruleName = (string.IsNullOrWhiteSpace(ruleNamePrefix) ? BlockRuleName : RulePrefix + ruleNamePrefix);
-                return Task.FromResult(UpdateRule(ruleName, "DROP", ipAddresses, hashTypeSingleIP, blockRuleMaxCount, allowedPorts, cancelToken));
+                return Task.FromResult(UpdateRule(ruleName, DropChain, ipAddresses, hashTypeSingleIP, blockRuleMaxCount, allowedPorts, cancelToken));
             }
             catch (Exception ex)
             {
@@ -524,7 +527,7 @@ namespace DigitalRuby.IPBanCore
             try
             {
                 string ruleName = (string.IsNullOrWhiteSpace(ruleNamePrefix) ? BlockRuleName : RulePrefix + ruleNamePrefix);
-                return Task.FromResult(UpdateRuleDelta(ruleName, "DROP", deltas, hashTypeSingleIP, blockRuleMaxCount, false, allowedPorts, cancelToken));
+                return Task.FromResult(UpdateRuleDelta(ruleName, DropChain, deltas, hashTypeSingleIP, blockRuleMaxCount, false, allowedPorts, cancelToken));
             }
             catch (Exception ex)
             {
@@ -542,7 +545,7 @@ namespace DigitalRuby.IPBanCore
 
             try
             {
-                return Task.FromResult(UpdateRule(RulePrefix + ruleNamePrefix, "DROP", ranges.Select(r => r.ToCidrString()), hashTypeCidrMask, blockRuleRangesMaxCount, allowedPorts, cancelToken));
+                return Task.FromResult(UpdateRule(RulePrefix + ruleNamePrefix, DropChain, ranges.Select(r => r.ToCidrString()), hashTypeCidrMask, blockRuleRangesMaxCount, allowedPorts, cancelToken));
             }
             catch (Exception ex)
             {
