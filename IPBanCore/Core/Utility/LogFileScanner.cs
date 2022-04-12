@@ -274,12 +274,7 @@ namespace DigitalRuby.IPBanCore
         /// <summary>
         /// The path and mask to scan
         /// </summary>
-        public string PathAndMask { get; private set; }
-
-        /// <summary>
-        /// The regex to find the ip address and user name from the file
-        /// </summary>
-        public Regex Regex { get; private set; }
+        public string PathAndMask { get; }
 
         /// <summary>
         /// Handler to process text. As lines of log file are read, they are concatenated into a blob of text that always end in a newline.

@@ -88,7 +88,9 @@ namespace DigitalRuby.IPBanCore
         public static string Description { get; private set; }
 
         /// <summary>
-        /// Whether the OS uses the yum package manager (Linux only). If false, apt is used, if true yum is used.
+        /// Whether the OS uses the yum package manager (Linux only).
+        /// True: Uses yum package manager (non Ubuntu/Debian)
+        /// False: Uses apt (Ubuntu/Degian).
         /// </summary>
         public static bool UsesYumPackageManager { get; private set; }
 
