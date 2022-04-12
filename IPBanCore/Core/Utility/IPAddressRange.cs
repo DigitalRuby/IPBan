@@ -419,33 +419,33 @@ namespace DigitalRuby.IPBanCore
         {
             combinedRange = null;
 
-            // we start after the other range ends
+            // check if begin of this range is after the other range end
             if (!range.End.TryIncrement(out IPAddress endPlusOne))
             {
                 endPlusOne = range.End;
             }
-
             int cmp1 = Begin.CompareTo(endPlusOne);
             if (cmp1 > 0)
             {
                 return false;
             }
 
-            // we end before the other range starts
-            // we start after the other range ends
+            // check if end of this range is before the other range begin
             if (!range.Begin.TryDecrement(out IPAddress beginMinusOne))
             {
                 beginMinusOne = range.Begin;
             }
-
             int cmp2 = End.CompareTo(beginMinusOne);
             if (cmp2 < 0)
             {
                 return false;
             }
 
+            // there is an intersection
             int cmp3 = Begin.CompareTo(range.Begin);
             int cmp4 = End.CompareTo(range.End);
+
+            // pick the minimum of the two begins and the maximum of the two ends
             combinedRange = new IPAddressRange(cmp3 <= 0 ? Begin : range.Begin, cmp4 >= 0 ? End : range.End, true);
             return true;
         }
