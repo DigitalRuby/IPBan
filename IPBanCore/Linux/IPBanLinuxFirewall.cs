@@ -49,7 +49,7 @@ namespace DigitalRuby.IPBanCore
             protected override string TableSuffix => ".tbl6";
             protected override string IpTablesProcess => ip6TablesProcess;
 
-            public IPBanLinuxFirewall6(string rulePrefix, string dropChain) : base(rulePrefix + "6_", dropChain)
+            public IPBanLinuxFirewall6(string rulePrefix) : base(rulePrefix + "6_")
             {
 
             }
@@ -66,11 +66,10 @@ namespace DigitalRuby.IPBanCore
         protected override void OnInitialize()
         {
             base.OnInitialize();
-            firewall6 = new IPBanLinuxFirewall6(RulePrefix, DropChain);
+            firewall6 = new IPBanLinuxFirewall6(RulePrefix);
         }
 
-        public IPBanLinuxFirewall(string rulePrefix) : this(rulePrefix, "DROP") { }
-        public IPBanLinuxFirewall(string rulePrefix, string dropChain) : base(rulePrefix, dropChain) { }
+        public IPBanLinuxFirewall(string rulePrefix) : base(rulePrefix) { }
 
         public override async Task<bool> BlockIPAddresses(string ruleNamePrefix, IEnumerable<string> ipAddresses, IEnumerable<PortRange> allowedPorts = null, CancellationToken cancelToken = default)
         {

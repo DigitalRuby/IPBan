@@ -41,7 +41,16 @@ namespace DigitalRuby.IPBanCore
     [System.Diagnostics.CodeAnalysis.DynamicallyAccessedMembers(System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.All)]
     public abstract class IPBanLinuxBaseFirewall : IPBanBaseFirewall
     {
+        /// <summary>
+        /// Prefix put into log file for dropped packets
+        /// </summary>
+        public const string LogDropLogFilePrefix = "IPBANX_";
+
+        private const string acceptAction = "ACCEPT";
+        private const string dropAction = "DROP";
+
         private readonly AddressFamily addressFamily;
+
         private DateTime lastUpdate = IPBanService.UtcNow;
 
         protected const int hashSize = 1024;
@@ -57,8 +66,6 @@ namespace DigitalRuby.IPBanCore
         protected virtual string SetSuffix => ".set";
         protected virtual string TableSuffix => ".tbl";
         protected virtual string IpTablesProcess => "iptables";
-
-        protected string DropChain { get; }
 
         private void RemoveAllTablesAndSets()
         {
@@ -202,7 +209,7 @@ namespace DigitalRuby.IPBanCore
             RunProcess(IpTablesProcess, true, out IReadOnlyList<string> lines, "-L --line-numbers");
             string portString = " ";
             bool replaced = false;
-            bool block = (action == DropChain);
+            bool block = (action == dropAction);
 
             if (allowedPortsArray != null && allowedPortsArray.Length != 0)
             {
@@ -212,6 +219,11 @@ namespace DigitalRuby.IPBanCore
             }
 
             string ruleNameWithSpaces = " " + ruleName + " ";
+            string rootCommand = $"INPUT ##RULENUM## -m state --state NEW -m set{portString}--match-set \"{ruleName}\" src -j";
+            string logPrefix = LogDropLogFilePrefix + ruleName;
+            string logAction = $"LOG --log-prefix \"{logPrefix}\" --log-level 4";
+
+            // if we have an existing rule, replace it
             foreach (string line in lines)
             {
                 if (line.Contains(ruleNameWithSpaces, StringComparison.OrdinalIgnoreCase))
@@ -221,7 +233,15 @@ namespace DigitalRuby.IPBanCore
                     int ruleNum = int.Parse(line[..index]);
 
                     // replace the rule with the new info
-                    RunProcess(IpTablesProcess, true, $"-R INPUT {ruleNum} -m state --state NEW -m set{portString}--match-set \"{ruleName}\" src -j {action}");
+                    if (block)
+                    {
+                        // replace log
+                        RunProcess(IpTablesProcess, true, $"-R {rootCommand.Replace("##RULENUM##", ruleNum.ToStringInvariant())} {logAction}");
+                        ruleNum++;
+                    }
+
+                    // replace drop
+                    RunProcess(IpTablesProcess, true, $"-R {rootCommand.Replace("##RULENUM##", ruleNum.ToStringInvariant())} {action}");
                     replaced = true;
                     break;
                 }
@@ -230,7 +250,16 @@ namespace DigitalRuby.IPBanCore
             {
                 // add a new rule, for block add to end of list (lower priority) for allow add to begin of list (higher priority)
                 string addCommand = (block ? "-A" : "-I");
-                RunProcess(IpTablesProcess, true, $"{addCommand} INPUT -m state --state NEW -m set{portString}--match-set \"{ruleName}\" src -j {action}");
+                string newRootCommand = rootCommand.Replace("##RULENUM## ", string.Empty); // new rule, not using rule number
+
+                if (block)
+                {
+                    // new log
+                    RunProcess(IpTablesProcess, true, $"{addCommand} {newRootCommand} {logAction}");
+                }
+
+                // new drop
+                RunProcess(IpTablesProcess, true, $"{addCommand} {newRootCommand} {action}");
             }
 
             if (cancelToken.IsCancellationRequested)
@@ -428,7 +457,7 @@ namespace DigitalRuby.IPBanCore
 
         protected virtual void OnInitialize() { }
 
-        public IPBanLinuxBaseFirewall(string rulePrefix = null, string dropChain = "DROP") : base(rulePrefix)
+        public IPBanLinuxBaseFirewall(string rulePrefix = null) : base(rulePrefix)
         {
             /*
              // restore existing sets from disk
@@ -440,7 +469,6 @@ namespace DigitalRuby.IPBanCore
              }
             */
 
-            DropChain = dropChain;
             addressFamily = (IsIPV4 ? AddressFamily.InterNetwork : AddressFamily.InterNetworkV6);
             OnInitialize();
             RestoreSetsFromDisk();
@@ -510,7 +538,7 @@ namespace DigitalRuby.IPBanCore
             try
             {
                 string ruleName = (string.IsNullOrWhiteSpace(ruleNamePrefix) ? BlockRuleName : RulePrefix + ruleNamePrefix);
-                return Task.FromResult(UpdateRule(ruleName, DropChain, ipAddresses, hashTypeSingleIP, blockRuleMaxCount, allowedPorts, cancelToken));
+                return Task.FromResult(UpdateRule(ruleName, dropAction, ipAddresses, hashTypeSingleIP, blockRuleMaxCount, allowedPorts, cancelToken));
             }
             catch (Exception ex)
             {
@@ -527,7 +555,7 @@ namespace DigitalRuby.IPBanCore
             try
             {
                 string ruleName = (string.IsNullOrWhiteSpace(ruleNamePrefix) ? BlockRuleName : RulePrefix + ruleNamePrefix);
-                return Task.FromResult(UpdateRuleDelta(ruleName, DropChain, deltas, hashTypeSingleIP, blockRuleMaxCount, false, allowedPorts, cancelToken));
+                return Task.FromResult(UpdateRuleDelta(ruleName, dropAction, deltas, hashTypeSingleIP, blockRuleMaxCount, false, allowedPorts, cancelToken));
             }
             catch (Exception ex)
             {
@@ -545,7 +573,7 @@ namespace DigitalRuby.IPBanCore
 
             try
             {
-                return Task.FromResult(UpdateRule(RulePrefix + ruleNamePrefix, DropChain, ranges.Select(r => r.ToCidrString()), hashTypeCidrMask, blockRuleRangesMaxCount, allowedPorts, cancelToken));
+                return Task.FromResult(UpdateRule(RulePrefix + ruleNamePrefix, dropAction, ranges.Select(r => r.ToCidrString()), hashTypeCidrMask, blockRuleRangesMaxCount, allowedPorts, cancelToken));
             }
             catch (Exception ex)
             {
@@ -561,7 +589,7 @@ namespace DigitalRuby.IPBanCore
         {
             try
             {
-                return Task.FromResult(UpdateRule(AllowRuleName, "ACCEPT", ipAddresses, hashTypeSingleIP, allowRuleMaxCount, null, cancelToken));
+                return Task.FromResult(UpdateRule(AllowRuleName, acceptAction, ipAddresses, hashTypeSingleIP, allowRuleMaxCount, null, cancelToken));
             }
             catch (Exception ex)
             {
@@ -619,18 +647,41 @@ namespace DigitalRuby.IPBanCore
 
         public override bool IsIPAddressBlocked(string ipAddress, out string ruleName, int port = -1)
         {
+            if (System.Net.IPAddress.TryParse(ipAddress, out System.Net.IPAddress ipObj))
+            {
+                foreach (var ip in EnumerateBannedIPAddresses())
+                {
+                    if (IPAddressRange.TryParse(ip, out IPAddressRange range) && range.Contains(ipObj))
+                    {
+                        ruleName = lastBlockRuleEnumerated;
+                        return true;
+                    }
+                }
+            }
             ruleName = null;
-            return EnumerateBannedIPAddresses().ToArray().Contains(ipAddress);
+            return false;
         }
 
         public override bool IsIPAddressAllowed(string ipAddress, int port = -1)
         {
-            return EnumerateAllowedIPAddresses().ToArray().Contains(ipAddress);
+            if (System.Net.IPAddress.TryParse(ipAddress, out System.Net.IPAddress ipObj))
+            {
+                foreach (var ip in EnumerateAllowedIPAddresses())
+                {
+                    if (IPAddressRange.TryParse(ip, out IPAddressRange range) && range.Contains(ipObj))
+                    {
+                        return true;
+                    }
+                }
+            }
+            return false;
         }
 
+        private string lastBlockRuleEnumerated;
         public override IEnumerable<string> EnumerateBannedIPAddresses()
         {
             string tempFile = OSUtility.GetTempFileName();
+            lastBlockRuleEnumerated = null;
             try
             {
                 RunProcess("ipset", true, $"save > \"{tempFile}\"");
@@ -642,6 +693,14 @@ namespace DigitalRuby.IPBanCore
                     {
                         inBlockRule = (!pieces[1].Equals(AllowRuleName) &&
                             (pieces[1].StartsWith(BlockRulePrefix) || pieces[1].StartsWith(RulePrefix + "6_Block_")));
+                        if (inBlockRule)
+                        {
+                            lastBlockRuleEnumerated = pieces[1];
+                        }
+                        else
+                        {
+                            lastBlockRuleEnumerated = null;
+                        }
                     }
                     else if (inBlockRule && pieces.Length > 2 && pieces[0] == "add")
                     {
