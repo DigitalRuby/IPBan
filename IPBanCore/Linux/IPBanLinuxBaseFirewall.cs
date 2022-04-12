@@ -220,7 +220,7 @@ namespace DigitalRuby.IPBanCore
 
             string ruleNameWithSpaces = " " + ruleName + " ";
             string rootCommand = $"INPUT ##RULENUM## -m state --state NEW -m set{portString}--match-set \"{ruleName}\" src -j";
-            string logPrefix = LogDropLogFilePrefix + ruleName;
+            string logPrefix = LogDropLogFilePrefix + ruleName + ": ";
             string logAction = $"LOG --log-prefix \"{logPrefix}\" --log-level 4";
 
             // if we have an existing rule, replace it
