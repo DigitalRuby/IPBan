@@ -271,5 +271,12 @@ namespace DigitalRuby.IPBanCore
         /// <param name="timestamp">Timestamp</param>
         /// <returns>Task</returns>
         Task LoginAttemptSucceeded(string ip, string source, string userName, string machineGuid, string osName, string osVersion, int count, DateTime timestamp) => Task.CompletedTask;
+
+        /// <summary>
+        /// Handle blocked packet event
+        /// </summary>
+        /// <param name="evt">Blocked packet event</param>
+        /// <returns>Task</returns>
+        Task PacketBlocked(in PacketBlockEvent evt) => Task.CompletedTask;
     }
 }

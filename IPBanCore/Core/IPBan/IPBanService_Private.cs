@@ -657,12 +657,27 @@ namespace DigitalRuby.IPBanCore
         private void LoadFirewall(IPBanConfig oldConfig)
         {
             IIPBanFirewall existing = Firewall;
-            Firewall = FirewallCreator.CreateFirewall(FirewallTypes, Config, Firewall);
-            if (existing != Firewall)
+
+            // set the new firewall
+            var newFirewall = FirewallCreator.CreateFirewall(FirewallTypes, Config, existing);
+
+            // if we changed firewall, handle the change
+            if (existing != newFirewall)
             {
+                // cleanup the old firewall if it exists
+                if (existing is not null)
+                {
+                    OnFirewallDisposing();
+                    existing.Dispose();
+                }
+
+                Firewall = newFirewall;
                 AddUpdater(Firewall);
+                OnFirewallCreated();
                 Logger.Warn("Loaded firewall type {0}", Firewall.GetType());
-                if (existing != null)
+
+                // if there was an old firewall, remove it from updaters and transfer ips to new firewall
+                if (existing is not null)
                 {
                     RemoveUpdater(existing);
 
@@ -880,6 +895,16 @@ namespace DigitalRuby.IPBanCore
                 Logger.Error("Error in delegate Update", ex);
             }
         }
+        
+        /// <summary>
+        /// Fires when firewall is created. Firewall property.
+        /// </summary>
+        protected virtual void OnFirewallCreated() { }
+
+        /// <summary>
+        /// Fires when firewall is about to be disposed. Firewall property.
+        /// </summary>
+        protected virtual void OnFirewallDisposing() { }
 
         protected virtual Task OnUpdate() => Task.CompletedTask;
 
