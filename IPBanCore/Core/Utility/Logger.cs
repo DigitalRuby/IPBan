@@ -212,18 +212,14 @@ namespace DigitalRuby.IPBanCore
                 nlogInstance = factory.GetLogger("IPBan");
                 instance = new NLogWrapper(nlogInstance);
 
-#if DEBUG
-
                 if (UnitTestDetector.Running)
                 {
                     foreach (LoggingRule rule in LogManager.Configuration.LoggingRules)
                     {
-                        rule.EnableLoggingForLevels(NLog.LogLevel.Trace, NLog.LogLevel.Fatal);
+                        rule.EnableLoggingForLevels(NLog.LogLevel.Info, NLog.LogLevel.Fatal);
                     }
                     LogManager.ReconfigExistingLoggers();
                 }
-
-#endif
 
                 //NLog.Time.TimeSource.Current = timeSource;
             }
