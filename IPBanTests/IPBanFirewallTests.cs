@@ -295,12 +295,12 @@ namespace DigitalRuby.IPBanTests
             firewall.PacketBlocked += BlockPacketCallback;
             try
             {
-                (firewall as IPBanBaseFirewall).SendPacketBlockEvent(new PacketBlockEvent
+                (firewall as IPBanBaseFirewall).SendPacketBlockEventAsync(new PacketBlockEvent
                 {
                     RemoteIPAddress = "2.2.2.2",
                     LocalPort = 8000,
                     RuleName = "test"
-                });
+                }).Sync();
                 Assert.IsNotNull(packetBlockEvent);
                 Assert.AreEqual("2.2.2.2", packetBlockEvent.Value.RemoteIPAddress);
                 Assert.AreEqual(8000, packetBlockEvent.Value.LocalPort);

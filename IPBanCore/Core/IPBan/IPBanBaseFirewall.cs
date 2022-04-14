@@ -48,6 +48,7 @@ namespace DigitalRuby.IPBanCore
         /// </summary>
         public event PacketBlockEventDelegate PacketBlocked;
 
+        /// <inheritdoc />
         protected virtual void OnDispose()
         {
         }
@@ -56,9 +57,11 @@ namespace DigitalRuby.IPBanCore
         /// Send a packet block event
         /// </summary>
         /// <param name="e">Packet block event to send</param>
-        public void SendPacketBlockEvent(in PacketBlockEvent e)
+        /// <returns>Task</returns>
+        public Task SendPacketBlockEventAsync(in PacketBlockEvent e)
         {
             PacketBlocked?.Invoke(e);
+            return Task.CompletedTask;
         }
 
         /// <summary>

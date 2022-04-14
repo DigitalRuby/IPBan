@@ -142,6 +142,13 @@ namespace DigitalRuby.IPBanCore
         IEnumerable<IPAddressRange> EnumerateIPAddresses(string ruleNamePrefix = null);
 
         /// <summary>
+        /// Send a packet block event
+        /// </summary>
+        /// <param name="evt">Packet block event</param>
+        /// <returns>Task</returns>
+        Task SendPacketBlockEventAsync(in PacketBlockEvent evt);
+
+        /// <summary>
         /// Remove all rules that IPBan created
         /// </summary>
         void Truncate();
