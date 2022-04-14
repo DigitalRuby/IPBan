@@ -176,14 +176,24 @@ namespace DigitalRuby.IPBanCore
     public struct PacketEvent
     {
         /// <summary>
-        /// Remote IP address that was blocked
+        /// Source ip address of the packet
         /// </summary>
-        public string RemoteIPAddress { get; init; }
+        public string SourceIpAddress { get; init; }
 
         /// <summary>
-        /// Local port if known, otherwise 0
+        /// Source port of the packet or 0 if unknown/not applicable
         /// </summary>
-        public int LocalPort { get; init; }
+        public int SourcePort { get; init; }
+
+        /// <summary>
+        /// Destination ip address of the packet
+        /// </summary>
+        public string DestinationIpAddress { get; init; }
+
+        /// <summary>
+        /// Destination port of the packet or 0 if unknown/not applicable
+        /// </summary>
+        public int DestinationPort { get; init; }
 
         /// <summary>
         /// Rule name if known, otherwise null
@@ -199,6 +209,11 @@ namespace DigitalRuby.IPBanCore
         /// Whether the packet was allowed (true) or blocked (false)
         /// </summary>
         public bool Allowed { get; init; }
+
+        /// <summary>
+        /// Whether the packet is outgoing (true) or incoming (false)
+        /// </summary>
+        public bool Outbound { get; init; }
     }
 
     /// <summary>
