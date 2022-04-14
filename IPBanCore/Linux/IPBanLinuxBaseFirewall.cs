@@ -203,9 +203,8 @@ namespace DigitalRuby.IPBanCore
                 throw new OperationCanceledException(cancelToken);
             }
 
-            PortRange[] allowedPortsArray = allowedPorts?.ToArray();
-
             // create or update the rule in iptables
+            PortRange[] allowedPortsArray = allowedPorts?.ToArray();
             RunProcess(IpTablesProcess, true, out IReadOnlyList<string> lines, "-L --line-numbers");
             string portString = " ";
             bool replaced = false;
@@ -233,12 +232,10 @@ namespace DigitalRuby.IPBanCore
                     int ruleNum = int.Parse(line[..index]);
 
                     // replace the rule with the new info
-                    if (block)
-                    {
-                        // replace log
-                        RunProcess(IpTablesProcess, true, $"-R {rootCommand.Replace("##RULENUM##", ruleNum.ToStringInvariant())} {logAction}");
-                        ruleNum++;
-                    }
+
+                    // replace log
+                    RunProcess(IpTablesProcess, true, $"-R {rootCommand.Replace("##RULENUM##", ruleNum.ToStringInvariant())} {logAction}");
+                    ruleNum++;
 
                     // replace drop
                     RunProcess(IpTablesProcess, true, $"-R {rootCommand.Replace("##RULENUM##", ruleNum.ToStringInvariant())} {action}");
@@ -252,11 +249,8 @@ namespace DigitalRuby.IPBanCore
                 string addCommand = (block ? "-A" : "-I");
                 string newRootCommand = rootCommand.Replace("##RULENUM## ", string.Empty); // new rule, not using rule number
 
-                if (block)
-                {
-                    // new log
-                    RunProcess(IpTablesProcess, true, $"{addCommand} {newRootCommand} {logAction}");
-                }
+                // new log
+                RunProcess(IpTablesProcess, true, $"{addCommand} {newRootCommand} {logAction}");
 
                 // new drop
                 RunProcess(IpTablesProcess, true, $"{addCommand} {newRootCommand} {action}");

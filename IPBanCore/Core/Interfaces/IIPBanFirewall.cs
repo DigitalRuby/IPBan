@@ -142,11 +142,11 @@ namespace DigitalRuby.IPBanCore
         IEnumerable<IPAddressRange> EnumerateIPAddresses(string ruleNamePrefix = null);
 
         /// <summary>
-        /// Send a packet block event
+        /// Send a packet event
         /// </summary>
-        /// <param name="evt">Packet block event</param>
+        /// <param name="evt">Packet event</param>
         /// <returns>Task</returns>
-        Task SendPacketBlockEventAsync(in PacketBlockEvent evt);
+        Task SendPacketEvent(in PacketEvent evt);
 
         /// <summary>
         /// Remove all rules that IPBan created
@@ -159,21 +159,21 @@ namespace DigitalRuby.IPBanCore
         string RulePrefix { get; }
 
         /// <summary>
-        /// Fires when a packet is blocked. Not all firewall implementations will trigger this event.
+        /// Fires when a packet is blocked or allowed. Not all firewall implementations will trigger this event.
         /// </summary>
-        event PacketBlockEventDelegate PacketBlocked;
+        event PacketEventDelegate PacketEvent;
     }
 
     /// <summary>
-    /// Packet block event
+    /// Packet event delegate
     /// </summary>
-    /// <param name="e">Event</param>
-    public delegate void PacketBlockEventDelegate(in PacketBlockEvent e);
+    /// <param name="e">Packet event</param>
+    public delegate void PacketEventDelegate(in PacketEvent e);
 
     /// <summary>
-    /// Packet block event
+    /// Packet event
     /// </summary>
-    public struct PacketBlockEvent
+    public struct PacketEvent
     {
         /// <summary>
         /// Remote IP address that was blocked
@@ -194,6 +194,11 @@ namespace DigitalRuby.IPBanCore
         /// RFC 1700 protocol
         /// </summary>
         public System.Net.Sockets.ProtocolType Protocol { get; init; }
+
+        /// <summary>
+        /// Whether the packet was allowed (true) or blocked (false)
+        /// </summary>
+        public bool Allowed { get; init; }
     }
 
     /// <summary>

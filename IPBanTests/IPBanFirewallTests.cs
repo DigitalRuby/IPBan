@@ -284,31 +284,32 @@ namespace DigitalRuby.IPBanTests
         }
 
         [Test]
-        public void TestBlockPacketEvent()
+        public void TestPacketEvent()
         {
-            PacketBlockEvent? packetBlockEvent = null;
-            void BlockPacketCallback(in PacketBlockEvent e)
+            PacketEvent? packetEvent = null;
+            void PacketCallback(in PacketEvent e)
             {
-                packetBlockEvent = e;
+                packetEvent = e;
             }
 
-            firewall.PacketBlocked += BlockPacketCallback;
+            firewall.PacketEvent += PacketCallback;
             try
             {
-                (firewall as IPBanBaseFirewall).SendPacketBlockEventAsync(new PacketBlockEvent
+                (firewall as IPBanBaseFirewall).SendPacketEvent(new PacketEvent
                 {
                     RemoteIPAddress = "2.2.2.2",
                     LocalPort = 8000,
                     RuleName = "test"
                 }).Sync();
-                Assert.IsNotNull(packetBlockEvent);
-                Assert.AreEqual("2.2.2.2", packetBlockEvent.Value.RemoteIPAddress);
-                Assert.AreEqual(8000, packetBlockEvent.Value.LocalPort);
-                Assert.AreEqual("test", packetBlockEvent.Value.RuleName);
+                Assert.IsNotNull(packetEvent);
+                Assert.AreEqual("2.2.2.2", packetEvent.Value.RemoteIPAddress);
+                Assert.AreEqual(8000, packetEvent.Value.LocalPort);
+                Assert.AreEqual("test", packetEvent.Value.RuleName);
+                Assert.AreEqual(false, packetEvent.Value.Allowed);
             }
             finally
             {
-                firewall.PacketBlocked -= BlockPacketCallback;
+                firewall.PacketEvent -= PacketCallback;
             }
         }
     }
