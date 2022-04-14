@@ -475,11 +475,14 @@ namespace DigitalRuby.IPBanCore
         {
             try
             {
-                var value = appSettings[key];
-                if (value != null)
+                if (appSettings.ContainsKey(key))
                 {
-                    var converter = TypeDescriptor.GetConverter(typeof(T));
-                    return (T)converter.ConvertFromInvariantString(value);
+                    var value = appSettings[key];
+                    if (value != null)
+                    {
+                        var converter = TypeDescriptor.GetConverter(typeof(T));
+                        return (T)converter.ConvertFromInvariantString(value);
+                    }
                 }
             }
             catch (Exception ex)
