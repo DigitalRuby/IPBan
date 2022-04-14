@@ -67,6 +67,8 @@ namespace DigitalRuby.IPBanCore
         protected virtual string TableSuffix => ".tbl";
         protected virtual string IpTablesProcess => "iptables";
 
+        private HashSet<string> allowRules = new(StringComparer.OrdinalIgnoreCase);
+
         private void RemoveAllTablesAndSets()
         {
             if (!IsIPV4)
@@ -502,10 +504,22 @@ namespace DigitalRuby.IPBanCore
             }
         }
 
+        /// <summary>
+        /// Determine if rule is an allow rule
+        /// </summary>
+        /// <param name="ruleName">Rule name</param>
+        /// <returns>True if allow rule, false if block rule</returns>
+        public bool IsAllowRule(string ruleName)
+        {
+            return allowRules.Contains(ruleName);
+        }
+
         public override bool DeleteRule(string ruleName)
         {
             RunProcess(IpTablesProcess, true, out IReadOnlyList<string> lines, "-L --line-numbers");
             string ruleNameWithSpaces = " " + ruleName + " ";
+            allowRules.Remove(ruleName);
+
             foreach (string line in lines)
             {
                 if (line.Contains(ruleNameWithSpaces, StringComparison.OrdinalIgnoreCase))
@@ -600,7 +614,9 @@ namespace DigitalRuby.IPBanCore
             try
             {
                 ruleNamePrefix.ThrowIfNullOrEmpty();
-                return Task.FromResult(UpdateRule(AllowRulePrefix + ruleNamePrefix, "ACCEPT", ipAddresses.Select(r => r.ToCidrString()), hashTypeCidrMask, blockRuleMaxCount, allowedPorts, cancelToken));
+                string ruleName = RulePrefix + ruleNamePrefix;
+                allowRules.Add(ruleName);
+                return Task.FromResult(UpdateRule(ruleName, "ACCEPT", ipAddresses.Select(r => r.ToCidrString()), hashTypeCidrMask, blockRuleMaxCount, allowedPorts, cancelToken));
             }
             catch (Exception ex)
             {
