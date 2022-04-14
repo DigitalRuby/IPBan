@@ -600,7 +600,7 @@ namespace DigitalRuby.IPBanCore
             try
             {
                 ruleNamePrefix.ThrowIfNullOrEmpty();
-                return Task.FromResult(UpdateRule(RulePrefix + ruleNamePrefix, "ACCEPT", ipAddresses.Select(r => r.ToCidrString()), hashTypeCidrMask, blockRuleMaxCount, allowedPorts, cancelToken));
+                return Task.FromResult(UpdateRule(AllowRulePrefix + ruleNamePrefix, "ACCEPT", ipAddresses.Select(r => r.ToCidrString()), hashTypeCidrMask, blockRuleMaxCount, allowedPorts, cancelToken));
             }
             catch (Exception ex)
             {
