@@ -67,7 +67,7 @@ namespace DigitalRuby.IPBanCore
         protected virtual string TableSuffix => ".tbl";
         protected virtual string IpTablesProcess => "iptables";
 
-        private HashSet<string> allowRules = new(StringComparer.OrdinalIgnoreCase);
+        private readonly HashSet<string> allowRules = new(StringComparer.OrdinalIgnoreCase);
 
         private void RemoveAllTablesAndSets()
         {
@@ -235,9 +235,12 @@ namespace DigitalRuby.IPBanCore
 
                     // replace the rule with the new info
 
-                    // replace log
-                    RunProcess(IpTablesProcess, true, $"-R {rootCommand.Replace("##RULENUM##", ruleNum.ToStringInvariant())} {logAction}");
-                    ruleNum++;
+                    if (LogPackets)
+                    {
+                        // replace log
+                        RunProcess(IpTablesProcess, true, $"-R {rootCommand.Replace("##RULENUM##", ruleNum.ToStringInvariant())} {logAction}");
+                        ruleNum++;
+                    }
 
                     // replace drop
                     RunProcess(IpTablesProcess, true, $"-R {rootCommand.Replace("##RULENUM##", ruleNum.ToStringInvariant())} {action}");
@@ -251,8 +254,11 @@ namespace DigitalRuby.IPBanCore
                 string addCommand = (block ? "-A" : "-I");
                 string newRootCommand = rootCommand.Replace("##RULENUM## ", string.Empty); // new rule, not using rule number
 
-                // new log
-                RunProcess(IpTablesProcess, true, $"{addCommand} {newRootCommand} {logAction}");
+                if (LogPackets)
+                {
+                    // new log
+                    RunProcess(IpTablesProcess, true, $"{addCommand} {newRootCommand} {logAction}");
+                }
 
                 // new drop
                 RunProcess(IpTablesProcess, true, $"{addCommand} {newRootCommand} {action}");
@@ -754,6 +760,11 @@ namespace DigitalRuby.IPBanCore
         {
             RemoveAllTablesAndSets();
         }
+
+        /// <summary>
+        /// Whether to log packets affected by rules from this firewall
+        /// </summary>
+        public bool LogPackets { get; set; }
     }
 }
 
