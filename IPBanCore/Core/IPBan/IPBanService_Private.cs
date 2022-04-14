@@ -184,7 +184,7 @@ namespace DigitalRuby.IPBanCore
                     {
                         Logger.Debug("Config file force reloaded");
                     }
-                    Logger.Debug("New config: " + Config.Xml);
+                    Logger.Trace("New config: " + Config.Xml);
                 }
             }
             catch (Exception ex)
