@@ -890,4 +890,16 @@
   <data name="CountryBlacklistInvertTooltip" xml:space="preserve">
     <value>Whether to invert country block list (checked), so the countries specified are allow only and everything else is blocked. The default is to only block countries specified (unchecked).</value>
   </data>
+  <data name="Monitor" xml:space="preserve">
+    <value>Monitor</value>
+  </data>
+  <data name="Map" xml:space="preserve">
+    <value>Map</value>
+  </data>
+  <data name="Firewall" xml:space="preserve">
+    <value>Firewall</value>
+  </data>
+  <data name="Leaks" xml:space="preserve">
+    <value>Leaks</value>
+  </data>
 </root>

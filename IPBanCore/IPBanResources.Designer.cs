@@ -772,6 +772,15 @@ namespace DigitalRuby.IPBanCore {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Firewall.
+        /// </summary>
+        public static string Firewall {
+            get {
+                return ResourceManager.GetString("Firewall", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Firewall Rule Prefix.
         /// </summary>
         public static string FirewallRulePrefix {
@@ -1033,6 +1042,15 @@ namespace DigitalRuby.IPBanCore {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Leaks.
+        /// </summary>
+        public static string Leaks {
+            get {
+                return ResourceManager.GetString("Leaks", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Licenses.
         /// </summary>
         public static string Licenses {
@@ -1141,6 +1159,15 @@ namespace DigitalRuby.IPBanCore {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Map.
+        /// </summary>
+        public static string Map {
+            get {
+                return ResourceManager.GetString("Map", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Blacklist Max Size.
         /// </summary>
         public static string MaxActiveBlacklistedIPAddresses {
@@ -1209,6 +1236,15 @@ namespace DigitalRuby.IPBanCore {
         public static string MinimumTrustLevelTooltip {
             get {
                 return ResourceManager.GetString("MinimumTrustLevelTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Monitor.
+        /// </summary>
+        public static string Monitor {
+            get {
+                return ResourceManager.GetString("Monitor", resourceCulture);
             }
         }
         
