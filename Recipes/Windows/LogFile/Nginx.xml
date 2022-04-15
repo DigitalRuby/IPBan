@@ -1,0 +1,24 @@
+﻿<!-- Bad IIS requests on Windows
+Examples:
+2022/04/15 14:29:08 [error] 9808#9932: *122064 user "user" was not found in "C:\NGINX\conf\basicAuth\.htpasswd", client: 81.81.81.81, server: localhost:80, request: "GET / HTTP/1.1", host: "193.117.XX.XXX", referrer: "http://193.187.XX.XXX/"
+2022/04/15 14:29:08 [error] 9808#9932: *122065 user "user" was not found in "C:\NGINX\conf\basicAuth\.htpasswd", client: 82.81.81.81, server: localhost:80, request: "GET / HTTP/1.1", host: "113.117.XX.XXX", referrer: "http://193.187.XX.XXX/"
+2022/04/15 14:29:08 [error] 9808#9932: *122066 user "user" was not found in "C:\NGINX\conf\basicAuth\.htpasswd", client: 83.81.81.81, server: localhost:80, request: "GET / HTTP/1.1", host: "114.117.XX.XXX", referrer: http://193.187.XX.XXX/
+
+-->
+<LogFile>
+	<Source>Nginx</Source>
+	<PathAndMask>c:/NGINX/logs/error.log</PathAndMask>
+	<FailedLoginRegex>
+		<![CDATA[
+			^(?<timestamp>[^\[]+)\[.*\suser\s"(?<username>[^"]+)"\swas\snot\sfound.*\sclient:\s(?<ipaddress>[^\s,]+)[^\n]*$
+		]]>
+	</FailedLoginRegex>
+	<FailedLoginRegexTimestampFormat></FailedLoginRegexTimestampFormat>
+	<SuccessfulLoginRegex></SuccessfulLoginRegex>
+	<SuccessfulLoginRegexTimestampFormat></SuccessfulLoginRegexTimestampFormat>
+	<PlatformRegex>Windows</PlatformRegex>
+	<PingInterval>10000</PingInterval>
+	<MaxFileSize>0</MaxFileSize>
+	<FailedLoginThreshold>0</FailedLoginThreshold>
+</LogFile>
+
