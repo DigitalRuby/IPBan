@@ -178,41 +178,49 @@ namespace DigitalRuby.IPBanCore
         /// <summary>
         /// Source ip address of the packet
         /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("s")]
         public string SourceIpAddress { get; init; }
 
         /// <summary>
         /// Source port of the packet or 0 if unknown/not applicable
         /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("p")]
         public int SourcePort { get; init; }
 
         /// <summary>
         /// Destination ip address of the packet
         /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("d")]
         public string DestinationIpAddress { get; init; }
 
         /// <summary>
         /// Destination port of the packet or 0 if unknown/not applicable
         /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("r")]
         public int DestinationPort { get; init; }
 
         /// <summary>
         /// Rule name if known, otherwise null
         /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("n")]
         public string RuleName { get; init; }
 
         /// <summary>
         /// RFC 1700 protocol
         /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("t")]
         public System.Net.Sockets.ProtocolType Protocol { get; init; }
 
         /// <summary>
         /// Whether the packet was allowed (true) or blocked (false)
         /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("a")]
         public bool Allowed { get; init; }
 
         /// <summary>
         /// Whether the packet is outgoing (true) or incoming (false)
         /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("b")]
         public bool Outbound { get; init; }
     }
 
