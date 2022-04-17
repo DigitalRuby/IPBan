@@ -12,13 +12,13 @@ Example success login:
 	<PathAndMask>C:\Program Files (x86)\FileZilla Server\Logs</PathAndMask>
 	<FailedLoginRegex>
 		<![CDATA[
-			\sPASS\s(?<username>[^\n]+)\n[\(\)0-9]+\s(?<timestamp>[0-9\/\s:AMP]+)\s-\s\(not\slogged\sin\)\s\((?<ipaddress>[^\)]+)\)\>\s530\slogin\sor\spassword\sincorrect
+			(?<timestamp>[^\s]+)\s.*\s\[FTP\sSession\s[0-9]+\s(?<ipaddress>[^\]]+)\]\sUSER\s(?<username>[^\n]+)\n.*\sspecify\sthe\spassword[^\n]*\n.*\sPASS\s[^\n]*\n.*\sLogin\sincorrect[^\n]*
 		]]>
 	</FailedLoginRegex>
 	<FailedLoginRegexTimestampFormat></FailedLoginRegexTimestampFormat>
 	<SuccessfulLoginRegex>
 		<![CDATA[
-			[^\s]+\s(?<timestamp>[^\-]+)-\s(?<username>[^\s]+)\s\((?<ipaddress>[^\)]+)\)\>\s230\sLogged\son
+			(?<timestamp>[^\s]+)\s.*\s\[FTP\sSession\s[0-9]+\s(?<ipaddress>[^\]]+)\]\sPASS\s[^\n]*\n.*\[FTP\sSession\s[0-9]+\s[^\s]+\s(?<username>[^\]]+)\].*Login\ssuccessful[^\n]*
 		]]>
 	</SuccessfulLoginRegex>
 	<SuccessfulLoginRegexTimestampFormat></SuccessfulLoginRegexTimestampFormat>
