@@ -587,10 +587,13 @@ namespace DigitalRuby.IPBanCore
                     bytes[k] = 0;
                     continue;
                 }
-
                 bytes[k]++;
-
                 result = new IPAddress(bytes[..byteCount]);
+                if (result.IsIPv4MappedToIPv6 != ipAddress.IsIPv4MappedToIPv6)
+                {
+                    result = null;
+                    return false;
+                }
                 return true;
             }
 
@@ -617,9 +620,13 @@ namespace DigitalRuby.IPBanCore
                     bytes[k] = byte.MaxValue;
                     continue;
                 }
-
                 bytes[k]--;
                 result = new IPAddress(bytes[..byteCount]);
+                if (result.IsIPv4MappedToIPv6 != ipAddress.IsIPv4MappedToIPv6)
+                {
+                    result = null;
+                    return false;
+                }
                 return true;
             }
 
