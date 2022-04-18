@@ -10,7 +10,7 @@ IPBan Service
 
 Please visit <a href='https://ipban.com'>https://ipban.com</a> to learn about IPBan Pro with advanced functions including shared ban lists, country blocking, central config management with UI for all your machines, high performance WFP and WinDivert firewall, user name aggregation banning, and much more.
 
-You can also visit the ipban discord at https://discord.gg/CYvd7neetC to chat with me or other IPBan users.
+You can also visit the ipban discord at https://discord.gg/GRmbCcKFNR to chat with me or other IPBan users.
 
 **Requirements**
 - IPBan requires .NET 6 SDK to build and debug code. For an IDE, I suggest Visual Studio Community for Windows, or VS code for Linux. All are free. You can build a self contained executable to eliminate the need for dotnet core on the server machine, or just download the precompiled binaries.
