@@ -78,6 +78,8 @@ namespace DigitalRuby.IPBanCore
         public async Task<IDisposable> AcquireWriterLockAsync(TimeSpan? timeout = null, CancellationToken cancelToken = default)
         {
             timeout ??= defaultTimeout;
+
+            // attempt to grab the writer lock
             if (!(await _writeSemaphore.WaitAsync(timeout.Value, cancelToken).ConfigureAwait(false)))
             {
                 throw new TimeoutException("Failed to acquire outter write lock after timeout");
@@ -85,6 +87,7 @@ namespace DigitalRuby.IPBanCore
 
             try
             {
+                // we also need the reader lock so no more readers can execute
                 if (!(await _readSemaphore.WaitAsync(timeout.Value, cancelToken).ConfigureAwait(false)))
                 {
                     throw new TimeoutException("Failed to acquire inner read lock with write lock after timeout");
@@ -117,13 +120,13 @@ namespace DigitalRuby.IPBanCore
         {
             timeout ??= defaultTimeout;
 
-            // make sure writer lock releases
+            // grab writer lock first, it should be super fast
             if (!(await _writeSemaphore.WaitAsync(timeout.Value, cancelToken).ConfigureAwait(false)))
             {
                 throw new TimeoutException("Failed to acquire outter write lock after timeout");
             }
 
-            // if first reader, acquire the lock
+            // if first reader, acquire the reader lock, future readers will just increment over the inner loop here
             if (Interlocked.Increment(ref _readerCount) == 1)
             {
                 try
@@ -141,6 +144,7 @@ namespace DigitalRuby.IPBanCore
                 }
             }
 
+            // we don't need the writer lock anymore
             _writeSemaphore.Release();
 
             return new LockDisposer(ReleaseReaderLock);
