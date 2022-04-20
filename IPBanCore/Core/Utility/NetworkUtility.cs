@@ -68,6 +68,7 @@ namespace DigitalRuby.IPBanCore
             IPAddressRange.Parse("233.252.0.0-233.252.0.255"),
             IPAddressRange.Parse("240.0.0.0-255.255.255.255")
         };
+        private static readonly List<IPV4Range> internalRangesIPV4Optimized = InternalRangesIPV4.Select(r => new IPV4Range(r)).ToList();
 
         /// <summary>
         /// First iPV6
@@ -82,7 +83,7 @@ namespace DigitalRuby.IPBanCore
         /// <summary>
         /// Internal IPV6 ranges
         /// </summary>
-        public static readonly List<IPAddressRange> InternalRangesIPV6 = new()
+        public static readonly IReadOnlyCollection<IPAddressRange> InternalRangesIPV6 = new IPAddressRange[]
         {
             IPAddressRange.Parse("::-1FFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF"),
             //IPAddressRange.Parse("100::/64"),
@@ -95,6 +96,7 @@ namespace DigitalRuby.IPBanCore
             //IPAddressRange.Parse("fe80::/10"),
             //IPAddressRange.Parse("ff00::/8")
         };
+        private static readonly List<IPV6Range> internalRangesIPV6Optimized = InternalRangesIPV6.Select(r => new IPV6Range(r)).ToList();
 
         /// <summary>
         /// An extension method to determine if an IP address is internal, as specified in RFC1918
@@ -108,9 +110,14 @@ namespace DigitalRuby.IPBanCore
                 ip = ip.Clean();
                 if (ip.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
                 {
-                    return InternalRangesIPV4.Any(r => r.Contains(ip));
+                    uint value = ip.ToUInt32();
+                    return internalRangesIPV4Optimized.BinarySearch(new IPV4Range(value, value)) >= 0;
                 }
-                return InternalRangesIPV6.Any(r => r.Contains(ip));
+                else
+                {
+                    UInt128 value = ip.ToUInt128();
+                    return internalRangesIPV6Optimized.BinarySearch(new IPV6Range(value, value)) >= 0;
+                }
             }
             catch (System.Exception ex)
             {
