@@ -446,7 +446,7 @@ namespace DigitalRuby.IPBanCore
                 if (lines.Length > 1)
                 {
                     int pos = lines[^1].LastIndexOf(' ');
-                    if (pos > 0 && float.TryParse(lines[1][pos..].Trim(), NumberStyles.None, CultureInfo.InvariantCulture, out percentUsed))
+                    if (pos > 0 && float.TryParse(lines[^1][pos..].Trim(), NumberStyles.None, CultureInfo.InvariantCulture, out percentUsed))
                     {
                         percentUsed = 1.0f - (0.01f * percentUsed);
                         return true;
