@@ -857,7 +857,7 @@ namespace DigitalRuby.IPBanCore
 
             try
             {
-                await delg.Update();
+                await delg.RunCycleAsync();
             }
             catch (Exception ex)
             {

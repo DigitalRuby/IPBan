@@ -104,9 +104,9 @@ namespace DigitalRuby.IPBanTests
             AddEvent(nameof(IIPBanDelegate.Start));
         }
 
-        Task IIPBanDelegate.Update()
+        Task IIPBanDelegate.RunCycleAsync()
         {
-            AddEvent(nameof(IIPBanDelegate.Update));
+            AddEvent(nameof(IIPBanDelegate.RunCycleAsync));
             return Task.CompletedTask;
         }
 

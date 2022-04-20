@@ -223,7 +223,7 @@ namespace DigitalRuby.IPBanCore
         /// <summary>
         /// Update, do housekeeping, etc.
         /// </summary>
-        Task Update() => Task.CompletedTask;
+        Task RunCycleAsync() => Task.CompletedTask;
 
         /// <summary>
         /// Notify when an ip is banned

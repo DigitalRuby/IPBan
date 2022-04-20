@@ -405,7 +405,7 @@ namespace DigitalRuby.IPBanTests
 
         }
 
-        Task IIPBanDelegate.Update()
+        Task IIPBanDelegate.RunCycleAsync()
         {
             return Task.CompletedTask;
         }
