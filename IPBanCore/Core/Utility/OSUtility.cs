@@ -431,7 +431,7 @@ namespace DigitalRuby.IPBanCore
             percentUsed = 0.0f;
             if (isWindows)
             {
-                string output = StartProcessAndWait("wmic", "cpu get loadpercentage");
+                string output = StartProcessAndWait(60000, "wmic", "cpu get loadpercentage", out _, LogLevel.Trace);
                 string[] lines = output.Split('\n');
                 if (lines.Length > 1 && float.TryParse(lines[1].Trim(), NumberStyles.None, CultureInfo.InvariantCulture, out percentUsed))
                 {
@@ -441,7 +441,8 @@ namespace DigitalRuby.IPBanCore
             }
             else if (isLinux)
             {
-                string output = StartProcessAndWait("mpstat", string.Empty);
+                string output = StartProcessAndWait(60000, "mpstat", string.Empty, out _, LogLevel.Trace);
+                Console.WriteLine(output);
                 string[] lines = output.Split('\n');
                 if (lines.Length > 1)
                 {
@@ -466,7 +467,7 @@ namespace DigitalRuby.IPBanCore
         /// <exception cref="ApplicationException">Exit code did not match allowed exit codes</exception>
         public static string StartProcessAndWait(string program, string args, params int[] allowedExitCodes)
         {
-            return StartProcessAndWait(60000, program, args, out _, allowedExitCodes);
+            return StartProcessAndWait(60000, program, args, out _, LogLevel.Info, allowedExitCodes);
         }
         /// <summary>
         /// Easy way to execute processes. If the process has not finished after timeoutMilliseconds, it is forced killed.
@@ -480,7 +481,7 @@ namespace DigitalRuby.IPBanCore
         public static string StartProcessAndWait(int timeoutMilliseconds, string program, string args,
             params int[] allowedExitCodes)
         {
-            return StartProcessAndWait(timeoutMilliseconds, program, args, out _, allowedExitCodes);
+            return StartProcessAndWait(timeoutMilliseconds, program, args, out _, LogLevel.Info, allowedExitCodes);
         }
 
         /// <summary>
@@ -495,7 +496,7 @@ namespace DigitalRuby.IPBanCore
         public static string StartProcessAndWait(string program, string args,
             out int exitCode, params int[] allowedExitCodes)
         {
-            return StartProcessAndWait(60000, program, args, out exitCode, allowedExitCodes);
+            return StartProcessAndWait(60000, program, args, out exitCode, LogLevel.Info, allowedExitCodes);
         }
 
         /// <summary>
@@ -505,11 +506,12 @@ namespace DigitalRuby.IPBanCore
         /// <param name="program">Program to run</param>
         /// <param name="args">Arguments</param>
         /// <param name="exitCode">Receives the exit code</param>
+        /// <param name="logLevel">Log level</param>
         /// <param name="allowedExitCodes">Allowed exit codes, if null or empty it is not checked, otherwise a mismatch will throw an exception.</param>
         /// <returns>Output</returns>
         /// <exception cref="ApplicationException">Exit code did not match allowed exit codes</exception>
         public static string StartProcessAndWait(int timeoutMilliseconds, string program, string args,
-            out int exitCode, params int[] allowedExitCodes)
+            out int exitCode, LogLevel logLevel = LogLevel.Info, params int[] allowedExitCodes)
         {
             StringBuilder output = new();
             int _exitCode = -1;
@@ -518,7 +520,7 @@ namespace DigitalRuby.IPBanCore
             {
                 try
                 {
-                    Logger.Info($"Executing process {program} {args}...");
+                    Logger.Log(logLevel, $"Executing process {program} {args}...");
 
                     var startInfo = new ProcessStartInfo(program, args)
                     {
