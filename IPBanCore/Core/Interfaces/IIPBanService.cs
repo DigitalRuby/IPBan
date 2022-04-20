@@ -149,11 +149,6 @@ namespace DigitalRuby.IPBanCore
         string RemoteIPAddressString { get; }
 
         /// <summary>
-        /// Fully qualified domain name
-        /// </summary>
-        string FQDN { get; }
-
-        /// <summary>
         /// A unique id for this service
         /// </summary>
         string MachineGuid { get; }

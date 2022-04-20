@@ -230,37 +230,6 @@ namespace DigitalRuby.IPBanCore
 
         private async Task SetNetworkInfo()
         {
-            if (string.IsNullOrWhiteSpace(FQDN))
-            {
-                string serverName = System.Environment.MachineName;
-                string domainName = null;
-                if (OperatingSystem.IsWindows())
-                {
-                    try
-                    {
-                        domainName = System.Net.NetworkInformation.IPGlobalProperties.GetIPGlobalProperties().DomainName;
-                    }
-                    catch
-                    {
-                    }
-                }
-                try
-                {
-                    FQDN = await DnsLookup.GetHostNameAsync();
-                    if (!string.IsNullOrWhiteSpace(domainName) &&
-                        !FQDN.StartsWith(domainName + ".", StringComparison.OrdinalIgnoreCase))
-                    {
-                        FQDN = domainName + "." + FQDN;
-                    }
-                }
-                catch
-                {
-                    FQDN = serverName;
-                }
-
-                Logger.Info("FQDN: {0}", FQDN);
-            }
-
             if (string.IsNullOrWhiteSpace(LocalIPAddressString))
             {
                 try
@@ -910,7 +879,9 @@ namespace DigitalRuby.IPBanCore
 
         protected virtual async Task<bool> GetUrl(UrlType urlType)
         {
-            if ((urlType == UrlType.Start && GotStartUrl) || string.IsNullOrWhiteSpace(LocalIPAddressString) || string.IsNullOrWhiteSpace(FQDN))
+            if ((urlType == UrlType.Start && GotStartUrl) ||
+                string.IsNullOrWhiteSpace(LocalIPAddressString) ||
+                string.IsNullOrWhiteSpace(OSUtility.FQDN))
             {
                 return false;
             }

@@ -402,7 +402,7 @@ namespace DigitalRuby.IPBanCore
         {
             return url.Replace("###IPADDRESS###", LocalIPAddressString.UrlEncode())
                 .Replace("###REMOTEIPADDRESS###", RemoteIPAddressString.UrlEncode())
-                .Replace("###MACHINENAME###", FQDN.UrlEncode())
+                .Replace("###MACHINENAME###", OSUtility.FQDN.UrlEncode())
                 .Replace("###VERSION###", Version.UrlEncode())
                 .Replace("###GUID###", MachineGuid.UrlEncode())
                 .Replace("###OSNAME###", OSName.UrlEncode())

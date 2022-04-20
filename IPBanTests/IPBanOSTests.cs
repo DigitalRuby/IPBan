@@ -82,5 +82,11 @@ namespace DigitalRuby.IPBanTests
             // try something not exist, make sure false
             Assert.IsFalse(OSUtility.UserIsActive("asdoijasdoajspdojaspdojaspodjaspodjs"));
         }
+
+        [Test]
+        public void TestFqdn()
+        {
+            Assert.IsTrue(!string.IsNullOrWhiteSpace(OSUtility.FQDN));
+        }
     }
 }

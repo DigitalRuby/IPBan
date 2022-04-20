@@ -169,11 +169,6 @@ namespace DigitalRuby.IPBanCore
         public string OtherIPAddressesString { get; set; }
 
         /// <summary>
-        /// Fully qualified domain name
-        /// </summary>
-        public string FQDN { get; set; }
-
-        /// <summary>
         /// Machine guid, null/empty for none
         /// </summary>
         public string MachineGuid { get; set; }

@@ -320,6 +320,48 @@ namespace DigitalRuby.IPBanCore
             return $"Name: {Name}, Version: {Version}, Friendly Name: {FriendlyName}, Description: {Description}";
         }
 
+        private static string fqdn;
+        /// <summary>
+        /// Fully qualified domain name
+        /// </summary>
+        public static string FQDN
+        {
+            get
+            {
+                if (string.IsNullOrWhiteSpace(fqdn))
+                {
+                    string serverName = System.Environment.MachineName;
+                    string domainName = null;
+                    if (OperatingSystem.IsWindows())
+                    {
+                        try
+                        {
+                            domainName = System.Net.NetworkInformation.IPGlobalProperties.GetIPGlobalProperties().DomainName;
+                        }
+                        catch
+                        {
+                        }
+                    }
+                    try
+                    {
+                        fqdn = System.Net.Dns.GetHostName();
+                        if (!string.IsNullOrWhiteSpace(domainName) &&
+                            !fqdn.StartsWith(domainName + ".", StringComparison.OrdinalIgnoreCase))
+                        {
+                            fqdn = domainName + "." + fqdn;
+                        }
+                    }
+                    catch
+                    {
+                        fqdn = serverName;
+                    }
+
+                    Logger.Info("FQDN: {0}", fqdn);
+                }
+                return fqdn;
+            }
+        }
+
         [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
         private class MEMORYSTATUSEX
         {
