@@ -23,6 +23,7 @@ SOFTWARE.
 */
 
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.NetworkInformation;
 
@@ -33,6 +34,91 @@ namespace DigitalRuby.IPBanCore
     /// </summary>
     public static class NetworkUtility
     {
+        // https://en.wikipedia.org/wiki/Reserved_IP_addresses
+
+        /// <summary>
+        /// First ipv4
+        /// </summary>
+        public static readonly System.Net.IPAddress FirstIPV4 = System.Net.IPAddress.Parse("0.0.0.0");
+
+        /// <summary>
+        /// Last ipv4
+        /// </summary>
+        public static readonly System.Net.IPAddress LastIPV4 = System.Net.IPAddress.Parse("255.255.255.255");
+
+        /// <summary>
+        /// IPV4 internal ranges
+        /// </summary>
+        public static readonly IReadOnlyCollection<IPAddressRange> InternalRangesIPV4 = new IPAddressRange[]
+        {
+            IPAddressRange.Parse("0.0.0.0-0.255.255.255"),
+            IPAddressRange.Parse("10.0.0.0-10.255.255.255"),
+            IPAddressRange.Parse("100.64.0.0-100.127.255.255"),
+            IPAddressRange.Parse("127.0.0.0–127.255.255.255"),
+            IPAddressRange.Parse("169.254.0.0-169.254.255.255"),
+            IPAddressRange.Parse("172.16.0.0-172.31.255.255"),
+            IPAddressRange.Parse("192.0.0.0-192.0.0.255"),
+            IPAddressRange.Parse("192.0.2.0-192.0.2.255"),
+            IPAddressRange.Parse("192.88.99.0-192.88.99.255 "),
+            IPAddressRange.Parse("192.168.0.0-192.168.255.255"),
+            IPAddressRange.Parse("198.18.0.0-198.19.255.255"),
+            IPAddressRange.Parse("198.51.100.0-198.51.100.255"),
+            IPAddressRange.Parse("203.0.113.0-203.0.113.255"),
+            IPAddressRange.Parse("224.0.0.0-239.255.255.255"),
+            IPAddressRange.Parse("233.252.0.0-233.252.0.255"),
+            IPAddressRange.Parse("240.0.0.0-255.255.255.255")
+        };
+
+        /// <summary>
+        /// First iPV6
+        /// </summary>
+        public static readonly System.Net.IPAddress FirstIPV6 = System.Net.IPAddress.Parse("0000:0000:0000:0000:0000:0000:0000:0000");
+
+        /// <summary>
+        /// Last IPV6
+        /// </summary>
+        public static readonly System.Net.IPAddress LastIPV6 = System.Net.IPAddress.Parse("FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF");
+
+        /// <summary>
+        /// Internal IPV6 ranges
+        /// </summary>
+        public static readonly List<IPAddressRange> InternalRangesIPV6 = new()
+        {
+            IPAddressRange.Parse("::-1FFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF"),
+            //IPAddressRange.Parse("100::/64"),
+            IPAddressRange.Parse("2001:0000::/32"),
+            IPAddressRange.Parse("2001:db8::/32"),
+            IPAddressRange.Parse("2002::/16"),
+            IPAddressRange.Parse("4000:0000:0000:0000:0000:0000:0000:0000-FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF")
+            //IPAddressRange.Parse("fc00::/7"),
+            //IPAddressRange.Parse("fd00::/8"),
+            //IPAddressRange.Parse("fe80::/10"),
+            //IPAddressRange.Parse("ff00::/8")
+        };
+
+        /// <summary>
+        /// An extension method to determine if an IP address is internal, as specified in RFC1918
+        /// </summary>
+        /// <param name="ip">The IP address that will be tested</param>
+        /// <returns>Returns true if the IP is internal, false if it is external</returns>
+        public static bool IsInternal(this System.Net.IPAddress ip)
+        {
+            try
+            {
+                ip = ip.Clean();
+                if (ip.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
+                {
+                    return InternalRangesIPV4.Any(r => r.Contains(ip));
+                }
+                return InternalRangesIPV6.Any(r => r.Contains(ip));
+            }
+            catch (System.Exception ex)
+            {
+                Logger.Warn("Invalid ip isinternal check: {0}, {1}", ip, ex);
+                return true;
+            }
+        }
+
         /// <summary>
         /// Get the local configured dns servers for this machine from all network interfaces
         /// </summary>

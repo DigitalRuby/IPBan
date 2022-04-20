@@ -304,11 +304,12 @@ namespace DigitalRuby.IPBanCore
         /// Check if this ip address range contains an ip address
         /// </summary>
         /// <param name="ipAddress">The ip address to check for</param>
+        /// <param name="clean">Whether to clean the ip address first before the check</param>
         /// <returns>True if ipaddress is in this range, false otherwise</returns>
-        public bool Contains(IPAddress ipAddress)
+        public bool Contains(IPAddress ipAddress, bool clean = true)
         {
             ipAddress.ThrowIfNull(nameof(ipAddress));
-            ipAddress = ipAddress.Clean();
+            ipAddress = (clean ? ipAddress.Clean() : ipAddress);
             if (ipAddress.AddressFamily != Begin.AddressFamily)
             {
                 return false;
