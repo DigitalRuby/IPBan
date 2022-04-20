@@ -930,7 +930,7 @@ namespace DigitalRuby.IPBanCore
                 prefix = prefix[..pos];
             }
 
-            // no filter if running unit tests
+            // no filter if running unit tests, need to scan all assemblies
             if (UnitTestDetector.Running)
             {
                 prefix = null;

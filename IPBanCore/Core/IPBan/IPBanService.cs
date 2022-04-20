@@ -535,6 +535,7 @@ namespace DigitalRuby.IPBanCore
         public static T CreateAndStartIPBanTestService<T>(string directory = null, string configFileName = null, string defaultBannedIPAddressHandlerUrl = null,
             Func<string, string> configFileModifier = null, bool cleanup = true) where T : IPBanService
         {
+            // if not running tests, do nothing
             if (!UnitTestDetector.Running)
             {
                 return default;
@@ -603,6 +604,7 @@ namespace DigitalRuby.IPBanCore
         /// </summary>
         public static void CleanupIPBanTestFiles()
         {
+            // if not running tests, do nothing
             if (!UnitTestDetector.Running)
             {
                 return;
@@ -623,6 +625,7 @@ namespace DigitalRuby.IPBanCore
         /// <param name="service">Service to dispose</param>
         public static void DisposeIPBanTestService(IPBanService service)
         {
+            // if not running tests, do nothing
             if (!UnitTestDetector.Running)
             {
                 return;

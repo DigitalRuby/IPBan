@@ -78,6 +78,7 @@ namespace DigitalRuby.IPBanCore
 
 #if DEBUG
 
+            // don't run this when debugging app locally outside tests
             if (!UnitTestDetector.Running)
             {
                 return;

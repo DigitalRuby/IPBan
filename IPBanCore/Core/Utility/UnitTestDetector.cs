@@ -23,6 +23,7 @@ SOFTWARE.
 */
 
 using System;
+using System.Linq;
 
 namespace DigitalRuby.IPBanCore
 {
@@ -43,19 +44,16 @@ namespace DigitalRuby.IPBanCore
         {
             try
             {
+                // test host
                 if ((System.Reflection.Assembly.GetEntryAssembly()?.GetName().Name ?? string.Empty).StartsWith("testhost", StringComparison.OrdinalIgnoreCase))
                 {
                     Running = true;
-                    return;
                 }
-
-                foreach (System.Reflection.Assembly assem in AppDomain.CurrentDomain.GetAssemblies())
+                else
                 {
-                    if (assem.FullName.ToLowerInvariant().StartsWith("nunit.framework"))
-                    {
-                        Running = true;
-                        break;
-                    }
+                    // nunit
+                    Running = AppDomain.CurrentDomain.GetAssemblies()
+                        .Any(a => a.FullName.Equals("nunit.framework", StringComparison.OrdinalIgnoreCase));
                 }
             }
             catch (Exception ex)
