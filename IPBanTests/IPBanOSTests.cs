@@ -41,12 +41,26 @@ namespace DigitalRuby.IPBanTests
         }
 
         [Test]
-        public void TestSystemMemory()
+        public void TestMemoryUsage()
         {
-            Assert.IsTrue(DefaultSystemMemory.Instance.GetSystemMemory(out long total, out long avail));
+            Assert.IsTrue(OSUtility.GetMemoryUsage(out long total, out long avail));
             Assert.IsTrue(total >= avail);
-            Assert.IsTrue(total > 0);
             Assert.IsTrue(avail > 0);
+        }
+
+        [Test]
+        public void TestDiskUsage()
+        {
+            Assert.IsTrue(OSUtility.GetDiskUsage(out long totalStorage, out long availableStorage));
+            Assert.IsTrue(totalStorage >= availableStorage);
+            Assert.IsTrue(availableStorage > 0);
+        }
+
+        [Test]
+        public void TestCpuUsage()
+        {
+            Assert.IsTrue(OSUtility.GetCpuUsage(out float percentUsed));
+            Assert.IsTrue(percentUsed >= 0.0f && percentUsed <= 1.0f);
         }
 
         [Test]

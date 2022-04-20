@@ -27,6 +27,7 @@ SOFTWARE.
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -319,6 +320,142 @@ namespace DigitalRuby.IPBanCore
             return $"Name: {Name}, Version: {Version}, Friendly Name: {FriendlyName}, Description: {Description}";
         }
 
+        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
+        private class MEMORYSTATUSEX
+        {
+            public uint dwLength;
+            public uint dwMemoryLoad;
+            public ulong ullTotalPhys;
+            public ulong ullAvailPhys;
+            public ulong ullTotalPageFile;
+            public ulong ullAvailPageFile;
+            public ulong ullTotalVirtual;
+            public ulong ullAvailVirtual;
+            public ulong ullAvailExtendedVirtual;
+            public MEMORYSTATUSEX()
+            {
+                this.dwLength = (uint)Marshal.SizeOf(typeof(MEMORYSTATUSEX));
+            }
+        }
+
+        [return: MarshalAs(UnmanagedType.Bool)]
+        [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        private static extern bool GlobalMemoryStatusEx([In, Out] MEMORYSTATUSEX lpBuffer);
+
+        /// <summary>
+        /// Get memory usage
+        /// </summary>
+        /// <param name="totalMemory">Total system memory in bytes</param>
+        /// <param name="availableMemory">Available system memory in bytes</param>
+        /// <returns></returns>
+        public static bool GetMemoryUsage(out long totalMemory, out long availableMemory)
+        {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                MEMORYSTATUSEX mem = new();
+                if (GlobalMemoryStatusEx(mem))
+                {
+                    totalMemory = (long)mem.ullTotalPhys;
+                    availableMemory = (long)mem.ullAvailPhys;
+                    return true;
+                }
+            }
+            else if (File.Exists("/proc/meminfo"))
+            {
+                // try up to 10 times to get the file open and read
+                for (int i = 0; i < 10; i++)
+                {
+                    try
+                    {
+                        // example:
+                        // MemTotal:       66980684 kB
+                        // MemFree:        50547060 kB
+                        // TODO: Consider using pinvoke...
+                        using StreamReader reader = File.OpenText("/proc/meminfo");
+                        string total = reader.ReadLine();
+                        string available = reader.ReadLine();
+                        Match totalMatch = Regex.Match(total, "[0-9]+", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+                        Match availableMatch = Regex.Match(available, "[0-9]+", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+                        totalMemory = long.Parse(totalMatch.Value, CultureInfo.InvariantCulture) * 1024; // kb to bytes
+                        availableMemory = long.Parse(availableMatch.Value, CultureInfo.InvariantCulture) * 1024; // kb to bytes
+                        return true;
+                    }
+                    catch
+                    {
+                        // non-fatal, don't want this to crash the thread
+                        System.Threading.Thread.Sleep(20);
+                    }
+                }
+            }
+
+            totalMemory = availableMemory = 0;
+            return false;
+        }
+
+        /// <summary>
+        /// Get aggregate disk usage
+        /// </summary>
+        /// <param name="totalStorage">Total storage possible for all drives</param>
+        /// <param name="availableStorage">Total storage available for all drives</param>
+        /// <returns>True if storage was able to be retrieved, false otherwise</returns>
+        public static bool GetDiskUsage(out long totalStorage, out long availableStorage)
+        {
+            totalStorage = availableStorage = 0;
+            try
+            {
+                foreach (var drive in DriveInfo.GetDrives())
+                {
+                    if (drive.IsReady && drive.DriveType == DriveType.Fixed)
+                    {
+                        totalStorage += drive.TotalSize;
+                        availableStorage += drive.AvailableFreeSpace;
+                    }
+                }
+            }
+            catch
+            {
+                // non-fatal
+            }
+            return totalStorage > 0;
+        }
+
+        /// <summary>
+        /// Attempt to determine current cpu usage. For Linux, mpstat must be installed first.
+        /// Ubuntu/Debian: apt install -y sysstat
+        /// Rest: yum install -y sysstat
+        /// </summary>
+        /// <param name="percentUsed">Percent of all cpu resources currently in use, 0.0-1.0</param>
+        /// <returns>True if cpu usage could be determined, false otherwise</returns>
+        public static bool GetCpuUsage(out float percentUsed)
+        {
+            percentUsed = 0.0f;
+            if (isWindows)
+            {
+                string output = StartProcessAndWait("wmic", "cpu get loadpercentage");
+                string[] lines = output.Split('\n');
+                if (lines.Length > 1 && float.TryParse(lines[1].Trim(), NumberStyles.None, CultureInfo.InvariantCulture, out percentUsed))
+                {
+                    percentUsed *= 0.01f;
+                    return true;
+                }
+            }
+            else if (isLinux)
+            {
+                string output = StartProcessAndWait("mpstat", string.Empty);
+                string[] lines = output.Split('\n');
+                if (lines.Length > 1)
+                {
+                    int pos = lines[1].LastIndexOf(' ');
+                    if (pos > 0 && float.TryParse(lines[1][pos..].Trim(), NumberStyles.None, CultureInfo.InvariantCulture, out percentUsed))
+                    {
+                        percentUsed = 1.0f - (0.01f * percentUsed);
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
         /// <summary>
         /// Easy way to execute processes. If the process has not finished after 60 seconds, it is forced killed.
         /// </summary>
@@ -492,7 +629,7 @@ namespace DigitalRuby.IPBanCore
         }
 
         /// <summary>
-        /// Generate a new temporary file using TempFolder
+        /// Generate a new temporary file name using TempFolder, but do not create the file
         /// </summary>
         public static string GetTempFileName()
         {
