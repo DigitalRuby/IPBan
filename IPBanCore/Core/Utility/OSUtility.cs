@@ -432,8 +432,8 @@ namespace DigitalRuby.IPBanCore
             if (isWindows)
             {
                 string output = StartProcessAndWait(60000, "wmic", "cpu get loadpercentage", out _, LogLevel.Trace);
-                string[] lines = output.Split('\n');
-                if (lines.Length > 1 && float.TryParse(lines[1].Trim(), NumberStyles.None, CultureInfo.InvariantCulture, out percentUsed))
+                string[] lines = output.Trim().Split('\n');
+                if (lines.Length > 1 && float.TryParse(lines[^1].Trim(), NumberStyles.None, CultureInfo.InvariantCulture, out percentUsed))
                 {
                     percentUsed *= 0.01f;
                     return true;
@@ -442,11 +442,10 @@ namespace DigitalRuby.IPBanCore
             else if (isLinux)
             {
                 string output = StartProcessAndWait(60000, "mpstat", string.Empty, out _, LogLevel.Trace);
-                Console.WriteLine(output);
-                string[] lines = output.Split('\n');
+                string[] lines = output.Trim().Split('\n');
                 if (lines.Length > 1)
                 {
-                    int pos = lines[1].LastIndexOf(' ');
+                    int pos = lines[^1].LastIndexOf(' ');
                     if (pos > 0 && float.TryParse(lines[1][pos..].Trim(), NumberStyles.None, CultureInfo.InvariantCulture, out percentUsed))
                     {
                         percentUsed = 1.0f - (0.01f * percentUsed);
