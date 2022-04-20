@@ -902,4 +902,10 @@
   <data name="Leaks" xml:space="preserve">
     <value>Leaks</value>
   </data>
+  <data name="EnableMonitoring" xml:space="preserve">
+    <value>Whether to enable monitoring</value>
+  </data>
+  <data name="Resources" xml:space="preserve">
+    <value>Resources</value>
+  </data>
 </root>

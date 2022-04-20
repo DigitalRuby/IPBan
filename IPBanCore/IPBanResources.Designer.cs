@@ -520,6 +520,15 @@ namespace DigitalRuby.IPBanCore {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Whether to enable monitoring.
+        /// </summary>
+        public static string EnableMonitoring {
+            get {
+                return ResourceManager.GetString("EnableMonitoring", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Enable SSL.
         /// </summary>
         public static string EnableSSL {
@@ -1659,6 +1668,15 @@ namespace DigitalRuby.IPBanCore {
         public static string ResolveIPAddress {
             get {
                 return ResourceManager.GetString("ResolveIPAddress", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Resources.
+        /// </summary>
+        public static string Resources {
+            get {
+                return ResourceManager.GetString("Resources", resourceCulture);
             }
         }
         
