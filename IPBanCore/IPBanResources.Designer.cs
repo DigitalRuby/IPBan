@@ -466,6 +466,15 @@ namespace DigitalRuby.IPBanCore {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Disable Monitoring.
+        /// </summary>
+        public static string DisableMonitoring {
+            get {
+                return ResourceManager.GetString("DisableMonitoring", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Docs.
         /// </summary>
         public static string Docs {
@@ -520,7 +529,7 @@ namespace DigitalRuby.IPBanCore {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Whether to enable monitoring.
+        ///   Looks up a localized string similar to Enable Monitoring.
         /// </summary>
         public static string EnableMonitoring {
             get {
