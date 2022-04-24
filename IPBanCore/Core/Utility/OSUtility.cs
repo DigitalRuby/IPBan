@@ -99,7 +99,9 @@ namespace DigitalRuby.IPBanCore
         private static readonly object locker = new();
 
         private static PerformanceCounter windowsCpuCounter;
-        private static float windowsCpuUsage;
+        private static PerformanceCounter windowsDiskIopsCounter;
+        private static float windowsCpuPercent;
+        private static float windowsDiskIopsPercent;
         private static float networkUsage = -1.0f;
 
         private static bool isWindows;
@@ -488,18 +490,18 @@ namespace DigitalRuby.IPBanCore
                             // capture windows cpu in background
                             System.Threading.Tasks.Task.Run(async () =>
                             {
-                                windowsCpuUsage = Math.Clamp(windowsCpuCounter.NextValue() * 0.01f, 0.0f, 1.0f);
+                                windowsCpuPercent = Math.Clamp(windowsCpuCounter.NextValue() * 0.01f, 0.0f, 1.0f);
                                 while (!Environment.HasShutdownStarted)
                                 {
                                     await System.Threading.Tasks.Task.Delay(1000);
-                                    windowsCpuUsage = Math.Clamp(windowsCpuCounter.NextValue() * 0.01f, 0.0f, 1.0f);
+                                    windowsCpuPercent = Math.Clamp(windowsCpuCounter.NextValue() * 0.01f, 0.0f, 1.0f);
                                 }
                             });
                         }
                     }
                 }
 
-                percentUsed = windowsCpuUsage;
+                percentUsed = windowsCpuPercent;
                 //string output = StartProcessAndWait(60000, "wmic", "cpu get loadpercentage", out _, LogLevel.Trace);
                 //string[] lines = output.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
                 //if (lines.Length > 1 && float.TryParse(lines[^1], NumberStyles.None, CultureInfo.InvariantCulture, out percentUsed))
@@ -511,6 +513,10 @@ namespace DigitalRuby.IPBanCore
             }
             else if (isLinux)
             {
+                // Linux 5.10.102.1-microsoft-standard-WSL2 (MACHINE_NAME)     04/24/22        _x86_64_        (24 CPU)
+                //
+                // 14:19:43     CPU    %usr   %nice    %sys %iowait    %irq   %soft  %steal  %guest  %gnice   %idle
+                // 14:19:43     all    0.00    0.00    0.02    0.00    0.00    0.00    0.00    0.00    0.00   99.97
                 string output = StartProcessAndWait(60000, "mpstat", string.Empty, out _, LogLevel.Trace);
                 string[] lines = output.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
                 if (lines.Length > 1)
@@ -590,6 +596,66 @@ namespace DigitalRuby.IPBanCore
             }
             percentUsed = networkUsage;
             return true;
+        }
+
+        /// <summary>
+        /// Get current percentage of max iops used
+        /// </summary>
+        /// <param name="percentUsed">Percent of max iops used (0-1, maximum number determined from each drive)</param>
+        /// <returns>True if max iops percented could be determined, false otherwise</returns>
+        public static bool GetDiskIopsUsage(out float percentUsed)
+        {
+            percentUsed = 0.0f;
+            if (isWindows)
+            {
+                if (windowsDiskIopsCounter is null)
+                {
+                    lock (locker)
+                    {
+                        if (windowsDiskIopsCounter is null)
+                        {
+                            windowsDiskIopsCounter = new PerformanceCounter("PhysicalDisk", "% Disk Time", "_Total");
+
+                            // capture disk io in background
+                            System.Threading.Tasks.Task.Run(async () =>
+                            {
+                                windowsDiskIopsPercent = Math.Clamp(windowsDiskIopsCounter.NextValue() * 0.01f, 0.0f, 1.0f);
+                                while (!Environment.HasShutdownStarted)
+                                {
+                                    await System.Threading.Tasks.Task.Delay(1000);
+                                    windowsDiskIopsPercent = Math.Clamp(windowsDiskIopsCounter.NextValue() * 0.01f, 0.0f, 1.0f);
+                                }
+                            });
+                        }
+                    }
+                }
+
+                percentUsed = windowsDiskIopsPercent;
+                return true;
+            }
+            else if (isLinux)
+            {
+                //Linux 5.10.102.1-microsoft-standard-WSL2 (MACHINE_NAME)     04/24/22        _x86_64_        (24 CPU)
+                //
+                //Device             tps      kB/s    rqm/s   await  areq-sz  aqu-sz  %util
+                //sda              11.07   5598.69     0.45    0.55   505.97    0.01   2.79
+                //sdb               0.95     61.60     0.48    0.16    64.66    0.00   0.03
+                //sdc               3.04    160.40     3.20    0.48    52.75    0.00   0.13
+                string output = StartProcessAndWait(60000, "iostat", "-dxs", out _, LogLevel.Trace);
+                string[] lines = output.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+                float maxValue = 0.0f;
+                foreach (string line in lines.Skip(2)) // blank line will be trimmed out
+                {
+                    int pos = line.LastIndexOf(' ');
+                    if (pos > 0 && float.TryParse(line[pos..].Trim(), NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out float parsedValue))
+                    {
+                        maxValue = Math.Max(maxValue, parsedValue);
+                    }
+                }
+                percentUsed = Math.Clamp(maxValue * 0.01f, 0.0f, 1.0f);
+                return true;
+            }
+            return false;
         }
 
         /// <summary>
