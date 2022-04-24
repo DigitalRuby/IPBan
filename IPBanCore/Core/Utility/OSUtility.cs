@@ -96,11 +96,15 @@ namespace DigitalRuby.IPBanCore
         public static bool UsesYumPackageManager { get; private set; }
 
         private static readonly string tempFolder;
+        private static readonly object locker = new();
+
+        private static PerformanceCounter windowsCpuCounter;
+        private static float windowsCpuUsage;
+        private static float networkUsage = -1.0f;
 
         private static bool isWindows;
         private static bool isLinux;
         private static bool isMac;
-
 
         private static readonly string processVerb;
 
@@ -473,13 +477,37 @@ namespace DigitalRuby.IPBanCore
             percentUsed = 0.0f;
             if (isWindows)
             {
-                string output = StartProcessAndWait(60000, "wmic", "cpu get loadpercentage", out _, LogLevel.Trace);
-                string[] lines = output.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-                if (lines.Length > 1 && float.TryParse(lines[^1], NumberStyles.None, CultureInfo.InvariantCulture, out percentUsed))
+                if (windowsCpuCounter is null)
                 {
-                    percentUsed *= 0.01f;
-                    return true;
+                    lock (locker)
+                    {
+                        if (windowsCpuCounter is null)
+                        {
+                            windowsCpuCounter = new PerformanceCounter("Processor Information", "% Processor Utility", "_Total");
+
+                            // capture windows cpu in background
+                            System.Threading.Tasks.Task.Run(async () =>
+                            {
+                                windowsCpuUsage = Math.Clamp(windowsCpuCounter.NextValue() * 0.01f, 0.0f, 1.0f);
+                                while (!Environment.HasShutdownStarted)
+                                {
+                                    await System.Threading.Tasks.Task.Delay(1000);
+                                    windowsCpuUsage = Math.Clamp(windowsCpuCounter.NextValue() * 0.01f, 0.0f, 1.0f);
+                                }
+                            });
+                        }
+                    }
                 }
+
+                percentUsed = windowsCpuUsage;
+                //string output = StartProcessAndWait(60000, "wmic", "cpu get loadpercentage", out _, LogLevel.Trace);
+                //string[] lines = output.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+                //if (lines.Length > 1 && float.TryParse(lines[^1], NumberStyles.None, CultureInfo.InvariantCulture, out percentUsed))
+                //{
+                //percentUsed *= 0.01f;
+                //return true;
+                //}
+                return true;
             }
             else if (isLinux)
             {
@@ -493,13 +521,75 @@ namespace DigitalRuby.IPBanCore
                         string piece = lines[^1][pos..].Trim();
                         if (pos > 0 && float.TryParse(piece, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out percentUsed))
                         {
-                            percentUsed = 1.0f - (0.01f * percentUsed);
+                            percentUsed = Math.Clamp(1.0f - (0.01f * percentUsed), 0.0f, 1.0f);
                             return true;
                         }
                     }
                 }
             }
             return false;
+        }
+
+        /// <summary>
+        /// Get system network usage
+        /// </summary>
+        /// <param name="percentUsed">Percent of system network used, 0-1</param>
+        /// <returns>True if network usage could be determined, false otherwise</returns>
+        public static bool GetNetworkUsage(out float percentUsed)
+        {
+            if (networkUsage < 0.0f)
+            {
+                lock (locker)
+                {
+                    if (networkUsage < 0.0f)
+                    {
+                        networkUsage = 0.0f;
+
+                        // capture network usage in background
+                        System.Threading.Tasks.Task.Run(async () =>
+                        {
+                            System.Net.NetworkInformation.NetworkInterface[] nics = null;
+                            long[] prevTransfer = null;
+                            double[] maxSpeeds = null;
+                            while (!Environment.HasShutdownStarted)
+                            {
+                                if (nics is null)
+                                {
+                                    try
+                                    {
+                                        nics = System.Net.NetworkInformation.NetworkInterface.GetAllNetworkInterfaces().Where(n => n.NetworkInterfaceType == System.Net.NetworkInformation.NetworkInterfaceType.Ethernet).ToArray();
+                                        prevTransfer = new long[nics.Length];
+                                        maxSpeeds = new double[nics.Length];
+                                        for (int i = 0; i < nics.Length; i++)
+                                        {
+                                            prevTransfer[i] = nics[i].GetIPStatistics().BytesReceived + nics[i].GetIPStatistics().BytesSent;
+                                            maxSpeeds[i] = (double)(nics[i].Speed / 8);
+                                        }
+                                    }
+                                    catch
+                                    {
+                                        // non-fatal, try again later
+                                    }
+                                }
+                                await System.Threading.Tasks.Task.Delay(1000);
+                                if (nics is not null)
+                                {
+                                    float percent = 0.0f;
+                                    for (int i = 0; i < nics.Length; i++)
+                                    {
+                                        long currentTransfer = nics[i].GetIPStatistics().BytesReceived + nics[i].GetIPStatistics().BytesSent;
+                                        percent = (float)Math.Max(percent, (double)(currentTransfer - prevTransfer[i]) / maxSpeeds[i]);
+                                        prevTransfer[i] = currentTransfer;
+                                    }
+                                    networkUsage = Math.Clamp(percent, 0.0f, 1.0f);
+                                }
+                            }
+                        });
+                    }
+                }
+            }
+            percentUsed = networkUsage;
+            return true;
         }
 
         /// <summary>
