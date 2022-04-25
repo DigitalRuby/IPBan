@@ -82,8 +82,6 @@ Donations are accepted, any amount is appreciated, I work on this project for fr
 
 [![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=7EJ3K33SRLU9E)
 
-<a href="https://email.digitalruby.com/SubscribeInitial/IPBan">Sign up for the IPBan Mailing List</a>
-
 Jeff Johnson, CEO/CTO  
 Digital Ruby, LLC  
 https://www.digitalruby.com  
