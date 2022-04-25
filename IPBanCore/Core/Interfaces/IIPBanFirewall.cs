@@ -176,28 +176,40 @@ namespace DigitalRuby.IPBanCore
     public struct PacketEvent
     {
         /// <summary>
+        /// FQDN of machine sending the event
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("f")]
+        public string FQDN { get; init; }
+
+        /// <summary>
         /// Source ip address of the packet
         /// </summary>
-        [System.Text.Json.Serialization.JsonPropertyName("s")]
-        public string SourceIpAddress { get; init; }
+        [System.Text.Json.Serialization.JsonPropertyName("l")]
+        public string LocalIpAddress { get; init; }
 
         /// <summary>
         /// Source port of the packet or 0 if unknown/not applicable
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("p")]
-        public int SourcePort { get; init; }
+        public int LocalPort { get; init; }
+
+        /// <summary>
+        /// Remote country (if known)
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("c")]
+        public string RemoteCountry { get; set; }
 
         /// <summary>
         /// Destination ip address of the packet
         /// </summary>
-        [System.Text.Json.Serialization.JsonPropertyName("d")]
-        public string DestinationIpAddress { get; init; }
+        [System.Text.Json.Serialization.JsonPropertyName("r")]
+        public string RemoteIpAddress { get; init; }
 
         /// <summary>
         /// Destination port of the packet or 0 if unknown/not applicable
         /// </summary>
-        [System.Text.Json.Serialization.JsonPropertyName("r")]
-        public int DestinationPort { get; init; }
+        [System.Text.Json.Serialization.JsonPropertyName("o")]
+        public int RemotePort { get; init; }
 
         /// <summary>
         /// Rule name if known, otherwise null

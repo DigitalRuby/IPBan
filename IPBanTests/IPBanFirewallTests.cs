@@ -298,19 +298,19 @@ namespace DigitalRuby.IPBanTests
                 firewall.SendPacketEvent(new PacketEvent
                 {
                     Allowed = false,
-                    SourceIpAddress = "2.2.2.2",
-                    SourcePort = 1234,
-                    DestinationIpAddress = "3.3.3.3",
-                    DestinationPort = 8000,
+                    LocalIpAddress = "2.2.2.2",
+                    LocalPort = 1234,
+                    RemoteIpAddress = "3.3.3.3",
+                    RemotePort = 8000,
                     Outbound = false,
                     Protocol = System.Net.Sockets.ProtocolType.Tcp,
                     RuleName = "test"
                 }).Sync();
                 Assert.IsNotNull(packetEvent);
-                Assert.AreEqual("2.2.2.2", packetEvent.Value.SourceIpAddress);
-                Assert.AreEqual(1234, packetEvent.Value.SourcePort);
-                Assert.AreEqual("3.3.3.3", packetEvent.Value.DestinationIpAddress);
-                Assert.AreEqual(8000, packetEvent.Value.DestinationPort);
+                Assert.AreEqual("2.2.2.2", packetEvent.Value.LocalIpAddress);
+                Assert.AreEqual(1234, packetEvent.Value.LocalPort);
+                Assert.AreEqual("3.3.3.3", packetEvent.Value.RemoteIpAddress);
+                Assert.AreEqual(8000, packetEvent.Value.RemotePort);
                 Assert.AreEqual(System.Net.Sockets.ProtocolType.Tcp, packetEvent.Value.Protocol);
                 Assert.AreEqual("test", packetEvent.Value.RuleName);
                 Assert.AreEqual(false, packetEvent.Value.Allowed);
