@@ -513,7 +513,7 @@ namespace DigitalRuby.IPBanCore
                 foreach (string ip in ipList)
                 {
                     // trim out submask
-                    int pos = ip.IndexOf('/');
+                    int pos = ip.IndexOfAny(firewallEntryDelimiters);
                     if (pos >= 0)
                     {
                         ipSet.Add(ip[..pos]);
@@ -779,7 +779,7 @@ namespace DigitalRuby.IPBanCore
                 }
                 foreach (string ip in rule.RemoteAddresses.Split(','))
                 {
-                    int pos = ip.IndexOf('/');
+                    int pos = ip.IndexOfAny(firewallEntryDelimiters);
                     if (pos < 0)
                     {
                         yield return ip;

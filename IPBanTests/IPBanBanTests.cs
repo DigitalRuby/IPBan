@@ -39,13 +39,13 @@ namespace DigitalRuby.IPBanTests
     [TestFixture]
     public class IPBanBanTests
     {
-
-
         private const string ip1 = "99.99.99.97";
         private const string ip2 = "99.99.99.98";
+        private const string ip3 = "2a0f:5840::";
         private static readonly IPAddressLogEvent info1 = new(ip1, "test_user", "RDP", 98, IPAddressEventType.FailedLogin);
         private static readonly IPAddressLogEvent info2 = new(ip2, "test_user2", "SSH", 99, IPAddressEventType.FailedLogin);
         private static readonly IPAddressLogEvent info3 = new(ip1, "test_user", "RDP", 1, IPAddressEventType.FailedLogin);
+        private static readonly IPAddressLogEvent info4 = new(ip3, "test_user", "RDP", 25, IPAddressEventType.FailedLogin);
 
         private IPBanService service;
 
@@ -64,7 +64,7 @@ namespace DigitalRuby.IPBanTests
             IPBanService.DisposeIPBanTestService(service);
         }
 
-        private void AddFailedLogins(int count = -1)
+        private void AddFailedLogins(int count = -1, bool ipv6 = false)
         {
             int count1 = (count < 0 ? info1.Count : count);
             int count2 = (count < 0 ? info2.Count : count);
@@ -73,13 +73,24 @@ namespace DigitalRuby.IPBanTests
                 new IPAddressLogEvent(info1.IPAddress, info1.UserName, info1.Source, count1, info1.Type),
                 new IPAddressLogEvent(info2.IPAddress, info2.UserName, info2.Source, count2, info2.Type)
             });
+            if (ipv6)
+            {
+                service.AddIPAddressLogEvents(new IPAddressLogEvent[]
+                {
+                    new IPAddressLogEvent(info4.IPAddress, info4.UserName, info4.Source, count < 0 ? info4.Count : count, info4.Type),
+                });
+            }
             service.RunCycleAsync().Sync();
         }
 
-        private void AssertIPAddressesAreBanned(int failCount1 = -1, int failCount2 = -1)
+        private void AssertIPAddressesAreBanned(int failCount1 = -1, int failCount2 = -1, int failCount3 = -1, bool ipv6 = false)
         {
             Assert.IsTrue(service.Firewall.IsIPAddressBlocked(ip1, out _));
             Assert.IsTrue(service.Firewall.IsIPAddressBlocked(ip2, out _));
+            if (ipv6)
+            {
+                Assert.IsTrue(service.Firewall.IsIPAddressBlocked(ip3, out _));
+            }
             Assert.IsTrue(service.DB.TryGetIPAddress(ip1, out IPBanDB.IPAddressEntry e1));
             Assert.IsTrue(service.DB.TryGetIPAddress(ip2, out IPBanDB.IPAddressEntry e2));
             failCount1 = (failCount1 < 0 ? info1.Count : failCount1);
@@ -88,12 +99,20 @@ namespace DigitalRuby.IPBanTests
             Assert.AreEqual(failCount2, e2.FailedLoginCount);
             Assert.AreEqual(IPBanDB.IPAddressState.Active, e1.State);
             Assert.AreEqual(IPBanDB.IPAddressState.Active, e2.State);
+            if (ipv6)
+            {
+                failCount3 = (failCount3 < 0 ? info4.Count : failCount3);
+                Assert.IsTrue(service.DB.TryGetIPAddress(ip3, out IPBanDB.IPAddressEntry e3));
+                Assert.AreEqual(failCount3, e3.FailedLoginCount);
+                Assert.AreEqual(IPBanDB.IPAddressState.Active, e3.State);
+            }
         }
 
-        private void AssertIPAddressesAreNotBanned(bool exists1 = false, bool exists2 = false)
+        private void AssertIPAddressesAreNotBanned(bool exists1 = false, bool exists2 = false, bool exists3 = false)
         {
             Assert.IsFalse(service.Firewall.IsIPAddressBlocked(ip1, out _));
             Assert.IsFalse(service.Firewall.IsIPAddressBlocked(ip2, out _));
+            Assert.IsFalse(service.Firewall.IsIPAddressBlocked(ip3, out _));
             if (exists1)
             {
                 Assert.IsTrue(service.DB.TryGetIPAddress(ip1, out IPBanDB.IPAddressEntry e1));
@@ -112,12 +131,22 @@ namespace DigitalRuby.IPBanTests
             {
                 Assert.IsFalse(service.DB.TryGetIPAddress(ip2, out _));
             }
+            if (exists3)
+            {
+                Assert.IsTrue(service.DB.TryGetIPAddress(ip3, out IPBanDB.IPAddressEntry e3));
+                Assert.AreNotEqual(IPBanDB.IPAddressState.Active, e3.State);
+            }
+            else
+            {
+                Assert.IsFalse(service.DB.TryGetIPAddress(ip3, out _));
+            }
         }
 
         private void AssertNoIPInDB()
         {
             Assert.IsFalse(service.DB.TryGetIPAddress(ip1, out _));
             Assert.IsFalse(service.DB.TryGetIPAddress(ip2, out _));
+            Assert.IsFalse(service.DB.TryGetIPAddress(ip3, out _));
         }
 
         [Test]
@@ -199,11 +228,11 @@ namespace DigitalRuby.IPBanTests
         [Test]
         public void TestUnblockIPAddresesUnblockFile()
         {
-            AddFailedLogins();
-            AssertIPAddressesAreBanned();
+            AddFailedLogins(ipv6: true);
+            AssertIPAddressesAreBanned(ipv6: true);
 
             // put an unban.txt file in path, service should pick it up
-            File.WriteAllLines(service.UnblockIPAddressesFileName, new string[] { ip1, ip2 });
+            File.WriteAllLines(service.UnblockIPAddressesFileName, new string[] { ip1, ip2, ip3 });
 
             // this should un ban the ip addresses
             service.RunCycleAsync().Sync();
