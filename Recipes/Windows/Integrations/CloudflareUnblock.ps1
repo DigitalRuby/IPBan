@@ -13,7 +13,7 @@ Write-Output "$date Unblock task started..." >> $logfile
 if (!$args[0])  { Write-Output "$date Missing IP, Quitting..." >> $logfile
     exit
     }
-Write-Output "$date Starting unblock of $ip" >> $logfile
+# Write-Output "$date Checking AbuseIPDB Score $ip" >> $logfile # uncomment if you're using the AbuseIPDB check
 # Check against AbuseIPDB, Helpful so as not to unban known abusive IPs, Remove "<#" and "#>" to use this
 <#
 Try { $confidence=Invoke-WebRequest -Uri "https://api.abuseipdb.com/api/v2/check?ipAddress=$ip&maxAgeInDays=90" -Method 'GET' -ContentType "application/json" -Headers @{'Accept'='application/json';'Key'="$abuseipdbapikey"} |
