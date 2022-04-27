@@ -101,14 +101,14 @@ namespace DigitalRuby.IPBanCore
         }
 
         /// <summary>
-        /// Throw ArgumentNullException if obj is null
+        /// Throw ArgumentNullException if obj is null or white space
         /// </summary>
         /// <param name="obj">Object</param>
         /// <param name="name">Parameter name</param>
         /// <param name="message">Message</param>
-        public static void ThrowIfNullOrEmpty(this string obj, string name = null, string message = null)
+        public static void ThrowIfNullOrWhiteSpace(this string obj, string name = null, string message = null)
         {
-            if (obj is null)
+            if (string.IsNullOrWhiteSpace(obj))
             {
                 throw new ArgumentNullException(name ?? string.Empty, message);
             }

@@ -107,7 +107,7 @@ namespace DigitalRuby.IPBanCore
         public LogFileScanner(string pathAndMask, long maxFileSizeBytes = 0, int fileProcessingIntervalMilliseconds = 0, Encoding encoding = null, ushort maxLineLength = 8192)
         {
             PathAndMask = pathAndMask;
-            PathAndMask.ThrowIfNullOrEmpty(nameof(pathAndMask), "Must pass a non-empty path and mask to log file scanner");
+            PathAndMask.ThrowIfNullOrWhiteSpace(nameof(pathAndMask), "Must pass a non-empty path and mask to log file scanner");
 
             // set properties
             this.maxFileSize = maxFileSizeBytes;

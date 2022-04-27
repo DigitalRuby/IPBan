@@ -583,7 +583,7 @@ namespace DigitalRuby.IPBanCore
 
         public override Task<bool> BlockIPAddresses(string ruleNamePrefix, IEnumerable<IPAddressRange> ranges, IEnumerable<PortRange> allowedPorts = null, CancellationToken cancelToken = default)
         {
-            ruleNamePrefix.ThrowIfNullOrEmpty();
+            ruleNamePrefix.ThrowIfNullOrWhiteSpace();
 
             try
             {
@@ -619,7 +619,7 @@ namespace DigitalRuby.IPBanCore
         {
             try
             {
-                ruleNamePrefix.ThrowIfNullOrEmpty();
+                ruleNamePrefix.ThrowIfNullOrWhiteSpace();
                 string ruleName = RulePrefix + ruleNamePrefix;
                 allowRules.Add(ruleName);
                 return Task.FromResult(UpdateRule(ruleName, acceptAction, ipAddresses.Select(r => r.ToCidrString()), hashTypeCidrMask, blockRuleMaxCount, allowedPorts, cancelToken));

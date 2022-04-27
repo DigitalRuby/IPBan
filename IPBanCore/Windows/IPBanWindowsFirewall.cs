@@ -602,7 +602,7 @@ namespace DigitalRuby.IPBanCore
 
         public override Task<bool> BlockIPAddresses(string ruleNamePrefix, IEnumerable<IPAddressRange> ranges, IEnumerable<PortRange> allowedPorts = null, CancellationToken cancelToken = default)
         {
-            ruleNamePrefix.ThrowIfNullOrEmpty();
+            ruleNamePrefix.ThrowIfNullOrWhiteSpace();
             return BlockOrAllowIPAddresses(RulePrefix + ruleNamePrefix, true, ranges.Select(i => i.ToCidrString()), allowedPorts, cancelToken);
         }
 
@@ -613,7 +613,7 @@ namespace DigitalRuby.IPBanCore
 
         public override Task<bool> AllowIPAddresses(string ruleNamePrefix, IEnumerable<IPAddressRange> ipAddresses, IEnumerable<PortRange> allowedPorts = null, CancellationToken cancelToken = default)
         {
-            ruleNamePrefix.ThrowIfNullOrEmpty();
+            ruleNamePrefix.ThrowIfNullOrWhiteSpace();
             return BlockOrAllowIPAddresses(RulePrefix + ruleNamePrefix, false, ipAddresses.Select(i => i.ToCidrString()), allowedPorts, cancelToken);
         }
 
