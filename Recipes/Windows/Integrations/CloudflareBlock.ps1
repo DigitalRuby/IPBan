@@ -16,11 +16,12 @@ Write-Output "$date Attempting to block $ip" >> $logfile
 if($ip -like '*:*') { $ipv="ip6" }
 	else { $ipv="ip" }
 
-$BODY = @{'mode' = 'block'
+$BODY = @{
     'configuration' = @{
         'target' = "$ipv"
         'value' = "$ip"
     }
+    'mode' = 'block'
     'notes' = "IPBan $date"
 }
 $Jsonbody = $Body | ConvertTo-Json
