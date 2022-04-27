@@ -42,7 +42,7 @@ $id=$content.tostring() -split "[`r`n]" |
    select-string "id" |
      Select-Object -First 1 | 
         % {$_-replace ('"id": "|",| ')}
-Write-Output "$date Got ID of block rule: $id..." >> $logfile
+Write-Output "$date Got ID of block rule: $id" >> $logfile
 # Remove ban
 Try { Invoke-WebRequest -Uri "https://api.cloudflare.com/client/v4/user/firewall/access_rules/rules/$id" -Method 'DELETE' -ContentType "application/json" -Headers @{'Accept'='application/json';'X-Auth-Email'="$email";'X-Auth-Key'="$cfapikey"} }
          catch {
