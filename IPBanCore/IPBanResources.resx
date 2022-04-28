@@ -913,4 +913,7 @@
     <value>Disable Monitoring</value>
     <comment>Action to turn off monitoring</comment>
   </data>
+  <data name="Export" xml:space="preserve">
+    <value>Export</value>
+  </data>
 </root>
