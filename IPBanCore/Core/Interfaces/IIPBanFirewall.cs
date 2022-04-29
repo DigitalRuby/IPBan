@@ -191,9 +191,9 @@ namespace DigitalRuby.IPBanCore
         public int LocalPort { get; init; }
 
         /// <summary>
-        /// Remote country (if known)
+        /// Remote geo (if known)
         /// </summary>
-        public string RemoteCountry { get; set; }
+        public string RemoteGeo { get; set; }
 
         /// <summary>
         /// Destination ip address of the packet
