@@ -160,6 +160,24 @@ namespace DigitalRuby.IPBanCore {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Auto Whitelist Success Logins.
+        /// </summary>
+        public static string AutoWhitelistSuccessLogins {
+            get {
+                return ResourceManager.GetString("AutoWhitelistSuccessLogins", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Number of days to whitelist remote ip addresses that have a successful login.
+        /// </summary>
+        public static string AutoWhitelistSuccessLoginsTooltip {
+            get {
+                return ResourceManager.GetString("AutoWhitelistSuccessLoginsTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Available.
         /// </summary>
         public static string Available {

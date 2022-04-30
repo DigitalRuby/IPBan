@@ -916,4 +916,10 @@
   <data name="Export" xml:space="preserve">
     <value>Export</value>
   </data>
+  <data name="AutoWhitelistSuccessLogins" xml:space="preserve">
+    <value>Auto Whitelist Success Logins</value>
+  </data>
+  <data name="AutoWhitelistSuccessLoginsTooltip" xml:space="preserve">
+    <value>Number of days to whitelist remote ip addresses that have a successful login</value>
+  </data>
 </root>
