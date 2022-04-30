@@ -902,16 +902,8 @@
   <data name="Leaks" xml:space="preserve">
     <value>Leaks</value>
   </data>
-  <data name="EnableMonitoring" xml:space="preserve">
-    <value>Enable Monitoring</value>
-    <comment>Action to enable monitoring</comment>
-  </data>
   <data name="Resources" xml:space="preserve">
     <value>Resources</value>
-  </data>
-  <data name="DisableMonitoring" xml:space="preserve">
-    <value>Disable Monitoring</value>
-    <comment>Action to turn off monitoring</comment>
   </data>
   <data name="Export" xml:space="preserve">
     <value>Export</value>
@@ -925,5 +917,8 @@
   <data name="Toggle" xml:space="preserve">
     <value>Toggle</value>
     <comment>Turn something on or off</comment>
+  </data>
+  <data name="SetMonitoring" xml:space="preserve">
+    <value>Set Monitoring</value>
   </data>
 </root>

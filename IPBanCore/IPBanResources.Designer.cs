@@ -484,15 +484,6 @@ namespace DigitalRuby.IPBanCore {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Disable Monitoring.
-        /// </summary>
-        public static string DisableMonitoring {
-            get {
-                return ResourceManager.GetString("DisableMonitoring", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Docs.
         /// </summary>
         public static string Docs {
@@ -543,15 +534,6 @@ namespace DigitalRuby.IPBanCore {
         public static string EnableListsTooltip {
             get {
                 return ResourceManager.GetString("EnableListsTooltip", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Enable Monitoring.
-        /// </summary>
-        public static string EnableMonitoring {
-            get {
-                return ResourceManager.GetString("EnableMonitoring", resourceCulture);
             }
         }
         
@@ -1731,6 +1713,15 @@ namespace DigitalRuby.IPBanCore {
         public static string Save {
             get {
                 return ResourceManager.GetString("Save", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Set Monitoring.
+        /// </summary>
+        public static string SetMonitoring {
+            get {
+                return ResourceManager.GetString("SetMonitoring", resourceCulture);
             }
         }
         
