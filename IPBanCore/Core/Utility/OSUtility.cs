@@ -584,7 +584,7 @@ namespace DigitalRuby.IPBanCore
                                     for (int i = 0; i < nics.Length; i++)
                                     {
                                         long currentTransfer = nics[i].GetIPStatistics().BytesReceived + nics[i].GetIPStatistics().BytesSent;
-                                        percent = (float)Math.Max(percent, (double)(currentTransfer - prevTransfer[i]) / maxSpeeds[i]);
+                                        percent = (maxSpeeds[i] <= 0.01f ? 0.0f : (float)Math.Max(percent, (double)(currentTransfer - prevTransfer[i]) / maxSpeeds[i]));
                                         prevTransfer[i] = currentTransfer;
                                     }
                                     networkUsage = Math.Clamp(percent, 0.0f, 1.0f);
