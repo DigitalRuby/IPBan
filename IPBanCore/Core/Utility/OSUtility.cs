@@ -569,7 +569,7 @@ namespace DigitalRuby.IPBanCore
                                         for (int i = 0; i < nics.Length; i++)
                                         {
                                             prevTransfer[i] = nics[i].GetIPStatistics().BytesReceived + nics[i].GetIPStatistics().BytesSent;
-                                            maxSpeeds[i] = (double)(nics[i].Speed / 8);
+                                            maxSpeeds[i] = Math.Max(1024.0, (double)(nics[i].Speed / 8));
                                         }
                                     }
                                     catch
@@ -580,14 +580,21 @@ namespace DigitalRuby.IPBanCore
                                 await System.Threading.Tasks.Task.Delay(1000);
                                 if (nics is not null)
                                 {
-                                    float percent = 0.0f;
-                                    for (int i = 0; i < nics.Length; i++)
+                                    try
                                     {
-                                        long currentTransfer = nics[i].GetIPStatistics().BytesReceived + nics[i].GetIPStatistics().BytesSent;
-                                        percent = (maxSpeeds[i] <= 0.01f ? 0.0f : (float)Math.Max(percent, (double)(currentTransfer - prevTransfer[i]) / maxSpeeds[i]));
-                                        prevTransfer[i] = currentTransfer;
+                                        float percent = 0.0f;
+                                        for (int i = 0; i < nics.Length; i++)
+                                        {
+                                            long currentTransfer = nics[i].GetIPStatistics().BytesReceived + nics[i].GetIPStatistics().BytesSent;
+                                            percent = (float)Math.Max(percent, (double)(currentTransfer - prevTransfer[i]) / maxSpeeds[i]);
+                                            prevTransfer[i] = currentTransfer;
+                                        }
+                                        networkUsage = Math.Clamp(percent, 0.0f, 1.0f);
                                     }
-                                    networkUsage = Math.Clamp(percent, 0.0f, 1.0f);
+                                    catch
+                                    {
+                                        // non-fatal, try again later
+                                    }
                                 }
                             }
                         });
