@@ -2032,6 +2032,15 @@ namespace DigitalRuby.IPBanCore {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Toggle.
+        /// </summary>
+        public static string Toggle {
+            get {
+                return ResourceManager.GetString("Toggle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Tools.
         /// </summary>
         public static string Tools {

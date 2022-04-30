@@ -922,4 +922,8 @@
   <data name="AutoWhitelistSuccessLoginsTooltip" xml:space="preserve">
     <value>Number of days to whitelist remote ip addresses that have a successful login</value>
   </data>
+  <data name="Toggle" xml:space="preserve">
+    <value>Toggle</value>
+    <comment>Turn something on or off</comment>
+  </data>
 </root>
