@@ -1717,11 +1717,29 @@ namespace DigitalRuby.IPBanCore {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Set Monitoring.
+        ///   Looks up a localized string similar to Select All.
         /// </summary>
-        public static string SetMonitoring {
+        public static string SelectAll {
             get {
-                return ResourceManager.GetString("SetMonitoring", resourceCulture);
+                return ResourceManager.GetString("SelectAll", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Select None.
+        /// </summary>
+        public static string SelectNone {
+            get {
+                return ResourceManager.GetString("SelectNone", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Set Firewall Monitoring.
+        /// </summary>
+        public static string SetFirewallMonitoring {
+            get {
+                return ResourceManager.GetString("SetFirewallMonitoring", resourceCulture);
             }
         }
         

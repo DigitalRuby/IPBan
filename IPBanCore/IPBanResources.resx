@@ -918,7 +918,13 @@
     <value>Toggle</value>
     <comment>Turn something on or off</comment>
   </data>
-  <data name="SetMonitoring" xml:space="preserve">
-    <value>Set Monitoring</value>
+  <data name="SetFirewallMonitoring" xml:space="preserve">
+    <value>Set Firewall Monitoring</value>
+  </data>
+  <data name="SelectAll" xml:space="preserve">
+    <value>Select All</value>
+  </data>
+  <data name="SelectNone" xml:space="preserve">
+    <value>Select None</value>
   </data>
 </root>
