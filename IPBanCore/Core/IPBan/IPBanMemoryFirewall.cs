@@ -406,7 +406,7 @@ namespace DigitalRuby.IPBanCore
 
         public IPBanMemoryFirewall(string rulePrefix = null) : base(rulePrefix)
         {
-            allowRule = new MemoryFirewallRule(false, AllowRuleName);
+            allowRule = new MemoryFirewallRule(false, AllowRulePrefix + "0");
         }
 
         public override Task Update(CancellationToken cancelToken)
@@ -589,7 +589,7 @@ namespace DigitalRuby.IPBanCore
                 string prefix1 = ScrubRuleNamePrefix(AllowRulePrefix, ruleNamePrefix);
                 string prefix2 = ScrubRuleNamePrefix(BlockRulePrefix, ruleNamePrefix);
                 string prefix3 = ScrubRuleNamePrefix(RulePrefix, ruleNamePrefix);
-                IEnumerable<string> ruleNames = new string[] { AllowRuleName }.Union(allowRuleRanges.Keys).Union(blockRules.Keys).Union(blockRulesRanges.Keys);
+                IEnumerable<string> ruleNames = new string[] { AllowRulePrefix + "0" }.Union(allowRuleRanges.Keys).Union(blockRules.Keys).Union(blockRulesRanges.Keys);
                 return ruleNames.Where(r => string.IsNullOrWhiteSpace(ruleNamePrefix) ||
                     r.StartsWith(prefix1, StringComparison.OrdinalIgnoreCase) ||
                     r.StartsWith(prefix2, StringComparison.OrdinalIgnoreCase) ||

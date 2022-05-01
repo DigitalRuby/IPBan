@@ -61,7 +61,6 @@ namespace DigitalRuby.IPBanCore
 
         private static readonly DateTime unixEpoch = new(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
         private static readonly XmlSerializerNamespaces emptyXmlNs = new();
-        private static readonly System.Net.IPAddress[] localHostIP = new System.Net.IPAddress[] { System.Net.IPAddress.Parse("127.0.0.1"), System.Net.IPAddress.Parse("::1") };
 
         static ExtensionMethods()
         {
@@ -951,50 +950,6 @@ namespace DigitalRuby.IPBanCore
                 }
             }
             return allTypes = types.ToArray();
-        }
-
-        /// <summary>
-        /// Get the ip addresses of the local machine
-        /// </summary>
-        /// <param name="dns">Dns lookup</param>
-        /// <param name="allowLocal">Whether to return localhost ip</param>
-        /// <param name="addressFamily">Desired address family or null for all</param>
-        /// <returns>Local ip address or empty array if unable to determine. If no address family match, falls back to an ipv6 attempt.</returns>
-        public static async Task<System.Net.IPAddress[]> GetLocalIPAddressesAsync(this IDnsLookup dns,
-            bool allowLocal = true, System.Net.Sockets.AddressFamily? addressFamily = null)
-        {
-            try
-            {
-                // append ipv4 first, then the ipv6 then the remote ip
-                List<IPAddress> ips = new();
-                string hostName = await dns.GetHostNameAsync();
-                IPAddress[] hostAddresses = await dns.GetHostAddressesAsync(hostName);
-                ips.AddRange(hostAddresses.Where(i => !i.IsLocalHost()));
-
-                // sort ipv4 first
-                ips.Sort((ip1, ip2) =>
-                {
-                    int compare = ip1.AddressFamily.CompareTo(ip2.AddressFamily);
-                    if (compare == 0)
-                    {
-                        compare = ip1.CompareTo(ip2);
-                    }
-                    return compare;
-                });
-
-                if (allowLocal)
-                {
-                    ips.AddRange(localHostIP);
-                }
-
-                return ips.Where(ip => (allowLocal || !ip.IsLocalHost()) &&
-                    (addressFamily is null || ip.AddressFamily == addressFamily.Value)).ToArray();
-            }
-            catch
-            {
-                // eat exception, delicious
-            }
-            return Array.Empty<IPAddress>();
         }
 
         /// <summary>

@@ -40,8 +40,6 @@ namespace DigitalRuby.IPBanCore
 
         protected string AllowRulePrefix { get; private set; }
         protected string BlockRulePrefix { get; private set; }
-        protected string AllowRuleName { get; private set; }
-        protected string BlockRuleName { get; private set; }
 
         /// <summary>
         /// Packet event handler
@@ -85,8 +83,6 @@ namespace DigitalRuby.IPBanCore
             }
             AllowRulePrefix = RulePrefix + "Allow_";
             BlockRulePrefix = RulePrefix + "Block_";
-            AllowRuleName = AllowRulePrefix + "0";
-            BlockRuleName = BlockRulePrefix + "0";
         }
 
         /// <summary>

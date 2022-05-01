@@ -134,7 +134,6 @@ namespace DigitalRuby.IPBanCore
         private readonly string getUrlStart;
         private readonly string getUrlStop;
         private readonly string getUrlConfig;
-        private readonly string externalIPAddressUrl;
         private readonly string firewallUriRules;
         private readonly List<IPBanFirewallRule> extraRules = new();
         private readonly EventViewerExpressionsToBlock expressionsFailure;
@@ -229,7 +228,6 @@ namespace DigitalRuby.IPBanCore
             GetConfig<string>("GetUrlStart", ref getUrlStart);
             GetConfig<string>("GetUrlStop", ref getUrlStop);
             GetConfig<string>("GetUrlConfig", ref getUrlConfig);
-            GetConfig<string>("ExternalIPAddressUrl", ref externalIPAddressUrl);
             GetConfig<string>("FirewallUriRules", ref firewallUriRules);
             if (string.IsNullOrWhiteSpace(firewallUriRules))
             {
@@ -874,10 +872,5 @@ namespace DigitalRuby.IPBanCore
         /// A url to get for a config file update, empty for none. See ReplaceUrl of IPBanService for place-holders.
         /// </summary>
         public string GetUrlConfig { get { return getUrlConfig; } }
-
-        /// <summary>
-        /// Url to query to get the external ip address, the url should return a string which is the external ip address.
-        /// </summary>
-        public string ExternalIPAddressUrl { get { return externalIPAddressUrl; } }
     }
 }

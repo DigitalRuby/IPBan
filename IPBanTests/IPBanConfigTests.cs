@@ -207,7 +207,6 @@ namespace DigitalRuby.IPBanTests
                 Assert.IsFalse(cfg.ProcessInternalIPAddresses);
                 Assert.AreEqual(TimeSpan.FromSeconds(15.0), cfg.CycleTime);
                 Assert.AreEqual(TimeSpan.FromDays(1.0), cfg.ExpireTime);
-                Assert.AreEqual("https://checkip.amazonaws.com/", cfg.ExternalIPAddressUrl);
                 Assert.AreEqual(5, cfg.FailedLoginAttemptsBeforeBan);
                 Assert.AreEqual(20, cfg.FailedLoginAttemptsBeforeBanUserNameWhitelist);
                 Assert.AreEqual("IPBan_", cfg.FirewallRulePrefix);

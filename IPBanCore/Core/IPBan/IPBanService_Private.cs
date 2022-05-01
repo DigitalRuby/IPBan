@@ -259,8 +259,8 @@ namespace DigitalRuby.IPBanCore
             {
                 try
                 {
-                    IPAddress ipAddress = await ExternalIPAddressLookup.LookupExternalIPAddressAsync(RequestMaker, Config.ExternalIPAddressUrl);
-                    RemoteIPAddressString = ipAddress.ToString();
+                    IPAddress ipAddress = NetworkUtility.GetPriorityIPAddresses().FirstOrDefault();
+                    RemoteIPAddressString = ipAddress?.ToString();
                     Logger.Info("Remote ip address: {0}", RemoteIPAddressString);
                 }
                 catch

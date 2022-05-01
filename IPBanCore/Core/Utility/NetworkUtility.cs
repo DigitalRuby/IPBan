@@ -35,6 +35,7 @@ namespace DigitalRuby.IPBanCore
     public static class NetworkUtility
     {
         // https://en.wikipedia.org/wiki/Reserved_IP_addresses
+        private static readonly System.Net.IPAddress[] localHostIP = new System.Net.IPAddress[] { System.Net.IPAddress.Parse("127.0.0.1"), System.Net.IPAddress.Parse("::1") };
 
         /// <summary>
         /// First ipv4
@@ -178,9 +179,9 @@ namespace DigitalRuby.IPBanCore
         /// Get all ips of local machine
         /// </summary>
         /// <returns>All ips of local machine</returns>
-        public static IReadOnlyCollection<string> GetAllIPAddresses()
+        public static IReadOnlyCollection<System.Net.IPAddress> GetAllIPAddresses()
         {
-            HashSet<string> ipSet = new();
+            HashSet<System.Net.IPAddress> ipSet = new();
             foreach (NetworkInterface netInterface in NetworkInterface.GetAllNetworkInterfaces())
             {
                 if (netInterface.OperationalStatus == OperationalStatus.Up)
@@ -190,14 +191,92 @@ namespace DigitalRuby.IPBanCore
                     {
                         if (!addr.Address.IsLocalHost())
                         {
-                            string ipString = addr.Address.ToString();
-                            ipString = System.Text.RegularExpressions.Regex.Replace(ipString, "%.*$", string.Empty);
-                            ipSet.Add(ipString);
+                            ipSet.Add(addr.Address.Clean());
                         }
                     }
                 }
             }
             return ipSet;
+        }
+
+        /// <summary>
+        /// Get the ip addresses of the local machine
+        /// </summary>
+        /// <param name="dns">Dns lookup</param>
+        /// <param name="allowLocal">Whether to return localhost ip</param>
+        /// <param name="addressFamily">Desired address family or null for all</param>
+        /// <returns>Local ip address or empty array if unable to determine. If no address family match, falls back to an ipv6 attempt.</returns>
+        public static async System.Threading.Tasks.Task<System.Net.IPAddress[]> GetLocalIPAddressesAsync(this IDnsLookup dns,
+            bool allowLocal = true, System.Net.Sockets.AddressFamily? addressFamily = null)
+        {
+            try
+            {
+                // append ipv4 first, then the ipv6 then the remote ip
+                List<IPAddress> ips = new();
+                string hostName = await dns.GetHostNameAsync();
+                IPAddress[] hostAddresses = await dns.GetHostAddressesAsync(hostName);
+                ips.AddRange(hostAddresses.Where(i => !i.IsLocalHost()));
+
+                // sort ipv4 first
+                ips.Sort((ip1, ip2) =>
+                {
+                    int compare = ip1.AddressFamily.CompareTo(ip2.AddressFamily);
+                    if (compare == 0)
+                    {
+                        compare = ip1.CompareTo(ip2);
+                    }
+                    return compare;
+                });
+
+                if (allowLocal)
+                {
+                    ips.AddRange(localHostIP);
+                }
+
+                return ips.Where(ip => (allowLocal || !ip.IsLocalHost()) &&
+                    (addressFamily is null || ip.AddressFamily == addressFamily.Value)).ToArray();
+            }
+            catch
+            {
+                // eat exception, delicious
+            }
+            return System.Array.Empty<IPAddress>();
+        }
+
+        /// <summary>
+        /// Get all ip addresses of the machine, in priority order, putting external ipv4 first, then external ipv6, then internal ipv4 and finally internal ipv6
+        /// </summary>
+        /// <param name="overrides">Override the local ip addresses</param>
+        /// <returns>IP addresses</returns>
+        public static IEnumerable<System.Net.IPAddress> GetPriorityIPAddresses(string[] overrides = null)
+        {
+            List<System.Net.IPAddress> ips = new();
+            try
+            {
+                var collection = (overrides is null ? GetAllIPAddresses() : overrides.Select(o => System.Net.IPAddress.Parse(o)));
+                ips.AddRange(collection);
+                ips.Sort((ip1, ip2) =>
+                {
+                    int internal1 = ip1.IsInternal() ? 1 : 0;
+                    int internal2 = ip2.IsInternal() ? 1 : 0;
+                    if (internal1 != internal2)
+                    {
+                        return internal1.CompareTo(internal2);
+                    }
+                    int family1 = ip1.AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6 ? 1 : 0;
+                    int family2 = ip2.AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6 ? 1 : 0;
+                    if (family1 != family2)
+                    {
+                        return family1.CompareTo(family2);
+                    }
+                    return ip1.CompareTo(ip2);
+                });
+            }
+            catch
+            {
+                // non-fatal
+            }
+            return ips;
         }
     }
 }

@@ -578,7 +578,6 @@ namespace DigitalRuby.IPBanCore
             }
             ExtensionMethods.FileWriteAllTextWithRetry(configFilePath, configFileText);
             T service = IPBanService.CreateService<T>() as T;
-            service.ExternalIPAddressLookup = LocalMachineExternalIPAddressLookupTest.Instance;
             service.ConfigFilePath = configFilePath;
             service.MultiThreaded = false;
             service.ManualCycle = true;

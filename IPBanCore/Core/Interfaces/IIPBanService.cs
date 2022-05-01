@@ -169,11 +169,6 @@ namespace DigitalRuby.IPBanCore
         IDnsLookup DnsLookup { get; }
 
         /// <summary>
-        /// External ip address lookup
-        /// </summary>
-        ILocalMachineExternalIPAddressLookup ExternalIPAddressLookup { get; set; }
-
-        /// <summary>
         /// Extra handler for banned ip addresses
         /// </summary>
         IBannedIPAddressHandler BannedIPAddressHandler { get; set; }

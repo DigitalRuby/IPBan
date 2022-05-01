@@ -50,6 +50,7 @@ namespace DigitalRuby.IPBanCore
         private const string dropAction = "DROP";
 
         private readonly AddressFamily addressFamily;
+        private readonly string allowRuleName;
 
         private DateTime lastUpdate = IPBanService.UtcNow;
 
@@ -472,6 +473,7 @@ namespace DigitalRuby.IPBanCore
             */
 
             addressFamily = (IsIPV4 ? AddressFamily.InterNetwork : AddressFamily.InterNetworkV6);
+            allowRuleName = AllowRulePrefix + "0";
             OnInitialize();
             RestoreSetsFromDisk();
             RestoreTablesFromDisk();
@@ -551,7 +553,7 @@ namespace DigitalRuby.IPBanCore
         {
             try
             {
-                string ruleName = (string.IsNullOrWhiteSpace(ruleNamePrefix) ? BlockRuleName : RulePrefix + ruleNamePrefix);
+                string ruleName = (string.IsNullOrWhiteSpace(ruleNamePrefix) ? BlockRulePrefix : RulePrefix + ruleNamePrefix);
                 return Task.FromResult(UpdateRule(ruleName, dropAction, ipAddresses, hashTypeSingleIP, blockRuleMaxCount, allowedPorts, cancelToken));
             }
             catch (Exception ex)
@@ -568,7 +570,7 @@ namespace DigitalRuby.IPBanCore
         {
             try
             {
-                string ruleName = (string.IsNullOrWhiteSpace(ruleNamePrefix) ? BlockRuleName : RulePrefix + ruleNamePrefix);
+                string ruleName = (string.IsNullOrWhiteSpace(ruleNamePrefix) ? BlockRulePrefix : RulePrefix + ruleNamePrefix);
                 return Task.FromResult(UpdateRuleDelta(ruleName, dropAction, deltas, hashTypeSingleIP, blockRuleMaxCount, false, allowedPorts, cancelToken));
             }
             catch (Exception ex)
@@ -603,7 +605,7 @@ namespace DigitalRuby.IPBanCore
         {
             try
             {
-                return Task.FromResult(UpdateRule(AllowRuleName, acceptAction, ipAddresses, hashTypeSingleIP, allowRuleMaxCount, null, cancelToken));
+                return Task.FromResult(UpdateRule(allowRuleName, acceptAction, ipAddresses, hashTypeSingleIP, allowRuleMaxCount, null, cancelToken));
             }
             catch (Exception ex)
             {
@@ -707,7 +709,7 @@ namespace DigitalRuby.IPBanCore
                     string[] pieces = line.Split(' ');
                     if (pieces.Length > 1 && pieces[0].Equals("create", StringComparison.OrdinalIgnoreCase))
                     {
-                        inBlockRule = (!pieces[1].Equals(AllowRuleName) &&
+                        inBlockRule = (!pieces[1].Equals(allowRuleName) &&
                             (pieces[1].StartsWith(BlockRulePrefix) || pieces[1].StartsWith(RulePrefix + "6_Block_")));
                         if (inBlockRule)
                         {
@@ -742,7 +744,7 @@ namespace DigitalRuby.IPBanCore
                     string[] pieces = line.Split(' ');
                     if (pieces.Length > 1 && pieces[0].Equals("create", StringComparison.OrdinalIgnoreCase))
                     {
-                        inAllow = (pieces[1].Equals(AllowRuleName));
+                        inAllow = (pieces[1].Equals(allowRuleName));
                     }
                     else if (inAllow && pieces.Length > 2 && pieces[0] == "add")
                     {

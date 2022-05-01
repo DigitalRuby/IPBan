@@ -104,11 +104,6 @@ namespace DigitalRuby.IPBanCore
         public IDnsServerList DnsList { get; set; } = new IPBanDnsServerList();
 
         /// <summary>
-        /// External ip address implementation - defaults to ExternalIPAddressLookupDefault.Instance
-        /// </summary>
-        public ILocalMachineExternalIPAddressLookup ExternalIPAddressLookup { get; set; } = LocalMachineExternalIPAddressLookupDefault.Instance;
-
-        /// <summary>
         /// Extra handler for banned ip addresses (optional)
         /// </summary>
         public IBannedIPAddressHandler BannedIPAddressHandler { get; set; } = new DefaultBannedIPAddressHandler();
