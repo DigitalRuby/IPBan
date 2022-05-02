@@ -176,6 +176,12 @@ namespace DigitalRuby.IPBanCore
     public struct PacketEvent
     {
         /// <summary>
+        /// Timestamp
+        /// </summary>
+        [System.Text.Json.Serialization.JsonConverter(typeof(DateTimeOffsetJsonConverter))]
+        public DateTimeOffset Timestamp { get; init; }
+
+        /// <summary>
         /// FQDN of machine sending the event
         /// </summary>
         public string FQDN { get; init; }
@@ -224,6 +230,14 @@ namespace DigitalRuby.IPBanCore
         /// Whether the packet is outgoing (true) or incoming (false)
         /// </summary>
         public bool Outbound { get; init; }
+
+        /// <inheritdoc />
+        public override string ToString()
+        {
+            var dir = Outbound ? "outbound" : "inbound";
+            var protocol = Protocol.ToString();
+            return $"{Timestamp:s}Z|{FQDN}|{RuleName}|{protocol}|{dir}|{LocalIpAddress}|{LocalPort}|{RemoteIpAddress}|{RemotePort}|{RemoteGeo}";
+        }
     }
 
     /// <summary>
