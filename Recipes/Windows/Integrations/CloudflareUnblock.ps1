@@ -31,17 +31,17 @@ If ($score –lt $confidence) { Write-Output "$date Score above threshold, will 
     }
 #>
 # Get ID of Cloudflare block rule
-Try { $content=Invoke-WebRequest -Uri "https://api.cloudflare.com/client/v4/user/firewall/access_rules/rules?page=1&per_page=20&mode=block&configuration.target=ip&configuration.value=$ip&match=all&order=mode&direction=desc" -Method 'GET' -Headers @{'Accept'='application/json';'X-Auth-Email'="$email";'X-Auth-Key'="$cfapikey"} }
+Try { $id=Invoke-WebRequest -Uri "https://api.cloudflare.com/client/v4/user/firewall/access_rules/rules?page=1&per_page=20&mode=block&configuration.target=ip&configuration.value=$ip&match=all&order=mode&direction=desc" -Method 'GET' -ContentType "application/json" -Headers @{'Accept'='application/json';'X-Auth-Email'="$email";'X-Auth-Key'="$cfapikey"} |
+         Select-Object -Expand Content |
+            ConvertFrom-Json |
+              % {$_.result[0].id }
+            }
          catch {
             $message = $_
             Write-Output "$date $message" >> $logfile
             Write-Output "$date Cloudflare API ERROR, unable to get ID of IP, Quitting..." >> $logfile
           exit
           }
-$id=$content.tostring() -split "[`r`n]" |
-   select-string "id" |
-     Select-Object -First 1 | 
-        % {$_-replace ('"id": "|",| ')}
 Write-Output "$date Got ID of block rule: $id" >> $logfile
 # Remove ban
 Try { Invoke-WebRequest -Uri "https://api.cloudflare.com/client/v4/user/firewall/access_rules/rules/$id" -Method 'DELETE' -ContentType "application/json" -Headers @{'Accept'='application/json';'X-Auth-Email'="$email";'X-Auth-Key'="$cfapikey"} }
