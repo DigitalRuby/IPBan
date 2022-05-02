@@ -286,13 +286,14 @@ namespace DigitalRuby.IPBanTests
         [Test]
         public void TestPacketEvent()
         {
-            PacketEvent? packetEvent = null;
+            PacketEvent packetEvent = null;
             void PacketCallback(in PacketEvent e)
             {
                 packetEvent = e;
             }
 
             firewall.PacketEvent += PacketCallback;
+            DateTimeOffset timestamp = new DateTimeOffset(2022, 1, 1, 1, 1, 1, TimeSpan.Zero);
             try
             {
                 firewall.SendPacketEvent(new PacketEvent
@@ -304,17 +305,28 @@ namespace DigitalRuby.IPBanTests
                     RemotePort = 8000,
                     Outbound = false,
                     Protocol = System.Net.Sockets.ProtocolType.Tcp,
-                    RuleName = "test"
+                    RuleName = "test",
+                    FQDN = "fqdn1",
+                    RemoteCity = "city",
+                    RemoteCountry = "country",
+                    RemoteISP = "isp",
+                    RemoteRegion = "region",
+                    Timestamp = timestamp
                 }).Sync();
                 Assert.IsNotNull(packetEvent);
-                Assert.AreEqual("2.2.2.2", packetEvent.Value.LocalIpAddress);
-                Assert.AreEqual(1234, packetEvent.Value.LocalPort);
-                Assert.AreEqual("3.3.3.3", packetEvent.Value.RemoteIpAddress);
-                Assert.AreEqual(8000, packetEvent.Value.RemotePort);
-                Assert.AreEqual(System.Net.Sockets.ProtocolType.Tcp, packetEvent.Value.Protocol);
-                Assert.AreEqual("test", packetEvent.Value.RuleName);
-                Assert.AreEqual(false, packetEvent.Value.Allowed);
-                Assert.AreEqual(false, packetEvent.Value.Outbound);
+                Assert.AreEqual("2.2.2.2", packetEvent.LocalIpAddress);
+                Assert.AreEqual(1234, packetEvent.LocalPort);
+                Assert.AreEqual("3.3.3.3", packetEvent.RemoteIpAddress);
+                Assert.AreEqual(8000, packetEvent.RemotePort);
+                Assert.AreEqual(System.Net.Sockets.ProtocolType.Tcp, packetEvent.Protocol);
+                Assert.AreEqual("test", packetEvent.RuleName);
+                Assert.AreEqual(false, packetEvent.Allowed);
+                Assert.AreEqual(false, packetEvent.Outbound);
+                Assert.AreEqual("fqdn1", packetEvent.FQDN);
+                Assert.AreEqual("city", packetEvent.RemoteCity);
+                Assert.AreEqual("isp", packetEvent.RemoteISP);
+                Assert.AreEqual("region", packetEvent.RemoteRegion);
+                Assert.AreEqual(timestamp, packetEvent.Timestamp);
             }
             finally
             {

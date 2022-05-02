@@ -241,6 +241,15 @@ namespace DigitalRuby.IPBanCore {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Blocked and Allowed Packets by Country last 24 hours.
+        /// </summary>
+        public static string BlockedPacketsByCountry {
+            get {
+                return ResourceManager.GetString("BlockedPacketsByCountry", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Cancel.
         /// </summary>
         public static string Cancel {
@@ -480,6 +489,15 @@ namespace DigitalRuby.IPBanCore {
         public static string Details {
             get {
                 return ResourceManager.GetString("Details", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Direction.
+        /// </summary>
+        public static string Direction {
+            get {
+                return ResourceManager.GetString("Direction", resourceCulture);
             }
         }
         
@@ -1042,7 +1060,7 @@ namespace DigitalRuby.IPBanCore {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to IP addresses, cidr masks, urls or dns names to never ban. Prefis user names with user:, i.e. user:root..
+        ///   Looks up a localized string similar to IP addresses, cidr masks, urls or dns names to never ban. Prefix user names with user:, i.e. user:root..
         /// </summary>
         public static string IPWhitelistTooltip {
             get {
@@ -1056,6 +1074,15 @@ namespace DigitalRuby.IPBanCore {
         public static string IsIPAddressBanned {
             get {
                 return ResourceManager.GetString("IsIPAddressBanned", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ISP.
+        /// </summary>
+        public static string ISP {
+            get {
+                return ResourceManager.GetString("ISP", resourceCulture);
             }
         }
         
@@ -1092,6 +1119,15 @@ namespace DigitalRuby.IPBanCore {
         public static string LocalIP {
             get {
                 return ResourceManager.GetString("LocalIP", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Local Port.
+        /// </summary>
+        public static string LocalPort {
+            get {
+                return ResourceManager.GetString("LocalPort", resourceCulture);
             }
         }
         
@@ -1528,6 +1564,15 @@ namespace DigitalRuby.IPBanCore {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Protocol.
+        /// </summary>
+        public static string Protocol {
+            get {
+                return ResourceManager.GetString("Protocol", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Public API Key.
         /// </summary>
         public static string PublicAPIKey {
@@ -1663,6 +1708,15 @@ namespace DigitalRuby.IPBanCore {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Remote Port.
+        /// </summary>
+        public static string RemotePort {
+            get {
+                return ResourceManager.GetString("RemotePort", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Remove all license keys and reset usage..
         /// </summary>
         public static string RemoveAllLicenseKeys {
@@ -1704,6 +1758,15 @@ namespace DigitalRuby.IPBanCore {
         public static string Role {
             get {
                 return ResourceManager.GetString("Role", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Rule.
+        /// </summary>
+        public static string Rule {
+            get {
+                return ResourceManager.GetString("Rule", resourceCulture);
             }
         }
         

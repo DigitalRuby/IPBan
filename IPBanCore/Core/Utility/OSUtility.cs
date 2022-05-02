@@ -334,35 +334,38 @@ namespace DigitalRuby.IPBanCore
         {
             get
             {
-                if (string.IsNullOrWhiteSpace(fqdn))
+                lock (locker)
                 {
-                    string serverName = System.Environment.MachineName;
-                    string domainName = null;
-                    if (OperatingSystem.IsWindows())
+                    if (string.IsNullOrWhiteSpace(fqdn))
                     {
+                        string serverName = System.Environment.MachineName;
+                        string domainName = null;
+                        if (OperatingSystem.IsWindows())
+                        {
+                            try
+                            {
+                                domainName = System.Net.NetworkInformation.IPGlobalProperties.GetIPGlobalProperties().DomainName;
+                            }
+                            catch
+                            {
+                            }
+                        }
                         try
                         {
-                            domainName = System.Net.NetworkInformation.IPGlobalProperties.GetIPGlobalProperties().DomainName;
+                            fqdn = System.Net.Dns.GetHostName();
+                            if (!string.IsNullOrWhiteSpace(domainName) &&
+                                !fqdn.StartsWith(domainName + ".", StringComparison.OrdinalIgnoreCase))
+                            {
+                                fqdn = domainName + "." + fqdn;
+                            }
                         }
                         catch
                         {
+                            fqdn = serverName;
                         }
-                    }
-                    try
-                    {
-                        fqdn = System.Net.Dns.GetHostName();
-                        if (!string.IsNullOrWhiteSpace(domainName) &&
-                            !fqdn.StartsWith(domainName + ".", StringComparison.OrdinalIgnoreCase))
-                        {
-                            fqdn = domainName + "." + fqdn;
-                        }
-                    }
-                    catch
-                    {
-                        fqdn = serverName;
-                    }
 
-                    Logger.Info("FQDN: {0}", fqdn);
+                        Logger.Info("FQDN: {0}", fqdn);
+                    }
                 }
                 return fqdn;
             }

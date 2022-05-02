@@ -173,7 +173,7 @@ namespace DigitalRuby.IPBanCore
     /// <summary>
     /// Packet event
     /// </summary>
-    public struct PacketEvent
+    public class PacketEvent
     {
         /// <summary>
         /// Timestamp
@@ -197,9 +197,24 @@ namespace DigitalRuby.IPBanCore
         public int LocalPort { get; init; }
 
         /// <summary>
-        /// Remote geo (if known)
+        /// Remote ISP (if known)
         /// </summary>
-        public string RemoteGeo { get; set; }
+        public string RemoteISP { get; set; }
+
+        /// <summary>
+        /// Remote country (if known)
+        /// </summary>
+        public string RemoteCountry { get; set; }
+
+        /// <summary>
+        /// Remote region (if known)
+        /// </summary>
+        public string RemoteRegion { get; set; }
+
+        /// <summary>
+        /// Remote city (if known)
+        /// </summary>
+        public string RemoteCity { get; set; }
 
         /// <summary>
         /// Destination ip address of the packet
@@ -236,7 +251,7 @@ namespace DigitalRuby.IPBanCore
         {
             var dir = Outbound ? "outbound" : "inbound";
             var protocol = Protocol.ToString();
-            return $"{Timestamp:s}Z|{FQDN}|{RuleName}|{protocol}|{dir}|{LocalIpAddress}|{LocalPort}|{RemoteIpAddress}|{RemotePort}|{RemoteGeo}";
+            return $"{Timestamp:s}Z|{FQDN}|{RuleName}|{protocol}|{dir}|{LocalIpAddress}|{LocalPort}|{RemoteIpAddress}|{RemotePort}|{RemoteISP}|{RemoteCountry}|{RemoteRegion}|{RemoteCity}";
         }
     }
 
