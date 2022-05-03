@@ -958,4 +958,8 @@
     <value>Add</value>
     <comment>To add something to a list</comment>
   </data>
+  <data name="Clear" xml:space="preserve">
+    <value>Clear</value>
+    <comment>To clear out everything</comment>
+  </data>
 </root>
