@@ -954,4 +954,8 @@
   <data name="BlockedPacketsByCountry" xml:space="preserve">
     <value>Blocked and Allowed Packets by Country last 24 hours</value>
   </data>
+  <data name="Add" xml:space="preserve">
+    <value>Add</value>
+    <comment>To add something to a list</comment>
+  </data>
 </root>
