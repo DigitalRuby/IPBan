@@ -164,17 +164,39 @@ namespace DigitalRuby.IPBanCore
                 DateTime timestamp = default;
 
                 // check for a user name
-                Group userNameGroup = match.Groups["username"];
-                if (userNameGroup != null && userNameGroup.Success)
+                if (string.IsNullOrWhiteSpace(userName))
                 {
-                    userName ??= userNameGroup.Value.Trim(regexTrimChars);
+                    Group userNameGroup = match.Groups["username"];
+                    if (userNameGroup != null && userNameGroup.Success)
+                    {
+                        userName ??= userNameGroup.Value.Trim(regexTrimChars);
+                    }
+                    else
+                    {
+                        // sometimes user names are base64, like smtp logs
+                        userNameGroup = match.Groups["username_base64"];
+                        if (userNameGroup != null && userNameGroup.Success)
+                        {
+                            // attempt to decode base64 and get the actual user name
+                            var base64UserName = userNameGroup.Value;
+                            Span<byte> bytes = stackalloc byte[256];
+                            if (Convert.TryFromBase64String(base64UserName, bytes, out int bytesWritten))
+                            {
+                                var base64DecodedUserName = System.Text.Encoding.UTF8.GetString(bytes[..bytesWritten]);
+                                userName ??= base64UserName.Trim(regexTrimChars);
+                            }
+                        }
+                    }
                 }
 
                 // check for source
-                Group sourceGroup = match.Groups["source"];
-                if (sourceGroup != null && sourceGroup.Success)
+                if (string.IsNullOrWhiteSpace(source))
                 {
-                    source ??= sourceGroup.Value.Trim(regexTrimChars);
+                    Group sourceGroup = match.Groups["source"];
+                    if (sourceGroup != null && sourceGroup.Success)
+                    {
+                        source ??= sourceGroup.Value.Trim(regexTrimChars);
+                    }
                 }
 
                 // check for groups with a custom source name

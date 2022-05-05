@@ -12,6 +12,7 @@
 		<Authors>Jeff Johnson</Authors>
 		<Company>Digital Ruby, LLC</Company>
 		<Product>IPBan</Product>
+		<Title>IPBan Core Framework</Title>
 		<Description>IPBan is the leading solution to block hackers and botnets. Easily monitor events for all kinds of sources and put the bad ip addresses in the firewall automatically.</Description>
 		<Copyright>(c) 2012 Digital Ruby, LLC</Copyright>
 		<PackageProjectUrl>https://github.com/DigitalRuby/IPBan</PackageProjectUrl>

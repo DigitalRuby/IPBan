@@ -32,6 +32,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace DigitalRuby.IPBanTests
@@ -862,6 +863,12 @@ namespace DigitalRuby.IPBanTests
             await service.RunCycleAsync();
 
             Assert.IsTrue(service.DB.TryGetIPAddress(ip, out _));
+        }
+
+        [Test]
+        public void TestBase64EncodedUserName()
+        {
+            //var results = IPBanService.GetIPAddressEventsFromRegex(new Regex...
         }
 
         private void RunConfigBanTest(string key, string value, string banIP, string noBanIP, int noBanIPCount = 999)

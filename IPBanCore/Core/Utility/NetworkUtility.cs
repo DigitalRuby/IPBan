@@ -185,9 +185,10 @@ namespace DigitalRuby.IPBanCore
             foreach (NetworkInterface netInterface in NetworkInterface.GetAllNetworkInterfaces())
             {
                 if (netInterface.OperationalStatus == OperationalStatus.Up &&
-                    (string.IsNullOrWhiteSpace(netInterface.Name) ||
-                    (!netInterface.Name.Contains("vethernet", System.StringComparison.OrdinalIgnoreCase) &&
-                    !netInterface.Name.Contains("loopback", System.StringComparison.OrdinalIgnoreCase))))
+                (
+                    string.IsNullOrWhiteSpace(netInterface.Name) ||
+                    !netInterface.Name.Contains("loopback", System.StringComparison.OrdinalIgnoreCase))
+                )
                 {
                     IPInterfaceProperties ipProps = netInterface.GetIPProperties();
                     foreach (UnicastIPAddressInformation addr in ipProps.UnicastAddresses)
