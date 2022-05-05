@@ -680,7 +680,7 @@ namespace DigitalRuby.IPBanCore
         /// <returns>String</returns>
         public string ToString(char separator)
         {
-            return Equals(Begin, End) ? Begin.ToString() : string.Format("{0}{1}{2}", Begin, separator, End);
+            return Single ? Begin.ToString() : string.Format("{0}{1}{2}", Begin, separator, End);
         }
 
         /// <summary>
