@@ -962,4 +962,14 @@
     <value>Clear</value>
     <comment>To clear out everything</comment>
   </data>
+  <data name="OtherLists" xml:space="preserve">
+    <value>Other Lists</value>
+  </data>
+  <data name="OtherListsTooltip" xml:space="preserve">
+    <value>Other lists that can be helpful to block bad actors</value>
+  </data>
+  <data name="Items" xml:space="preserve">
+    <value>{0} Items</value>
+    <comment>Example: 55 items</comment>
+  </data>
 </root>

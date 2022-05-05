@@ -64,6 +64,12 @@ namespace DigitalRuby.IPBanCore
             /// True to block, false to allow
             /// </summary>
             bool Block { get; }
+
+            /// <summary>
+            /// Get count of entries
+            /// </summary>
+            /// <returns>Count</returns>
+            int GetCount();
         }
 
         public interface IMemoryFirewallRule
@@ -82,6 +88,12 @@ namespace DigitalRuby.IPBanCore
             /// True to block, false to allow
             /// </summary>
             bool Block { get; }
+
+            /// <summary>
+            /// Get count of entries
+            /// </summary>
+            /// <returns>Count</returns>
+            int GetCount();
         }
 
         private class MemoryFirewallRuleRanges : IComparer<IPV4Range>, IComparer<IPV6Range>, IMemoryFirewallRuleRanges
@@ -197,6 +209,12 @@ namespace DigitalRuby.IPBanCore
             {
                 return x.CompareTo(y);
             }
+
+            /// <summary>
+            /// Get count of entries
+            /// </summary>
+            /// <returns>Count</returns>
+            public int GetCount() => ipv4.Count + ipv6.Count;
         }
 
         private class MemoryFirewallRule : IMemoryFirewallRule
@@ -347,6 +365,8 @@ namespace DigitalRuby.IPBanCore
             {
                 return (port >= 0 && allowPorts.Any(p => p.Contains(port)));
             }
+
+            public int GetCount() => ipv4.Count + ipv6.Count;
         }
 
         private readonly Dictionary<string, MemoryFirewallRuleRanges> blockRulesRanges = new();
@@ -628,6 +648,35 @@ namespace DigitalRuby.IPBanCore
             }
             ruleName = null;
             return false;
+        }
+
+        /// <summary>
+        /// Get count of entries for a rule
+        /// </summary>
+        /// <param name="ruleName">Rule name</param>
+        /// <returns>Count for that rule or 0 if no entries or rule not found</returns>
+        public int GetCount(string ruleName)
+        {
+            lock (this)
+            {
+                if (allowRule.Name.Equals(ruleName, StringComparison.OrdinalIgnoreCase))
+                {
+                    return allowRule.GetCount();
+                }
+                else if (allowRuleRanges.TryGetValue(ruleName, out var allowRuleRange))
+                {
+                    return allowRuleRange.GetCount();
+                }
+                else if (blockRules.TryGetValue(ruleName, out var blockRule))
+                {
+                    return blockRule.GetCount();
+                }
+                else if (blockRulesRanges.TryGetValue(ruleName, out var blockRuleRange))
+                {
+                    return blockRuleRange.GetCount();
+                }
+            }
+            return 0;
         }
 
         public bool IsIPAddressBlocked(string ipAddress, int port = -1)

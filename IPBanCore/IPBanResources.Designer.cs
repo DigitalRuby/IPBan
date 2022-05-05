@@ -1105,6 +1105,15 @@ namespace DigitalRuby.IPBanCore {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to {0} Items.
+        /// </summary>
+        public static string Items {
+            get {
+                return ResourceManager.GetString("Items", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Last Update.
         /// </summary>
         public static string LastUpdate {
@@ -1443,6 +1452,24 @@ namespace DigitalRuby.IPBanCore {
         public static string Other {
             get {
                 return ResourceManager.GetString("Other", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Other Lists.
+        /// </summary>
+        public static string OtherLists {
+            get {
+                return ResourceManager.GetString("OtherLists", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Other lists that can be helpful to block bad actors.
+        /// </summary>
+        public static string OtherListsTooltip {
+            get {
+                return ResourceManager.GetString("OtherListsTooltip", resourceCulture);
             }
         }
         
