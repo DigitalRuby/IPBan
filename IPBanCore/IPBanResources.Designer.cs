@@ -565,7 +565,7 @@ namespace DigitalRuby.IPBanCore {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Whether to enable lists like the recent or naughty list.
+        ///   Looks up a localized string similar to Whether to enable the recent and naughty list.
         /// </summary>
         public static string EnableListsTooltip {
             get {

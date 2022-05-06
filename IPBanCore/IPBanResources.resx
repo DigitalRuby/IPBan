@@ -763,7 +763,7 @@
     <value>Enable Lists</value>
   </data>
   <data name="EnableListsTooltip" xml:space="preserve">
-    <value>Whether to enable lists like the recent or naughty list</value>
+    <value>Whether to enable the recent and naughty list</value>
   </data>
   <data name="FailedLoginThreshold" xml:space="preserve">
     <value>Failed Login Threshold</value>
