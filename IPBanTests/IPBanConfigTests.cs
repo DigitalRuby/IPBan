@@ -220,7 +220,7 @@ namespace DigitalRuby.IPBanTests
                 Assert.IsEmpty(cfg.WhitelistFilter.IPAddressRanges);
                 Assert.IsTrue(string.IsNullOrEmpty(cfg.WhitelistFilter.Regex?.ToString()));
                 Assert.AreEqual(0, cfg.ExtraRules.Count);
-                Assert.AreEqual(cfg.FirewallUriRules.Trim(), "EmergingThreats,01:00:00:00,https://rules.emergingthreats.net/fwrules/emerging-Block-IPs.txt");
+                Assert.AreEqual(cfg.FirewallUriRules.Trim(), "");// EmergingThreats,01:00:00:00,https://rules.emergingthreats.net/fwrules/emerging-Block-IPs.txt");
 
                 AssertLogFilesToParse(cfg);
                 AssertEventViewer(cfg);

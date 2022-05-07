@@ -760,7 +760,7 @@
     <comment>As in update clients to the latest software version</comment>
   </data>
   <data name="EnableLists" xml:space="preserve">
-    <value>Enable Lists</value>
+    <value>Enable recent and naughty list</value>
   </data>
   <data name="EnableListsTooltip" xml:space="preserve">
     <value>Whether to enable the recent and naughty list</value>

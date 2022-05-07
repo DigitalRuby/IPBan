@@ -205,6 +205,11 @@ namespace DigitalRuby.IPBanCore
             }
         }
 
+        private static readonly char[] commentChars = new[]
+        {
+            ';', '#'
+        };
+
         // Pattern 1. CIDR range: "192.168.0.0/24", "fe80::%lo0/10"
         private static readonly Regex m1_regex = new(@"^(?<adr>([\d.]+)|([\da-f:]+(:[\d.]+)?(%\w+)?))[ \t]*/[ \t]*(?<maskLen>\d+)$", RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
@@ -461,6 +466,7 @@ namespace DigitalRuby.IPBanCore
         {
             try
             {
+                // if we start empty, finish out
                 if (string.IsNullOrWhiteSpace(ipRangeString))
                 {
                     if (throwException)
@@ -470,8 +476,22 @@ namespace DigitalRuby.IPBanCore
                     return null;
                 }
 
-                // trim white spaces.
+                int pos = ipRangeString.IndexOfAny(commentChars);
+                if (pos >= 0)
+                {
+                    ipRangeString = ipRangeString[..pos];
+                }
                 ipRangeString = ipRangeString.Trim();
+
+                // if we are now empty, finish out
+                if (string.IsNullOrWhiteSpace(ipRangeString))
+                {
+                    if (throwException)
+                    {
+                        throw new ArgumentNullException(nameof(ipRangeString));
+                    }
+                    return null;
+                }
 
                 // Pattern 1. CIDR range: "192.168.0.0/24", "fe80::/10%eth0"
                 var m1 = m1_regex.Match(ipRangeString);

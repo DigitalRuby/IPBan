@@ -556,7 +556,7 @@ namespace DigitalRuby.IPBanCore {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Enable Lists.
+        ///   Looks up a localized string similar to Enable recent and naughty list.
         /// </summary>
         public static string EnableLists {
             get {
