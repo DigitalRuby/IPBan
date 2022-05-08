@@ -565,7 +565,7 @@ namespace DigitalRuby.IPBanCore {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Whether to enable the recent and naughty list.
+        ///   Looks up a localized string similar to Whether to enable the recent and naughty list, global lists aggregated from all over the world from IPBan submissions.
         /// </summary>
         public static string EnableListsTooltip {
             get {
@@ -1357,7 +1357,7 @@ namespace DigitalRuby.IPBanCore {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to {0} ip addresses in the naughty list.
+        ///   Looks up a localized string similar to {0} naughty list items.
         /// </summary>
         public static string NaughtyListEntryCount {
             get {
@@ -1456,7 +1456,7 @@ namespace DigitalRuby.IPBanCore {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Other Lists.
+        ///   Looks up a localized string similar to Lists.
         /// </summary>
         public static string OtherLists {
             get {
@@ -1465,7 +1465,7 @@ namespace DigitalRuby.IPBanCore {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Other lists that can be helpful to block bad actors.
+        ///   Looks up a localized string similar to IPBan Pro block lists.
         /// </summary>
         public static string OtherListsTooltip {
             get {
@@ -1681,7 +1681,7 @@ namespace DigitalRuby.IPBanCore {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to {0} ip addresses in the recent list.
+        ///   Looks up a localized string similar to {0} recent list items.
         /// </summary>
         public static string RecentListEntryCount {
             get {

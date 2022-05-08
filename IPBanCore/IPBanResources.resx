@@ -676,11 +676,11 @@
     <comment>{0} is a number</comment>
   </data>
   <data name="NaughtyListEntryCount" xml:space="preserve">
-    <value>{0} ip addresses in the naughty list</value>
+    <value>{0} naughty list items</value>
     <comment>{0} is a number</comment>
   </data>
   <data name="RecentListEntryCount" xml:space="preserve">
-    <value>{0} ip addresses in the recent list</value>
+    <value>{0} recent list items</value>
     <comment>{0} is a number</comment>
   </data>
   <data name="UnbanIPAddresses" xml:space="preserve">
@@ -763,7 +763,7 @@
     <value>Enable recent and naughty list</value>
   </data>
   <data name="EnableListsTooltip" xml:space="preserve">
-    <value>Whether to enable the recent and naughty list</value>
+    <value>Whether to enable the recent and naughty list, global lists aggregated from all over the world from IPBan submissions</value>
   </data>
   <data name="FailedLoginThreshold" xml:space="preserve">
     <value>Failed Login Threshold</value>
@@ -963,10 +963,10 @@
     <comment>To clear out everything</comment>
   </data>
   <data name="OtherLists" xml:space="preserve">
-    <value>Other Lists</value>
+    <value>Lists</value>
   </data>
   <data name="OtherListsTooltip" xml:space="preserve">
-    <value>Other lists that can be helpful to block bad actors</value>
+    <value>IPBan Pro block lists</value>
   </data>
   <data name="Items" xml:space="preserve">
     <value>{0} Items</value>
