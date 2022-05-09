@@ -216,7 +216,11 @@ namespace DigitalRuby.IPBanCore
         /// <summary>
         /// Firewall types
         /// </summary>
-        public HashSet<Type> FirewallTypes { get; } = new() { typeof(IPBanWindowsFirewall), typeof(IPBanLinuxFirewall) };
+        public HashSet<Type> FirewallTypes { get; } = new()
+        {
+            typeof(IPBanWindowsFirewall),
+            typeof(IPBanLinuxFirewall)
+        };
 
         /// <summary>
         /// Cancel token

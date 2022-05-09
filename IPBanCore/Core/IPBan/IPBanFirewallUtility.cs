@@ -72,8 +72,7 @@ namespace DigitalRuby.IPBanCore
                     select new
                     {
                         FirewallType = fwType,
-                        OS = fwType.GetCustomAttribute<RequiredOperatingSystemAttribute>(false),
-                        Name = fwType.GetCustomAttribute<CustomNameAttribute>(false)
+                        OS = fwType.GetCustomAttribute<RequiredOperatingSystemAttribute>(false)
                     };
                 var array = q.OrderBy(f => f.OS.Priority).ToArray();
                 foreach (var result in array)

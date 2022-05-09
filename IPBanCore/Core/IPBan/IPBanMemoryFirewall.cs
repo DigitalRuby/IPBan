@@ -39,7 +39,6 @@ namespace DigitalRuby.IPBanCore
     /// This class is thread safe.
     /// </summary>
     [RequiredOperatingSystemAttribute(null, Priority = -99)] // low priority, basically any other firewall is preferred unless this one is explicitly specified in the config
-    [CustomName("Memory")]
     [System.Diagnostics.CodeAnalysis.DynamicallyAccessedMembers(System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.All)]
     public class IPBanMemoryFirewall : IPBanBaseFirewall
     {

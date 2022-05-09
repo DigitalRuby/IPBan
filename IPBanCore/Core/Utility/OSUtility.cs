@@ -1008,27 +1008,6 @@ namespace DigitalRuby.IPBanCore
             }
         }
     }
-
-    /// <summary>
-    /// Apply a custom name to a class
-    /// </summary>
-    [AttributeUsage(AttributeTargets.Class)]
-    public class CustomNameAttribute : Attribute
-    {
-        /// <summary>
-        /// Constructor
-        /// </summary>
-        /// <param name="name">Custom name</param>
-        public CustomNameAttribute(string name)
-        {
-            Name = name;
-        }
-
-        /// <summary>
-        /// Short name
-        /// </summary>
-        public string Name { get; set; }
-    }
 }
 
 #pragma warning restore CA1416 // Validate platform compatibility

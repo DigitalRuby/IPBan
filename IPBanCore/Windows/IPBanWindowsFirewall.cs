@@ -48,7 +48,6 @@ namespace DigitalRuby.IPBanCore
     /// Helper class for Windows firewall and banning ip addresses.
     /// </summary>
     [RequiredOperatingSystem(OSUtility.Windows)]
-    [CustomName("Default")]
     [System.Diagnostics.CodeAnalysis.DynamicallyAccessedMembers(System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.All)]
     public class IPBanWindowsFirewall : IPBanBaseFirewall
     {
