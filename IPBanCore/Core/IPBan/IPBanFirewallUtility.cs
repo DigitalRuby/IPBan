@@ -68,31 +68,19 @@ namespace DigitalRuby.IPBanCore
                     where fwType.IsPublic &&
                         fwType != firewallType &&
                         firewallType.IsAssignableFrom(fwType) &&
-                        fwType.GetCustomAttribute<RequiredOperatingSystemAttribute>() != null &&
-                        fwType.GetCustomAttribute<RequiredOperatingSystemAttribute>().IsMatch
-                    select new { FirewallType = fwType, OS = fwType.GetCustomAttribute<RequiredOperatingSystemAttribute>(), Name = fwType.GetCustomAttribute<CustomNameAttribute>() };
+                        (fwType.GetCustomAttribute<RequiredOperatingSystemAttribute>(false)?.IsMatch ?? false)
+                    select new
+                    {
+                        FirewallType = fwType,
+                        OS = fwType.GetCustomAttribute<RequiredOperatingSystemAttribute>(false),
+                        Name = fwType.GetCustomAttribute<CustomNameAttribute>(false)
+                    };
                 var array = q.OrderBy(f => f.OS.Priority).ToArray();
                 foreach (var result in array)
                 {
                     bool matchPriority = priority < result.OS.Priority;
                     if (matchPriority)
                     {
-                        // if IsAvailable method is provided, attempt to call
-                        MethodInfo available = result.FirewallType.GetMethod("IsAvailable", BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy);
-                        if (available != null)
-                        {
-                            try
-                            {
-                                if (!Convert.ToBoolean(available.Invoke(null, null)))
-                                {
-                                    continue;
-                                }
-                            }
-                            catch
-                            {
-                                continue;
-                            }
-                        }
                         firewallType = result.FirewallType;
                         priority = result.OS.Priority;
                         fallbackType = result.OS.FallbackFirewallType;

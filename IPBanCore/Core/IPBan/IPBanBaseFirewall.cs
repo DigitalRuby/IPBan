@@ -63,15 +63,6 @@ namespace DigitalRuby.IPBanCore
         }
 
         /// <summary>
-        /// Whether this firewall implementation is available
-        /// </summary>
-        /// <returns>True if available, false if not</returns>
-        public static bool IsAvailable()
-        {
-            return true;
-        }
-
-        /// <summary>
         /// Constructor
         /// </summary>
         /// <param name="rulePrefix">Rule prefix or null for default</param>
