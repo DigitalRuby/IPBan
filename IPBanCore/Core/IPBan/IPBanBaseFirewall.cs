@@ -66,7 +66,7 @@ namespace DigitalRuby.IPBanCore
         /// Constructor
         /// </summary>
         /// <param name="rulePrefix">Rule prefix or null for default</param>
-        public IPBanBaseFirewall(string rulePrefix = null)
+        public IPBanBaseFirewall(string rulePrefix)
         {
             if (!string.IsNullOrWhiteSpace(rulePrefix))
             {
@@ -75,6 +75,11 @@ namespace DigitalRuby.IPBanCore
             AllowRulePrefix = RulePrefix + "Allow_";
             BlockRulePrefix = RulePrefix + "Block_";
         }
+
+        /// <summary>
+        /// Hide parameterless constructor
+        /// </summary>
+        private IPBanBaseFirewall() { }
 
         /// <summary>
         /// Finalizer

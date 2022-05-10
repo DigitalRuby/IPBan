@@ -44,7 +44,7 @@ namespace DigitalRuby.IPBanCore
         /// <summary>
         /// Prefix put into log file for dropped packets
         /// </summary>
-        public const string LogDropLogFilePrefix = "IPBANX_";
+        public const string LogPacketPrefix = "X";
 
         private const string acceptAction = "ACCEPT";
         private const string dropAction = "DROP";
@@ -222,7 +222,7 @@ namespace DigitalRuby.IPBanCore
 
             string ruleNameWithSpaces = " " + ruleName + " ";
             string rootCommand = $"INPUT ##RULENUM## -m state --state NEW -m set{portString}--match-set \"{ruleName}\" src -j";
-            string logPrefix = LogDropLogFilePrefix + ruleName + ": ";
+            string logPrefix = LogPacketPrefix + ruleName + ": ";
             string logAction = $"LOG --log-prefix \"{logPrefix}\" --log-level 4";
 
             // if we have an existing rule, replace it
@@ -458,8 +458,6 @@ namespace DigitalRuby.IPBanCore
             SaveTableToDisk();
         }
 
-        protected virtual void OnInitialize() { }
-
         public IPBanLinuxBaseFirewall(string rulePrefix = null) : base(rulePrefix)
         {
             /*
@@ -474,7 +472,6 @@ namespace DigitalRuby.IPBanCore
 
             addressFamily = (IsIPV4 ? AddressFamily.InterNetwork : AddressFamily.InterNetworkV6);
             allowRuleName = AllowRulePrefix + "0";
-            OnInitialize();
             RestoreSetsFromDisk();
             RestoreTablesFromDisk();
         }

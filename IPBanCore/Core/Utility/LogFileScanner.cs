@@ -95,6 +95,7 @@ namespace DigitalRuby.IPBanCore
         private readonly long maxFileSize;
         private readonly Encoding encoding;
         private readonly ushort maxLineLength;
+        private readonly bool startAtBeginning;
 
         /// <summary>
         /// Create a log file scanner
@@ -104,7 +105,15 @@ namespace DigitalRuby.IPBanCore
         /// <param name="fileProcessingIntervalMilliseconds">How often to process files, in milliseconds, less than 1 for manual processing, in which case <see cref="ProcessFiles"/> must be called as needed.</param>
         /// <param name="encoding">Encoding or null for utf-8. The encoding must either be single or variable byte, like ASCII, Ansi, utf-8, etc. UTF-16 and the like are not supported.</param>
         /// <param name="maxLineLength">Maximum line length before considering the file a binary file and failing</param>
-        public LogFileScanner(string pathAndMask, long maxFileSizeBytes = 0, int fileProcessingIntervalMilliseconds = 0, Encoding encoding = null, ushort maxLineLength = 8192)
+        /// <param name="startAtBeginning">Whether to start scanning at beginning of file (true) or end (false)</param>
+        /// <param name="processText">Callback for each line of text (can be null)</param>
+        public LogFileScanner(string pathAndMask,
+            long maxFileSizeBytes = 0,
+            int fileProcessingIntervalMilliseconds = 0,
+            Encoding encoding = null,
+            ushort maxLineLength = 8192,
+            bool startAtBeginning = false,
+            Action<string> processText = null)
         {
             PathAndMask = pathAndMask;
             PathAndMask.ThrowIfNullOrWhiteSpace(nameof(pathAndMask), "Must pass a non-empty path and mask to log file scanner");
@@ -113,11 +122,13 @@ namespace DigitalRuby.IPBanCore
             this.maxFileSize = maxFileSizeBytes;
             this.encoding = encoding ?? Encoding.UTF8;
             this.maxLineLength = maxLineLength;
+            this.startAtBeginning = startAtBeginning;
+            ProcessText = processText;
 
             try
             {
                 // add initial files
-                foreach (WatchedFile file in LogFileScanner.GetFiles(PathAndMask))
+                foreach (WatchedFile file in LogFileScanner.GetFiles(PathAndMask, startAtBeginning))
                 {
                     watchedFiles.Add(file);
                 }
@@ -168,8 +179,9 @@ namespace DigitalRuby.IPBanCore
         /// Get all files from a path and mask
         /// </summary>
         /// <param name="pathAndMask">Path and mask, this uses glob syntax. This should use forward slash only for dir separators</param>
+        /// <param name="startAtBeginning">Whether to start reading at beginning of files (true) or end (false)</param>
         /// <returns>Found files</returns>
-        public static IReadOnlyCollection<WatchedFile> GetFiles(string pathAndMask)
+        public static IReadOnlyCollection<WatchedFile> GetFiles(string pathAndMask, bool startAtBeginning = false)
         {
             List<WatchedFile> files = new();
 
@@ -189,7 +201,7 @@ namespace DigitalRuby.IPBanCore
                 try
                 {
                     string fullPath = dirPortion + file.Path;
-                    long fileLength = new FileInfo(fullPath).Length;
+                    long fileLength = (startAtBeginning ? 0 : new FileInfo(fullPath).Length);
                     files.Add(new WatchedFile(fullPath, fileLength));
                 }
                 catch (Exception ex)
@@ -442,7 +454,7 @@ namespace DigitalRuby.IPBanCore
         {
             // read in existing files that match the mask in the directory being watched
             HashSet<WatchedFile> watchedFilesCopy = new();
-            foreach (WatchedFile file in LogFileScanner.GetFiles(PathAndMask))
+            foreach (WatchedFile file in LogFileScanner.GetFiles(PathAndMask, startAtBeginning))
             {
                 watchedFilesCopy.Add(file);
             }

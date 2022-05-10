@@ -62,13 +62,10 @@ namespace DigitalRuby.IPBanCore
             firewall6.Dispose();
         }
 
-        protected override void OnInitialize()
+        public IPBanLinuxFirewall(string rulePrefix) : base(rulePrefix)
         {
-            base.OnInitialize();
             firewall6 = new IPBanLinuxFirewall6(RulePrefix);
         }
-
-        public IPBanLinuxFirewall(string rulePrefix) : base(rulePrefix) { }
 
         public override async Task<bool> BlockIPAddresses(string ruleNamePrefix, IEnumerable<string> ipAddresses, IEnumerable<PortRange> allowedPorts = null, CancellationToken cancelToken = default)
         {
