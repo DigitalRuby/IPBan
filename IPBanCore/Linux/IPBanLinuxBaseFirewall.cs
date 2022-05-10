@@ -318,6 +318,21 @@ namespace DigitalRuby.IPBanCore
                                 {
                                     writer.WriteLine($"add {ruleName} {range.Begin} -exist");
                                 }
+                                else if (range.GetPrefixLength(false) < 0)
+                                {
+                                    // attempt to write the ips in this range if the count is low enough
+                                    if (range.GetCount() < 128)
+                                    {
+                                        foreach (System.Net.IPAddress ip in range)
+                                        {
+                                            writer.WriteLine($"add {ruleName} {ip} -exist");
+                                        }
+                                    }
+                                    else
+                                    {
+                                        Logger.Debug("Skipped writing non-cidr range {0} because of too many ips", range);
+                                    }
+                                }
                                 else
                                 {
                                     writer.WriteLine($"add {ruleName} {range.ToCidrString()} -exist");

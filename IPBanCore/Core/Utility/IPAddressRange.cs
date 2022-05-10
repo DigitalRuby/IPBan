@@ -768,6 +768,23 @@ namespace DigitalRuby.IPBanCore
         }
 
         /// <summary>
+        /// Get the number of ip addresses in this range
+        /// </summary>
+        /// <returns>Number of ips in this range</returns>
+        public UInt128 GetCount()
+        {
+            if (Single)
+            {
+                return 1;
+            }
+            else if (Begin.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
+            {
+                return 1 + (End.ToUInt32() - Begin.ToUInt32());
+            }
+            return 1 + (End.ToUInt128() - Begin.ToUInt128());
+        }
+
+        /// <summary>
         /// Returns a Cidr String if this matches exactly a Cidr subnet, otherwise a range string.
         /// </summary>
         /// <param name="displaySingleSubnet">Whether to display the cidr string even if this is a single ip address.</param>
