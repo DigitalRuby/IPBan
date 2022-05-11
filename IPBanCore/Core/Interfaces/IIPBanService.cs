@@ -263,10 +263,10 @@ namespace DigitalRuby.IPBanCore
         Task LoginAttemptSucceeded(string ip, string source, string userName, string machineGuid, string osName, string osVersion, int count, DateTime timestamp) => Task.CompletedTask;
 
         /// <summary>
-        /// Handle packet event
+        /// Handle packet events
         /// </summary>
-        /// <param name="evt">Packet event</param>
+        /// <param name="evt">Packet events</param>
         /// <returns>Task</returns>
-        Task PacketEvent(in PacketEvent evt) => Task.CompletedTask;
+        Task ProcessPacketEvents(IEnumerable<PacketEvent> events) => Task.CompletedTask;
     }
 }

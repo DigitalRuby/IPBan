@@ -24,6 +24,7 @@ SOFTWARE.
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -51,15 +52,22 @@ namespace DigitalRuby.IPBanCore
         {
         }
 
-        /// <summary>
-        /// Send a packet event
-        /// </summary>
-        /// <param name="e">Packet event to send</param>
-        /// <returns>Task</returns>
-        public Task SendPacketEvent(in PacketEvent e)
+        /// <inheritdoc />
+        public void SendPacketEvents(IReadOnlyCollection<PacketEvent> events)
         {
-            PacketEvent?.Invoke(e);
-            return Task.CompletedTask;
+            if (events.Count != 0)
+            {
+                var eventsCopy = events.ToArray();
+                Logger.Debug("Sending {0} packet events", eventsCopy.Length);
+                try
+                {
+                    PacketEvent?.Invoke(eventsCopy);
+                }
+                catch (Exception ex)
+                {
+                    Logger.Error("Failed to send packet events", ex);
+                }
+            }
         }
 
         /// <summary>

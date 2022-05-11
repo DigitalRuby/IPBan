@@ -142,11 +142,10 @@ namespace DigitalRuby.IPBanCore
         IEnumerable<IPAddressRange> EnumerateIPAddresses(string ruleNamePrefix = null);
 
         /// <summary>
-        /// Send a packet event
+        /// Send a packet event. This method should not throw an exception.
         /// </summary>
-        /// <param name="evt">Packet event</param>
-        /// <returns>Task</returns>
-        Task SendPacketEvent(in PacketEvent evt);
+        /// <param name="events">Packet events. This can be cleared by the caller safely after this method is called.</param>
+        void SendPacketEvents(IReadOnlyCollection<PacketEvent> events);
 
         /// <summary>
         /// Remove all rules that IPBan created
@@ -167,8 +166,8 @@ namespace DigitalRuby.IPBanCore
     /// <summary>
     /// Packet event delegate
     /// </summary>
-    /// <param name="e">Packet event</param>
-    public delegate void PacketEventDelegate(in PacketEvent e);
+    /// <param name="packets">Packet events</param>
+    public delegate void PacketEventDelegate(IEnumerable<PacketEvent> packets);
 
     /// <summary>
     /// Packet event

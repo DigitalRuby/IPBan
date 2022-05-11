@@ -287,16 +287,16 @@ namespace DigitalRuby.IPBanTests
         public void TestPacketEvent()
         {
             PacketEvent packetEvent = null;
-            void PacketCallback(in PacketEvent e)
+            void PacketCallback(IEnumerable<PacketEvent> e)
             {
-                packetEvent = e;
+                packetEvent = e.First();
             }
 
             firewall.PacketEvent += PacketCallback;
-            DateTimeOffset timestamp = new DateTimeOffset(2022, 1, 1, 1, 1, 1, TimeSpan.Zero);
+            DateTimeOffset timestamp = new(2022, 1, 1, 1, 1, 1, TimeSpan.Zero);
             try
             {
-                firewall.SendPacketEvent(new PacketEvent
+                firewall.SendPacketEvents(new[] { new PacketEvent
                 {
                     Allowed = false,
                     LocalIpAddress = "2.2.2.2",
@@ -312,7 +312,7 @@ namespace DigitalRuby.IPBanTests
                     RemoteISP = "isp",
                     RemoteRegion = "region",
                     Timestamp = timestamp
-                }).Sync();
+                } });
                 Assert.IsNotNull(packetEvent);
                 Assert.AreEqual("2.2.2.2", packetEvent.LocalIpAddress);
                 Assert.AreEqual(1234, packetEvent.LocalPort);
