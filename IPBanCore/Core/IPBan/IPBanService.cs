@@ -81,7 +81,7 @@ namespace DigitalRuby.IPBanCore
                     {
                         if (IsRunning)
                         {
-                            GC.Collect(int.MaxValue, GCCollectionMode.Forced, true, true);
+                            GC.GetTotalMemory(true);
                             await UpdateConfiguration();
                             await SetNetworkInfo();
                             await UpdateDelegate();
