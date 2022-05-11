@@ -6,9 +6,9 @@
 		<PreserveCompilationContext>true</PreserveCompilationContext>
 		<PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
 		<PackageId>DigitalRuby.IPBanCore</PackageId>
-		<Version>1.7.1</Version>
-		<AssemblyVersion>1.7.1</AssemblyVersion>
-		<FileVersion>1.7.1</FileVersion>
+		<Version>1.7.2</Version>
+		<AssemblyVersion>1.7.2</AssemblyVersion>
+		<FileVersion>1.7.2</FileVersion>
 		<Authors>Jeff Johnson</Authors>
 		<Company>Digital Ruby, LLC</Company>
 		<Product>IPBan</Product>
@@ -19,7 +19,7 @@
 		<RepositoryUrl>https://github.com/DigitalRuby/IPBan</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
 		<PackageTags>windows linux firewall hacker botnet block rule security software service email smtp rdp remote desktop ssh auto</PackageTags>
-		<PackageReleaseNotes>Upgrade to .NET core 5</PackageReleaseNotes>
+		<PackageReleaseNotes>Upgrade to .NET core 6</PackageReleaseNotes>
 		<PublishTrimmed>true</PublishTrimmed>
 		<NeutralLanguage>en</NeutralLanguage>
 		<GeneratePackageOnBuild>false</GeneratePackageOnBuild>
