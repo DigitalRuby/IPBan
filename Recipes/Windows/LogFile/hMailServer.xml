@@ -4,7 +4,7 @@
 	<PathAndMask>C:/Program Files (x86)/hMailServer/Logs/hmailserver_{year-local}-{month-local}-{day-local}.log</PathAndMask>
 	<FailedLoginRegex>
 		<![CDATA[
-			^\"SMTPD\"\s[0-9]+\s+[0-9]+\s\"(?<timestamp>[^\"]+)\"\s+\"(?<ipaddress>[^\"]+)\"\s+\"RECEIVED:\sAUTH\sLOGIN\"[^\n]*\n[^\n]*\"SENT:[^\n]+\n[^\n]*\"RECEIVED:\s(?<username>[^\n]+)\n[^\n]*SENT:[^\n]+\n[^\n]*\"RECEIVED:[^\n]+\n[^\n]+\"SENT:\s[0-9]+\sAuthentication failed[^\n]*
+			^\"SMTPD\"\s[0-9]+\s+[0-9]+\s\"(?<timestamp>[^\"]+)\"\s+\"(?<ipaddress>[^\"]+)\"\s+\"RECEIVED:[^\n]*\n[^\n]*\"SENT:[^\n]+\n[^\n]*\"RECEIVED:\s(?:.+:)?\<?(?<username>[^\n\>]+)\>?\"\n[^\n]*SENT:[^\n]+\n[^\n]*\"RECEIVED:[^\n]+\n[^\n]+\"SENT:\s(?:530|535)[^\n]*
 		]]>
 	</FailedLoginRegex>
 	<FailedLoginRegexTimestampFormat></FailedLoginRegexTimestampFormat>
