@@ -8,7 +8,7 @@ IPBan Service
 
 Please visit <a href='https://ipban.com/upgrade-to-ipban-pro/'>https://ipban.com/upgrade-to-ipban-pro/</a> to learn about IPBan Pro with advanced functions including shared ban lists, country blocking, central config management with UI for all your machines, high performance WFP and WinDivert firewall, user name aggregation banning, and much more.
 
-You can also visit the ipban discord at https://discord.gg/GRmbCcKFNR to chat with me or other IPBan users.
+You can also visit the ipban discord at https://discord.gg/GRmbCcKFNR to chat with other IPBan users.
 
 **Requirements**
 - IPBan requires .NET 6 SDK to build and debug code. For an IDE, I suggest Visual Studio Community for Windows, or VS code for Linux. All are free. You can build a self contained executable to eliminate the need for dotnet core on the server machine, or just download the precompiled binaries.
@@ -68,15 +68,12 @@ Other Information
 
 To disable anonymously sending banned ip addresses to the global ipban database, set UseDefaultBannedIPAddressHandler to false in the config file.
 
-**About Me**
-
-I'm Jeff Johnson and I created IPBan to eliminate bot nets, hackers and brute force login attempts. IPBan improves the security and performance of your machines and gets the bad actors in the block rule of the firewall where they belong.
+**Upgrade**
 
 Please visit <a href='https://ipban.com/upgrade-to-ipban-pro/'>https://ipban.com/upgrade-to-ipban-pro/</a> for additional updates, news, additional software and more.
 
-I do consulting and contracting if you need extra customizations for this software.
-
-Donations are accepted, any amount is appreciated, I work on this project for free to benefit the world.
+**Dontations**
+If the free IPBan has helped you and you feel so inclined, please consider donating...
 
 [![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=7EJ3K33SRLU9E)
 
