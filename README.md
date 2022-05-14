@@ -6,7 +6,7 @@ IPBan Service
 
 [![Build Status](https://dev.azure.com/DigitalRuby/DigitalRuby/_apis/build/status/DigitalRuby_IPBan?branchName=master)](https://dev.azure.com/DigitalRuby/DigitalRuby/_build/latest?definitionId=4&branchName=master)
 
-Please visit <a href='https://ipban.com/upgrade-to-ipban-pro/'>https://ipban.com</a> to learn about IPBan Pro with advanced functions including shared ban lists, country blocking, central config management with UI for all your machines, high performance WFP and WinDivert firewall, user name aggregation banning, and much more.
+Please visit <a href='https://ipban.com/upgrade-to-ipban-pro/'>https://ipban.com/upgrade-to-ipban-pro/</a> to learn about IPBan Pro with advanced functions including shared ban lists, country blocking, central config management with UI for all your machines, high performance WFP and WinDivert firewall, user name aggregation banning, and much more.
 
 You can also visit the ipban discord at https://discord.gg/GRmbCcKFNR to chat with me or other IPBan users.
 
@@ -72,7 +72,7 @@ To disable anonymously sending banned ip addresses to the global ipban database,
 
 I'm Jeff Johnson and I created IPBan to eliminate bot nets, hackers and brute force login attempts. IPBan improves the security and performance of your machines and gets the bad actors in the block rule of the firewall where they belong.
 
-Please visit <a href='https://ipban.com/upgrade-to-ipban-pro/'>https://ipban.com</a> for additional updates, news, additional software and more.
+Please visit <a href='https://ipban.com/upgrade-to-ipban-pro/'>https://ipban.com/upgrade-to-ipban-pro/</a> for additional updates, news, additional software and more.
 
 I do consulting and contracting if you need extra customizations for this software.
 
