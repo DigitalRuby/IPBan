@@ -6,7 +6,7 @@ IPBan Service
 
 [![Build Status](https://dev.azure.com/DigitalRuby/DigitalRuby/_apis/build/status/DigitalRuby_IPBan?branchName=master)](https://dev.azure.com/DigitalRuby/DigitalRuby/_build/latest?definitionId=4&branchName=master)
 
-Please visit <a href='https://ipban.com/upgrade-to-ipban-pro/'>https://ipban.com/upgrade-to-ipban-pro/</a> to learn about IPBan Pro with advanced functions including shared ban lists, country blocking, central config management with UI for all your machines, high performance WFP and WinDivert firewall, user name aggregation banning, and much more.
+Get 50% off IPBan Pro by visiting <a href='https://ipban.com/upgrade-to-ipban-pro/'>https://ipban.com/upgrade-to-ipban-pro/</a>.
 
 You can also visit the ipban discord at https://discord.gg/GRmbCcKFNR to chat with other IPBan users.
 
@@ -70,7 +70,7 @@ To disable anonymously sending banned ip addresses to the global ipban database,
 
 **Upgrade**
 
-Please visit <a href='https://ipban.com/upgrade-to-ipban-pro/'>https://ipban.com/upgrade-to-ipban-pro/</a> for additional updates, news, additional software and more.
+Get 50% off IPBan Pro by visiting <a href='https://ipban.com/upgrade-to-ipban-pro/'>https://ipban.com/upgrade-to-ipban-pro/</a>.
 
 **Dontations**
 If the free IPBan has helped you and you feel so inclined, please consider donating...
