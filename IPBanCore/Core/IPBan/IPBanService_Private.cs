@@ -1024,7 +1024,8 @@ namespace DigitalRuby.IPBanCore
 
             lock (pendingEvents)
             {
-                IPAddressLogEvent existing = pendingEvents.FirstOrDefault(p => p.IPAddress == newEvent.IPAddress && (p.UserName is null || p.UserName == newEvent.UserName));
+                IPAddressLogEvent existing = pendingEvents.FirstOrDefault(p => p.IPAddress == newEvent.IPAddress &&
+                    (string.IsNullOrWhiteSpace(p.UserName) || p.UserName == newEvent.UserName));
                 if (existing is null)
                 {
                     pendingEvents.Add(newEvent);

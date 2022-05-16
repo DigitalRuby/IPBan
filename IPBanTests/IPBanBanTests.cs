@@ -866,6 +866,36 @@ namespace DigitalRuby.IPBanTests
         }
 
         [Test]
+        public async Task TestFailedLoginsCollapse()
+        {
+            IPBanService.UtcNow = DateTime.Parse("2022-05-16 08:31:23.7106");
+            try
+            {
+                string ip = "99.88.77.66";
+                //2022-05-16 08:31:23.7106|WARN|IPBan|Login failure: x.x.x.x, , RDP, 1
+                //2022-05-16 08:31:23.7106|WARN|IPBan|Login failure: x.x.x.x, ADMINISTRATOR, RDP, 2
+                service.AddIPAddressLogEvents(new IPAddressLogEvent[]
+                {
+                    // fail login
+                    new IPAddressLogEvent(ip, "", "RDP", 1, IPAddressEventType.FailedLogin),
+                });
+
+                // new failed login, should collapse and not be considered due to 1 second default min time between failed logins
+                service.AddIPAddressLogEvents(new IPAddressLogEvent[]
+                {
+                    // fail login
+                    new IPAddressLogEvent(ip, "ADMINISTRATOR", "RDP", 10, IPAddressEventType.FailedLogin),
+                });
+                await service.RunCycleAsync();
+                Assert.IsFalse(service.Firewall.IsIPAddressBlocked(ip));
+            }
+            finally
+            {
+                IPBanService.UtcNow = default;
+            }
+        }
+
+        [Test]
         public void TestBase64EncodedUserName()
         {
             var results = IPBanService.GetIPAddressEventsFromRegex(new Regex("(?<ipaddress>.*)_(?<username_base64>.+)"),
