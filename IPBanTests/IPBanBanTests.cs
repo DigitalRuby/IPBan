@@ -868,7 +868,12 @@ namespace DigitalRuby.IPBanTests
         [Test]
         public void TestBase64EncodedUserName()
         {
-            //var results = IPBanService.GetIPAddressEventsFromRegex(new Regex...
+            var results = IPBanService.GetIPAddressEventsFromRegex(new Regex("(?<ipaddress>.*)_(?<username_base64>.+)"),
+                "1.1.1.1_dGVzdHVzZXJuYW1l").ToArray();
+            Assert.IsTrue(results.Any());
+            var result = results.First();
+            Assert.AreEqual("1.1.1.1", result.IPAddress);
+            Assert.AreEqual("testusername", result.UserName);
         }
 
         private void RunConfigBanTest(string key, string value, string banIP, string noBanIP, int noBanIPCount = 999)

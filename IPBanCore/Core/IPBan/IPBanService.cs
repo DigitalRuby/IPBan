@@ -183,7 +183,7 @@ namespace DigitalRuby.IPBanCore
                             if (Convert.TryFromBase64String(base64UserName, bytes, out int bytesWritten))
                             {
                                 var base64DecodedUserName = System.Text.Encoding.UTF8.GetString(bytes[..bytesWritten]);
-                                userName ??= base64UserName.Trim(regexTrimChars);
+                                userName ??= base64DecodedUserName.Trim(regexTrimChars);
                             }
                         }
                     }
