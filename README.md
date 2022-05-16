@@ -10,6 +10,8 @@ Get 50% off IPBan Pro by visiting <a href='https://ipban.com/upgrade-to-ipban-pr
 
 You can also visit the ipban discord at https://discord.gg/GRmbCcKFNR to chat with other IPBan users.
 
+<a href="https://ipban.com/newsletter">Sign up for the IPBan Mailing List</a>
+
 **Requirements**
 - IPBan requires .NET 6 SDK to build and debug code. For an IDE, I suggest Visual Studio Community for Windows, or VS code for Linux. All are free. You can build a self contained executable to eliminate the need for dotnet core on the server machine, or just download the precompiled binaries.
 - Running and/or debugging code requires that you run your IDE or terminal as administrator or root.
@@ -63,6 +65,7 @@ sudo -i; bash <(wget -qO- https://raw.githubusercontent.com/DigitalRuby/IPBan/ma
 
 Other Information
 ------
+<a href="https://ipban.com/newsletter">Sign up for the IPBan Mailing List</a>
 
 **Analytics**
 
