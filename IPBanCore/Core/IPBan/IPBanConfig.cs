@@ -393,7 +393,9 @@ namespace DigitalRuby.IPBanCore
             }
         }
 
-        private static readonly ConcurrentDictionary<string, Regex> regexCache = new();
+        private static readonly Dictionary<string, Regex> regexCacheCompiled = new();
+        private static readonly Dictionary<string, Regex> regexCacheNotCompiled = new();
+
         /// <summary>
         /// Get a regex from text
         /// </summary>
@@ -402,6 +404,8 @@ namespace DigitalRuby.IPBanCore
         /// <returns>Regex or null if text is null or whitespace</returns>
         public static Regex ParseRegex(string text, bool multiline = false)
         {
+            const int maxCacheSize = 200;
+
             text = (text ?? string.Empty).Trim();
             if (text.Length == 0)
             {
@@ -425,7 +429,50 @@ namespace DigitalRuby.IPBanCore
             }
             string sbText = sb.ToString();
             string cacheKey = ((uint)options).ToString("X8") + ":" + sbText;
-            return regexCache.GetOrAdd(cacheKey, _key => new Regex(sbText, options));
+
+            // allow up to maxCacheSize compiled dynamic regular expression, with minimal config changes/reload, this should last the lifetime of an app
+            lock (regexCacheCompiled)
+            {
+                if (regexCacheCompiled.TryGetValue(cacheKey, out Regex value))
+                {
+                    return value;
+                }
+                else if (regexCacheCompiled.Count < maxCacheSize)
+                {
+                    value = new Regex(sbText, options);
+                    regexCacheCompiled.Add(cacheKey, value);
+                    return value;
+                }
+            }
+
+            // have to fall-back to non-compiled regex to avoid run-away memory usage
+            try
+            {
+                lock (regexCacheNotCompiled)
+                {
+                    if (regexCacheNotCompiled.TryGetValue(cacheKey, out Regex value))
+                    {
+                        return value;
+                    }
+
+                    // strip compiled flag
+                    options &= (~RegexOptions.Compiled);
+                    value = new Regex(sbText, options);
+                    regexCacheNotCompiled.Add(cacheKey, value);
+                    return value;
+                }
+            }
+            finally
+            {
+                // clear non-compield regex cache if it exceeds max size
+                lock (regexCacheNotCompiled)
+                {
+                    if (regexCacheNotCompiled.Count > maxCacheSize)
+                    {
+                        regexCacheNotCompiled.Clear();
+                    }
+                }
+            }
         }
 
         /// <summary>
