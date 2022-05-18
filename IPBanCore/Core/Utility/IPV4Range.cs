@@ -96,7 +96,7 @@ namespace DigitalRuby.IPBanCore
         /// <returns>String</returns>
         public override string ToString()
         {
-            return $"{Begin.ToIPAddress()}/{End.ToIPAddress()}";
+            return $"{Begin.ToIPAddress()}-{End.ToIPAddress()}";
         }
 
         /// <summary>
