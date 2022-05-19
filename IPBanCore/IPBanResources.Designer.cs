@@ -376,7 +376,7 @@ namespace DigitalRuby.IPBanCore {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Whether to wait until first failed login from a bad country before banning (checked) or to pro-actively add the entire country to the firewall if possible (unchecked). If checked, allowed ports is ignored..
+        ///   Looks up a localized string similar to Whether to wait until first failed login from a bad country before banning (checked) or to pro-actively add the entire country to the firewall if possible (unchecked). If checked, allowed ports is ignored. Accuracy is more precise when first failed login is checked..
         /// </summary>
         public static string CountryBlacklistFirstFailedLoginTooltip {
             get {

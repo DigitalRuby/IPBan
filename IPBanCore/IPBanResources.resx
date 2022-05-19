@@ -864,7 +864,7 @@
     <value>First Failed Login</value>
   </data>
   <data name="CountryBlacklistFirstFailedLoginTooltip" xml:space="preserve">
-    <value>Whether to wait until first failed login from a bad country before banning (checked) or to pro-actively add the entire country to the firewall if possible (unchecked). If checked, allowed ports is ignored.</value>
+    <value>Whether to wait until first failed login from a bad country before banning (checked) or to pro-actively add the entire country to the firewall if possible (unchecked). If checked, allowed ports is ignored. Accuracy is more precise when first failed login is checked.</value>
   </data>
   <data name="CredentialPropagation" xml:space="preserve">
     <value>Any changes made to the administrator account will propagate to clients automatically.</value>
