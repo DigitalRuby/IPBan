@@ -216,11 +216,26 @@ namespace DigitalRuby.IPBanCore
                 OSUtility.FriendlyName.Contains("redhat", StringComparison.OrdinalIgnoreCase);
         }
 
+        [DllImport("winbrand.dll", EntryPoint = "BrandingFormatString", CharSet = CharSet.Unicode)]
+        static extern string BrandingFormatString(string format); // %WINDOWS_LONG%
+
         private static void LoadVersionFromWindows()
         {
             Name = FriendlyName = OSUtility.Windows;
             isWindows = true;
-            string friendlyName = HKLM_GetString(@"SOFTWARE\Microsoft\Windows NT\CurrentVersion", "ProductName");
+            string friendlyName;
+            try
+            {
+                friendlyName = BrandingFormatString("%WINDOWS_LONG%");
+                if (string.IsNullOrWhiteSpace(friendlyName))
+                {
+                    throw new Exception();
+                }
+            }
+            catch
+            {
+                friendlyName = HKLM_GetString(@"SOFTWARE\Microsoft\Windows NT\CurrentVersion", "ProductName");
+            }
             if (!string.IsNullOrWhiteSpace(friendlyName))
             {
                 int pos = friendlyName.IndexOf(' ');
