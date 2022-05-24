@@ -1139,7 +1139,14 @@ namespace DigitalRuby.IPBanCore
                     }
                 }
             }
-            throw lastError;
+            if (lastError == null)
+            {
+                throw new ArgumentException();
+            }
+            else
+            {
+                throw lastError;
+            }
         }
 
         /// <summary>
@@ -1175,7 +1182,14 @@ namespace DigitalRuby.IPBanCore
                     }
                 }
             }
-            throw lastError;
+            if (lastError == null)
+            {
+                throw new ArgumentException();
+            }
+            else
+            {
+                throw lastError;
+            }
         }
 
         /// <summary>

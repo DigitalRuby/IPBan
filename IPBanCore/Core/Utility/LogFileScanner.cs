@@ -161,7 +161,7 @@ namespace DigitalRuby.IPBanCore
                 {
                     Thread.Sleep(20);
                 }
-                fileProcessingTimer?.Dispose();
+                fileProcessingTimer.Dispose();
             }
             lock (watchedFiles)
             {

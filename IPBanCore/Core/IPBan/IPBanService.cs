@@ -599,7 +599,7 @@ namespace DigitalRuby.IPBanCore
                 configFileText = configFileModifier(configFileText);
             }
             ExtensionMethods.FileWriteAllTextWithRetry(configFilePath, configFileText);
-            T service = IPBanService.CreateService<T>() as T;
+            T service = IPBanService.CreateService<T>();
             service.ConfigFilePath = configFilePath;
             service.MultiThreaded = false;
             service.ManualCycle = true;

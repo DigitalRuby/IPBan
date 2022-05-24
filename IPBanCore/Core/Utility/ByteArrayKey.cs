@@ -68,6 +68,9 @@ namespace DigitalRuby.IPBanCore
         /// <returns>True if equal, false otherwise</returns>
         public override bool Equals(object obj)
         {
+            if (obj == null)
+                return false;
+
             var other = (ByteArrayKey)obj;
             return Bytes.AsSpan().SequenceEqual(other.Bytes.AsSpan());
         }

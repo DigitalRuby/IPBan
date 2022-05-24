@@ -75,7 +75,7 @@ namespace DigitalRuby.IPBanCore
         {
             if (MinPort > 65535 || MaxPort > 65535 || MinPort < 0 || MaxPort < 0 || MaxPort < MinPort)
             {
-                return null;
+                return string.Empty;
             }
             else if (MinPort == MaxPort)
             {

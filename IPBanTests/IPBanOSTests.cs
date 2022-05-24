@@ -73,7 +73,7 @@ namespace DigitalRuby.IPBanTests
         [Test]
         public void TestDiskIopsUsage()
         {
-            Assert.IsTrue(OSUtility.GetNetworkUsage(out float percentUsed));
+            Assert.IsTrue(OSUtility.GetDiskIopsUsage(out float percentUsed));
             Assert.IsTrue(percentUsed >= 0.0f && percentUsed <= 1.0f);
         }
 

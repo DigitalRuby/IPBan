@@ -98,11 +98,11 @@ namespace DigitalRuby.IPBanCore
         private static readonly string tempFolder;
         private static readonly object locker = new();
 
-        private static PerformanceCounter windowsCpuCounter;
-        private static PerformanceCounter windowsDiskIopsCounter;
+        private static volatile PerformanceCounter windowsCpuCounter;
+        private static volatile PerformanceCounter windowsDiskIopsCounter;
         private static float windowsCpuPercent;
         private static float windowsDiskIopsPercent;
-        private static float networkUsage = -1.0f;
+        private static volatile float networkUsage = -1.0f;
 
         private static bool isWindows;
         private static bool isLinux;
@@ -587,7 +587,7 @@ namespace DigitalRuby.IPBanCore
                                         for (int i = 0; i < nics.Length; i++)
                                         {
                                             prevTransfer[i] = nics[i].GetIPStatistics().BytesReceived + nics[i].GetIPStatistics().BytesSent;
-                                            maxSpeeds[i] = Math.Max(1024.0, (double)(nics[i].Speed / 8));
+                                            maxSpeeds[i] = Math.Max(1024.0, (double)(nics[i].Speed) / 8);
                                         }
                                     }
                                     catch
