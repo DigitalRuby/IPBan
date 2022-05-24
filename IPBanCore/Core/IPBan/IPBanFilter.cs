@@ -122,7 +122,7 @@ namespace DigitalRuby.IPBanCore
                 List<string> entries = new();
 
                 // primary entries (entry?timestamp?notes) are delimited by comma
-                foreach (string entry in value.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).Select(e => e.Trim()))
+                foreach (string entry in value.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
                 {
                     string entryWithoutComment = entry;
                     int pos = entryWithoutComment.IndexOf('?');
