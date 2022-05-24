@@ -1042,7 +1042,7 @@ namespace DigitalRuby.IPBanCore {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to IP addresses, cidr masks, dns names or user names to always ban and never unban. Prefix user names with user:, i.e. user:root..
+        ///   Looks up a localized string similar to IP addresses, cidr masks, dns names or user names to always ban and never unban. Prefix user names with user:, i.e. user:root. Separate multiple entries with comma..
         /// </summary>
         public static string IPBlacklistTooltip {
             get {
@@ -1078,7 +1078,7 @@ namespace DigitalRuby.IPBanCore {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to IP addresses, cidr masks, urls or dns names to never ban. Prefix user names with user:, i.e. user:root..
+        ///   Looks up a localized string similar to IP addresses, cidr masks, urls or dns names to never ban. Prefix user names with user:, i.e. user:root. Separate multiple entries with comma..
         /// </summary>
         public static string IPWhitelistTooltip {
             get {
