@@ -5,12 +5,12 @@
         <Recursive>true</Recursive>
         <FailedLoginRegex>
           <![CDATA[
-              .+\s(?<timestamp>.+?)\s-.+invalid\scredentials,\s.+\s(?<ipaddress>.+?)\,.+:\s(?<username>.+)
+              \s(?<timestamp>[^\s]+)\s-\sWebAPI\slogin\sfailure.*IP:\s(?<ipaddress>[^\s]+),\susername:\s(?<username>[^\n]+)
           ]]>
         </FailedLoginRegex>
         <SuccessfulLoginRegex>
           <![CDATA[
-              .+\s(?<timestamp>.+?)\s-\s.+login\ssuccess.+\s(?<ipaddress>.+)
+              \s(?<timestamp>[^\s]+)\s-\sWebAPI\slogin\ssuccess\.\sIP:\s(?<ipaddress>[^\s]+)
           ]]>
         </SuccessfulLoginRegex>
         <PlatformRegex>Windows</PlatformRegex>
