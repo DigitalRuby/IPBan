@@ -154,15 +154,18 @@ namespace DigitalRuby.IPBanCore
         public void Dispose()
         {
             GC.SuppressFinalize(this);
+
             // wait for any outstanding file processing
-            if (fileProcessingTimer != null)
+            var timer = fileProcessingTimer;
+            if (timer != null)
             {
-                while (!fileProcessingTimer.Enabled)
+                while (!timer.Enabled)
                 {
                     Thread.Sleep(20);
                 }
-                fileProcessingTimer.Dispose();
+                timer.Dispose();
             }
+
             lock (watchedFiles)
             {
                 watchedFiles.Clear();

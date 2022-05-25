@@ -120,7 +120,9 @@ namespace DigitalRuby.IPBanCore
             if (!string.IsNullOrWhiteSpace(value))
             {
                 List<string> entries = new();
-                foreach (string entry in value.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(e => e.Trim()))
+
+                // primary entries (entry?timestamp?notes) are delimited by comma
+                foreach (string entry in value.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
                 {
                     string entryWithoutComment = entry;
                     int pos = entryWithoutComment.IndexOf('?');
@@ -129,7 +131,12 @@ namespace DigitalRuby.IPBanCore
                         entryWithoutComment = entryWithoutComment[..pos];
                     }
                     entryWithoutComment = entryWithoutComment.Trim();
-                    entries.Add(entryWithoutComment);
+
+                    // sub entries (multiple ip addresses) are delimited by semi-colon
+                    foreach (string subEntry in entryWithoutComment.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+                    {
+                        entries.Add(subEntry);
+                    }
                 }
                 List<Task> entryTasks = new();
 

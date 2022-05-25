@@ -314,7 +314,7 @@
     <value>Regular expression for more advanced blacklisting. Shortcut: use* to allow any piece of an ip, dns name, url or user name(i.e. 128.128.128.*). Sample regex that blacklists a few ips: ^(128\.128\.128\.*)|(99\.99\.99\.[0-9])$ More info about regex: http://www.regular-expressions.info/</value>
   </data>
   <data name="IPBlacklistTooltip" xml:space="preserve">
-    <value>IP addresses, cidr masks, dns names or user names to always ban and never unban. Prefix user names with user:, i.e. user:root.</value>
+    <value>IP addresses, cidr masks, dns names or user names to always ban and never unban. Prefix user names with user:, i.e. user:root. Separate multiple entries with comma.</value>
   </data>
   <data name="IPWhitelist" xml:space="preserve">
     <value>IP Whitelist</value>
@@ -326,7 +326,7 @@
     <value>Regular expression for more advanced whitelisting. Shortcut: use * to allow any piece of an ip (i.e. 128.128.128.*). Sample regex that whitelists a few ips: ^(128\.128\.128\.*)|(99\.99\.99\.[0-9])$ More info about regex: http://www.regular-expressions.info/</value>
   </data>
   <data name="IPWhitelistTooltip" xml:space="preserve">
-    <value>IP addresses, cidr masks, urls or dns names to never ban. Prefix user names with user:, i.e. user:root.</value>
+    <value>IP addresses, cidr masks, urls or dns names to never ban. Prefix user names with user:, i.e. user:root. Separate multiple entries with comma.</value>
   </data>
   <data name="LastUpdate" xml:space="preserve">
     <value>Last Update</value>
