@@ -535,14 +535,15 @@ namespace DigitalRuby.IPBanCore
                 //
                 // 14:19:43     CPU    %usr   %nice    %sys %iowait    %irq   %soft  %steal  %guest  %gnice   %idle
                 // 14:19:43     all    0.00    0.00    0.02    0.00    0.00    0.00    0.00    0.00    0.00   99.97
-                string output = StartProcessAndWait(60000, "mpstat", string.Empty, out _, LogLevel.Trace);
+                string output = StartProcessAndWait(60000, "mpstat", "1 1", out _, LogLevel.Trace);
                 string[] lines = output.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
                 if (lines.Length > 1)
                 {
-                    int pos = lines[^1].LastIndexOf(' ');
+                    string lastLine = lines[^1];
+                    int pos = lastLine.LastIndexOf(' ');
                     if (pos > 0)
                     {
-                        string piece = lines[^1][pos..].Trim();
+                        string piece = lastLine[pos..].Trim();
                         if (pos > 0 && float.TryParse(piece, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out percentUsed))
                         {
                             percentUsed = Math.Clamp(1.0f - (0.01f * percentUsed), 0.0f, 1.0f);
