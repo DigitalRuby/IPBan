@@ -1,8 +1,8 @@
 ﻿# format:
 # xml on one line
 # ip, or x if failure to parse
-# user, can be blank or x
-# source, can be blank or x
+# user, can be a user name, [nouser] for no found user name or x
+# source, must have a value or can be x
 # FailedLogin, SuccessfulLogin or None
 # newline
 #
