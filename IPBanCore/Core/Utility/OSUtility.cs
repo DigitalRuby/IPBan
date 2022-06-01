@@ -100,6 +100,8 @@ namespace DigitalRuby.IPBanCore
 
         private static PerformanceCounter windowsCpuCounter;
         private static PerformanceCounter windowsDiskIopsCounter;
+        private static Process linuxCpuCounter;
+        private static Process linuxDiskIopsCounter;
         private static float windowsCpuPercent;
         private static float windowsDiskIopsPercent;
         private static float networkUsage = -1.0f;
@@ -670,7 +672,10 @@ namespace DigitalRuby.IPBanCore
                 string output = StartProcessAndWait(60000, "iostat", "-dxs", out _, LogLevel.Trace);
                 string[] lines = output.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
                 float maxValue = 0.0f;
-                foreach (string line in lines.Skip(2)) // blank line will be trimmed out
+
+                // blank line will be trimmed out, skip loop devices
+                foreach (string line in lines.Skip(2)
+                    .Where(l => !l.StartsWith("loop", StringComparison.OrdinalIgnoreCase)))
                 {
                     int pos = line.LastIndexOf(' ');
                     if (pos > 0 && float.TryParse(line[pos..].Trim(), NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out float parsedValue))
