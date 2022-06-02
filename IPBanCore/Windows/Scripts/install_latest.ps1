@@ -72,8 +72,11 @@ if (Test-Path -Path $INSTALL_PATH)
         {
             copy "$INSTALL_PATH/ipban.sqlite" $tempPath
         }
+	if (Test-Path "$INSTALL_PATH/nlog.config")
+        {
+            copy "$INSTALL_PATH/nlog.config" $tempPath
+        }
     }
-    & cmd.exe /c rd /s /q $INSTALL_PATH
 }
 
 if ($isUninstall -eq $True)
@@ -83,7 +86,7 @@ if ($isUninstall -eq $True)
 }
 
 # download zip file
-& mkdir -p $INSTALL_PATH
+& mkdir -p $INSTALL_PATH -ErrorAction SilentlyContinue
 $Url = "https://github.com/DigitalRuby/IPBan/releases/download/$VERSION_DOTS/$FILE_NAME"
 & echo "Downloading ipban from $Url"
 $ZipFile = "$INSTALL_PATH/IPBan.zip"
@@ -93,7 +96,7 @@ $ZipFile = "$INSTALL_PATH/IPBan.zip"
 Invoke-WebRequest -Uri $Url -OutFile $ZipFile 
 
 # extract zip file, cleanup zip file
-Expand-Archive -LiteralPath $ZipFile -DestinationPath $INSTALL_PATH
+Expand-Archive -LiteralPath $ZipFile -DestinationPath $INSTALL_PATH -Force
 Remove-Item -Force $ZipFile
 
 # copy back over the config and db file
@@ -111,6 +114,11 @@ if (Test-Path -Path "$tempPath/ipban.sqlite")
 {
     & copy "$tempPath/ipban.sqlite" "$INSTALL_PATH"
     & rm "$tempPath/ipban.sqlite"
+}
+if (Test-Path -Path "$tempPath/nlog.config")
+{
+    & copy "$tempPath/nlog.config" "$INSTALL_PATH"
+    & rm "$tempPath/nlog.config"
 }
 
 # ensure audit policy is logging
