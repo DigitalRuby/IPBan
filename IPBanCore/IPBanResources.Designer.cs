@@ -1456,6 +1456,15 @@ namespace DigitalRuby.IPBanCore {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Other IP Addresses.
+        /// </summary>
+        public static string OtherIP {
+            get {
+                return ResourceManager.GetString("OtherIP", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Lists.
         /// </summary>
         public static string OtherLists {

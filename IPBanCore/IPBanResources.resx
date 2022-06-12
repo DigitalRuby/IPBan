@@ -972,4 +972,7 @@
     <value>{0} Items</value>
     <comment>Example: 55 items</comment>
   </data>
+  <data name="OtherIP" xml:space="preserve">
+    <value>Other IP Addresses</value>
+  </data>
 </root>
