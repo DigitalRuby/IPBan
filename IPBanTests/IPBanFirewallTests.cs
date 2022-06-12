@@ -151,33 +151,6 @@ namespace DigitalRuby.IPBanTests
         }
 
         [Test]
-        public void TestIPInternal()
-        {
-            IPAddress ip = IPAddress.Parse("127.0.0.1");
-            Assert.IsTrue(ip.IsInternal());
-            ip = IPAddress.Parse("::1");
-            Assert.IsTrue(ip.IsInternal());
-            ip = IPAddress.Parse("10.0.0.0");
-            Assert.IsTrue(ip.IsInternal());
-            ip = IPAddress.Parse("10.255.255.255");
-            Assert.IsTrue(ip.IsInternal());
-            ip = IPAddress.Parse("127.0.0.0");
-            Assert.IsTrue(ip.IsInternal());
-            ip = IPAddress.Parse("127.255.255.255");
-            Assert.IsTrue(ip.IsInternal());
-            ip = IPAddress.Parse("172.16.0.0");
-            Assert.IsTrue(ip.IsInternal());
-            ip = IPAddress.Parse("172.31.255.255");
-            Assert.IsTrue(ip.IsInternal());
-            ip = IPAddress.Parse("192.168.0.0");
-            Assert.IsTrue(ip.IsInternal());
-            ip = IPAddress.Parse("192.168.255.255");
-            Assert.IsTrue(ip.IsInternal());
-            ip = IPAddress.Parse("99.99.99.99");
-            Assert.IsFalse(ip.IsInternal());
-        }
-
-        [Test]
         public void TestBlockDelta()
         {
             Random r = new();
