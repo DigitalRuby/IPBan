@@ -170,12 +170,8 @@ namespace DigitalRuby.IPBanCore
                     IPBanConfig oldConfig = Config;
                     IPBanConfig newConfig = IPBanConfig.LoadFromXml(finalXml, DnsLookup, DnsList, RequestMaker);
                     bool configChanged = oldConfig is null || oldConfig.Xml != newConfig.Xml;
-                    ConfigChanged?.Invoke(newConfig);
-                    whitelistChanged = (Config is null || !Config.WhitelistFilter.Equals(newConfig.WhitelistFilter));
-                    Config = newConfig;
-                    LoadFirewall(oldConfig);
-                    ParseAndAddUriFirewallRules(newConfig);
 
+                    // log that we have a new config
                     if (configChanged)
                     {
                         Logger.Info("Config file changed");
@@ -185,6 +181,22 @@ namespace DigitalRuby.IPBanCore
                         Logger.Debug("Config file force reloaded");
                     }
                     Logger.Trace("New config: " + Config.Xml);
+
+                    // invoke config change callback, if any
+                    ConfigChanged?.Invoke(newConfig);
+
+                    // track the whitelist changing, we will need to re-process all ip addresses if the whitelist changed
+                    whitelistChanged = (Config is null || !Config.WhitelistFilter.Equals(newConfig.WhitelistFilter));
+
+                    // set new config and re-load everything
+                    Config = newConfig;
+
+                    // load the firewall, detecting a change by referencing the old config
+                    await LoadFirewall(oldConfig);
+
+                    // process firewall changes from configuration
+                    await HandleFirewallConfigChange();                    
+                    ParseAndAddUriFirewallRules();
                 }
             }
             catch (Exception ex)
@@ -578,7 +590,7 @@ namespace DigitalRuby.IPBanCore
             }
         }
 
-        private void UpdateBannedIPAddressesOnStart()
+        private async Task UpdateBannedIPAddressesOnStart()
         {
             if (updateBannedIPAddressesOnStartCalled)
             {
@@ -611,7 +623,7 @@ namespace DigitalRuby.IPBanCore
 
                 // ensure firewall is up to date with all the correct ip addresses, if any ip are in the db but not in the firewall, they will
                 // get synced up here
-                Firewall.BlockIPAddresses(null, ipDB.EnumerateBannedIPAddresses()).Sync();
+                await Firewall.BlockIPAddresses(null, ipDB.EnumerateBannedIPAddresses());
 
                 // set firewall update flag, if any deltas are lingering in the db (state = add pending or remove pending) they will get
                 // processed on the next cycle
@@ -623,7 +635,7 @@ namespace DigitalRuby.IPBanCore
             }
         }
 
-        private void LoadFirewall(IPBanConfig oldConfig)
+        private async Task LoadFirewall(IPBanConfig oldConfig)
         {
             IIPBanFirewall existing = Firewall;
 
@@ -651,7 +663,7 @@ namespace DigitalRuby.IPBanCore
                     RemoveUpdater(existing);
 
                     // transfer banned ip to new firewall
-                    Firewall.BlockIPAddresses(null, ipDB.EnumerateBannedIPAddresses()).Sync();
+                    await Firewall.BlockIPAddresses(null, ipDB.EnumerateBannedIPAddresses());
                 }
             }
 
@@ -681,27 +693,32 @@ namespace DigitalRuby.IPBanCore
                     }
                 }
             }
+        }
 
+        private async Task HandleFirewallConfigChange()
+        {
             // ensure firewall is cleared out if needed - will only execute once
-            UpdateBannedIPAddressesOnStart();
+            await UpdateBannedIPAddressesOnStart();
 
             // ensure windows event viewer is setup if needed - will only execute once
             SetupWindowsEventViewer();
 
             // add/update global rules
-            Firewall.AllowIPAddresses("GlobalWhitelist", Config.WhitelistFilter.IPAddressRanges);
-            Firewall.BlockIPAddresses("GlobalBlacklist", Config.BlacklistFilter.IPAddressRanges);
+            Logger.Info("Updating global whitelist with {0} ip addresses", Config.WhitelistFilter.IPAddressRanges.Count);
+            await Firewall.AllowIPAddresses("GlobalWhitelist", Config.WhitelistFilter.IPAddressRanges);
+            Logger.Info("Updating global blacklist with {0} ip addresses", Config.BlacklistFilter.IPAddressRanges.Count);
+            await Firewall.BlockIPAddresses("GlobalBlacklist", Config.BlacklistFilter.IPAddressRanges);
 
             // add/update user specified rules
             foreach (IPBanFirewallRule rule in Config.ExtraRules)
             {
                 if (rule.Block)
                 {
-                    Firewall.BlockIPAddresses(rule.Name, rule.IPAddressRanges, rule.AllowPortRanges);
+                    await Firewall.BlockIPAddresses(rule.Name, rule.IPAddressRanges, rule.AllowPortRanges);
                 }
                 else
                 {
-                    Firewall.AllowIPAddresses(rule.Name, rule.IPAddressRanges, rule.AllowPortRanges);
+                    await Firewall.AllowIPAddresses(rule.Name, rule.IPAddressRanges, rule.AllowPortRanges);
                 }
             }
         }
@@ -969,7 +986,7 @@ namespace DigitalRuby.IPBanCore
             }
         }
 
-        private Task UpdateFirewall()
+        private async Task UpdateFirewall()
         {
             if (firewallNeedsBlockedIPAddressesUpdate)
             {
@@ -983,11 +1000,9 @@ namespace DigitalRuby.IPBanCore
                 }
                 else
                 {
-                    Firewall.BlockIPAddressesDelta(null, deltas).Sync();
+                    await Firewall.BlockIPAddressesDelta(null, deltas);
                 }
             }
-
-            return Task.CompletedTask;
         }
 
         private async Task CycleTimerElapsed()
@@ -1210,10 +1225,10 @@ namespace DigitalRuby.IPBanCore
             }
         }
 
-        private void ParseAndAddUriFirewallRules(IPBanConfig newConfig)
+        private void ParseAndAddUriFirewallRules()
         {
             List<IPBanUriFirewallRule> toRemove = new(updaters.Where(u => u is IPBanUriFirewallRule).Select(u => u as IPBanUriFirewallRule));
-            using StringReader reader = new(newConfig.FirewallUriRules);
+            using StringReader reader = new(Config.FirewallUriRules);
             string line;
             while ((line = reader.ReadLine()) != null)
             {
