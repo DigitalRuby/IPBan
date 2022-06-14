@@ -91,6 +91,7 @@ namespace DigitalRuby.IPBanCore
                             await ProcessPendingFailedLogins();
                             await ProcessPendingSuccessfulLogins();
                             await UpdateFirewall();
+                            await RunFirewallTasks();
                             try
                             {
                                 await OnUpdate();
@@ -496,37 +497,13 @@ namespace DigitalRuby.IPBanCore
         /// Run a task on the firewall queue
         /// </summary>
         /// <param name="action">Action to run</param>
-        /// <param name="queueName">Queue name</param>
-        public void RunFirewallTask(Func<CancellationToken, Task> action, string queueName = null)
+        public void RunFirewallTask(Func<CancellationToken, Task> action)
         {
             if (MultiThreaded)
             {
                 if (!CancelToken.IsCancellationRequested)
                 {
-                    queueName = (string.IsNullOrWhiteSpace(queueName) ? "Default" : queueName);
-                    AsyncQueue<Func<CancellationToken, Task>> queue;
-                    lock (firewallQueue)
-                    {
-                        if (!firewallQueue.TryGetValue(queueName, out queue))
-                        {
-                            firewallQueue[queueName] = queue = new AsyncQueue<Func<CancellationToken, Task>>();
-                            Task.Run(async () =>
-                            {
-                                try
-                                {
-                                    await FirewallTask(queue);
-                                }
-                                catch (Exception ex)
-                                {
-                                    if (ex is not OperationCanceledException)
-                                    {
-                                        Logger.Error(ex);
-                                    }
-                                }
-                            });
-                        }
-                    }
-                    queue.Enqueue(action);
+                    firewallTasks.Enqueue(action);
                 }
             }
             else

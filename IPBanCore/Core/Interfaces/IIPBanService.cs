@@ -102,11 +102,10 @@ namespace DigitalRuby.IPBanCore
         bool RemoveUpdater(IUpdater updater);
 
         /// <summary>
-        /// Run an action on the firewall queue
+        /// Run an action on the firewall queue, this will execute later
         /// </summary>
         /// <param name="action">Action to run on the firewall queue</param>
-        /// <param name="name">Queue name, null for default</param>
-        void RunFirewallTask(Func<CancellationToken, Task> action, string name = null);
+        void RunFirewallTask(Func<CancellationToken, Task> action);
 
         /// <summary>
         /// Whether the service is running

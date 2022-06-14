@@ -56,25 +56,6 @@ namespace DigitalRuby.IPBanCore
             }
         }
 
-        private async Task FirewallTask(AsyncQueue<Func<CancellationToken, Task>> queue)
-        {
-            while (!CancelToken.IsCancellationRequested)
-            {
-                KeyValuePair<bool, Func<CancellationToken, Task>> nextAction = await queue.TryDequeueAsync(CancelToken);
-                if (nextAction.Key && nextAction.Value != null)
-                {
-                    try
-                    {
-                        await nextAction.Value.Invoke(CancelToken);
-                    }
-                    catch (Exception ex)
-                    {
-                        Logger.Error(ex);
-                    }
-                }
-            }
-        }
-
         private static XmlDocument MergeXml(string xmlBase, string xmlOverride)
         {
             if (string.IsNullOrWhiteSpace(xmlBase))
@@ -180,7 +161,7 @@ namespace DigitalRuby.IPBanCore
                     {
                         Logger.Debug("Config file force reloaded");
                     }
-                    Logger.Trace("New config: " + Config.Xml);
+                    Logger.Trace("New config: " + newConfig.Xml);
 
                     // invoke config change callback, if any
                     ConfigChanged?.Invoke(newConfig);
@@ -1001,6 +982,28 @@ namespace DigitalRuby.IPBanCore
                 else
                 {
                     await Firewall.BlockIPAddressesDelta(null, deltas);
+                }
+            }
+        }
+
+        private async Task RunFirewallTasks()
+        {
+            // run up to 42 firewall tasks at a time
+            int max = 42;
+            while (!CancelToken.IsCancellationRequested &&
+                max-- > 0 &&
+                firewallTasks.TryDequeue(out var action))
+            {
+                try
+                {
+                    await action(CancelToken);
+                }
+                catch (Exception ex)
+                {
+                    if (ex is not OperationCanceledException)
+                    {
+                        Logger.Error(ex);
+                    }
                 }
             }
         }
