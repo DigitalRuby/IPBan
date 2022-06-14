@@ -975,14 +975,7 @@ namespace DigitalRuby.IPBanCore
                 List<IPBanFirewallIPAddressDelta> deltas = ipDB.EnumerateIPAddressesDeltaAndUpdateState(true, UtcNow, Config.ResetFailedLoginCountForUnbannedIPAddresses).Where(i => !i.Added || !IsWhitelisted(i.IPAddress)).ToList();
                 Logger.Warn("Updating firewall with {0} entries...", deltas.Count);
                 Logger.Info("Firewall entries updated: {0}", string.Join(',', deltas.Select(d => d.IPAddress)));
-                if (MultiThreaded)
-                {
-                    RunFirewallTask((token) => Firewall.BlockIPAddressesDelta(null, deltas, null, token));
-                }
-                else
-                {
-                    await Firewall.BlockIPAddressesDelta(null, deltas);
-                }
+                await Firewall.BlockIPAddressesDelta(null, deltas);
             }
         }
 
