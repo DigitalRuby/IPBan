@@ -1375,6 +1375,24 @@ namespace DigitalRuby.IPBanCore {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Duplicate Filter Window.
+        /// </summary>
+        public static string NotificationDuplicateFilterWindow {
+            get {
+                return ResourceManager.GetString("NotificationDuplicateFilterWindow", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The window (DD:HH:MM:SS) to filter (and ignore) duplicate notifications.
+        /// </summary>
+        public static string NotificationDuplicateFilterWindowTooltip {
+            get {
+                return ResourceManager.GetString("NotificationDuplicateFilterWindowTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Notification Flags.
         /// </summary>
         public static string NotificationFlags {

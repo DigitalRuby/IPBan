@@ -975,4 +975,10 @@
   <data name="OtherIP" xml:space="preserve">
     <value>Other IP Addresses</value>
   </data>
+  <data name="NotificationDuplicateFilterWindow" xml:space="preserve">
+    <value>Duplicate Filter Window</value>
+  </data>
+  <data name="NotificationDuplicateFilterWindowTooltip" xml:space="preserve">
+    <value>The window (DD:HH:MM:SS) to filter (and ignore) duplicate notifications</value>
+  </data>
 </root>
