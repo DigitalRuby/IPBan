@@ -685,9 +685,9 @@ namespace DigitalRuby.IPBanCore
             SetupWindowsEventViewer();
 
             // add/update global rules
-            Logger.Info("Updating global whitelist with {0} ip addresses", Config.WhitelistFilter.IPAddressRanges.Count);
+            Logger.Debug("Updating global whitelist with {0} ip addresses", Config.WhitelistFilter.IPAddressRanges.Count);
             await Firewall.AllowIPAddresses("GlobalWhitelist", Config.WhitelistFilter.IPAddressRanges);
-            Logger.Info("Updating global blacklist with {0} ip addresses", Config.BlacklistFilter.IPAddressRanges.Count);
+            Logger.Debug("Updating global blacklist with {0} ip addresses", Config.BlacklistFilter.IPAddressRanges.Count);
             await Firewall.BlockIPAddresses("GlobalBlacklist", Config.BlacklistFilter.IPAddressRanges);
 
             // add/update user specified rules
