@@ -56,84 +56,6 @@ namespace DigitalRuby.IPBanCore
             }
         }
 
-        private static XmlDocument MergeXml(string xmlBase, string xmlOverride)
-        {
-            if (string.IsNullOrWhiteSpace(xmlBase))
-            {
-                throw new ArgumentException("Cannot merge null base xml");
-            }
-
-            XmlDocument docBase = new();
-            docBase.LoadXml(xmlBase);
-
-            if (string.IsNullOrWhiteSpace(xmlOverride))
-            {
-                return docBase;
-            }
-
-            XmlDocument docOverride = new();
-            docOverride.LoadXml(xmlOverride);
-
-            XmlNode logFilesBase = docBase.SelectSingleNode("/configuration/LogFilesToParse/LogFiles");
-            XmlNode logFilesOverride = docOverride.SelectSingleNode("/configuration/LogFilesToParse/LogFiles");
-            if (logFilesBase is not null && logFilesOverride is not null)
-            {
-                foreach (XmlNode overrideNode in logFilesOverride)
-                {
-                    if (overrideNode.NodeType == XmlNodeType.Element)
-                    {
-                        logFilesBase.AppendChild(docBase.ImportNode(overrideNode, true));
-                    }
-                }
-            }
-
-            XmlNode expressionsBlockBase = docBase.SelectSingleNode("/configuration/ExpressionsToBlock/Groups");
-            XmlNode expressionsBlockOverride = docOverride.SelectSingleNode("/configuration/ExpressionsToBlock/Groups");
-            if (expressionsBlockBase is not null && expressionsBlockOverride is not null)
-            {
-                foreach (XmlNode overrideNode in expressionsBlockOverride)
-                {
-                    if (overrideNode.NodeType == XmlNodeType.Element)
-                    {
-                        expressionsBlockBase.AppendChild(docBase.ImportNode(overrideNode, true));
-                    }
-                }
-            }
-
-            XmlNode expressionsNotifyBase = docBase.SelectSingleNode("/configuration/ExpressionsToNotify/Groups");
-            XmlNode expressionsNotifyOverride = docOverride.SelectSingleNode("/configuration/ExpressionsToNotify/Groups");
-            if (expressionsNotifyBase is not null && expressionsNotifyOverride is not null)
-            {
-                foreach (XmlNode overrideNode in expressionsNotifyOverride)
-                {
-                    if (overrideNode.NodeType == XmlNodeType.Element)
-                    {
-                        expressionsNotifyBase.AppendChild(docBase.ImportNode(overrideNode, true));
-                    }
-                }
-            }
-
-            XmlNode appSettingsBase = docBase.SelectSingleNode("/configuration/appSettings");
-            XmlNode appSettingsOverride = docOverride.SelectSingleNode("/configuration/appSettings");
-            if (appSettingsBase is not null && appSettingsOverride is not null)
-            {
-                foreach (XmlNode overrideNode in appSettingsOverride)
-                {
-                    if (overrideNode.NodeType == XmlNodeType.Element)
-                    {
-                        string xpath = "/configuration/appSettings/add[@key='" + overrideNode.Attributes["key"].Value + "']";
-                        XmlNode existing = appSettingsBase.SelectSingleNode(xpath);
-                        if (existing != null)
-                        {
-                            existing.Attributes["value"].Value = overrideNode.Attributes["value"].Value;
-                        }
-                    }
-                }
-            }
-
-            return docBase;
-        }
-
         internal async Task UpdateConfiguration()
         {
             try
@@ -147,7 +69,7 @@ namespace DigitalRuby.IPBanCore
                     // merge override xml
                     string baseXml = configChange ?? Config?.Xml;
                     string overrideXml = configChangeOverride;
-                    XmlDocument finalXml = MergeXml(baseXml, overrideXml);
+                    XmlDocument finalXml = IPBanConfig.MergeXml(baseXml, overrideXml);
                     IPBanConfig oldConfig = Config;
                     IPBanConfig newConfig = IPBanConfig.LoadFromXml(finalXml, DnsLookup, DnsList, RequestMaker);
                     bool configChanged = oldConfig is null || oldConfig.Xml != newConfig.Xml;

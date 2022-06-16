@@ -33,6 +33,7 @@ using System.Net;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using System.Xml;
 
 namespace DigitalRuby.IPBanTests
 {
@@ -232,6 +233,23 @@ namespace DigitalRuby.IPBanTests
             {
                 IPBanService.DisposeIPBanTestService(service);
             }
+        }
+
+        /// <summary>
+        /// Test config merge
+        /// </summary>
+        [Test]
+        public void TestConfigMerge()
+        {
+            string config1 = "<?xml version=\"1.0\"?><configuration><appSettings><add key='Whitelist' value='1.1.1.1' /></appSettings></configuration>";
+            string config2 = "<?xml version=\"1.0\"?><configuration><appSettings><add key='Whitelist' value='2.2.2.2' /><add key='Blacklist' value='3.3.3.3' /></appSettings></configuration>";
+            XmlDocument doc = IPBanConfig.MergeXml(config1, config2);
+            var nodes = doc["configuration"]["appSettings"].ChildNodes;
+            Assert.AreEqual(2, nodes.Count);
+            string value1 = nodes[0].Attributes["value"].Value;
+            string value2 = nodes[1].Attributes["value"].Value;
+            Assert.AreEqual("2.2.2.2", value1);
+            Assert.AreEqual("3.3.3.3", value2);
         }
 
         /// <summary>

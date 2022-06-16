@@ -171,7 +171,12 @@ namespace DigitalRuby.IPBanCore
         private IPBanConfig(XmlDocument doc, IDnsLookup dns = null, IDnsServerList dnsList = null, IHttpRequestMaker httpRequestMaker = null)
         {
             // deserialize with XmlDocument for fine grained control
-            foreach (XmlNode node in doc.SelectNodes("/configuration/appSettings/add"))
+            var appSettingsNodes = doc.SelectNodes("/configuration/appSettings/add");
+            if (appSettingsNodes is null || appSettingsNodes.Count == 0)
+            {
+                throw new InvalidDataException("Configuration is missing or has empty /configuration/appSettings element. This element name is case sensitive. Please check your config.");
+            }
+            foreach (XmlNode node in appSettingsNodes)
             {
                 appSettings[node.Attributes["key"].Value] = node.Attributes["value"].Value;
             }
@@ -759,6 +764,106 @@ namespace DigitalRuby.IPBanCore
                 existingSetting.Attributes["value"].Value = newValue;
             }
             return doc.OuterXml;
+        }
+
+        /// <summary>
+        /// Merge two configurations
+        /// </summary>
+        /// <param name="xmlBase">Base configuration</param>
+        /// <param name="xmlOverride">Override configuration</param>
+        /// <returns>Merged configuration</returns>
+        /// <exception cref="ArgumentException">Base xml is null or white space</exception>
+        public static XmlDocument MergeXml(string xmlBase, string xmlOverride)
+        {
+            if (string.IsNullOrWhiteSpace(xmlBase))
+            {
+                throw new ArgumentException("Cannot merge null base xml");
+            }
+
+            XmlDocument docBase = new();
+            docBase.LoadXml(xmlBase);
+
+            if (string.IsNullOrWhiteSpace(xmlOverride))
+            {
+                return docBase;
+            }
+
+            XmlDocument docOverride = new();
+            docOverride.LoadXml(xmlOverride);
+
+            XmlNode logFilesOverride = docOverride.SelectSingleNode("/configuration/LogFilesToParse/LogFiles");
+            XmlNode logFilesBase = docBase.SelectSingleNode("/configuration/LogFilesToParse/LogFiles") ?? logFilesOverride;
+            if (logFilesBase is not null &&
+                logFilesOverride is not null &&
+                logFilesBase != logFilesOverride)
+            {
+                foreach (XmlNode overrideNode in logFilesOverride)
+                {
+                    if (overrideNode.NodeType == XmlNodeType.Element)
+                    {
+                        logFilesBase.AppendChild(docBase.ImportNode(overrideNode, true));
+                    }
+                }
+            }
+
+            XmlNode expressionsBlockOverride = docOverride.SelectSingleNode("/configuration/ExpressionsToBlock/Groups");
+            XmlNode expressionsBlockBase = docBase.SelectSingleNode("/configuration/ExpressionsToBlock/Groups") ?? expressionsBlockOverride;
+            if (expressionsBlockBase is not null &&
+                expressionsBlockOverride is not null &&
+                expressionsBlockBase != expressionsBlockOverride)
+            {
+                foreach (XmlNode overrideNode in expressionsBlockOverride)
+                {
+                    if (overrideNode.NodeType == XmlNodeType.Element)
+                    {
+                        expressionsBlockBase.AppendChild(docBase.ImportNode(overrideNode, true));
+                    }
+                }
+            }
+
+            XmlNode expressionsNotifyOverride = docOverride.SelectSingleNode("/configuration/ExpressionsToNotify/Groups");
+            XmlNode expressionsNotifyBase = docBase.SelectSingleNode("/configuration/ExpressionsToNotify/Groups") ?? expressionsNotifyOverride;
+            if (expressionsNotifyBase is not null &&
+                expressionsNotifyOverride is not null &&
+                expressionsNotifyBase != expressionsNotifyOverride)
+            {
+                foreach (XmlNode overrideNode in expressionsNotifyOverride)
+                {
+                    if (overrideNode.NodeType == XmlNodeType.Element)
+                    {
+                        expressionsNotifyBase.AppendChild(docBase.ImportNode(overrideNode, true));
+                    }
+                }
+            }
+
+            XmlNode appSettingsOverride = docOverride.SelectSingleNode("/configuration/appSettings");
+            XmlNode appSettingsBase = docBase.SelectSingleNode("/configuration/appSettings") ?? appSettingsOverride;
+            if (appSettingsBase is not null &&
+                appSettingsOverride is not null &&
+                appSettingsBase != appSettingsOverride)
+            {
+                foreach (XmlNode overrideNode in appSettingsOverride)
+                {
+                    if (overrideNode.NodeType == XmlNodeType.Element)
+                    {
+                        string xpath = $"/configuration/appSettings/add[@key='{overrideNode.Attributes["key"].Value}']";
+                        XmlNode existing = appSettingsBase.SelectSingleNode(xpath);
+                        if (existing is null)
+                        {
+                            // create a new node
+                            appSettingsBase.AppendChild(docBase.ImportNode(overrideNode, true));
+                        }
+                        else
+                        {
+                            // replace existing node
+                            string overrideValue = overrideNode.Attributes["value"]?.Value ?? string.Empty;
+                            existing.Attributes["value"].Value = overrideValue;
+                        }
+                    }
+                }
+            }
+
+            return docBase;
         }
 
         /// <inheritdoc />
