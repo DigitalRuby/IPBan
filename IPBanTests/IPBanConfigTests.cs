@@ -250,6 +250,35 @@ namespace DigitalRuby.IPBanTests
             string value2 = nodes[1].Attributes["value"].Value;
             Assert.AreEqual("2.2.2.2", value1);
             Assert.AreEqual("3.3.3.3", value2);
+
+            // more complicated merge
+            string config3 = @"<?xml version='1.0'?>
+<configuration>
+  <appSettings>
+	<add key='UseDefaultBannedIPAddressHandler' value='false' /> 
+	<add key='FailedLoginAttemptsBeforeBan' value='2'/>
+	<add key='BanTime' value='03:00:00:00'/>
+	<add key='ExpireTime' value='10:00:00:00'/>
+	<add key='CycleTime' value='00:00:00:30'/>
+	<add key='Whitelist' value='127.0.0.1,127.0.0.2'
+	/>
+	
+	<!--
+test with Amazon AWS .json file from https://docs.aws.amazon.com/general/latest/gr/aws-ip-ranges.html
+e.g.
+52.95.229.0/24
+54.72.0.0/15
+	-->
+	
+	<add key='Blacklist' value='52.95.229.0/24,54.72.0.0/15'
+	/>
+
+  </appSettings>
+</configuration>";
+
+            XmlDocument doc2 = IPBanConfig.MergeXml(config1, config3);
+            string resultXml = doc2.OuterXml.Replace('"', '\'');
+            Assert.AreEqual(@"<?xml version='1.0'?><configuration><appSettings><add key='Whitelist' value='127.0.0.1,127.0.0.2' /><add key='UseDefaultBannedIPAddressHandler' value='false' /><add key='FailedLoginAttemptsBeforeBan' value='2' /><add key='BanTime' value='03:00:00:00' /><add key='ExpireTime' value='10:00:00:00' /><add key='CycleTime' value='00:00:00:30' /><add key='Blacklist' value='52.95.229.0/24,54.72.0.0/15' /></appSettings></configuration>", resultXml);
         }
 
         /// <summary>

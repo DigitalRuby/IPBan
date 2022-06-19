@@ -871,6 +871,39 @@ namespace DigitalRuby.IPBanCore
         }
 
         /// <summary>
+        /// Attempt to determine if a file exists. Unlike System.IO.File.Exists, this method will throw an
+        /// exception if there is a fatal error attempting to determine if the file exists.
+        /// </summary>
+        /// <param name="path">File path</param>
+        /// <returns>True if file exists, false if not</returns>
+        /// <exception cref="System.Exception">Error determining if file exists throw from File.OpenRead</exception>
+        public static async System.Threading.Tasks.Task<bool> FileExistsWithFallbackAndRetryAsync(string path)
+        {
+            bool exists = true;
+            await ExtensionMethods.RetryAsync(() =>
+            {
+                if (!File.Exists(path))
+                {
+                    exists = false;
+                    try
+                    {
+                        // sometimes a write in progress or a backup of a file will cause the file exists to be false,
+                        // so we try a different method here just to be sure
+                        using var file = File.OpenRead(path);
+                        exists = true;
+                    }
+                    catch (FileNotFoundException)
+                    {
+                        // ok for file to not exist, but creating the file manually will fix this message
+                        Logger.Debug("File does not exist at path {0}, since this is a critical file, please update software or create the file manually", path);
+                    }
+                }
+                return System.Threading.Tasks.Task.CompletedTask;
+            });
+            return exists;
+        }
+
+        /// <summary>
         /// Add app domain exception handlers
         /// </summary>
         /// <param name="domain">Appdomain</param>

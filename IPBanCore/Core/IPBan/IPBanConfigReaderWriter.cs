@@ -55,14 +55,19 @@ namespace DigitalRuby.IPBanCore
         {
             if (UseFile)
             {
-                if (acquireLock)
+                string result = null;
+                await ExtensionMethods.RetryAsync(async () =>
                 {
-                    return await ConfigLocker.LockFunctionAsync(async () => await File.ReadAllTextAsync(Path));
-                }
-                else
-                {
-                    return await File.ReadAllTextAsync(Path);
-                }
+                    if (acquireLock)
+                    {
+                        result = await ConfigLocker.LockFunctionAsync(async () => await File.ReadAllTextAsync(Path));
+                    }
+                    else
+                    {
+                        result = await File.ReadAllTextAsync(Path);
+                    }
+                });
+                return result;
             }
             else if (string.IsNullOrWhiteSpace(GlobalConfigString))
             {
@@ -114,7 +119,8 @@ namespace DigitalRuby.IPBanCore
             }
             else if (UseFile)
             {
-                if (!File.Exists(Path))
+                // use a more exhaustive check since config files are very critical to get right
+                if (!(await OSUtility.FileExistsWithFallbackAndRetryAsync(Path)))
                 {
                     return result;
                 }
@@ -133,7 +139,7 @@ namespace DigitalRuby.IPBanCore
                         lastConfigWriteTime = lastWriteTime;
                         lastConfigValue = currentConfig;
                         lastConfigIntervalTime = IPBanService.UtcNow;
-                        result = currentConfig;
+                        result = currentConfig ?? throw new IOException("Failed to read config from file " + Path);
                     }
                 });
                 return result;

@@ -300,6 +300,15 @@ namespace DigitalRuby.IPBanCore
         }
 
         /// <summary>
+        /// Read override configuration
+        /// </summary>
+        /// <returns>Configuration override xml</returns>
+        public Task<string> ReadOverrideConfigAsync()
+        {
+            return ConfigOverrideReaderWriter.ReadConfigAsync();
+        }
+
+        /// <summary>
         /// Stop the service, dispose of all resources
         /// </summary>
         public void Dispose()

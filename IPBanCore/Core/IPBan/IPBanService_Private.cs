@@ -67,7 +67,7 @@ namespace DigitalRuby.IPBanCore
                     !string.IsNullOrWhiteSpace(configChangeOverride))
                 {
                     // merge override xml
-                    string baseXml = configChange ?? Config?.Xml;
+                    string baseXml = configChange ?? Config?.Xml ?? throw new IOException("Failed to read " + ConfigFilePath);
                     string overrideXml = configChangeOverride;
                     XmlDocument finalXml = IPBanConfig.MergeXml(baseXml, overrideXml);
                     IPBanConfig oldConfig = Config;
@@ -93,6 +93,14 @@ namespace DigitalRuby.IPBanCore
 
                     // set new config and re-load everything
                     Config = newConfig;
+
+#if DEBUG
+                    // TODO: Remove later
+                    if (Config.WhitelistFilter.IPAddressRanges == null || Config.WhitelistFilter.IPAddressRanges.Count == 0)
+                    {
+                        System.Diagnostics.Debugger.Break();
+                    }
+#endif
 
                     // load the firewall, detecting a change by referencing the old config
                     await LoadFirewall(oldConfig);
