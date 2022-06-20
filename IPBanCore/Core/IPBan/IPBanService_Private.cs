@@ -94,14 +94,6 @@ namespace DigitalRuby.IPBanCore
                     // set new config and re-load everything
                     Config = newConfig;
 
-#if DEBUG
-                    // TODO: Remove later
-                    if (Config.WhitelistFilter.IPAddressRanges == null || Config.WhitelistFilter.IPAddressRanges.Count == 0)
-                    {
-                        System.Diagnostics.Debugger.Break();
-                    }
-#endif
-
                     // load the firewall, detecting a change by referencing the old config
                     await LoadFirewall(oldConfig);
 
