@@ -2275,7 +2275,7 @@ namespace DigitalRuby.IPBanCore {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to User Name.
+        ///   Looks up a localized string similar to Email or user name.
         /// </summary>
         public static string UserName {
             get {

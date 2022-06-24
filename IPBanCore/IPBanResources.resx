@@ -552,7 +552,7 @@
     <value>An unexpected error has ocurred. Please email support@ipban.com for help.</value>
   </data>
   <data name="UserName" xml:space="preserve">
-    <value>User Name</value>
+    <value>Email or user name</value>
     <comment>User name, i.e. bob123@gmail.com</comment>
   </data>
   <data name="UserNameTooltip" xml:space="preserve">
