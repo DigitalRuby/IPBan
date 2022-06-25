@@ -981,4 +981,7 @@
   <data name="NotificationDuplicateFilterWindowTooltip" xml:space="preserve">
     <value>The window (DD:HH:MM:SS) to filter (and ignore) duplicate notifications</value>
   </data>
+  <data name="PasswordAgain" xml:space="preserve">
+    <value>Password again</value>
+  </data>
 </root>

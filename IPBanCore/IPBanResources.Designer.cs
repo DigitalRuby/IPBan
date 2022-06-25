@@ -1510,6 +1510,15 @@ namespace DigitalRuby.IPBanCore {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Password again.
+        /// </summary>
+        public static string PasswordAgain {
+            get {
+                return ResourceManager.GetString("PasswordAgain", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The password to login with.
         /// </summary>
         public static string PasswordTooltip {
