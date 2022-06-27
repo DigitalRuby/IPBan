@@ -62,6 +62,13 @@ namespace DigitalRuby.IPBanCore
         private static readonly DateTime unixEpoch = new(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
         private static readonly XmlSerializerNamespaces emptyXmlNs = new();
 
+        private static readonly System.Text.Json.JsonSerializerOptions jsonOptions = new()
+        {
+            DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingDefault,
+            IgnoreReadOnlyFields = true,
+            IgnoreReadOnlyProperties = true
+        };
+        
         static ExtensionMethods()
         {
             emptyXmlNs.Add("", "");
@@ -827,6 +834,29 @@ namespace DigitalRuby.IPBanCore
                 return max;
             }
             return val;
+        }
+
+        /// <summary>
+        /// Serialize an object to utf8 json
+        /// </summary>
+        /// <param name="obj">Object</param>
+        /// <returns>Utf8 json</returns>
+        [UnconditionalSuppressMessage("Trimming", "IL2026:Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code", Justification = "jjxtra")]
+        public static byte[] SerializeUtf8Json(this object obj)
+        {
+            return System.Text.Json.JsonSerializer.SerializeToUtf8Bytes(obj, options: jsonOptions);
+        }
+
+        /// <summary>
+        /// Serialize an object to utf8 json
+        /// </summary>
+        /// <param name="obj">Object</param>
+        /// <param name="stream">Stream</param>
+        /// <returns>Utf8 json</returns>
+        [UnconditionalSuppressMessage("Trimming", "IL2026:Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code", Justification = "jjxtra")]
+        public static void SerializeUtf8Json(this object obj, Stream stream)
+        {
+            System.Text.Json.JsonSerializer.Serialize(stream, obj, options: jsonOptions);
         }
 
         private static Assembly[] allAssemblies;
