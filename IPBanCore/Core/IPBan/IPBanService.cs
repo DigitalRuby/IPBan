@@ -578,13 +578,17 @@ namespace DigitalRuby.IPBanCore
                 configFileName = IPBanConfig.DefaultFileName;
             }
             string configFilePath = Path.Combine(directory, configFileName);
+            string configFileOverridePath = Path.Combine(directory, configFileName.Replace("ipban.config", "ipban.override.config")); ;
             string configFileText = File.ReadAllText(configFilePath);
+            string configFileOverrideText = File.ReadAllText(configFileOverridePath);
             configFilePath += ".tmp";
+            configFileOverridePath += ".tmp";
             if (configFileModifier != null)
             {
                 configFileText = configFileModifier(configFileText);
             }
             ExtensionMethods.FileWriteAllTextWithRetry(configFilePath, configFileText);
+            ExtensionMethods.FileWriteAllTextWithRetry(configFileOverridePath, configFileOverrideText);
             T service = IPBanService.CreateService<T>();
             service.ConfigFilePath = configFilePath;
             service.MultiThreaded = false;
