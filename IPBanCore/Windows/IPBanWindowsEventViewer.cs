@@ -217,7 +217,9 @@ namespace DigitalRuby.IPBanCore
                         foreach (XmlNode node in nodes)
                         {
                             // if we get a match, stop checking nodes
-                            info = IPBanService.GetIPAddressEventsFromRegex(expression.RegexObject, node.InnerText.Trim(),
+                            info = IPBanService.GetIPAddressEventsFromRegex(expression.RegexObject,
+                                node.InnerText.Trim(),
+                                info: group.Source,
                                 dns: service.DnsLookup).FirstOrDefault();
                             if (info is not null)
                             {

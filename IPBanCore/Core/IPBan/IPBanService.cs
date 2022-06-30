@@ -139,10 +139,12 @@ namespace DigitalRuby.IPBanCore
         /// <param name="userName">Found user name or null if none</param>
         /// <param name="timestampFormat">Timestamp format</param>
         /// <param name="eventType">Event type</param>
+        /// <param name="info">Info</param>
         /// <param name="dns">Dns lookup to resolve ip addresses</param>
         /// <returns>Set of matches from text</returns>
         public static IEnumerable<IPAddressLogEvent> GetIPAddressEventsFromRegex(Regex regex, string text,
-            string timestampFormat = null, IPAddressEventType eventType = IPAddressEventType.FailedLogin, IDnsLookup dns = null)
+            string timestampFormat = null, IPAddressEventType eventType = IPAddressEventType.FailedLogin,
+            string info = null, IDnsLookup dns = null)
         {
             const string customSourcePrefix = "source_";
 
@@ -161,7 +163,7 @@ namespace DigitalRuby.IPBanCore
             {
                 string userName = null;
                 string ipAddress = null;
-                string source = null;
+                string foundSource = null;
                 DateTime timestamp = default;
 
                 // check for a user name
@@ -191,22 +193,24 @@ namespace DigitalRuby.IPBanCore
                 }
 
                 // check for source
-                if (string.IsNullOrWhiteSpace(source))
+                if (string.IsNullOrWhiteSpace(foundSource))
                 {
                     Group sourceGroup = match.Groups["source"];
                     if (sourceGroup != null && sourceGroup.Success)
                     {
-                        source ??= sourceGroup.Value.Trim(regexTrimChars);
+                        foundSource = sourceGroup.Value.Trim(regexTrimChars);
                     }
                 }
 
                 // check for groups with a custom source name
                 foreach (Group group in match.Groups)
                 {
-                    if (group.Success && group.Name != null &&
-                        string.IsNullOrWhiteSpace(source) && group.Name.StartsWith(customSourcePrefix))
+                    if (group.Success &&
+                        group.Name != null &&
+                        string.IsNullOrWhiteSpace(foundSource) &&
+                        group.Name.StartsWith(customSourcePrefix))
                     {
-                        source = group.Name[customSourcePrefix.Length..];
+                        foundSource = group.Name[customSourcePrefix.Length..];
                     }
                 }
 
@@ -244,11 +248,14 @@ namespace DigitalRuby.IPBanCore
                     }
 
                     // if we are parsing anything as ip address (including dns names)
-                    if (ipAddress is null && dns != null && ipAddressGroup.Name == "ipaddress" &&
-                        tempIPAddress != Environment.MachineName && tempIPAddress != "-")
+                    if (ipAddress is null &&
+                        dns != null &&
+                        ipAddressGroup.Name == "ipaddress" &&
+                        tempIPAddress != Environment.MachineName &&
+                        tempIPAddress != "-")
                     {
                         // Check Host by name
-                        Logger.Info("Parsing as IP failed, checking dns '{0}'", tempIPAddress);
+                        Logger.Info("Parsing as IP failed for {0}, info: {1}. Checking dns...", tempIPAddress, info);
                         try
                         {
                             IPAddress[] ipAddresses = dns.GetHostAddressesAsync(tempIPAddress).Sync();
@@ -270,7 +277,7 @@ namespace DigitalRuby.IPBanCore
                 int repeatCount = ExtractRepeatCount(match, text);
 
                 // return an event for this match
-                yield return new IPAddressLogEvent(ipAddress, userName, source, repeatCount, eventType, timestamp);
+                yield return new IPAddressLogEvent(ipAddress, userName, foundSource, repeatCount, eventType, timestamp);
             }
         }
 

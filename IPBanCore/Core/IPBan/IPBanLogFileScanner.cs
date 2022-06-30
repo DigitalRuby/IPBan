@@ -119,7 +119,7 @@ namespace DigitalRuby.IPBanCore
         {
             List<IPAddressLogEvent> events = new();
             IPAddressEventType type = (successful ? IPAddressEventType.SuccessfulLogin : IPAddressEventType.FailedLogin);
-            foreach (IPAddressLogEvent info in IPBanService.GetIPAddressEventsFromRegex(regex, text, timestampFormat, type, dns))
+            foreach (IPAddressLogEvent info in IPBanService.GetIPAddressEventsFromRegex(regex, text, timestampFormat, type, Source, dns))
             {
                 info.Source ??= Source; // apply default source only if we don't already have a source
                 if (info.FailedLoginThreshold <= 0)
