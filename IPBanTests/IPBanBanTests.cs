@@ -755,6 +755,7 @@ namespace DigitalRuby.IPBanTests
             RunConfigBanTest("Whitelist", "190.168.0.0", "99.99.99.99", "190.168.0.0", -1);
             RunConfigBanTest("Whitelist", "190.168.0.0/16", "99.99.99.99", "190.168.99.99", -1);
             RunConfigBanTest("Whitelist", "216.245.221.80/28", "99.99.99.99", "216.245.221.86", -1);
+            RunConfigBanTest("Whitelist", "2409:8010:3000::", "2409:8010:3001::", "2409:8010:3000::", -1);
         }
 
         [Test]
@@ -908,40 +909,48 @@ namespace DigitalRuby.IPBanTests
 
         private void RunConfigBanTest(string key, string value, string banIP, string noBanIP, int noBanIPCount = 999)
         {
-            // turn on clear failed logins upon success login
-            using IPBanConfig.TempConfigChanger configChanger = new(service, xml =>
+            try
             {
-                return IPBanConfig.ChangeConfigAppSetting(xml, key, value);
-            }, out string newConfig);
+                // turn on clear failed logins upon success login
+                using IPBanConfig.TempConfigChanger configChanger = new(service, xml =>
+                {
+                    return IPBanConfig.ChangeConfigAppSetting(xml, key, value);
+                }, out string newConfig);
 
-            List<IPAddressLogEvent> events = new()
-            {
-                new IPAddressLogEvent(banIP, "user1", "RDP", 999, IPAddressEventType.FailedLogin)
-            };
-            if (!string.IsNullOrWhiteSpace(noBanIP))
-            {
-                events.Add(new IPAddressLogEvent(noBanIP, "user2", "RDP", noBanIPCount, IPAddressEventType.FailedLogin));
+                List<IPAddressLogEvent> events = new()
+                {
+                    new IPAddressLogEvent(banIP, "user1", "RDP", 999, IPAddressEventType.FailedLogin)
+                };
+                if (!string.IsNullOrWhiteSpace(noBanIP))
+                {
+                    events.Add(new IPAddressLogEvent(noBanIP, "user2", "RDP", noBanIPCount, IPAddressEventType.FailedLogin));
+                }
+                service.AddIPAddressLogEvents(events);
+
+                // process failed logins
+                service.RunCycleAsync().Sync();
+
+                Assert.IsTrue(service.Firewall.IsIPAddressBlocked(banIP, out _));
+                Assert.IsTrue(service.DB.TryGetIPAddress(banIP, out IPBanDB.IPAddressEntry e1));
+                Assert.AreEqual(e1.FailedLoginCount, 999);
+                if (!string.IsNullOrWhiteSpace(noBanIP))
+                {
+                    Assert.IsFalse(service.Firewall.IsIPAddressBlocked(noBanIP, out _));
+                    if (noBanIPCount > 0)
+                    {
+                        Assert.IsTrue(service.DB.TryGetIPAddress(noBanIP, out IPBanDB.IPAddressEntry e2));
+                        Assert.AreEqual(e2.FailedLoginCount, noBanIPCount);
+                    }
+                    else
+                    {
+                        Assert.IsFalse(service.DB.TryGetIPAddress(noBanIP, out _));
+                    }
+                }
             }
-            service.AddIPAddressLogEvents(events);
-
-            // process failed logins
-            service.RunCycleAsync().Sync();
-
-            Assert.IsTrue(service.Firewall.IsIPAddressBlocked(banIP, out _));
-            Assert.IsTrue(service.DB.TryGetIPAddress(banIP, out IPBanDB.IPAddressEntry e1));
-            Assert.AreEqual(e1.FailedLoginCount, 999);
-            if (!string.IsNullOrWhiteSpace(noBanIP))
+            finally
             {
-                Assert.IsFalse(service.Firewall.IsIPAddressBlocked(noBanIP, out _));
-                if (noBanIPCount > 0)
-                {
-                    Assert.IsTrue(service.DB.TryGetIPAddress(noBanIP, out IPBanDB.IPAddressEntry e2));
-                    Assert.AreEqual(e2.FailedLoginCount, noBanIPCount);
-                }
-                else
-                {
-                    Assert.IsFalse(service.DB.TryGetIPAddress(noBanIP, out _));
-                }
+                service.Firewall.Truncate();
+                service.DB.Truncate(true);
             }
         }
     }
