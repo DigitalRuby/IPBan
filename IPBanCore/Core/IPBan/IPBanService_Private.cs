@@ -175,7 +175,20 @@ namespace DigitalRuby.IPBanCore
                 try
                 {
                     IPAddress ipAddress = NetworkUtility.GetPriorityIPAddresses().FirstOrDefault();
-                    RemoteIPAddressString = ipAddress?.ToString();
+                    if (ipAddress.IsInternal())
+                    {
+                        // try querying through a web service
+                        var bytes = await RequestMaker.MakeRequestAsync(new Uri("https://api.ipban.com/myip"));
+                        var ipString = Encoding.UTF8.GetString(bytes);
+                        if (IPAddress.TryParse(ipString, out var ipObj))
+                        {
+                            RemoteIPAddressString = ipObj.ToString();
+                        }
+                    }
+                    else
+                    {
+                        RemoteIPAddressString = ipAddress?.ToString();
+                    }
                     Logger.Info("Remote ip address: {0}", RemoteIPAddressString);
                 }
                 catch
