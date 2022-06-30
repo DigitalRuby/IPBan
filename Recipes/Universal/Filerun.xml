@@ -1,0 +1,44 @@
+<!-- Two PHP scripts will need to be placed in /path/to/Filerun/customizables/events
+
+__________'login.php'_____________
+<?php
+
+$logEntry = date('Y-m-d H:i:sO').' Successful login from '.$data['IP']; 
+
+error_log("$logEntry \n", 3, '/path/to/Filerun/customizables/events/log.txt');
+___________________________________
+________'login_failed.php'_________
+<?php
+
+$logEntry = date('Y-m-d H:i:sO').' - '.$data['IP'].' - '.$data['username'].' - '.$data['error'].' - '.$data['errorCode']; 
+
+error_log("$logEntry \n", 3, '/path/to/Filerun/customizables/events/log.txt');
+____________________________________
+ -->
+    <!-- Filerun
+    Failed logins
+      2022-06-29 14:03:53-0400 - 1.2.3.4 - Username - Invalid username or password - WRONG_PASS 
+    Successful logins
+      2022-06-29 14:28:47-0400 Successful login from 1.2.3.4
+    -->
+	  
+      <LogFile>
+
+        <Source>Filerun</Source>
+        <PathAndMask>path/to/Filerun/customizables/events/log.txt</PathAndMask>
+        <FailedLoginRegex>
+          <![CDATA[
+            (?<timestamp>\d\d\d\d-\d\d-\d\d\s\d\d:\d\d:\d\d)[^\s]+\s-\s(?<ipaddress>.*)\s-\s(?<username>[^\s]+)\s-\sInvalid\susername\sor\spassword
+          ]]>
+        </FailedLoginRegex>
+        <SuccessfulLoginRegex>
+          <![CDATA[
+            (?<timestamp>\d\d\d\d-\d\d-\d\d\s\d\d:\d\d:\d\d)[^\s]+\sSuccessful\slogin\sfrom\s(?<ipaddress>[^\s]+)
+          ]]>
+        </SuccessfulLoginRegex>
+        <PlatformRegex>Windows</PlatformRegex>
+        <PingInterval>10000</PingInterval>
+        <MaxFileSize>0</MaxFileSize>
+        <FailedLoginThreshold>5</FailedLoginThreshold>
+
+      </LogFile>
