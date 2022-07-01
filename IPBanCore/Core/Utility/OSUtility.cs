@@ -100,8 +100,8 @@ namespace DigitalRuby.IPBanCore
 
         private static PerformanceCounter windowsCpuCounter;
         private static PerformanceCounter windowsDiskIopsCounter;
-        private static Process linuxCpuCounter;
-        private static Process linuxDiskIopsCounter;
+        //private static Process linuxCpuCounter;
+        //private static Process linuxDiskIopsCounter;
         private static float windowsCpuPercent;
         private static float windowsDiskIopsPercent;
         private static float networkUsage = -1.0f;
