@@ -6,9 +6,9 @@
 		<PreserveCompilationContext>true</PreserveCompilationContext>
 		<PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
 		<PackageId>DigitalRuby.IPBanCore</PackageId>
-		<Version>1.7.2</Version>
-		<AssemblyVersion>1.7.2</AssemblyVersion>
-		<FileVersion>1.7.2</FileVersion>
+		<Version>1.7.3</Version>
+		<AssemblyVersion>1.7.3</AssemblyVersion>
+		<FileVersion>1.7.3</FileVersion>
 		<Authors>Jeff Johnson</Authors>
 		<Company>Digital Ruby, LLC</Company>
 		<Product>IPBan</Product>
@@ -22,7 +22,8 @@
 		<PackageReleaseNotes>Upgrade to .NET core 6</PackageReleaseNotes>
 		<PublishTrimmed>true</PublishTrimmed>
 		<NeutralLanguage>en</NeutralLanguage>
-		<GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+		<GenerateDocumentationFile>True</GenerateDocumentationFile>
 		<AssemblyName>DigitalRuby.IPBanCore</AssemblyName>
 		<ApplicationIcon />
 		<OutputType>Library</OutputType>
