@@ -8,7 +8,7 @@ Fail example:
 
 Success example:
 2022-07-05 21:45:57 11.12.13.14 - 6.7.8.9 21 USER userName 331 0 0 302f4d86-3b19-5b00-9bbd-1ddfa355fb2d -
-2022-07-05 21:45:57 11.12.13.14 NS3181192\userName 6.7.8.9 21 PASS *** 230 0 0 302f4d86-3b19-5b00-9bbd-1ddfa355fb2d /
+2022-07-05 21:45:57 11.12.13.14 MyDomain\userName 6.7.8.9 21 PASS *** 230 0 0 302f4d86-3b19-5b00-9bbd-1ddfa355fb2d /
 -->
 
 <LogFile>
