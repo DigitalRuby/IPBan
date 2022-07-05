@@ -1,0 +1,34 @@
+﻿<!-- IIS FTP requests on Windows
+#Fields: date time c-ip cs-username s-ip s-port cs-method cs-uri-stem sc-status sc-win32-status sc-substatus x-session x-fullpath
+c-ip is the field with the remote ip
+
+Fail example:
+2022-07-05 21:41:05 2.3.4.5 - 6.7.8.9 21 USER failUserName 331 0 0 ab3a48eb-256b-44ac-bff3-d9e50d457d48 -
+2022-07-05 21:41:06 2.3.4.5 - 6.7.8.9 21 PASS *** 530 1326 41 ab3a48eb-256b-44ac-bff3-d9e50d457d48 -
+
+Success example:
+2022-07-05 21:45:57 11.12.13.14 - 6.7.8.9 21 USER userName 331 0 0 302f4d86-3b19-5b00-9bbd-1ddfa355fb2d -
+2022-07-05 21:45:57 11.12.13.14 NS3181192\userName 6.7.8.9 21 PASS *** 230 0 0 302f4d86-3b19-5b00-9bbd-1ddfa355fb2d /
+-->
+
+<LogFile>
+	<Source>IIS_FTP</Source>
+	<PathAndMask>C:/inetpub/logs/LogFiles/FTPSVC3</PathAndMask>
+	<FailedLoginRegex>
+		<![CDATA[
+			^(?<timestamp>[0-9A-Z\-]+\s[0-9\:]+)\s(?<ipaddress>[^\s]+)\s.*\sUSER\s(?<username>[^\s]+)[^\n]+\n.*\sPASS\s[^\s]+\s[45][^\n]+\n
+		]]>
+	</FailedLoginRegex>
+	<FailedLoginRegexTimestampFormat></FailedLoginRegexTimestampFormat>
+	<SuccessfulLoginRegex>
+		<![CDATA[
+			^(?<timestamp>[0-9A-Z\-]+\s[0-9\:]+)\s(?<ipaddress>[^\s]+)\s.*\sUSER\s(?<username>[^\s]+)[^\n]+\n.*\sPASS\s[^\s]+\s2[^\n]+\n
+		]]>
+	</SuccessfulLoginRegex>
+	<SuccessfulLoginRegexTimestampFormat></SuccessfulLoginRegexTimestampFormat>
+	<PlatformRegex>Windows</PlatformRegex>
+	<PingInterval>10000</PingInterval>
+	<MaxFileSize>0</MaxFileSize>
+	<FailedLoginThreshold>0</FailedLoginThreshold>
+</LogFile>
+
