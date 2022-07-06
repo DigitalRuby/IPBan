@@ -13,7 +13,7 @@ Success example:
 
 <LogFile>
 	<Source>IIS_FTP</Source>
-	<PathAndMask>C:/inetpub/logs/LogFiles/FTPSVC3</PathAndMask>
+	<PathAndMask>C:/inetpub/logs/LogFiles/FTPSVC3/*.log</PathAndMask>
 	<FailedLoginRegex>
 		<![CDATA[
 			^(?<timestamp>[0-9A-Z\-]+\s[0-9\:]+)\s(?<ipaddress>[^\s]+)\s.*\sUSER\s(?<username>[^\s]+)[^\n]+\n.*\sPASS\s[^\s]+\s[45][^\n]+\n
