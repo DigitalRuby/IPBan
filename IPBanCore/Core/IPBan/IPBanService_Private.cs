@@ -808,8 +808,17 @@ namespace DigitalRuby.IPBanCore
         /// </summary>
         protected virtual void OnFirewallDisposing() { }
 
+        /// <summary>
+        /// OnUpdate
+        /// </summary>
+        /// <returns>Task</returns>
         protected virtual Task OnUpdate() => Task.CompletedTask;
 
+        /// <summary>
+        /// Get url from config
+        /// </summary>
+        /// <param name="urlType">Type of url</param>
+        /// <returns>Task of whether url get succeeded</returns>
         protected virtual async Task<bool> GetUrl(UrlType urlType)
         {
             if ((urlType == UrlType.Start && GotStartUrl) ||
