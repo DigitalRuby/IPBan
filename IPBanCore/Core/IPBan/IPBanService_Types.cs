@@ -34,11 +34,29 @@ namespace DigitalRuby.IPBanCore
 {
     public partial class IPBanService
     {
+        /// <summary>
+        /// Url type
+        /// </summary>
         protected enum UrlType
         {
+            /// <summary>
+            /// Start
+            /// </summary>
             Start,
+
+            /// <summary>
+            /// Update
+            /// </summary>
             Update,
+
+            /// <summary>
+            /// Stop
+            /// </summary>
             Stop,
+
+            /// <summary>
+            /// Config
+            /// </summary>
             Config
         }
     }

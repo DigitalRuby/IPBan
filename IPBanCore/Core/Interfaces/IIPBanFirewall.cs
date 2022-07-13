@@ -31,6 +31,9 @@ using System.Threading.Tasks;
 
 namespace DigitalRuby.IPBanCore
 {
+    /// <summary>
+    /// IPBan firewall interface
+    /// </summary>
     public interface IIPBanFirewall : IUpdater, IDisposable
     {
         /// <summary>

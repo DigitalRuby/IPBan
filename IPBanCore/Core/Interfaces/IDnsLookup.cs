@@ -65,16 +65,19 @@ namespace DigitalRuby.IPBanCore
         /// </summary>
         public static DefaultDnsLookup Instance { get; } = new DefaultDnsLookup();
 
+        /// <inheritdoc />
         public Task<IPAddress[]> GetHostAddressesAsync(string hostNameOrAddress)
         {
             return Dns.GetHostAddressesAsync(hostNameOrAddress);
         }
 
+        /// <inheritdoc />
         public Task<IPHostEntry> GetHostEntryAsync(string hostNameOrAddress)
         {
             return Dns.GetHostEntryAsync(hostNameOrAddress);
         }
 
+        /// <inheritdoc />
         public async Task<string> GetHostNameAsync(string hostNameOrAddress = null)
         {
             if (string.IsNullOrWhiteSpace(hostNameOrAddress))
@@ -85,6 +88,10 @@ namespace DigitalRuby.IPBanCore
             return hostName;
         }
 
+        /// <summary>
+        /// Get local ip
+        /// </summary>
+        /// <returns>Local ip</returns>
         public static IPAddress GetLocalIPAddress()
         {
             try
@@ -123,16 +130,19 @@ namespace DigitalRuby.IPBanCore
         /// </summary>
         public static TestDnsLookup Instance { get; } = new TestDnsLookup();
 
+        /// <inheritdoc />
         Task<System.Net.IPAddress[]> IDnsLookup.GetHostAddressesAsync(string hostNameOrAddress)
         {
             return Task.FromResult(new[] { System.Net.IPAddress.Parse("10.10.10.10") });
         }
 
+        /// <inheritdoc />
         Task<IPHostEntry> IDnsLookup.GetHostEntryAsync(string hostNameOrAddress)
         {
             return Task.FromResult(new IPHostEntry { AddressList = new[] { System.Net.IPAddress.Parse("10.10.10.10") }, HostName = hostNameOrAddress });
         }
 
+        /// <inheritdoc />
         async Task<string> IDnsLookup.GetHostNameAsync(string hostNameOrAddress)
         {
             if (string.IsNullOrWhiteSpace(hostNameOrAddress))

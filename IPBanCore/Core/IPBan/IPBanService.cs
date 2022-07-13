@@ -135,8 +135,6 @@ namespace DigitalRuby.IPBanCore
         /// </summary>
         /// <param name="regex">Regex</param>
         /// <param name="text">Text</param>
-        /// <param name="ipAddress">Found ip address or null if none</param>
-        /// <param name="userName">Found user name or null if none</param>
         /// <param name="timestampFormat">Timestamp format</param>
         /// <param name="eventType">Event type</param>
         /// <param name="info">Info</param>
@@ -499,7 +497,7 @@ namespace DigitalRuby.IPBanCore
         /// <summary>
         /// Remove an updater
         /// </summary>
-        /// <param name="result">Updater</param>
+        /// <param name="updater">Updater</param>
         /// <returns>True if removed, false otherwise</returns>
         public bool RemoveUpdater(IUpdater updater)
         {

@@ -1,6 +1,8 @@
 ﻿using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
+
 namespace DigitalRuby.IPBanCore.Windows.COM
 {
     [Guid("E0483BA0-47FF-4D9C-A6D6-7741D0B195F7")]
@@ -105,3 +107,5 @@ namespace DigitalRuby.IPBanCore.Windows.COM
         }
     }
 }
+
+#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member

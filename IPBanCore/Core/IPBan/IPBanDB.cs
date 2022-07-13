@@ -30,6 +30,9 @@ using System.Net;
 
 namespace DigitalRuby.IPBanCore
 {
+    /// <summary>
+    /// IPBan local storage for ip addresses
+    /// </summary>
     public class IPBanDB : SqliteDB
     {
         /// <summary>
@@ -180,6 +183,7 @@ namespace DigitalRuby.IPBanCore
             return count;
         }
 
+        /// <inheritdoc />
         protected override void OnInitialize()
         {
             base.OnInitialize();
@@ -282,6 +286,7 @@ namespace DigitalRuby.IPBanCore
         /// </summary>
         /// <param name="ipAddress">IP address to lookup</param>
         /// <param name="entry">IP address entry or default if not found</param>
+        /// <param name="transaction">Transaction</param>
         /// <returns>True if ip address found, false if not</returns>
         public bool TryGetIPAddress(string ipAddress, out IPAddressEntry entry, object transaction = null)
         {
@@ -310,7 +315,6 @@ namespace DigitalRuby.IPBanCore
         /// <param name="banStartDate">Ban start date</param>
         /// <param name="banEndDate">Ban end date</param>
         /// <param name="now">Current date/time</param>
-        /// <param name="state">State</param>
         /// <param name="transaction">Transaction</param>
         /// <returns>True if ban date set, false if it was already set or ip address is not in the database</returns>
         public bool SetBanDates(string ipAddress, DateTime banStartDate, DateTime banEndDate, DateTime now, object transaction = null)

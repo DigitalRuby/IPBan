@@ -54,18 +54,64 @@ namespace DigitalRuby.IPBanCore
 
         private DateTime lastUpdate = IPBanService.UtcNow;
 
+        /// <summary>
+        /// Hash size
+        /// </summary>
         protected const int hashSize = 1024;
+
+        /// <summary>
+        /// Max block rule count
+        /// </summary>
         protected const int blockRuleMaxCount = 2097152;
+        
+        /// <summary>
+        /// Max allow rule count
+        /// </summary>
         protected const int allowRuleMaxCount = 8192;
+
+        /// <summary>
+        /// Max block rule range count
+        /// </summary>
         protected const int blockRuleRangesMaxCount = 4194304;
+
+        /// <summary>
+        /// Single ip type
+        /// </summary>
         protected const string hashTypeSingleIP = "ip";
+
+        /// <summary>
+        /// Cidr mask type
+        /// </summary>
         protected const string hashTypeCidrMask = "net";
+
+        /// <summary>
+        /// Command for ip6tables
+        /// </summary>
         protected const string ip6TablesProcess = "ip6tables";
 
+        /// <summary>
+        /// Is this ipv4 or ipv6 firewall?
+        /// </summary>
         protected virtual bool IsIPV4 => true;
+
+        /// <summary>
+        /// Inet family
+        /// </summary>
         protected virtual string INetFamily => "inet";
+
+        /// <summary>
+        /// Suffix for set files
+        /// </summary>
         protected virtual string SetSuffix => ".set";
+
+        /// <summary>
+        /// Suffix for table files
+        /// </summary>
         protected virtual string TableSuffix => ".tbl";
+
+        /// <summary>
+        /// IP tables process
+        /// </summary>
         protected virtual string IpTablesProcess => "iptables";
 
         private readonly HashSet<string> allowRules = new(StringComparer.OrdinalIgnoreCase);
@@ -148,21 +194,46 @@ namespace DigitalRuby.IPBanCore
             }
         }
 
+        /// <summary>
+        /// Get table file name
+        /// </summary>
+        /// <returns>Table file name</returns>
         protected string GetTableFileName()
         {
             return Path.Combine(AppContext.BaseDirectory, "ipban" + TableSuffix);
         }
 
+        /// <summary>
+        /// Get set file name
+        /// </summary>
+        /// <returns>Set file name</returns>
         protected static string GetSetFileName()
         {
             return Path.Combine(AppContext.BaseDirectory, "ipban.set");
         }
 
+        /// <summary>
+        /// Execute a process
+        /// </summary>
+        /// <param name="program">Program</param>
+        /// <param name="requireExitCode">Required exit code</param>
+        /// <param name="commandLine">Command line</param>
+        /// <param name="args">Args</param>
+        /// <returns>Exit code</returns>
         protected static int RunProcess(string program, bool requireExitCode, string commandLine, params object[] args)
         {
             return RunProcess(program, requireExitCode, out _, commandLine, args);
         }
 
+        /// <summary>
+        /// Execute a process
+        /// </summary>
+        /// <param name="program">Program</param>
+        /// <param name="requireExitCode">Required exit code</param>
+        /// <param name="lines">Lines of output</param>
+        /// <param name="commandLine">Command line</param>
+        /// <param name="args">Args</param>
+        /// <returns>Exit code</returns>
         protected static int RunProcess(string program, bool requireExitCode, out IReadOnlyList<string> lines, string commandLine, params object[] args)
         {
             commandLine = string.Format(commandLine, args);
@@ -199,6 +270,17 @@ namespace DigitalRuby.IPBanCore
             return p.ExitCode;
         }
 
+        /// <summary>
+        /// Create (or update) a firewall rule
+        /// </summary>
+        /// <param name="ruleName">Rule name</param>
+        /// <param name="action">Action</param>
+        /// <param name="hashType">Hash type</param>
+        /// <param name="maxCount">Max count for rule</param>
+        /// <param name="allowedPorts">Allowd ports</param>
+        /// <param name="cancelToken">Cancel token</param>
+        /// <returns>True if success</returns>
+        /// <exception cref="OperationCanceledException">Creation was cancelled</exception>
         protected bool CreateOrUpdateRule(string ruleName, string action, string hashType, int maxCount, IEnumerable<PortRange> allowedPorts, CancellationToken cancelToken)
         {
             if (cancelToken.IsCancellationRequested)
@@ -275,7 +357,18 @@ namespace DigitalRuby.IPBanCore
             return true;
         }
 
-        // deleteRule will drop the rule and matching set before creating the rule and set, use this is you don't care to update the rule and set in place
+        /// <summary>
+        /// Update a firewall rule
+        /// </summary>
+        /// <param name="ruleName">Rule name</param>
+        /// <param name="action">Action</param>
+        /// <param name="ipAddresses">IP addresses</param>
+        /// <param name="hashType">Hash type</param>
+        /// <param name="maxCount">Max count</param>
+        /// <param name="allowPorts">Allowed ports</param>
+        /// <param name="cancelToken">Cancel token</param>
+        /// <returns>True if success</returns>
+        /// <exception cref="OperationCanceledException">Update rule cancelled</exception>
         protected bool UpdateRule(string ruleName, string action, IEnumerable<string> ipAddresses, string hashType, int maxCount,
             IEnumerable<PortRange> allowPorts, CancellationToken cancelToken)
         {
@@ -373,7 +466,19 @@ namespace DigitalRuby.IPBanCore
             }
         }
 
-        // deleteRule will drop the rule and matching set before creating the rule and set, use this is you don't care to update the rule and set in place
+        /// <summary>
+        /// Update a firewall rule
+        /// </summary>
+        /// <param name="ruleName">Rule name</param>
+        /// <param name="action">Action</param>
+        /// <param name="deltas">Delta IP addresses</param>
+        /// <param name="hashType">Hash type</param>
+        /// <param name="maxCount">Max count</param>
+        /// <param name="deleteRule">Will drop the rule and matching set before creating the rule and set, use this is you don't care to update the rule and set in place</param>
+        /// <param name="allowPorts">Allowed ports</param>
+        /// <param name="cancelToken">Cancel token</param>
+        /// <returns>True if success</returns>
+        /// <exception cref="OperationCanceledException">Update rule cancelled</exception>
         protected bool UpdateRuleDelta(string ruleName, string action, IEnumerable<IPBanFirewallIPAddressDelta> deltas, string hashType,
             int maxCount, bool deleteRule, IEnumerable<PortRange> allowPorts, CancellationToken cancelToken)
         {
@@ -465,6 +570,7 @@ namespace DigitalRuby.IPBanCore
             }
         }
 
+        /// <inheritdoc />
         protected override void OnDispose()
         {
             base.OnDispose();
@@ -473,6 +579,10 @@ namespace DigitalRuby.IPBanCore
             SaveTableToDisk();
         }
 
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="rulePrefix">Rule prefix</param>
         public IPBanLinuxBaseFirewall(string rulePrefix = null) : base(rulePrefix)
         {
             /*
@@ -491,6 +601,7 @@ namespace DigitalRuby.IPBanCore
             RestoreTablesFromDisk();
         }
 
+        /// <inheritdoc />
         public override Task Update(CancellationToken cancelToken)
         {
             base.Update(cancelToken);
@@ -506,6 +617,7 @@ namespace DigitalRuby.IPBanCore
             return Task.CompletedTask;
         }
 
+        /// <inheritdoc />
         public override IEnumerable<string> GetRuleNames(string ruleNamePrefix = null)
         {
             const string setText = " match-set ";
@@ -534,6 +646,7 @@ namespace DigitalRuby.IPBanCore
             return allowRules.Contains(ruleName);
         }
 
+        /// <inheritdoc />
         public override bool DeleteRule(string ruleName)
         {
             RunProcess(IpTablesProcess, true, out IReadOnlyList<string> lines, "-L --line-numbers");
@@ -561,6 +674,7 @@ namespace DigitalRuby.IPBanCore
             return false;
         }
 
+        /// <inheritdoc />
         public override Task<bool> BlockIPAddresses(string ruleNamePrefix, IEnumerable<string> ipAddresses, IEnumerable<PortRange> allowedPorts = null, CancellationToken cancelToken = default)
         {
             try
@@ -578,6 +692,7 @@ namespace DigitalRuby.IPBanCore
             }
         }
 
+        /// <inheritdoc />
         public override Task<bool> BlockIPAddressesDelta(string ruleNamePrefix, IEnumerable<IPBanFirewallIPAddressDelta> deltas, IEnumerable<PortRange> allowedPorts = null, CancellationToken cancelToken = default)
         {
             try
@@ -595,6 +710,7 @@ namespace DigitalRuby.IPBanCore
             }
         }
 
+        /// <inheritdoc />
         public override Task<bool> BlockIPAddresses(string ruleNamePrefix, IEnumerable<IPAddressRange> ranges, IEnumerable<PortRange> allowedPorts = null, CancellationToken cancelToken = default)
         {
             ruleNamePrefix.ThrowIfNullOrWhiteSpace();
@@ -613,6 +729,7 @@ namespace DigitalRuby.IPBanCore
             }
         }
 
+        /// <inheritdoc />
         public override Task<bool> AllowIPAddresses(IEnumerable<string> ipAddresses, CancellationToken cancelToken = default)
         {
             try
@@ -629,6 +746,7 @@ namespace DigitalRuby.IPBanCore
             }
         }
 
+        /// <inheritdoc />
         public override Task<bool> AllowIPAddresses(string ruleNamePrefix, IEnumerable<IPAddressRange> ipAddresses, IEnumerable<PortRange> allowedPorts = null, CancellationToken cancelToken = default)
         {
             try
@@ -648,6 +766,7 @@ namespace DigitalRuby.IPBanCore
             }
         }
 
+        /// <inheritdoc />
         public override IEnumerable<IPAddressRange> EnumerateIPAddresses(string ruleNamePrefix = null)
         {
             string tempFile = OSUtility.GetTempFileName();
@@ -675,6 +794,7 @@ namespace DigitalRuby.IPBanCore
             }
         }
 
+        /// <inheritdoc />
         public override bool IsIPAddressBlocked(string ipAddress, out string ruleName, int port = -1)
         {
             if (System.Net.IPAddress.TryParse(ipAddress, out System.Net.IPAddress ipObj))
@@ -692,6 +812,7 @@ namespace DigitalRuby.IPBanCore
             return false;
         }
 
+        /// <inheritdoc />
         public override bool IsIPAddressAllowed(string ipAddress, int port = -1)
         {
             if (System.Net.IPAddress.TryParse(ipAddress, out System.Net.IPAddress ipObj))
@@ -708,6 +829,8 @@ namespace DigitalRuby.IPBanCore
         }
 
         private string lastBlockRuleEnumerated;
+
+        /// <inheritdoc />
         public override IEnumerable<string> EnumerateBannedIPAddresses()
         {
             string tempFile = OSUtility.GetTempFileName();
@@ -744,6 +867,7 @@ namespace DigitalRuby.IPBanCore
             }
         }
 
+        /// <inheritdoc />
         public override IEnumerable<string> EnumerateAllowedIPAddresses()
         {
             string tempFile = OSUtility.GetTempFileName();
@@ -770,6 +894,7 @@ namespace DigitalRuby.IPBanCore
             }
         }
 
+        /// <inheritdoc />
         public override void Truncate()
         {
             RemoveAllTablesAndSets();

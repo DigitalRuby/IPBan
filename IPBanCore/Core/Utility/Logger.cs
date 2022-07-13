@@ -511,7 +511,6 @@ namespace DigitalRuby.IPBanCore
         /// <summary>
         /// Log a trace
         /// </summary>
-        /// <param name="ts">Timestamp</param>
         /// <param name="text">Text with format</param>
         /// <param name="args">Format args</param>
         public static void Trace(string text, params object[] args)

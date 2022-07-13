@@ -317,7 +317,7 @@ namespace DigitalRuby.IPBanCore
         /// <summary>
         /// Get a UTC date time from a unix epoch in milliseconds
         /// </summary>
-        /// <param name="unixTimeStampSeconds">Unix epoch in milliseconds</param>
+        /// <param name="unixTimeStampMilliseconds">Unix epoch in milliseconds</param>
         /// <returns>UTC DateTime</returns>
         public static DateTime ToDateTimeUnixMilliseconds(this double unixTimeStampMilliseconds)
         {
@@ -327,7 +327,7 @@ namespace DigitalRuby.IPBanCore
         /// <summary>
         /// Get a UTC date time from a unix epoch in milliseconds
         /// </summary>
-        /// <param name="unixTimeStampSeconds">Unix epoch in milliseconds</param>
+        /// <param name="unixTimeStampMilliseconds">Unix epoch in milliseconds</param>
         /// <returns>UTC DateTime</returns>
         public static DateTime ToDateTimeUnixMilliseconds(this long unixTimeStampMilliseconds)
         {
@@ -995,6 +995,10 @@ namespace DigitalRuby.IPBanCore
 
 #pragma warning disable CA1401
 
+        /// <summary>
+        /// Get user id on Linux
+        /// </summary>
+        /// <returns>Uid</returns>
         [DllImport("libc")]
         public static extern uint getuid();
 
@@ -1288,7 +1292,6 @@ namespace DigitalRuby.IPBanCore
         /// <summary>
         /// Wait for value tasks to complete
         /// </summary>
-        /// <typeparam name="T">Type of value task</typeparam>
         /// <param name="tasks">Value tasks</param>
         /// <returns>Task that finishes when all value tasks have finished</returns>
         public static Task WhenAll(this IEnumerable<ValueTask> tasks)

@@ -479,18 +479,24 @@ namespace DigitalRuby.IPBanCore
             }
         }
 
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="rulePrefix">Rule prefix</param>
         public IPBanWindowsFirewall(string rulePrefix = null) : base(rulePrefix)
         {
             ThrowExceptionIfWindowsFirewallIsDisabled();
             MigrateOldDefaultRuleNames();
         }
 
+        /// <inheritdoc />
         public override Task<bool> BlockIPAddresses(string ruleNamePrefix, IEnumerable<string> ipAddresses, IEnumerable<PortRange> allowedPorts = null, CancellationToken cancelToken = default)
         {
             string prefix = (string.IsNullOrWhiteSpace(ruleNamePrefix) ? BlockRulePrefix : RulePrefix + ruleNamePrefix).TrimEnd('_') + "_";
             return BlockOrAllowIPAddresses(prefix, true, ipAddresses, allowedPorts, cancelToken);
         }
 
+        /// <inheritdoc />
         public override Task<bool> BlockIPAddressesDelta(string ruleNamePrefix, IEnumerable<IPBanFirewallIPAddressDelta> ipAddresses, IEnumerable<PortRange> allowedPorts = null, CancellationToken cancelToken = default)
         {
 
@@ -599,23 +605,27 @@ namespace DigitalRuby.IPBanCore
             return Task.FromResult(true);
         }
 
+        /// <inheritdoc />
         public override Task<bool> BlockIPAddresses(string ruleNamePrefix, IEnumerable<IPAddressRange> ranges, IEnumerable<PortRange> allowedPorts = null, CancellationToken cancelToken = default)
         {
             ruleNamePrefix.ThrowIfNullOrWhiteSpace();
             return BlockOrAllowIPAddresses(RulePrefix + ruleNamePrefix, true, ranges.Select(i => i.ToCidrString()), allowedPorts, cancelToken);
         }
 
+        /// <inheritdoc />
         public override Task<bool> AllowIPAddresses(IEnumerable<string> ipAddresses, CancellationToken cancelToken = default)
         {
             return BlockOrAllowIPAddresses(AllowRulePrefix, false, ipAddresses, null, cancelToken);
         }
 
+        /// <inheritdoc />
         public override Task<bool> AllowIPAddresses(string ruleNamePrefix, IEnumerable<IPAddressRange> ipAddresses, IEnumerable<PortRange> allowedPorts = null, CancellationToken cancelToken = default)
         {
             ruleNamePrefix.ThrowIfNullOrWhiteSpace();
             return BlockOrAllowIPAddresses(RulePrefix + ruleNamePrefix, false, ipAddresses.Select(i => i.ToCidrString()), allowedPorts, cancelToken);
         }
 
+        /// <inheritdoc />
         public override bool IsIPAddressBlocked(string ipAddress, out string ruleName, int port = -1)
         {
             ruleName = null;
@@ -663,6 +673,7 @@ namespace DigitalRuby.IPBanCore
             return false;
         }
 
+        /// <inheritdoc />
         public override bool IsIPAddressAllowed(string ipAddress, int port = -1)
         {
             try
@@ -701,12 +712,14 @@ namespace DigitalRuby.IPBanCore
             return false;
         }
 
+        /// <inheritdoc />
         public override IEnumerable<string> GetRuleNames(string ruleNamePrefix = null)
         {
             string prefix = (string.IsNullOrWhiteSpace(ruleNamePrefix) ? RulePrefix : RulePrefix + ruleNamePrefix);
             return EnumerateRulesMatchingPrefix(prefix).OrderBy(r => r.Name).Select(r => r.Name);
         }
 
+        /// <inheritdoc />
         public override bool DeleteRule(string ruleName)
         {
             try
@@ -721,6 +734,7 @@ namespace DigitalRuby.IPBanCore
             return false;
         }
 
+        /// <inheritdoc />
         public override IEnumerable<string> EnumerateBannedIPAddresses()
         {
             int i = 0;
@@ -758,6 +772,7 @@ namespace DigitalRuby.IPBanCore
             }
         }
 
+        /// <inheritdoc />
         public override IEnumerable<string> EnumerateAllowedIPAddresses()
         {
             INetFwRule rule;
@@ -791,6 +806,7 @@ namespace DigitalRuby.IPBanCore
             }
         }
 
+        /// <inheritdoc />
         public override IEnumerable<IPAddressRange> EnumerateIPAddresses(string ruleNamePrefix = null)
         {
             string prefix = (string.IsNullOrWhiteSpace(ruleNamePrefix) ? RulePrefix : RulePrefix + ruleNamePrefix);
@@ -812,6 +828,7 @@ namespace DigitalRuby.IPBanCore
             }
         }
 
+        /// <inheritdoc />
         public override void Truncate()
         {
             foreach (INetFwRule rule in EnumerateRulesMatchingPrefix(RulePrefix).ToArray())
@@ -829,6 +846,9 @@ namespace DigitalRuby.IPBanCore
             }
         }
 
+        /// <summary>
+        /// Enable local subnet traffic for windows firewall
+        /// </summary>
         public void EnableLocalSubnetTrafficViaFirewall()
         {
             string ruleName = RulePrefix + "AllowLocalTraffic";

@@ -29,74 +29,93 @@ using System.Threading.Tasks;
 
 namespace DigitalRuby.IPBanCore
 {
-    // TODO: use pfctl
+    /// <summary>
+    /// Mac firewall (not implemented)
+    /// </summary>
     [RequiredOperatingSystem(OSUtility.Mac)]
     public class IPBanMacFirewall : IPBanBaseFirewall
     {
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="rulePrefix">Rule prefix</param>
         public IPBanMacFirewall(string rulePrefix = null) : base(rulePrefix)
         {
         }
 
+        /// <inheritdoc />
         public override Task<bool> AllowIPAddresses(IEnumerable<string> ipAddresses, CancellationToken cancelToken = default)
         {
             throw new NotImplementedException();
         }
 
+        /// <inheritdoc />
         public override Task<bool> AllowIPAddresses(string ruleNamePrefix, IEnumerable<IPAddressRange> ipAddresses, IEnumerable<PortRange> allowedPorts = null, CancellationToken cancelToken = default)
         {
             throw new NotImplementedException();
         }
 
+        /// <inheritdoc />
         public override Task<bool> BlockIPAddresses(string ruleNamePrefix, IEnumerable<string> ipAddresses, IEnumerable<PortRange> allowedPorts = null, CancellationToken cancelToken = default)
         {
             throw new NotImplementedException();
         }
 
+        /// <inheritdoc />
         public override Task<bool> BlockIPAddressesDelta(string ruleNamePrefix, IEnumerable<IPBanFirewallIPAddressDelta> ipAddresses, IEnumerable<PortRange> allowedPorts = null, CancellationToken cancelToken = default)
         {
             throw new NotImplementedException();
         }
 
+        /// <inheritdoc />
         public override Task<bool> BlockIPAddresses(string ruleNamePrefix, IEnumerable<IPAddressRange> ranges, IEnumerable<PortRange> allowedPorts = null, CancellationToken cancelToken = default)
         {
             throw new NotImplementedException();
         }
 
+        /// <inheritdoc />
         public override IEnumerable<string> GetRuleNames(string ruleNamePrefix = null)
         {
             throw new NotImplementedException();
         }
 
+        /// <inheritdoc />
         public override bool DeleteRule(string ruleName)
         {
             throw new NotImplementedException();
         }
 
+        /// <inheritdoc />
         public override IEnumerable<string> EnumerateAllowedIPAddresses()
         {
             throw new NotImplementedException();
         }
 
+        /// <inheritdoc />
         public override IEnumerable<string> EnumerateBannedIPAddresses()
         {
             throw new NotImplementedException();
         }
 
+        /// <inheritdoc />
         public override bool IsIPAddressAllowed(string ipAddress, int port = -1)
         {
             throw new NotImplementedException();
         }
 
+        /// <inheritdoc />
         public override bool IsIPAddressBlocked(string ipAddress, out string ruleName, int port = -1)
         {
             throw new NotImplementedException();
         }
 
+        /// <inheritdoc />
         public override IEnumerable<IPAddressRange> EnumerateIPAddresses(string ruleNamePrefix = null)
         {
             throw new NotImplementedException();
         }
 
+        /// <inheritdoc />
         public override void Truncate()
         {
             throw new NotImplementedException();

@@ -19,7 +19,7 @@ namespace DigitalRuby.IPBanCore
     /// </summary>
     public class IPAddressRange : IEnumerable<IPAddress>, IReadOnlyDictionary<string, string>, IComparable<IPAddressRange>
     {
-        public static class Bits
+        private static class Bits
         {
             public static bool ValidateSubnetMaskIsLinear(byte[] maskBytes, string ipRangeString, bool throwException)
             {

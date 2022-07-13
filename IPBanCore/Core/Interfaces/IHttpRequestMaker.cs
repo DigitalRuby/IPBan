@@ -80,6 +80,7 @@ namespace DigitalRuby.IPBanCore
         /// </summary>
         public static long LocalRequestCount { get { return localRequestCount; } }
 
+        /// <inheritdoc />
         public async Task<byte[]> MakeRequestAsync(Uri uri, string postJson = null, IEnumerable<KeyValuePair<string, object>> headers = null,
             CancellationToken cancelToken = default)
         {

@@ -57,9 +57,8 @@ namespace DigitalRuby.IPBanCore
             /// <summary>
             /// Constructor
             /// </summary>
-            /// <param name="service">Service</param>
+            /// <param name="config">Config</param>
             /// <param name="modifier">Config modifier</param>
-            /// <param name="modifiedConfig">Receives modified config</param>
             public TempConfigChanger(IConfigReaderWriter config, Func<string, string> modifier) :
                 this(config, modifier, out _)
             {
@@ -68,7 +67,7 @@ namespace DigitalRuby.IPBanCore
             /// <summary>
             /// Constructor
             /// </summary>
-            /// <param name="service">Service</param>
+            /// <param name="config">Config</param>
             /// <param name="modifier">Config modifier</param>
             /// <param name="modifiedConfig">Receives modified config</param>
             public TempConfigChanger(IConfigReaderWriter config, Func<string, string> modifier, out string modifiedConfig)

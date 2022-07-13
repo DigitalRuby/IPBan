@@ -48,6 +48,10 @@ namespace DigitalRuby.IPBanCore
         /// Test a log file
         /// </summary>
         /// <param name="fileName">Log file</param>
+        /// <param name="regexFailureFile">Failure regex file</param>
+        /// <param name="regexFailureTimestampFormat">Failure timestamp format</param>
+        /// <param name="regexSuccessFile">Success regex file</param>
+        /// <param name="regexSuccessTimestampFormat">Success timestamp format</param>
         public static void RunLogFileTest(string fileName,
             string regexFailureFile,
             string regexFailureTimestampFormat,

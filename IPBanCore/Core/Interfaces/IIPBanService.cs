@@ -264,7 +264,7 @@ namespace DigitalRuby.IPBanCore
         /// <summary>
         /// Handle packet events
         /// </summary>
-        /// <param name="evt">Packet events</param>
+        /// <param name="events">Packet events</param>
         /// <returns>Task</returns>
         Task ProcessPacketEvents(IEnumerable<PacketEvent> events) => Task.CompletedTask;
     }

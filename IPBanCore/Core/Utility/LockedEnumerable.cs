@@ -40,6 +40,10 @@ namespace DigitalRuby.IPBanCore
         private readonly SemaphoreSlim locker = new(1, 1);
         private readonly IEnumerator<T> e;
 
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="obj">Enumerable</param>
         public LockedEnumerable(IEnumerable<T> obj)
         {
             obj.ThrowIfNull();

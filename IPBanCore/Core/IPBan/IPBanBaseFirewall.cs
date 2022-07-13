@@ -37,9 +37,19 @@ namespace DigitalRuby.IPBanCore
     [System.Diagnostics.CodeAnalysis.DynamicallyAccessedMembers(System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.All)]
     public abstract class IPBanBaseFirewall : IIPBanFirewall
     {
+        /// <summary>
+        /// IS firewall disposed
+        /// </summary>
         protected bool Disposed { get; private set; }
 
+        /// <summary>
+        /// Allow rule prefix
+        /// </summary>
         protected string AllowRulePrefix { get; private set; }
+
+        /// <summary>
+        /// Block rule prefix
+        /// </summary>
         protected string BlockRulePrefix { get; private set; }
 
         /// <summary>

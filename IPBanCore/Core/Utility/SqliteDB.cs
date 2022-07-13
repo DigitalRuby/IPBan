@@ -32,6 +32,9 @@ using Microsoft.Data.Sqlite;
 
 namespace DigitalRuby.IPBanCore
 {
+    /// <summary>
+    /// Sqlite database
+    /// </summary>
     public abstract class SqliteDB : IDisposable
     {
         private readonly string additionalPragmas;
@@ -42,6 +45,9 @@ namespace DigitalRuby.IPBanCore
 
 #endif
 
+        /// <summary>
+        /// Sqlite data reader wrapper
+        /// </summary>
         protected class SqliteDataReaderWrapper : IDisposable
         {
             private readonly SqliteDB db;
@@ -49,6 +55,13 @@ namespace DigitalRuby.IPBanCore
             private readonly SqliteDataReader reader;
             private readonly bool closeConn;
 
+            /// <summary>
+            /// Constructor
+            /// </summary>
+            /// <param name="db">Db</param>
+            /// <param name="conn">Connection</param>
+            /// <param name="reader">Reader</param>
+            /// <param name="closeConn">True to auto close connection</param>
             public SqliteDataReaderWrapper(SqliteDB db, SqliteConnection conn, SqliteDataReader reader, bool closeConn)
             {
                 this.db = db;
@@ -57,6 +70,7 @@ namespace DigitalRuby.IPBanCore
                 this.closeConn = closeConn;
             }
 
+            /// <inheritdoc />
             public void Dispose()
             {
                 reader.Dispose();
@@ -66,6 +80,9 @@ namespace DigitalRuby.IPBanCore
                 }
             }
 
+            /// <summary>
+            /// Reader
+            /// </summary>
             public SqliteDataReader Reader => reader;
         }
 
@@ -77,6 +94,12 @@ namespace DigitalRuby.IPBanCore
             private readonly SqliteDB db;
             private readonly bool disposeConnection;
 
+            /// <summary>
+            /// Constructor
+            /// </summary>
+            /// <param name="db">Db</param>
+            /// <param name="conn">Connection</param>
+            /// <param name="disposeConnection">True to auto dispose connection</param>
             public SqliteDBTransaction(SqliteDB db, SqliteConnection conn, bool disposeConnection)
             {
                 this.db = db;
@@ -85,6 +108,9 @@ namespace DigitalRuby.IPBanCore
                 DBTransaction = DBConnection.BeginTransaction(TransactionLevel);
             }
 
+            /// <summary>
+            /// Finalizer
+            /// </summary>
             ~SqliteDBTransaction()
             {
                 // calls dispose
@@ -132,7 +158,14 @@ namespace DigitalRuby.IPBanCore
                 Dispose();
             }
 
+            /// <summary>
+            /// Connection
+            /// </summary>
             public SqliteConnection DBConnection { get; private set; }
+
+            /// <summary>
+            /// Transactino
+            /// </summary>
             public SqliteTransaction DBTransaction { get; private set; }
         }
 

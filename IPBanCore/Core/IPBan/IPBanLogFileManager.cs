@@ -44,6 +44,10 @@ namespace DigitalRuby.IPBanCore
         /// </summary>
         public IReadOnlyCollection<LogFileScanner> LogFilesToParse { get { return logFilesToParse; } }
 
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="service">Service</param>
         public IPBanLogFileManager(IIPBanService service)
         {
             this.service = service;
