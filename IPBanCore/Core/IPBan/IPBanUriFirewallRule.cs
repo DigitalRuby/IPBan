@@ -73,6 +73,11 @@ namespace DigitalRuby.IPBanCore
         public Uri Uri { get; }
 
         /// <summary>
+        /// Max count of ips that can be returned
+        /// </summary>
+        public int MaxCount { get; }
+
+        /// <summary>
         /// Constructor
         /// </summary>
         /// <param name="firewall">The firewall to block with</param>
@@ -81,8 +86,9 @@ namespace DigitalRuby.IPBanCore
         /// <param name="rulePrefix">Firewall rule prefix</param>
         /// <param name="interval">Interval to check uri for changes</param>
         /// <param name="uri">Uri, can be either file or http(s).</param>
+        /// <param name="maxCount">Max count of ips that can come from the rule or less than or equal to 0 for infinite.</param>
         public IPBanUriFirewallRule(IIPBanFirewall firewall, IIsWhitelisted whitelistChecker, IHttpRequestMaker httpRequestMaker, string rulePrefix,
-            TimeSpan interval, Uri uri)
+            TimeSpan interval, Uri uri, int maxCount = 10000)
         {
             this.firewall = firewall.ThrowIfNull();
             this.whitelistChecker = whitelistChecker.ThrowIfNull();
@@ -90,6 +96,7 @@ namespace DigitalRuby.IPBanCore
             RulePrefix = rulePrefix.ThrowIfNull();
             Uri = uri.ThrowIfNull();
             Interval = (interval.TotalSeconds < 5.0 ? fiveSeconds : interval);
+            MaxCount = maxCount;
 
             if (!uri.IsFile)
             {
@@ -201,7 +208,7 @@ namespace DigitalRuby.IPBanCore
 
             while ((line = reader.ReadLine()) != null)
             {
-                if (lines++ > 10000)
+                if (lines++ > MaxCount)
                 {
                     // prevent too many lines from crashing us
                     break;

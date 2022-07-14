@@ -1174,14 +1174,19 @@ namespace DigitalRuby.IPBanCore
             {
                 line = line.Trim();
                 string[] pieces = line.Split(',');
-                if (pieces.Length == 3)
+                if (pieces.Length >= 3)
                 {
                     if (TimeSpan.TryParse(pieces[1], out TimeSpan interval))
                     {
                         if (Uri.TryCreate(pieces[2], UriKind.Absolute, out Uri uri))
                         {
                             string rulePrefix = pieces[0];
-                            IPBanUriFirewallRule newRule = new(Firewall, this, RequestMaker, rulePrefix, interval, uri);
+                            int maxCount = 10000;
+                            if (pieces.Length > 3 && int.TryParse(pieces[3], out int _maxCount))
+                            {
+                                maxCount = _maxCount;
+                            }
+                            IPBanUriFirewallRule newRule = new(Firewall, this, RequestMaker, rulePrefix, interval, uri, maxCount);
                             if (updaters.Where(u => u.Equals(newRule)).FirstOrDefault() is IPBanUriFirewallRule existingRule)
                             {
                                 // exact duplicate rule, do nothing
