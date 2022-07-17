@@ -1419,5 +1419,140 @@ namespace DigitalRuby.IPBanCore
             }
             return ip;
         }
+
+        /// <summary>
+        /// Remove internal ip address ranges from the specified range
+        /// </summary>
+        /// <param name="range">IP address range</param>
+        /// <returns>IP address ranges without any internal ip address ranges, will just contain range if no internal ip
+        /// addresses are in range</returns>
+        public static IEnumerable<IPAddressRange> RemoveInternalRanges(this IPAddressRange range)
+        {
+            List<IPAddressRange> results = new();
+            var internalRanges = (range.Begin.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork ? NetworkUtility.InternalRangesIPV4 : NetworkUtility.InternalRangesIPV6);
+            foreach (var internalRange in internalRanges)
+            {
+                // internal ranges are sorted so we can make assumptions that the left most non intersecting part of range is good
+                if (range.Chomp(internalRange, out IPAddressRange left, out IPAddressRange right))
+                {
+                    if (right is null)
+                    {
+                        range = left;
+
+                        // all done!
+                        break;
+                    }
+                    else if (left is null)
+                    {
+                        // proceed with reduced range
+                        range = right;
+                    }
+                    else
+                    {
+                        // left result is sanitized of internal ips, still need to sanitize the right
+                        results.Add(left);
+                        range = right;
+                    }
+                }
+            }
+            if (range is not null)
+            {
+                results.Add(range);
+            }
+            return results;
+        }
+
+        /// <summary>
+        /// Combine IPAddressRange instances that are consecutive, ranges are assumed to be sorted
+        /// </summary>
+        /// <param name="ranges">Ranges</param>
+        /// <returns>Combined ranges</returns>
+        public static IEnumerable<IPAddressRange> Combine(this IEnumerable<IPAddressRange> ranges)
+        {
+            using var e = ranges.GetEnumerator();
+            IPAddressRange current = null;
+            IPAddressRange next;
+            if (e.MoveNext())
+            {
+                current = e.Current;
+            }
+            while (e.MoveNext())
+            {
+                next = e.Current;
+                if (current.TryCombine(next, out IPAddressRange combined))
+                {
+                    current = combined;
+                }
+                else
+                {
+                    yield return current;
+                    current = next;
+                }
+            }
+            if (current is not null)
+            {
+                yield return current;
+            }
+        }
+
+        /// <summary>
+        /// Invert ip address ranges, the result is ranges that are every other ip address range except the provided ranges
+        /// </summary>
+        /// <param name="ranges">Ranges</param>
+        /// <returns>Inverted ip address ranges, in sorted order and combined where needed</returns>
+        public static IEnumerable<IPAddressRange> Invert(this IEnumerable<IPAddressRange> ranges)
+        {
+            // remove duplicates, make sure list is sorted
+            var sortedRanges = ranges.Distinct().OrderBy(r => r).ToArray();
+
+            static IEnumerable<IPAddressRange> ProcessRanges(IEnumerable<IPAddressRange> _ranges,
+                System.Net.IPAddress startPrev,
+                System.Net.IPAddress lastPrev,
+                System.Net.Sockets.AddressFamily addressFamily)
+            {
+                IPAddressRange leftGap = null;
+                System.Net.IPAddress endPrev = null;
+                foreach (var range in Combine(_ranges.Where(r => r.Begin.AddressFamily == addressFamily).SelectMany(r => r.RemoveInternalRanges())))
+                {
+                    // left gap
+                    if (range.Begin.TryDecrement(out endPrev) &&
+                        startPrev.IsIPv4MappedToIPv6 == endPrev.IsIPv4MappedToIPv6)
+                    {
+                        leftGap = new IPAddressRange(startPrev, endPrev);
+                        foreach (var scrubbedIP in RemoveInternalRanges(leftGap))
+                        {
+                            yield return scrubbedIP;
+                        }
+                    }
+
+                    // if more gap on right keep going
+                    if (!range.End.TryIncrement(out startPrev) ||
+                        startPrev.IsIPv4MappedToIPv6 != range.End.IsIPv4MappedToIPv6)
+                    {
+                        startPrev = null;
+                        break;
+                    }
+                }
+
+                // last range
+                if (leftGap is not null && startPrev is not null)
+                {
+                    leftGap = new IPAddressRange(startPrev, lastPrev);
+                    foreach (var scrubbedIP in RemoveInternalRanges(leftGap))
+                    {
+                        yield return scrubbedIP;
+                    }
+                }
+            }
+
+            foreach (var range in Combine(ProcessRanges(sortedRanges, NetworkUtility.FirstIPV4, NetworkUtility.LastIPV4, System.Net.Sockets.AddressFamily.InterNetwork)))
+            {
+                yield return range;
+            }
+            foreach (var range in Combine(ProcessRanges(sortedRanges, NetworkUtility.FirstIPV6, NetworkUtility.LastIPV6, System.Net.Sockets.AddressFamily.InterNetworkV6)))
+            {
+                yield return range;
+            }
+        }
     }
 }
