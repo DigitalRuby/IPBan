@@ -276,7 +276,7 @@ namespace DigitalRuby.IPBanCore
                                 {
                                     Logger.Debug("Failed login count {0} >= ban count {1}{2}", newCount, maxFailedLoginAttempts, (configBlacklisted ? " config blacklisted" : string.Empty));
 
-                                    // if delegate and non-zero count, forward on - count of 0 means it was from external source, like a delegate
+                                    // if delegate is not null and not an external event, send it on to the delegate
                                     if (IPBanDelegate != null && !failedLogin.External)
                                     {
                                         await IPBanDelegate.LoginAttemptFailed(ipAddress, source, userName, MachineGuid, OSName, OSVersion, incrementCount, UtcNow);
@@ -293,7 +293,7 @@ namespace DigitalRuby.IPBanCore
                                     Logger.Warn("Login failed for known active user {0}", userName);
                                 }
 
-                                // if delegate and non-zero count, forward on
+                                // if delegate is not null and not an external event, send the event to the delegate
                                 if (IPBanDelegate != null && !failedLogin.External)
                                 {
                                     await IPBanDelegate.LoginAttemptFailed(ipAddress, source, userName, MachineGuid, OSName, OSVersion, incrementCount, UtcNow);
@@ -1131,7 +1131,7 @@ namespace DigitalRuby.IPBanCore
                             {
                                 // make sure the ip address is ban pending
                                 AddBannedIPAddress(evt.IPAddress, evt.Source, evt.UserName, bannedIPs,
-                                evt.Timestamp, false, evt.Count, evt.ExtraInfo, transaction, evt.External);
+                                    evt.Timestamp, false, evt.Count, evt.ExtraInfo, transaction, evt.External);
                             }
                             break;
 
