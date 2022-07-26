@@ -67,7 +67,7 @@ namespace DigitalRuby.IPBanTests
             object[] logFileData = new object[]
             {
                 "/var/log/auth*.log\n/var/log/secure*\n/var/log/messages",
-                @"failed\s+password\s+for\s+(invalid\s+user\s+)?(?<username>[^\s]+)\s+from\s+(?<ipaddress>[^\s]+)\s+port\s+[0-9]+\s+ssh|did\s+not\s+receive\s+identification\s+string\s+from\s+(?<ipaddress>[^\s]+)|connection\s+closed\s+by\s+((invalid\s+user\s+)?(?<username>[^\s]+)\s+)?(?<ipaddress>[^\s]+)\s+port\s+[0-9]+\s+\[preauth\]|disconnected\s+from\s+(invalid\s+user\s+)?(?<username>[^\s]+)\s+(?<ipaddress>[^\s]+)\s+port\s+[0-9]+\s+\[preauth\]|disconnected\s+from\s+(?<ipaddress>[^\s]+)\s+port\s+[0-9]+\s+\[preauth\]|disconnected\s+from\s+authenticating\s+user\s+(?<username>[^\s]+)\s+(?<ipaddress>[^\s]+)\s+port\s+[0-9]+\s+\[preauth\]",
+                @"failed\s+password\s+for\s+(?:invalid\s+user\s+)?(?<username>[^\s]+)\s+from\s+(?<ipaddress>[^\s]+)\s+port\s+[0-9]+\s+ssh|did\s+not\s+receive\s+identification\s+string\s+from\s+(?<ipaddress>[^\s]+)|connection\s+closed\s+by\s+(?:(?:invalid\s+user\s+)?(?<username>[^\s]+)\s+)?(?<ipaddress>[^\s]+)\s+port\s+[0-9]+\s+\[preauth\]|disconnected\s+from\s+(?:invalid\s+user\s+)?(?<username>[^\s]+)\s+(?<ipaddress>[^\s]+)\s+port\s+[0-9]+\s+\[preauth\]|disconnected\s+from\s+(?<ipaddress>[^\s]+)\s+port\s+[0-9]+\s+\[preauth\]|disconnected\s+from\s+authenticating\s+user\s+(?<username>[^\s]+)\s+(?<ipaddress>[^\s]+)\s+port\s+[0-9]+\s+\[preauth\]",
                 @"",
                 @"\s+Accepted\s+(?:password|publickey)\s+for\s+(?<username>[^\s]+)\s+from\s+(?<ipaddress>[^\s]+)\s+port\s+[0-9]+\s+ssh",
                 @"",
