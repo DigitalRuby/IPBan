@@ -923,6 +923,16 @@ namespace DigitalRuby.IPBanCore
             }
         }
 
+        private Task ShowRunningMessage()
+        {
+            if (!startMessageShown)
+            {
+                startMessageShown = true;
+                Logger.Warn("IPBan is running correctly. You can perform a failed ssh or rdp login and watch this log to verify functionality.");
+            }
+            return Task.CompletedTask;
+        }
+
         private async Task RunFirewallTasks()
         {
             // run up to 42 firewall tasks at a time

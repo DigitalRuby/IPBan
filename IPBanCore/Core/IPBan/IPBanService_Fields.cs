@@ -59,6 +59,7 @@ namespace DigitalRuby.IPBanCore
         private IPBanDB ipDB;
         private bool whitelistChanged;
         private bool updateBannedIPAddressesOnStartCalled;
+        private bool startMessageShown;
 
         /// <summary>
         /// Whether start url has been gotten

@@ -91,6 +91,7 @@ namespace DigitalRuby.IPBanCore
                             await ProcessPendingFailedLogins();
                             await ProcessPendingSuccessfulLogins();
                             await UpdateFirewall();
+                            await ShowRunningMessage();
                             await RunFirewallTasks();
                             try
                             {
