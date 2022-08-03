@@ -1,4 +1,4 @@
-IPBan Service
+IPBan - Block out attackers quickly and easily on Linux and Windows
 -----
 [![Github Sponsorship](.github/github_sponsor_btn.svg)](https://github.com/sponsors/jjxtra)
 
