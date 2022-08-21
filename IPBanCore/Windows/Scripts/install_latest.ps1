@@ -16,7 +16,10 @@
 
 param
 (
-	[Parameter(Mandatory=$False, Position = 0)] [String]$uninstall
+	[Parameter(Mandatory=$False, Position = 0)]
+	[String] $uninstall,
+	[Parameter(Mandatory=$False, Position = 1)]
+	[Boolean] $silent = $False
 )
 
 if ($PSVersionTable.PSVersion.Major -lt 5 -or ($PSVersionTable.PSVersion.Major -eq 5 -and $PSVersionTable.PSVersion.Minor -lt 1))
@@ -131,6 +134,9 @@ if (Test-Path -Path "$tempPath/nlog.config")
 & sc.exe failure IPBAN reset= 9999 actions= "restart/60000/restart/60000/restart/60000"
 & sc.exe start IPBAN
 
-# open config
-& echo "Opening config file, make sure to whitelist your trusted ip addresses!"
-& notepad $CONFIG_FILE
+if ($silent -eq $False)
+{
+    # open config
+    & echo "Opening config file, make sure to whitelist your trusted ip addresses!"
+    & notepad $CONFIG_FILE
+}
