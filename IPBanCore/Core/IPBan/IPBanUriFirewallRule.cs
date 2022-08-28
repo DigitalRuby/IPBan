@@ -25,6 +25,7 @@ SOFTWARE.
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
@@ -168,7 +169,18 @@ namespace DigitalRuby.IPBanCore
                         string filePath = Uri.LocalPath;
                         if (File.Exists(filePath))
                         {
-                            await ProcessResult(await File.ReadAllTextAsync(filePath, cancelToken), cancelToken);
+                            string text;
+                            if (filePath.EndsWith(".gz", StringComparison.OrdinalIgnoreCase))
+                            {
+                                using var fs = File.OpenRead(filePath);
+                                var bytes = DecompressBytes(fs);
+                                text = Encoding.UTF8.GetString(bytes);
+                            }
+                            else
+                            {
+                                text = await File.ReadAllTextAsync(filePath, cancelToken);
+                            }
+                            await ProcessResult(text, cancelToken);
                         }
                     }
                     else
@@ -236,6 +248,16 @@ namespace DigitalRuby.IPBanCore
             }
 
             return firewall.BlockIPAddresses(RulePrefix, ranges, null, cancelToken);
+        }
+
+        private static byte[] DecompressBytes(Stream input)
+        {
+            MemoryStream decompressdStream = new();
+            {
+                using GZipStream gz = new(input, CompressionMode.Decompress, true);
+                gz.CopyTo(decompressdStream);
+            }
+            return decompressdStream.ToArray();
         }
     }
 }

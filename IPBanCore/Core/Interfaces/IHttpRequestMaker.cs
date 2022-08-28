@@ -24,6 +24,8 @@ SOFTWARE.
 
 using System;
 using System.Collections.Generic;
+using System.IO.Compression;
+using System.IO;
 using System.Net;
 using System.Net.Cache;
 using System.Net.Http;
@@ -107,8 +109,10 @@ namespace DigitalRuby.IPBanCore
                     versionAssembly = GetType().Assembly;
                 }
             }
-            HttpRequestMessage msg = new();
-            msg.RequestUri = uri;
+            HttpRequestMessage msg = new()
+            {
+                RequestUri = uri
+            };
             msg.Headers.Add("User-Agent", versionAssembly.GetName().Name);
             if (headers != null)
             {
@@ -134,6 +138,22 @@ namespace DigitalRuby.IPBanCore
             if (!responseMsg.IsSuccessStatusCode)
             {
                 throw new WebException("Request to url " + uri + " failed, status: " + responseMsg.StatusCode + ", response: " + Encoding.UTF8.GetString(response));
+            }
+            if (uri.AbsolutePath.EndsWith(".gz", StringComparison.OrdinalIgnoreCase))
+            {
+                try
+                {
+                    // in case response somehow got gzip decompressed already, catch exception and keep response as is
+                    MemoryStream decompressdStream = new();
+                    {
+                        using GZipStream gz = new(new MemoryStream(response), CompressionMode.Decompress, true);
+                        gz.CopyTo(decompressdStream);
+                    }
+                    response = decompressdStream.ToArray();
+                }
+                catch
+                {
+                }
             }
             return response;
         }
