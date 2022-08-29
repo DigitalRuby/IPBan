@@ -984,4 +984,13 @@
   <data name="PasswordAgain" xml:space="preserve">
     <value>Password again</value>
   </data>
+  <data name="IPAddressEventFlags_DailyReport" xml:space="preserve">
+    <value>Daily Report</value>
+  </data>
+  <data name="IPAddressEventFlags_MonthlyReport" xml:space="preserve">
+    <value>Monthly Report</value>
+  </data>
+  <data name="IPAddressEventFlags_WeeklyReport" xml:space="preserve">
+    <value>Weekly Report</value>
+  </data>
 </root>

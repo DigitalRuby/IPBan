@@ -138,6 +138,21 @@ namespace DigitalRuby.IPBanCore
         /// <summary>
         /// Notify whois for domains
         /// </summary>
-        WhoIs = 16
+        WhoIs = 16,
+
+        /// <summary>
+        /// Send daily report of all ip addresses
+        /// </summary>
+        DailyReport = 32,
+
+        /// <summary>
+        /// Send weekly report of all ip addresses
+        /// </summary>
+        WeeklyReport = 64,
+
+        /// <summary>
+        /// Send monthly report of all ip addresses
+        /// </summary>
+        MonthlyReport = 128
     }
 }

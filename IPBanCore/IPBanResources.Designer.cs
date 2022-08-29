@@ -961,6 +961,15 @@ namespace DigitalRuby.IPBanCore {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Daily Report.
+        /// </summary>
+        public static string IPAddressEventFlags_DailyReport {
+            get {
+                return ResourceManager.GetString("IPAddressEventFlags_DailyReport", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Failed Logins.
         /// </summary>
         public static string IPAddressEventFlags_FailedLogin {
@@ -970,11 +979,29 @@ namespace DigitalRuby.IPBanCore {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Monthly Report.
+        /// </summary>
+        public static string IPAddressEventFlags_MonthlyReport {
+            get {
+                return ResourceManager.GetString("IPAddressEventFlags_MonthlyReport", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Successful Logins.
         /// </summary>
         public static string IPAddressEventFlags_SuccessfulLogin {
             get {
                 return ResourceManager.GetString("IPAddressEventFlags_SuccessfulLogin", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Weekly Report.
+        /// </summary>
+        public static string IPAddressEventFlags_WeeklyReport {
+            get {
+                return ResourceManager.GetString("IPAddressEventFlags_WeeklyReport", resourceCulture);
             }
         }
         
