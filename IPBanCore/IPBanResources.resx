@@ -993,4 +993,7 @@
   <data name="IPAddressEventFlags_WeeklyReport" xml:space="preserve">
     <value>Weekly Report</value>
   </data>
+  <data name="IPAddressEventFlags_SuccessfulWebAdminLogin" xml:space="preserve">
+    <value>Web Admin Successful Logins</value>
+  </data>
 </root>

@@ -997,6 +997,15 @@ namespace DigitalRuby.IPBanCore {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Web Admin Successful Logins.
+        /// </summary>
+        public static string IPAddressEventFlags_SuccessfulWebAdminLogin {
+            get {
+                return ResourceManager.GetString("IPAddressEventFlags_SuccessfulWebAdminLogin", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Weekly Report.
         /// </summary>
         public static string IPAddressEventFlags_WeeklyReport {

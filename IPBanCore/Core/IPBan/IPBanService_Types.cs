@@ -153,6 +153,11 @@ namespace DigitalRuby.IPBanCore
         /// <summary>
         /// Send monthly report of all ip addresses
         /// </summary>
-        MonthlyReport = 128
+        MonthlyReport = 128,
+
+        /// <summary>
+        /// Successful login to web admin
+        /// </summary>
+        SuccessfulWebAdminLogin = 256
     }
 }

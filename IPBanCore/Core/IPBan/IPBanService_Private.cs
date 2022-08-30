@@ -228,6 +228,12 @@ namespace DigitalRuby.IPBanCore
                         if (IsWhitelisted(ipAddress))
                         {
                             Logger.Log(failedLogin.LogLevel, "Login failure, ignoring whitelisted ip address {0}, {1}, {2}", ipAddress, userName, source);
+
+                            // if delegate is not null and not an external event, send the event to the delegate
+                            if (IPBanDelegate != null && !failedLogin.External)
+                            {
+                                await IPBanDelegate.LoginAttemptFailed(ipAddress, source, userName, MachineGuid, OSName, OSVersion, 0, UtcNow);
+                            }
                         }
                         else
                         {
