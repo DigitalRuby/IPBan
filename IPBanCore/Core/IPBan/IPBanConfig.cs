@@ -113,6 +113,8 @@ namespace DigitalRuby.IPBanCore
         private readonly TimeSpan cycleTime = TimeSpan.FromMinutes(1.0d);
         private readonly TimeSpan minimumTimeBetweenFailedLoginAttempts = TimeSpan.FromSeconds(5.0);
         private readonly TimeSpan minimumTimeBetweenSuccessfulLoginAttempts = TimeSpan.FromSeconds(5.0);
+
+        private readonly string ipThreatApiKey = string.Empty;
         private readonly int failedLoginAttemptsBeforeBan = 5;
         private readonly bool resetFailedLoginCountForUnbannedIPAddresses;
         private readonly string firewallRulePrefix = "IPBan_";
@@ -180,6 +182,7 @@ namespace DigitalRuby.IPBanCore
                 appSettings[node.Attributes["key"].Value] = node.Attributes["value"].Value;
             }
 
+            GetConfig<string>("IPThreatApiKey", ref ipThreatApiKey);
             GetConfig<int>("FailedLoginAttemptsBeforeBan", ref failedLoginAttemptsBeforeBan, 1, 50);
             GetConfig<bool>("ResetFailedLoginCountForUnbannedIPAddresses", ref resetFailedLoginCountForUnbannedIPAddresses);
             GetConfigArray<TimeSpan>("BanTime", ref banTimes, emptyTimeSpanArray);
@@ -881,6 +884,11 @@ namespace DigitalRuby.IPBanCore
         /// </summary>
         public IReadOnlyDictionary<string, string> AppSettings => appSettings;
 
+        /// <summary>
+        /// Api key from https://ipthreat.net, if any
+        /// </summary>
+        public string IPThreatApiKey { get { return ipThreatApiKey; } }
+        
         /// <summary>
         /// Number of failed login attempts before a ban is initiated
         /// </summary>

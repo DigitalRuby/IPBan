@@ -49,7 +49,7 @@ namespace DigitalRuby.IPBanCore
         /// <param name="headers">Optional http headers</param>
         /// <param name="cancelToken">Cancel token</param>
         /// <returns>Task of response byte[]</returns>
-        Task<byte[]> MakeRequestAsync(Uri uri, string postJson = null, IEnumerable<KeyValuePair<string, object>> headers = null,
+        Task<byte[]> MakeRequestAsync(Uri uri, byte[] postJson = null, IEnumerable<KeyValuePair<string, object>> headers = null,
             CancellationToken cancelToken = default) => throw new NotImplementedException();
     }
 
@@ -83,7 +83,7 @@ namespace DigitalRuby.IPBanCore
         public static long LocalRequestCount { get { return localRequestCount; } }
 
         /// <inheritdoc />
-        public async Task<byte[]> MakeRequestAsync(Uri uri, string postJson = null, IEnumerable<KeyValuePair<string, object>> headers = null,
+        public async Task<byte[]> MakeRequestAsync(Uri uri, byte[] postJson = null, IEnumerable<KeyValuePair<string, object>> headers = null,
             CancellationToken cancelToken = default)
         {
             if (uri.Host.StartsWith("localhost", StringComparison.OrdinalIgnoreCase) ||
@@ -122,15 +122,16 @@ namespace DigitalRuby.IPBanCore
                 }
             }
             byte[] response;
-            if (string.IsNullOrWhiteSpace(postJson))
+            if (postJson is null || postJson.Length == 0)
             {
                 msg.Method = HttpMethod.Get;
             }
             else
             {
-                msg.Headers.Add("Cache-Control", "no-cache");
                 msg.Method = HttpMethod.Post;
-                msg.Content = new StringContent(postJson, Encoding.UTF8, "application/json");
+                msg.Headers.Add("Cache-Control", "no-cache");
+                msg.Content = new ByteArrayContent(postJson);
+                msg.Content.Headers.Add("Content-Type", "application/json; charset=utf-8");
             }
 
             var responseMsg = await client.SendAsync(msg, cancelToken);
@@ -139,17 +140,19 @@ namespace DigitalRuby.IPBanCore
             {
                 throw new WebException("Request to url " + uri + " failed, status: " + responseMsg.StatusCode + ", response: " + Encoding.UTF8.GetString(response));
             }
-            if (uri.AbsolutePath.EndsWith(".gz", StringComparison.OrdinalIgnoreCase))
+            else if (response is not null &&
+                response.Length != 0 &&
+                uri.AbsolutePath.EndsWith(".gz", StringComparison.OrdinalIgnoreCase))
             {
                 try
                 {
                     // in case response somehow got gzip decompressed already, catch exception and keep response as is
-                    MemoryStream decompressdStream = new();
+                    MemoryStream decompressStream = new();
                     {
                         using GZipStream gz = new(new MemoryStream(response), CompressionMode.Decompress, true);
-                        gz.CopyTo(decompressdStream);
+                        gz.CopyTo(decompressStream);
                     }
-                    response = decompressdStream.ToArray();
+                    response = decompressStream.ToArray();
                 }
                 catch
                 {

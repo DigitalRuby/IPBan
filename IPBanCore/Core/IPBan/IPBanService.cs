@@ -129,6 +129,7 @@ namespace DigitalRuby.IPBanCore
             {
                 pendingLogEvents.AddRange(eventsArray);
             }
+            IPThreatUploader.AddIPAddressLogEvents(eventsArray);
         }
 
         /// <summary>
@@ -374,6 +375,7 @@ namespace DigitalRuby.IPBanCore
                     AddUpdater(new IPBanUnblockIPAddressesUpdater(this, Path.Combine(AppContext.BaseDirectory, "unban*.txt")));
                     AddUpdater(new IPBanBlockIPAddressesUpdater(this, Path.Combine(AppContext.BaseDirectory, "ban*.txt")));
                     AddUpdater(DnsList);
+                    AddUpdater(IPThreatUploader ??= new IPBanIPThreatUploader(this));
 
                     // start delegate if we have one
                     IPBanDelegate?.Start(this);

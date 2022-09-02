@@ -82,7 +82,7 @@ namespace DigitalRuby.IPBanTests
             }
         }
 
-        public Task<byte[]> MakeRequestAsync(Uri uri, string postJson = null, IEnumerable<KeyValuePair<string, object>> headers = null,
+        public Task<byte[]> MakeRequestAsync(Uri uri, byte[] postJson = null, IEnumerable<KeyValuePair<string, object>> headers = null,
             CancellationToken cancelToken = default)
         {
             return Task.FromResult(Encoding.UTF8.GetBytes(GetTestFile()));

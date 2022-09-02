@@ -1,16 +1,14 @@
 IPBan - Block out attackers quickly and easily on Linux and Windows
 -----
 [![Github Sponsorship](.github/github_sponsor_btn.svg)](https://github.com/sponsors/jjxtra)
-
 [![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=7EJ3K33SRLU9E)
-
 [![Build Status](https://dev.azure.com/DigitalRuby/DigitalRuby/_apis/build/status/DigitalRuby_IPBan?branchName=master)](https://dev.azure.com/DigitalRuby/DigitalRuby/_build/latest?definitionId=4&branchName=master)
 
-Get a discount on IPBan Pro by visiting <a href='https://ipban.com/upgrade-to-ipban-pro/'>https://ipban.com/upgrade-to-ipban-pro/</a>.
-
-You can also visit the ipban discord at https://discord.gg/GRmbCcKFNR to chat with other IPBan users.
-
-<a href="https://ipban.com/newsletter">Sign up for the IPBan Mailing List</a>
+**Helpful Links**
+- Get a discount on IPBan Pro by visiting <a href='https://ipban.com/upgrade-to-ipban-pro/'>https://ipban.com/upgrade-to-ipban-pro/</a>.
+- <a href='https://ipthreat.net/integrations/ipban'>Integrate IPBan with IPThreat</a>, a 100% free to use website and service. Unlike some other sites and services, we don't charge a high subscription fee. Keeping your servers protected should not cost a fortune.
+- You can also visit the ipban discord at https://discord.gg/GRmbCcKFNR to chat with other IPBan users.
+- <a href="https://ipban.com/newsletter">Sign up for the IPBan Mailing List</a>
 
 **Requirements**
 - IPBan requires .NET 6 SDK to build and debug code. For an IDE, I suggest Visual Studio Community for Windows, or VS code for Linux. All are free. You can build a self contained executable to eliminate the need for dotnet core on the server machine, or just download the precompiled binaries.
@@ -74,6 +72,10 @@ To disable anonymously sending banned ip addresses to the global ipban database,
 **Upgrade**
 
 Get a discount on IPBan Pro by visiting <a href='https://ipban.com/upgrade-to-ipban-pro/'>https://ipban.com/upgrade-to-ipban-pro/</a>.
+
+**Other Services**
+
+<a href='https://ipthreat.net/integrations/ipban'>Integrate IPBan with IPThreat</a>, a 100% free to use website and service. Unlike some other sites and services, we don't charge high subscription fee. Keeping your servers protected should not cost a fortune.
 
 **Dontations**
 If the free IPBan has helped you and you feel so inclined, please consider donating...

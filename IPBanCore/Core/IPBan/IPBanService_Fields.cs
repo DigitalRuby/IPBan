@@ -105,6 +105,11 @@ namespace DigitalRuby.IPBanCore
         public IDnsServerList DnsList { get; set; } = new IPBanDnsServerList();
 
         /// <summary>
+        /// If an api key is specified in the IPThreatApiKey app setting
+        /// </summary>
+        public IPBanIPThreatUploader IPThreatUploader { get; set; }
+    
+        /// <summary>
         /// Extra handler for banned ip addresses (optional)
         /// </summary>
         public IBannedIPAddressHandler BannedIPAddressHandler { get; set; } = new DefaultBannedIPAddressHandler();
