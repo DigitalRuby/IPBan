@@ -6,7 +6,7 @@ IPBan - Block out attackers quickly and easily on Linux and Windows
 
 **Helpful Links**
 - Get a discount on IPBan Pro by visiting <a href='https://ipban.com/upgrade-to-ipban-pro/'>https://ipban.com/upgrade-to-ipban-pro/</a>.
-- <a href='https://ipthreat.net/integrations/ipban'>Integrate IPBan with IPThreat</a>, a 100% free to use website and service. Unlike some other sites and services, we don't charge subscription fees. Keeping your servers protected should not cost a fortune.
+- <a href='https://ipthreat.net/integrations/ipban'>Integrate IPBan with IPThreat</a>, a 100% free to use website and service. Unlike some other sites and services that use community contributed data, IPThreat does not charge subscription fees.
 - You can also visit the ipban discord at https://discord.gg/GRmbCcKFNR to chat with other IPBan users.
 - <a href="https://ipban.com/newsletter">Sign up for the IPBan Mailing List</a>
 
@@ -75,9 +75,10 @@ Get a discount on IPBan Pro by visiting <a href='https://ipban.com/upgrade-to-ip
 
 **Other Services**
 
-<a href='https://ipthreat.net/integrations/ipban'>Integrate IPBan with IPThreat</a>, a 100% free to use website and service. Unlike some other sites and services, we don't charge subscription fees. Keeping your servers protected should not cost a fortune.
+<a href='https://ipthreat.net/integrations/ipban'>Integrate IPBan with IPThreat</a>, a 100% free to use website and service. Unlike some other sites and services that use community contributed data, IPThreat does not charge subscription fees.
 
 **Dontations**
+
 If the free IPBan has helped you and you feel so inclined, please consider donating...
 
 [![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=7EJ3K33SRLU9E)
