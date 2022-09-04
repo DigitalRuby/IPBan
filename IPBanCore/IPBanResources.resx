@@ -996,4 +996,10 @@
   <data name="IPAddressEventFlags_SuccessfulWebAdminLogin" xml:space="preserve">
     <value>Web Admin Successful Logins</value>
   </data>
+  <data name="IPThreatApiKey" xml:space="preserve">
+    <value>IPThreat Api Key</value>
+  </data>
+  <data name="IPThreatApiKeyTooltip" xml:space="preserve">
+    <value>Api key for https://ipthreat.net</value>
+  </data>
 </root>

@@ -1087,6 +1087,24 @@ namespace DigitalRuby.IPBanCore {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to IPThreat Api Key.
+        /// </summary>
+        public static string IPThreatApiKey {
+            get {
+                return ResourceManager.GetString("IPThreatApiKey", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Api key for https://ipthreat.net.
+        /// </summary>
+        public static string IPThreatApiKeyTooltip {
+            get {
+                return ResourceManager.GetString("IPThreatApiKeyTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to IP Whitelist.
         /// </summary>
         public static string IPWhitelist {
