@@ -90,13 +90,16 @@ public sealed class IPBanIPThreatUploader : IUpdater, IIPAddressEventHandler
                 "count": 1
             }]
             */
+            var appName = Assembly.GetEntryAssembly()?.GetName().Name ?? string.Empty;
+            appName = (appName.Contains("ipbanpro", StringComparison.OrdinalIgnoreCase) ? "ipbanpro" : "ipban");
+            var version = Assembly.GetEntryAssembly()?.GetName().Version?.ToString(3) ?? string.Empty;
             var transform =
                 eventsCopy.Select(e => new
                 {
                     ip = e.IPAddress,
                     flags = "BruteForce",
                     system = e.Source,
-                    notes = "ipban " + Assembly.GetEntryAssembly()?.GetName().Version?.ToString(3),
+                    notes = $"{appName} {version}".Trim(),
                     ts = e.Timestamp.ToString("s", CultureInfo.InvariantCulture) + "Z",
                     count = e.Count
                 });
