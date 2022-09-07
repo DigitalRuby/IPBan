@@ -248,7 +248,7 @@ namespace DigitalRuby.IPBanCore
                     }
 
                     // if we are parsing anything as ip address (including dns names)
-                    if (ipAddress is null &&
+                    if (string.IsNullOrWhiteSpace(ipAddress) &&
                         dns != null &&
                         ipAddressGroup.Name == "ipaddress" &&
                         tempIPAddress != Environment.MachineName &&
@@ -263,7 +263,6 @@ namespace DigitalRuby.IPBanCore
                             {
                                 ipAddress = ipAddresses.FirstOrDefault().ToString();
                                 Logger.Info("Dns result '{0}' = '{1}'", tempIPAddress, ipAddress);
-                                break;
                             }
                         }
                         catch
@@ -276,8 +275,11 @@ namespace DigitalRuby.IPBanCore
                 // see if there is a repeat indicator in the message
                 int repeatCount = ExtractRepeatCount(match, text);
 
-                // return an event for this match
-                yield return new IPAddressLogEvent(ipAddress, userName, foundSource, repeatCount, eventType, timestamp);
+                if (!string.IsNullOrWhiteSpace(ipAddress))
+                {
+                    // return an event for this match
+                    yield return new IPAddressLogEvent(ipAddress, userName, foundSource, repeatCount, eventType, timestamp);
+                }
             }
         }
 
