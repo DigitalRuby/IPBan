@@ -101,7 +101,7 @@ public sealed class IPBanIPThreatUploader : IUpdater, IIPAddressEventHandler
                     system = e.Source,
                     notes = $"{appName} {version}".Trim(),
                     ts = e.Timestamp.ToString("s", CultureInfo.InvariantCulture) + "Z",
-                    count = e.Count
+                    count = 1
                 });
             var jsonObj = new { items = transform };
             // have to use newtonsoft here
@@ -127,6 +127,7 @@ public sealed class IPBanIPThreatUploader : IUpdater, IIPAddressEventHandler
         lock (events)
         {
             this.events.AddRange(events.Where(e => e.Type == IPAddressEventType.FailedLogin &&
+                e.Count > 0 &&
                 !service.Config.IsWhitelisted(e.IPAddress)));
         }
     }
