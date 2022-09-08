@@ -714,8 +714,16 @@ namespace DigitalRuby.IPBanCore
         /// <returns>Groups that match</returns>
         public IEnumerable<EventViewerExpressionGroup> WindowsEventViewerGetGroupsMatchingKeywords(ulong keywords)
         {
-            return WindowsEventViewerExpressionsToBlock?.Groups.Where(g => (g.KeywordsULONG == keywords))
-                .Union(expressionsSuccess?.Groups.Where(g => (g.KeywordsULONG == keywords)));
+            if (WindowsEventViewerExpressionsToBlock is null)
+            {
+                return expressionsSuccess.Groups.Where(g => (g.KeywordsULONG == keywords));
+            }
+            else if (expressionsSuccess is null)
+            {
+                return WindowsEventViewerExpressionsToBlock.Groups.Where(g => (g.KeywordsULONG == keywords));
+            }
+            return WindowsEventViewerExpressionsToBlock.Groups.Where(g => (g.KeywordsULONG == keywords))
+                .Union(expressionsSuccess.Groups.Where(g => (g.KeywordsULONG == keywords)));
         }
 
         /// <summary>
