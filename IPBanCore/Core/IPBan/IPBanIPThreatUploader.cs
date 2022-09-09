@@ -126,7 +126,7 @@ public sealed class IPBanIPThreatUploader : IUpdater, IIPAddressEventHandler
     {
         lock (events)
         {
-            this.events.AddRange(events.Where(e => e.Type == IPAddressEventType.FailedLogin &&
+            this.events.AddRange(events.Where(e => e.Type == IPAddressEventType.Blocked &&
                 e.Count > 0 &&
                 !service.Config.IsWhitelisted(e.IPAddress)));
         }

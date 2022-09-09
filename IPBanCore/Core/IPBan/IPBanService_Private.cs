@@ -482,16 +482,16 @@ namespace DigitalRuby.IPBanCore
                     string programFullPath = Path.GetFullPath(pieces[0]);
                     string programArgs = pieces[1];
 
-                    foreach (var bannedIp in ipAddresses)
+                    foreach (var ipAddress in ipAddresses)
                     {
-                        if (string.IsNullOrWhiteSpace(bannedIp?.IPAddress))
+                        if (string.IsNullOrWhiteSpace(ipAddress?.IPAddress))
                         {
                             continue;
                         }
 
-                        string replacedArgs = programArgs.Replace("###IPADDRESS###", bannedIp.IPAddress)
-                            .Replace("###SOURCE###", bannedIp.Source ?? string.Empty)
-                            .Replace("###USERNAME###", bannedIp.UserName ?? string.Empty);
+                        string replacedArgs = programArgs.Replace("###IPADDRESS###", ipAddress.IPAddress)
+                            .Replace("###SOURCE###", ipAddress.Source ?? string.Empty)
+                            .Replace("###USERNAME###", ipAddress.UserName ?? string.Empty);
 
                         try
                         {
