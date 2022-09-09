@@ -101,7 +101,7 @@ public sealed class IPBanIPThreatUploader : IUpdater, IIPAddressEventHandler
                     system = e.Source,
                     notes = $"{appName} {version}".Trim(),
                     ts = e.Timestamp.ToString("s", CultureInfo.InvariantCulture) + "Z",
-                    count = 1
+                    count = e.Count
                 });
             var jsonObj = new { items = transform };
             // have to use newtonsoft here
