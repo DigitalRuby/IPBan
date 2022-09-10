@@ -7,7 +7,7 @@ Example:
    <PathAndMask>C:\ProgramData\SolarWinds\*.log</PathAndMask>
    <FailedLoginRegex>
    <![CDATA[
-      ^(?<timestamp>[0-9\-\s\:]+),[^\-]+-\slogonfail\sunknown\sauthentication\sfailed\sfor\suser\s(?<username>[^\s]+)\sfrom\sip\s(?<ipaddress>[^\s]+)\sbad\susername\sor\spassword\.\n
+      ^(?<timestamp>[0-9\-\s\:]+),[^\-]+-\slogonfail\sunknown\sauthentication\sfailed\sfor\suser\s(?<username>[^\s]+)\sfrom\sip\s(?<ipaddress>[^\s]+)\s(?<log>bad\susername\sor\spassword)\.\n
    ]]>
    </FailedLoginRegex>
    <FailedLoginRegexTimestampFormat />

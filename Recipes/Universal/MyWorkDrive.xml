@@ -15,7 +15,7 @@ Example success:
 	</PathAndMask>
 	<FailedLoginRegex>
 		<![CDATA[
-			\<Log\>\<Date\>(?<timestamp>[^\<]+)\<\/Date\>\<Username\>(?<username>[^\<]+)\<\/Username\>\<IPAddress\>[^\<]+\<\/IPAddress\>\<Message\>[^\n]*?login[^\n]*?-\sfailure\s-[^\n]+
+			\<Log\>\<Date\>(?<timestamp>[^\<]+)\<\/Date\>\<Username\>(?<username>[^\<]+)\<\/Username\>\<IPAddress\>[^\<]+\<\/IPAddress\>\<Message\>[^\n]*?(?<log>login[^\n]*?-\sfailure)\s-[^\n]+
 		]]>
 	</FailedLoginRegex>
 	<FailedLoginRegexTimestampFormat></FailedLoginRegexTimestampFormat>

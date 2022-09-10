@@ -462,7 +462,8 @@ namespace DigitalRuby.IPBanCore
         /// </summary>
         /// <param name="programToRun">Program to run</param>
         /// <param name="ipAddresses">IP addresses, should be a non-shared collection</param>
-        private void ExecuteExternalProcessForIPAddresses(string programToRun, IReadOnlyCollection<IPAddressLogEvent> ipAddresses)
+        private void ExecuteExternalProcessForIPAddresses(string programToRun,
+            IReadOnlyCollection<IPAddressLogEvent> ipAddresses)
         {
             if (ipAddresses is null || ipAddresses.Count == 0 || string.IsNullOrWhiteSpace(programToRun))
             {
@@ -470,7 +471,7 @@ namespace DigitalRuby.IPBanCore
             }
             foreach (string process in programToRun.Split('\n'))
             {
-                string[] pieces = process.Trim().Split('|');
+                string[] pieces = process.Trim().Split('|', StringSplitOptions.TrimEntries);
                 if (pieces.Length != 2)
                 {
                     throw new ArgumentException("Invalid config option for process to run: " + programToRun +
@@ -489,9 +490,22 @@ namespace DigitalRuby.IPBanCore
                             continue;
                         }
 
+                        // log data cleanup
+                        var logData = (ipAddress.LogData ?? string.Empty)
+                            .Replace("\"", string.Empty)
+                            .Replace("'", string.Empty)
+                            .Replace("\\", "/")
+                            .Replace("\n", " ")
+                            .Replace("\r", " ")
+                            .Replace("\t", " ")
+                            .Trim();
+
                         string replacedArgs = programArgs.Replace("###IPADDRESS###", ipAddress.IPAddress)
                             .Replace("###SOURCE###", ipAddress.Source ?? string.Empty)
-                            .Replace("###USERNAME###", ipAddress.UserName ?? string.Empty);
+                            .Replace("###USERNAME###", ipAddress.UserName ?? string.Empty)
+                            .Replace("###APP###", AppName)
+                            .Replace("###COUNT###", ipAddress.Count.ToStringInvariant())
+                            .Replace("###LOG###", logData);
 
                         try
                         {

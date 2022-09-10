@@ -4,7 +4,7 @@
 	<PathAndMask>C:/Program Files/Apache/logs/error.log</PathAndMask>
 	<FailedLoginRegex>
 		<![CDATA[
-			^\[(?<timestamp>[^\]]+)\](.+\:error\])(.+\[client\s(?<ipaddress>[^:]+))
+			^\[(?<timestamp>[^\]]+)\](.+\:(?<log>error)\])(.+\[client\s(?<ipaddress>[^:]+))
 		]]>
 	</FailedLoginRegex>
 	<FailedLoginRegexTimestampFormat>ddd MMM dd HH:mm:ss.ffffff yyyy</FailedLoginRegexTimestampFormat>

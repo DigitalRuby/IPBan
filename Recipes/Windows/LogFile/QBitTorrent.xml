@@ -5,7 +5,7 @@
         <Recursive>true</Recursive>
         <FailedLoginRegex>
           <![CDATA[
-              \s(?<timestamp>[^\s]+)\s-\sWebAPI\slogin\sfailure.*IP:\s(?<ipaddress>[^\s]+),\susername:\s(?<username>[^\n]+)
+              \s(?<timestamp>[^\s]+)\s-\sWebAPI\s(?<log>login\sfailure).*IP:\s(?<ipaddress>[^\s]+),\susername:\s(?<username>[^\n]+)
           ]]>
         </FailedLoginRegex>
         <SuccessfulLoginRegex>

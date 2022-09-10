@@ -20,7 +20,7 @@
 
   <FailedLoginRegex>
     <![CDATA[
-		  ^(?<timestamp>.*?)\s[0-9][0-9]\s.*?Authentication\serror\sfor\suser\s'(?<username>[^']+)'.*?Closing\s(?:connection|session)\sfrom\s\[(?<ipaddress>[^:]+)
+		  ^(?<timestamp>.*?)\s[0-9][0-9]\s.*?(?<log>Authentication\serror\sfor\suser)\s'(?<username>[^']+)'.*?Closing\s(?:connection|session)\sfrom\s\[(?<ipaddress>[^:]+)
 	  ]]>
   </FailedLoginRegex>
 

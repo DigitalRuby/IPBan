@@ -12,7 +12,7 @@ Example success login:
 	<PathAndMask>C:\Program Files (x86)\FileZilla Server\Logs</PathAndMask>
 	<FailedLoginRegex>
 		<![CDATA[
-			(?<timestamp>[^\s]+)\s.*\s\[FTP\sSession\s[0-9]+\s(?<ipaddress>[^\]]+)\]\sUSER\s(?<username>[^\n]+)\n.*\sspecify\sthe\spassword[^\n]*\n.*\sPASS\s[^\n]*\n.*\sLogin\sincorrect[^\n]*
+			(?<timestamp>[^\s]+)\s.*\s\[FTP\sSession\s[0-9]+\s(?<ipaddress>[^\]]+)\]\sUSER\s(?<username>[^\n]+)\n.*\sspecify\sthe\spassword[^\n]*\n.*\sPASS\s[^\n]*\n.*\s(?<log>Login\s(?:or\spassword\s)?incorrect)[^\n]*
 		]]>
 	</FailedLoginRegex>
 	<FailedLoginRegexTimestampFormat></FailedLoginRegexTimestampFormat>

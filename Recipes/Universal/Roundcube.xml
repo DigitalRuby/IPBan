@@ -11,7 +11,7 @@
         <PathAndMask>/path/to/roundcubemail/logs/userlogins.log</PathAndMask>
         <FailedLoginRegex>
           <![CDATA[
-            ^\[(?<timestamp>[^\]]+).*Failed\slogin\sfor\s(?<username>[^\s]+)\sfrom\s(?<ipaddress>[^\s]+)
+            ^\[(?<timestamp>[^\]]+).*(?<log>Failed\slogin)\sfor\s(?<username>[^\s]+)\sfrom\s(?<ipaddress>[^\s]+)
           ]]>
         </FailedLoginRegex>
         <SuccessfulLoginRegex>

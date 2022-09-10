@@ -419,15 +419,11 @@ namespace DigitalRuby.IPBanCore
                 return null;
             }
 
-            string[] lines = text.Split('\n');
+            string[] lines = text.Split('\n', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
             StringBuilder sb = new();
             foreach (string line in lines)
             {
-                string trimmedLine = line.Trim();
-                if (trimmedLine.Length != 0)
-                {
-                    sb.Append(trimmedLine);
-                }
+                sb.Append(line);
             }
             RegexOptions options = RegexOptions.IgnoreCase | RegexOptions.CultureInvariant | RegexOptions.Compiled;
             if (multiline)

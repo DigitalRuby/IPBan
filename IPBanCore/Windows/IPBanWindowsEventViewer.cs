@@ -170,6 +170,7 @@ namespace DigitalRuby.IPBanCore
             string source = null;
             string ipAddress = null;
             DateTime? timestamp = null;
+            string logData = null;
             int count = 1;
             bool mismatch;
             int failedLoginThreshold = 0;
@@ -238,6 +239,7 @@ namespace DigitalRuby.IPBanCore
                                 source ??= info.Source;
                                 ipAddress ??= info.IPAddress;
                                 timestamp ??= info.Timestamp;
+                                logData ??= info.LogData;
                                 count = Math.Max(info.Count, count);
                             }
                         }
@@ -272,7 +274,8 @@ namespace DigitalRuby.IPBanCore
 
             IPAddressEventType type = (successfulLogin ? IPAddressEventType.SuccessfulLogin : IPAddressEventType.FailedLogin);
             return new IPAddressLogEvent(ipAddress, userName, source, count, type,
-                timestamp is null ? default : timestamp.Value, false, string.Empty, failedLoginThreshold, logLevel);
+                timestamp is null ? default : timestamp.Value, false, string.Empty,
+                failedLoginThreshold, logLevel, logData);
         }
 
         private static XmlDocument ParseXml(string xml)

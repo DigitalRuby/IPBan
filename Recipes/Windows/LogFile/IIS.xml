@@ -8,7 +8,7 @@ Examples:
 	<PathAndMask>C:/logs/LogFiles/**/*.log</PathAndMask>
 	<FailedLoginRegex>
 		<![CDATA[
-			^(?<timestamp>\d\d\d\d\-\d\d\-\d\d\s\d\d\:\d\d\:\d\d)\s[^\s]+\sPOST\s\/admin\/\s-\s[0-9]+\s-\s(?<ipaddress>[^\s]+).*\s-\s404\s[^\n]+\n
+			^(?<timestamp>\d\d\d\d\-\d\d\-\d\d\s\d\d\:\d\d\:\d\d)\s[^\s]+\sPOST\s\/admin\/\s-\s[0-9]+\s-\s(?<ipaddress>[^\s]+).*\s-\s(?<log>404)\s[^\n]+\n
 		]]>
 	</FailedLoginRegex>
 	<FailedLoginRegexTimestampFormat></FailedLoginRegexTimestampFormat>

@@ -4,7 +4,7 @@
 	<PathAndMask>/var/log/syslog</PathAndMask>
 	<FailedLoginRegex>
 		<![CDATA[
-			^login\sfailed\sfor\suser\s'(?<username>[^']+)'\.\sreason:\spassword\sdid\snot\smatch[^\[]+\[client:\s(?<ipaddress>[^\]]+)[^\n]*
+			^login\sfailed\sfor\suser\s'(?<username>[^']+)'\.\sreason:\s(?<log>password\sdid\snot\smatch)[^\[]+\[client:\s(?<ipaddress>[^\]]+)[^\n]*
 		]]>
 	</FailedLoginRegex>
 	<FailedLoginRegexTimestampFormat></FailedLoginRegexTimestampFormat>

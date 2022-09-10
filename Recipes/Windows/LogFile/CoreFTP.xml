@@ -4,7 +4,7 @@
 	<PathAndMask>C:\Program Files\CoreFTPServer\logs\{year-local}{month-local}*.log</PathAndMask>
 	<FailedLoginRegex>
 		<![CDATA[
-	^\[(?<timestamp>\d{8} \d\d:\d\d:\d\d)\]\s+\[(?<ipaddress>\d+\.\d+\.\d+\.\d+)\]\spassword\ssent,\sfailed\.\.\..*$
+			^\[(?<timestamp>\d{8} \d\d:\d\d:\d\d)\]\s+\[(?<ipaddress>\d+\.\d+\.\d+\.\d+)\]\s(?<log>password\ssent,\sfailed)\.\.\..*$
 		]]>
 	</FailedLoginRegex>
 	<FailedLoginRegexTimestampFormat>YYYYMMdd HH:mm:ss</FailedLoginRegexTimestampFormat>

@@ -10,7 +10,7 @@ Examples:
 	<PathAndMask>c:/NGINX/logs/error.log</PathAndMask>
 	<FailedLoginRegex>
 		<![CDATA[
-			^(?<timestamp>[^\[]+)\[.*\s(?:system\scannot\sfind.*|user\s"(?<username>[^"]+)"\swas\snot\sfound.*)\sclient:\s(?<ipaddress>[^\s,]+)[^\n]*$
+			^(?<timestamp>[^\[]+)\[.*\s(?:(?<log>system\scannot\sfind).*|user\s"(?<username>[^"]+)"\swas\s(?<log>not\sfound).*)\sclient:\s(?<ipaddress>[^\s,]+)[^\n]*$
 		]]>
 	</FailedLoginRegex>
 	<FailedLoginRegexTimestampFormat></FailedLoginRegexTimestampFormat>

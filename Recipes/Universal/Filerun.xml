@@ -28,7 +28,7 @@ ____________________________________
         <PathAndMask>path/to/Filerun/customizables/events/log.txt</PathAndMask>
         <FailedLoginRegex>
           <![CDATA[
-            (?<timestamp>\d\d\d\d-\d\d-\d\d\s\d\d:\d\d:\d\d)[^\s]+\s-\s(?<ipaddress>.*)\s-\s(?<username>[^\s]+)\s-\sInvalid\susername\sor\spassword
+            (?<timestamp>\d\d\d\d-\d\d-\d\d\s\d\d:\d\d:\d\d)[^\s]+\s-\s(?<ipaddress>.*)\s-\s(?<username>[^\s]+)\s-\s(?<log>Invalid\susername\sor\spassword)
           ]]>
         </FailedLoginRegex>
         <SuccessfulLoginRegex>

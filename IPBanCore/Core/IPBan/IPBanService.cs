@@ -57,6 +57,11 @@ namespace DigitalRuby.IPBanCore
 
             // by default, all IPBan services will parse log files
             updaters.Add(new IPBanLogFileManager(this));
+
+            var version = Assembly.GetEntryAssembly()?.GetName().Version?.ToString(3) ?? string.Empty;
+            var appName = Assembly.GetEntryAssembly()?.GetName().Name ?? string.Empty;
+            appName = (appName.Contains("ipbanpro", StringComparison.OrdinalIgnoreCase) ? "ipbanpro" : "ipban");
+            AppName = appName + " " + version;
         }
 
         /// <summary>
@@ -158,18 +163,19 @@ namespace DigitalRuby.IPBanCore
             text = new string(text.Where(c => c == '\n' || c == '\t' || !char.IsControl(c)).ToArray());
 
             // go through all the matches and pull out event info
-            MatchCollection matches = regex.Matches(text);
-            foreach (Match match in matches)
+            var matches = regex.Matches(text);
+            foreach (var match in matches.Cast<Match>())
             {
                 string userName = null;
                 string ipAddress = null;
                 string foundSource = null;
+                string logData = null;
                 DateTime timestamp = default;
 
                 // check for a user name
                 if (string.IsNullOrWhiteSpace(userName))
                 {
-                    Group userNameGroup = match.Groups["username"];
+                    var userNameGroup = match.Groups["username"];
                     if (userNameGroup != null && userNameGroup.Success)
                     {
                         userName ??= userNameGroup.Value.Trim(regexTrimChars);
@@ -195,7 +201,7 @@ namespace DigitalRuby.IPBanCore
                 // check for source
                 if (string.IsNullOrWhiteSpace(foundSource))
                 {
-                    Group sourceGroup = match.Groups["source"];
+                    var sourceGroup = match.Groups["source"];
                     if (sourceGroup != null && sourceGroup.Success)
                     {
                         foundSource = sourceGroup.Value.Trim(regexTrimChars);
@@ -203,7 +209,7 @@ namespace DigitalRuby.IPBanCore
                 }
 
                 // check for groups with a custom source name
-                foreach (Group group in match.Groups)
+                foreach (var group in match.Groups.Cast<Group>())
                 {
                     if (group.Success &&
                         group.Name != null &&
@@ -215,7 +221,7 @@ namespace DigitalRuby.IPBanCore
                 }
 
                 // check for timestamp group
-                Group timestampGroup = match.Groups["timestamp"];
+                var timestampGroup = match.Groups["timestamp"];
                 if (timestampGroup != null && timestampGroup.Success)
                 {
                     string toParse = timestampGroup.Value.Trim(regexTrimChars);
@@ -229,7 +235,7 @@ namespace DigitalRuby.IPBanCore
                 }
 
                 // check if the regex had an ipadddress group
-                Group ipAddressGroup = match.Groups["ipaddress"];
+                var ipAddressGroup = match.Groups["ipaddress"];
                 if (ipAddressGroup is null || !ipAddressGroup.Success)
                 {
                     ipAddressGroup = match.Groups["ipaddress_exact"];
@@ -272,11 +278,22 @@ namespace DigitalRuby.IPBanCore
                     }
                 }
 
+                // check for log data
+                if (string.IsNullOrWhiteSpace(logData))
+                {
+                    var logDataGroup = match.Groups["log"];
+                    if (logDataGroup is not null && logDataGroup.Success)
+                    {
+                        logData = logDataGroup.Value;
+                    }
+                }
+
                 // see if there is a repeat indicator in the message
                 int repeatCount = ExtractRepeatCount(match, text);
 
                 // return an event for this match
-                yield return new IPAddressLogEvent(ipAddress, userName, foundSource, repeatCount, eventType, timestamp);
+                yield return new IPAddressLogEvent(ipAddress, userName, foundSource, repeatCount,
+                    eventType, timestamp, logData: logData);
             }
         }
 

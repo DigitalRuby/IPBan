@@ -205,6 +205,11 @@ namespace DigitalRuby.IPBanCore
         public string OSVersion { get; private set; }
 
         /// <summary>
+        /// App name
+        /// </summary>
+        public string AppName { get; private set; }
+
+        /// <summary>
         /// Assembly version
         /// </summary>
         public string AssemblyVersion { get; private set; }

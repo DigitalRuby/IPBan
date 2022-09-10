@@ -4,7 +4,7 @@
 	<PathAndMask>C:/Users/Administrator/WEB/WWW/**/administrator/logs/error.php</PathAndMask>
 	<FailedLoginRegex>
 		<![CDATA[
-			^(?<timestamp>.+)\d.+INFO\s(?<ipaddress>.+)\Djoomlafailure\D
+			^(?<timestamp>.+)\d.+INFO\s(?<ipaddress>.+)\D(?<log>joomlafailure)\D
 		]]>
 	</FailedLoginRegex>
 	<FailedLoginRegexTimestampFormat></FailedLoginRegexTimestampFormat>
