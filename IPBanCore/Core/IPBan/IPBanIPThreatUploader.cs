@@ -17,7 +17,7 @@ public sealed class IPBanIPThreatUploader : IUpdater, IIPAddressEventHandler
 {
     private static readonly Uri ipThreatReportApiUri = new("https://api.ipthreat.net/api/bulkreport");
     
-    private readonly IIPBanService service;
+    private readonly IPBanService service;
     private readonly Random random = new();
     private readonly List<IPAddressLogEvent> events = new();
     
@@ -27,7 +27,7 @@ public sealed class IPBanIPThreatUploader : IUpdater, IIPAddressEventHandler
     /// Constructor
     /// </summary>
     /// <param name="service">Service</param>
-    public IPBanIPThreatUploader(IIPBanService service)
+    public IPBanIPThreatUploader(IPBanService service)
     {
         this.service = service;
         nextRun = IPBanService.UtcNow;//.AddMinutes(random.Next(30, 91));
@@ -90,16 +90,13 @@ public sealed class IPBanIPThreatUploader : IUpdater, IIPAddressEventHandler
                 "count": 1
             }]
             */
-            var appName = Assembly.GetEntryAssembly()?.GetName().Name ?? string.Empty;
-            appName = (appName.Contains("ipbanpro", StringComparison.OrdinalIgnoreCase) ? "ipbanpro" : "ipban");
-            var version = Assembly.GetEntryAssembly()?.GetName().Version?.ToString(3) ?? string.Empty;
             var transform =
                 eventsCopy.Select(e => new
                 {
                     ip = e.IPAddress,
                     flags = "BruteForce",
                     system = e.Source,
-                    notes = $"{appName} {version}".Trim(),
+                    notes = (service.AppName + " - " + (e.LogData ?? string.Empty)).Trim(' ', '-'),
                     ts = e.Timestamp.ToString("s", CultureInfo.InvariantCulture) + "Z",
                     count = e.Count
                 });
