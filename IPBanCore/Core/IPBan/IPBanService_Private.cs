@@ -225,6 +225,7 @@ namespace DigitalRuby.IPBanCore
                         ipAddress = ipAddressObj.ToString();
                         string userName = failedLogin.UserName;
                         string source = failedLogin.Source;
+                        string logData = failedLogin.LogData ?? string.Empty;
                         if (IsWhitelisted(ipAddress))
                         {
                             Logger.Log(failedLogin.LogLevel, "Login failure, ignoring whitelisted ip address {0}, {1}, {2}", ipAddress, userName, source);
@@ -265,7 +266,7 @@ namespace DigitalRuby.IPBanCore
                             int incrementCount = (failedLogin.Count < 1 ? maxFailedLoginAttempts : failedLogin.Count);
                             int newCount = ipDB.IncrementFailedLoginCount(ipAddress, userName, source, UtcNow, incrementCount, transaction);
 
-                            Logger.Log(failedLogin.LogLevel, now, "Login failure: {0}, {1}, {2}, {3}", ipAddress, userName, source, newCount);
+                            Logger.Log(failedLogin.LogLevel, now, "Login failure: {0}, {1}, {2}, {3}, {4}", ipAddress, userName, source, newCount, logData);
 
                             // if the ip address is black listed or the ip address has reached the maximum failed login attempts before ban, ban the ip address
                             if (configBlacklisted || newCount >= maxFailedLoginAttempts)
