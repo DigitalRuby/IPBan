@@ -75,8 +75,8 @@ namespace DigitalRuby.IPBanCore
                 (nameof(ProcessPendingSuccessfulLogins), ProcessPendingSuccessfulLogins),
                 (nameof(UpdateFirewall), UpdateFirewall),
                 (nameof(RunFirewallTasks), RunFirewallTasks),
-                (nameof(ShowRunningMessage), ShowRunningMessage),
-                (nameof(OnUpdate), OnUpdate)
+                (nameof(OnUpdate), OnUpdate),
+                (nameof(ShowRunningMessage), ShowRunningMessage)
             };
         }
 
