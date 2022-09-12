@@ -956,12 +956,18 @@ namespace DigitalRuby.IPBanCore
 
         private async Task RunFirewallTasks()
         {
-            // run up to 42 firewall tasks at a time
-            int max = 42;
-            while (!CancelToken.IsCancellationRequested &&
-                max-- > 0 &&
-                firewallTasks.TryDequeue(out var action))
+            Func<CancellationToken, Task>[] firewallTasksCopy;
+            lock (firewallTasks)
             {
+                firewallTasksCopy = firewallTasks.ToArray();
+                firewallTasks.Clear();
+            }
+            foreach (var action in firewallTasksCopy)
+            {
+                if (CancelToken.IsCancellationRequested)
+                {
+                    break;
+                }
                 try
                 {
                     await action(CancelToken);

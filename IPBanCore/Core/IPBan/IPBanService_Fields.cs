@@ -51,9 +51,10 @@ namespace DigitalRuby.IPBanCore
         private readonly List<IPAddressLogEvent> pendingLogEvents = new();
         private readonly HashSet<IUpdater> updaters = new();
         private readonly SemaphoreSlim stopEvent = new(0, 1);
-        private readonly System.Collections.Concurrent.ConcurrentQueue<Func<CancellationToken, Task>> firewallTasks = new();
+        private readonly List<Func<CancellationToken, Task>> firewallTasks = new();
         private readonly SemaphoreSlim cycleLock = new(1, 1);
-
+        private readonly IReadOnlyCollection<(string name, Func<Task> action)> cycleActions;
+        
         private System.Threading.Timer cycleTimer;
         private bool firewallNeedsBlockedIPAddressesUpdate;
         private IPBanDB ipDB;

@@ -62,6 +62,22 @@ namespace DigitalRuby.IPBanCore
             var appName = Assembly.GetEntryAssembly()?.GetName().Name ?? string.Empty;
             appName = (appName.Contains("ipbanpro", StringComparison.OrdinalIgnoreCase) ? "ipbanpro" : "ipban");
             AppName = appName + " " + version;
+            cycleActions = new (string, Func<Task>)[]
+            {
+                ("GC", () => { GC.GetTotalMemory(true); return Task.CompletedTask; }),
+                (nameof(UpdateConfiguration), UpdateConfiguration),
+                (nameof(SetNetworkInfo), SetNetworkInfo),
+                (nameof(UpdateDelegate), UpdateDelegate),
+                (nameof(UpdateUpdaters), UpdateUpdaters),
+                (nameof(UpdateExpiredIPAddressStates), UpdateExpiredIPAddressStates),
+                (nameof(ProcessPendingLogEvents), ProcessPendingLogEvents),
+                (nameof(ProcessPendingFailedLogins), ProcessPendingFailedLogins),
+                (nameof(ProcessPendingSuccessfulLogins), ProcessPendingSuccessfulLogins),
+                (nameof(UpdateFirewall), UpdateFirewall),
+                (nameof(RunFirewallTasks), RunFirewallTasks),
+                (nameof(ShowRunningMessage), ShowRunningMessage),
+                (nameof(OnUpdate), OnUpdate)
+            };
         }
 
         /// <summary>
@@ -80,31 +96,23 @@ namespace DigitalRuby.IPBanCore
         {
             try
             {
+                // ensure we don't stack multiple cycles
                 if (await cycleLock.WaitAsync(1))
                 {
                     try
                     {
                         if (IsRunning)
                         {
-                            GC.GetTotalMemory(true);
-                            await UpdateConfiguration();
-                            await SetNetworkInfo();
-                            await UpdateDelegate();
-                            await UpdateUpdaters();
-                            await UpdateExpiredIPAddressStates();
-                            await ProcessPendingLogEvents();
-                            await ProcessPendingFailedLogins();
-                            await ProcessPendingSuccessfulLogins();
-                            await UpdateFirewall();
-                            await ShowRunningMessage();
-                            await RunFirewallTasks();
-                            try
+                            foreach (var action in cycleActions)
                             {
-                                await OnUpdate();
-                            }
-                            catch
-                            {
-                                // derived or other exception should not affect cycle
+                                try
+                                {
+                                    await action.action();
+                                }
+                                catch (Exception ex)
+                                {
+                                    Logger.Error(ex, "Error in cycle action {0}", action.name);
+                                }
                             }
                         }
                     }
@@ -532,11 +540,18 @@ namespace DigitalRuby.IPBanCore
         /// <param name="action">Action to run</param>
         public void RunFirewallTask(Func<CancellationToken, Task> action)
         {
-            if (MultiThreaded)
+            if (!IsRunning)
+            {
+                return;
+            }
+            else if (MultiThreaded)
             {
                 if (!CancelToken.IsCancellationRequested)
                 {
-                    firewallTasks.Enqueue(action);
+                    lock (firewallTasks)
+                    {
+                        firewallTasks.Add(action);
+                    }
                 }
             }
             else
