@@ -104,8 +104,10 @@ namespace DigitalRuby.IPBanCore
         /// <summary>
         /// Run an action on the firewall queue, this will execute later
         /// </summary>
+        /// <typeparam name="T">Type of state</typeparam>
         /// <param name="action">Action to run on the firewall queue</param>
-        void RunFirewallTask(Func<CancellationToken, Task> action);
+        /// <param name="state">State</param>
+        void RunFirewallTask<T>(Func<T, CancellationToken, Task> action, T state);
 
         /// <summary>
         /// Whether the service is running

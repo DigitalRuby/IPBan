@@ -956,7 +956,7 @@ namespace DigitalRuby.IPBanCore
 
         private async Task RunFirewallTasks()
         {
-            Func<CancellationToken, Task>[] firewallTasksCopy;
+            (Delegate, object)[] firewallTasksCopy;
             lock (firewallTasks)
             {
                 firewallTasksCopy = firewallTasks.ToArray();
@@ -970,7 +970,17 @@ namespace DigitalRuby.IPBanCore
                 }
                 try
                 {
-                    await action(CancelToken);
+                    var func = action.Item1;
+                    var state = action.Item2;
+                    var result = func.DynamicInvoke(state, CancelToken);
+                    if (result is Task task)
+                    {
+                        await task;
+                    }
+                    else if (result is ValueTask valueTask)
+                    {
+                        await valueTask;
+                    }
                 }
                 catch (Exception ex)
                 {

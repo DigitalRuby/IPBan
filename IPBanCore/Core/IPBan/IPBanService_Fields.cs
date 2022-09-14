@@ -51,7 +51,7 @@ namespace DigitalRuby.IPBanCore
         private readonly List<IPAddressLogEvent> pendingLogEvents = new();
         private readonly HashSet<IUpdater> updaters = new();
         private readonly SemaphoreSlim stopEvent = new(0, 1);
-        private readonly List<Func<CancellationToken, Task>> firewallTasks = new();
+        private readonly List<(Delegate, object)> firewallTasks = new();
         private readonly SemaphoreSlim cycleLock = new(1, 1);
         private readonly IReadOnlyCollection<(string name, Func<Task> action)> cycleActions;
         
