@@ -317,6 +317,29 @@ e.g.
             Assert.IsTrue(config.BlacklistFilter.IsFiltered("99.88.77.66"));
         }
 
+        [Test]
+        public void TestAppSettingEnvVar()
+        {
+            Environment.SetEnvironmentVariable("IPBAN_APP_SETTING_ENV_VAR_EXIST", "1.2.3.4", EnvironmentVariableTarget.Process);
+            var envVar = Environment.GetEnvironmentVariable("IPBAN_APP_SETTING_ENV_VAR_EXIST");
+            Assert.That(envVar, Is.EqualTo("1.2.3.4"));
+
+            IPBanConfig config = IPBanConfig.LoadFromXml(
+                "<?xml version='1.0'?>" +
+                "<configuration>" +
+                  "<appSettings>" +
+                    "<add key='Blacklist' value='%IPBAN_APP_SETTING_ENV_VAR_NOT_EXIST%' />" +
+                    "<add key='Whitelist' value='%IPBAN_APP_SETTING_ENV_VAR_EXIST%' />" +
+                  "</appSettings>" +
+                "</configuration>",
+                this);
+
+            Assert.That(config.BlacklistFilter.Value, Is.Empty);
+            Assert.That(config.WhitelistFilter.Value, Is.EqualTo("1.2.3.4"));
+
+            Environment.SetEnvironmentVariable("IPBAN_APP_SETTING_ENV_VAR_EXIST", null);
+        }
+
         public Task<IPAddress[]> GetHostAddressesAsync(string hostNameOrAddress)
         {
             if (hostNameOrAddress == "test.com")

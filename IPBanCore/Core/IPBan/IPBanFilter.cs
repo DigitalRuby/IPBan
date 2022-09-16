@@ -52,6 +52,7 @@ namespace DigitalRuby.IPBanCore
         };
 
         private readonly HashSet<System.Net.IPAddress> set = new();
+        private readonly string value;
         private readonly Regex regex;
         private readonly HashSet<IPAddressRange> ranges = new();
         private readonly HashSet<string> others = new(StringComparer.OrdinalIgnoreCase);
@@ -242,6 +243,8 @@ namespace DigitalRuby.IPBanCore
                 Task.WhenAll(entryTasks).Sync();
             }
 
+            this.value = value;
+
             if (!string.IsNullOrWhiteSpace(regexValue))
             {
                 regex = IPBanConfig.ParseRegex(regexValue);
@@ -321,6 +324,11 @@ namespace DigitalRuby.IPBanCore
         {
             get { return set.Select(b => new IPAddressRange(b)).Union(ranges).ToArray(); }
         }
+
+        /// <summary>
+        /// Get the original value
+        /// </summary>
+        public string Value => value;
 
         /// <summary>
         /// Get the regex filter

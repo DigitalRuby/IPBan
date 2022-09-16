@@ -55,15 +55,6 @@ public sealed class IPBanIPThreatUploader : IUpdater, IIPAddressEventHandler
         {
             return;
         }
-        // api key can be read from env var if starts and ends with %
-        else if (apiKey.StartsWith("%") && apiKey.EndsWith("%"))
-        {
-            apiKey = Environment.GetEnvironmentVariable(apiKey.Trim('%'));
-            if (string.IsNullOrWhiteSpace(apiKey))
-            {
-                return;
-            }
-        }
         
         // copy events
         IReadOnlyCollection<IPAddressLogEvent> eventsCopy;

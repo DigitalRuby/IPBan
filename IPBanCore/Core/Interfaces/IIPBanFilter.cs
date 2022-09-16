@@ -58,6 +58,11 @@ namespace DigitalRuby.IPBanCore
         IReadOnlyCollection<IPAddressRange> IPAddressRanges { get; }
 
         /// <summary>
+        /// Get the original value
+        /// </summary>
+        public string Value { get; }
+
+        /// <summary>
         /// Regex for further filtering
         /// </summary>
         public System.Text.RegularExpressions.Regex Regex { get; }

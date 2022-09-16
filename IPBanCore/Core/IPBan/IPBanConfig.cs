@@ -182,14 +182,14 @@ namespace DigitalRuby.IPBanCore
                 appSettings[node.Attributes["key"].Value] = node.Attributes["value"].Value;
             }
 
-            GetConfig<string>("IPThreatApiKey", ref ipThreatApiKey);
+            TryGetConfig<string>("IPThreatApiKey", ref ipThreatApiKey);
             GetConfig<int>("FailedLoginAttemptsBeforeBan", ref failedLoginAttemptsBeforeBan, 1, 50);
-            GetConfig<bool>("ResetFailedLoginCountForUnbannedIPAddresses", ref resetFailedLoginCountForUnbannedIPAddresses);
+            TryGetConfig<bool>("ResetFailedLoginCountForUnbannedIPAddresses", ref resetFailedLoginCountForUnbannedIPAddresses);
             GetConfigArray<TimeSpan>("BanTime", ref banTimes, emptyTimeSpanArray);
             MakeBanTimesValid(ref banTimes);
-            GetConfig<bool>("ClearBannedIPAddressesOnRestart", ref clearBannedIPAddressesOnRestart);
-            GetConfig<bool>("ClearFailedLoginsOnSuccessfulLogin", ref clearFailedLoginsOnSuccessfulLogin);
-            GetConfig<bool>("ProcessInternalIPAddresses", ref processInternalIPAddresses);
+            TryGetConfig<bool>("ClearBannedIPAddressesOnRestart", ref clearBannedIPAddressesOnRestart);
+            TryGetConfig<bool>("ClearFailedLoginsOnSuccessfulLogin", ref clearFailedLoginsOnSuccessfulLogin);
+            TryGetConfig<bool>("ProcessInternalIPAddresses", ref processInternalIPAddresses);
             GetConfig<TimeSpan>("ExpireTime", ref expireTime, TimeSpan.Zero, maxBanTimeSpan);
             if (expireTime.TotalMinutes < 1.0)
             {
@@ -197,7 +197,7 @@ namespace DigitalRuby.IPBanCore
             }
             GetConfig<TimeSpan>("CycleTime", ref cycleTime, TimeSpan.FromSeconds(5.0), TimeSpan.FromMinutes(1.0), false);
             GetConfig<TimeSpan>("MinimumTimeBetweenFailedLoginAttempts", ref minimumTimeBetweenFailedLoginAttempts, TimeSpan.Zero, TimeSpan.FromSeconds(15.0), false);
-            GetConfig<string>("FirewallRulePrefix", ref firewallRulePrefix);
+            TryGetConfig<string>("FirewallRulePrefix", ref firewallRulePrefix);
 
             string whitelistString = GetConfig<string>("Whitelist", string.Empty);
             string whitelistRegexString = GetConfig<string>("WhitelistRegex", string.Empty);
@@ -209,11 +209,11 @@ namespace DigitalRuby.IPBanCore
             expressionsSuccess = ParseEventViewer<EventViewerExpressionsToNotify>(doc, "/configuration/ExpressionsToNotify", true);
             logFiles = ParseLogFiles(doc, "/configuration/LogFilesToParse");
 
-            GetConfig<string>("ProcessToRunOnBan", ref processToRunOnBan);
+            TryGetConfig<string>("ProcessToRunOnBan", ref processToRunOnBan);
             processToRunOnBan = processToRunOnBan?.Trim();
-            GetConfig<string>("ProcessToRunOnUnban", ref processToRunOnUnban);
+            TryGetConfig<string>("ProcessToRunOnUnban", ref processToRunOnUnban);
             processToRunOnUnban = processToRunOnUnban?.Trim();
-            GetConfig<bool>("UseDefaultBannedIPAddressHandler", ref useDefaultBannedIPAddressHandler);
+            TryGetConfig<bool>("UseDefaultBannedIPAddressHandler", ref useDefaultBannedIPAddressHandler);
 
             string userNameWhitelistString = GetConfig<string>("UserNameWhitelist", string.Empty);
             if (!string.IsNullOrEmpty(userNameWhitelistString))
@@ -229,17 +229,17 @@ namespace DigitalRuby.IPBanCore
             {
                 userNameWhitelistRegex = new Regex(userNameWhitelistRegexString, RegexOptions.IgnoreCase | RegexOptions.CultureInvariant | RegexOptions.Singleline);
             }
-            GetConfig<int>("UserNameWhitelistMinimumEditDistance", ref userNameWhitelistMaximumEditDistance);
-            GetConfig<int>("FailedLoginAttemptsBeforeBanUserNameWhitelist", ref failedLoginAttemptsBeforeBanUserNameWhitelist);
-            GetConfig<string>("GetUrlUpdate", ref getUrlUpdate);
-            GetConfig<string>("GetUrlStart", ref getUrlStart);
-            GetConfig<string>("GetUrlStop", ref getUrlStop);
-            GetConfig<string>("GetUrlConfig", ref getUrlConfig);
-            GetConfig<string>("FirewallUriRules", ref firewallUriRules);
+            TryGetConfig<int>("UserNameWhitelistMinimumEditDistance", ref userNameWhitelistMaximumEditDistance);
+            TryGetConfig<int>("FailedLoginAttemptsBeforeBanUserNameWhitelist", ref failedLoginAttemptsBeforeBanUserNameWhitelist);
+            TryGetConfig<string>("GetUrlUpdate", ref getUrlUpdate);
+            TryGetConfig<string>("GetUrlStart", ref getUrlStart);
+            TryGetConfig<string>("GetUrlStop", ref getUrlStop);
+            TryGetConfig<string>("GetUrlConfig", ref getUrlConfig);
+            TryGetConfig<string>("FirewallUriRules", ref firewallUriRules);
             if (string.IsNullOrWhiteSpace(firewallUriRules))
             {
                 // legacy
-                GetConfig<string>("FirewallUriSources", ref firewallUriRules);
+                TryGetConfig<string>("FirewallUriSources", ref firewallUriRules);
             }
             firewallUriRules = (firewallUriRules ?? string.Empty).Trim();
 
@@ -248,6 +248,33 @@ namespace DigitalRuby.IPBanCore
 
             // set the xml
             Xml = doc.OuterXml;
+        }
+
+        private string GetAppSettingsValue(string key)
+        {
+            if (string.IsNullOrWhiteSpace(key))
+            {
+                // bad key
+                Logger.Warn("Ignoring null/empty key");
+                return null;
+            }
+            else if (!appSettings.ContainsKey(key))
+            {
+                Logger.Warn("Ignoring key {0}, not found in appSettings", key);
+                return null; // skip trying to convert
+            }
+
+            // read value from appSettings
+            var stringValue = appSettings[key];
+
+            // config value can be read from env var if value starts and ends with %
+            if (stringValue.StartsWith("%") && stringValue.EndsWith("%"))
+            {
+                // read value from environment variable
+                stringValue = Environment.GetEnvironmentVariable(stringValue.Trim('%'))?.Trim() ?? string.Empty;
+            }
+
+            return stringValue;
         }
 
         private static void MakeBanTimesValid(ref TimeSpan[] banTimes)
@@ -341,7 +368,7 @@ namespace DigitalRuby.IPBanCore
         private void ParseFirewallBlockRules()
         {
             string firewallRulesString = null;
-            GetConfig<string>("FirewallRules", ref firewallRulesString);
+            TryGetConfig<string>("FirewallRules", ref firewallRulesString);
             firewallRulesString = (firewallRulesString ?? string.Empty).Trim();
             if (firewallRulesString.Length == 0)
             {
@@ -517,27 +544,13 @@ namespace DigitalRuby.IPBanCore
         /// <typeparam name="T">Type of value to get</typeparam>
         /// <param name="key">Key</param>
         /// <param name="defaultValue">Default value if null or not found</param>
-        /// <returns>Value</returns>
+        /// <returns>Value or defaultValue if not found</returns>
         [UnconditionalSuppressMessage("Trimming", "IL2026:Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code", Justification = "jjxtra")]
         public T GetConfig<T>(string key, T defaultValue = default)
         {
-            try
-            {
-                if (appSettings.ContainsKey(key))
-                {
-                    var value = appSettings[key];
-                    if (value != null)
-                    {
-                        var converter = TypeDescriptor.GetConverter(typeof(T));
-                        return (T)converter.ConvertFromInvariantString(value);
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Logger.Error(ex, "Error deserializing appSettings key {0}", key);
-            }
-            return defaultValue;
+            T value = defaultValue;
+            TryGetConfig(key, ref value);
+            return value;
         }
 
         /// <summary>
@@ -545,22 +558,26 @@ namespace DigitalRuby.IPBanCore
         /// </summary>
         /// <typeparam name="T">Type of value to set</typeparam>
         /// <param name="key">Key</param>
-        /// <param name="value">Value</param>
+        /// <param name="value">Value. Can start and end with % to read from env var</param>
+        /// <returns>True if config found, false if not</returns>
         [UnconditionalSuppressMessage("Trimming", "IL2026:Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code", Justification = "jjxtra")]
-        public void GetConfig<T>(string key, ref T value)
+        public bool TryGetConfig<T>(string key, ref T value)
         {
             try
             {
-                var converter = TypeDescriptor.GetConverter(typeof(T));
-                if (appSettings.ContainsKey(key))
-                {
-                    value = (T)converter.ConvertFromInvariantString(appSettings[key]);
-                }
+                var stringValue = GetAppSettingsValue(key);
+
+                // deserialize string value
+                value = (T)TypeDescriptor.GetConverter(typeof(T)).ConvertFromInvariantString(stringValue);
+
+                return true;
             }
             catch (Exception ex)
             {
                 Logger.Error(ex, "Error deserializing appSettings key {0}", key);
             }
+
+            return false;
         }
 
         /// <summary>
@@ -578,8 +595,12 @@ namespace DigitalRuby.IPBanCore
         {
             try
             {
-                var converter = TypeDescriptor.GetConverter(typeof(T));
-                value = (T)converter.ConvertFromInvariantString(appSettings[key]);
+                var stringValue = GetAppSettingsValue(key);
+                if (!string.IsNullOrWhiteSpace(stringValue))
+                {
+                    var converter = TypeDescriptor.GetConverter(typeof(T));
+                    value = (T)converter.ConvertFromInvariantString(stringValue);
+                }
             }
             catch (Exception ex)
             {
@@ -604,8 +625,9 @@ namespace DigitalRuby.IPBanCore
         {
             try
             {
+                var stringValue = GetAppSettingsValue(key) ?? string.Empty;
                 var converter = TypeDescriptor.GetConverter(typeof(T));
-                string[] items = (appSettings[key] ?? string.Empty).Split('|', ';', ',');
+                string[] items = stringValue.Split('|', ';', ',');
                 List<T> list = new();
                 foreach (string item in items)
                 {
