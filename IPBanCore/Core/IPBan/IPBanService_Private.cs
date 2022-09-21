@@ -289,7 +289,8 @@ namespace DigitalRuby.IPBanCore
                                         await IPBanDelegate.LoginAttemptFailed(ipAddress, source, userName, MachineGuid, OSName, OSVersion, incrementCount, UtcNow);
                                     }
                                     AddBannedIPAddress(ipAddress, source, userName, bannedIpAddresses, now,
-                                        configBlacklisted, newCount, failedLogin.ExtraInfo, transaction, failedLogin.External);
+                                        configBlacklisted, newCount, failedLogin.ExtraInfo, transaction,
+                                        failedLogin.External, failedLogin.LogData);
                                 }
                             }
                             else
@@ -380,7 +381,7 @@ namespace DigitalRuby.IPBanCore
 
         private void AddBannedIPAddress(string ipAddress, string source, string userName,
             List<IPAddressLogEvent> bannedIpAddresses, DateTime startBanDate, bool configBlacklisted,
-            int counter, string extraInfo, object transaction, bool external)
+            int counter, string extraInfo, object transaction, bool external, string logData)
         {
             // if bad ip or internal ip, ignore
             if (!System.Net.IPAddress.TryParse(ipAddress, out System.Net.IPAddress ipAddressObj) ||
@@ -420,7 +421,8 @@ namespace DigitalRuby.IPBanCore
                 }
             }
             int adjustedCount = (counter <= 0 ? Config.FailedLoginAttemptsBeforeBan : counter);
-            bannedIpAddresses?.Add(new IPAddressLogEvent(ipAddress, userName, source, adjustedCount, IPAddressEventType.Blocked));
+            bannedIpAddresses?.Add(new IPAddressLogEvent(ipAddress, userName, source, adjustedCount,
+                IPAddressEventType.Blocked, logData: logData));
             if (ipDB.SetBanDates(ipAddress, startBanDate, banEndDate, UtcNow, transaction))
             {
                 firewallNeedsBlockedIPAddressesUpdate = true;
@@ -1179,7 +1181,7 @@ namespace DigitalRuby.IPBanCore
                             {
                                 // make sure the ip address is ban pending
                                 AddBannedIPAddress(evt.IPAddress, evt.Source, evt.UserName, bannedIPs,
-                                    evt.Timestamp, false, evt.Count, evt.ExtraInfo, transaction, evt.External);
+                                    evt.Timestamp, false, evt.Count, evt.ExtraInfo, transaction, evt.External, evt.LogData);
                             }
                             break;
 
