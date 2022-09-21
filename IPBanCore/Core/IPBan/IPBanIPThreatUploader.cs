@@ -20,8 +20,8 @@ public sealed class IPBanIPThreatUploader : IUpdater, IIPAddressEventHandler
     private readonly IPBanService service;
     private readonly Random random = new();
     private readonly List<IPAddressLogEvent> events = new();
-    
-    private DateTime nextRun;
+
+    private DateTime nextRun = IPBanService.UtcNow;
 
     /// <summary>
     /// Constructor
@@ -30,7 +30,7 @@ public sealed class IPBanIPThreatUploader : IUpdater, IIPAddressEventHandler
     public IPBanIPThreatUploader(IPBanService service)
     {
         this.service = service;
-        nextRun = IPBanService.UtcNow;//.AddMinutes(random.Next(30, 91));
+        nextRun = IPBanService.UtcNow;
     }
     
     /// <inheritdoc />
