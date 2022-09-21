@@ -32,7 +32,7 @@ namespace DigitalRuby.IPBanCore
     /// </summary>
     public class IPBanLogFileScanner : LogFileScanner
     {
-        private readonly IIPAddressEventHandler loginHandler;
+        private readonly IIPAddressEventHandler eventHandler;
         private readonly IDnsLookup dns;
         private readonly Regex regexFailure;
         private readonly Regex regexSuccess;
@@ -66,14 +66,14 @@ namespace DigitalRuby.IPBanCore
         public IPBanLogFileScanner(IPBanIPAddressLogFileScannerOptions options) : base(options.PathAndMask, options.MaxFileSizeBytes, options.PingIntervalMilliseconds)
         {
             options.ThrowIfNull(nameof(options));
-            options.LoginHandler.ThrowIfNull(nameof(options.LoginHandler));
+            options.EventHandler.ThrowIfNull(nameof(options.EventHandler));
             options.Dns.ThrowIfNull(nameof(options.Dns));
             Source = options.Source;
             FailedLoginThreshold = options.FailedLoginThreshold;
             FailedLogLevel = options.FailedLogLevel;
             SuccessfulLogLevel = options.SuccessfulLogLevel;
 
-            this.loginHandler = options.LoginHandler;
+            this.eventHandler = options.EventHandler;
             this.dns = options.Dns;
 
             this.regexFailure = options.RegexFailure;
@@ -99,7 +99,7 @@ namespace DigitalRuby.IPBanCore
                 FailedLoginThreshold == options.FailedLoginThreshold &&
                 FailedLogLevel == options.FailedLogLevel &&
                 SuccessfulLogLevel == options.SuccessfulLogLevel &&
-                this.loginHandler == options.LoginHandler &&
+                this.eventHandler == options.EventHandler &&
                 this.dns == options.Dns &&
                 this.regexFailure?.ToString() == options.RegexFailure?.ToString() &&
                 this.regexFailureTimestampFormat == options.RegexFailureTimestampFormat &&
@@ -139,7 +139,7 @@ namespace DigitalRuby.IPBanCore
                 Logger.Debug("Log file found match, ip: {0}, user: {1}, source: {2}, count: {3}, type: {4}",
                     info.IPAddress, info.UserName, info.Source, info.Count, info.Type);
             }
-            loginHandler.AddIPAddressLogEvents(events);
+            eventHandler.AddIPAddressLogEvents(events);
         }
     }
 
@@ -149,9 +149,9 @@ namespace DigitalRuby.IPBanCore
     public class IPBanIPAddressLogFileScannerOptions
     {
         /// <summary>
-        /// Login handler
+        /// Event handler
         /// </summary>
-        public IIPAddressEventHandler LoginHandler { get; set; }
+        public IIPAddressEventHandler EventHandler { get; set; }
 
         /// <summary>
         /// Dns lookup

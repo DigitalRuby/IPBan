@@ -142,7 +142,6 @@ namespace DigitalRuby.IPBanCore
             {
                 pendingLogEvents.AddRange(eventsArray);
             }
-            IPThreatUploader.AddIPAddressLogEvents(eventsArray);
         }
 
         /// <summary>

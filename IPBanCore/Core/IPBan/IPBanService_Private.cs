@@ -314,6 +314,7 @@ namespace DigitalRuby.IPBanCore
                     }
                 }
                 CommitTransaction(transaction);
+                IPThreatUploader.AddIPAddressLogEvents(bannedIpAddresses);
                 ExecuteExternalProcessForIPAddresses(Config.ProcessToRunOnBan, bannedIpAddresses);
             }
             catch (Exception ex)

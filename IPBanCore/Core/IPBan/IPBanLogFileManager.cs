@@ -105,7 +105,7 @@ namespace DigitalRuby.IPBanCore
                         IPBanIPAddressLogFileScannerOptions options = new()
                         {
                             Dns = service.DnsLookup,
-                            LoginHandler = service,
+                            EventHandler = service,
                             MaxFileSizeBytes = newFile.MaxFileSize,
                             PathAndMask = pathAndMask,
                             PingIntervalMilliseconds = (service.ManualCycle ? 0 : newFile.PingInterval),

@@ -49,13 +49,6 @@ public sealed class IPBanIPThreatUploader : IUpdater, IIPAddressEventHandler
             return;
         }
 
-        // do we have an api key?
-        var apiKey = (service.Config.IPThreatApiKey ?? string.Empty).Trim();
-        if (string.IsNullOrWhiteSpace(apiKey))
-        {
-            return;
-        }
-        
         // copy events
         IReadOnlyCollection<IPAddressLogEvent> eventsCopy;
         lock (events)
@@ -64,6 +57,13 @@ public sealed class IPBanIPThreatUploader : IUpdater, IIPAddressEventHandler
             events.Clear();
         }
         if (eventsCopy.Count == 0)
+        {
+            return;
+        }
+
+        // do we have an api key?
+        var apiKey = (service.Config.IPThreatApiKey ?? string.Empty).Trim();
+        if (string.IsNullOrWhiteSpace(apiKey))
         {
             return;
         }
@@ -116,6 +116,7 @@ public sealed class IPBanIPThreatUploader : IUpdater, IIPAddressEventHandler
         {
             this.events.AddRange(events.Where(e => e.Type == IPAddressEventType.Blocked &&
                 e.Count > 0 &&
+                !e.External &&
                 !service.Config.IsWhitelisted(e.IPAddress)));
         }
     }

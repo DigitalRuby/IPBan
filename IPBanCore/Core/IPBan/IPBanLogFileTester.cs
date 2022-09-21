@@ -63,7 +63,7 @@ namespace DigitalRuby.IPBanCore
                 Dns = new DefaultDnsLookup(),
                 FailedLoginThreshold = 3,
                 FailedLogLevel = LogLevel.Warning,
-                LoginHandler = new LogFileWriter(),
+                EventHandler = new LogFileWriter(),
                 MaxFileSizeBytes = 0,
                 PathAndMask = fileName.Trim(),
                 PingIntervalMilliseconds = 0,

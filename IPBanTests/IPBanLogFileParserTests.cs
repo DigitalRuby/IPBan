@@ -292,7 +292,7 @@ namespace DigitalRuby.IPBanTests
             IPBanIPAddressLogFileScannerOptions options = new()
             {
                 Dns = TestDnsLookup.Instance,
-                LoginHandler = this,
+                EventHandler = this,
                 Source = source,
                 PathAndMask = pathAndMask,
                 RegexFailure = IPBanConfig.ParseRegex(failureRegex, true),
