@@ -239,7 +239,7 @@ namespace DigitalRuby.IPBanCore
             if (string.IsNullOrWhiteSpace(firewallUriRules))
             {
                 // legacy
-                TryGetConfig<string>("FirewallUriSources", ref firewallUriRules);
+                TryGetConfig<string>("FirewallUriSources", ref firewallUriRules, false);
             }
             firewallUriRules = (firewallUriRules ?? string.Empty).Trim();
 
@@ -250,7 +250,7 @@ namespace DigitalRuby.IPBanCore
             Xml = doc.OuterXml;
         }
 
-        private string GetAppSettingsValue(string key)
+        private string GetAppSettingsValue(string key, bool logMissing = true)
         {
             if (string.IsNullOrWhiteSpace(key))
             {
@@ -260,7 +260,10 @@ namespace DigitalRuby.IPBanCore
             }
             else if (!appSettings.ContainsKey(key))
             {
-                Logger.Warn("Ignoring key {0}, not found in appSettings", key);
+                if (logMissing)
+                {
+                    Logger.Warn("Ignoring key {0}, not found in appSettings", key);
+                }
                 return null; // skip trying to convert
             }
 
@@ -559,13 +562,14 @@ namespace DigitalRuby.IPBanCore
         /// <typeparam name="T">Type of value to set</typeparam>
         /// <param name="key">Key</param>
         /// <param name="value">Value. Can start and end with % to read from env var</param>
+        /// <param name="logMissing">Whether to log missing keys</param>
         /// <returns>True if config found, false if not</returns>
         [UnconditionalSuppressMessage("Trimming", "IL2026:Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code", Justification = "jjxtra")]
-        public bool TryGetConfig<T>(string key, ref T value)
+        public bool TryGetConfig<T>(string key, ref T value, bool logMissing = true)
         {
             try
             {
-                var stringValue = GetAppSettingsValue(key);
+                var stringValue = GetAppSettingsValue(key, logMissing);
 
                 // deserialize string value
                 value = (T)TypeDescriptor.GetConverter(typeof(T)).ConvertFromInvariantString(stringValue);
