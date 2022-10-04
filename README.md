@@ -44,12 +44,10 @@ Please note that for IPBan Pro, you can find install instructions at https://ipb
 Note: Powershell 5.1 or greater is required.
 
 ***Additional Windows Notes***
-- It is highly recommended to disable NTLM logins and only allow NTLM2 logins. Use secpol -> local policies -> security options -> network security restrict ntlm incoming ntlm traffic -> deny all accounts. You must disable NLA if you do this or you will be locked out of your machine (Control Panel -> System and Security -> System -> Advanced Settings -> Remote Tab (uncheck NLA)).
+- Windows Server 2012 and Windows 8 are nearing end of life. Upgrading to a newer Windows version is highly recommended. Support will drop for these Windows versions on January 1, 2024.
+- For Windows Server 2012 only: Disable NLA and enable NTLM. Otherwise ip addresses of remote connections do not show up in the event viewer. There is no known workaround that I know of to fix this, other than turning off NLA and enabling NTLM. Newer Windows (Server 2016+, Windows 10+) are not impacted by this problem.
 - Please ensure your server and clients are patched before making the above change: https://support.microsoft.com/en-us/help/4093492/credssp-updates-for-cve-2018-0886-march-13-2018. You need to manually edit group policy as specified in the link.
 ![](IPBan/img/WindowsCredSSP.png)
-- Instead of the above, you can try: local policy "Network Security -> LAN Manager authentication level" to "NTLMv2 response only/refuse LM and NTLM".
-- NLA is not supported with IPBan on Windows Server 2012 or older. You must use Windows Server 2016 or newer if you want NLA. Failed logins do not log properly with NLA on the older Windows editions, regardless of any settings, registry or group policy changes.
-- On Windows Small Business Server 2011 (and probably earlier) and Windows Server running Exchange, with installed PowerShell v.2 that does not know Unblock-File command, and newer version can’t be installed (as some scripts for managing OWA stop working correctly). Easier way is to manually unblock downloaded ZIP file and then unzip content.
 - On Windows Server running Exchange, it is impossible to disable NTLM (deny all clients in Security restrict ntlm incoming ntlm traffic) as then Outlook on client computers permanently asks users for entering username and password. To workaround this, set LAN Manager authenticating level in Security Options of Local Policies to "Send NTLMv2 response only. Refuse LM & NTLM". There is one small issue – when somebody tries to login with an undefined username, the log does not contain an IP address. Not sure why Microsoft can't log an ip address properly.
 - If using Exchange, disabling app pool 'MSExchangeServicesAppPool' can eliminate quite a lot of problems in the event viewer with ip addresses not being logged.
 
