@@ -6,7 +6,7 @@ IPBan - Block out attackers quickly and easily on Linux and Windows
 
 **Helpful Links**
 - Get a discount on IPBan Pro by visiting <a href='https://ipban.com/upgrade-to-ipban-pro/'>https://ipban.com/upgrade-to-ipban-pro/</a>.
-- <a href='https://ipthreat.net/integrations/ipban'>Integrate IPBan with IPThreat</a>, a 100% free to use website and service. Unlike some other sites and services that use community contributed data, IPThreat does not charge subscription fees.
+- <a href='https://ipthreat.net/integrations/ipban'>Integrate IPBan with IPThreat</a>, a 100% free to use website and service of community submitted bad ip addresses. All site data is free to re-use and re-mix under a creative commons by attribution license.
 - You can also visit the ipban discord at https://discord.gg/GRmbCcKFNR to chat with other IPBan users.
 - <a href="https://ipban.com/newsletter">Sign up for the IPBan Mailing List</a>
 

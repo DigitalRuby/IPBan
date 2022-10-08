@@ -1,8 +1,8 @@
 <!-- 
 ** Integrate IPBan with AbuseIPDB.com service on a Windows host **
 
-** As of September 2022, AbuseIPDB is no longer recommended since they charge subscription fees.
-** You can integrate with ipthreat (https://ipthreat.net/integrations) instead, as this site has no fees and all the data is licensed under creative-commons-by-attribution.
+** As of September 2022, AbuseIPDB is no longer recommended since they charge subscription fees to access full site data (https://www.abuseipdb.com/pricing).
+** You can integrate with ipthreat (https://ipthreat.net/integrations) instead, as this site is 100% free for all data under a creative-commons-by-attribution license.
 
 Prerequisities:
  - Powershell 7.x from https://aka.ms/powershell-release?tag=stable
