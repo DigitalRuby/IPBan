@@ -182,7 +182,7 @@ namespace DigitalRuby.IPBanCore
                 appSettings[node.Attributes["key"].Value] = node.Attributes["value"].Value;
             }
 
-            TryGetConfig<string>("IPThreatApiKey", ref ipThreatApiKey);
+            TryGetConfig<string>("IPThreatApiKey", ref ipThreatApiKey, false);
             GetConfig<int>("FailedLoginAttemptsBeforeBan", ref failedLoginAttemptsBeforeBan, 1, 50);
             TryGetConfig<bool>("ResetFailedLoginCountForUnbannedIPAddresses", ref resetFailedLoginCountForUnbannedIPAddresses);
             GetConfigArray<TimeSpan>("BanTime", ref banTimes, emptyTimeSpanArray);
