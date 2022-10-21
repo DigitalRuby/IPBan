@@ -1474,7 +1474,7 @@ namespace DigitalRuby.IPBanCore {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to POST a JSON object to an end point for every notification. Contains Subject, Body and ToAddresses fields..
+        ///   Looks up a localized string similar to Url to POST a json request for notifications. The posted json contains Subject, Body and ToAddresses fields. Advanced: Use Uri=[uri] | Template=[template]. Template will transform notification to your json. Example: Uri=https://myslackdomain.com/notification | Template={&quot;text&quot;:{&quot;text&quot;:&quot;###SUBJECT###&lt;br/&gt;&lt;br/&gt;###BODY###&quot;,&quot;type&quot;:&quot;html&quot;}}.
         /// </summary>
         public static string NotificationWebHookTooltip {
             get {
