@@ -285,7 +285,13 @@ namespace DigitalRuby.IPBanCore
             {
                 Namespaces = false
             };
-            XmlReader outerReader = XmlReader.Create(reader, new XmlReaderSettings { CheckCharacters = false });
+            XmlReader outerReader = XmlReader.Create(reader, new XmlReaderSettings
+            {
+                CheckCharacters = false,
+                IgnoreComments = true,
+                IgnoreProcessingInstructions = true,
+                IgnoreWhitespace = true
+            });
             XmlDocument doc = new();
             doc.Load(outerReader);
 

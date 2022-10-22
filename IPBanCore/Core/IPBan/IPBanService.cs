@@ -313,7 +313,13 @@ namespace DigitalRuby.IPBanCore
         {
             // Ensure valid xml before writing the file
             XmlDocument doc = new();
-            using (XmlReader xmlReader = XmlReader.Create(new StringReader(xml), new XmlReaderSettings { CheckCharacters = false }))
+            using (XmlReader xmlReader = XmlReader.Create(new StringReader(xml), new XmlReaderSettings
+            {
+                CheckCharacters = false,
+                IgnoreComments = true,
+                IgnoreProcessingInstructions = true,
+                IgnoreWhitespace = true
+            }))
             {
                 doc.Load(xmlReader);
             }
