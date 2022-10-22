@@ -837,7 +837,7 @@
     <value>Notification Web Hook</value>
   </data>
   <data name="NotificationWebHookTooltip" xml:space="preserve">
-    <value>Url to POST a json request for notifications. The posted json contains Subject, Body and ToAddresses fields. Advanced: Use Uri=[uri] | Template=[template]. Template will transform notification to your json. Example: Uri=https://myslackdomain.com/notification | Template={"text":{"text":"###SUBJECT###&lt;br/&gt;&lt;br/&gt;###BODY###","type":"html"}}</value>
+    <value>Url to POST a json request for notifications. The posted json contains Subject, Body and ToAddresses fields. Advanced: Use Uri=[uri] | Template=[template] | Format=[plain or markdown or slack, leave off for html]. Template will transform notification to your json. Example: { "text":"###SUBJECT###","blocks": [ { "type": "section", "text": { "type": "mrkdwn", "text": "###SUBJECT###\n\n###BODY###" } } ] } | format = slack | Uri = https://hooks.slack.com/services/KEY1/KEY2</value>
   </data>
   <data name="FailedLoginLogLevel" xml:space="preserve">
     <value>Failed Log Level</value>
