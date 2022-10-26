@@ -1,3 +1,5 @@
+# can run on Linux, use https://learn.microsoft.com/en-us/powershell/scripting/install/install-ubuntu?view=powershell-7.2
+
 # Cloudflare unblock.ps1 
 $ip=$args[0]
 $date=Get-Date
