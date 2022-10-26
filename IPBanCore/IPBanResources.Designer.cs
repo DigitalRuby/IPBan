@@ -1627,6 +1627,15 @@ namespace DigitalRuby.IPBanCore {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Plugins.
+        /// </summary>
+        public static string Plugins {
+            get {
+                return ResourceManager.GetString("Plugins", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Private API Key.
         /// </summary>
         public static string PrivateAPIKey {
@@ -1857,6 +1866,15 @@ namespace DigitalRuby.IPBanCore {
         public static string RemoveAllLicenseKeys {
             get {
                 return ResourceManager.GetString("RemoveAllLicenseKeys", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Request a plugin.
+        /// </summary>
+        public static string RequestAPlugin {
+            get {
+                return ResourceManager.GetString("RequestAPlugin", resourceCulture);
             }
         }
         

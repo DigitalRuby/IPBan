@@ -1002,4 +1002,10 @@
   <data name="IPThreatApiKeyTooltip" xml:space="preserve">
     <value>Api key for https://ipthreat.net</value>
   </data>
+  <data name="Plugins" xml:space="preserve">
+    <value>Plugins</value>
+  </data>
+  <data name="RequestAPlugin" xml:space="preserve">
+    <value>Request a plugin</value>
+  </data>
 </root>
