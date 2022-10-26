@@ -1,4 +1,4 @@
-IPBan - Block out attackers quickly and easily on Linux and Windows
+IPBan - Free software to block out attackers quickly and easily on Linux and Windows
 -----
 [![Github Sponsorship](.github/github_sponsor_btn.svg)](https://github.com/sponsors/jjxtra)
 [![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=7EJ3K33SRLU9E)
