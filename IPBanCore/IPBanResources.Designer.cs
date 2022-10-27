@@ -331,6 +331,33 @@ namespace DigitalRuby.IPBanCore {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Cloudflare api token to add firewall rules.
+        /// </summary>
+        public static string Cloudflare_ApiToken_Description {
+            get {
+                return ResourceManager.GetString("Cloudflare_ApiToken_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Max count of ips to put in Cloudflare firewall, 10000 max.
+        /// </summary>
+        public static string Cloudflare_MaxCount_Description {
+            get {
+                return ResourceManager.GetString("Cloudflare_MaxCount_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Comma separated zone ids to add firewall rules to.
+        /// </summary>
+        public static string Cloudflare_ZoneIds_Description {
+            get {
+                return ResourceManager.GetString("Cloudflare_ZoneIds_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Confirm Delete.
         /// </summary>
         public static string ConfirmDelete {

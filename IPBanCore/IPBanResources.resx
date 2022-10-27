@@ -1008,4 +1008,13 @@
   <data name="RequestAPlugin" xml:space="preserve">
     <value>Request a plugin</value>
   </data>
+  <data name="Cloudflare_ApiToken_Description" xml:space="preserve">
+    <value>Cloudflare api token to add firewall rules</value>
+  </data>
+  <data name="Cloudflare_MaxCount_Description" xml:space="preserve">
+    <value>Max count of ips to put in Cloudflare firewall, 10000 max</value>
+  </data>
+  <data name="Cloudflare_ZoneIds_Description" xml:space="preserve">
+    <value>Comma separated zone ids to add firewall rules to</value>
+  </data>
 </root>
