@@ -837,6 +837,28 @@ namespace DigitalRuby.IPBanCore
         }
 
         /// <summary>
+        /// Deserialize an object to from string json
+        /// </summary>
+        /// <param name="json">Json</param>
+        /// <returns>Object</returns>
+        [UnconditionalSuppressMessage("Trimming", "IL2026:Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code", Justification = "jjxtra")]
+        public static T DeserializeJson<T>(string json)
+        {
+            return System.Text.Json.JsonSerializer.Deserialize<T>(json, options: jsonOptions);
+        }
+
+        /// <summary>
+        /// Serialize an object to utf8 json
+        /// </summary>
+        /// <param name="obj">Object</param>
+        /// <returns>String json</returns>
+        [UnconditionalSuppressMessage("Trimming", "IL2026:Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code", Justification = "jjxtra")]
+        public static string SerializeJson(this object obj)
+        {
+            return System.Text.Json.JsonSerializer.Serialize(obj, options: jsonOptions);
+        }
+
+        /// <summary>
         /// Serialize an object to utf8 json
         /// </summary>
         /// <param name="obj">Object</param>
