@@ -1017,7 +1017,4 @@
   <data name="Cloudflare_ZoneIds_Description" xml:space="preserve">
     <value>Comma separated zone ids to add firewall rules to</value>
   </data>
-  <data name="RunProcess_MaxCount_Description" xml:space="preserve">
-    <value>Max ips to send to the process</value>
-  </data>
 </root>
