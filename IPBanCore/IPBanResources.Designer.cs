@@ -1951,6 +1951,15 @@ namespace DigitalRuby.IPBanCore {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Max ips to send to the process.
+        /// </summary>
+        public static string RunProcess_MaxCount_Description {
+            get {
+                return ResourceManager.GetString("RunProcess_MaxCount_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Save.
         /// </summary>
         public static string Save {
