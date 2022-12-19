@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.29409.12
+# Visual Studio Version 17
+VisualStudioVersion = 17.4.33103.184
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{6822D44E-F078-4FD9-8770-D7A8B1B41CF8}"
 	ProjectSection(SolutionItems) = preProject
@@ -23,6 +23,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionItems", "SolutionIt
 		ISSUE_TEMPLATE.md = ISSUE_TEMPLATE.md
 		LICENSE.md = LICENSE.md
 		README.md = README.md
+		testEnvironments.json = testEnvironments.json
 	EndProjectSection
 EndProject
 Global
