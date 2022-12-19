@@ -20,10 +20,10 @@ steps:
       inputs:
         packageType: 'sdk'
         version: '6.x'
-        includePreviewVersions: true
+        includePreviewVersions: false
         installationPath: $(Agent.ToolsDirectory)/dotnet_latest
 
-    - script: sudo apt-get install -q -y iptables; sudo apt-get install -q -y ipset; sudo apt-get install -q -y sysstat; sudo apt-get update
+    - script: sudo apt install -q -y iptables ipset sysstat; sudo apt-get update
       displayName: 'Install dependencies on Linux'
       condition: contains( variables['Agent.OS'], 'Linux' )
 
