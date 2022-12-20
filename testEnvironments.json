@@ -2,10 +2,12 @@
   "version": "1",
   "environments":
   [
+    // run from powershell: ubuntu config --default-user root
     {
       "name": "Ubuntu",
       "type": "wsl",
-      "wslDistribution": "Ubuntu"
+      "wslDistribution": "Ubuntu",
+      "runAsRoot": "true"
     }
   ]
 }
