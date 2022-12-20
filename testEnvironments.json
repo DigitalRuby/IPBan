@@ -4,9 +4,16 @@
   [
     // run from powershell: ubuntu config --default-user root
     {
-      "name": "Ubuntu",
+      "name": "UbuntuWSL",
       "type": "wsl",
       "wslDistribution": "Ubuntu",
+      "runAsRoot": "true"
+    },
+    // https://learn.microsoft.com/en-us/visualstudio/test/remote-testing?view=vs-2022
+    {
+      "name": "UbuntuSSH",
+      "type": "ssh",
+      "remoteUri": "ssh://root@192.168.1.146:22",
       "runAsRoot": "true"
     }
   ]
