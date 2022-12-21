@@ -448,6 +448,24 @@ namespace DigitalRuby.IPBanCore {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Country Blacklist Precise.
+        /// </summary>
+        public static string CountryBlacklistPrecise {
+            get {
+                return ResourceManager.GetString("CountryBlacklistPrecise", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use precise country ip addresses (requires about 7x more RAM).
+        /// </summary>
+        public static string CountryBlacklistPreciseTooltip {
+            get {
+                return ResourceManager.GetString("CountryBlacklistPreciseTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Select banned countries. The firewall will be updated with the first failed login from an ip address in the range of any blocked country, excluding any whitelisted ip addresses..
         /// </summary>
         public static string CountryBlacklistTooltip {

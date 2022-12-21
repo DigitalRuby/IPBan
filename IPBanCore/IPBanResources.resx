@@ -1017,4 +1017,10 @@
   <data name="Cloudflare_ZoneIds_Description" xml:space="preserve">
     <value>Comma separated zone ids to add firewall rules to</value>
   </data>
+  <data name="CountryBlacklistPrecise" xml:space="preserve">
+    <value>Country Blacklist Precise</value>
+  </data>
+  <data name="CountryBlacklistPreciseTooltip" xml:space="preserve">
+    <value>Use precise country ip addresses (requires about 7x more RAM)</value>
+  </data>
 </root>
