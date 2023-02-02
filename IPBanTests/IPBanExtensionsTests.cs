@@ -38,27 +38,40 @@ namespace DigitalRuby.IPBanTests
         [Test]
         public void TestNetworkGetAllIPAddresses()
         {
-            var ips = NetworkUtility.GetAllIPAddresses();
+            var ips = NetworkUtility.GetSortedIPAddresses();
             Assert.IsTrue(ips.Any());
         }
 
         [Test]
         public void TestNetworkGetPriorityIPAddresses()
         {
-            var ips = NetworkUtility.GetPriorityIPAddresses();
+            var ips = NetworkUtility.GetIPAddressesByPriority();
             Assert.IsTrue(ips.Any());
 
-            ips = NetworkUtility.GetPriorityIPAddresses(new[]
+            var sortedIps = NetworkUtility.GetSortedIPAddresses(new KeyValuePair<string, int>[]
             {
-                "1999:0db8:85a3:0000:0000:8a2e:0370:7334",
-                "127.0.0.1",
-                "10.0.0.1",
-                "44.44.44.44",
-                "2003:0db8:85a3:0000:0000:8a2e:0370:7334"
+                new("1999:0db8:85a3:0000:0000:8a2e:0370:7334", 0),
+                new("127.0.0.1", 0),
+                new("10.0.0.1", 0),
+                new("44.44.44.44", 0),
+                new("2003:0db8:85a3:0000:0000:8a2e:0370:7334", 0)
             });
-            Assert.IsTrue(ips.Any());
+            Assert.IsTrue(sortedIps.Any());
 
-            Assert.AreEqual("44.44.44.44", ips.First().ToString());
+            Assert.AreEqual("44.44.44.44", sortedIps.First().ToString());
+
+            sortedIps = NetworkUtility.GetSortedIPAddresses(new KeyValuePair<string, int>[]
+            {
+                new("1999:0db8:85a3:0000:0000:8a2e:0370:7334", 1),
+                new("127.0.0.1", 2),
+                new("10.0.0.1", 3),
+                new("44.44.44.44", 4),
+                new("2003:0db8:85a3:0000:0000:8a2e:0370:7334", 5),
+                new("215.4.5.6", 0),
+            });
+            Assert.IsTrue(sortedIps.Any());
+
+            Assert.AreEqual("215.4.5.6", sortedIps.First().ToString());
         }
 
         [TestCase("0.0.0.0-0.255.255.255,1.0.0.0-1.0.0.255",

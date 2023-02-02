@@ -22,10 +22,14 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+using Microsoft.Win32;
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.NetworkInformation;
+using System.Runtime.InteropServices;
 
 namespace DigitalRuby.IPBanCore
 {
@@ -176,31 +180,111 @@ namespace DigitalRuby.IPBanCore
         }
 
         /// <summary>
-        /// Get all ips of local machine
+        /// Get all ips of local machine, in priority order.
+        /// On Windows, priority is first attempted to be read using the 'Interface Metric' from adapter properties.
+        ///  If this is not able to read, then the routing table priority is used.
+        /// On Linux, priority is currently ignored.
         /// </summary>
-        /// <returns>All ips of local machine</returns>
-        public static IReadOnlyCollection<System.Net.IPAddress> GetAllIPAddresses()
+        /// <returns>All ips of local machine (key) and priority (value).</returns>
+        public static IReadOnlyCollection<KeyValuePair<System.Net.IPAddress, int>> GetIPAddressesByPriority()
         {
-            HashSet<System.Net.IPAddress> ipSet = new();
+            Dictionary<System.Net.IPAddress, int> ips = new();
             foreach (NetworkInterface netInterface in NetworkInterface.GetAllNetworkInterfaces())
             {
                 if (netInterface.OperationalStatus == OperationalStatus.Up &&
                 (
                     string.IsNullOrWhiteSpace(netInterface.Name) ||
-                    !netInterface.Name.Contains("loopback", System.StringComparison.OrdinalIgnoreCase))
+                        !netInterface.Name.Contains("loopback", System.StringComparison.OrdinalIgnoreCase))
                 )
                 {
                     IPInterfaceProperties ipProps = netInterface.GetIPProperties();
+                    var indexV4 = 0;
+                    var indexV6 = 0;
+
+                    // attempt to get priorities/metrics, ignoring exceptions
+                    try
+                    {
+                        TryGetInterfaceMetric(netInterface.Id, true, out indexV4);
+                        // this is not a real priority but leaving it for reference (it's routing table priority)
+                        // indexV4 = ipProps.GetIPv4Properties().Index;
+                    }
+                    catch
+                    {
+                    }
+                    try
+                    {
+                        TryGetInterfaceMetric(netInterface.Id, false, out indexV6);
+                        // this is not a real priority but leaving it for reference (it's routing table priority)
+                        // indexV6 = ipProps.GetIPv6Properties().Index;
+                    }
+                    catch
+                    {
+                    }
+
                     foreach (UnicastIPAddressInformation addr in ipProps.UnicastAddresses)
                     {
                         if (!addr.Address.IsLocalHost())
                         {
-                            ipSet.Add(addr.Address.Clean());
+                            var cleanedIp = addr.Address.Clean();
+                            if (!ips.ContainsKey(cleanedIp))
+                            {
+                                var priority = cleanedIp.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork ? indexV4 : indexV6;
+                                ips.Add(cleanedIp, priority);
+                            }
                         }
                     }
                 }
             }
-            return ipSet;
+            return ips.OrderBy(i => i.Value).ToArray();
+        }
+
+        /// <summary>
+        /// Attempt to retrieve the interface metric from an adapter id. Currently only works on Windows.
+        /// </summary>
+        /// <param name="adapterId">Adapter id</param>
+        /// <param name="ipv4">Is this an ipv4 or ipv6 adapter?</param>
+        /// <param name="metric">The result interface metric or 0 if not found</param>
+        /// <returns>True if interface metric was retrieved, false otherwise</returns>
+        public static bool TryGetInterfaceMetric(string adapterId, bool ipv4, out int metric)
+        {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                // try getting the real value from the registry
+                var typeKey = "Tcpip" + (ipv4 ? string.Empty : "6");
+                using var interfacesKey = Registry.LocalMachine.OpenSubKey($@"SYSTEM\CurrentControlSet\Services\{typeKey}\Parameters\Interfaces");
+                foreach (string subKeyName in interfacesKey.GetSubKeyNames())
+                {
+                    using var subKey = interfacesKey.OpenSubKey(subKeyName);
+                    if (subKey.Name.Contains(adapterId, System.StringComparison.OrdinalIgnoreCase))
+                    {
+                        string metricString;
+                        int _tmpInt;
+
+                        // try finding the same in sub keys, sometimes Windows makes a clone of the key as a child
+                        foreach (string subkeyName2 in subKey.GetSubKeyNames())
+                        {
+                            using var subkey2 = subKey.OpenSubKey(subkeyName2);
+                            metricString = subkey2.GetValue("InterfaceMetric")?.ToString();
+                            if (int.TryParse(metricString, out _tmpInt))
+                            {
+                                metric = _tmpInt;
+                                return true;
+                            }
+                        }
+
+                        metricString = subKey.GetValue("InterfaceMetric")?.ToString();
+                        if (int.TryParse(metricString, out _tmpInt))
+                        {
+                            metric = _tmpInt;
+                            return true;
+                        }
+
+                        break;
+                    }
+                }
+            }
+            metric = 0;
+            return false;
         }
 
         /// <summary>
@@ -248,39 +332,58 @@ namespace DigitalRuby.IPBanCore
         }
 
         /// <summary>
-        /// Get all ip addresses of the machine, in priority order, putting external ipv4 first, then external ipv6, then internal ipv4 and finally internal ipv6
+        /// Get all ip addresses of the machine, in sorted order,
+        /// putting external ipv4 first,
+        /// then external ipv6,
+        /// then priority,
+        /// then internal ipv4,
+        /// then internal ipv6,
+        /// then finally by ip itself
         /// </summary>
-        /// <param name="overrides">Override the local ip addresses</param>
+        /// <param name="ipAddresses">The ip addresses to sort, or null to query the hardware on the machine</param>
         /// <returns>IP addresses</returns>
-        public static IEnumerable<System.Net.IPAddress> GetPriorityIPAddresses(string[] overrides = null)
+        public static IEnumerable<System.Net.IPAddress> GetSortedIPAddresses(IEnumerable<KeyValuePair<string, int>> ipAddresses = null)
         {
-            List<System.Net.IPAddress> ips = new();
             try
             {
-                var collection = (overrides is null ? GetAllIPAddresses() : overrides.Select(o => System.Net.IPAddress.Parse(o)));
-                ips.AddRange(collection);
-                ips.Sort((ip1, ip2) =>
+                List<KeyValuePair<System.Net.IPAddress, int>> collection;
+                if (ipAddresses is null)
                 {
-                    int internal1 = ip1.IsInternal() ? 1 : 0;
-                    int internal2 = ip2.IsInternal() ? 1 : 0;
+                    collection = GetIPAddressesByPriority().ToList();
+                }
+                else
+                {
+                    collection = ipAddresses.Select(o => new KeyValuePair<System.Net.IPAddress, int>(System.Net.IPAddress.Parse(o.Key), o.Value)).ToList();
+                }
+                collection.Sort((ip1, ip2) =>
+                {
+                    int internal1 = ip1.Key.IsInternal() ? 1 : 0;
+                    int internal2 = ip2.Key.IsInternal() ? 1 : 0;
                     if (internal1 != internal2)
                     {
                         return internal1.CompareTo(internal2);
                     }
-                    int family1 = ip1.AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6 ? 1 : 0;
-                    int family2 = ip2.AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6 ? 1 : 0;
+                    int priority1 = ip1.Value;
+                    int priority2 = ip2.Value;
+                    if (priority1 != priority2)
+                    {
+                        return priority1.CompareTo(priority2);
+                    }
+                    int family1 = ip1.Key.AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6 ? 1 : 0;
+                    int family2 = ip2.Key.AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6 ? 1 : 0;
                     if (family1 != family2)
                     {
                         return family1.CompareTo(family2);
                     }
-                    return ip1.CompareTo(ip2);
+                    return ip1.Key.CompareTo(ip2.Key);
                 });
+                return collection.Select(c => c.Key);
             }
             catch
             {
                 // non-fatal
             }
-            return ips;
+            return Array.Empty<System.Net.IPAddress>();
         }
     }
 }

@@ -162,7 +162,7 @@ namespace DigitalRuby.IPBanCore
             {
                 try
                 {
-                    OtherIPAddressesString = string.Join(',', NetworkUtility.GetAllIPAddresses().Select(i => i.ToString()));
+                    OtherIPAddressesString = string.Join(',', NetworkUtility.GetSortedIPAddresses().Select(i => i.ToString()));
                 }
                 catch
                 {
@@ -174,7 +174,7 @@ namespace DigitalRuby.IPBanCore
             {
                 try
                 {
-                    IPAddress ipAddress = NetworkUtility.GetPriorityIPAddresses().FirstOrDefault();
+                    IPAddress ipAddress = NetworkUtility.GetSortedIPAddresses().FirstOrDefault();
                     if (ipAddress.IsInternal())
                     {
                         // try querying through a web service
