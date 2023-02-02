@@ -919,12 +919,41 @@ namespace DigitalRuby.IPBanTests
         [Test]
         public void TestBase64EncodedUserName()
         {
-            var results = IPBanService.GetIPAddressEventsFromRegex(new Regex("(?<ipaddress>.*)_(?<username_base64>.+)"),
+            var results = IPBanRegexParser.Instance.GetIPAddressEventsFromRegex(new Regex("(?<ipaddress>.*)_(?<username_base64>.+)"),
                 "1.1.1.1_dGVzdHVzZXJuYW1l").ToArray();
             Assert.IsTrue(results.Any());
             var result = results.First();
             Assert.AreEqual("1.1.1.1", result.IPAddress);
             Assert.AreEqual("testusername", result.UserName);
+        }
+
+        [Test]
+        public void TestUserNameTruncation()
+        {
+            var trunc = IPBanRegexParser.Instance.TruncateUserNameChars;
+            try
+            {
+                var results = IPBanRegexParser.Instance.GetIPAddressEventsFromRegex(new Regex("(?<ipaddress>.*)_(?<username>.+)"),
+                "1.1.1.1_bob@mydomain.com").ToArray();
+                Assert.IsTrue(results.Any());
+                var result = results.First();
+                Assert.AreEqual("1.1.1.1", result.IPAddress);
+                Assert.AreEqual("bob", result.UserName);
+
+                // clear truncation
+                IPBanRegexParser.Instance.TruncateUserNameChars = string.Empty;
+
+                results = IPBanRegexParser.Instance.GetIPAddressEventsFromRegex(new Regex("(?<ipaddress>.*)_(?<username>.+)"),
+                "1.1.1.1_bob@mydomain.com").ToArray();
+                Assert.IsTrue(results.Any());
+                result = results.First();
+                Assert.AreEqual("1.1.1.1", result.IPAddress);
+                Assert.AreEqual("bob@mydomain.com", result.UserName);
+            }
+            finally
+            {
+                IPBanRegexParser.Instance.TruncateUserNameChars = trunc;
+            }
         }
 
         private void RunConfigBanTest(string key, string value, string banIP, string noBanIP, int noBanIPCount = 999)

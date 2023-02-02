@@ -45,14 +45,14 @@ namespace DigitalRuby.IPBanTests
             string source, string successfulLoginRegex, string successfulLoginRegexTimestampFormat,
             LogLevel failedLogLevel = LogLevel.Warning, LogLevel successLogLevel = LogLevel.Warning)
         {
-            Assert.AreEqual(IPBanConfig.ParseRegex(failedLoginRegex)?.ToString(), IPBanConfig.ParseRegex(file.FailedLoginRegex)?.ToString());
+            Assert.AreEqual(IPBanRegexParser.ParseRegex(failedLoginRegex)?.ToString(), IPBanRegexParser.ParseRegex(file.FailedLoginRegex)?.ToString());
             Assert.AreEqual(failedLoginRegexTimestampFormat, file.FailedLoginRegexTimestampFormat);
             Assert.AreEqual(maxFileSize, file.MaxFileSize);
             Assert.AreEqual(Regex.Replace(pathAndMask.Trim().Replace('\n', '|'), "\\s+", string.Empty), Regex.Replace(file.PathAndMask.Trim().Replace('\n', '|'), "\\s+", string.Empty));
             Assert.AreEqual(pingInterval, file.PingInterval);
-            Assert.AreEqual(IPBanConfig.ParseRegex(platformRegex)?.ToString(), IPBanConfig.ParseRegex(file.PlatformRegex)?.ToString());
+            Assert.AreEqual(IPBanRegexParser.ParseRegex(platformRegex)?.ToString(), IPBanRegexParser.ParseRegex(file.PlatformRegex)?.ToString());
             Assert.AreEqual(source, file.Source);
-            Assert.AreEqual(IPBanConfig.ParseRegex(successfulLoginRegex)?.ToString(), IPBanConfig.ParseRegex(file.SuccessfulLoginRegex)?.ToString());
+            Assert.AreEqual(IPBanRegexParser.ParseRegex(successfulLoginRegex)?.ToString(), IPBanRegexParser.ParseRegex(file.SuccessfulLoginRegex)?.ToString());
             Assert.AreEqual(successfulLoginRegexTimestampFormat, file.SuccessfulLoginRegexTimestampFormat);
             Assert.AreEqual(failedLogLevel, file.FailedLoginLogLevel);
             Assert.AreEqual(successLogLevel, file.SuccessfulLoginLogLevel);
@@ -148,7 +148,7 @@ namespace DigitalRuby.IPBanTests
             for (int i = 0; i < expressions.Length;)
             {
                 int groupIndex = i / 2;
-                Regex regex = IPBanConfig.ParseRegex(group.Expressions[groupIndex].Regex);
+                Regex regex = IPBanRegexParser.ParseRegex(group.Expressions[groupIndex].Regex);
                 Assert.AreEqual(expressions[i++], group.Expressions[groupIndex].XPath?.Trim());
                 Assert.AreEqual(expressions[i++], (regex is null ? string.Empty : regex.ToString()));
             }
@@ -217,6 +217,8 @@ namespace DigitalRuby.IPBanTests
                 Assert.IsEmpty(cfg.ProcessToRunOnUnban);
                 Assert.IsFalse(cfg.ResetFailedLoginCountForUnbannedIPAddresses);
                 Assert.IsTrue(cfg.UseDefaultBannedIPAddressHandler);
+                Assert.AreEqual(cfg.TruncateUserNameChars, "@");
+                Assert.AreEqual(IPBanRegexParser.Instance.TruncateUserNameChars, cfg.TruncateUserNameChars);
                 Assert.IsEmpty(cfg.UserNameWhitelist);
                 Assert.IsEmpty(cfg.UserNameWhitelistRegex);
                 Assert.IsEmpty(cfg.WhitelistFilter.IPAddressRanges);

@@ -29,8 +29,10 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml;
@@ -43,7 +45,7 @@ namespace DigitalRuby.IPBanCore
     /// <summary>
     /// Configuration for ip ban app
     /// </summary>
-    public class IPBanConfig : IIsWhitelisted
+    public sealed class IPBanConfig : IIsWhitelisted
     {
         /// <summary>
         /// Allow temporary change of config
@@ -124,6 +126,7 @@ namespace DigitalRuby.IPBanCore
         private readonly bool clearBannedIPAddressesOnRestart;
         private readonly bool clearFailedLoginsOnSuccessfulLogin;
         private readonly bool processInternalIPAddresses;
+        private readonly string truncateUserNameChars;
         private readonly HashSet<string> userNameWhitelist = new(StringComparer.Ordinal);
         private readonly int userNameWhitelistMaximumEditDistance = 2;
         private readonly Regex userNameWhitelistRegex;
@@ -190,6 +193,8 @@ namespace DigitalRuby.IPBanCore
             TryGetConfig<bool>("ClearBannedIPAddressesOnRestart", ref clearBannedIPAddressesOnRestart);
             TryGetConfig<bool>("ClearFailedLoginsOnSuccessfulLogin", ref clearFailedLoginsOnSuccessfulLogin);
             TryGetConfig<bool>("ProcessInternalIPAddresses", ref processInternalIPAddresses);
+            TryGetConfig<string>("TruncateUserNameChars", ref truncateUserNameChars);
+            IPBanRegexParser.Instance.TruncateUserNameChars = truncateUserNameChars;
             GetConfig<TimeSpan>("ExpireTime", ref expireTime, TimeSpan.Zero, maxBanTimeSpan);
             if (expireTime.TotalMinutes < 1.0)
             {
@@ -401,138 +406,6 @@ namespace DigitalRuby.IPBanCore
                     Logger.Warn("Firewall block rule entry should have 5 comma separated pieces: name;block/allow;ips;ports;platform_regex. Invalid entry: {0}", firewallRuleString);
                 }
             }
-        }
-
-        /// <summary>
-        /// Validate a regex - returns an error otherwise empty string if success
-        /// </summary>
-        /// <param name="regex">Regex to validate, can be null or empty</param>
-        /// <param name="options">Regex options</param>
-        /// <param name="throwException">True to throw the exception instead of returning the string, false otherwise</param>
-        /// <returns>Null if success, otherwise an error string indicating the problem</returns>
-        public static string ValidateRegex(string regex, RegexOptions options = RegexOptions.IgnoreCase | RegexOptions.CultureInvariant, bool throwException = false)
-        {
-            try
-            {
-                if (regex != null)
-                {
-                    _ = new Regex(regex, options);
-                }
-                return null;
-            }
-            catch (Exception ex)
-            {
-                if (throwException)
-                {
-                    throw;
-                }
-                return ex.Message;
-            }
-        }
-
-        private static readonly Dictionary<string, Regex> regexCacheCompiled = new();
-        private static readonly Dictionary<string, Regex> regexCacheNotCompiled = new();
-
-        /// <summary>
-        /// Get a regex from text
-        /// </summary>
-        /// <param name="text">Text</param>
-        /// <param name="multiline">Whether to use multi-line regex, default is false which is single line</param>
-        /// <returns>Regex or null if text is null or whitespace</returns>
-        public static Regex ParseRegex(string text, bool multiline = false)
-        {
-            const int maxCacheSize = 200;
-
-            text = (text ?? string.Empty).Trim();
-            if (text.Length == 0)
-            {
-                return null;
-            }
-
-            string[] lines = text.Split('\n', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
-            StringBuilder sb = new();
-            foreach (string line in lines)
-            {
-                sb.Append(line);
-            }
-            RegexOptions options = RegexOptions.IgnoreCase | RegexOptions.CultureInvariant | RegexOptions.Compiled;
-            if (multiline)
-            {
-                options |= RegexOptions.Multiline;
-            }
-            string sbText = sb.ToString();
-            string cacheKey = ((uint)options).ToString("X8") + ":" + sbText;
-
-            // allow up to maxCacheSize compiled dynamic regular expression, with minimal config changes/reload, this should last the lifetime of an app
-            lock (regexCacheCompiled)
-            {
-                if (regexCacheCompiled.TryGetValue(cacheKey, out Regex value))
-                {
-                    return value;
-                }
-                else if (regexCacheCompiled.Count < maxCacheSize)
-                {
-                    value = new Regex(sbText, options);
-                    regexCacheCompiled.Add(cacheKey, value);
-                    return value;
-                }
-            }
-
-            // have to fall-back to non-compiled regex to avoid run-away memory usage
-            try
-            {
-                lock (regexCacheNotCompiled)
-                {
-                    if (regexCacheNotCompiled.TryGetValue(cacheKey, out Regex value))
-                    {
-                        return value;
-                    }
-
-                    // strip compiled flag
-                    options &= (~RegexOptions.Compiled);
-                    value = new Regex(sbText, options);
-                    regexCacheNotCompiled.Add(cacheKey, value);
-                    return value;
-                }
-            }
-            finally
-            {
-                // clear non-compield regex cache if it exceeds max size
-                lock (regexCacheNotCompiled)
-                {
-                    if (regexCacheNotCompiled.Count > maxCacheSize)
-                    {
-                        regexCacheNotCompiled.Clear();
-                    }
-                }
-            }
-        }
-
-        /// <summary>
-        /// Clean a multi-line string to make it more readable
-        /// </summary>
-        /// <param name="text">Multi-line string</param>
-        /// <returns>Cleaned multi-line string</returns>
-        public static string CleanMultilineString(string text)
-        {
-            text = (text ?? string.Empty).Trim();
-            if (text.Length == 0)
-            {
-                return string.Empty;
-            }
-
-            string[] lines = text.Split('\n', StringSplitOptions.RemoveEmptyEntries);
-            StringBuilder sb = new();
-            foreach (string line in lines)
-            {
-                string trimmedLine = line.Trim();
-                if (trimmedLine.Length != 0)
-                {
-                    sb.Append(trimmedLine);
-                    sb.Append('\n');
-                }
-            }
-            return sb.ToString().Trim();
         }
 
         /// <inheritdoc />
@@ -1004,6 +877,11 @@ namespace DigitalRuby.IPBanCore
         /// Blacklist
         /// </summary>
         public IIPBanFilter BlacklistFilter => blacklistFilter;
+
+        /// <summary>
+        /// Characters to truncate user names at, empty for no truncation
+        /// </summary>
+        public string TruncateUserNameChars { get { return truncateUserNameChars; } }
 
         /// <summary>
         /// White list user names. Any user name found not in the list is banned, unless the list is empty, in which case no checking is done.

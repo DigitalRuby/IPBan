@@ -38,11 +38,6 @@ namespace DigitalRuby.IPBanCore
 {
     public partial class IPBanService
     {
-        private static readonly char[] regexTrimChars = new[]
-        {
-            ',', ';', '|', '_', '-', '/', '\'', '\"', '(', ')', '[', ']', '{', '}', ' ', '\t', '\r', '\n'
-        };
-
         private static readonly char[] userNamePrefixChars = new[] { ',', '\\' };
 
         // batch failed logins every cycle

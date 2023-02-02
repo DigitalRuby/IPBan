@@ -247,7 +247,7 @@ namespace DigitalRuby.IPBanCore
 
             if (!string.IsNullOrWhiteSpace(regexValue))
             {
-                regex = IPBanConfig.ParseRegex(regexValue);
+                regex = IPBanRegexParser.ParseRegex(regexValue);
             }
         }
 

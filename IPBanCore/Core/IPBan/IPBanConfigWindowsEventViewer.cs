@@ -77,7 +77,7 @@ namespace DigitalRuby.IPBanCore
         public XmlCData Regex
         {
             get => regex;
-            set => RegexObject = IPBanConfig.ParseRegex(regex = value);
+            set => RegexObject = IPBanRegexParser.ParseRegex(regex = value);
         }
 
         /// <summary>
@@ -186,7 +186,7 @@ namespace DigitalRuby.IPBanCore
             }
 
             Expressions.Clear();
-            string[] lines = IPBanConfig.CleanMultilineString(ExpressionsText).Split('\n');
+            string[] lines = IPBanRegexParser.CleanMultilineString(ExpressionsText).Split('\n');
             string line;
             EventViewerExpression currentExpression = null;
             for (int i = 0; i < lines.Length; i++)

@@ -67,9 +67,9 @@ namespace DigitalRuby.IPBanCore
                 MaxFileSizeBytes = 0,
                 PathAndMask = fileName.Trim(),
                 PingIntervalMilliseconds = 0,
-                RegexFailure = (File.Exists(regexFailureFile) && regexFailureFile.Length > 2 ? IPBanConfig.ParseRegex(File.ReadAllText(regexFailureFile)) : null),
+                RegexFailure = (File.Exists(regexFailureFile) && regexFailureFile.Length > 2 ? IPBanRegexParser.ParseRegex(File.ReadAllText(regexFailureFile)) : null),
                 RegexFailureTimestampFormat = regexFailureTimestampFormat.Trim('.'),
-                RegexSuccess = (File.Exists(regexSuccessFile) && regexSuccessFile.Length > 2 ? IPBanConfig.ParseRegex(File.ReadAllText(regexSuccessFile)) : null),
+                RegexSuccess = (File.Exists(regexSuccessFile) && regexSuccessFile.Length > 2 ? IPBanRegexParser.ParseRegex(File.ReadAllText(regexSuccessFile)) : null),
                 RegexSuccessTimestampFormat = regexSuccessTimestampFormat.Trim('.'),
                 Source = "test",
                 SuccessfulLogLevel = LogLevel.Warning

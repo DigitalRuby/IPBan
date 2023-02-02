@@ -1267,42 +1267,5 @@ namespace DigitalRuby.IPBanCore
                 RemoveUpdater(updater);
             }
         }
-
-        private static int ExtractRepeatCount(Match match, string text)
-        {
-            // if the match is optional/empty just return 1
-            if (match.Length == 0)
-            {
-                return 1;
-            }
-
-            // look for the first instance of a message repeated text for this match, up to the last newline
-            int repeatStart = match.Index;
-            int repeatEnd = match.Index + match.Length;
-            while (repeatStart > 0)
-            {
-                if (text[repeatStart] == '\n')
-                {
-                    repeatStart++;
-                    break;
-                }
-                repeatStart--;
-            }
-            while (repeatEnd < text.Length)
-            {
-                if (text[repeatEnd] == '\n')
-                {
-                    break;
-                }
-                repeatEnd++;
-            }
-            Match repeater = Regex.Match(text[repeatStart..repeatEnd],
-                "message repeated (?<count>[0-9]+) times", RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
-            if (repeater.Success)
-            {
-                return int.Parse(repeater.Groups["count"].Value, CultureInfo.InvariantCulture);
-            }
-            return 1;
-        }
     }
 }
