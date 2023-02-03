@@ -26,6 +26,7 @@ using Microsoft.Extensions.FileSystemGlobbing;
 using Microsoft.Extensions.FileSystemGlobbing.Abstractions;
 
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -503,8 +504,8 @@ namespace DigitalRuby.IPBanCore
             fs.Position = file.LastPosition;
 
             // fill up to 64K bytes
-            byte[] bytes = new byte[ushort.MaxValue];
-            int read = fs.Read(bytes, 0, bytes.Length);
+            using var bytes = BytePool.Rent(ushort.MaxValue);
+            int read = fs.Read(bytes, 0, ushort.MaxValue);
 
             // setup state
             int bytesEnd;

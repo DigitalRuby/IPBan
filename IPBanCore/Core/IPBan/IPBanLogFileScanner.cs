@@ -23,6 +23,7 @@ SOFTWARE.
 */
 
 using System.Collections.Generic;
+using System.Text;
 using System.Text.RegularExpressions;
 
 namespace DigitalRuby.IPBanCore
@@ -63,7 +64,7 @@ namespace DigitalRuby.IPBanCore
         /// Create a log file scanner
         /// </summary>
         /// <param name="options">Options</param>
-        public IPBanLogFileScanner(IPBanIPAddressLogFileScannerOptions options) : base(options.PathAndMask, options.MaxFileSizeBytes, options.PingIntervalMilliseconds)
+        public IPBanLogFileScanner(IPBanIPAddressLogFileScannerOptions options) : base(options.PathAndMask, options.MaxFileSizeBytes, options.PingIntervalMilliseconds, options.Encoding, options.MaxLineLength)
         {
             options.ThrowIfNull(nameof(options));
             options.EventHandler.ThrowIfNull(nameof(options.EventHandler));
@@ -198,6 +199,16 @@ namespace DigitalRuby.IPBanCore
         /// Interval to ping the log file, default is 0 which means manual ping is required
         /// </summary>
         public int PingIntervalMilliseconds { get; set; }
+
+        /// <summary>
+        /// Encoding
+        /// </summary>
+        public Encoding Encoding { get; set; } = Encoding.UTF8;
+
+        /// <summary>
+        /// Max line length or 0 for unlimited - be careful using 0, performance can suffer
+        /// </summary>
+        public ushort MaxLineLength { get; set; } = 8192;
 
         /// <summary>
         /// Failed login threshold or 0 for default

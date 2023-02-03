@@ -288,7 +288,7 @@ namespace DigitalRuby.IPBanCore
         /// <returns>Bytes</returns>
         public static byte[] ToBytesFromHex(this string s)
         {
-            byte[] bytes = new byte[s.Length / 2];
+            using var bytes = BytePool.Rent(s.Length / 2);
             for (int i = 0; i < s.Length; i += 2)
             {
                 bytes[i / 2] = Convert.ToByte(s.Substring(i, 2), 16);
@@ -700,12 +700,12 @@ namespace DigitalRuby.IPBanCore
         public static unsafe IPAddress ToIPAddressRaw(this UInt128 value)
         {
             byte* bytes = (byte*)&value;
-            byte[] managedBytes = new byte[16];
-            for (int i = 0; i < managedBytes.Length; i++)
+            using var managedBytes = BytePool.Rent(16);
+            for (int i = 0; i < 16; i++)
             {
                 managedBytes[i] = bytes[i];
             }
-            return new IPAddress(managedBytes);
+            return new IPAddress(managedBytes.AsSpan());
         }
 
         /// <summary>
