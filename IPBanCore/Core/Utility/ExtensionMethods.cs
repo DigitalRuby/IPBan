@@ -288,7 +288,7 @@ namespace DigitalRuby.IPBanCore
         /// <returns>Bytes</returns>
         public static byte[] ToBytesFromHex(this string s)
         {
-            using var bytes = new byte[16];
+            var bytes = new byte[16];
             for (int i = 0; i < s.Length; i += 2)
             {
                 bytes[i / 2] = Convert.ToByte(s.Substring(i, 2), 16);
