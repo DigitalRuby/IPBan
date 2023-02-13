@@ -2428,6 +2428,24 @@ namespace DigitalRuby.IPBanCore {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to User name truncation chars.
+        /// </summary>
+        public static string UserNameTruncationChars {
+            get {
+                return ResourceManager.GetString("UserNameTruncationChars", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Characters to truncate user name at or empty for none. @ sign can be used to strip domain name off email or active directory login for example.
+        /// </summary>
+        public static string UserNameTruncationCharsTooltip {
+            get {
+                return ResourceManager.GetString("UserNameTruncationCharsTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to User Name Whitelist.
         /// </summary>
         public static string UserNameWhitelist {

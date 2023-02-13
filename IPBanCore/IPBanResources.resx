@@ -1023,4 +1023,10 @@
   <data name="CountryBlacklistPreciseTooltip" xml:space="preserve">
     <value>Use precise country ip addresses (requires about 7x more RAM)</value>
   </data>
+  <data name="UserNameTruncationChars" xml:space="preserve">
+    <value>User name truncation chars</value>
+  </data>
+  <data name="UserNameTruncationCharsTooltip" xml:space="preserve">
+    <value>Characters to truncate user name at or empty for none. @ sign can be used to strip domain name off email or active directory login for example</value>
+  </data>
 </root>
