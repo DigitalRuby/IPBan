@@ -126,19 +126,19 @@ namespace DigitalRuby.IPBanCore
         private readonly bool clearBannedIPAddressesOnRestart;
         private readonly bool clearFailedLoginsOnSuccessfulLogin;
         private readonly bool processInternalIPAddresses;
-        private readonly string truncateUserNameChars;
+        private readonly string truncateUserNameChars = string.Empty;
         private readonly HashSet<string> userNameWhitelist = new(StringComparer.Ordinal);
         private readonly int userNameWhitelistMaximumEditDistance = 2;
         private readonly Regex userNameWhitelistRegex;
         private readonly int failedLoginAttemptsBeforeBanUserNameWhitelist = 20;
-        private readonly string processToRunOnBan;
-        private readonly string processToRunOnUnban;
+        private readonly string processToRunOnBan = string.Empty;
+        private readonly string processToRunOnUnban = string.Empty;
         private readonly bool useDefaultBannedIPAddressHandler;
-        private readonly string getUrlUpdate;
-        private readonly string getUrlStart;
-        private readonly string getUrlStop;
-        private readonly string getUrlConfig;
-        private readonly string firewallUriRules;
+        private readonly string getUrlUpdate = string.Empty;
+        private readonly string getUrlStart = string.Empty;
+        private readonly string getUrlStop = string.Empty;
+        private readonly string getUrlConfig = string.Empty;
+        private readonly string firewallUriRules = string.Empty;
         private readonly List<IPBanFirewallRule> extraRules = new();
         private readonly EventViewerExpressionsToBlock expressionsFailure;
         private readonly EventViewerExpressionsToNotify expressionsSuccess;
@@ -444,8 +444,11 @@ namespace DigitalRuby.IPBanCore
             {
                 var stringValue = GetAppSettingsValue(key, logMissing);
 
-                // deserialize string value
-                value = (T)TypeDescriptor.GetConverter(typeof(T)).ConvertFromInvariantString(stringValue);
+                if (!string.IsNullOrWhiteSpace(stringValue))
+                {
+                    // deserialize string value
+                    value = (T)TypeDescriptor.GetConverter(typeof(T)).ConvertFromInvariantString(stringValue);
+                }
 
                 return true;
             }
