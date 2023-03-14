@@ -213,10 +213,15 @@ namespace DigitalRuby.IPBanCore
                     {
                         string ipAddress = failedLogin.IPAddress;
 
-                        // internal ip failed logins should not be processed
-                        if (!IPAddress.TryParse(ipAddress, out System.Net.IPAddress ipAddressObj) ||
-                            (!Config.ProcessInternalIPAddresses && ipAddressObj.IsInternal()))
+                        if (!IPAddress.TryParse(ipAddress, out System.Net.IPAddress ipAddressObj))
                         {
+                            // bad ip, ignore
+                            continue;
+                        }
+                        else if (!Config.ProcessInternalIPAddresses && ipAddressObj.IsInternal())
+                        {
+                            // internal ip failed logins should not be processed
+                            Logger.Info("Ignoring failed login for internal ip address {0} because ProcessInternalIPAddresses is false", ipAddress);
                             continue;
                         }
 
@@ -383,10 +388,15 @@ namespace DigitalRuby.IPBanCore
             List<IPAddressLogEvent> bannedIpAddresses, DateTime startBanDate, bool configBlacklisted,
             int counter, string extraInfo, object transaction, bool external, string logData)
         {
-            // if bad ip or internal ip, ignore
-            if (!System.Net.IPAddress.TryParse(ipAddress, out System.Net.IPAddress ipAddressObj) ||
-                (!Config.ProcessInternalIPAddresses && ipAddressObj.IsInternal()))
+            if (!System.Net.IPAddress.TryParse(ipAddress, out System.Net.IPAddress ipAddressObj))
             {
+                // bad ip, ignore
+                return;
+            }
+            else if (!Config.ProcessInternalIPAddresses && ipAddressObj.IsInternal())
+            {
+                // internal ip bans should not be processed
+                Logger.Info("Ignoring ban request for internal ip address {0} because ProcessInternalIPAddresses is false", ipAddress);
                 return;
             }
             else if (IsWhitelisted(ipAddress))
