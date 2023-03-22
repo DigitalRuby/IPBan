@@ -172,7 +172,7 @@ namespace DigitalRuby.IPBanCore
                     {
                         // if something failed, do not create the rule
                         emptyIPAddressString = true;
-                        Logger.Error(ex);
+                        Logger.Error(ex, "Failed to set Windows Firewall ip addresses: {0}", remoteIPAddresses);
                     }
                 }
 
