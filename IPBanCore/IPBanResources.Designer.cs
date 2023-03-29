@@ -169,6 +169,15 @@ namespace DigitalRuby.IPBanCore {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Auto Update.
+        /// </summary>
+        public static string AutoUpdate {
+            get {
+                return ResourceManager.GetString("AutoUpdate", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Auto Whitelist Success Logins.
         /// </summary>
         public static string AutoWhitelistSuccessLogins {

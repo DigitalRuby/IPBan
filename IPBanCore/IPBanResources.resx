@@ -1029,4 +1029,7 @@
   <data name="UserNameTruncationCharsTooltip" xml:space="preserve">
     <value>Characters to truncate user name at or empty for none. @ sign can be used to strip domain name off email or active directory login for example</value>
   </data>
+  <data name="AutoUpdate" xml:space="preserve">
+    <value>Auto Update</value>
+  </data>
 </root>
