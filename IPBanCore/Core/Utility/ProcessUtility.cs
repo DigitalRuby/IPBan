@@ -22,10 +22,14 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+using Microsoft.Win32.TaskScheduler;
+
 using System;
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Security.Cryptography;
+using System.Text;
 
 #pragma warning disable IDE0059 // Unnecessary assignment of a value
 #pragma warning disable IDE0051 // Remove unused private members
@@ -155,6 +159,33 @@ namespace DigitalRuby.IPBanCore
 
             if (OSUtility.IsWindows)
             {
+                // Get the task service on the local machine
+                using TaskService ts = new();
+
+                // create task name
+                var taskName = "DetachedProcess_" + Convert.ToHexString(MD5.HashData(Encoding.UTF8.GetBytes(Path.GetFileName(fileName))));
+
+                // remove the task if it already exists
+                ts.RootFolder.DeleteTask(taskName, false);
+
+                // create a new task definition and assign properties
+                TaskDefinition td = ts.NewTask();
+                td.RegistrationInfo.Description = "Detached process for " + fileName;
+
+                // create a trigger that will run the process in 1 second
+                td.Triggers.Add(new TimeTrigger(IPBanService.UtcNow.AddSeconds(1.0)));
+
+                // create the action to run the process
+                td.Actions.Add(new ExecAction(fileName, arguments, Path.GetDirectoryName(fileName)));
+
+                // delete task upon completion
+                td.Actions.Add(new ExecAction("schtasks.exe", "/Delete /TN \"" + taskName + "\" /F", null));
+
+                // register the task in the root folder
+                ts.RootFolder.RegisterTaskDefinition(taskName, td);
+
+                // this code is not working on some Windows versions or from a service, the child process is still killed when the service is killed
+                /*
                 var processInformation = new ProcessUtility.PROCESS_INFORMATION();
                 var startupInfo = new ProcessUtility.STARTUPINFO();
                 var sa = new ProcessUtility.SECURITY_ATTRIBUTES();
@@ -167,6 +198,7 @@ namespace DigitalRuby.IPBanCore
                 {
                     Logger.Warn("Failed to create detached process for " + fileName);
                 }
+                */
             }
             else
             {
