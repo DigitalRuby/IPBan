@@ -191,9 +191,7 @@ namespace DigitalRuby.IPBanCore
                     WindowStyle = ProcessWindowStyle.Hidden,
                     WorkingDirectory = Path.GetDirectoryName(fileName)
                 };
-
-                // start detached process, do not dispose
-                using Process process = Process.Start(info);
+                using var detachedProcess = Process.Start(info);
             }
         }
     }
