@@ -172,8 +172,8 @@ namespace DigitalRuby.IPBanCore
                 TaskDefinition td = ts.NewTask();
                 td.RegistrationInfo.Description = "Detached process for " + fileName;
 
-                // create a trigger that will run the process in 1 second
-                td.Triggers.Add(new TimeTrigger(IPBanService.UtcNow.AddSeconds(1.0)));
+                // create a trigger that will run the process in 5 seconds
+                td.Triggers.Add(new TimeTrigger(IPBanService.UtcNow.AddSeconds(5.0)));
 
                 // create the action to run the process
                 td.Actions.Add(new ExecAction(fileName, arguments, Path.GetDirectoryName(fileName)));
@@ -182,7 +182,8 @@ namespace DigitalRuby.IPBanCore
                 td.Actions.Add(new ExecAction("schtasks.exe", "/Delete /TN \"" + taskName + "\" /F", null));
 
                 // register the task in the root folder
-                ts.RootFolder.RegisterTaskDefinition(taskName, td);
+                var task = ts.RootFolder.RegisterTaskDefinition(taskName, td);
+                task.Run(); // just run it now
 
                 // this code is not working on some Windows versions or from a service, the child process is still killed when the service is killed
                 /*
