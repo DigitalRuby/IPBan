@@ -122,19 +122,6 @@ namespace DigitalRuby.IPBanCore
             [In] ref STARTUPINFO lpStartupInfo,
             out PROCESS_INFORMATION lpProcessInformation);
 
-        [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
-        private static extern bool CreateProcess(
-            string lpApplicationName,
-            string lpCommandLine,
-            ref SECURITY_ATTRIBUTES lpProcessAttributes,
-            ref SECURITY_ATTRIBUTES lpThreadAttributes,
-            bool bInheritHandles,
-            uint dwCreationFlags,
-            IntPtr lpEnvironment,
-            string lpCurrentDirectory,
-            [In] ref STARTUPINFOEX lpStartupInfo,
-            out PROCESS_INFORMATION lpProcessInformation);
-
         [DllImport("kernel32.dll")]
         private static extern uint GetLastError();
 
@@ -159,7 +146,7 @@ namespace DigitalRuby.IPBanCore
         /// <summary>
         /// Create a detached process
         /// </summary>
-        /// <param name="fileName">File name to execute</param>
+        /// <param name="fileName">File name to execute (full path)</param>
         /// <param name="arguments">Arguments</param>
         public static void CreateDetachedProcess(string fileName, string arguments)
         {
@@ -172,9 +159,13 @@ namespace DigitalRuby.IPBanCore
                 var startupInfo = new ProcessUtility.STARTUPINFO();
                 var sa = new ProcessUtility.SECURITY_ATTRIBUTES();
                 sa.Length = Marshal.SizeOf(sa);
-                CreateProcess(null, "\"" + fileName + "\" " + arguments, ref sa, ref sa, false,
-                    DETACHED_PROCESS,
+                bool result = CreateProcess(fileName, arguments, ref sa, ref sa, false,
+                    CREATE_NEW_PROCESS_GROUP | CREATE_NEW_CONSOLE,
                     IntPtr.Zero, Path.GetDirectoryName(fileName), ref startupInfo, out processInformation);
+                if (!result)
+                {
+                    Logger.Warn("Failed to create detached process for " + fileName);
+                }
             }
             else
             {
