@@ -145,6 +145,19 @@ namespace DigitalRuby.IPBanTests
         }
 
         [Test]
+        public void ParseText_IPv4_StarSyntax()
+        {
+            var range1 = IPAddressRange.Parse("219.165.*.*");
+            range1.Begin.AddressFamily.Is(AddressFamily.InterNetwork);
+            range1.Begin.ToString().Is("219.165.0.0");
+            range1.End.ToString().Is("219.165.255.255");
+            var range2 = IPAddressRange.Parse("219.165.64.*");
+            range2.Begin.AddressFamily.Is(AddressFamily.InterNetwork);
+            range2.Begin.ToString().Is("219.165.64.0");
+            range2.End.ToString().Is("219.165.64.255");
+        }
+
+        [Test]
         public void ParseTest_IPv4_CIDR_Max()
         {
             var range = IPAddressRange.Parse("219.165.64.73/32");

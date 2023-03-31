@@ -476,6 +476,16 @@ namespace DigitalRuby.IPBanCore
                     return null;
                 }
 
+                // handle .* syntax
+                if (ipRangeString.EndsWith(".*.*"))
+                {
+                    ipRangeString = ipRangeString[..^4] + ".0.0/16";
+                }
+                else if (ipRangeString.EndsWith(".*"))
+                {
+                    ipRangeString = ipRangeString[..^2] + ".0/24";
+                }
+
                 int pos = ipRangeString.IndexOfAny(commentChars);
                 if (pos >= 0)
                 {
