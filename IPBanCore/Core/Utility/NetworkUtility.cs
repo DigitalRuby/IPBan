@@ -107,11 +107,15 @@ namespace DigitalRuby.IPBanCore
         /// An extension method to determine if an IP address is internal, as specified in RFC1918
         /// </summary>
         /// <param name="ip">The IP address that will be tested</param>
-        /// <returns>Returns true if the IP is internal, false if it is external</returns>
+        /// <returns>Returns true if the IP is internal or null, false if it is external</returns>
         public static bool IsInternal(this System.Net.IPAddress ip)
         {
             try
             {
+                if (ip == null)
+                {
+                    return false;
+                }
                 ip = ip.Clean();
                 if (ip.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
                 {
@@ -185,7 +189,7 @@ namespace DigitalRuby.IPBanCore
         ///  If this is not able to read, then the routing table priority is used.
         /// On Linux, priority is currently ignored.
         /// </summary>
-        /// <returns>All ips of local machine (key) and priority (value).</returns>
+        /// <returns>All ips of local machine (key) and priority (value). Higher priority are sorted first.</returns>
         public static IReadOnlyCollection<KeyValuePair<System.Net.IPAddress, int>> GetIPAddressesByPriority()
         {
             Dictionary<System.Net.IPAddress, int> ips = new();
@@ -194,7 +198,8 @@ namespace DigitalRuby.IPBanCore
                 if (netInterface.OperationalStatus == OperationalStatus.Up &&
                 (
                     string.IsNullOrWhiteSpace(netInterface.Name) ||
-                        !netInterface.Name.Contains("loopback", System.StringComparison.OrdinalIgnoreCase))
+                        (!netInterface.Name.Contains("loopback", System.StringComparison.OrdinalIgnoreCase) &&
+                        !netInterface.Name.Contains("vEthernet (wsl)", StringComparison.OrdinalIgnoreCase)))
                 )
                 {
                     IPInterfaceProperties ipProps = netInterface.GetIPProperties();
@@ -235,7 +240,9 @@ namespace DigitalRuby.IPBanCore
                     }
                 }
             }
-            return ips.OrderBy(i => i.Value).ToArray();
+            return ips.OrderByDescending(i => i.Value)
+                .ThenBy(i => i.Key.AddressFamily)
+                .ToArray();
         }
 
         /// <summary>
@@ -367,7 +374,7 @@ namespace DigitalRuby.IPBanCore
                     int priority2 = ip2.Value;
                     if (priority1 != priority2)
                     {
-                        return priority1.CompareTo(priority2);
+                        return priority2.CompareTo(priority1);
                     }
                     int family1 = ip1.Key.AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6 ? 1 : 0;
                     int family2 = ip2.Key.AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6 ? 1 : 0;

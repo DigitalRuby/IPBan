@@ -67,7 +67,7 @@ namespace DigitalRuby.IPBanTests
                 new("10.0.0.1", 3),
                 new("44.44.44.44", 4),
                 new("2003:0db8:85a3:0000:0000:8a2e:0370:7334", 5),
-                new("215.4.5.6", 0),
+                new("215.4.5.6", 10),
             });
             Assert.IsTrue(sortedIps.Any());
 

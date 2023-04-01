@@ -149,7 +149,11 @@ namespace DigitalRuby.IPBanCore
             {
                 try
                 {
-                    LocalIPAddressString = (await DnsLookup.GetLocalIPAddressesAsync()).FirstOrDefault()?.ToString();
+                    LocalIPAddressString = NetworkUtility.GetSortedIPAddresses().FirstOrDefault()?.ToString();
+                    if (string.IsNullOrWhiteSpace(LocalIPAddressString))
+                    {
+                        LocalIPAddressString = (await DnsLookup.GetLocalIPAddressesAsync()).FirstOrDefault()?.ToString();
+                    }
                     Logger.Info("Local ip address: {0}", LocalIPAddressString);
                 }
                 catch
