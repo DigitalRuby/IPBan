@@ -109,8 +109,9 @@ namespace DigitalRuby.IPBanCore
         /// <summary>
         /// Check for config change
         /// </summary>
+        /// <param name="forceReload">Whether to force a reload</param>
         /// <returns>Task of config string, will be a null string if no change</returns>
-        public async Task<string> CheckForConfigChange()
+        public async Task<string> CheckForConfigChangeAsync(bool forceReload = false)
         {
             string result = null;
             if (!Enabled)
@@ -129,7 +130,8 @@ namespace DigitalRuby.IPBanCore
                 {
                     DateTime lastWriteTime = File.GetLastWriteTimeUtc(Path);
                     string currentConfig = await ReadConfigAsync(false);
-                    if (lastWriteTime != lastConfigWriteTime ||
+                    if (forceReload ||
+                        lastWriteTime != lastConfigWriteTime ||
                         currentConfig != lastConfigValue ||
 
                         // if enough time has elapsed, force a reload anyway, in case of dns entries and the

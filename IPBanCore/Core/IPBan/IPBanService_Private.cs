@@ -61,11 +61,20 @@ namespace DigitalRuby.IPBanCore
             try
             {
                 ConfigFilePath = (!File.Exists(ConfigFilePath) ? Path.Combine(AppContext.BaseDirectory, IPBanConfig.DefaultFileName) : ConfigFilePath);
-                var configChange = await ConfigReaderWriter.CheckForConfigChange();
-                var configChangeOverride = await ConfigOverrideReaderWriter.CheckForConfigChange();
-                if (!string.IsNullOrWhiteSpace(configChange) ||
-                    !string.IsNullOrWhiteSpace(configChangeOverride))
+                var configChange = await ConfigReaderWriter.CheckForConfigChangeAsync();
+                var configChangeOverride = await ConfigOverrideReaderWriter.CheckForConfigChangeAsync();
+                var newConfigFound = !string.IsNullOrWhiteSpace(configChange);
+                var newConfigOverrideFound = !string.IsNullOrWhiteSpace(configChangeOverride);
+                if (newConfigFound || newConfigOverrideFound)
                 {
+                    // if we have override config but no base config change, force reload the base config
+                    //  as it will potentially contain remenants of the previous override config
+                    if (newConfigOverrideFound && !newConfigFound)
+                    {
+                        newConfigFound = true;
+                        configChange = await ConfigReaderWriter.CheckForConfigChangeAsync(true);
+                    }
+
                     // merge override xml
                     string baseXml = configChange ?? Config?.Xml ?? throw new IOException("Failed to read " + ConfigFilePath);
                     string overrideXml = configChangeOverride;
