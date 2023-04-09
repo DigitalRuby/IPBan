@@ -322,6 +322,24 @@ namespace DigitalRuby.IPBanCore {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Clear Failures on Login Success.
+        /// </summary>
+        public static string ClearFailedLoginsOnSuccessfulLogin {
+            get {
+                return ResourceManager.GetString("ClearFailedLoginsOnSuccessfulLogin", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to When an ip address receives a successful login, whether to clear all the failed logins for that ip from memory.
+        /// </summary>
+        public static string ClearFailedLoginsOnSuccessfulLoginTooltip {
+            get {
+                return ResourceManager.GetString("ClearFailedLoginsOnSuccessfulLoginTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Client Configuration.
         /// </summary>
         public static string ClientConfiguration {

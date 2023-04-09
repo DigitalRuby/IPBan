@@ -1032,4 +1032,10 @@
   <data name="AutoUpdate" xml:space="preserve">
     <value>Auto Update</value>
   </data>
+  <data name="ClearFailedLoginsOnSuccessfulLogin" xml:space="preserve">
+    <value>Clear Failures on Login Success</value>
+  </data>
+  <data name="ClearFailedLoginsOnSuccessfulLoginTooltip" xml:space="preserve">
+    <value>When an ip address receives a successful login, whether to clear all the failed logins for that ip from memory</value>
+  </data>
 </root>
