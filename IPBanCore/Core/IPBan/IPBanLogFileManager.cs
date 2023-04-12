@@ -132,7 +132,8 @@ namespace DigitalRuby.IPBanCore
 
                         // make sure we match the platform before potentially making a new log file scanner
                         bool platformMatches = !string.IsNullOrWhiteSpace(newFile.PlatformRegex) &&
-                            Regex.IsMatch(OSUtility.Description, newFile.PlatformRegex.ToString().Trim(), RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+                            Regex.IsMatch(OSUtility.Description, newFile.PlatformRegex.ToString().Trim(),
+                            RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
 
                         if (existingScanner is null && platformMatches)
                         {
