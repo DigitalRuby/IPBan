@@ -919,7 +919,7 @@ namespace DigitalRuby.IPBanTests
         [Test]
         public void TestBase64EncodedUserName()
         {
-            var results = IPBanRegexParser.Instance.GetIPAddressEventsFromRegex(new Regex("(?<ipaddress>.*)_(?<username_base64>.+)"),
+            var results = IPBanRegexParser.GetIPAddressEventsFromRegex(new Regex("(?<ipaddress>.*)_(?<username_base64>.+)"),
                 "1.1.1.1_dGVzdHVzZXJuYW1l").ToArray();
             Assert.IsTrue(results.Any());
             var result = results.First();
@@ -930,10 +930,10 @@ namespace DigitalRuby.IPBanTests
         [Test]
         public void TestUserNameTruncation()
         {
-            var trunc = IPBanRegexParser.Instance.TruncateUserNameChars;
+            var trunc = IPBanRegexParser.TruncateUserNameChars;
             try
             {
-                var results = IPBanRegexParser.Instance.GetIPAddressEventsFromRegex(new Regex("(?<ipaddress>.*)_(?<username>.+)"),
+                var results = IPBanRegexParser.GetIPAddressEventsFromRegex(new Regex("(?<ipaddress>.*)_(?<username>.+)"),
                 "1.1.1.1_bob@mydomain.com").ToArray();
                 Assert.IsTrue(results.Any());
                 var result = results.First();
@@ -941,9 +941,9 @@ namespace DigitalRuby.IPBanTests
                 Assert.AreEqual("bob", result.UserName);
 
                 // clear truncation
-                IPBanRegexParser.Instance.TruncateUserNameChars = string.Empty;
+                IPBanRegexParser.TruncateUserNameChars = string.Empty;
 
-                results = IPBanRegexParser.Instance.GetIPAddressEventsFromRegex(new Regex("(?<ipaddress>.*)_(?<username>.+)"),
+                results = IPBanRegexParser.GetIPAddressEventsFromRegex(new Regex("(?<ipaddress>.*)_(?<username>.+)"),
                 "1.1.1.1_bob@mydomain.com").ToArray();
                 Assert.IsTrue(results.Any());
                 result = results.First();
@@ -952,7 +952,7 @@ namespace DigitalRuby.IPBanTests
             }
             finally
             {
-                IPBanRegexParser.Instance.TruncateUserNameChars = trunc;
+                IPBanRegexParser.TruncateUserNameChars = trunc;
             }
         }
 

@@ -218,7 +218,7 @@ namespace DigitalRuby.IPBanTests
                 Assert.IsFalse(cfg.ResetFailedLoginCountForUnbannedIPAddresses);
                 Assert.IsTrue(cfg.UseDefaultBannedIPAddressHandler);
                 Assert.AreEqual(cfg.TruncateUserNameChars, "@");
-                Assert.AreEqual(IPBanRegexParser.Instance.TruncateUserNameChars, cfg.TruncateUserNameChars);
+                Assert.AreEqual(IPBanRegexParser.TruncateUserNameChars, cfg.TruncateUserNameChars);
                 Assert.IsEmpty(cfg.UserNameWhitelist);
                 Assert.IsEmpty(cfg.UserNameWhitelistRegex);
                 Assert.IsEmpty(cfg.WhitelistFilter.IPAddressRanges);

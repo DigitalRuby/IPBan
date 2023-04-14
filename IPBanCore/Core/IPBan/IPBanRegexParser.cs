@@ -45,7 +45,7 @@ namespace DigitalRuby.IPBanCore
     /// <summary>
     /// Extract things out of text using regex
     /// </summary>
-    public sealed class IPBanRegexParser
+    public static class IPBanRegexParser
     {
         private static readonly Dictionary<string, Regex> regexCacheCompiled = new();
         private static readonly Dictionary<string, Regex> regexCacheNotCompiled = new();
@@ -55,19 +55,14 @@ namespace DigitalRuby.IPBanCore
         };
 
         /// <summary>
-        /// Static instance
-        /// </summary>
-        public static IPBanRegexParser Instance { get; } = new IPBanRegexParser();
-
-        /// <summary>
         /// Allow truncating user names at any of these chars or empty array for no truncation
         /// </summary>
-        private char[] truncateUserNameCharsArray = Array.Empty<char>();
+        private static char[] truncateUserNameCharsArray = Array.Empty<char>();
 
         /// <summary>
         /// Truncate user name chars value
         /// </summary>
-        public string TruncateUserNameChars
+        public static string TruncateUserNameChars
         {
             get => new(truncateUserNameCharsArray);
             set => truncateUserNameCharsArray = value?.ToCharArray() ?? Array.Empty<char>();
@@ -185,7 +180,7 @@ namespace DigitalRuby.IPBanCore
         /// <param name="info">Info</param>
         /// <param name="dns">Dns lookup to resolve ip addresses</param>
         /// <returns>Set of matches from text</returns>
-        public IEnumerable<IPAddressLogEvent> GetIPAddressEventsFromRegex(Regex regex, string text,
+        public static IEnumerable<IPAddressLogEvent> GetIPAddressEventsFromRegex(Regex regex, string text,
             string timestampFormat = null, IPAddressEventType eventType = IPAddressEventType.FailedLogin,
             string info = null, IDnsLookup dns = null)
         {
@@ -335,8 +330,17 @@ namespace DigitalRuby.IPBanCore
                     int truncatePos = userName.IndexOfAny(truncateUserNameCharsArray);
                     if (truncatePos >= 0)
                     {
-                        userName = userName[..truncatePos];
+                        var truncatedUserName = userName[..truncatePos];
+                        if (truncatedUserName != userName)
+                        {
+                            Logger.Info("Truncated user name {0} to {1}", userName, truncatedUserName);
+                            userName = truncatedUserName;
+                        }
                     }
+                }
+                else
+                {
+                    Logger.Debug("Skipping user name truncation since no truncation chars configured");
                 }
 
                 // return an event for this match

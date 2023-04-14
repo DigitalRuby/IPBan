@@ -194,7 +194,7 @@ namespace DigitalRuby.IPBanCore
             TryGetConfig<bool>("ClearFailedLoginsOnSuccessfulLogin", ref clearFailedLoginsOnSuccessfulLogin);
             TryGetConfig<bool>("ProcessInternalIPAddresses", ref processInternalIPAddresses);
             TryGetConfig<string>("TruncateUserNameChars", ref truncateUserNameChars);
-            IPBanRegexParser.Instance.TruncateUserNameChars = truncateUserNameChars;
+            IPBanRegexParser.TruncateUserNameChars = truncateUserNameChars;
             GetConfig<TimeSpan>("ExpireTime", ref expireTime, TimeSpan.Zero, maxBanTimeSpan);
             if (expireTime.TotalMinutes < 1.0)
             {
