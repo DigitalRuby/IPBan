@@ -97,7 +97,7 @@ namespace DigitalRuby.IPBanCore {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Threshold,hours to examine common user names and ban attackers that exceed threshold within hours timespan. Set to empty to disable this feature..
+        ///   Looks up a localized string similar to Threshold,hours to examine common user names and ban attackers that meet a threshold within hours timespan. Set to empty to disable this feature..
         /// </summary>
         public static string AggregateBanUserNamesTooltip {
             get {

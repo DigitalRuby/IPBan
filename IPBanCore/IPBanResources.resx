@@ -882,7 +882,7 @@
     <value>Common Failed User Name Ban</value>
   </data>
   <data name="AggregateBanUserNamesTooltip" xml:space="preserve">
-    <value>Threshold,hours to examine common user names and ban attackers that exceed threshold within hours timespan. Set to empty to disable this feature.</value>
+    <value>Threshold,hours to examine common user names and ban attackers that meet a threshold within hours timespan. Set to empty to disable this feature.</value>
   </data>
   <data name="CountryBlacklistInvert" xml:space="preserve">
     <value>Invert Country Blocklist</value>
