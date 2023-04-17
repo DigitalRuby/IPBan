@@ -27,7 +27,6 @@ using System.Collections.Generic;
 using System.IO.Compression;
 using System.IO;
 using System.Net;
-using System.Net.Cache;
 using System.Net.Http;
 using System.Reflection;
 using System.Text;
@@ -47,10 +46,14 @@ namespace DigitalRuby.IPBanCore
         /// <param name="uri">Uri</param>
         /// <param name="postJson">Optional json to post for a POST request, else GET is used</param>
         /// <param name="headers">Optional http headers</param>
+        /// <param name="method">Override the method</param>
         /// <param name="cancelToken">Cancel token</param>
         /// <returns>Task of response byte[]</returns>
-        Task<byte[]> MakeRequestAsync(Uri uri, byte[] postJson = null, IEnumerable<KeyValuePair<string, object>> headers = null,
-            CancellationToken cancelToken = default) => throw new NotImplementedException();
+        Task<byte[]> MakeRequestAsync(Uri uri,
+            byte[] postJson = null,
+            IEnumerable<KeyValuePair<string, object>> headers = null,
+            string method = null,
+            CancellationToken cancelToken = default);
     }
 
     /// <summary>
@@ -83,7 +86,10 @@ namespace DigitalRuby.IPBanCore
         public static long LocalRequestCount { get { return localRequestCount; } }
 
         /// <inheritdoc />
-        public async Task<byte[]> MakeRequestAsync(Uri uri, byte[] postJson = null, IEnumerable<KeyValuePair<string, object>> headers = null,
+        public async Task<byte[]> MakeRequestAsync(Uri uri,
+            byte[] postJson = null,
+            IEnumerable<KeyValuePair<string, object>> headers = null,
+            string method = null,
             CancellationToken cancelToken = default)
         {
             if (uri.Host.StartsWith("localhost", StringComparison.OrdinalIgnoreCase) ||
@@ -132,6 +138,12 @@ namespace DigitalRuby.IPBanCore
                 msg.Headers.Add("Cache-Control", "no-cache");
                 msg.Content = new ByteArrayContent(postJson);
                 msg.Content.Headers.Add("Content-Type", "application/json; charset=utf-8");
+            }
+
+            // set override method if available
+            if (!string.IsNullOrWhiteSpace(method))
+            {
+                msg.Method = new HttpMethod(method);
             }
 
             var responseMsg = await client.SendAsync(msg, cancelToken);
