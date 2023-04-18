@@ -1038,4 +1038,19 @@
   <data name="ClearFailedLoginsOnSuccessfulLoginTooltip" xml:space="preserve">
     <value>When an ip address receives a successful login, whether to clear all the failed logins for that ip from memory</value>
   </data>
+  <data name="WhitelistUrls" xml:space="preserve">
+    <value>Whitelist Urls</value>
+  </data>
+  <data name="Id" xml:space="preserve">
+    <value>Id</value>
+  </data>
+  <data name="AccessDuration" xml:space="preserve">
+    <value>Access Duration</value>
+  </data>
+  <data name="MachineAccess" xml:space="preserve">
+    <value>Machine Access</value>
+  </data>
+  <data name="RemainingUses" xml:space="preserve">
+    <value>Remaining Uses</value>
+  </data>
 </root>

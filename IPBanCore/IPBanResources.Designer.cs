@@ -70,6 +70,15 @@ namespace DigitalRuby.IPBanCore {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Access Duration.
+        /// </summary>
+        public static string AccessDuration {
+            get {
+                return ResourceManager.GetString("AccessDuration", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Add.
         /// </summary>
         public static string Add {
@@ -1015,6 +1024,15 @@ namespace DigitalRuby.IPBanCore {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Id.
+        /// </summary>
+        public static string Id {
+            get {
+                return ResourceManager.GetString("Id", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to IP Address.
         /// </summary>
         public static string IPAddress {
@@ -1353,6 +1371,15 @@ namespace DigitalRuby.IPBanCore {
         public static string Machine {
             get {
                 return ResourceManager.GetString("Machine", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Machine Access.
+        /// </summary>
+        public static string MachineAccess {
+            get {
+                return ResourceManager.GetString("MachineAccess", resourceCulture);
             }
         }
         
@@ -1893,6 +1920,15 @@ namespace DigitalRuby.IPBanCore {
         public static string Region {
             get {
                 return ResourceManager.GetString("Region", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Remaining Uses.
+        /// </summary>
+        public static string RemainingUses {
+            get {
+                return ResourceManager.GetString("RemainingUses", resourceCulture);
             }
         }
         
@@ -2541,6 +2577,15 @@ namespace DigitalRuby.IPBanCore {
         public static string Welcome {
             get {
                 return ResourceManager.GetString("Welcome", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Whitelist Urls.
+        /// </summary>
+        public static string WhitelistUrls {
+            get {
+                return ResourceManager.GetString("WhitelistUrls", resourceCulture);
             }
         }
         
