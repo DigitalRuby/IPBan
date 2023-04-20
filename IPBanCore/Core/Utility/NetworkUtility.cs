@@ -295,50 +295,6 @@ namespace DigitalRuby.IPBanCore
         }
 
         /// <summary>
-        /// Get the ip addresses of the local machine
-        /// </summary>
-        /// <param name="dns">Dns lookup</param>
-        /// <param name="allowLocal">Whether to return localhost ip</param>
-        /// <param name="addressFamily">Desired address family or null for all</param>
-        /// <returns>Local ip address or empty array if unable to determine. If no address family match, falls back to an ipv6 attempt.</returns>
-        public static async System.Threading.Tasks.Task<System.Net.IPAddress[]> GetLocalIPAddressesAsync(this IDnsLookup dns,
-            bool allowLocal = true, System.Net.Sockets.AddressFamily? addressFamily = null)
-        {
-            try
-            {
-                // append ipv4 first, then the ipv6 then the remote ip
-                List<IPAddress> ips = new();
-                string hostName = await dns.GetHostNameAsync();
-                IPAddress[] hostAddresses = await dns.GetHostAddressesAsync(hostName);
-                ips.AddRange(hostAddresses.Where(i => !i.IsLocalHost()));
-
-                // sort ipv4 first
-                ips.Sort((ip1, ip2) =>
-                {
-                    int compare = ip1.AddressFamily.CompareTo(ip2.AddressFamily);
-                    if (compare == 0)
-                    {
-                        compare = ip1.CompareTo(ip2);
-                    }
-                    return compare;
-                });
-
-                if (allowLocal)
-                {
-                    ips.AddRange(localHostIP);
-                }
-
-                return ips.Where(ip => (allowLocal || !ip.IsLocalHost()) &&
-                    (addressFamily is null || ip.AddressFamily == addressFamily.Value)).ToArray();
-            }
-            catch
-            {
-                // eat exception, delicious
-            }
-            return System.Array.Empty<IPAddress>();
-        }
-
-        /// <summary>
         /// Get all ip addresses of the machine, in sorted order,
         /// putting external ipv4 first,
         /// then external ipv6,
@@ -348,8 +304,10 @@ namespace DigitalRuby.IPBanCore
         /// then finally by ip itself
         /// </summary>
         /// <param name="ipAddresses">The ip addresses to sort, or null to query the hardware on the machine</param>
+        /// <param name="preferInternal">Whether to prefer internal ip addresses</param>
         /// <returns>IP addresses</returns>
-        public static IEnumerable<System.Net.IPAddress> GetSortedIPAddresses(IEnumerable<KeyValuePair<string, int>> ipAddresses = null)
+        public static IEnumerable<System.Net.IPAddress> GetSortedIPAddresses(
+            IEnumerable<KeyValuePair<string, int>> ipAddresses = null, bool preferInternal = false)
         {
             try
             {
@@ -368,7 +326,7 @@ namespace DigitalRuby.IPBanCore
                     int internal2 = ip2.Key.IsInternal() ? 1 : 0;
                     if (internal1 != internal2)
                     {
-                        return internal1.CompareTo(internal2);
+                        return preferInternal ? internal2.CompareTo(internal1) : internal1.CompareTo(internal2);
                     }
                     int priority1 = ip1.Value;
                     int priority2 = ip2.Value;
