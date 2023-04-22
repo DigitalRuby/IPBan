@@ -1,0 +1,59 @@
+<!-- Mercury mail server failed logins, Windows -->
+<LogFile>
+
+  <Source>MercuryMail</Source>
+
+  <!--
+	  Log file path/mask to scan
+	-->
+  <PathAndMask>
+    C:/xampp/MercuryMail/LOGS/MERCURYS.LOG
+  </PathAndMask>
+
+  <!--
+T 20230422 003852 64427ce8 Connection from 1.2.3.4
+T 20230422 003852 64427ce8 ehlo WIN-CLJ1B0GQ6JP
+T 20230422 003852 64427ce8 Rset
+T 20230422 003852 64427ce8 Mail from:<badperson@bad.it>
+T 20230422 003853 64427ce8 RCPT to:<badperson@bad.it>
+E 20230422 003853 64427ce8 Relay attempt by 1.2.3.4: from <badperson@bad.it> to <badperson@bad.it>.
+T 20230422 003853 64427ce8 QUIT
+T 20230422 003853 64427ce8 Connection closed with 1.2.3.4, 1 sec. elapsed.
+T 20230422 003912 64427ce9 Connection from 2.3.4.5
+T 20230422 003912 64427ce9 MGLNDD_2.3.4.5_587
+T 20230422 003912 64427ce9 Connection closed with 2.3.4.5, 0 sec. elapsed.
+T 20230422 024700 64427cef Connection from 3.4.5.6
+T 20230422 024700 64427cef EHLO User
+T 20230422 024700 64427cef QUIT
+T 20230422 024700 64427cef Connection closed with 3.4.5.6, 0 sec. elapsed.
+	-->
+
+  <FailedLoginRegex>
+    <![CDATA[
+		  ^T\s(?<timestamp>[0-9]+\s[0-9]+)\s[0-9A-Z]+\sconnection\sfrom\s(?<ipaddress>[^\n]+)(?:\n|.)+?(?:(?:mail\sfrom\:\<(?<username>[^\>]+)(?:\n|.)+?relay\sattempt\sby\s(?:\n|.)+?quit(?:\n|.)+?connection\sclosed\swith\s)|(?:mglndd.+\n.*?connection\sclosed)|(?:ehlo\suser\n.*?quit\n.*?connection\sclosed\swith))
+	  ]]>
+  </FailedLoginRegex>
+
+  <!--
+	
+	-->
+
+  <SuccessfulLoginRegex>
+    <![CDATA[
+		  
+	  ]]>
+  </SuccessfulLoginRegex>
+
+  <!-- Specify specific platforms here (Windows or Linux) -->
+  <PlatformRegex>Windows</PlatformRegex>
+
+  <!-- How often to parse and check for new files, etc. - in milliseconds -->
+  <PingInterval>10000</PingInterval>
+
+  <!-- Axigen will regenerate the file daily -->
+  <MaxFileSize>0</MaxFileSize>
+
+  <!-- Override failed login threshold or leave 0 for default -->
+  <FailedLoginThreshold>0</FailedLoginThreshold>
+
+</LogFile>
