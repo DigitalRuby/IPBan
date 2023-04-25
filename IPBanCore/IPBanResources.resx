@@ -1053,4 +1053,7 @@
   <data name="RemainingUses" xml:space="preserve">
     <value>Remaining Uses</value>
   </data>
+  <data name="IPAddresses" xml:space="preserve">
+    <value>IPAddresses</value>
+  </data>
 </root>

@@ -1042,6 +1042,15 @@ namespace DigitalRuby.IPBanCore {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to IPAddresses.
+        /// </summary>
+        public static string IPAddresses {
+            get {
+                return ResourceManager.GetString("IPAddresses", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Blocked IP Addresses.
         /// </summary>
         public static string IPAddressEventFlags_BlockedIPAddress {

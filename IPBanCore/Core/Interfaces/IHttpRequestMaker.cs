@@ -150,7 +150,8 @@ namespace DigitalRuby.IPBanCore
             response = await responseMsg.Content.ReadAsByteArrayAsync(cancelToken);
             if (!responseMsg.IsSuccessStatusCode)
             {
-                throw new WebException("Request to url " + uri + " failed, status: " + responseMsg.StatusCode + ", response: " + Encoding.UTF8.GetString(response));
+                throw new HttpRequestException("Request to url " + uri + " failed, status: " + responseMsg.StatusCode + ", response: " + Encoding.UTF8.GetString(response),
+                    null, responseMsg.StatusCode);
             }
             else if (response is not null &&
                 response.Length != 0 &&
