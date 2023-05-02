@@ -828,6 +828,7 @@ namespace DigitalRuby.IPBanCore
             IIPBanDelegate delg = IPBanDelegate;
             if (delg is null)
             {
+                Logger.Debug("No delegate to update");
                 return;
             }
 

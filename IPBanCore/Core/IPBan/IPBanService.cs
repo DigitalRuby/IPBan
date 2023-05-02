@@ -247,7 +247,12 @@ namespace DigitalRuby.IPBanCore
                     AddUpdater(IPThreatUploader ??= new IPBanIPThreatUploader(this));
 
                     // start delegate if we have one
-                    IPBanDelegate?.Start(this);
+                    var delg = IPBanDelegate;
+                    if (delg is not null)
+                    {
+                        Logger.Debug("Starting service delegate");
+                        delg.Start(this);
+                    }
 
                     Logger.Warn("IPBan service started and initialized");
                     Logger.WriteLogLevels();
