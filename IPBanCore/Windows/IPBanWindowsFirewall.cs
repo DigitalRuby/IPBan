@@ -117,11 +117,13 @@ namespace DigitalRuby.IPBanCore
                 }
                 if (rule is null)
                 {
+                    var disabled = description is not null && description.Contains("###DISABLED###");
+                    description = description?.Replace("###DISABLED###", string.Empty);
                     var ruleDescription = description ?? "Automatically created by IPBan";
                     rule = Activator.CreateInstance(ruleType) as INetFwRule;
                     rule.Name = ruleName;
                     rule.Description = ruleDescription;
-                    rule.Enabled = !ruleDescription.Contains("(Empty rule)", StringComparison.OrdinalIgnoreCase);
+                    rule.Enabled = !disabled;
                     rule.Action = action;
                     rule.Direction = NetFwRuleDirection.Inbound;
                     rule.EdgeTraversal = false;

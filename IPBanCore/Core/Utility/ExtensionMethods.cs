@@ -39,6 +39,7 @@ using System.Security;
 using System.Security.Cryptography;
 using System.Security.Principal;
 using System.Text;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
@@ -837,7 +838,7 @@ namespace DigitalRuby.IPBanCore
         }
 
         /// <summary>
-        /// Deserialize an object to from string json
+        /// Deserialize an object from string json
         /// </summary>
         /// <param name="json">Json</param>
         /// <returns>Object</returns>
@@ -845,6 +846,25 @@ namespace DigitalRuby.IPBanCore
         public static T DeserializeJson<T>(string json)
         {
             return System.Text.Json.JsonSerializer.Deserialize<T>(json, options: jsonOptions);
+        }
+
+        /// <summary>
+        /// Deserialize an object from byte[] json
+        /// </summary>
+        /// <param name="json">Json</param>
+        /// <returns>Object or default of T if exception</returns>
+        [UnconditionalSuppressMessage("Trimming", "IL2026:Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code", Justification = "jjxtra")]
+        public static T DeserializeJson<T>(byte[] json)
+        {
+            try
+            {
+                var utf8JsonReader = new Utf8JsonReader(json);
+                return System.Text.Json.JsonSerializer.Deserialize<T>(ref utf8JsonReader, jsonOptions);
+            }
+            catch
+            {
+                return default;
+            }
         }
 
         /// <summary>
