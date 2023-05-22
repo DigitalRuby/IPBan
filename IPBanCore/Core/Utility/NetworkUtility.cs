@@ -96,7 +96,7 @@ namespace DigitalRuby.IPBanCore
             //IPAddressRange.Parse("2001::-2001:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF"), // teredo
             IPAddressRange.Parse("2001:10::-2001:2F:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF"), // ORCHID
             IPAddressRange.Parse("2001:DB8::-2001:DB8:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF"), // documentation
-            IPAddressRange.Parse("2002::-2002:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF"), // 6to4
+            //IPAddressRange.Parse("2002::-2002:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF"), // 6to4
             IPAddressRange.Parse("FC00::-FCFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF"), // unique local
             IPAddressRange.Parse("FE80::-FE80:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF"), // link local
             IPAddressRange.Parse("FEC0::-FEC0:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF"), // site local
