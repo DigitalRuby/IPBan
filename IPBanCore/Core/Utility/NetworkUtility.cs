@@ -90,16 +90,17 @@ namespace DigitalRuby.IPBanCore
         /// </summary>
         public static readonly IReadOnlyCollection<IPAddressRange> InternalRangesIPV6 = new IPAddressRange[]
         {
-            IPAddressRange.Parse("::-1FFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF"),
-            //IPAddressRange.Parse("100::/64"),
-            IPAddressRange.Parse("2001:0000::/32"),
-            IPAddressRange.Parse("2001:db8::/32"),
-            IPAddressRange.Parse("2002::/16"),
-            IPAddressRange.Parse("4000:0000:0000:0000:0000:0000:0000:0000-FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF")
-            //IPAddressRange.Parse("fc00::/7"),
-            //IPAddressRange.Parse("fd00::/8"),
-            //IPAddressRange.Parse("fe80::/10"),
-            //IPAddressRange.Parse("ff00::/8")
+            IPAddressRange.Parse("::-1FFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF"), // loopbacks
+            //IPAddressRange.Parse("::FFFF:0:0-::FFFF:FFFF:FFFF"), // ipv4 mapped
+            IPAddressRange.Parse("100::-100:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF"), // discard prefix
+            IPAddressRange.Parse("2001::-2001:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF"), // teredo
+            IPAddressRange.Parse("2001:10::-2001:2F:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF"), // ORCHID
+            IPAddressRange.Parse("2001:DB8::-2001:DB8:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF"), // documentation
+            IPAddressRange.Parse("2002::-2002:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF"), // 6to4
+            IPAddressRange.Parse("FC00::-FCFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF"), // unique local
+            IPAddressRange.Parse("FE80::-FE80:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF"), // link local
+            IPAddressRange.Parse("FEC0::-FEC0:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF"), // site local
+            IPAddressRange.Parse("FF00::-FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF") // multicast
         };
         private static readonly List<IPV6Range> internalRangesIPV6Optimized = InternalRangesIPV6.Select(r => new IPV6Range(r)).ToList();
 
@@ -120,12 +121,14 @@ namespace DigitalRuby.IPBanCore
                 if (ip.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
                 {
                     uint value = ip.ToUInt32();
-                    return internalRangesIPV4Optimized.BinarySearch(new IPV4Range(value, value)) >= 0;
+                    int idx = internalRangesIPV4Optimized.BinarySearch(new IPV4Range(value, value));
+                    return idx >= 0;
                 }
                 else
                 {
                     UInt128 value = ip.ToUInt128();
-                    return internalRangesIPV6Optimized.BinarySearch(new IPV6Range(value, value)) >= 0;
+                    int idx = internalRangesIPV6Optimized.BinarySearch(new IPV6Range(value, value));
+                    return idx >= 0;
                 }
             }
             catch (System.Exception ex)
