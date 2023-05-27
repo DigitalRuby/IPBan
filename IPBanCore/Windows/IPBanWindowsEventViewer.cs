@@ -115,7 +115,8 @@ namespace DigitalRuby.IPBanCore
                     // bad ip address
                     return null;
                 }
-                else if (!string.IsNullOrWhiteSpace(info.UserName) &&
+                else if (info.Type == IPAddressEventType.SuccessfulLogin &&
+                    !string.IsNullOrWhiteSpace(info.UserName) &&
                     info.UserName.Contains("anonymous", StringComparison.OrdinalIgnoreCase))
                 {
                     Logger.Debug("Ignoring anonymous login from windows event viewer: {0}", info.UserName);
