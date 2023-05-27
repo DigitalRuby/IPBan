@@ -1,11 +1,18 @@
-﻿# format:
-# xml on one line
-# ip, or x if failure to parse
-# user, can be a user name, [nouser] for no found user name or x
-# source, must have a value or can be x
-# FailedLogin, SuccessfulLogin or None
-# newline
+﻿#
+# format:
+# xml on one line [newline]
+# ip, or x if failure to parse [newline]
+# user, can be a user name, [nouser] for no found user name or x [newline]
+# source, must have a value or can be x [newline]
+# FailedLogin, SuccessfulLogin or None [newline]
+# --- [newline]
 #
+<Event xmlns="http://schemas.microsoft.com/win/2004/08/events/event"><System><Provider Name="Microsoft-Windows-Security-Auditing" Guid="{54849625-5478-4994-a5ba-3e3b0328c30d}" /><EventID>4625</EventID><Version>0</Version><Level>0</Level><Task>12544</Task><Opcode>0</Opcode><Keywords>0x8010000000000000</Keywords><TimeCreated SystemTime="2023-05-22T19:18:34.0454946Z" /><EventRecordID>54650</EventRecordID><Correlation ActivityID="{37b45a20-8ae4-0001-f15a-b437e48ad901}" /><Execution ProcessID="848" ThreadID="8176" /><Channel>Security</Channel><Computer>Win11Dev</Computer><Security /></System><EventData><Data Name="SubjectUserSid">S-1-0-0</Data><Data Name="SubjectUserName">-</Data><Data Name="SubjectDomainName">-</Data><Data Name="SubjectLogonId">0x0</Data><Data Name="TargetUserSid">S-1-0-0</Data><Data Name="TargetUserName">ANONYMOUS-ANMELDUNG</Data><Data Name="TargetDomainName">DAVID</Data><Data Name="Status">0xc000006d</Data><Data Name="FailureReason">%%2313</Data><Data Name="SubStatus">0xc0000064</Data><Data Name="LogonType">3</Data><Data Name="LogonProcessName">NtLmSsp </Data><Data Name="AuthenticationPackageName">NTLM</Data><Data Name="WorkstationName">MANAGEMENT-PC</Data><Data Name="TransmittedServices">-</Data><Data Name="LmPackageName">-</Data><Data Name="KeyLength">0</Data><Data Name="ProcessId">0x0</Data><Data Name="ProcessName">-</Data><Data Name="IpAddress">63.59.58.57</Data><Data Name="IpPort">53246</Data></EventData></Event>
+63.59.58.57
+ANONYMOUS-ANMELDUNG
+RDP
+None
+---
 <Event xmlns="http://schemas.microsoft.com/win/2004/08/events/event"><System><Provider Name="sshd" /><EventID Qualifiers="0">0</EventID><Level>4</Level><Task>0</Task><Keywords>0x80000000000000</Keywords><TimeCreated SystemTime="2023-05-17T06:02:25.377809500Z" /><EventRecordID>1236392</EventRecordID><Channel>Application</Channel><Computer>DOP-Aspera-VM</Computer><Security UserID="S-1-5-21-3323323287-3975095426-875065495-1001" /></System><EventData><Data>sshd: PID 50650: Invalid user root from 6.3.2.1 port 42786</Data></EventData></Event>
 6.3.2.1
 root
