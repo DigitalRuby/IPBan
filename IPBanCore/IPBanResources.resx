@@ -1059,4 +1059,16 @@
   <data name="Url" xml:space="preserve">
     <value>Url</value>
   </data>
+  <data name="AsnBlacklist" xml:space="preserve">
+    <value>ASN Blacklist</value>
+  </data>
+  <data name="AsnBlacklistTooltip" xml:space="preserve">
+    <value>ASN to block (autonymous system number)</value>
+  </data>
+  <data name="AsnBlockHelpLabel" xml:space="preserve">
+    <value>Start typing and select ASN that appear from the dropdown, can use id or name</value>
+  </data>
+  <data name="AsnBlockRangeEntryCount" xml:space="preserve">
+    <value>{0} entries in the ASN block list</value>
+  </data>
 </root>

@@ -169,6 +169,42 @@ namespace DigitalRuby.IPBanCore {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to ASN Blacklist.
+        /// </summary>
+        public static string AsnBlacklist {
+            get {
+                return ResourceManager.GetString("AsnBlacklist", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ASN to block (autonymous system number).
+        /// </summary>
+        public static string AsnBlacklistTooltip {
+            get {
+                return ResourceManager.GetString("AsnBlacklistTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Start typing and select ASN that appear from the dropdown, can use id or name.
+        /// </summary>
+        public static string AsnBlockHelpLabel {
+            get {
+                return ResourceManager.GetString("AsnBlockHelpLabel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} entries in the ASN block list.
+        /// </summary>
+        public static string AsnBlockRangeEntryCount {
+            get {
+                return ResourceManager.GetString("AsnBlockRangeEntryCount", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Auto Refresh.
         /// </summary>
         public static string AutoRefresh {
