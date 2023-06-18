@@ -594,10 +594,11 @@ namespace DigitalRuby.IPBanCore
         /// <param name="failedLoginThreshold">Failed login threshold or 0 for default</param>
         /// <param name="logLevel">Log level when the event is logged</param>
         /// <param name="logData">Log data, if any</param>
+        /// <param name="notificationFlags">Notification flags</param>
         public IPAddressLogEvent(string ipAddress, string userName, string source,
             int count, IPAddressEventType type, DateTime timestamp = default, bool external = false,
             string extraInfo = null, int failedLoginThreshold = 0, LogLevel logLevel = LogLevel.Warning,
-            string logData = null)
+            string logData = null, IPAddressEventFlags notificationFlags = IPAddressEventFlags.None)
         {
             // normalize ip address if possible
             if (System.Net.IPAddress.TryParse(ipAddress, out System.Net.IPAddress parsedIPAddress))
@@ -618,6 +619,7 @@ namespace DigitalRuby.IPBanCore
             FailedLoginThreshold = failedLoginThreshold;
             LogLevel = logLevel;
             LogData = logData;
+            NotificationFlags = notificationFlags;
         }
 
         /// <summary>
@@ -683,5 +685,10 @@ namespace DigitalRuby.IPBanCore
         /// Log data, if any
         /// </summary>
         public string LogData { get; set; }
+
+        /// <summary>
+        /// Notification flags
+        /// </summary>
+        public IPAddressEventFlags NotificationFlags { get; set; }
     }
 }

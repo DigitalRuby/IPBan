@@ -116,7 +116,8 @@ namespace DigitalRuby.IPBanCore
                             Source = newFile.Source,
                             FailedLoginThreshold = newFile.FailedLoginThreshold,
                             FailedLogLevel = newFile.FailedLoginLogLevel,
-                            SuccessfulLogLevel = newFile.SuccessfulLoginLogLevel
+                            SuccessfulLogLevel = newFile.SuccessfulLoginLogLevel,
+                            NotificationFlags = newFile.NotificationFlags
                         };
 
                         // if we have an existing log file scanner, but it does not match the new configuration, remove the old log file scanner

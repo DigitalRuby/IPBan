@@ -61,6 +61,11 @@ namespace DigitalRuby.IPBanCore
         public LogLevel SuccessfulLogLevel { get; }
 
         /// <summary>
+        /// Notification flags
+        /// </summary>
+        public IPAddressEventFlags NotificationFlags { get; }
+
+        /// <summary>
         /// Create a log file scanner
         /// </summary>
         /// <param name="options">Options</param>
@@ -73,6 +78,7 @@ namespace DigitalRuby.IPBanCore
             FailedLoginThreshold = options.FailedLoginThreshold;
             FailedLogLevel = options.FailedLogLevel;
             SuccessfulLogLevel = options.SuccessfulLogLevel;
+            NotificationFlags = options.NotificationFlags;
 
             this.eventHandler = options.EventHandler;
             this.dns = options.Dns;
@@ -224,5 +230,10 @@ namespace DigitalRuby.IPBanCore
         /// Log level for successful logins
         /// </summary>
         public LogLevel SuccessfulLogLevel { get; set; }
+
+        /// <summary>
+        /// Notification flags
+        /// </summary>
+        public IPAddressEventFlags NotificationFlags { get; set; }
     }
 }

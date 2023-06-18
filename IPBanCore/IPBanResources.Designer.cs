@@ -646,6 +646,15 @@ namespace DigitalRuby.IPBanCore {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Disable Notification Flags.
+        /// </summary>
+        public static string DisableNotificationFlags {
+            get {
+                return ResourceManager.GetString("DisableNotificationFlags", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Docs.
         /// </summary>
         public static string Docs {

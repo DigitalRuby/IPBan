@@ -232,8 +232,10 @@ namespace DigitalRuby.IPBanCore
         /// <param name="osVersion">OS version</param>
         /// <param name="timestamp">Timestamp</param>
         /// <param name="banned">True if banned, false if unbanned</param>
+        /// <param name="notificationFlags">Notification flags</param>
         /// <returns>Task</returns>
-        Task IPAddressBanned(string ip, string source, string userName, string machineGuid, string osName, string osVersion, DateTime timestamp, bool banned) => Task.CompletedTask;
+        Task IPAddressBanned(string ip, string source, string userName, string machineGuid,
+            string osName, string osVersion, DateTime timestamp, bool banned, IPAddressEventFlags notificationFlags) => Task.CompletedTask;
 
         /// <summary>
         /// Notify when a login attempt fails
@@ -246,8 +248,10 @@ namespace DigitalRuby.IPBanCore
         /// <param name="osVersion">OS version</param>
         /// <param name="count">Number of failures</param>
         /// <param name="timestamp">Timestamp</param>
+        /// <param name="notificationFlags">Notification flags</param>
         /// <returns>Task</returns>
-        Task LoginAttemptFailed(string ip, string source, string userName, string machineGuid, string osName, string osVersion, int count, DateTime timestamp) => Task.CompletedTask;
+        Task LoginAttemptFailed(string ip, string source, string userName, string machineGuid,
+            string osName, string osVersion, int count, DateTime timestamp, IPAddressEventFlags notificationFlags) => Task.CompletedTask;
 
         /// <summary>
         /// Notify when a login attempt succeeds
@@ -260,8 +264,10 @@ namespace DigitalRuby.IPBanCore
         /// <param name="osVersion">OS version</param>
         /// <param name="count">Number of successes</param>
         /// <param name="timestamp">Timestamp</param>
+        /// <param name="notificationFlags">Notification flags</param>
         /// <returns>Task</returns>
-        Task LoginAttemptSucceeded(string ip, string source, string userName, string machineGuid, string osName, string osVersion, int count, DateTime timestamp) => Task.CompletedTask;
+        Task LoginAttemptSucceeded(string ip, string source, string userName, string machineGuid,
+            string osName, string osVersion, int count, DateTime timestamp, IPAddressEventFlags notificationFlags) => Task.CompletedTask;
 
         /// <summary>
         /// Handle packet events

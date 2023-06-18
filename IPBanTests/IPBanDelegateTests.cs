@@ -110,19 +110,22 @@ namespace DigitalRuby.IPBanTests
             return Task.CompletedTask;
         }
 
-        Task IIPBanDelegate.IPAddressBanned(string ip, string source, string userName, string machineGuid, string osName, string osVersion, DateTime timestamp, bool banned)
+        Task IIPBanDelegate.IPAddressBanned(string ip, string source, string userName, string machineGuid,
+            string osName, string osVersion, DateTime timestamp, bool banned, IPAddressEventFlags notificationFlags)
         {
             AddEvent(nameof(IIPBanDelegate.IPAddressBanned), ip, source, userName, banned);
             return Task.CompletedTask;
         }
 
-        Task IIPBanDelegate.LoginAttemptFailed(string ip, string source, string userName, string machineGuid, string osName, string osVersion, int count, DateTime timestamp)
+        Task IIPBanDelegate.LoginAttemptFailed(string ip, string source, string userName, string machineGuid,
+            string osName, string osVersion, int count, DateTime timestamp, IPAddressEventFlags notificationFlags)
         {
             AddEvent(nameof(IIPBanDelegate.LoginAttemptFailed), ip, source, userName);
             return Task.CompletedTask;
         }
 
-        Task IIPBanDelegate.LoginAttemptSucceeded(string ip, string source, string userName, string machineGuid, string osName, string osVersion, int count, DateTime timestamp)
+        Task IIPBanDelegate.LoginAttemptSucceeded(string ip, string source, string userName, string machineGuid,
+            string osName, string osVersion, int count, DateTime timestamp, IPAddressEventFlags notificationFlags)
         {
             AddEvent(nameof(IIPBanDelegate.LoginAttemptSucceeded), ip, source, userName);
             return Task.CompletedTask;

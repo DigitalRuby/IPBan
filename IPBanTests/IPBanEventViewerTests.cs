@@ -173,17 +173,20 @@ namespace DigitalRuby.IPBanTests
 
         void IDisposable.Dispose() => GC.SuppressFinalize(this);
 
-        Task IIPBanDelegate.IPAddressBanned(string ip, string source, string userName, string machineGuid, string osName, string osVersion, DateTime timestamp, bool banned)
+        Task IIPBanDelegate.IPAddressBanned(string ip, string source, string userName, string machineGuid,
+            string osName, string osVersion, DateTime timestamp, bool banned, IPAddressEventFlags notificationFlags)
         {
             return Task.CompletedTask;
         }
 
-        Task IIPBanDelegate.LoginAttemptFailed(string ip, string source, string userName, string machineGuid, string osName, string osVersion, int count, DateTime timestamp)
+        Task IIPBanDelegate.LoginAttemptFailed(string ip, string source, string userName, string machineGuid,
+            string osName, string osVersion, int count, DateTime timestamp, IPAddressEventFlags notificationFlags)
         {
             return Task.CompletedTask;
         }
 
-        Task IIPBanDelegate.LoginAttemptSucceeded(string ip, string source, string userName, string machineGuid, string osName, string osVersion, int count, DateTime timestamp)
+        Task IIPBanDelegate.LoginAttemptSucceeded(string ip, string source, string userName, string machineGuid,
+            string osName, string osVersion, int count, DateTime timestamp, IPAddressEventFlags notificationFlags)
         {
             string key = ip + "_" + (source?.ToString()) + "_" + (userName?.ToString());
             successEvents.TryGetValue(key, out int count2);

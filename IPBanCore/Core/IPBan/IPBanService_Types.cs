@@ -161,8 +161,8 @@ namespace DigitalRuby.IPBanCore
         SuccessfulWebAdminLogin = 256,
 
         /// <summary>
-        /// Default flags
+        /// All flags
         /// </summary>
-        DefaultFlags = SuccessfulLogin | FailedLogin | WhoIs
+        AllFlags = SuccessfulLogin | BlockedIPAddress | UnblockedIPAddress | FailedLogin | WhoIs | DailyReport | WeeklyReport | MonthlyReport | SuccessfulWebAdminLogin
     }
 }

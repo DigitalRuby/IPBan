@@ -247,7 +247,7 @@ namespace DigitalRuby.IPBanCore
                             // if delegate is not null and not an external event, send the event to the delegate
                             if (IPBanDelegate != null && !failedLogin.External)
                             {
-                                await IPBanDelegate.LoginAttemptFailed(ipAddress, source, userName, MachineGuid, OSName, OSVersion, 0, UtcNow);
+                                await IPBanDelegate.LoginAttemptFailed(ipAddress, source, userName, MachineGuid, OSName, OSVersion, 0, UtcNow, failedLogin.NotificationFlags);
                             }
                         }
                         else
@@ -300,11 +300,11 @@ namespace DigitalRuby.IPBanCore
                                     // if delegate is not null and not an external event, send it on to the delegate
                                     if (IPBanDelegate != null && !failedLogin.External)
                                     {
-                                        await IPBanDelegate.LoginAttemptFailed(ipAddress, source, userName, MachineGuid, OSName, OSVersion, incrementCount, UtcNow);
+                                        await IPBanDelegate.LoginAttemptFailed(ipAddress, source, userName, MachineGuid, OSName, OSVersion, incrementCount, UtcNow, failedLogin.NotificationFlags);
                                     }
                                     AddBannedIPAddress(ipAddress, source, userName, bannedIpAddresses, now,
                                         configBlacklisted, newCount, failedLogin.ExtraInfo, transaction,
-                                        failedLogin.External, failedLogin.LogData);
+                                        failedLogin.External, failedLogin.LogData, failedLogin.NotificationFlags);
                                 }
                             }
                             else
@@ -318,7 +318,7 @@ namespace DigitalRuby.IPBanCore
                                 // if delegate is not null and not an external event, send the event to the delegate
                                 if (IPBanDelegate != null && !failedLogin.External)
                                 {
-                                    await IPBanDelegate.LoginAttemptFailed(ipAddress, source, userName, MachineGuid, OSName, OSVersion, incrementCount, UtcNow);
+                                    await IPBanDelegate.LoginAttemptFailed(ipAddress, source, userName, MachineGuid, OSName, OSVersion, incrementCount, UtcNow, failedLogin.NotificationFlags);
                                 }
                             }
                         }
@@ -368,7 +368,7 @@ namespace DigitalRuby.IPBanCore
                         foreach (IPAddressLogEvent info in finalList)
                         {
                             // pass the success login on
-                            IPBanDelegate.LoginAttemptSucceeded(info.IPAddress, info.Source, info.UserName, MachineGuid, OSName, OSVersion, info.Count, info.Timestamp);
+                            IPBanDelegate.LoginAttemptSucceeded(info.IPAddress, info.Source, info.UserName, MachineGuid, OSName, OSVersion, info.Count, info.Timestamp, info.NotificationFlags);
                         }
                     }
                     catch (Exception ex)
@@ -395,7 +395,7 @@ namespace DigitalRuby.IPBanCore
 
         private void AddBannedIPAddress(string ipAddress, string source, string userName,
             List<IPAddressLogEvent> bannedIpAddresses, DateTime startBanDate, bool configBlacklisted,
-            int counter, string extraInfo, object transaction, bool external, string logData)
+            int counter, string extraInfo, object transaction, bool external, string logData, IPAddressEventFlags notificationFlags)
         {
             if (!System.Net.IPAddress.TryParse(ipAddress, out System.Net.IPAddress ipAddressObj))
             {
@@ -418,6 +418,7 @@ namespace DigitalRuby.IPBanCore
             TimeSpan[] banTimes = Config.BanTimes;
             TimeSpan banTime = banTimes.First();
             DateTime banEndDate = startBanDate + banTime;
+            notificationFlags = external ? IPAddressEventFlags.None : notificationFlags;
 
             // if we have an ip in the database, use the ban time to move to the next ban slot in the list of ban times
             // if ban times only has one entry, do not do this
@@ -441,7 +442,7 @@ namespace DigitalRuby.IPBanCore
             }
             int adjustedCount = (counter <= 0 ? Config.FailedLoginAttemptsBeforeBan : counter);
             bannedIpAddresses?.Add(new IPAddressLogEvent(ipAddress, userName, source, adjustedCount,
-                IPAddressEventType.Blocked, logData: logData));
+                IPAddressEventType.Blocked, logData: logData, notificationFlags: notificationFlags));
             if (ipDB.SetBanDates(ipAddress, startBanDate, banEndDate, UtcNow, transaction))
             {
                 firewallNeedsBlockedIPAddressesUpdate = true;
@@ -471,7 +472,8 @@ namespace DigitalRuby.IPBanCore
             {
                 try
                 {
-                    ExecuteTask(IPBanDelegate.IPAddressBanned(ipAddress, source, userName, MachineGuid, OSName, OSVersion, UtcNow, true));
+                    ExecuteTask(IPBanDelegate.IPAddressBanned(ipAddress, source, userName, MachineGuid,
+                        OSName, OSVersion, UtcNow, true, notificationFlags));
                 }
                 catch (Exception ex)
                 {
@@ -787,7 +789,8 @@ namespace DigitalRuby.IPBanCore
                 {
                     foreach (string ip in unbannedIPAddresses)
                     {
-                        await IPBanDelegate.IPAddressBanned(ip, null, null, MachineGuid, OSName, OSVersion, UtcNow, false);
+                        await IPBanDelegate.IPAddressBanned(ip, null, null, MachineGuid, OSName, OSVersion, UtcNow, false,
+                            IPAddressEventFlags.None);
                     }
                 }
             }
@@ -1201,7 +1204,7 @@ namespace DigitalRuby.IPBanCore
                             {
                                 // make sure the ip address is ban pending
                                 AddBannedIPAddress(evt.IPAddress, evt.Source, evt.UserName, bannedIPs,
-                                    evt.Timestamp, false, evt.Count, evt.ExtraInfo, transaction, evt.External, evt.LogData);
+                                    evt.Timestamp, false, evt.Count, evt.ExtraInfo, transaction, evt.External, evt.LogData, evt.NotificationFlags);
                             }
                             break;
 

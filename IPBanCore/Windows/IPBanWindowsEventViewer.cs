@@ -188,6 +188,7 @@ namespace DigitalRuby.IPBanCore
             bool mismatch;
             int failedLoginThreshold = 0;
             LogLevel logLevel = LogLevel.Warning;
+            IPAddressEventFlags notificationFlags = IPAddressEventFlags.None;
 
             // we must match on keywords
             foreach (EventViewerExpressionGroup group in service.Config.WindowsEventViewerGetGroupsMatchingKeywords(keywordsULONG))
@@ -254,6 +255,7 @@ namespace DigitalRuby.IPBanCore
                                 timestamp ??= info.Timestamp;
                                 logData ??= info.LogData;
                                 count = Math.Max(info.Count, count);
+                                notificationFlags = group.NotificationFlags;
                             }
                         }
                         if (mismatch)
@@ -263,6 +265,7 @@ namespace DigitalRuby.IPBanCore
                             userName = source = ipAddress = null;
                             timestamp = null;
                             successfulLogin = false;
+                            notificationFlags = IPAddressEventFlags.None;
                             count = 1;
                             break;
                         }
@@ -288,7 +291,7 @@ namespace DigitalRuby.IPBanCore
             IPAddressEventType type = (successfulLogin ? IPAddressEventType.SuccessfulLogin : IPAddressEventType.FailedLogin);
             return new IPAddressLogEvent(ipAddress, userName, source, count, type,
                 timestamp is null ? default : timestamp.Value, false, string.Empty,
-                failedLoginThreshold, logLevel, logData);
+                failedLoginThreshold, logLevel, logData, notificationFlags);
         }
 
         private static XmlDocument ParseXml(string xml)

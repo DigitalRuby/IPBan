@@ -149,9 +149,9 @@ namespace DigitalRuby.IPBanCore
         /// </summary>
         [DisplayFormat(ConvertEmptyStringToNull = false)]
         [Required(AllowEmptyStrings = true)]
-        [LocalizedDisplayName(nameof(IPBanResources.NotificationFlags))]
+        [LocalizedDisplayName(nameof(IPBanResources.DisableNotificationFlags))]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-        public IPAddressEventFlags NotificationFlags { get; set; } = IPAddressEventFlags.DefaultFlags;
+        public IPAddressEventFlags NotificationFlags { get; set; } = IPAddressEventFlags.None;
 
         /// <summary>
         /// ToString
