@@ -163,6 +163,6 @@ namespace DigitalRuby.IPBanCore
         /// <summary>
         /// All flags
         /// </summary>
-        AllFlags = SuccessfulLogin | BlockedIPAddress | UnblockedIPAddress | FailedLogin | WhoIs | DailyReport | WeeklyReport | MonthlyReport | SuccessfulWebAdminLogin
+        All = SuccessfulLogin | BlockedIPAddress | UnblockedIPAddress | FailedLogin | WhoIs | DailyReport | WeeklyReport | MonthlyReport | SuccessfulWebAdminLogin
     }
 }

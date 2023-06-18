@@ -790,7 +790,7 @@ namespace DigitalRuby.IPBanCore
                     foreach (string ip in unbannedIPAddresses)
                     {
                         await IPBanDelegate.IPAddressBanned(ip, null, null, MachineGuid, OSName, OSVersion, UtcNow, false,
-                            IPAddressEventFlags.None);
+                            IPAddressEventFlags.All);
                     }
                 }
             }
