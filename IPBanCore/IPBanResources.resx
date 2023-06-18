@@ -288,13 +288,13 @@
     <value>IP Address</value>
     <comment>An ip address, like 127.0.0.1</comment>
   </data>
-  <data name="IPAddressEventFlags_BlockedIPAddress" xml:space="preserve">
+  <data name="IPAddressNotificationFlags_BlockedIPAddress" xml:space="preserve">
     <value>Blocked IP Addresses</value>
   </data>
-  <data name="IPAddressEventFlags_FailedLogin" xml:space="preserve">
+  <data name="IPAddressNotificationFlags_FailedLogin" xml:space="preserve">
     <value>Failed Logins</value>
   </data>
-  <data name="IPAddressEventFlags_SuccessfulLogin" xml:space="preserve">
+  <data name="IPAddressNotificationFlags_SuccessfulLogin" xml:space="preserve">
     <value>Successful Logins</value>
   </data>
   <data name="IPBanKey1" xml:space="preserve">
@@ -774,7 +774,7 @@
   <data name="IsIPAddressBanned" xml:space="preserve">
     <value>Is IP Address Banned</value>
   </data>
-  <data name="IPAddressEventFlags_WhoIs" xml:space="preserve">
+  <data name="IPAddressNotificationFlags_WhoIs" xml:space="preserve">
     <value>Who Is</value>
   </data>
   <data name="ChangeCredentials" xml:space="preserve">
@@ -984,16 +984,16 @@
   <data name="PasswordAgain" xml:space="preserve">
     <value>Password again</value>
   </data>
-  <data name="IPAddressEventFlags_DailyReport" xml:space="preserve">
+  <data name="IPAddressNotificationFlags_DailyReport" xml:space="preserve">
     <value>Daily Report</value>
   </data>
-  <data name="IPAddressEventFlags_MonthlyReport" xml:space="preserve">
+  <data name="IPAddressNotificationFlags_MonthlyReport" xml:space="preserve">
     <value>Monthly Report</value>
   </data>
-  <data name="IPAddressEventFlags_WeeklyReport" xml:space="preserve">
+  <data name="IPAddressNotificationFlags_WeeklyReport" xml:space="preserve">
     <value>Weekly Report</value>
   </data>
-  <data name="IPAddressEventFlags_SuccessfulWebAdminLogin" xml:space="preserve">
+  <data name="IPAddressNotificationFlags_SuccessfulWebAdminLogin" xml:space="preserve">
     <value>Web Admin Successful Logins</value>
   </data>
   <data name="IPThreatApiKey" xml:space="preserve">

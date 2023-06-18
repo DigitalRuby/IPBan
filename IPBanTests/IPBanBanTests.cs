@@ -602,7 +602,7 @@ namespace DigitalRuby.IPBanTests
             }
 
             public Task LoginAttemptFailed(string ipAddress, string source, string userName, string machineGuid,
-                string osName, string osVersion, int count, DateTime timestamp, IPAddressEventFlags notificationFlags)
+                string osName, string osVersion, int count, DateTime timestamp, IPAddressNotificationFlags notificationFlags)
             {
                 var events = new IPAddressLogEvent[] { new IPAddressLogEvent(ipAddress, userName, source, count, IPAddressEventType.Blocked, IPBanService.UtcNow, true, notificationFlags: notificationFlags) };
                 service.AddIPAddressLogEvents(events);

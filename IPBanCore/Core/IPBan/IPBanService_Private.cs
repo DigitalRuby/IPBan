@@ -395,7 +395,7 @@ namespace DigitalRuby.IPBanCore
 
         private void AddBannedIPAddress(string ipAddress, string source, string userName,
             List<IPAddressLogEvent> bannedIpAddresses, DateTime startBanDate, bool configBlacklisted,
-            int counter, string extraInfo, object transaction, bool external, string logData, IPAddressEventFlags notificationFlags)
+            int counter, string extraInfo, object transaction, bool external, string logData, IPAddressNotificationFlags notificationFlags)
         {
             if (!System.Net.IPAddress.TryParse(ipAddress, out System.Net.IPAddress ipAddressObj))
             {
@@ -418,7 +418,7 @@ namespace DigitalRuby.IPBanCore
             TimeSpan[] banTimes = Config.BanTimes;
             TimeSpan banTime = banTimes.First();
             DateTime banEndDate = startBanDate + banTime;
-            notificationFlags = external ? IPAddressEventFlags.None : notificationFlags;
+            notificationFlags = external ? IPAddressNotificationFlags.None : notificationFlags;
 
             // if we have an ip in the database, use the ban time to move to the next ban slot in the list of ban times
             // if ban times only has one entry, do not do this
@@ -790,7 +790,7 @@ namespace DigitalRuby.IPBanCore
                     foreach (string ip in unbannedIPAddresses)
                     {
                         await IPBanDelegate.IPAddressBanned(ip, null, null, MachineGuid, OSName, OSVersion, UtcNow, false,
-                            IPAddressEventFlags.All);
+                            IPAddressNotificationFlags.All);
                     }
                 }
             }

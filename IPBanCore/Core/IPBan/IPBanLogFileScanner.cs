@@ -63,7 +63,7 @@ namespace DigitalRuby.IPBanCore
         /// <summary>
         /// Notification flags
         /// </summary>
-        public IPAddressEventFlags NotificationFlags { get; }
+        public IPAddressNotificationFlags NotificationFlags { get; }
 
         /// <summary>
         /// Create a log file scanner
@@ -234,6 +234,6 @@ namespace DigitalRuby.IPBanCore
         /// <summary>
         /// Notification flags
         /// </summary>
-        public IPAddressEventFlags NotificationFlags { get; set; }
+        public IPAddressNotificationFlags NotificationFlags { get; set; }
     }
 }

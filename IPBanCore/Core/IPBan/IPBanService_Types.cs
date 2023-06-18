@@ -105,10 +105,10 @@ namespace DigitalRuby.IPBanCore
     }
 
     /// <summary>
-    /// IP address event flags
+    /// IP address notification flags
     /// </summary>
     [Flags]
-    public enum IPAddressEventFlags
+    public enum IPAddressNotificationFlags
     {
         /// <summary>
         /// No event

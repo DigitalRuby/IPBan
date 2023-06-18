@@ -1105,83 +1105,83 @@ namespace DigitalRuby.IPBanCore {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to IP Address Events.
+        /// </summary>
+        public static string IPAddressEvents {
+            get {
+                return ResourceManager.GetString("IPAddressEvents", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Blocked IP Addresses.
         /// </summary>
-        public static string IPAddressEventFlags_BlockedIPAddress {
+        public static string IPAddressNotificationFlags_BlockedIPAddress {
             get {
-                return ResourceManager.GetString("IPAddressEventFlags_BlockedIPAddress", resourceCulture);
+                return ResourceManager.GetString("IPAddressNotificationFlags_BlockedIPAddress", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Daily Report.
         /// </summary>
-        public static string IPAddressEventFlags_DailyReport {
+        public static string IPAddressNotificationFlags_DailyReport {
             get {
-                return ResourceManager.GetString("IPAddressEventFlags_DailyReport", resourceCulture);
+                return ResourceManager.GetString("IPAddressNotificationFlags_DailyReport", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Failed Logins.
         /// </summary>
-        public static string IPAddressEventFlags_FailedLogin {
+        public static string IPAddressNotificationFlags_FailedLogin {
             get {
-                return ResourceManager.GetString("IPAddressEventFlags_FailedLogin", resourceCulture);
+                return ResourceManager.GetString("IPAddressNotificationFlags_FailedLogin", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Monthly Report.
         /// </summary>
-        public static string IPAddressEventFlags_MonthlyReport {
+        public static string IPAddressNotificationFlags_MonthlyReport {
             get {
-                return ResourceManager.GetString("IPAddressEventFlags_MonthlyReport", resourceCulture);
+                return ResourceManager.GetString("IPAddressNotificationFlags_MonthlyReport", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Successful Logins.
         /// </summary>
-        public static string IPAddressEventFlags_SuccessfulLogin {
+        public static string IPAddressNotificationFlags_SuccessfulLogin {
             get {
-                return ResourceManager.GetString("IPAddressEventFlags_SuccessfulLogin", resourceCulture);
+                return ResourceManager.GetString("IPAddressNotificationFlags_SuccessfulLogin", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Web Admin Successful Logins.
         /// </summary>
-        public static string IPAddressEventFlags_SuccessfulWebAdminLogin {
+        public static string IPAddressNotificationFlags_SuccessfulWebAdminLogin {
             get {
-                return ResourceManager.GetString("IPAddressEventFlags_SuccessfulWebAdminLogin", resourceCulture);
+                return ResourceManager.GetString("IPAddressNotificationFlags_SuccessfulWebAdminLogin", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Weekly Report.
         /// </summary>
-        public static string IPAddressEventFlags_WeeklyReport {
+        public static string IPAddressNotificationFlags_WeeklyReport {
             get {
-                return ResourceManager.GetString("IPAddressEventFlags_WeeklyReport", resourceCulture);
+                return ResourceManager.GetString("IPAddressNotificationFlags_WeeklyReport", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Who Is.
         /// </summary>
-        public static string IPAddressEventFlags_WhoIs {
+        public static string IPAddressNotificationFlags_WhoIs {
             get {
-                return ResourceManager.GetString("IPAddressEventFlags_WhoIs", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to IP Address Events.
-        /// </summary>
-        public static string IPAddressEvents {
-            get {
-                return ResourceManager.GetString("IPAddressEvents", resourceCulture);
+                return ResourceManager.GetString("IPAddressNotificationFlags_WhoIs", resourceCulture);
             }
         }
         

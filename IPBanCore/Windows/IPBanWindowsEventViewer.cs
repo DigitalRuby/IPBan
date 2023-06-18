@@ -188,7 +188,7 @@ namespace DigitalRuby.IPBanCore
             bool mismatch;
             int failedLoginThreshold = 0;
             LogLevel logLevel = LogLevel.Warning;
-            IPAddressEventFlags notificationFlags = IPAddressEventFlags.None;
+            IPAddressNotificationFlags notificationFlags = IPAddressNotificationFlags.None;
 
             // we must match on keywords
             foreach (EventViewerExpressionGroup group in service.Config.WindowsEventViewerGetGroupsMatchingKeywords(keywordsULONG))
@@ -265,7 +265,7 @@ namespace DigitalRuby.IPBanCore
                             userName = source = ipAddress = null;
                             timestamp = null;
                             successfulLogin = false;
-                            notificationFlags = IPAddressEventFlags.None;
+                            notificationFlags = IPAddressNotificationFlags.None;
                             count = 1;
                             break;
                         }

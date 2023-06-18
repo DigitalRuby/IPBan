@@ -60,14 +60,14 @@ namespace DigitalRuby.IPBanTests
         public void Dispose() => GC.SuppressFinalize(this);
 
         Task IIPBanDelegate.LoginAttemptFailed(string ip, string source, string userName, string machineGuid,
-            string osName, string osVersion, int count, DateTime timestamp, IPAddressEventFlags notificationFlags)
+            string osName, string osVersion, int count, DateTime timestamp, IPAddressNotificationFlags notificationFlags)
         {
             failedEvents.Add(new IPAddressLogEvent(ip, userName, source, count, IPAddressEventType.FailedLogin, timestamp, notificationFlags: notificationFlags));
             return Task.CompletedTask;
         }
 
         Task IIPBanDelegate.LoginAttemptSucceeded(string ip, string source, string userName, string machineGuid,
-            string osName, string osVersion, int count, DateTime timestamp, IPAddressEventFlags notificationFlags)
+            string osName, string osVersion, int count, DateTime timestamp, IPAddressNotificationFlags notificationFlags)
         {
             successfulEvents.Add(new IPAddressLogEvent(ip, userName, source, count, IPAddressEventType.SuccessfulLogin, timestamp, notificationFlags: notificationFlags));
             return Task.CompletedTask;

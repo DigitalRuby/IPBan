@@ -598,7 +598,7 @@ namespace DigitalRuby.IPBanCore
         public IPAddressLogEvent(string ipAddress, string userName, string source,
             int count, IPAddressEventType type, DateTime timestamp = default, bool external = false,
             string extraInfo = null, int failedLoginThreshold = 0, LogLevel logLevel = LogLevel.Warning,
-            string logData = null, IPAddressEventFlags notificationFlags = IPAddressEventFlags.None)
+            string logData = null, IPAddressNotificationFlags notificationFlags = IPAddressNotificationFlags.None)
         {
             // normalize ip address if possible
             if (System.Net.IPAddress.TryParse(ipAddress, out System.Net.IPAddress parsedIPAddress))
@@ -689,6 +689,6 @@ namespace DigitalRuby.IPBanCore
         /// <summary>
         /// Notification flags
         /// </summary>
-        public IPAddressEventFlags NotificationFlags { get; set; }
+        public IPAddressNotificationFlags NotificationFlags { get; set; }
     }
 }

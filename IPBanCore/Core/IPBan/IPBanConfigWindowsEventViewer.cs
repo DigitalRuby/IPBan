@@ -267,7 +267,7 @@ namespace DigitalRuby.IPBanCore
         [Required(AllowEmptyStrings = true)]
         [LocalizedDisplayName(nameof(IPBanResources.DisableNotificationFlags))]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-        public IPAddressEventFlags NotificationFlags { get; set; } = IPAddressEventFlags.None;
+        public IPAddressNotificationFlags NotificationFlags { get; set; } = IPAddressNotificationFlags.None;
     }
 
     /// <summary>

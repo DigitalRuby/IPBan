@@ -235,7 +235,7 @@ namespace DigitalRuby.IPBanCore
         /// <param name="notificationFlags">Notification flags</param>
         /// <returns>Task</returns>
         Task IPAddressBanned(string ip, string source, string userName, string machineGuid,
-            string osName, string osVersion, DateTime timestamp, bool banned, IPAddressEventFlags notificationFlags) => Task.CompletedTask;
+            string osName, string osVersion, DateTime timestamp, bool banned, IPAddressNotificationFlags notificationFlags) => Task.CompletedTask;
 
         /// <summary>
         /// Notify when a login attempt fails
@@ -251,7 +251,7 @@ namespace DigitalRuby.IPBanCore
         /// <param name="notificationFlags">Notification flags</param>
         /// <returns>Task</returns>
         Task LoginAttemptFailed(string ip, string source, string userName, string machineGuid,
-            string osName, string osVersion, int count, DateTime timestamp, IPAddressEventFlags notificationFlags) => Task.CompletedTask;
+            string osName, string osVersion, int count, DateTime timestamp, IPAddressNotificationFlags notificationFlags) => Task.CompletedTask;
 
         /// <summary>
         /// Notify when a login attempt succeeds
@@ -267,7 +267,7 @@ namespace DigitalRuby.IPBanCore
         /// <param name="notificationFlags">Notification flags</param>
         /// <returns>Task</returns>
         Task LoginAttemptSucceeded(string ip, string source, string userName, string machineGuid,
-            string osName, string osVersion, int count, DateTime timestamp, IPAddressEventFlags notificationFlags) => Task.CompletedTask;
+            string osName, string osVersion, int count, DateTime timestamp, IPAddressNotificationFlags notificationFlags) => Task.CompletedTask;
 
         /// <summary>
         /// Handle packet events
