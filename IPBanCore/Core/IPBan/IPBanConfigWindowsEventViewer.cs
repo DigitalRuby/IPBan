@@ -261,13 +261,13 @@ namespace DigitalRuby.IPBanCore
         public LogLevel LogLevel { get; set; } = LogLevel.Warning;
 
         /// <summary>
-        /// Flags
+        /// Notification flags
         /// </summary>
         [DisplayFormat(ConvertEmptyStringToNull = false)]
         [Required(AllowEmptyStrings = true)]
-        [LocalizedDisplayName(nameof(IPBanResources.Flags))]
+        [LocalizedDisplayName(nameof(IPBanResources.NotificationFlags))]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-        public IPAddressEventFlags Flags { get; set; } = IPAddressEventFlags.DefaultFlags;
+        public IPAddressEventFlags NotificationFlags { get; set; } = IPAddressEventFlags.DefaultFlags;
     }
 
     /// <summary>

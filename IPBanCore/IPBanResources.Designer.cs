@@ -1033,15 +1033,6 @@ namespace DigitalRuby.IPBanCore {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Flags.
-        /// </summary>
-        public static string Flags {
-            get {
-                return ResourceManager.GetString("Flags", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to FQDN.
         /// </summary>
         public static string FQDN {
