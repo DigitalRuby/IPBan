@@ -1071,4 +1071,10 @@
   <data name="AsnBlockRangeEntryCount" xml:space="preserve">
     <value>{0} entries in the ASN block list</value>
   </data>
+  <data name="Blacklister" xml:space="preserve">
+    <value>Blacklister</value>
+  </data>
+  <data name="Flags" xml:space="preserve">
+    <value>Flags</value>
+  </data>
 </root>

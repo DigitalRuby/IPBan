@@ -304,6 +304,15 @@ namespace DigitalRuby.IPBanCore {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Blacklister.
+        /// </summary>
+        public static string Blacklister {
+            get {
+                return ResourceManager.GetString("Blacklister", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Blocked and Allowed Packets by Country last 24 hours.
         /// </summary>
         public static string BlockedPacketsByCountry {
@@ -1020,6 +1029,15 @@ namespace DigitalRuby.IPBanCore {
         public static string FirewallUriRulesTooltip {
             get {
                 return ResourceManager.GetString("FirewallUriRulesTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Flags.
+        /// </summary>
+        public static string Flags {
+            get {
+                return ResourceManager.GetString("Flags", resourceCulture);
             }
         }
         
