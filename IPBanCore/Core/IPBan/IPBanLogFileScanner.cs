@@ -105,6 +105,7 @@ namespace DigitalRuby.IPBanCore
             return Source == options.Source &&
                 FailedLoginThreshold == options.FailedLoginThreshold &&
                 FailedLogLevel == options.FailedLogLevel &&
+                NotificationFlags == options.NotificationFlags &&
                 SuccessfulLogLevel == options.SuccessfulLogLevel &&
                 this.eventHandler == options.EventHandler &&
                 this.dns == options.Dns &&
