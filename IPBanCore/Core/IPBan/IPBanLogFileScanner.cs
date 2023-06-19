@@ -141,6 +141,7 @@ namespace DigitalRuby.IPBanCore
                 {
                     info.LogLevel = FailedLogLevel;
                 }
+                info.NotificationFlags = NotificationFlags;
                 events.Add(info);
 
                 Logger.Debug("Log file found match, ip: {0}, user: {1}, source: {2}, count: {3}, type: {4}",
