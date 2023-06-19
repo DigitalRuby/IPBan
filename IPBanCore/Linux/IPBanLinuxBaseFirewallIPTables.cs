@@ -36,10 +36,10 @@ using System.Threading.Tasks;
 namespace DigitalRuby.IPBanCore
 {
     /// <summary>
-    /// Linux firewall base class
+    /// Linux firewall base class using iptables
     /// </summary>
     [System.Diagnostics.CodeAnalysis.DynamicallyAccessedMembers(System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.All)]
-    public abstract class IPBanLinuxBaseFirewall : IPBanBaseFirewall
+    public abstract class IPBanLinuxBaseFirewallIPTables : IPBanBaseFirewall
     {
         /// <summary>
         /// Prefix put into log file for dropped packets
@@ -583,7 +583,7 @@ namespace DigitalRuby.IPBanCore
         /// Constructor
         /// </summary>
         /// <param name="rulePrefix">Rule prefix</param>
-        public IPBanLinuxBaseFirewall(string rulePrefix = null) : base(rulePrefix)
+        public IPBanLinuxBaseFirewallIPTables(string rulePrefix = null) : base(rulePrefix)
         {
             /*
              // restore existing sets from disk

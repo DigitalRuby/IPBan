@@ -221,12 +221,14 @@ namespace DigitalRuby.IPBanCore
         public bool UseWindowsEventViewer { get; set; } = true;
 
         /// <summary>
-        /// Firewall types
+        /// Firewall types, by default there are two:<br/>
+        /// - Windows Firewall (Windows only)<br/>
+        /// - IPTables (Linux only)<br/>
         /// </summary>
         public HashSet<Type> FirewallTypes { get; } = new()
         {
             typeof(IPBanWindowsFirewall),
-            typeof(IPBanLinuxFirewall)
+            typeof(IPBanLinuxFirewallIPTables)
         };
 
         /// <summary>

@@ -36,7 +36,7 @@ namespace DigitalRuby.IPBanTests
     [TestFixture]
     public class IPBanFirewallTests
     {
-        internal static readonly Type[] firewallTypes = new[] { typeof(IPBanWindowsFirewall), typeof(IPBanLinuxFirewall) };
+        internal static readonly Type[] firewallTypes = new[] { typeof(IPBanWindowsFirewall), typeof(IPBanLinuxFirewallIPTables) };
         private IIPBanFirewall firewall;
 
         [SetUp]

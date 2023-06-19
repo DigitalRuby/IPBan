@@ -31,16 +31,16 @@ using System.Threading.Tasks;
 namespace DigitalRuby.IPBanCore
 {
     /// <summary>
-    /// Linux firewall implementation
+    /// Linux firewall implementation using iptables
     /// </summary>
     [RequiredOperatingSystem(OSUtility.Linux)]
     [System.Diagnostics.CodeAnalysis.DynamicallyAccessedMembers(System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.All)]
-    public class IPBanLinuxFirewall : IPBanLinuxBaseFirewall
+    public class IPBanLinuxFirewallIPTables : IPBanLinuxBaseFirewallIPTables
     {
         /// <summary>
-        /// Linux Firewall for IPV6, is wrapped inside IPBanLinuxFirewall
+        /// Linux Firewall iptables for IPV6, is wrapped inside IPBanLinuxFirewallIPTables
         /// </summary>
-        private class IPBanLinuxFirewall6 : IPBanLinuxBaseFirewall
+        private sealed class IPBanLinuxFirewallIPTables6 : IPBanLinuxBaseFirewallIPTables
         {
             protected override bool IsIPV4 => false;
             protected override string INetFamily => "inet6";
@@ -48,13 +48,13 @@ namespace DigitalRuby.IPBanCore
             protected override string TableSuffix => ".tbl6";
             protected override string IpTablesProcess => ip6TablesProcess;
 
-            public IPBanLinuxFirewall6(string rulePrefix) : base(rulePrefix + "6_")
+            public IPBanLinuxFirewallIPTables6(string rulePrefix) : base(rulePrefix + "6_")
             {
 
             }
         }
 
-        private readonly IPBanLinuxFirewall6 firewall6;
+        private readonly IPBanLinuxFirewallIPTables6 firewall6;
 
         /// <inheritdoc />
         protected override void OnDispose()
@@ -67,9 +67,9 @@ namespace DigitalRuby.IPBanCore
         /// Constructor
         /// </summary>
         /// <param name="rulePrefix">Rule prefix</param>
-        public IPBanLinuxFirewall(string rulePrefix) : base(rulePrefix)
+        public IPBanLinuxFirewallIPTables(string rulePrefix) : base(rulePrefix)
         {
-            firewall6 = new IPBanLinuxFirewall6(RulePrefix);
+            firewall6 = new IPBanLinuxFirewallIPTables6(RulePrefix);
         }
 
         /// <inheritdoc />
