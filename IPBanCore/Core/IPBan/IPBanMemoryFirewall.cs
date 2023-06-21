@@ -121,7 +121,6 @@ namespace DigitalRuby.IPBanCore
             {
                 List<IPAddressRange> ipRangesSorted = new(ipRanges);
                 ipRangesSorted.Sort();
-                allowedPorts ??= emptyPortRanges;
                 Block = block;
                 Name = name;
                 foreach (IPAddressRange range in ipRangesSorted)
@@ -138,15 +137,7 @@ namespace DigitalRuby.IPBanCore
                 }
                 ipv4.TrimExcess();
                 ipv6.TrimExcess();
-                if (block)
-                {
-                    string portString = IPBanFirewallUtility.GetBlockPortRangeString(allowedPorts);
-                    this.portRanges = (string.IsNullOrWhiteSpace(portString) ? Array.Empty<PortRange>() : portString.Split(',').Select(s => PortRange.Parse(s)).ToArray());
-                }
-                else
-                {
-                    this.portRanges = allowedPorts.ToArray();
-                }
+                portRanges = IPBanFirewallUtility.GetPortRangesForRule(allowedPorts, block).ToArray();
             }
 
             public bool Contains(System.Net.IPAddress ipAddressObj, int port)
@@ -160,36 +151,13 @@ namespace DigitalRuby.IPBanCore
 
             public bool Contains(uint ipAddress, int port)
             {
-                bool foundPort = port < 0 || portRanges.Length == 0;
-                if (!foundPort)
-                {
-                    foreach (PortRange range in portRanges)
-                    {
-                        if (foundPort = (port >= range.MinPort && port <= range.MaxPort))
-                        {
-                            break;
-                        }
-                    }
-                }
+                bool foundPort = port < 0 || portRanges.Length == 0 || portRanges.Any(p => p.Contains(port));
                 return (foundPort && ipv4.BinarySearch(new IPV4Range(ipAddress, ipAddress), this) >= 0);
             }
 
             public bool Contains(UInt128 ipAddress, int port)
             {
-                bool foundPort = port < 0 || portRanges.Length == 0;
-                if (!foundPort)
-                {
-                    foreach (PortRange range in portRanges)
-                    {
-                        if (port >= range.MinPort && port <= range.MaxPort)
-                        {
-                            if (foundPort = (port >= range.MinPort && port <= range.MaxPort))
-                            {
-                                break;
-                            }
-                        }
-                    }
-                }
+                bool foundPort = port < 0 || portRanges.Length == 0 || portRanges.Any(p => p.Contains(port));
                 return (foundPort && ipv6.BinarySearch(new IPV6Range(ipAddress, ipAddress), this) >= 0);
             }
 
@@ -260,9 +228,9 @@ namespace DigitalRuby.IPBanCore
                         }
                     }
                 }
-                if (allowPorts is not null)
+                foreach (var port in IPBanFirewallUtility.GetPortRangesForRule(allowPorts, Block))
                 {
-                    this.allowPorts.AddRange(allowPorts);
+                    this.allowPorts.Add(port);
                 }
             }
 

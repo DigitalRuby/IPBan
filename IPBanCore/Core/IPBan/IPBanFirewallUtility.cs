@@ -178,7 +178,7 @@ namespace DigitalRuby.IPBanCore
         /// </summary>
         /// <param name="allowPortRanges">Port ranges to allow, all other ports are blocked</param>
         /// <returns>Port range string to block (i.e. 0-79,81-442,444-65535) - null if none to block.</returns>
-        public static string GetBlockPortRangeString(IEnumerable<PortRange> allowPortRanges)
+        public static string GetPortRangeStringBlock(IEnumerable<PortRange> allowPortRanges)
         {
             if (allowPortRanges is null)
             {
@@ -203,7 +203,7 @@ namespace DigitalRuby.IPBanCore
         /// Get a port range of allow ports. Overlaps are thrown out.
         /// </summary>
         /// <param name="allowPortRanges">Port ranges to allow</param>
-        /// <returns>Port range string to allow (i.e. 80,443,1000-10010)</returns>
+        /// <returns>Port range string to allow (i.e. 80,443,1000-10010) - null if none to allow.</returns>
         public static string GetPortRangeStringAllow(IEnumerable<PortRange> allowPortRanges)
         {
             StringBuilder b = new();
@@ -226,6 +226,43 @@ namespace DigitalRuby.IPBanCore
                 b.Length--;
             }
             return (b.Length == 0 ? null : b.ToString());
+        }
+
+        /// <summary>
+        /// Get port ranges that will be applicable to a block or allow rule
+        /// </summary>
+        /// <param name="portRanges">Port ranges</param>
+        /// <param name="block">True if block, false if allow</param>
+        /// <returns>Port ranges for rule, will never be null</returns>
+        public static IEnumerable<PortRange> GetPortRangesForRule(IEnumerable<PortRange> portRanges, bool block)
+        {
+            // process port ranges, if any
+            if (portRanges is not null)
+            {
+                string portRangeString;
+                if (block)
+                {
+                    portRangeString = IPBanFirewallUtility.GetPortRangeStringBlock(portRanges);
+                }
+                else
+                {
+                    portRangeString = IPBanFirewallUtility.GetPortRangeStringAllow(portRanges);
+                }
+                if (portRangeString is not null)
+                {
+                    portRanges = portRangeString.Split(',', StringSplitOptions.RemoveEmptyEntries)
+                        .Select(s => PortRange.Parse(s));
+                }
+                else
+                {
+                    portRanges = Array.Empty<PortRange>();
+                }
+            }
+            else
+            {
+                portRanges = Array.Empty<PortRange>();
+            }
+            return portRanges;
         }
 
         /// <summary>

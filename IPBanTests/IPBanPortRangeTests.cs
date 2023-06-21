@@ -39,7 +39,7 @@ namespace DigitalRuby.IPBanTests
 
         private static void TestPortRangeBlockExcept(string expected, string message, params PortRange[] ranges)
         {
-            string actual = IPBanFirewallUtility.GetBlockPortRangeString(ranges);
+            string actual = IPBanFirewallUtility.GetPortRangeStringBlock(ranges);
             Assert.AreEqual(expected, actual, message ?? "Invalid port string");
         }
 
