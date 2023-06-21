@@ -730,14 +730,15 @@ namespace DigitalRuby.IPBanCore
         /// </summary>
         /// <param name="elem">Element</param>
         /// <param name="name">Property name</param>
+        /// <param name="defaultValue">Default if not found</param>
         /// <returns>String or null if not found</returns>
-        public static string GetString(this System.Text.Json.JsonElement elem, string name)
+        public static string GetString(this System.Text.Json.JsonElement elem, string name, string defaultValue = null)
         {
             if (elem.TryGetProperty(name, out var elem2))
             {
                 return elem2.ToString();
             }
-            return null;
+            return defaultValue;
         }
 
         /// <summary>

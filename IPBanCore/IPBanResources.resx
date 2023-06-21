@@ -1077,4 +1077,10 @@
   <data name="DisableNotificationFlags" xml:space="preserve">
     <value>Disable Notification Flags</value>
   </data>
+  <data name="Options" xml:space="preserve">
+    <value>Options</value>
+  </data>
+  <data name="CountryBlacklistOverride" xml:space="preserve">
+    <value>Override Country Blacklist</value>
+  </data>
 </root>

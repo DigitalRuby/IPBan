@@ -529,6 +529,15 @@ namespace DigitalRuby.IPBanCore {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Override Country Blacklist.
+        /// </summary>
+        public static string CountryBlacklistOverride {
+            get {
+                return ResourceManager.GetString("CountryBlacklistOverride", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Country Blacklist Precise.
         /// </summary>
         public static string CountryBlacklistPrecise {
@@ -1659,6 +1668,15 @@ namespace DigitalRuby.IPBanCore {
         public static string NotifyOnlyTooltip {
             get {
                 return ResourceManager.GetString("NotifyOnlyTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Options.
+        /// </summary>
+        public static string Options {
+            get {
+                return ResourceManager.GetString("Options", resourceCulture);
             }
         }
         
