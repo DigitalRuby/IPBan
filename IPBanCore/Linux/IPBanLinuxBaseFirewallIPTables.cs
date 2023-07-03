@@ -614,7 +614,8 @@ namespace DigitalRuby.IPBanCore
         /// <inheritdoc />
         public override bool IsIPAddressBlocked(string ipAddress, out string ruleName, int port = -1)
         {
-            if (System.Net.IPAddress.TryParse(ipAddress, out System.Net.IPAddress ipObj))
+            if (!IsIPAddressAllowed(ipAddress) &&
+                System.Net.IPAddress.TryParse(ipAddress, out System.Net.IPAddress ipObj))
             {
                 foreach (var item in IPBanLinuxIPSet.EnumerateSets()
                     .Where(s => !allowRules.Contains(s.SetName)))

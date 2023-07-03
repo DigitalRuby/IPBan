@@ -248,8 +248,8 @@ namespace DigitalRuby.IPBanCore
             }
             firewallUriRules = (firewallUriRules ?? string.Empty).Trim();
 
-            // parse firewall block rules, one per line
-            ParseFirewallBlockRules();
+            // parse extra firewall block rules, one per line
+            ParseExtraFirewallRules();
 
             // set the xml
             Xml = doc.OuterXml;
@@ -373,7 +373,7 @@ namespace DigitalRuby.IPBanCore
             return logFiles;
         }
 
-        private void ParseFirewallBlockRules()
+        private void ParseExtraFirewallRules()
         {
             string firewallRulesString = null;
             TryGetConfig<string>("FirewallRules", ref firewallRulesString);
