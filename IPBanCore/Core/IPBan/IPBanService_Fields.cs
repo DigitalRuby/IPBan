@@ -25,6 +25,7 @@ SOFTWARE.
 #region Imports
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
@@ -38,6 +39,8 @@ namespace DigitalRuby.IPBanCore
 {
     public partial class IPBanService
     {
+        private record FirewallTask(Delegate TaskToRun, object State, Type StateType, CancellationToken CancelToken);
+
         private static readonly char[] userNamePrefixChars = new[] { ',', '\\' };
 
         // batch failed logins every cycle
@@ -46,7 +49,7 @@ namespace DigitalRuby.IPBanCore
         private readonly List<IPAddressLogEvent> pendingLogEvents = new();
         private readonly HashSet<IUpdater> updaters = new();
         private readonly SemaphoreSlim stopEvent = new(0, 1);
-        private readonly List<(Delegate, object)> firewallTasks = new();
+        private readonly ConcurrentQueue<FirewallTask> firewallTasks = new();
         private readonly SemaphoreSlim cycleLock = new(1, 1);
         private readonly IReadOnlyCollection<(string name, Func<Task> action)> cycleActions;
         

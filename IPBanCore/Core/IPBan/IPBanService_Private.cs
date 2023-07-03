@@ -982,23 +982,18 @@ namespace DigitalRuby.IPBanCore
 
         private async Task RunFirewallTasks()
         {
-            (Delegate, object)[] firewallTasksCopy;
-            lock (firewallTasks)
-            {
-                firewallTasksCopy = firewallTasks.ToArray();
-                firewallTasks.Clear();
-            }
-            foreach (var action in firewallTasksCopy)
+            const int maxCount = 100;
+            int count = 0;
+            while (firewallTasks.TryDequeue(out var firewallTask))
             {
                 if (CancelToken.IsCancellationRequested)
                 {
+                    firewallTasks.Clear();
                     break;
                 }
                 try
                 {
-                    var func = action.Item1;
-                    var state = action.Item2;
-                    var result = func.DynamicInvoke(state, CancelToken);
+                    var result = firewallTask.TaskToRun.DynamicInvoke(firewallTask.State, firewallTask.CancelToken);
                     if (result is Task task)
                     {
                         await task;
@@ -1014,6 +1009,12 @@ namespace DigitalRuby.IPBanCore
                     {
                         Logger.Error(ex);
                     }
+                }
+                if (++count == maxCount)
+                {
+                    // behind in task processing
+                    Logger.Warn("Firewall task processing is running behind, this will cause memory to increase.");
+                    break;
                 }
             }
         }

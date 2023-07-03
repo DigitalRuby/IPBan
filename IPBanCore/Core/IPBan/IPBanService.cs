@@ -385,10 +385,8 @@ namespace DigitalRuby.IPBanCore
             }
             else if (MultiThreaded)
             {
-                lock (firewallTasks)
-                {
-                    firewallTasks.Add((action, state));
-                }
+                var task = new FirewallTask(action, state, typeof(T), CancelToken);
+                firewallTasks.Enqueue(task);
             }
             else
             {
