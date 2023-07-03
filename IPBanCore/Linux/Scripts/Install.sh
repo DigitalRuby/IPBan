@@ -19,6 +19,8 @@ FILE_NAME="IPBan-Linux-x64_$VERSION_UNDERSCORES.zip"
 # install unzipper, install iptables and ipset
 sudo apt -q -y install unzip iptables ipset || true; sudo apt -q -y update || true;
 sudo yum -q -y install unzip iptables ipset || true; sudo yum -q -y update || true;
+sudo update-alternatives --set iptables /usr/sbin/iptables-legacy || true;
+sudo update-alternatives --set ip6tables /usr/sbin/ip6tables-legacy || true;
 
 # make folder /opt/ipban
 sudo mkdir /opt/ipban -p; cd /opt/ipban;
