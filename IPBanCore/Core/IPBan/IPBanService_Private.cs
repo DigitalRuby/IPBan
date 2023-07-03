@@ -986,11 +986,6 @@ namespace DigitalRuby.IPBanCore
             int count = 0;
             while (firewallTasks.TryDequeue(out var firewallTask))
             {
-                if (CancelToken.IsCancellationRequested)
-                {
-                    firewallTasks.Clear();
-                    break;
-                }
                 try
                 {
                     var result = firewallTask.TaskToRun.DynamicInvoke(firewallTask.State, firewallTask.CancelToken);
