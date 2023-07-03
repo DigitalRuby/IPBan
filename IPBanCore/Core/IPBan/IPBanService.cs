@@ -124,7 +124,8 @@ namespace DigitalRuby.IPBanCore
             }
             catch (Exception ex)
             {
-                if (ex is not OperationCanceledException)
+                if (ex is not OperationCanceledException &&
+                    ex is not ObjectDisposedException)
                 {
                     Logger.Error($"Error on {nameof(IPBanService)}.{nameof(RunCycleAsync)}", ex);
                 }
@@ -200,7 +201,6 @@ namespace DigitalRuby.IPBanCore
                 cycleLock.WaitAsync().Sync();
                 IsRunning = false;
                 GetUrl(UrlType.Stop).Sync();
-                cycleTimer?.Dispose();
                 IPBanDelegate?.Dispose();
                 IPBanDelegate = null;
                 lock (updaters)
@@ -212,6 +212,7 @@ namespace DigitalRuby.IPBanCore
                     updaters.Clear();
                 }
                 ipDB?.Dispose();
+                cycleLock.Dispose();
                 Logger.Warn("Stopped IPBan service");
             }
             finally
@@ -224,7 +225,7 @@ namespace DigitalRuby.IPBanCore
         /// Initialize and start the service
         /// </summary>
         /// <param name="cancelToken">Cancel token</param>
-        public async Task RunAsync(CancellationToken cancelToken)
+        public Task RunAsync(CancellationToken cancelToken)
         {
             CancelToken = cancelToken;
 
@@ -260,23 +261,7 @@ namespace DigitalRuby.IPBanCore
                     // setup cycle timer if needed
                     if (!ManualCycle)
                     {
-                        // create a new timer that goes off in 1 second, this will change as the config is
-                        // loaded and the cycle time becomes whatever is in the config
-                        cycleTimer = new Timer(async (_state) =>
-                        {
-                            try
-                            {
-                                await CycleTimerElapsed();
-                            }
-                            catch
-                            {
-                            }
-                        }, null, 1000, Timeout.Infinite);
-                    }
-
-                    if (!ManualCycle)
-                    {
-                        await Task.Delay(Timeout.Infinite, cancelToken);
+                        return RunCycleInBackground(cancelToken);
                     }
                 }
                 catch (Exception ex)
@@ -287,6 +272,8 @@ namespace DigitalRuby.IPBanCore
                     }
                 }
             }
+
+            return Task.CompletedTask;
         }
 
         /// <summary>

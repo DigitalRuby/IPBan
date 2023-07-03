@@ -1018,23 +1018,35 @@ namespace DigitalRuby.IPBanCore
             }
         }
 
-        private async Task CycleTimerElapsed()
+        private async Task RunCycleInBackground(CancellationToken cancelToken)
         {
-            if (IsRunning)
+            DateTime lastCycleTimestamp = DateTime.MinValue;
+            TimeSpan minSleep = TimeSpan.FromMilliseconds(1);
+            TimeSpan defaultCycleTime = TimeSpan.FromSeconds(15.0);
+
+            while (IsRunning && !cancelToken.IsCancellationRequested)
             {
-                Logger.Trace("CycleTimerElapsed");
+                var now = IPBanService.UtcNow;
+                var elapsed = now - lastCycleTimestamp;
+                var cycleTime = Config?.CycleTime ?? defaultCycleTime;
 
-                // perform the cycle, will not throw out
-                await RunCycleAsync();
-
-                // if we have no config at this point, use a 5 second cycle under the 
-                // assumption that something threw an exception and will hopefully
-                // succeed after a short break and another cycle
-                int nextTimerMilliseconds = Math.Min(60000, Math.Max(1000,
-                    (Config is null ? 5000 : (int)Config.CycleTime.TotalMilliseconds)));
-
-                // configure the timer to run again
-                cycleTimer.Change(nextTimerMilliseconds, Timeout.Infinite);
+                if (elapsed >= cycleTime)
+                {
+                    Logger.Trace("CycleTimerElapsed");
+                    await RunCycleAsync();
+                    lastCycleTimestamp = IPBanService.UtcNow;
+                }
+                else
+                {
+                    // compute time to sleep for next cycle
+                    var toSleep = cycleTime - elapsed;
+                    if (toSleep < minSleep)
+                    {
+                        toSleep = minSleep;
+                    }
+                    Logger.Trace("Sleeping for {0} ms for next cycle", toSleep.TotalMilliseconds);
+                    await Task.Delay(toSleep, cancelToken);
+                }
             }
         }
 

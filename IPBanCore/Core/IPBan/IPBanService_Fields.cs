@@ -50,7 +50,6 @@ namespace DigitalRuby.IPBanCore
         private readonly SemaphoreSlim cycleLock = new(1, 1);
         private readonly IReadOnlyCollection<(string name, Func<Task> action)> cycleActions;
         
-        private System.Threading.Timer cycleTimer;
         private bool firewallNeedsBlockedIPAddressesUpdate;
         private IPBanDB ipDB;
         private bool whitelistChanged;
