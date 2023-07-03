@@ -478,8 +478,8 @@ namespace DigitalRuby.IPBanCore
             service.Version = "1.1.1.1";
             service.RunAsync(CancellationToken.None).Sync();
             service.RunCycleAsync().Sync();
-            service.DB.Truncate(true);
-            service.Firewall.Truncate();
+            service.DB?.Truncate(true);
+            service.Firewall?.Truncate();
             return service;
         }
 

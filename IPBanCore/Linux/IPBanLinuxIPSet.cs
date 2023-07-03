@@ -78,7 +78,7 @@ namespace DigitalRuby.IPBanCore
         /// </summary>
         public static void Reset()
         {
-            IPBanLinuxFirewallIPTables.RunProcess("ipset", true, "destroy");
+            IPBanLinuxFirewallIPTables.RunProcess("ipset", true, "-F");
         }
 
         /// <summary>
@@ -88,7 +88,7 @@ namespace DigitalRuby.IPBanCore
         /// <returns>True if set was reset, false otherwise</returns>
         public static bool Reset(string setName)
         {
-            int exitCode = IPBanLinuxFirewallIPTables.RunProcess("ipset", true, $"flush {setName}");
+            int exitCode = IPBanLinuxFirewallIPTables.RunProcess("ipset", true, $"-F {setName}");
             return exitCode == 0;
         }
 
