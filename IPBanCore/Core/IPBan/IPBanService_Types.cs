@@ -37,7 +37,7 @@ namespace DigitalRuby.IPBanCore
         /// <summary>
         /// Url type
         /// </summary>
-        protected enum UrlType
+        public enum UrlType
         {
             /// <summary>
             /// Start
@@ -57,7 +57,12 @@ namespace DigitalRuby.IPBanCore
             /// <summary>
             /// Config
             /// </summary>
-            Config
+            Config,
+
+            /// <summary>
+            /// Connect
+            /// </summary>
+            Connect
         }
     }
 
