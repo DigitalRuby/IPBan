@@ -982,7 +982,7 @@ namespace DigitalRuby.IPBanCore
 
         private async Task RunFirewallTasks()
         {
-            const int maxCount = 100;
+            const int maxCount = 1000;
             int count = 0;
             while (firewallTasks.TryDequeue(out var firewallTask))
             {
