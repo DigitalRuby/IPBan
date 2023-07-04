@@ -28,6 +28,7 @@ using NUnit.Framework;
 
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace DigitalRuby.IPBanTests
@@ -104,7 +105,7 @@ namespace DigitalRuby.IPBanTests
             AddEvent(nameof(IIPBanDelegate.Start));
         }
 
-        Task IIPBanDelegate.RunCycleAsync()
+        Task IIPBanDelegate.RunCycleAsync(CancellationToken cancelToken)
         {
             AddEvent(nameof(IIPBanDelegate.RunCycleAsync));
             return Task.CompletedTask;

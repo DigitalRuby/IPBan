@@ -62,9 +62,9 @@ namespace DigitalRuby.IPBanCore
             var appName = Assembly.GetEntryAssembly()?.GetName().Name ?? string.Empty;
             appName = (appName.Contains("ipbanpro", StringComparison.OrdinalIgnoreCase) ? "ipbanpro" : "ipban");
             AppName = appName + " " + version;
-            cycleActions = new (string, Func<Task>)[]
+            cycleActions = new (string, Func<CancellationToken, Task>)[]
             {
-                ("GC", () => { GC.GetTotalMemory(true); return Task.CompletedTask; }),
+                ("GC", _cancelToken => { GC.GetTotalMemory(true); return Task.CompletedTask; }),
                 (nameof(UpdateConfiguration), UpdateConfiguration),
                 (nameof(SetNetworkInfo), SetNetworkInfo),
                 (nameof(UpdateDelegate), UpdateDelegate),
@@ -92,12 +92,13 @@ namespace DigitalRuby.IPBanCore
         /// <summary>
         /// Manually run one cycle. This is called automatically, unless ManualCycle is true.
         /// </summary>
-        public async Task RunCycleAsync()
+        /// <param name="cancelToken">Cancel token</param>
+        public async Task RunCycleAsync(CancellationToken cancelToken = default)
         {
             try
             {
                 // ensure we don't stack multiple cycles
-                if (await cycleLock.WaitAsync(1))
+                if (await cycleLock.WaitAsync(1, cancelToken))
                 {
                     try
                     {
@@ -107,7 +108,7 @@ namespace DigitalRuby.IPBanCore
                             {
                                 try
                                 {
-                                    await action.action();
+                                    await action.action(cancelToken);
                                 }
                                 catch (Exception ex)
                                 {
@@ -200,7 +201,7 @@ namespace DigitalRuby.IPBanCore
                 GC.SuppressFinalize(this);
                 cycleLock.WaitAsync().Sync();
                 IsRunning = false;
-                GetUrl(UrlType.Stop).Sync();
+                GetUrl(UrlType.Stop, default).Sync();
                 IPBanDelegate?.Dispose();
                 IPBanDelegate = null;
                 lock (updaters)

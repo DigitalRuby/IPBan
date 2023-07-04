@@ -31,6 +31,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace DigitalRuby.IPBanTests
@@ -199,7 +200,7 @@ namespace DigitalRuby.IPBanTests
 
         }
 
-        Task IIPBanDelegate.RunCycleAsync()
+        Task IIPBanDelegate.RunCycleAsync(CancellationToken cancelToken)
         {
             return Task.CompletedTask;
         }

@@ -51,7 +51,7 @@ namespace DigitalRuby.IPBanCore
         private readonly SemaphoreSlim stopEvent = new(0, 1);
         private readonly ConcurrentQueue<FirewallTask> firewallTasks = new();
         private readonly SemaphoreSlim cycleLock = new(1, 1);
-        private readonly IReadOnlyCollection<(string name, Func<Task> action)> cycleActions;
+        private readonly IReadOnlyCollection<(string name, Func<CancellationToken, Task> action)> cycleActions;
         
         private bool firewallNeedsBlockedIPAddressesUpdate;
         private IPBanDB ipDB;

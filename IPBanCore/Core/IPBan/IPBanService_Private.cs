@@ -56,7 +56,7 @@ namespace DigitalRuby.IPBanCore
             }
         }
 
-        internal async Task UpdateConfiguration()
+        internal async Task UpdateConfiguration(CancellationToken cancelToken)
         {
             try
             {
@@ -152,7 +152,7 @@ namespace DigitalRuby.IPBanCore
             SqliteDB.RollbackTransaction(transaction);
         }
 
-        private async Task SetNetworkInfo()
+        private async Task SetNetworkInfo(CancellationToken cancelToken)
         {
             if (string.IsNullOrWhiteSpace(LocalIPAddressString))
             {
@@ -207,10 +207,10 @@ namespace DigitalRuby.IPBanCore
             }
 
             // request new config file
-            await GetUrl(UrlType.Config);
+            await GetUrl(UrlType.Config, cancelToken);
         }
 
-        private async Task ProcessPendingFailedLogins(IReadOnlyList<IPAddressLogEvent> ipAddresses)
+        private async Task ProcessPendingFailedLogins(IReadOnlyList<IPAddressLogEvent> ipAddresses, CancellationToken cancelToken)
         {
             List<IPAddressLogEvent> bannedIpAddresses = new();
             object transaction = BeginTransaction();
@@ -339,7 +339,7 @@ namespace DigitalRuby.IPBanCore
             }
         }
 
-        private Task ProcessPendingSuccessfulLogins(IEnumerable<IPAddressLogEvent> ipAddresses)
+        private Task ProcessPendingSuccessfulLogins(IEnumerable<IPAddressLogEvent> ipAddresses, CancellationToken cancelToken)
         {
             List<IPAddressLogEvent> finalList = new();
             foreach (IPAddressLogEvent info in ipAddresses)
@@ -770,7 +770,7 @@ namespace DigitalRuby.IPBanCore
             }
         }
 
-        private async Task UpdateExpiredIPAddressStates()
+        private async Task UpdateExpiredIPAddressStates(CancellationToken cancelToken)
         {
             HashSet<string> unbannedIPAddresses = new();
             DateTime now = UtcNow;
@@ -826,7 +826,7 @@ namespace DigitalRuby.IPBanCore
             }
         }
 
-        private async Task UpdateDelegate()
+        private async Task UpdateDelegate(CancellationToken cancelToken)
         {
             IIPBanDelegate delg = IPBanDelegate;
             if (delg is null)
@@ -837,7 +837,7 @@ namespace DigitalRuby.IPBanCore
 
             try
             {
-                await delg.RunCycleAsync();
+                await delg.RunCycleAsync(cancelToken);
             }
             catch (Exception ex)
             {
@@ -858,15 +858,17 @@ namespace DigitalRuby.IPBanCore
         /// <summary>
         /// OnUpdate
         /// </summary>
+        /// <param name="cancelToken">Cancel token</param>
         /// <returns>Task</returns>
-        protected virtual Task OnUpdate() => Task.CompletedTask;
+        protected virtual Task OnUpdate(CancellationToken cancelToken) => Task.CompletedTask;
 
         /// <summary>
         /// Get url from config
         /// </summary>
         /// <param name="urlType">Type of url</param>
+        /// <param name="cancelToken">Cancel token</param>
         /// <returns>Task of whether url get succeeded</returns>
-        protected virtual async Task<bool> GetUrl(UrlType urlType)
+        protected virtual async Task<bool> GetUrl(UrlType urlType, CancellationToken cancelToken)
         {
             if ((urlType == UrlType.Start && GotStartUrl) ||
                 string.IsNullOrWhiteSpace(LocalIPAddressString) ||
@@ -894,7 +896,7 @@ namespace DigitalRuby.IPBanCore
                 try
                 {
                     KeyValuePair<string, object>[] headers = (Authorization is null ? null : new KeyValuePair<string, object>[] { new KeyValuePair<string, object>("Authorization", Authorization) });
-                    byte[] bytes = await RequestMaker.MakeRequestAsync(new Uri(url), headers: headers);
+                    byte[] bytes = await RequestMaker.MakeRequestAsync(new Uri(url), headers: headers, cancelToken: cancelToken);
                     if (urlType == UrlType.Start)
                     {
                         GotStartUrl = true;
@@ -927,13 +929,13 @@ namespace DigitalRuby.IPBanCore
             return true;
         }
 
-        private async Task UpdateUpdaters()
+        private async Task UpdateUpdaters(CancellationToken cancelToken)
         {
             // hit start url if first time, if not first time will be ignored
-            if (!(await GetUrl(UrlType.Start)))
+            if (!(await GetUrl(UrlType.Start, cancelToken)))
             {
                 // send update
-                await GetUrl(UrlType.Update);
+                await GetUrl(UrlType.Update, cancelToken);
             }
 
             List<IUpdater> updatersTemp;
@@ -949,7 +951,7 @@ namespace DigitalRuby.IPBanCore
             {
                 try
                 {
-                    await updater.Update(CancelToken);
+                    await updater.Update(cancelToken);
                 }
                 catch (Exception ex)
                 {
@@ -958,7 +960,7 @@ namespace DigitalRuby.IPBanCore
             }
         }
 
-        private async Task UpdateFirewall()
+        private async Task UpdateFirewall(CancellationToken cancelToken)
         {
             if (firewallNeedsBlockedIPAddressesUpdate)
             {
@@ -966,11 +968,11 @@ namespace DigitalRuby.IPBanCore
                 List<IPBanFirewallIPAddressDelta> deltas = ipDB.EnumerateIPAddressesDeltaAndUpdateState(true, UtcNow, Config.ResetFailedLoginCountForUnbannedIPAddresses).Where(i => !i.Added || !IsWhitelisted(i.IPAddress)).ToList();
                 Logger.Warn("Updating firewall with {0} entries...", deltas.Count);
                 Logger.Info("Firewall entries updated: {0}", string.Join(',', deltas.Select(d => d.IPAddress)));
-                await Firewall.BlockIPAddressesDelta(null, deltas);
+                await Firewall.BlockIPAddressesDelta(null, deltas, null, cancelToken);
             }
         }
 
-        private Task ShowRunningMessage()
+        private Task ShowRunningMessage(CancellationToken cancelToken)
         {
             if (!startMessageShown)
             {
@@ -980,7 +982,7 @@ namespace DigitalRuby.IPBanCore
             return Task.CompletedTask;
         }
 
-        private async Task RunFirewallTasks()
+        private async Task RunFirewallTasks(CancellationToken cancelToken)
         {
             const int maxCount = 1000;
             int count = 0;
@@ -1029,7 +1031,7 @@ namespace DigitalRuby.IPBanCore
                 if (elapsed >= cycleTime)
                 {
                     Logger.Trace("CycleTimerElapsed");
-                    await RunCycleAsync();
+                    await RunCycleAsync(cancelToken);
                     lastCycleTimestamp = IPBanService.UtcNow;
                 }
                 else
@@ -1103,7 +1105,8 @@ namespace DigitalRuby.IPBanCore
         /// <summary>
         /// Process all pending failed logins
         /// </summary>
-        private async Task ProcessPendingFailedLogins()
+        /// <param name="cancelToken">Cancel token</param>
+        private async Task ProcessPendingFailedLogins(CancellationToken cancelToken)
         {
             // make a quick copy of pending ip addresses so we don't lock it for very long
             List<IPAddressLogEvent> ipAddresses = null;
@@ -1127,14 +1130,15 @@ namespace DigitalRuby.IPBanCore
             }
             if (ipAddresses != null)
             {
-                await ProcessPendingFailedLogins(ipAddresses);
+                await ProcessPendingFailedLogins(ipAddresses, cancelToken);
             }
         }
 
         /// <summary>
         /// Process all pending successful logins
         /// </summary>
-        private async Task ProcessPendingSuccessfulLogins()
+        /// <param name="cancelToken">Cancel token</param>
+        private async Task ProcessPendingSuccessfulLogins(CancellationToken cancelToken)
         {
             // make a quick copy of pending ip addresses so we don't lock it for very long
             List<IPAddressLogEvent> ipAddresses = null;
@@ -1148,11 +1152,11 @@ namespace DigitalRuby.IPBanCore
             }
             if (ipAddresses != null)
             {
-                await ProcessPendingSuccessfulLogins(ipAddresses);
+                await ProcessPendingSuccessfulLogins(ipAddresses, cancelToken);
             }
         }
 
-        private Task ProcessPendingLogEvents()
+        private Task ProcessPendingLogEvents(CancellationToken cancelToken)
         {
             // get copy of pending log events quickly in a lock and clear list
             List<IPAddressLogEvent> events = null;

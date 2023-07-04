@@ -69,8 +69,9 @@ namespace DigitalRuby.IPBanCore
         /// <summary>
         /// Manually run regular processing - useful if testing
         /// </summary>
+        /// <param name="cancelToken">Cancel token</param>
         /// <returns>Task</returns>
-        Task RunCycleAsync();
+        Task RunCycleAsync(CancellationToken cancelToken = default);
 
         /// <summary>
         /// Replace place-holders in url with values from this service
@@ -219,7 +220,9 @@ namespace DigitalRuby.IPBanCore
         /// <summary>
         /// Update, do housekeeping, etc.
         /// </summary>
-        Task RunCycleAsync() => Task.CompletedTask;
+        /// <param name="cancelToken">Cancel token</param>
+        /// <returns>Task</returns>
+        Task RunCycleAsync(CancellationToken cancelToken) => Task.CompletedTask;
 
         /// <summary>
         /// Notify when an ip is banned
