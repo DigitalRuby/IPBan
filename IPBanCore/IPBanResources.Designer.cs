@@ -2347,6 +2347,24 @@ namespace DigitalRuby.IPBanCore {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Self signed certificate.
+        /// </summary>
+        public static string SslSelfSignedCertificate {
+            get {
+                return ResourceManager.GetString("SslSelfSignedCertificate", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Turn on if your certificate is self signed.
+        /// </summary>
+        public static string SslSelfSignedCertificateTooltip {
+            get {
+                return ResourceManager.GetString("SslSelfSignedCertificateTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Status.
         /// </summary>
         public static string Status {

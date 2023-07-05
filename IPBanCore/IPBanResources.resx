@@ -1083,4 +1083,10 @@
   <data name="CountryBlacklistOverride" xml:space="preserve">
     <value>Override Country Blacklist</value>
   </data>
+  <data name="SslSelfSignedCertificate" xml:space="preserve">
+    <value>Self signed certificate</value>
+  </data>
+  <data name="SslSelfSignedCertificateTooltip" xml:space="preserve">
+    <value>Turn on if your certificate is self signed</value>
+  </data>
 </root>
