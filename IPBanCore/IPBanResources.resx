@@ -1060,7 +1060,7 @@
     <value>Url</value>
   </data>
   <data name="AsnBlacklist" xml:space="preserve">
-    <value>ASN Blacklist</value>
+    <value>ASN Blocklist</value>
   </data>
   <data name="AsnBlacklistTooltip" xml:space="preserve">
     <value>ASN to block (autonymous system number)</value>

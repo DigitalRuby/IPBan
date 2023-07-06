@@ -169,7 +169,7 @@ namespace DigitalRuby.IPBanCore {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to ASN Blacklist.
+        ///   Looks up a localized string similar to ASN Blocklist.
         /// </summary>
         public static string AsnBlacklist {
             get {

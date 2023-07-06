@@ -46,6 +46,8 @@ namespace DigitalRuby.IPBanCore
         /// The regex, created from Regex property
         /// </summary>
         [XmlIgnore]
+        [System.Text.Json.Serialization.JsonIgnore]
+        [Newtonsoft.Json.JsonIgnore]
         public Regex RegexObject { get; private set; }
 
         private string xpath;
@@ -83,8 +85,9 @@ namespace DigitalRuby.IPBanCore
         /// <summary>
         /// Whether the xpath is optional
         /// </summary>
-        [JsonIgnore]
         [XmlIgnore]
+        [System.Text.Json.Serialization.JsonIgnore]
+        [Newtonsoft.Json.JsonIgnore]
         public bool XPathIsOptional { get; private set; }
     }
 
@@ -107,6 +110,8 @@ namespace DigitalRuby.IPBanCore
         /// Keywords as a ULONG
         /// </summary>
         [XmlIgnore]
+        [System.Text.Json.Serialization.JsonIgnore]
+        [Newtonsoft.Json.JsonIgnore]
         public ulong KeywordsULONG { get; private set; }
 
         /// <summary>
@@ -236,6 +241,8 @@ namespace DigitalRuby.IPBanCore
         /// The format is xpath (//*), newline, and then regex, newline, repeated.
         /// </summary>
         [XmlIgnore]
+        [System.Text.Json.Serialization.JsonIgnore]
+        [Newtonsoft.Json.JsonIgnore]
         [DisplayFormat(ConvertEmptyStringToNull = false)]
         [Required(AllowEmptyStrings = true)]
         [LocalizedDisplayName(nameof(IPBanResources.EventViewerExpressions))]
