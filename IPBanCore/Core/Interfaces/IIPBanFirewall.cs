@@ -278,6 +278,11 @@ namespace DigitalRuby.IPBanCore
         public string IPAddress { get; set; }
 
         /// <summary>
+        /// Whether this is an ipv4 (true) or ipv6 (false)
+        /// </summary>
+        public bool IsIPV4 => System.Net.IPAddress.TryParse(IPAddress, out var ip) && ip.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork;
+
+        /// <summary>
         /// ToString
         /// </summary>
         /// <returns>String</returns>
