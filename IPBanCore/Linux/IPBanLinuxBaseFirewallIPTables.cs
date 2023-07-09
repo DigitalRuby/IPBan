@@ -55,21 +55,6 @@ namespace DigitalRuby.IPBanCore
         private DateTime lastUpdate = IPBanService.UtcNow;
 
         /// <summary>
-        /// Hash size
-        /// </summary>
-        protected const int hashSize = 1024;
-
-        /// <summary>
-        /// Single ip type
-        /// </summary>
-        protected const string hashTypeSingleIP = "ip";
-
-        /// <summary>
-        /// Cidr mask type
-        /// </summary>
-        protected const string hashTypeCidrMask = "net";
-
-        /// <summary>
         /// Command for ip6tables
         /// </summary>
         protected const string ip6TablesProcess = "ip6tables";
@@ -344,7 +329,7 @@ namespace DigitalRuby.IPBanCore
             try
             {
                 // create set file with full set info from passed values
-                IPBanLinuxIPSet.CreateSetFile(ipFileTemp, ruleName, hashType, INetFamily, ipAddresses, cancelToken);
+                IPBanLinuxIPSet.UpsertSetFile(ipFileTemp, ruleName, hashType, INetFamily, ipAddresses, cancelToken);
 
                 // restore the set fully
                 bool result = IPBanLinuxIPSet.RestoreFromFile(ipFileTemp);
@@ -391,7 +376,7 @@ namespace DigitalRuby.IPBanCore
             try
             {
                 // create set file with deltas
-                IPBanLinuxIPSet.UpdateSetFile(ipFileTemp, ruleName, hashType, INetFamily, deltas, cancelToken);
+                IPBanLinuxIPSet.UpsertSetFileDelta(ipFileTemp, ruleName, hashType, INetFamily, deltas, cancelToken);
 
                 // restore the deltas into the existing set
                 bool result = IPBanLinuxIPSet.RestoreFromFile(ipFileTemp);
@@ -513,7 +498,7 @@ namespace DigitalRuby.IPBanCore
             try
             {
                 string ruleName = (string.IsNullOrWhiteSpace(ruleNamePrefix) ? BlockRulePrefix : RulePrefix + ruleNamePrefix);
-                return Task.FromResult(UpdateRule(ruleName, dropAction, ipAddresses, hashTypeSingleIP, allowedPorts, cancelToken));
+                return Task.FromResult(UpdateRule(ruleName, dropAction, ipAddresses, IPBanLinuxIPSet.HashTypeSingleIP, allowedPorts, cancelToken));
             }
             catch (Exception ex)
             {
@@ -531,7 +516,7 @@ namespace DigitalRuby.IPBanCore
             try
             {
                 string ruleName = (string.IsNullOrWhiteSpace(ruleNamePrefix) ? BlockRulePrefix : RulePrefix + ruleNamePrefix);
-                return Task.FromResult(UpdateRuleDelta(ruleName, dropAction, deltas, hashTypeSingleIP, allowedPorts, cancelToken));
+                return Task.FromResult(UpdateRuleDelta(ruleName, dropAction, deltas, IPBanLinuxIPSet.HashTypeSingleIP, allowedPorts, cancelToken));
             }
             catch (Exception ex)
             {
@@ -551,7 +536,7 @@ namespace DigitalRuby.IPBanCore
             try
             {
                 return Task.FromResult(UpdateRule(RulePrefix + ruleNamePrefix, dropAction, ranges.Select(r => r.ToCidrString()),
-                    hashTypeCidrMask, allowedPorts, cancelToken));
+                    IPBanLinuxIPSet.HashTypeNetwork, allowedPorts, cancelToken));
             }
             catch (Exception ex)
             {
@@ -568,7 +553,7 @@ namespace DigitalRuby.IPBanCore
         {
             try
             {
-                return Task.FromResult(UpdateRule(allowRuleName, acceptAction, ipAddresses, hashTypeSingleIP, null, cancelToken));
+                return Task.FromResult(UpdateRule(allowRuleName, acceptAction, ipAddresses, IPBanLinuxIPSet.HashTypeSingleIP, null, cancelToken));
             }
             catch (Exception ex)
             {
@@ -588,8 +573,8 @@ namespace DigitalRuby.IPBanCore
                 ruleNamePrefix.ThrowIfNullOrWhiteSpace();
                 string ruleName = RulePrefix + ruleNamePrefix;
                 allowRules.Add(ruleName);
-                return Task.FromResult(UpdateRule(ruleName, acceptAction, ipAddresses.Select(r => r.ToCidrString()), hashTypeCidrMask,
-                    allowedPorts, cancelToken));
+                return Task.FromResult(UpdateRule(ruleName, acceptAction, ipAddresses.Select(r => r.ToCidrString()),
+                    IPBanLinuxIPSet.HashTypeNetwork, allowedPorts, cancelToken));
             }
             catch (Exception ex)
             {

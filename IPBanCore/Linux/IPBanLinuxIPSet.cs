@@ -69,9 +69,9 @@ namespace DigitalRuby.IPBanCore
         public const string HashTypeSingleIP = "ip";
 
         /// <summary>
-        /// Cidr mask type
+        /// Cidr mask or range type
         /// </summary>
-        public const string HashTypeCidrMask = "net";
+        public const string HashTypeNetwork = "net";
 
         /// <summary>
         /// Reset ipset to the default empty state
@@ -159,118 +159,159 @@ namespace DigitalRuby.IPBanCore
         /// <summary>
         /// Create a set file
         /// </summary>
-        /// <param name="fileName">File name</param>
+        /// <param name="fileName">File name or null to make a temp file to restore automatically</param>
         /// <param name="setName">Set name</param>
         /// <param name="hashType">Hash type (see constants on this class)</param>
         /// <param name="inetFamily">INet family (see constants on this class)</param>
         /// <param name="items">Items to add to the set, depends on the hash type</param>
         /// <param name="cancelToken">Cancel token</param>
+        /// <returns>True if success, false if failure</returns>
         /// <exception cref="OperationCanceledException"></exception>
-        public static void CreateSetFile(string fileName, string setName, string hashType,
+        public static bool UpsertSetFile(string fileName, string setName, string hashType,
             string inetFamily, IEnumerable<string> items, CancellationToken cancelToken)
         {
             const int maxIPExtractedFromRange = 256;
+            bool deleteFile = string.IsNullOrWhiteSpace(fileName);
+            bool result = true;
 
-            // add and remove the appropriate ip addresses from the set
-            using StreamWriter writer = File.CreateText(fileName);
-            var allowedAddressFamily = inetFamily == INetFamilyIPV4 ? System.Net.Sockets.AddressFamily.InterNetwork :
-                System.Net.Sockets.AddressFamily.InterNetworkV6;
-
-            // if the set already exists, flush it entirely
-            var sets = IPBanLinuxIPSet.GetSetNames();
-            if (sets.Contains(setName))
+            if (deleteFile)
             {
-                writer.WriteLine($"flush {setName}");// hash:{hashType} family {INetFamily} hashsize {hashSize} maxelem {maxCount} -exist");
+                fileName = Path.GetTempFileName();
             }
-
-            // create the set
-            writer.WriteLine($"create {setName} hash:{hashType} family {inetFamily} hashsize {HashSize} maxelem {MaxCount} -exist");
-            foreach (string ipAddress in items)
+            try
             {
-                if (cancelToken.IsCancellationRequested)
+                // add and remove the appropriate ip addresses from the set
+                using StreamWriter writer = File.CreateText(fileName);
+                var allowedAddressFamily = inetFamily == INetFamilyIPV4 ? System.Net.Sockets.AddressFamily.InterNetwork :
+                    System.Net.Sockets.AddressFamily.InterNetworkV6;
+
+                // if the set already exists, flush it entirely
+                var sets = IPBanLinuxIPSet.GetSetNames();
+                if (sets.Contains(setName))
                 {
-                    throw new OperationCanceledException(cancelToken);
+                    writer.WriteLine($"flush {setName}");// hash:{hashType} family {INetFamily} hashsize {hashSize} maxelem {maxCount} -exist");
                 }
 
-                // if we have a valid ip range of the correct address family, process it
-                if (IPAddressRange.TryParse(ipAddress, out IPAddressRange range) &&
-                    range.Begin.AddressFamily == allowedAddressFamily && range.End.AddressFamily == allowedAddressFamily)
+                // create the set
+                writer.WriteLine($"create {setName} hash:{hashType} family {inetFamily} hashsize {HashSize} maxelem {MaxCount} -exist");
+                foreach (string ipAddress in items)
                 {
-                    // if this is a single ip set, or this ip is not a range, add it
-                    if (hashType != HashTypeCidrMask || range.Single)
+                    if (cancelToken.IsCancellationRequested)
                     {
-                        writer.WriteLine($"add {setName} {range.Begin} -exist");
+                        throw new OperationCanceledException(cancelToken);
                     }
-                    else if (range.GetPrefixLength(false) < 0)
+
+                    // if we have a valid ip range of the correct address family, process it
+                    if (IPAddressRange.TryParse(ipAddress, out IPAddressRange range) &&
+                        range.Begin.AddressFamily == allowedAddressFamily && range.End.AddressFamily == allowedAddressFamily)
                     {
-                        // attempt to write the ips in this range if the count is low enough
-                        if (range.GetCount() <= maxIPExtractedFromRange)
+                        // if this is a single ip set, or this ip is not a range, add it
+                        if (hashType != HashTypeNetwork || range.Single)
                         {
-                            foreach (System.Net.IPAddress ip in range)
+                            writer.WriteLine($"add {setName} {range.Begin} -exist");
+                        }
+                        else if (range.GetPrefixLength(false) < 0)
+                        {
+                            // attempt to write the ips in this range if the count is low enough
+                            if (range.GetCount() <= maxIPExtractedFromRange)
                             {
-                                writer.WriteLine($"add {setName} {ip} -exist");
+                                foreach (System.Net.IPAddress ip in range)
+                                {
+                                    writer.WriteLine($"add {setName} {ip} -exist");
+                                }
+                            }
+                            else
+                            {
+                                Logger.Debug("Skipped writing non-cidr range {0} because of too many ips", range);
                             }
                         }
                         else
                         {
-                            Logger.Debug("Skipped writing non-cidr range {0} because of too many ips", range);
+                            // add the range in cidr notation
+                            writer.WriteLine($"add {setName} {range.ToCidrString()} -exist");
                         }
-                    }
-                    else
-                    {
-                        // add the range in cidr notation
-                        writer.WriteLine($"add {setName} {range.ToCidrString()} -exist");
                     }
                 }
             }
+            finally
+            {
+                if (deleteFile)
+                {
+                    result = RestoreFromFile(fileName);
+                    File.Delete(fileName);
+                }
+            }
+
+            return result;
         }
 
         /// <summary>
         /// Update a set file with delta changes
         /// </summary>
-        /// <param name="fileName">File name</param>
+        /// <param name="fileName">File name or null to make a temp file to restore automatically</param>
         /// <param name="setName">Set name</param>
         /// <param name="hashType">Hash type (see constants on this class)</param>
         /// <param name="inetFamily">INet family (see constants on this class)</param>
         /// <param name="items">Items to add to the set, depends on the hash type</param>
         /// <param name="cancelToken">Cancel token</param>
+        /// <returns>True if success, false if failure</returns>
         /// <exception cref="OperationCanceledException"></exception>
-        public static void UpdateSetFile(string fileName, string setName, string hashType,
+        public static bool UpsertSetFileDelta(string fileName, string setName, string hashType,
             string inetFamily, IEnumerable<IPBanFirewallIPAddressDelta> items, CancellationToken cancelToken)
         {
-            // add and remove the appropriate ip addresses from the set
-            var allowedAddressFamily = inetFamily == INetFamilyIPV4 ? System.Net.Sockets.AddressFamily.InterNetwork :
-                System.Net.Sockets.AddressFamily.InterNetworkV6;
-            using StreamWriter writer = File.CreateText(fileName);
+            bool deleteFile = string.IsNullOrWhiteSpace(fileName);
+            bool result = true;
 
-            // create the set if not exist
-            writer.WriteLine($"create {setName} hash:{hashType} family {inetFamily} hashsize {HashSize} maxelem {MaxCount} -exist");
-            foreach (IPBanFirewallIPAddressDelta delta in items)
+            if (deleteFile)
             {
-                if (cancelToken.IsCancellationRequested)
-                {
-                    throw new OperationCanceledException(cancelToken);
-                }
+                fileName = Path.GetTempFileName();
+            }
+            try
+            {
+                // add and remove the appropriate ip addresses from the set
+                var allowedAddressFamily = inetFamily == INetFamilyIPV4 ? System.Net.Sockets.AddressFamily.InterNetwork :
+                System.Net.Sockets.AddressFamily.InterNetworkV6;
+                using StreamWriter writer = File.CreateText(fileName);
 
-                // if we have a valid ip range of the correct address family, process it
-                if (IPAddressRange.TryParse(delta.IPAddress, out IPAddressRange range) &&
-                    range.Begin.AddressFamily == allowedAddressFamily && range.End.AddressFamily == allowedAddressFamily)
+                // create the set if not exist
+                writer.WriteLine($"create {setName} hash:{hashType} family {inetFamily} hashsize {HashSize} maxelem {MaxCount} -exist");
+                foreach (IPBanFirewallIPAddressDelta delta in items)
                 {
-                    var type = delta.Added ? "add" : "del";
-                    if (range.Single)
+                    if (cancelToken.IsCancellationRequested)
                     {
-                        writer.WriteLine($"{type} {setName} {range.Begin} -exist");
+                        throw new OperationCanceledException(cancelToken);
                     }
-                    else if (range.GetPrefixLength(false) >= 0)
+
+                    // if we have a valid ip range of the correct address family, process it
+                    if (IPAddressRange.TryParse(delta.IPAddress, out IPAddressRange range) &&
+                        range.Begin.AddressFamily == allowedAddressFamily && range.End.AddressFamily == allowedAddressFamily)
                     {
-                        writer.WriteLine($"{type} {setName} {range.ToCidrString()} -exist");
-                    }
-                    else
-                    {
-                        Logger.Debug("Ignoring invalid set delta entry {0}: {1}", type, range);
+                        var type = delta.Added ? "add" : "del";
+                        if (range.Single)
+                        {
+                            writer.WriteLine($"{type} {setName} {range.Begin} -exist");
+                        }
+                        else if (range.GetPrefixLength(false) >= 0)
+                        {
+                            writer.WriteLine($"{type} {setName} {range.ToCidrString()} -exist");
+                        }
+                        else
+                        {
+                            Logger.Debug("Ignoring invalid set delta entry {0}: {1}", type, range);
+                        }
                     }
                 }
             }
+            finally
+            {
+                if (deleteFile)
+                {
+                    result = RestoreFromFile(fileName);
+                    File.Delete(fileName);
+                }
+            }
+
+            return result;
         }
 
         /// <summary>
