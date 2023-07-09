@@ -33,7 +33,7 @@ namespace DigitalRuby.IPBanCore
     /// <summary>
     /// Helper methods to work with ipset on Linux
     /// </summary>
-    public static class IPBanLinuxIPSet
+    public static class IPBanLinuxIPSetIPTables
     {
         /// <summary>
         /// Set entry
@@ -135,7 +135,7 @@ namespace DigitalRuby.IPBanCore
             string tempFile = OSUtility.GetTempFileName();
             try
             {
-                IPBanLinuxIPSet.SaveToFile(tempFile);
+                IPBanLinuxIPSetIPTables.SaveToFile(tempFile);
                 foreach (string line in File.ReadLines(tempFile))
                 {
                     string[] pieces = line.Split(' ');
@@ -186,7 +186,7 @@ namespace DigitalRuby.IPBanCore
                     System.Net.Sockets.AddressFamily.InterNetworkV6;
 
                 // if the set already exists, flush it entirely
-                var sets = IPBanLinuxIPSet.GetSetNames();
+                var sets = IPBanLinuxIPSetIPTables.GetSetNames();
                 if (sets.Contains(setName))
                 {
                     writer.WriteLine($"flush {setName}");// hash:{hashType} family {INetFamily} hashsize {hashSize} maxelem {maxCount} -exist");

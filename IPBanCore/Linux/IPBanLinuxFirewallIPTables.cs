@@ -43,7 +43,7 @@ namespace DigitalRuby.IPBanCore
         private sealed class IPBanLinuxFirewallIPTables6 : IPBanLinuxBaseFirewallIPTables
         {
             protected override bool IsIPV4 => false;
-            protected override string INetFamily => IPBanLinuxIPSet.INetFamilyIPV6;
+            protected override string INetFamily => IPBanLinuxIPSetIPTables.INetFamilyIPV6;
             protected override string SetSuffix => ".set6";
             protected override string TableSuffix => ".tbl6";
             protected override string IpTablesProcess => ip6TablesProcess;
