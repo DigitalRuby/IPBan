@@ -32,12 +32,12 @@ namespace DigitalRuby.IPBanProShared
         public IPBanLinuxFirewallD(string rulePrefix) : base(rulePrefix)
         {
             var pm = OSUtility.UsesYumPackageManager ? "yum" : "apt";
-            int exitCode = IPBanLinuxFirewallIPTables.RunProcess(pm, true, "install -q -y firewalld && systemctl start firewalld && systemctl enable firewalld");
+            int exitCode = IPBanLinuxBaseFirewallIPTables.RunProcess(pm, true, "install -q -y firewalld && systemctl start firewalld && systemctl enable firewalld");
             if (exitCode != 0)
             {
                 throw new System.IO.IOException("Failed to initialize firewalld with code: " + exitCode);
             }
-            IPBanLinuxFirewallIPTables.RunProcess("ufw", false, "disable");
+            IPBanLinuxBaseFirewallIPTables.RunProcess("ufw", false, "disable");
             allowRuleName = AllowRulePrefix + "0_4";
             allowRuleName = AllowRulePrefix + "0_6";
         }
@@ -146,6 +146,7 @@ namespace DigitalRuby.IPBanProShared
         {
             var result = IPBanLinuxIPSetFirewallD.DeleteSet(ruleName);
             result |= DeleteRuleInternal(ruleName);
+            ReloadFirewallD();
             return result;
         }
 
@@ -188,7 +189,12 @@ namespace DigitalRuby.IPBanProShared
         /// <inheritdoc />
         public override void Truncate()
         {
-            throw new NotImplementedException();
+            foreach (var ruleName in IPBanLinuxIPSetFirewallD.GetRuleNames(RulePrefix))
+            {
+                IPBanLinuxIPSetFirewallD.DeleteSet(ruleName);
+                DeleteRuleInternal(ruleName);
+            }
+            ReloadFirewallD();
         }
 
         private static bool CreateOrUpdateRule(bool drop, int priority, string ruleIP4, string ruleIP6, IEnumerable<PortRange> allowedPorts)
@@ -198,21 +204,21 @@ namespace DigitalRuby.IPBanProShared
 
             // create rule commands
             var ruleText = $"rule source ipset={ruleIP4} {action} priority={priority}";
-            command.Append($"if firewall-cmd --permanent --zone=public--query-rich-rule='{ruleText}'; then firewall-cmd --remove-rich-rule=\"{ruleText}\"; fi; ");
+            command.Append($"if firewall-cmd --permanent --zone=public--query-rich-rule=\"{ruleText}\"; then firewall-cmd --remove-rich-rule=\"{ruleText}\"; fi; ");
             command.Append($"firewall-cmd --permanent --zone=public --add-rich-rule=\"{ruleText}\"; ");
             ruleText = $"rule source ipset={ruleIP6} {action} priority={priority}";
-            command.Append($"if firewall-cmd --permanent --zone=public --query-rich-rule='{ruleText}'; then firewall-cmd --remove-rich-rule=\"{ruleText}\"; fi; ");
+            command.Append($"if firewall-cmd --permanent --zone=public --query-rich-rule=\"{ruleText}\"; then firewall-cmd --remove-rich-rule=\"{ruleText}\"; fi; ");
             command.Append($"firewall-cmd --permanent --zone=public --add-rich-rule=\"{ruleText}\"; ");
             command.Append("firewall-cmd --reload");
-            return IPBanLinuxFirewallIPTables.RunProcess(string.Empty, true, command.ToString()) == 0;
+            return IPBanLinuxBaseFirewallIPTables.RunProcess(string.Empty, true, command.ToString()) == 0;
         }
 
         private static bool ReloadFirewallD()
         {
-            return IPBanLinuxFirewallIPTables.RunProcess("firewall-cmd", true, "--reload") == 0;
+            return IPBanLinuxBaseFirewallIPTables.RunProcess("firewall-cmd", true, "--reload") == 0;
         }
 
-        private bool DeleteRuleInternal(string ruleName)
+        private static bool DeleteRuleInternal(string ruleName)
         {
             bool foundOne = false;
 
@@ -223,25 +229,23 @@ namespace DigitalRuby.IPBanProShared
 
             XmlDocument doc = new();
             doc.LoadXml(zoneFile);
-            var rules = doc.SelectNodes("//rule/source");
+            var rules = doc.SelectNodes($"//rule/source[@ipset='{ruleName}']");
             if (rules is not null)
             {
                 foreach (var rule in rules)
                 {
                     if (rule is XmlElement xmlElement)
                     {
-                        var set = xmlElement.Attributes["ipset"]?.Value;
-                        if (!string.IsNullOrWhiteSpace(set) &&
-                            IPBanLinuxIPSetFirewallD.SetExists(set))
-                        {
-                            // remove the rule element which is the source parent
-                            xmlElement.ParentNode.ParentNode.RemoveChild(xmlElement.ParentNode);
-                            foundOne = true;
-                        }
+                        // remove the rule element which is the source parent
+                        xmlElement.ParentNode.ParentNode.RemoveChild(xmlElement.ParentNode);
+                        foundOne = true;
                     }
                 }
             }
-            File.WriteAllText(zoneFile, doc.OuterXml, ExtensionMethods.Utf8EncodingNoPrefix);
+            if (foundOne)
+            {
+                File.WriteAllText(zoneFile, doc.OuterXml, ExtensionMethods.Utf8EncodingNoPrefix);
+            }
             return foundOne;
         }
     }
