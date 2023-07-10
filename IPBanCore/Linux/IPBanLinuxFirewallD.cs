@@ -3,14 +3,11 @@ using System.Collections.Generic;
 using System.Data;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
 
-using DigitalRuby.IPBanCore;
-
-namespace DigitalRuby.IPBanProShared
+namespace DigitalRuby.IPBanCore
 {
     /// <summary>
     /// Linux firewall using firewalld.
