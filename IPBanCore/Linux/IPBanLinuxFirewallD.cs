@@ -406,8 +406,8 @@ namespace DigitalRuby.IPBanCore
                                 if (!string.IsNullOrWhiteSpace(ipsetName) &&
                                     setNames.Contains(ipsetName))
                                 {
-                                    bool accept = xmlElement.SelectSingleNode("//accept") is not null;
-                                    rules[ipsetName] = accept;
+                                    var acceptNode = xmlElement.SelectSingleNode("accept");
+                                    rules[ipsetName] = acceptNode is not null;
                                 }
                             }
 
