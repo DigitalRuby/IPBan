@@ -114,7 +114,7 @@ namespace DigitalRuby.IPBanCore
 
             var setFileName2 = setFileName + ".tmp";
             {
-                var setFileTmpWriter = File.CreateText(setFileName2);
+                using var setFileTmpWriter = File.CreateText(setFileName2);
                 foreach (var line in File.ReadLines(setFileName))
                 {
                     if (!line.Contains("<entry>"))
@@ -220,7 +220,7 @@ namespace DigitalRuby.IPBanCore
                     if (xmlReader.NodeType == System.Xml.XmlNodeType.Element &&
                         xmlReader.Name == "entry")
                     {
-                        var entry = xmlReader.ReadContentAsString();
+                        var entry = xmlReader.ReadElementContentAsString();
                         entries.Add(entry);
                     }
                 }

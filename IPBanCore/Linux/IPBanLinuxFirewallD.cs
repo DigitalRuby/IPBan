@@ -32,7 +32,7 @@ namespace DigitalRuby.IPBanProShared
         /// Constructor
         /// </summary>
         /// <param name="rulePrefix">Rule prefix</param>
-        public IPBanLinuxFirewallD(string rulePrefix) : base(rulePrefix)
+        public IPBanLinuxFirewallD(string rulePrefix = null) : base(rulePrefix)
         {
             if (OSUtility.IsLinux)
             {
@@ -46,6 +46,8 @@ namespace DigitalRuby.IPBanProShared
                 zoneFile = Path.Combine(AppContext.BaseDirectory, "firewalld", "override");
                 Directory.CreateDirectory(zoneFileOrig);
                 Directory.CreateDirectory(zoneFile);
+                zoneFileOrig = Path.Combine(zoneFileOrig, "public.xml");
+                zoneFile = Path.Combine(zoneFile, "public.xml");
             }
             if (OSUtility.IsLinux)
             {
@@ -53,8 +55,8 @@ namespace DigitalRuby.IPBanProShared
                 IPBanLinuxBaseFirewallIPTables.RunProcess(pm, true, "install -q -y firewalld && systemctl start firewalld && systemctl enable firewalld");
                 IPBanLinuxBaseFirewallIPTables.RunProcess("ufw", false, "disable");
             }
-            allowRuleName = AllowRulePrefix + "0_4";
-            allowRuleName = AllowRulePrefix + "0_6";
+            allowRuleName = AllowRulePrefix + "4";
+            allowRuleName = AllowRulePrefix + "6";
             EnsureZoneFile();
         }
 
@@ -82,8 +84,8 @@ namespace DigitalRuby.IPBanProShared
         {
             // create or update sets
             string set = string.IsNullOrWhiteSpace(ruleNamePrefix) ? AllowRulePrefix : RulePrefix + ruleNamePrefix;
-            var set4 = set + "_4";
-            var set6 = set + "_6";
+            var set4 = set + "4";
+            var set6 = set + "6";
             var ip4s = ipAddresses.Where(i => i.Begin.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork);
             var ip6s = ipAddresses.Where(i => i.Begin.AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6);
             var result = IPBanLinuxIPSetFirewallD.UpsertSet(set4, IPBanLinuxIPSetIPTables.HashTypeNetwork, IPBanLinuxIPSetIPTables.INetFamilyIPV4,
@@ -103,8 +105,8 @@ namespace DigitalRuby.IPBanProShared
         {
             // create or update sets
             string set = string.IsNullOrWhiteSpace(ruleNamePrefix) ? BlockRulePrefix : RulePrefix + ruleNamePrefix;
-            var set4 = set + "_4";
-            var set6 = set + "_6";
+            var set4 = set + "4";
+            var set6 = set + "6";
             var ranges = ipAddresses.Select(i => IPAddressRange.Parse(i));
             var ip4s = ranges.Where(i => i.Begin.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork);
             var ip6s = ranges.Where(i => i.Begin.AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6);
@@ -125,8 +127,8 @@ namespace DigitalRuby.IPBanProShared
         {
             // create or update sets
             string set = string.IsNullOrWhiteSpace(ruleNamePrefix) ? BlockRulePrefix : RulePrefix + ruleNamePrefix;
-            var set4 = set + "_4";
-            var set6 = set + "_6";
+            var set4 = set + "4";
+            var set6 = set + "6";
             var ip4s = ipAddresses.Where(i => i.Begin.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork);
             var ip6s = ipAddresses.Where(i => i.Begin.AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6);
             var result = IPBanLinuxIPSetFirewallD.UpsertSet(set4, IPBanLinuxIPSetIPTables.HashTypeNetwork, IPBanLinuxIPSetIPTables.INetFamilyIPV4,
@@ -146,8 +148,8 @@ namespace DigitalRuby.IPBanProShared
         {
             // create or update sets
             string set = string.IsNullOrWhiteSpace(ruleNamePrefix) ? BlockRulePrefix : RulePrefix + ruleNamePrefix;
-            var set4 = set + "_4";
-            var set6 = set + "_6";
+            var set4 = set + "4";
+            var set6 = set + "6";
             var result = IPBanLinuxIPSetFirewallD.UpsertSetDelta(set4, IPBanLinuxIPSetIPTables.HashTypeNetwork, IPBanLinuxIPSetIPTables.INetFamilyIPV4,
                 ipAddresses.Where(i => i.IsIPV4), cancelToken);
             result |= IPBanLinuxIPSetFirewallD.UpsertSetDelta(set6, IPBanLinuxIPSetIPTables.HashTypeNetwork, IPBanLinuxIPSetIPTables.INetFamilyIPV6,
@@ -202,6 +204,10 @@ namespace DigitalRuby.IPBanProShared
         /// <inheritdoc />
         public override IEnumerable<IPAddressRange> EnumerateIPAddresses(string ruleNamePrefix = null)
         {
+            if (!string.IsNullOrWhiteSpace(ruleNamePrefix) && !ruleNamePrefix.StartsWith(RulePrefix))
+            {
+                ruleNamePrefix = RulePrefix + ruleNamePrefix;
+            }
             var ruleNames = GetRuleNames(ruleNamePrefix);
             foreach (var rule in ruleNames)
             {
@@ -216,7 +222,7 @@ namespace DigitalRuby.IPBanProShared
         /// <inheritdoc />
         public override IEnumerable<string> GetRuleNames(string ruleNamePrefix = null)
         {
-            var rules = IPBanLinuxIPSetFirewallD.GetSetNames(ruleNamePrefix);
+            var rules = IPBanLinuxIPSetFirewallD.GetSetNames(ruleNamePrefix ?? RulePrefix);
             return rules;
         }
 
@@ -261,7 +267,9 @@ namespace DigitalRuby.IPBanProShared
         /// <inheritdoc />
         public override void Truncate()
         {
-            foreach (var ruleName in IPBanLinuxIPSetFirewallD.GetSetNames(RulePrefix))
+            EnsureZoneFile();
+            var setNames = IPBanLinuxIPSetFirewallD.GetSetNames(RulePrefix);
+            foreach (var ruleName in setNames)
             {
                 IPBanLinuxIPSetFirewallD.DeleteSet(ruleName);
                 DeleteRuleInternal(ruleName);
@@ -281,7 +289,7 @@ namespace DigitalRuby.IPBanProShared
             if (doc.SelectSingleNode($"//rule/source[@ipset='{ruleIP4}']") is not XmlElement xmlElement4)
             {
                 xmlElement4 = doc.CreateElement("rule");
-                doc.ParentNode.AppendChild(xmlElement4);
+                doc.DocumentElement.AppendChild(xmlElement4);
             }
             else
             {
@@ -290,7 +298,10 @@ namespace DigitalRuby.IPBanProShared
             if (doc.SelectSingleNode($"//rule/source[@ipset='{ruleIP6}']") is not XmlElement xmlElement6)
             {
                 xmlElement6 = doc.CreateElement("rule");
-                doc.ParentNode.AppendChild(xmlElement6);
+                doc.DocumentElement.AppendChild(xmlElement6);
+            }
+            else
+            {
                 xmlElement6.IsEmpty = true;
             }
 
@@ -304,7 +315,7 @@ namespace DigitalRuby.IPBanProShared
             var source4 = doc.CreateElement("source");
             source4.SetAttribute("ipset", ruleIP4);
             var source6 = doc.CreateElement("source");
-            source6.SetAttribute("ipset", ruleIP4);
+            source6.SetAttribute("ipset", ruleIP6);
             xmlElement4.AppendChild(source4);
             xmlElement6.AppendChild(source6);
 
@@ -314,16 +325,19 @@ namespace DigitalRuby.IPBanProShared
             {
                 ports = IPBanFirewallUtility.GetBlockPortRanges(ports);
             }
-            foreach (var port in ports)
+            if (ports is not null)
             {
-                var port4 = doc.CreateElement("port");
-                port4.SetAttribute("port", port.ToString());
-                port4.SetAttribute("protocol", "tcp");
-                var port6 = doc.CreateElement("port");
-                port6.SetAttribute("port", port.ToString());
-                port6.SetAttribute("protocol", "tcp");
-                xmlElement4.AppendChild(port4);
-                xmlElement6.AppendChild(port6);
+                foreach (var port in ports)
+                {
+                    var port4 = doc.CreateElement("port");
+                    port4.SetAttribute("port", port.ToString());
+                    port4.SetAttribute("protocol", "tcp");
+                    var port6 = doc.CreateElement("port");
+                    port6.SetAttribute("port", port.ToString());
+                    port6.SetAttribute("protocol", "tcp");
+                    xmlElement4.AppendChild(port4);
+                    xmlElement6.AppendChild(port6);
+                }
             }
 
             // create and add either drop or accept element
@@ -368,7 +382,7 @@ namespace DigitalRuby.IPBanProShared
             }
 
             XmlDocument doc = new();
-            doc.LoadXml(zoneFile);
+            doc.Load(zoneFile);
             var xmlElement = doc.SelectSingleNode($"//rule/source[@ipset='{ruleName}']");
             if (xmlElement is not null)
             {
@@ -387,7 +401,7 @@ namespace DigitalRuby.IPBanProShared
             if (File.Exists(zoneFile))
             {
                 XmlDocument doc = new();
-                doc.LoadXml(zoneFile);
+                doc.Load(zoneFile);
                 var xmlRules = doc.SelectNodes($"//rule");
                 if (xmlRules is not null)
                 {
@@ -416,7 +430,7 @@ namespace DigitalRuby.IPBanProShared
 
         private void EnsureZoneFile()
         {
-            const string fallbackZoneFileContents = @"<?xml version=""1.0"" encoding=""utf-8""?><zone>  <short>Public</short>  <description>For use in public areas. You do not trust the other computers on networks to not harm your computer. Only selected incoming connections are accepted.</description>  <service name=""ssh""/>  <service name=""dhcpv6-client""/>  <forward/></zone>";
+            const string fallbackZoneFileContents = "<?xml version=\"1.0\" encoding=\"utf-8\"?><zone><short>Public</short><description>For use in public areas. You do not trust the other computers on networks to not harm your computer. Only selected incoming connections are accepted.</description><service name=\"ssh\"/><service name=\"dhcpv6-client\"/><forward/></zone>";
             if (!File.Exists(zoneFile))
             {
                 string origZoneFileContents;
@@ -426,7 +440,7 @@ namespace DigitalRuby.IPBanProShared
                 }
                 else
                 {
-                    origZoneFileContents = File.ReadAllText(zoneFileOrig);
+                    origZoneFileContents = File.ReadAllText(zoneFileOrig, ExtensionMethods.Utf8EncodingNoPrefix);
                 }
                 File.WriteAllText(zoneFile, origZoneFileContents, ExtensionMethods.Utf8EncodingNoPrefix);
             }

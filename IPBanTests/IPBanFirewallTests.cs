@@ -37,10 +37,11 @@ namespace DigitalRuby.IPBanTests
     public class IPBanFirewallTests
     {
         internal static readonly Type[] firewallTypes = new[] { typeof(IPBanWindowsFirewall), typeof(IPBanLinuxFirewallIPTables) };
-        private IIPBanFirewall firewall;
+
+        protected IIPBanFirewall firewall;
 
         [SetUp]
-        public void TestStart()
+        public virtual void TestStart()
         {
             firewall = IPBanFirewallUtility.CreateFirewall(firewallTypes);
             Assert.AreNotEqual(typeof(IPBanMemoryFirewall), firewall.GetType());
