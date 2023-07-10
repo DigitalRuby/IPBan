@@ -49,12 +49,6 @@ namespace DigitalRuby.IPBanProShared
                 zoneFileOrig = Path.Combine(zoneFileOrig, "public.xml");
                 zoneFile = Path.Combine(zoneFile, "public.xml");
             }
-            if (OSUtility.IsLinux)
-            {
-                var pm = OSUtility.UsesYumPackageManager ? "yum" : "apt";
-                IPBanLinuxBaseFirewallIPTables.RunProcess(pm, true, "install -q -y firewalld && systemctl start firewalld && systemctl enable firewalld");
-                IPBanLinuxBaseFirewallIPTables.RunProcess("ufw", false, "disable");
-            }
             allowRuleName = AllowRulePrefix + "4";
             allowRuleName = AllowRulePrefix + "6";
             EnsureZoneFile();
