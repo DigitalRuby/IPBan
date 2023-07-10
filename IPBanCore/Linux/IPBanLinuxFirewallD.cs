@@ -271,8 +271,7 @@ namespace DigitalRuby.IPBanProShared
             var setNames = IPBanLinuxIPSetFirewallD.GetSetNames(RulePrefix);
             foreach (var ruleName in setNames)
             {
-                IPBanLinuxIPSetFirewallD.DeleteSet(ruleName);
-                DeleteRuleInternal(ruleName);
+                DeleteRule(ruleName);
             }
             ReloadFirewallD();
         }

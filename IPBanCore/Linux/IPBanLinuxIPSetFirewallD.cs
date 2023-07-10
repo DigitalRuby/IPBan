@@ -83,48 +83,18 @@ namespace DigitalRuby.IPBanCore
         }
 
         /// <summary>
-        /// Reset firewalld to the default state
-        /// </summary>
-        /// <param name="setPrefix">Prefix</param>
-        /// <returns>True if success, false if error</returns>
-        public static bool DeleteAllSets(string setPrefix)
-        {
-            var setFiles = Directory.GetFiles(setsFolder);
-            foreach (var file in setFiles)
-            {
-                var setName = Path.GetFileNameWithoutExtension(file);
-                DeleteSet(setName);
-            }
-            return true;
-        }
-
-        /// <summary>
         /// Reset a single set to the default empty state
         /// </summary>
         /// <param name="setName">Set name to reset</param>
         /// <returns>True if success, false if error or not exists</returns>
         public static bool DeleteSet(string setName)
         {
-            // rewrite the set file without any entry elements
             var setFileName = Path.Combine(setsFolder, setName + ".xml");
             if (!File.Exists(setFileName))
             {
                 return false;
             }
-
-            var setFileName2 = setFileName + ".tmp";
-            {
-                using var setFileTmpWriter = File.CreateText(setFileName2);
-                foreach (var line in File.ReadLines(setFileName))
-                {
-                    if (!line.Contains("<entry>"))
-                    {
-                        setFileTmpWriter.WriteLine(line);
-                    }
-                }
-            }
-            File.Move(setFileName2, setFileName, true);
-
+            File.Delete(setFileName);
             return true;
         }
 
