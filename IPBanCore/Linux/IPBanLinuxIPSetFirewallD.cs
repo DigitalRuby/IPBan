@@ -83,9 +83,9 @@ namespace DigitalRuby.IPBanCore
         }
 
         /// <summary>
-        /// Reset a single set to the default empty state
+        /// Delete a set
         /// </summary>
-        /// <param name="setName">Set name to reset</param>
+        /// <param name="setName">Set name to delete</param>
         /// <returns>True if success, false if error or not exists</returns>
         public static bool DeleteSet(string setName)
         {
