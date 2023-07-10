@@ -32,10 +32,11 @@ namespace DigitalRuby.IPBanCore
     /// <summary>
     /// Helper methods to work with sets on Linux firewalld.
     /// Use sets this way: https://firewalld.org/documentation/man-pages/firewalld.ipset.html
+    /// This class also works on Windows but only modifies files, does not actually use the firewall.
     /// </summary>
     public static class IPBanLinuxIPSetFirewallD
     {
-        private const string setsFolder = "/etc/firewalld/ipsets";
+        private static readonly string setsFolder;
 
         /// <summary>
         /// INetFamily for ipv4
@@ -66,6 +67,20 @@ namespace DigitalRuby.IPBanCore
         /// Cidr mask or range type
         /// </summary>
         public const string HashTypeNetwork = "net";
+
+        static IPBanLinuxIPSetFirewallD()
+        {
+            if (OSUtility.IsLinux)
+            {
+                setsFolder = "/etc/firewalld/ipsets";
+            }
+            else
+            {
+                // windows virtual layer
+                setsFolder = Path.Combine(System.AppContext.BaseDirectory, "firewalld", "override", "ipsets");
+                Directory.CreateDirectory(setsFolder);
+            }
+        }
 
         /// <summary>
         /// Reset firewalld to the default state

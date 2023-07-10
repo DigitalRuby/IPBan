@@ -14,16 +14,17 @@ namespace DigitalRuby.IPBanProShared
 {
     /// <summary>
     /// Linux firewall using firewalld.
+    /// This class also works on Windows but only modifies files, does not actually use the firewall.
     /// </summary>
     [RequiredOperatingSystem(OSUtility.Linux, Priority = 5, FallbackFirewallType = typeof(IPBanLinuxFirewallIPTables))]
     [System.Diagnostics.CodeAnalysis.DynamicallyAccessedMembers(System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.All)]
     public class IPBanLinuxFirewallD : IPBanBaseFirewall
     {
-        private const string zoneFile = "/etc/firewalld/zones/public.xml";
-        private const string defaultZoneFileContents = @"<?xml version=""1.0"" encoding=""utf-8""?><zone>  <short>Public</short>  <description>For use in public areas. You do not trust the other computers on networks to not harm your computer. Only selected incoming connections are accepted.</description>  <service name=""ssh""/>  <service name=""dhcpv6-client""/>  <forward/></zone>";
         private const int allowPriority = 10;
         private const int dropPriority = 20;
 
+        private readonly string zoneFileOrig;
+        private readonly string zoneFile;
         private readonly string allowRuleName;
         private readonly string allowRuleName6;
 
@@ -33,19 +34,28 @@ namespace DigitalRuby.IPBanProShared
         /// <param name="rulePrefix">Rule prefix</param>
         public IPBanLinuxFirewallD(string rulePrefix) : base(rulePrefix)
         {
-            var pm = OSUtility.UsesYumPackageManager ? "yum" : "apt";
-            int exitCode = IPBanLinuxBaseFirewallIPTables.RunProcess(pm, true, "install -q -y firewalld && systemctl start firewalld && systemctl enable firewalld");
-            if (exitCode != 0)
+            if (OSUtility.IsLinux)
             {
-                throw new System.IO.IOException("Failed to initialize firewalld with code: " + exitCode);
+                zoneFileOrig = "/usr/lib/firewalld/zones/public.xml";
+                zoneFile = "/etc/firewalld/zones/public.xml";
+    }
+            else
+            {
+                // windows virtual layer
+                zoneFileOrig = Path.Combine(AppContext.BaseDirectory, "firewalld", "orig");
+                zoneFile = Path.Combine(AppContext.BaseDirectory, "firewalld", "override");
+                Directory.CreateDirectory(zoneFileOrig);
+                Directory.CreateDirectory(zoneFile);
             }
-            IPBanLinuxBaseFirewallIPTables.RunProcess("ufw", false, "disable");
+            if (OSUtility.IsLinux)
+            {
+                var pm = OSUtility.UsesYumPackageManager ? "yum" : "apt";
+                IPBanLinuxBaseFirewallIPTables.RunProcess(pm, true, "install -q -y firewalld && systemctl start firewalld && systemctl enable firewalld");
+                IPBanLinuxBaseFirewallIPTables.RunProcess("ufw", false, "disable");
+            }
             allowRuleName = AllowRulePrefix + "0_4";
             allowRuleName = AllowRulePrefix + "0_6";
-            if (!File.Exists(zoneFile))
-            {
-                File.WriteAllText(zoneFile, defaultZoneFileContents, ExtensionMethods.Utf8EncodingNoPrefix);
-            }
+            EnsureZoneFile();
         }
 
         /// <inheritdoc />
@@ -259,12 +269,9 @@ namespace DigitalRuby.IPBanProShared
             ReloadFirewallD();
         }
 
-        private static bool CreateOrUpdateRule(bool drop, int priority, string ruleIP4, string ruleIP6, IEnumerable<PortRange> allowedPorts)
+        private bool CreateOrUpdateRule(bool drop, int priority, string ruleIP4, string ruleIP6, IEnumerable<PortRange> allowedPorts)
         {
-            if (!File.Exists(zoneFile))
-            {
-                File.WriteAllText(zoneFile, defaultZoneFileContents, ExtensionMethods.Utf8EncodingNoPrefix);
-            }
+            EnsureZoneFile();
 
             // load zone from file
             XmlDocument doc = new();
@@ -344,10 +351,14 @@ namespace DigitalRuby.IPBanProShared
 
         private static bool ReloadFirewallD()
         {
-            return IPBanLinuxBaseFirewallIPTables.RunProcess("firewall-cmd", true, "--reload") == 0;
+            if (OSUtility.IsLinux)
+            {
+                return IPBanLinuxBaseFirewallIPTables.RunProcess("firewall-cmd", true, "--reload") == 0;
+            }
+            return true;
         }
 
-        private static bool DeleteRuleInternal(string ruleName)
+        private bool DeleteRuleInternal(string ruleName)
         {
             bool foundOne = false;
 
@@ -401,6 +412,24 @@ namespace DigitalRuby.IPBanProShared
                 }
             }
             return rules;
+        }
+
+        private void EnsureZoneFile()
+        {
+            const string fallbackZoneFileContents = @"<?xml version=""1.0"" encoding=""utf-8""?><zone>  <short>Public</short>  <description>For use in public areas. You do not trust the other computers on networks to not harm your computer. Only selected incoming connections are accepted.</description>  <service name=""ssh""/>  <service name=""dhcpv6-client""/>  <forward/></zone>";
+            if (!File.Exists(zoneFile))
+            {
+                string origZoneFileContents;
+                if (!File.Exists(zoneFileOrig))
+                {
+                    origZoneFileContents = fallbackZoneFileContents;
+                }
+                else
+                {
+                    origZoneFileContents = File.ReadAllText(zoneFileOrig);
+                }
+                File.WriteAllText(zoneFile, origZoneFileContents, ExtensionMethods.Utf8EncodingNoPrefix);
+            }
         }
     }
 }
