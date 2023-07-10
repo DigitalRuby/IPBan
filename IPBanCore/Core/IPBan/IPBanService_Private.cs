@@ -614,7 +614,6 @@ namespace DigitalRuby.IPBanCore
                 }
 
                 Firewall = newFirewall;
-                AddUpdater(Firewall);
                 OnFirewallCreated();
                 Logger.Warn("Loaded firewall type {0}", Firewall.GetType());
 
@@ -1013,6 +1012,16 @@ namespace DigitalRuby.IPBanCore
                     Logger.Warn("Firewall task processing is running behind, this will cause memory to increase.");
                     break;
                 }
+            }
+
+            // ensure firewall is updated
+            try
+            {
+                await Firewall.Update(cancelToken);
+            }
+            catch (Exception ex)
+            {
+                Logger.Error(ex, "Error updating firewall {0}", Firewall.GetType());
             }
         }
 

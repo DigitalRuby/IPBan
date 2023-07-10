@@ -25,6 +25,8 @@ namespace DigitalRuby.IPBanCore
         private readonly string allowRuleName;
         private readonly string allowRuleName6;
 
+        private bool dirty;
+
         /// <summary>
         /// Constructor
         /// </summary>
@@ -49,6 +51,17 @@ namespace DigitalRuby.IPBanCore
             allowRuleName = AllowRulePrefix + "4";
             allowRuleName = AllowRulePrefix + "6";
             EnsureZoneFile();
+        }
+
+        /// <inheritdoc />
+        public override Task Update(CancellationToken cancelToken = default)
+        {
+            if (dirty && OSUtility.IsLinux)
+            {
+                IPBanLinuxBaseFirewallIPTables.RunProcess("firewall-cmd", true, "--reload");
+            }
+            dirty = false;
+            return base.Update(cancelToken);
         }
 
         /// <inheritdoc />
@@ -158,7 +171,7 @@ namespace DigitalRuby.IPBanCore
         {
             var result = IPBanLinuxIPSetFirewallD.DeleteSet(ruleName);
             result |= DeleteRuleInternal(ruleName);
-            ReloadFirewallD();
+            dirty = true;
             return result;
         }
 
@@ -264,7 +277,7 @@ namespace DigitalRuby.IPBanCore
             {
                 DeleteRule(ruleName);
             }
-            ReloadFirewallD();
+            dirty = true;
         }
 
         private bool CreateOrUpdateRule(bool drop, int priority, string ruleIP4, string ruleIP6, IEnumerable<PortRange> allowedPorts)
@@ -348,17 +361,7 @@ namespace DigitalRuby.IPBanCore
 
             // write the zone file back out and reload the firewall
             ExtensionMethods.Retry(() => File.WriteAllText(zoneFile, doc.OuterXml, ExtensionMethods.Utf8EncodingNoPrefix));
-            ReloadFirewallD();
-
-            return true;
-        }
-
-        private static bool ReloadFirewallD()
-        {
-            if (OSUtility.IsLinux)
-            {
-                return IPBanLinuxBaseFirewallIPTables.RunProcess("firewall-cmd", true, "--reload") == 0;
-            }
+            dirty = true;
             return true;
         }
 
