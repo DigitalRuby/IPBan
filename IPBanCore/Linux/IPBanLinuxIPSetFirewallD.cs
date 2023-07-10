@@ -24,6 +24,7 @@ SOFTWARE.
 
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading;
 
 namespace DigitalRuby.IPBanCore
@@ -69,8 +70,9 @@ namespace DigitalRuby.IPBanCore
         /// <summary>
         /// Reset firewalld to the default state
         /// </summary>
+        /// <param name="setPrefix">Prefix</param>
         /// <returns>True if success, false if error</returns>
-        public static bool DeleteAllSets(string rulePrefix)
+        public static bool DeleteAllSets(string setPrefix)
         {
             var setFiles = Directory.GetFiles(setsFolder);
             foreach (var file in setFiles)
@@ -82,14 +84,14 @@ namespace DigitalRuby.IPBanCore
         }
 
         /// <summary>
-        /// Reset a single rule to the default empty state
+        /// Reset a single set to the default empty state
         /// </summary>
-        /// <param name="ruleName">Rule name to reset</param>
+        /// <param name="setName">Set name to reset</param>
         /// <returns>True if success, false if error or not exists</returns>
-        public static bool DeleteSet(string ruleName)
+        public static bool DeleteSet(string setName)
         {
             // rewrite the set file without any entry elements
-            var setFileName = Path.Combine(setsFolder, ruleName + ".xml");
+            var setFileName = Path.Combine(setsFolder, setName + ".xml");
             if (!File.Exists(setFileName))
             {
                 return false;
@@ -114,76 +116,90 @@ namespace DigitalRuby.IPBanCore
         /// <summary>
         /// Determine if a set exists
         /// </summary>
-        /// <param name="ruleName">Rule name</param>
+        /// <param name="setName">Set name</param>
         /// <returns>True if exists, false otherwise</returns>
-        public static bool SetExists(string ruleName)
+        public static bool SetExists(string setName)
         {
-            var setFileName = Path.Combine(setsFolder, ruleName + ".xml");
+            var setFileName = Path.Combine(setsFolder, setName + ".xml");
             return File.Exists(setFileName);
         }
 
         /// <summary>
-        /// Upsert a rule
+        /// Upsert a aset
         /// </summary>
-        /// <param name="ruleName">Rule name</param>
+        /// <param name="setName">Set name</param>
         /// <param name="hashType">Hash type</param>
         /// <param name="inetType">Inet type</param>
         /// <param name="entries">Entries</param>
         /// <param name="cancelToken">Cancel token</param>
         /// <returns>True if success, false if error</returns>
-        public static bool UpsertSet(string ruleName, string hashType, string inetType,
+        public static bool UpsertSet(string setName, string hashType, string inetType,
             IEnumerable<IPAddressRange> entries, CancellationToken cancelToken)
         {
-
+            WriteSet(setName, hashType, inetType, entries.Select(e => e.ToString()), cancelToken);
+            return true;
         }
 
         /// <summary>
         /// Upsert a set using deltas
         /// </summary>
-        /// <param name="ruleName">Rule name</param>
+        /// <param name="setName">Set name</param>
         /// <param name="hashType">Hash type</param>
         /// <param name="inetType">Inet type</param>
         /// <param name="entries">Entries</param>
         /// <param name="cancelToken">Cancel token</param>
         /// <returns>True if success, false if error</returns>
-        public static bool UpsertSetDelta(string ruleName, string hashType, string inetType,
+        public static bool UpsertSetDelta(string setName, string hashType, string inetType,
             IEnumerable<IPBanFirewallIPAddressDelta> entries, CancellationToken cancelToken)
         {
-
+            var existingEntries = ReadSet(setName);
+            foreach (var entry in entries)
+            {
+                if (entry.Added)
+                {
+                    existingEntries.Add(entry.IPAddress);
+                }
+                else
+                {
+                    existingEntries.Remove(entry.IPAddress);
+                }
+            }
+            WriteSet(setName, hashType, inetType, existingEntries, cancelToken);
+            return true;
         }
 
         /// <summary>
-        /// Get all rule names
+        /// Get all set names
         /// </summary>
-        /// <param name="rulePrefix">Rule prefix</param>
-        /// <returns>Rule names</returns>
-        public static IReadOnlyCollection<string> GetRuleNames(string rulePrefix)
+        /// <param name="setPrefix">Set prefix</param>
+        /// <returns>Set names</returns>
+        public static IReadOnlyCollection<string> GetSetNames(string setPrefix)
         {
-            HashSet<string> rules = new();
+            HashSet<string> sets = new();
             var setFiles = Directory.GetFiles(setsFolder);
             foreach (var file in setFiles)
             {
                 var setName = Path.GetFileNameWithoutExtension(file);
-                if (setName.StartsWith(rulePrefix))
+                if (setName.StartsWith(setPrefix))
                 {
-                    rules.Add(setName);
+                    sets.Add(setName);
                 }
             }
-            return rules;
+            return sets;
         }
 
         /// <summary>
-        /// Enumerate the entries in a rule
+        /// Get the entries in a set
         /// </summary>
-        /// <param name="ruleName">Rule name</param>
+        /// <param name="setName">Set name</param>
         /// <returns>Entries</returns>
-        public static ICollection<string> EnumerateRule(string ruleName)
+        public static ICollection<string> ReadSet(string setName)
         {
             HashSet<string> entries = new();
-            var ruleFile = Path.Combine(setsFolder, ruleName + ".xml");
-            if (File.Exists(ruleFile))
+            var setFileName = Path.Combine(setsFolder, setName + ".xml");
+            if (File.Exists(setFileName))
             {
-                using var xmlReader = System.Xml.XmlReader.Create(ruleFile);
+                using var xmlReader = System.Xml.XmlReader.Create(setFileName);
                 while (xmlReader.Read())
                 {
                     if (xmlReader.NodeType == System.Xml.XmlNodeType.Element &&
@@ -253,7 +269,8 @@ namespace DigitalRuby.IPBanCore
             return (hashType, family, hashSize, maxElem);
         }
 
-        private static void WriteSet(string setName, string hashType, string inetFamily, IEnumerable<string> entries)
+        private static void WriteSet(string setName, string hashType, string inetFamily, IEnumerable<string> entries,
+            CancellationToken cancelToken)
         {
             // first write the set
             var fileName = Path.Combine(setsFolder, setName + ".xml");

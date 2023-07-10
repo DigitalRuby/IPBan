@@ -189,7 +189,7 @@ namespace DigitalRuby.IPBanProShared
         /// <inheritdoc />
         public override void Truncate()
         {
-            foreach (var ruleName in IPBanLinuxIPSetFirewallD.GetRuleNames(RulePrefix))
+            foreach (var ruleName in IPBanLinuxIPSetFirewallD.GetSetNames(RulePrefix))
             {
                 IPBanLinuxIPSetFirewallD.DeleteSet(ruleName);
                 DeleteRuleInternal(ruleName);
