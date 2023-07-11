@@ -42,8 +42,8 @@ namespace DigitalRuby.IPBanCore
     [System.Diagnostics.CodeAnalysis.DynamicallyAccessedMembers(System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.All)]
     public class IPBanLinuxFirewallD : IPBanBaseFirewall
     {
-        private const int allowPriority = 10;
-        private const int dropPriority = 20;
+        private const int allowPriority = -20;
+        private const int dropPriority = -10;
 
         private readonly string zoneFileOrig;
         private readonly string zoneFile;
