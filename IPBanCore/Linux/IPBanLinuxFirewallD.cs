@@ -313,38 +313,54 @@ namespace DigitalRuby.IPBanCore
             doc.Load(zoneFile);
 
             // grab rule for ip4 and ip6
-            if (doc.SelectSingleNode($"//rule/source[@ipset='{ruleIP4}']") is not XmlElement xmlElement4)
+            if (doc.SelectSingleNode($"//rule/source[@ipset='{ruleIP4}']") is not XmlElement ruleElement4)
             {
-                xmlElement4 = doc.CreateElement("rule");
-                doc.DocumentElement.AppendChild(xmlElement4);
+                ruleElement4 = doc.CreateElement("rule");
+                doc.DocumentElement.AppendChild(ruleElement4);
             }
             else
             {
-                xmlElement4.IsEmpty = true;
+                // go from source to rule element
+                ruleElement4 = ruleElement4.ParentNode as XmlElement;
+                foreach (var oldChild in ruleElement4.ChildNodes)
+                {
+                    if (oldChild is XmlElement childElement)
+                    {
+                        ruleElement4.RemoveChild(childElement);
+                    }
+                }
             }
-            if (doc.SelectSingleNode($"//rule/source[@ipset='{ruleIP6}']") is not XmlElement xmlElement6)
+            if (doc.SelectSingleNode($"//rule/source[@ipset='{ruleIP6}']") is not XmlElement ruleElement6)
             {
-                xmlElement6 = doc.CreateElement("rule");
-                doc.DocumentElement.AppendChild(xmlElement6);
+                ruleElement6 = doc.CreateElement("rule");
+                doc.DocumentElement.AppendChild(ruleElement6);
             }
             else
             {
-                xmlElement6.IsEmpty = true;
+                // go from source to rule element
+                ruleElement6 = ruleElement6.ParentNode as XmlElement;
+                foreach (var oldChild in ruleElement6.ChildNodes)
+                {
+                    if (oldChild is XmlElement childElement)
+                    {
+                        ruleElement6.RemoveChild(childElement);
+                    }
+                }
             }
 
             // assign rule attributes
             var action = drop ? "drop" : "accept";
             var priorityString = priority.ToString();
-            xmlElement4.SetAttribute("priority", priorityString);
-            xmlElement6.SetAttribute("priority", priorityString);
+            ruleElement4.SetAttribute("priority", priorityString);
+            ruleElement6.SetAttribute("priority", priorityString);
 
             // create and add source element
             var source4 = doc.CreateElement("source");
             source4.SetAttribute("ipset", ruleIP4);
             var source6 = doc.CreateElement("source");
             source6.SetAttribute("ipset", ruleIP6);
-            xmlElement4.AppendChild(source4);
-            xmlElement6.AppendChild(source6);
+            ruleElement4.AppendChild(source4);
+            ruleElement6.AppendChild(source6);
 
             // create and add port elements for each port entry
             var ports = allowedPorts;
@@ -362,8 +378,8 @@ namespace DigitalRuby.IPBanCore
                     var port6 = doc.CreateElement("port");
                     port6.SetAttribute("port", port.ToString());
                     port6.SetAttribute("protocol", "tcp");
-                    xmlElement4.AppendChild(port4);
-                    xmlElement6.AppendChild(port6);
+                    ruleElement4.AppendChild(port4);
+                    ruleElement6.AppendChild(port6);
                 }
             }
 
@@ -372,15 +388,15 @@ namespace DigitalRuby.IPBanCore
             {
                 var drop4 = doc.CreateElement("drop");
                 var drop6 = doc.CreateElement("drop");
-                xmlElement4.AppendChild(drop4);
-                xmlElement6.AppendChild(drop6);
+                ruleElement4.AppendChild(drop4);
+                ruleElement6.AppendChild(drop6);
             }
             else
             {
                 var accept4 = doc.CreateElement("accept");
                 var accept6 = doc.CreateElement("accept");
-                xmlElement4.AppendChild(accept4);
-                xmlElement6.AppendChild(accept6);
+                ruleElement4.AppendChild(accept4);
+                ruleElement6.AppendChild(accept6);
             }
 
             // write the zone file back out and reload the firewall
