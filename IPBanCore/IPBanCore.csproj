@@ -6,9 +6,9 @@
 		<PreserveCompilationContext>true</PreserveCompilationContext>
 		<PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
 		<PackageId>DigitalRuby.IPBanCore</PackageId>
-		<Version>1.8.1</Version>
-		<AssemblyVersion>1.8.1</AssemblyVersion>
-		<FileVersion>1.8.1</FileVersion>
+		<Version>1.9.0</Version>
+		<AssemblyVersion>1.9.0</AssemblyVersion>
+		<FileVersion>1.9.0</FileVersion>
 		<Authors>Jeff Johnson</Authors>
 		<Company>Digital Ruby, LLC</Company>
 		<Product>IPBan</Product>
