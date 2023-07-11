@@ -322,13 +322,8 @@ namespace DigitalRuby.IPBanCore
             {
                 // go from source to rule element
                 ruleElement4 = ruleElement4.ParentNode as XmlElement;
-                foreach (var oldChild in ruleElement4.ChildNodes)
-                {
-                    if (oldChild is XmlElement childElement)
-                    {
-                        ruleElement4.RemoveChild(childElement);
-                    }
-                }
+                ruleElement4.IsEmpty = true;
+                ruleElement4.IsEmpty = false;
             }
             if (doc.SelectSingleNode($"//rule/source[@ipset='{ruleIP6}']") is not XmlElement ruleElement6)
             {
@@ -339,13 +334,8 @@ namespace DigitalRuby.IPBanCore
             {
                 // go from source to rule element
                 ruleElement6 = ruleElement6.ParentNode as XmlElement;
-                foreach (var oldChild in ruleElement6.ChildNodes)
-                {
-                    if (oldChild is XmlElement childElement)
-                    {
-                        ruleElement6.RemoveChild(childElement);
-                    }
-                }
+                ruleElement6.IsEmpty = true;
+                ruleElement6.IsEmpty = false;
             }
 
             // assign rule attributes
