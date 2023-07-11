@@ -30,6 +30,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
+using System.Xml.Linq;
 
 namespace DigitalRuby.IPBanCore
 {
@@ -389,8 +390,20 @@ namespace DigitalRuby.IPBanCore
                 ruleElement6.AppendChild(accept6);
             }
 
+            // make sure forward node is at the end
+            var forwardNode = doc.DocumentElement.SelectSingleNode("/forward");
+            if (forwardNode is XmlElement forwardElement)
+            {
+                forwardNode.ParentNode.RemoveChild(forwardElement);
+                doc.DocumentElement.AppendChild(forwardElement);
+            }
+
+            // pretty print
+            XDocument xDoc = XDocument.Parse(doc.OuterXml);
+            var xml = xDoc.ToString();
+
             // write the zone file back out and reload the firewall
-            ExtensionMethods.Retry(() => File.WriteAllText(zoneFile, doc.OuterXml, ExtensionMethods.Utf8EncodingNoPrefix));
+            ExtensionMethods.Retry(() => File.WriteAllText(zoneFile, xml, ExtensionMethods.Utf8EncodingNoPrefix));
             dirty = true;
             return true;
         }
