@@ -67,7 +67,7 @@ namespace DigitalRuby.IPBanCore
         /// <summary>
         /// Inet family
         /// </summary>
-        protected virtual string INetFamily => IPBanLinuxIPSet.INetFamilyIPV4;
+        protected virtual string INetFamily => IPBanLinuxIPSetIPTables.INetFamilyIPV4;
 
         /// <summary>
         /// Suffix for set files
@@ -105,7 +105,7 @@ namespace DigitalRuby.IPBanCore
                 }
                 RunProcess(IpTablesProcess, true, "-F");
                 RunProcess(ip6TablesProcess, true, "-F");
-                IPBanLinuxIPSet.Reset();
+                IPBanLinuxIPSetIPTables.Reset();
             }
             catch
             {
@@ -118,7 +118,7 @@ namespace DigitalRuby.IPBanCore
             if (IsIPV4)
             {
                 string setFile = GetSetFileName();
-                IPBanLinuxIPSet.SaveToFile(setFile);
+                IPBanLinuxIPSetIPTables.SaveToFile(setFile);
             }
         }
 
@@ -128,7 +128,7 @@ namespace DigitalRuby.IPBanCore
             if (IsIPV4)
             {
                 string setFile = GetSetFileName();
-                IPBanLinuxIPSet.RestoreFromFile(setFile);
+                IPBanLinuxIPSetIPTables.RestoreFromFile(setFile);
             }
         }
 
@@ -329,10 +329,10 @@ namespace DigitalRuby.IPBanCore
             try
             {
                 // create set file with full set info from passed values
-                IPBanLinuxIPSet.UpsertSetFile(ipFileTemp, ruleName, hashType, INetFamily, ipAddresses, cancelToken);
+                IPBanLinuxIPSetIPTables.UpsertSetFile(ipFileTemp, ruleName, hashType, INetFamily, ipAddresses, cancelToken);
 
                 // restore the set fully
-                bool result = IPBanLinuxIPSet.RestoreFromFile(ipFileTemp);
+                bool result = IPBanLinuxIPSetIPTables.RestoreFromFile(ipFileTemp);
                 CreateOrUpdateRule(ruleName, action, allowPorts, cancelToken);
                 return result;
             }
@@ -376,10 +376,10 @@ namespace DigitalRuby.IPBanCore
             try
             {
                 // create set file with deltas
-                IPBanLinuxIPSet.UpsertSetFileDelta(ipFileTemp, ruleName, hashType, INetFamily, deltas, cancelToken);
+                IPBanLinuxIPSetIPTables.UpsertSetFileDelta(ipFileTemp, ruleName, hashType, INetFamily, deltas, cancelToken);
 
                 // restore the deltas into the existing set
-                bool result = IPBanLinuxIPSet.RestoreFromFile(ipFileTemp);
+                bool result = IPBanLinuxIPSetIPTables.RestoreFromFile(ipFileTemp);
                 CreateOrUpdateRule(ruleName, action, allowPorts, cancelToken);
                 return result;
             }
@@ -484,7 +484,7 @@ namespace DigitalRuby.IPBanCore
                     SaveTableToDisk();
 
                     // remove the set
-                    IPBanLinuxIPSet.DeleteSet(ruleName);
+                    IPBanLinuxIPSetIPTables.DeleteSet(ruleName);
 
                     return true;
                 }
@@ -498,7 +498,7 @@ namespace DigitalRuby.IPBanCore
             try
             {
                 string ruleName = (string.IsNullOrWhiteSpace(ruleNamePrefix) ? BlockRulePrefix : RulePrefix + ruleNamePrefix);
-                return Task.FromResult(UpdateRule(ruleName, dropAction, ipAddresses, IPBanLinuxIPSet.HashTypeSingleIP, allowedPorts, cancelToken));
+                return Task.FromResult(UpdateRule(ruleName, dropAction, ipAddresses, IPBanLinuxIPSetIPTables.HashTypeSingleIP, allowedPorts, cancelToken));
             }
             catch (Exception ex)
             {
@@ -516,7 +516,7 @@ namespace DigitalRuby.IPBanCore
             try
             {
                 string ruleName = (string.IsNullOrWhiteSpace(ruleNamePrefix) ? BlockRulePrefix : RulePrefix + ruleNamePrefix);
-                return Task.FromResult(UpdateRuleDelta(ruleName, dropAction, deltas, IPBanLinuxIPSet.HashTypeSingleIP, allowedPorts, cancelToken));
+                return Task.FromResult(UpdateRuleDelta(ruleName, dropAction, deltas, IPBanLinuxIPSetIPTables.HashTypeSingleIP, allowedPorts, cancelToken));
             }
             catch (Exception ex)
             {
@@ -536,7 +536,7 @@ namespace DigitalRuby.IPBanCore
             try
             {
                 return Task.FromResult(UpdateRule(RulePrefix + ruleNamePrefix, dropAction, ranges.Select(r => r.ToCidrString()),
-                    IPBanLinuxIPSet.HashTypeNetwork, allowedPorts, cancelToken));
+                    IPBanLinuxIPSetIPTables.HashTypeNetwork, allowedPorts, cancelToken));
             }
             catch (Exception ex)
             {
@@ -553,7 +553,7 @@ namespace DigitalRuby.IPBanCore
         {
             try
             {
-                return Task.FromResult(UpdateRule(allowRuleName, acceptAction, ipAddresses, IPBanLinuxIPSet.HashTypeSingleIP, null, cancelToken));
+                return Task.FromResult(UpdateRule(allowRuleName, acceptAction, ipAddresses, IPBanLinuxIPSetIPTables.HashTypeSingleIP, null, cancelToken));
             }
             catch (Exception ex)
             {
@@ -574,7 +574,7 @@ namespace DigitalRuby.IPBanCore
                 string ruleName = RulePrefix + ruleNamePrefix;
                 allowRules.Add(ruleName);
                 return Task.FromResult(UpdateRule(ruleName, acceptAction, ipAddresses.Select(r => r.ToCidrString()),
-                    IPBanLinuxIPSet.HashTypeNetwork, allowedPorts, cancelToken));
+                    IPBanLinuxIPSetIPTables.HashTypeNetwork, allowedPorts, cancelToken));
             }
             catch (Exception ex)
             {
@@ -590,7 +590,7 @@ namespace DigitalRuby.IPBanCore
         public override IEnumerable<IPAddressRange> EnumerateIPAddresses(string ruleNamePrefix = null)
         {
             string prefix = RulePrefix + (ruleNamePrefix ?? string.Empty);
-            return IPBanLinuxIPSet
+            return IPBanLinuxIPSetIPTables
                 .EnumerateSets()
                 .Where(s => s.SetName.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
                 .Select(s => s.Range);
@@ -602,7 +602,7 @@ namespace DigitalRuby.IPBanCore
             if (!IsIPAddressAllowed(ipAddress) &&
                 System.Net.IPAddress.TryParse(ipAddress, out System.Net.IPAddress ipObj))
             {
-                foreach (var item in IPBanLinuxIPSet.EnumerateSets()
+                foreach (var item in IPBanLinuxIPSetIPTables.EnumerateSets()
                     .Where(s => !allowRules.Contains(s.SetName)))
                 {
                     if (item.Range.Contains(ipObj))
@@ -621,7 +621,7 @@ namespace DigitalRuby.IPBanCore
         {
             if (System.Net.IPAddress.TryParse(ipAddress, out System.Net.IPAddress ipObj))
             {
-                foreach (var item in IPBanLinuxIPSet.EnumerateSets()
+                foreach (var item in IPBanLinuxIPSetIPTables.EnumerateSets()
                     .Where(s => allowRules.Contains(s.SetName)))
                 {
                     if (item.Range.Contains(ipObj))
@@ -637,7 +637,7 @@ namespace DigitalRuby.IPBanCore
         /// <inheritdoc />
         public override IEnumerable<string> EnumerateBannedIPAddresses()
         {
-            return IPBanLinuxIPSet
+            return IPBanLinuxIPSetIPTables
                 .EnumerateSets()
                 .Where(s => !allowRules.Contains(s.SetName))
                 .Select(s => s.Range.ToString());
@@ -646,7 +646,7 @@ namespace DigitalRuby.IPBanCore
         /// <inheritdoc />
         public override IEnumerable<string> EnumerateAllowedIPAddresses()
         {
-            return IPBanLinuxIPSet
+            return IPBanLinuxIPSetIPTables
                 .EnumerateSets()
                 .Where(s => allowRules.Contains(s.SetName))
                 .Select(s => s.Range.ToString());

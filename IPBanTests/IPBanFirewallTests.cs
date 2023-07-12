@@ -22,25 +22,26 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-using DigitalRuby.IPBanCore;
-
-using NUnit.Framework;
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+
+using DigitalRuby.IPBanCore;
+
+using NUnit.Framework;
 
 namespace DigitalRuby.IPBanTests
 {
     [TestFixture]
     public class IPBanFirewallTests
     {
-        internal static readonly Type[] firewallTypes = new[] { typeof(IPBanWindowsFirewall), typeof(IPBanLinuxFirewallIPTables) };
-        private IIPBanFirewall firewall;
+        internal static readonly Type[] firewallTypes = new[] { typeof(IPBanWindowsFirewall), typeof(IPBanLinuxFirewallD) };
+
+        protected IIPBanFirewall firewall;
 
         [SetUp]
-        public void TestStart()
+        public virtual void TestStart()
         {
             firewall = IPBanFirewallUtility.CreateFirewall(firewallTypes);
             Assert.AreNotEqual(typeof(IPBanMemoryFirewall), firewall.GetType());
