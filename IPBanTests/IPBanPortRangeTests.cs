@@ -63,5 +63,14 @@ namespace DigitalRuby.IPBanTests
             TestPortRangeBlockExcept("0,65535", null, "1-65534");
             TestPortRangeBlockExcept(null, null, "0-65535");
         }
+
+        [Test]
+        public void TestPort25()
+        {
+            var value = IPBanFirewallUtility.GetBlockPortRanges(new[] { new PortRange(25) });
+            var again = IPBanFirewallUtility.GetBlockPortRanges(value);
+            Assert.That(again, Has.Count.EqualTo(1));
+            Assert.That(again, Has.Exactly(1).Matches<PortRange>(x => x.MinPort == 25 && x.MinPort == 25));
+        }
     }
 }

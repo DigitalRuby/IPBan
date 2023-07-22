@@ -30,17 +30,17 @@ namespace DigitalRuby.IPBanCore
     /// <summary>
     /// Represents a range of ports
     /// </summary>
-    public struct PortRange
+    public struct PortRange : IComparable<PortRange>
     {
         /// <summary>
         /// Min port, inclusive
         /// </summary>
-        public int MinPort { get; }
+        public int MinPort { get; internal set; }
 
         /// <summary>
         /// Max port, inclusive
         /// </summary>
-        public int MaxPort { get; }
+        public int MaxPort { get; internal set; }
 
         /// <summary>
         /// Return whether the range is valid
@@ -65,6 +65,22 @@ namespace DigitalRuby.IPBanCore
         {
             MinPort = minPort;
             MaxPort = maxPort;
+        }
+
+        /// <inheritdoc />
+        public override bool Equals(object portRange)
+        {
+            if (portRange is not PortRange portRangeObj)
+            {
+                return false;
+            }
+            return MinPort == portRangeObj.MinPort && MaxPort == portRangeObj.MaxPort;
+        }
+
+        /// <inheritdoc />
+        public override int GetHashCode()
+        {
+            return MinPort.GetHashCode() ^ MaxPort.GetHashCode();
         }
 
         /// <summary>
@@ -138,6 +154,28 @@ namespace DigitalRuby.IPBanCore
                 }
             }
             return new PortRange(-1, -1);
+        }
+
+        /// <inheritdoc />
+        int IComparable<PortRange>.CompareTo(PortRange other)
+        {
+            if (MinPort < other.MinPort)
+            {
+                return -1;
+            }
+            else if (MinPort > other.MinPort)
+            {
+                return 1;
+            }
+            else if (MaxPort < other.MaxPort)
+            {
+                return -1;
+            }
+            else if (MaxPort > other.MaxPort)
+            {
+                return 1;
+            }
+            return 0;
         }
 
         /// <summary>

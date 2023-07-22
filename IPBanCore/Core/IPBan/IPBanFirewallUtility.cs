@@ -22,6 +22,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+using Microsoft.VisualBasic;
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -149,28 +151,77 @@ namespace DigitalRuby.IPBanCore
         /// <returns>Set of block port ranges</returns>
         public static IReadOnlyCollection<PortRange> GetBlockPortRanges(IEnumerable<PortRange> allowPortRanges)
         {
+            const int MinPort = 0;
+            const int MaxPort = 65535;
+
             if (allowPortRanges is null)
             {
                 return null;
             }
-            List<PortRange> blockPortRanges = new();
-            int currentPort = 0;
-            foreach (PortRange range in allowPortRanges.Where(r => r.IsValid).OrderBy(r => r.MinPort).ThenBy(r => r.MaxPort))
+
+            var mergedRanges = MergePortRanges(allowPortRanges);
+            if (mergedRanges is null)
             {
-                // if current port less than min, append range
-                if (currentPort < range.MinPort)
-                {
-                    int maxPort = range.MinPort - 1;
-                    blockPortRanges.Add(new PortRange(currentPort, maxPort));
-                    currentPort = range.MaxPort + 1;
-                }
-            }
-            if (currentPort != 0 && currentPort <= 65535)
-            {
-                blockPortRanges.Add(new PortRange(currentPort, 65535));
+                return null;
             }
 
-            return blockPortRanges;
+            List<PortRange> result = new();
+            int current = MinPort;
+
+            foreach (var range in mergedRanges)
+            {
+                if (range.MinPort > current)
+                {
+                    result.Add(new PortRange { MinPort = current, MaxPort = range.MinPort - 1 });
+                }
+
+                if (range.MaxPort + 1 > current)
+                {
+                    current = range.MaxPort + 1;
+                }
+            }
+
+            if (current <= MaxPort)
+            {
+                result.Add(new PortRange { MinPort = current, MaxPort = MaxPort });
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Merge port ranges
+        /// </summary>
+        /// <param name="portRanges">Port ranges</param>
+        /// <returns>Distinct port ranges</returns>
+        public static IReadOnlyCollection<PortRange> MergePortRanges(IEnumerable<PortRange> portRanges)
+        {
+            var sortedRanges = portRanges
+                .Where(x => x.IsValid)
+                .OrderBy(x => x.MinPort)
+                .ThenBy(x => x.MaxPort)
+                .Distinct()
+                .ToList();
+            if (sortedRanges.Count == 0)
+            {
+                return null;
+            }
+
+            List<PortRange> result = new() { sortedRanges[0] };
+            foreach (var range in sortedRanges.Skip(1))
+            {
+                var lastRange = result.Last();
+                if (range.MinPort <= lastRange.MaxPort)
+                {
+                    lastRange.MaxPort = range.MaxPort;
+                }
+                else
+                {
+                    result.Add(range);
+                }
+            }
+
+            return result;
         }
 
         /// <summary>
@@ -180,11 +231,20 @@ namespace DigitalRuby.IPBanCore
         /// <returns>Port range string to block (i.e. 0-79,81-442,444-65535) - null if none to block.</returns>
         public static string GetPortRangeStringBlock(IEnumerable<PortRange> allowPortRanges)
         {
+            // handle null
             if (allowPortRanges is null)
             {
                 return null;
             }
+
             IReadOnlyCollection<PortRange> blockPortRanges = GetBlockPortRanges(allowPortRanges);
+
+            // handle null again
+            if (blockPortRanges is null)
+            {
+                return null;
+            }
+
             StringBuilder portRangeStringBuilder = new();
             foreach (PortRange portRange in blockPortRanges)
             {
@@ -206,26 +266,8 @@ namespace DigitalRuby.IPBanCore
         /// <returns>Port range string to allow (i.e. 80,443,1000-10010) - null if none to allow.</returns>
         public static string GetPortRangeStringAllow(IEnumerable<PortRange> allowPortRanges)
         {
-            StringBuilder b = new();
-            if (allowPortRanges != null)
-            {
-                int lastMax = -1;
-                foreach (PortRange range in allowPortRanges.OrderBy(p => p.MinPort))
-                {
-                    if (range.MinPort > lastMax)
-                    {
-                        AppendRange(b, range);
-                        lastMax = range.MaxPort;
-                    }
-                }
-            }
-
-            // trim end comma
-            if (b.Length != 0)
-            {
-                b.Length--;
-            }
-            return (b.Length == 0 ? null : b.ToString());
+            var result = MergePortRanges(allowPortRanges);
+            return result is null || result.Count == 0 ? null : string.Join(',', result.Select(x => x.ToString()));
         }
 
         /// <summary>
