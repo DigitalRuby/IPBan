@@ -106,7 +106,7 @@ namespace DigitalRuby.IPBanCore
 
         private static readonly TimeSpan[] emptyTimeSpanArray = new TimeSpan[] { TimeSpan.Zero };
         private static readonly IPBanLogFileToParse[] emptyLogFilesToParseArray = Array.Empty<IPBanLogFileToParse>();
-        private static readonly TimeSpan maxBanTimeSpan = TimeSpan.FromDays(90.0);
+        private static readonly TimeSpan maxBanTimeSpan = TimeSpan.FromDays(9999.0);
 
         private readonly Dictionary<string, string> appSettings = new(StringComparer.OrdinalIgnoreCase);
         private readonly IPBanLogFileToParse[] logFiles;
