@@ -1089,4 +1089,7 @@
   <data name="SslSelfSignedCertificateTooltip" xml:space="preserve">
     <value>Turn on if your certificate is self signed</value>
   </data>
+  <data name="Alias" xml:space="preserve">
+    <value>Alias</value>
+  </data>
 </root>
