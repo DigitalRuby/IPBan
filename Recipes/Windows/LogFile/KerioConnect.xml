@@ -1,0 +1,22 @@
+<!--
+Kerio connect failed logins, Windows
+
+Example failed login:
+[19/Jul/2023 06:46:21] SMTP: User april@jwhicks.com doesn't exist. Attempt from IP address 77.90.185.18.
+-->
+<LogFile>
+	<Source>Kerio</Source>
+	<PathAndMask>C:\Program Files\Kerio\MailServer\store\logs\security.log</PathAndMask>
+	<FailedLoginRegex>
+		<![CDATA[
+			^\[(?<timestamp>[^\]]+)\]\sSMTP:\suser\s(?<username>[^\s]+)\sdoesn't\sexist\.\sattempt\sfrom\sip\saddress\s(?<ipaddress>.*?)\.$
+		]]>
+	</FailedLoginRegex>
+	<FailedLoginRegexTimestampFormat></FailedLoginRegexTimestampFormat>
+	<SuccessfulLoginRegex></SuccessfulLoginRegex>
+	<SuccessfulLoginRegexTimestampFormat></SuccessfulLoginRegexTimestampFormat>
+	<PlatformRegex>Windows</PlatformRegex>
+	<PingInterval>10000</PingInterval>
+	<MaxFileSize>0</MaxFileSize>
+	<FailedLoginThreshold>0</FailedLoginThreshold>
+</LogFile>
