@@ -1267,7 +1267,7 @@ namespace DigitalRuby.IPBanCore
             while ((line = reader.ReadLine()) != null)
             {
                 line = line.Trim();
-                string[] pieces = line.Split(',');
+                string[] pieces = line.Split(',', StringSplitOptions.TrimEntries);
                 if (pieces.Length >= 3)
                 {
                     if (TimeSpan.TryParse(pieces[1], out TimeSpan interval))
