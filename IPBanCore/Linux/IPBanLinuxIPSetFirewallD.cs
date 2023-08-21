@@ -22,9 +22,11 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading;
 
 namespace DigitalRuby.IPBanCore
@@ -265,11 +267,50 @@ namespace DigitalRuby.IPBanCore
             writer.WriteLine($"<option name=\"family\" value=\"{inetFamily}\" />");
             writer.WriteLine($"<option name=\"hashsize\" value=\"{IPBanLinuxIPSetIPTables.HashSize}\" />");
             writer.WriteLine($"<option name=\"maxelem\" value=\"{IPBanLinuxIPSetIPTables.MaxCount}\" />");
-            foreach (var entry in entries)
+            foreach (var range in EnumerateSortedIPAddressRanges(EnumerateIPAddressRanges(entries)))
             {
-                writer.WriteLine($"<entry>{entry}</entry>");
+                writer.WriteLine($"<entry>{range}</entry>");
             }
             writer.WriteLine("</ipset>");
+        }
+
+        private static IEnumerable<IPAddressRange> EnumerateIPAddressRanges(IEnumerable<string> entries)
+        {
+            foreach (var entry in entries)
+            {
+                if (IPAddressRange.TryParse(entry, out var range))
+                {
+                    yield return range;
+                }
+            }
+        }
+
+        private static IEnumerable<IPAddressRange> EnumerateSortedIPAddressRanges(IEnumerable<IPAddressRange> ranges)
+        {
+            const int maxIPExtractedFromRange = 256;
+
+            foreach (var range in ranges.OrderBy(r => r))
+            {
+                if (range.GetPrefixLength(false) < 0)
+                {
+                    // attempt to write the ips in this range if the count is low enough
+                    if (range.GetCount() <= maxIPExtractedFromRange)
+                    {
+                        foreach (System.Net.IPAddress ip in range)
+                        {
+                            yield return new(ip);
+                        }
+                    }
+                    else
+                    {
+                        Logger.Debug("Skipped writing non-cidr range {0} because of too many ips", range);
+                    }
+                }
+                else
+                {
+                    yield return range;
+                }
+            }
         }
     }
 }
