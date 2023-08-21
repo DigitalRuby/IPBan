@@ -291,7 +291,7 @@ namespace DigitalRuby.IPBanCore
 
             foreach (var range in ranges.OrderBy(r => r))
             {
-                if (range.GetPrefixLength(false) < 0)
+                if (!range.Single && range.GetPrefixLength(false) < 0)
                 {
                     // attempt to write the ips in this range if the count is low enough
                     if (range.GetCount() <= maxIPExtractedFromRange)
