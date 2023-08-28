@@ -389,12 +389,17 @@ namespace DigitalRuby.IPBanCore
             UpsertXmlRule(doc, ruleIP6, drop, priority, allowedPorts);
 
             // make sure forward node is at the end
-            var forwardNode = doc.DocumentElement.SelectSingleNode("/forward");
-            if (forwardNode is XmlElement forwardElement)
+            var forwardNode = doc.DocumentElement.SelectSingleNode("/forward") as XmlElement;
+            if (forwardNode is not null)
             {
-                forwardNode.ParentNode.RemoveChild(forwardElement);
-                doc.DocumentElement.AppendChild(forwardElement);
+                forwardNode.ParentNode.RemoveChild(forwardNode);
             }
+            else
+            {
+                forwardNode = doc.CreateElement("forward");
+                forwardNode.IsEmpty = true;
+            }
+            doc.DocumentElement.AppendChild(forwardNode);
 
             // pretty print
             XDocument xDoc = XDocument.Parse(doc.OuterXml);
