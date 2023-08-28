@@ -313,82 +313,80 @@ namespace DigitalRuby.IPBanCore
             XmlDocument doc = new();
             doc.Load(zoneFile);
 
-            // grab rule for ip4 and ip6
-            if (doc.SelectSingleNode($"//rule/source[@ipset='{ruleIP4}']") is not XmlElement ruleElement4)
+            static void UpsertXmlRule(XmlDocument doc, string ruleName, bool drop, int priority, IEnumerable<PortRange> allowedPorts)
             {
-                ruleElement4 = doc.CreateElement("rule");
-                doc.DocumentElement.AppendChild(ruleElement4);
-            }
-            else
-            {
-                // go from source to rule element
-                ruleElement4 = ruleElement4.ParentNode as XmlElement;
-                ruleElement4.IsEmpty = true;
-                ruleElement4.IsEmpty = false;
-            }
-            if (doc.SelectSingleNode($"//rule/source[@ipset='{ruleIP6}']") is not XmlElement ruleElement6)
-            {
-                ruleElement6 = doc.CreateElement("rule");
-                doc.DocumentElement.AppendChild(ruleElement6);
-            }
-            else
-            {
-                // go from source to rule element
-                ruleElement6 = ruleElement6.ParentNode as XmlElement;
-                ruleElement6.IsEmpty = true;
-                ruleElement6.IsEmpty = false;
-            }
-
-            // assign rule attributes
-            var action = drop ? "drop" : "accept";
-            var priorityString = priority.ToString();
-            ruleElement4.SetAttribute("priority", priorityString);
-            ruleElement6.SetAttribute("priority", priorityString);
-
-            // create and add source element
-            var source4 = doc.CreateElement("source");
-            source4.SetAttribute("ipset", ruleIP4);
-            var source6 = doc.CreateElement("source");
-            source6.SetAttribute("ipset", ruleIP6);
-            ruleElement4.AppendChild(source4);
-            ruleElement6.AppendChild(source6);
-
-            // create and add port elements for each port entry
-            var ports = allowedPorts;
-            if (drop)
-            {
-                ports = IPBanFirewallUtility.GetBlockPortRanges(ports);
-            }
-            if (ports is not null)
-            {
-                foreach (var port in ports)
+                // grab existing rule, if any
+                if (doc.SelectSingleNode($"/rule/source[@ipset='{ruleName}']") is not XmlElement ruleElement)
                 {
-                    var port4 = doc.CreateElement("port");
-                    port4.SetAttribute("port", port.ToString());
-                    port4.SetAttribute("protocol", "tcp");
-                    var port6 = doc.CreateElement("port");
-                    port6.SetAttribute("port", port.ToString());
-                    port6.SetAttribute("protocol", "tcp");
-                    ruleElement4.AppendChild(port4);
-                    ruleElement6.AppendChild(port6);
+                    // no rule found, make a new one
+                    ruleElement = doc.CreateElement("rule");
+                    if (drop)
+                    {
+                        doc.DocumentElement.AppendChild(ruleElement);
+                    }
+                    else
+                    {
+                        var existingRule = doc.DocumentElement.SelectSingleNode("/rule");
+                        if (existingRule is null)
+                        {
+                            doc.DocumentElement.AppendChild(ruleElement);
+                        }
+                        else
+                        {
+                            doc.DocumentElement.InsertBefore(ruleElement, existingRule);
+                        }
+                    }
+                }
+                else
+                {
+                    // use existing rule and empty it out
+                    ruleElement = ruleElement.ParentNode as XmlElement;
+                    ruleElement.IsEmpty = true;
+                    ruleElement.IsEmpty = false;
+                }
+
+                // assign rule attributes
+                var action = drop ? "drop" : "accept";
+                var priorityString = priority.ToString();
+                ruleElement.SetAttribute("priority", priorityString);
+
+                // create and add source element
+                var source = doc.CreateElement("source");
+                source.SetAttribute("ipset", ruleName);
+                ruleElement.AppendChild(source);
+
+                // create and add port elements for each port entry
+                var ports = allowedPorts;
+                if (drop)
+                {
+                    ports = IPBanFirewallUtility.GetBlockPortRanges(ports);
+                }
+                if (ports is not null)
+                {
+                    foreach (var port in ports)
+                    {
+                        var portElement = doc.CreateElement("port");
+                        portElement.SetAttribute("port", port.ToString());
+                        portElement.SetAttribute("protocol", "tcp");
+                        ruleElement.AppendChild(portElement);
+                    }
+                }
+
+                // create and add either drop or accept element
+                if (drop)
+                {
+                    var dropElement = doc.CreateElement("drop");
+                    ruleElement.AppendChild(dropElement);
+                }
+                else
+                {
+                    var acceptElement = doc.CreateElement("accept");
+                    ruleElement.AppendChild(acceptElement);
                 }
             }
 
-            // create and add either drop or accept element
-            if (drop)
-            {
-                var drop4 = doc.CreateElement("drop");
-                var drop6 = doc.CreateElement("drop");
-                ruleElement4.AppendChild(drop4);
-                ruleElement6.AppendChild(drop6);
-            }
-            else
-            {
-                var accept4 = doc.CreateElement("accept");
-                var accept6 = doc.CreateElement("accept");
-                ruleElement4.AppendChild(accept4);
-                ruleElement6.AppendChild(accept6);
-            }
+            UpsertXmlRule(doc, ruleIP4, drop, priority, allowedPorts);
+            UpsertXmlRule(doc, ruleIP6, drop, priority, allowedPorts);
 
             // make sure forward node is at the end
             var forwardNode = doc.DocumentElement.SelectSingleNode("/forward");
