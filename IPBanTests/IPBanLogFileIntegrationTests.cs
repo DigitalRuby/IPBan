@@ -96,24 +96,31 @@ namespace DigitalRuby.IPBanTests
             // 37.49.225.153, UserName: p.kurowicki@gios.gov.pl, Source: MSExchange, Count: 1, Type: FailedLogin, Timestamp: 6/26/2021 3:01:36 PM}
             Assert.AreEqual(7, failedEvents.Count);
             failedEvents.Sort((x, y) => x.IPAddress.CompareTo(y.IPAddress));
+
             Assert.AreEqual("109.75.46.81", failedEvents[0].IPAddress);
+            Assert.AreEqual("user", failedEvents[0].UserName);
+
             Assert.AreEqual("180.60.60.60", failedEvents[1].IPAddress);
+            Assert.AreEqual("user", failedEvents[1].UserName);
+
             Assert.AreEqual("27.255.75.110", failedEvents[2].IPAddress);
+            Assert.AreEqual(string.Empty, failedEvents[2].UserName);
+
             Assert.AreEqual("37.49.225.153", failedEvents[3].IPAddress);
+            Assert.AreEqual("user", failedEvents[3].UserName);
+
             Assert.AreEqual("54.212.131.181", failedEvents[4].IPAddress);
+            Assert.AreEqual("exctest", failedEvents[4].UserName);
+
             Assert.AreEqual("54.212.131.182", failedEvents[5].IPAddress);
+            Assert.AreEqual("exctest", failedEvents[5].UserName);
+
             Assert.AreEqual("90.30.30.30", failedEvents[6].IPAddress);
+            Assert.AreEqual("user", failedEvents[6].UserName);
+
             for (int i = 0; i < failedEvents.Count; i++)
             {
                 Assert.AreEqual("MSExchange", failedEvents[i].Source);
-                if (i != failedEvents.Count - 2)
-                {
-                    Assert.AreEqual("user", failedEvents[i].UserName);
-                }
-                else
-                {
-                    Assert.AreEqual(string.Empty, failedEvents[i].UserName);
-                }
                 Assert.AreEqual(IPAddressEventType.FailedLogin, failedEvents[i].Type);
             }
         }
