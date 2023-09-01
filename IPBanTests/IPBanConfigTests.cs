@@ -81,7 +81,7 @@ namespace DigitalRuby.IPBanTests
                 "Linux", "IPBanCustom",
 
                 "C:/Program Files/Microsoft/Exchange Server/*/TransportRoles/Logs/FrontEnd/ProtocolLog/**.log",
-                @"^(?<timestamp>[0-9TZ\-:\.]+),(?:.*?\\(?:External\sAuthenticated\sRelay|Internet\sRecive\sFrontend),)?(?:[^,\n]*,){3}(?<ipaddress>[^,\n]+).*?(?:(?:504\s5\.7\.4\s(?<log>Unrecognized\sauthentication\stype))|(?:(?<log>LogonDenied)\n?.*?(?:User\:|User\sName\:)\s(?<username>[^\n,""]+)))",
+                @"^(?<timestamp>[0-9TZ\-:\.]+),(?:.*?\\(?:.*?),)?(?:[^,\n]*,){3}(?<ipaddress>[^,\n]+).*?(?:(?:504\s5\.7\.4\s(?<log>Unrecognized\sauthentication\stype))|(?:(?<log>LogonDenied)\n?.*?(?:User\:|User\sName\:)\s(?<username>[^\n,""]+)))",
                 @"",
                 @"^(?<timestamp>[0-9TZ\-:\.]+)?,(?:[^,\n]*,){4}(?<ipaddress>[^,\n]+),(?:[^,\n]*),(?<username>[^,\n]*),authenticated",
                 @"",
