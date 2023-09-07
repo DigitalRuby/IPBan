@@ -18,7 +18,7 @@ Failed login example:
 	<FailedLoginRegexTimestampFormat></FailedLoginRegexTimestampFormat>
 	<SuccessfulLoginRegex></SuccessfulLoginRegex>
 		<![CDATA[
-			^(?<timestamp>[0-9\-\s\:]+)\s[^\s]+\sPOST\s[^\s]+\s[^\s]+\s[^\s]+\s(?<username>[^\s]+)\s(?<ipaddress>[^\s]+)\s[^\s]+\s[^\s]+\s3
+			^(?<timestamp>[0-9\-\s\:]+)\s[^\s]+\sPOST\s[^\s]+\s[^\s]+\s[^\s]+\s(?<username>[^\s\-]+)\s(?<ipaddress>[^\s]+)\s[^\s]+\s[^\s]+\s3
 		]]>
 	<SuccessfulLoginRegexTimestampFormat></SuccessfulLoginRegexTimestampFormat>
 	<PlatformRegex>Windows</PlatformRegex>
