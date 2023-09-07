@@ -1,0 +1,29 @@
+﻿<!-- Bad IIS RDWeb on Windows
+
+Successful login example:
+2023-09-07 16:10:21 [server-IP] POST /RDWeb/Pages/en-US/login.aspx - 443 [username] 184.68.23.229 Mozilla/5.0+(Windows+NT+6.1;+Win64;+x64)+AppleWebKit/537.36+(KHTML,+like+Gecko)+Chrome/69.0.3386.127+Safari/537.36 [redirect-URL] 302 0 0 138
+
+Failed login example:
+2023-09-07 16:27:24 [server-IP] POST /RDWeb/Pages/en-US/login.aspx - 443 - 184.68.23.229 Mozilla/5.0+(Windows+NT+6.1;+Win64;+x64)+AppleWebKit/537.36+(KHTML,+like+Gecko)+Chrome/69.0.3386.127+Safari/537.36 [redirect-URL]/ 200 0 0 53
+
+-->
+<LogFile>
+	<Source>IIS</Source>
+	<PathAndMask>C:/inetpub/logs/LogFiles/W3SVC1/*</PathAndMask>
+	<FailedLoginRegex>
+		<![CDATA[
+			^(?<timestamp>[0-9\-\s\:]+)\s(?<ipaddress>[^\s]+)\s[^\s]+\s[^\s]+\s[^\s]+\s[^\s]+\s[^\s]+\s[^\s]+\s[^\s]+\s[^\s]+\s2
+		]]>
+	</FailedLoginRegex>
+	<FailedLoginRegexTimestampFormat></FailedLoginRegexTimestampFormat>
+	<SuccessfulLoginRegex></SuccessfulLoginRegex>
+		<![CDATA[
+			^(?<timestamp>[0-9\-\s\:]+)\s(?<ipaddress>[^\s]+)\s[^\s]+\s[^\s]+\s[^\s]+\s[^\s]+\s(?<username>[^\s]+)\s[^\s]+\s[^\s]+\s[^\s]+\s3
+		]]>
+	<SuccessfulLoginRegexTimestampFormat></SuccessfulLoginRegexTimestampFormat>
+	<PlatformRegex>Windows</PlatformRegex>
+	<PingInterval>10000</PingInterval>
+	<MaxFileSize>0</MaxFileSize>
+	<FailedLoginThreshold>0</FailedLoginThreshold>
+</LogFile>
+
