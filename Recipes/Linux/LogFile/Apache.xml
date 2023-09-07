@@ -1,7 +1,7 @@
 <!-- Apache 4xx errors on Linux -->
 <LogFile>
 	<Source>Apache</Source>
-	<PathAndMask>/var/log/apache/*error*.log</PathAndMask>
+	<PathAndMask>/var/log/apache/*access*.log</PathAndMask>
 	<FailedLoginRegex>
 		<![CDATA[
 			^(?<ipaddress>[^\s]+)[^\-]+-[^\-]+-\s\[(?<timestamp>[^\]]+)\]\s[^\s]+\s[^\s]+\s[^\s]+\s(?:4[0-9][0-9])
