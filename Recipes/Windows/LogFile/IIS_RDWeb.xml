@@ -12,7 +12,7 @@ Failed login example:
 	<PathAndMask>C:/inetpub/logs/LogFiles/W3SVC1/*</PathAndMask>
 	<FailedLoginRegex>
 		<![CDATA[
-			^(?<timestamp>[0-9\-\s\:]+)\s[^\s]+\sPOST\s[^\s]+\s[^\s]+\s[^\s]+\s[^\s]+\s(?<ipaddress>[^\s]+)+\s[^\s]+\s[^\s]+\s2
+			^(?<timestamp>[0-9\-\s\:]+)\s[^\s]+\sPOST\s[^\s]+\s[^\s]+\s[^\s]+\s-\s(?<ipaddress>[^\s]+)+\s[^\s]+\s[^\s]+\s[23]
 		]]>
 	</FailedLoginRegex>
 	<FailedLoginRegexTimestampFormat></FailedLoginRegexTimestampFormat>
