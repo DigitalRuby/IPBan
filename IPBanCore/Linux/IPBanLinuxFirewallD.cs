@@ -444,6 +444,9 @@ namespace DigitalRuby.IPBanCore
             var allIPV4Source = doc.CreateElement("source");
             allIPV4Source.SetAttribute("address", "0.0.0.0/0");
             allIPV4.AppendChild(allIPV4Source);
+            var allIPV4Port = doc.CreateElement("port");
+            allIPV4Port.SetAttribute("port", "0-65535");
+            allIPV4.AppendChild(allIPV4Port);
             var allIPV4Accept = doc.CreateElement("accept");
             allIPV4.AppendChild(allIPV4Accept);
             doc.DocumentElement.InsertBefore(allIPV4, forwardNode);
@@ -455,6 +458,9 @@ namespace DigitalRuby.IPBanCore
             var allIPV6Source = doc.CreateElement("source");
             allIPV6Source.SetAttribute("address", "0.0.0.0/0");
             allIPV6.AppendChild(allIPV6Source);
+            var allIPV6Port = doc.CreateElement("port");
+            allIPV6Port.SetAttribute("port", "0-65535");
+            allIPV6.AppendChild(allIPV6Port);
             var allIPV6Accept = doc.CreateElement("accept");
             allIPV6.AppendChild(allIPV6Accept);
             doc.DocumentElement.InsertBefore(allIPV6, forwardNode);
