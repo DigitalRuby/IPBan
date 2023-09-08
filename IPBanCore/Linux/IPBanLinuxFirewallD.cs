@@ -420,6 +420,47 @@ namespace DigitalRuby.IPBanCore
             }
             doc.DocumentElement.AppendChild(forwardNode);
 
+            // remove global allow rules
+            foreach (var ruleNode in doc.SelectNodes("//rule"))
+            {
+                if (ruleNode is XmlElement ruleElement)
+                {
+                    var sourceElement = ruleElement.SelectSingleNode("source") as XmlElement;
+                    if (sourceElement is not null)
+                    {
+                        var address = sourceElement.GetAttribute("address");
+                        if (address == "0.0.0.0/0" || address == "::/0")
+                        {
+                            ruleElement.ParentNode.RemoveChild(ruleElement);
+                        }
+                    }
+                }
+            }
+
+            // allow all ipv4
+            var allIPV4 = doc.CreateElement("rule");
+            allIPV4.SetAttribute("priority", "100");
+            allIPV4.SetAttribute("family", "ipv4");
+            var allIPV4Source = doc.CreateElement("source");
+            allIPV4Source.SetAttribute("address", "0.0.0.0/0");
+            allIPV4.AppendChild(allIPV4Source);
+            var allIPV4Accept = doc.CreateElement("accept");
+            allIPV4Accept.IsEmpty = true;
+            allIPV4.AppendChild(allIPV4Accept);
+            doc.DocumentElement.InsertBefore(allIPV4, forwardNode);
+
+            // allow all ipv6
+            var allIPV6 = doc.CreateElement("rule");
+            allIPV6.SetAttribute("priority", "100");
+            allIPV6.SetAttribute("family", "ipv6");
+            var allIPV6Source = doc.CreateElement("source");
+            allIPV6Source.SetAttribute("address", "0.0.0.0/0");
+            allIPV6.AppendChild(allIPV6Source);
+            var allIPV6Accept = doc.CreateElement("accept");
+            allIPV6Accept.IsEmpty = true;
+            allIPV6.AppendChild(allIPV6Accept);
+            doc.DocumentElement.InsertBefore(allIPV6, forwardNode);
+
             // pretty print
             XDocument xDoc = XDocument.Parse(doc.OuterXml);
             var xml = xDoc.ToString();
