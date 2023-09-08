@@ -75,7 +75,7 @@ namespace DigitalRuby.IPBanCore
             }
             allowRuleName = AllowRulePrefix + "4";
             allowRuleName = AllowRulePrefix + "6";
-            EnsureZoneFile();
+            EnsureZoneFile(zoneFile, zoneFileOrig);
         }
 
         /// <inheritdoc />
@@ -102,7 +102,8 @@ namespace DigitalRuby.IPBanCore
                 ip6s, cancelToken);
 
             // create or update rule
-            result |= CreateOrUpdateRule(false, allowPriority, allowRuleName, allowRuleName6, Array.Empty<PortRange>());
+            result |= CreateOrUpdateRule(zoneFile, zoneFileOrig, false, allowPriority, allowRuleName, allowRuleName6, Array.Empty<PortRange>());
+            dirty = true;
 
             // done
             return Task.FromResult(result);
@@ -123,7 +124,8 @@ namespace DigitalRuby.IPBanCore
                 ip6s, cancelToken);
 
             // create or update rule
-            result |= CreateOrUpdateRule(false, allowPriority, set4, set6, allowedPorts);
+            result |= CreateOrUpdateRule(zoneFile, zoneFileOrig, false, allowPriority, set4, set6, allowedPorts);
+            dirty = true;
 
             // done
             return Task.FromResult(result);
@@ -145,7 +147,8 @@ namespace DigitalRuby.IPBanCore
                 ip6s, cancelToken);
 
             // create or update rule
-            result |= CreateOrUpdateRule(true, dropPriority, set4, set6, allowedPorts);
+            result |= CreateOrUpdateRule(zoneFile, zoneFileOrig, true, dropPriority, set4, set6, allowedPorts);
+            dirty = true;
 
             // done
             return Task.FromResult(result);
@@ -166,7 +169,8 @@ namespace DigitalRuby.IPBanCore
                 ip6s, cancelToken);
 
             // create or update rule
-            result |= CreateOrUpdateRule(true, dropPriority, set4, set6, allowedPorts);
+            result |= CreateOrUpdateRule(zoneFile, zoneFileOrig, true, dropPriority, set4, set6, allowedPorts);
+            dirty = true;
 
             // done
             return Task.FromResult(result);
@@ -185,7 +189,8 @@ namespace DigitalRuby.IPBanCore
                 ipAddresses.Where(i => !i.IsIPV4), cancelToken);
 
             // create or update rule
-            result |= CreateOrUpdateRule(true, dropPriority, set4, set6, allowedPorts);
+            result |= CreateOrUpdateRule(zoneFile, zoneFileOrig, true, dropPriority, set4, set6, allowedPorts);
+            dirty = true;
 
             // done
             return Task.FromResult(result);
@@ -296,7 +301,7 @@ namespace DigitalRuby.IPBanCore
         /// <inheritdoc />
         public override void Truncate()
         {
-            EnsureZoneFile();
+            EnsureZoneFile(zoneFile, zoneFileOrig);
             var setNames = IPBanLinuxIPSetFirewallD.GetSetNames(RulePrefix);
             foreach (var ruleName in setNames)
             {
@@ -305,9 +310,21 @@ namespace DigitalRuby.IPBanCore
             dirty = true;
         }
 
-        private bool CreateOrUpdateRule(bool drop, int priority, string ruleIP4, string ruleIP6, IEnumerable<PortRange> allowedPorts)
+        /// <summary>
+        /// Create or update a firewalld rule
+        /// </summary>
+        /// <param name="zoneFile">Zone file</param>
+        /// <param name="zoneFileOrig">Original zone file</param>
+        /// <param name="drop">True for a drop rule, false for an allow rule</param>
+        /// <param name="priority">Priority</param>
+        /// <param name="ruleIP4">IP4 rule name</param>
+        /// <param name="ruleIP6">IP6 rule name</param>
+        /// <param name="allowedPorts">Allowed ports</param>
+        /// <returns></returns>
+        public static bool CreateOrUpdateRule(string zoneFile, string zoneFileOrig, bool drop, int priority, string ruleIP4, string ruleIP6,
+            IEnumerable<PortRange> allowedPorts)
         {
-            EnsureZoneFile();
+            EnsureZoneFile(zoneFile, zoneFileOrig);
 
             // load zone from file
             XmlDocument doc = new();
@@ -316,17 +333,19 @@ namespace DigitalRuby.IPBanCore
             static void UpsertXmlRule(XmlDocument doc, string ruleName, bool drop, int priority, IEnumerable<PortRange> allowedPorts)
             {
                 // grab existing rule, if any
-                if (doc.SelectSingleNode($"/rule/source[@ipset='{ruleName}']") is not XmlElement ruleElement)
+                if (doc.SelectSingleNode($"//rule/source[@ipset='{ruleName}']") is not XmlElement ruleElement)
                 {
                     // no rule found, make a new one
                     ruleElement = doc.CreateElement("rule");
                     if (drop)
                     {
+                        // add to end
                         doc.DocumentElement.AppendChild(ruleElement);
                     }
                     else
                     {
-                        var existingRule = doc.DocumentElement.SelectSingleNode("/rule");
+                        // find first rule element and insert before
+                        var existingRule = doc.SelectSingleNode("//rule");
                         if (existingRule is null)
                         {
                             doc.DocumentElement.AppendChild(ruleElement);
@@ -389,7 +408,7 @@ namespace DigitalRuby.IPBanCore
             UpsertXmlRule(doc, ruleIP6, drop, priority, allowedPorts);
 
             // make sure forward node is at the end
-            var forwardNode = doc.DocumentElement.SelectSingleNode("/forward") as XmlElement;
+            var forwardNode = doc.SelectSingleNode("//forward") as XmlElement;
             if (forwardNode is not null)
             {
                 forwardNode.ParentNode.RemoveChild(forwardNode);
@@ -407,7 +426,6 @@ namespace DigitalRuby.IPBanCore
 
             // write the zone file back out and reload the firewall
             ExtensionMethods.Retry(() => File.WriteAllText(zoneFile, xml, ExtensionMethods.Utf8EncodingNoPrefix));
-            dirty = true;
             return true;
         }
 
@@ -467,7 +485,7 @@ namespace DigitalRuby.IPBanCore
             return rules;
         }
 
-        private void EnsureZoneFile()
+        private static void EnsureZoneFile(string zoneFile, string zoneFileOrig)
         {
             const string fallbackZoneFileContents = "<?xml version=\"1.0\" encoding=\"utf-8\"?><zone><short>Public</short><description>For use in public areas. You do not trust the other computers on networks to not harm your computer. Only selected incoming connections are accepted.</description><service name=\"ssh\"/><service name=\"dhcpv6-client\"/><forward/></zone>";
             if (!File.Exists(zoneFile))

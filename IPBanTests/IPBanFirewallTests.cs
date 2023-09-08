@@ -24,8 +24,10 @@ SOFTWARE.
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
+using System.Xml;
 
 using DigitalRuby.IPBanCore;
 
@@ -305,6 +307,35 @@ namespace DigitalRuby.IPBanTests
             finally
             {
                 firewall.PacketEvent -= PacketCallback;
+            }
+        }
+
+        [Test]
+        public void TestFirewallDUpsert()
+        {
+            string zoneFile = Path.Combine(Path.GetTempPath(), "testzone.txt");
+            string zoneFileOrig = Path.Combine(Path.GetTempPath(), "testzoneorig.txt");
+            if (File.Exists(zoneFile))
+            {
+                File.Delete(zoneFile);
+            }
+            if (File.Exists(zoneFileOrig))
+            {
+                File.Delete(zoneFileOrig);
+            }
+            try
+            {
+                IPBanLinuxFirewallD.CreateOrUpdateRule(zoneFile, zoneFileOrig, true, 5, "drop4", "drop6", null);
+                IPBanLinuxFirewallD.CreateOrUpdateRule(zoneFile, zoneFileOrig, true, 5, "drop4", "drop6", null);
+                XmlDocument doc = new();
+                doc.Load(zoneFile);
+                var rules = doc.SelectNodes("//rule");
+                Assert.AreEqual(2, rules.Count);
+            }
+            finally
+            {
+                File.Delete(zoneFile);
+                File.Delete(zoneFileOrig);
             }
         }
     }
