@@ -436,7 +436,11 @@ namespace DigitalRuby.IPBanCore
                         var address = sourceElement.GetAttribute("address");
                         if (address == "0.0.0.0/0" || address == "::/0")
                         {
-                            ruleElement.ParentNode.RemoveChild(ruleElement);
+                            var port = sourceElement.GetAttribute("port");
+                            if (port == "0-65535")
+                            {
+                                ruleElement.ParentNode.RemoveChild(ruleElement);
+                            }
                         }
                     }
                 }
