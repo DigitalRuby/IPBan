@@ -247,7 +247,9 @@ namespace DigitalRuby.IPBanCore
                 }
             }
 
-            return firewall.BlockIPAddresses(RulePrefix, ranges, null, cancelToken);
+            var sortedDistinct = ranges.OrderBy(r => r).Combine().ToArray();
+
+            return firewall.BlockIPAddresses(RulePrefix, sortedDistinct, null, cancelToken);
         }
 
         private static byte[] DecompressBytes(Stream input)

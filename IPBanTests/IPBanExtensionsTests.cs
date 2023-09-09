@@ -127,5 +127,28 @@ namespace DigitalRuby.IPBanTests
             string invertedRangesObjString = string.Join(',', invertedRangesObj.Select(r => r.ToString('-')));
             Assert.AreEqual(invertedRanges, invertedRangesObjString);
         }
+
+        [Test]
+        public void TestCombineRanges()
+        {
+            var range1 = IPAddressRange.Parse("103.32.0.0/16");
+            var range2 = IPAddressRange.Parse("103.32.132.0/22");
+            var merged = ExtensionMethods.Combine(new[] { range1, range2 }).ToArray();
+            Assert.That(merged.Length, Is.EqualTo(1));
+        }
+
+        [Test]
+        public void TestCombineList()
+        {
+            var lines = System.IO.File.ReadAllText("./TestData/IPSets/EmergingThreats.txt");
+            var ranges = lines.Split(new[] { '\n' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .Select(l => IPAddressRange.Parse(l))
+                .OrderBy(l => l)
+                .ToArray();
+            var combined = ranges.Combine().ToArray();
+
+            Assert.That(ranges, Has.Length.EqualTo(1354));
+            Assert.That(combined, Has.Length.EqualTo(1243));
+        }
     }
 }

@@ -19,10 +19,14 @@
 
 	<ItemGroup>
 	  <None Remove="TestData\EventViewer\EventViewerTests.txt" />
+	  <None Remove="TestData\IPSets\EmergingThreats.txt" />
 	</ItemGroup>
 
 	<ItemGroup>
 	  <Content Include="TestData\EventViewer\EventViewerTests.txt">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </Content>
+	  <Content Include="TestData\IPSets\EmergingThreats.txt">
 	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 	  </Content>
 	</ItemGroup>
