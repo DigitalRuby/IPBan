@@ -439,7 +439,11 @@ namespace DigitalRuby.IPBanCore
                             var port = ruleElement.GetAttribute("port");
                             if (port == "0-65535")
                             {
-                                ruleElement.ParentNode.RemoveChild(ruleElement);
+                                var protocol = ruleElement.GetAttribute("protocol");
+                                if (protocol == "tcp")
+                                {
+                                    ruleElement.ParentNode.RemoveChild(ruleElement);
+                                }
                             }
                         }
                     }
@@ -455,7 +459,8 @@ namespace DigitalRuby.IPBanCore
             allIPV4.AppendChild(allIPV4Source);
             var allIPV4Port = doc.CreateElement("port");
             allIPV4Port.SetAttribute("port", "0-65535");
-            allIPV4.AppendChild(allIPV4Port);
+            allIPV4Port.SetAttribute("protocol", "tcp");
+            allIPV4.AppendChild(allIPV4Port);            
             var allIPV4Accept = doc.CreateElement("accept");
             allIPV4.AppendChild(allIPV4Accept);
             doc.DocumentElement.InsertBefore(allIPV4, forwardNode);
@@ -469,6 +474,7 @@ namespace DigitalRuby.IPBanCore
             allIPV6.AppendChild(allIPV6Source);
             var allIPV6Port = doc.CreateElement("port");
             allIPV6Port.SetAttribute("port", "0-65535");
+            allIPV6Port.SetAttribute("protocol", "tcp");
             allIPV6.AppendChild(allIPV6Port);
             var allIPV6Accept = doc.CreateElement("accept");
             allIPV6.AppendChild(allIPV6Accept);
