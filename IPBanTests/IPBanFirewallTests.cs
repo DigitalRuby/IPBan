@@ -330,7 +330,7 @@ namespace DigitalRuby.IPBanTests
                 XmlDocument doc = new();
                 doc.Load(zoneFile);
                 var rules = doc.SelectNodes("//rule");
-                Assert.AreEqual(4, rules.Count);
+                Assert.AreEqual(6, rules.Count);
             }
             finally
             {
