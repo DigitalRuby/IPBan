@@ -386,9 +386,14 @@ namespace DigitalRuby.IPBanCore
                     {
                         var portElement = doc.CreateElement("port");
                         portElement.SetAttribute("port", port.ToString());
-                        portElement.SetAttribute("protocol", "tcp");
                         ruleElement.AppendChild(portElement);
                     }
+                }
+                else
+                {
+                    var portElement = doc.CreateElement("port");
+                    portElement.SetAttribute("port", "0-65535");
+                    ruleElement.AppendChild(portElement);
                 }
 
                 // create and add either drop or accept element
