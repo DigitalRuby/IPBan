@@ -438,11 +438,12 @@ namespace DigitalRuby.IPBanCore
                         var address = sourceElement.GetAttribute("address");
                         if (address == "0.0.0.0/0" || address == "::/0")
                         {
-                            var port = ruleElement.GetAttribute("port");
+                            var portElement = ruleElement.SelectSingleNode("port") as XmlElement;
+                            var port = portElement?.GetAttribute("port");
                             if (port == "0-65535")
                             {
-                                var protocol = ruleElement.GetAttribute("protocol");
-                                if (protocol == "tcp")
+                                var protocol = portElement?.GetAttribute("protocol");
+                                if (protocol == "tcp" || protocol == "udp")
                                 {
                                     ruleElement.ParentNode.RemoveChild(ruleElement);
                                 }
@@ -452,7 +453,7 @@ namespace DigitalRuby.IPBanCore
                 }
             }
 
-            static void AddAllowAllRule(XmlDocument doc, XmlElement forwardNode, string family, string ips)
+            static void AddAllowAllRule(XmlDocument doc, XmlElement forwardNode, string protocol, string family, string ips)
             {
                 // allow all ipv4
                 var allowIP = doc.CreateElement("rule");
@@ -463,15 +464,17 @@ namespace DigitalRuby.IPBanCore
                 allowIP.AppendChild(allowIPSource);
                 var allowIPPort = doc.CreateElement("port");
                 allowIPPort.SetAttribute("port", "0-65535");
-                allowIPPort.SetAttribute("protocol", "tcp");
+                allowIPPort.SetAttribute("protocol", protocol);
                 allowIP.AppendChild(allowIPPort);
                 var allowIPAccept = doc.CreateElement("accept");
                 allowIP.AppendChild(allowIPAccept);
                 doc.DocumentElement.InsertBefore(allowIP, forwardNode);
             }
 
-            AddAllowAllRule(doc, forwardNode, "ipv4", "0.0.0.0/0");
-            AddAllowAllRule(doc, forwardNode, "ipv6", "::/0");
+            AddAllowAllRule(doc, forwardNode, "tcp", "ipv4", "0.0.0.0/0");
+            AddAllowAllRule(doc, forwardNode, "udp", "ipv4", "0.0.0.0/0");
+            AddAllowAllRule(doc, forwardNode, "tcp", "ipv6", "::/0");
+            AddAllowAllRule(doc, forwardNode, "udp", "ipv6", "::/0");
 
             // pretty print
             XDocument xDoc = XDocument.Parse(doc.OuterXml);
