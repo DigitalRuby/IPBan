@@ -452,35 +452,26 @@ namespace DigitalRuby.IPBanCore
                 }
             }
 
-            // allow all ipv4
-            var allIPV4 = doc.CreateElement("rule");
-            allIPV4.SetAttribute("priority", "100");
-            allIPV4.SetAttribute("family", "ipv4");
-            var allIPV4Source = doc.CreateElement("source");
-            allIPV4Source.SetAttribute("address", "0.0.0.0/0");
-            allIPV4.AppendChild(allIPV4Source);
-            var allIPV4Port = doc.CreateElement("port");
-            allIPV4Port.SetAttribute("port", "0-65535");
-            allIPV4Port.SetAttribute("protocol", "tcp");
-            allIPV4.AppendChild(allIPV4Port);            
-            var allIPV4Accept = doc.CreateElement("accept");
-            allIPV4.AppendChild(allIPV4Accept);
-            doc.DocumentElement.InsertBefore(allIPV4, forwardNode);
+            static void AddAllowAllRule(XmlDocument doc, XmlElement forwardNode, string family, string ips)
+            {
+                // allow all ipv4
+                var allowIP = doc.CreateElement("rule");
+                allowIP.SetAttribute("priority", "100");
+                allowIP.SetAttribute("family", family);
+                var allowIPSource = doc.CreateElement("source");
+                allowIPSource.SetAttribute("address", ips);
+                allowIP.AppendChild(allowIPSource);
+                var allowIPPort = doc.CreateElement("port");
+                allowIPPort.SetAttribute("port", "0-65535");
+                allowIPPort.SetAttribute("protocol", "tcp");
+                allowIP.AppendChild(allowIPPort);
+                var allowIPAccept = doc.CreateElement("accept");
+                allowIP.AppendChild(allowIPAccept);
+                doc.DocumentElement.InsertBefore(allowIP, forwardNode);
+            }
 
-            // allow all ipv6
-            var allIPV6 = doc.CreateElement("rule");
-            allIPV6.SetAttribute("priority", "100");
-            allIPV6.SetAttribute("family", "ipv6");
-            var allIPV6Source = doc.CreateElement("source");
-            allIPV6Source.SetAttribute("address", "0.0.0.0/0");
-            allIPV6.AppendChild(allIPV6Source);
-            var allIPV6Port = doc.CreateElement("port");
-            allIPV6Port.SetAttribute("port", "0-65535");
-            allIPV6Port.SetAttribute("protocol", "tcp");
-            allIPV6.AppendChild(allIPV6Port);
-            var allIPV6Accept = doc.CreateElement("accept");
-            allIPV6.AppendChild(allIPV6Accept);
-            doc.DocumentElement.InsertBefore(allIPV6, forwardNode);
+            AddAllowAllRule(doc, forwardNode, "ipv4", "0.0.0.0/0");
+            AddAllowAllRule(doc, forwardNode, "ipv6", "::/0");
 
             // pretty print
             XDocument xDoc = XDocument.Parse(doc.OuterXml);
