@@ -64,8 +64,9 @@ namespace DigitalRuby.IPBanCore
                 zoneFileOrig = "/usr/lib/firewalld/zones/public.xml";
                 zoneFile = "/etc/firewalld/zones/public.xml";
                 string version = OSUtility.StartProcessAndWait("sudo", "firewall-cmd --version");
-                Logger.Warn("FirewallD version {0}", version);
-                if (!Version.TryParse(version?.Trim(), out var versionObj))
+                version = (version?.Trim()) ?? string.Empty;
+                Logger.Warn("FirewallD version: {0}", version);
+                if (!Version.TryParse(version, out var versionObj))
                 {
                     versionObj = new(1, 0, 0);
                 }
