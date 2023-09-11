@@ -10,7 +10,7 @@ In the failed login regex, the period can be changed to the desired paths if des
 	<PathAndMask>/var/log/apache/*access*.log</PathAndMask>
 	<FailedLoginRegex>
 		<![CDATA[
-			^(?<ipaddress>[^\s]+)[^\-]+-[^\-]+-\s\[(?<timestamp>[^\]]+)\]\s[^\s]+\s[^\s]+\s[^\s]+\s(?:4[0-9][0-9])\s[^\s]+\s[^\s]+\s\"(?:.)
+			^(?<ipaddress>[^\s]+)[^\-]+-[^\-]+-\s\[(?<timestamp>[^\]]+)\]\s\"[^\s]+\s/(?:wp|phpmyadmin|x16|ysqladmin|sqladmin|pma|phpMyAdmin2|phpmyadmin2|MyAdmin|setup.cgi|admin.php|\.env|sea-config\.js|dispatch\.asp|php-admin|md5sum|cgi-bin|joomla)[^\s]*\s[^\s]+\s(?:4[0-9][0-9])\s
 		]]>
 	</FailedLoginRegex>
 	<FailedLoginRegexTimestampFormat></FailedLoginRegexTimestampFormat>
