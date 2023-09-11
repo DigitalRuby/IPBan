@@ -131,24 +131,27 @@ namespace DigitalRuby.IPBanTests
         [Test]
         public void TestCombineRanges()
         {
-            var range1 = IPAddressRange.Parse("103.32.0.0/16");
-            var range2 = IPAddressRange.Parse("103.32.132.0/22");
-            var merged = ExtensionMethods.Combine(new[] { range1, range2 }).ToArray();
-            Assert.That(merged.Length, Is.EqualTo(1));
+            var range1 = IPAddressRange.Parse("5.188.10.0/23");
+            var range2 = IPAddressRange.Parse("5.188.11.0/24");
+            var range3 = IPAddressRange.Parse("103.32.0.0/16");
+            var range4 = IPAddressRange.Parse("103.32.132.0/22");
+            var merged = ExtensionMethods.Combine(new[] { range1, range2, range3, range4 }).ToArray();
+            Assert.That(merged.Length, Is.EqualTo(2));
         }
 
-        [Test]
-        public void TestCombineList()
+        [TestCase("./TestData/IPSets/EmergingThreats.txt", 1354, 1243)]
+        [TestCase("./TestData/IPSets/SpamHaus.txt", 1165, 1156)]
+        public void TestCombineList(string path, int inputCount, int outputCount)
         {
-            var lines = System.IO.File.ReadAllText("./TestData/IPSets/EmergingThreats.txt");
+            var lines = System.IO.File.ReadAllText(path);
             var ranges = lines.Split(new[] { '\n' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
                 .Select(l => IPAddressRange.Parse(l))
                 .OrderBy(l => l)
                 .ToArray();
             var combined = ranges.Combine().ToArray();
 
-            Assert.That(ranges, Has.Length.EqualTo(1354));
-            Assert.That(combined, Has.Length.EqualTo(1243));
+            Assert.That(ranges, Has.Length.EqualTo(inputCount));
+            Assert.That(combined, Has.Length.EqualTo(outputCount));
         }
     }
 }
