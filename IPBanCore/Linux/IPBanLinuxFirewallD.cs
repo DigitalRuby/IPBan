@@ -49,6 +49,7 @@ namespace DigitalRuby.IPBanCore
         private readonly string zoneFile;
         private readonly string allowRuleName;
         private readonly string allowRuleName6;
+        private readonly bool canUseForwardNode;
 
         private bool dirty;
 
@@ -62,7 +63,14 @@ namespace DigitalRuby.IPBanCore
             {
                 zoneFileOrig = "/usr/lib/firewalld/zones/public.xml";
                 zoneFile = "/etc/firewalld/zones/public.xml";
-    }
+                string version = OSUtility.StartProcessAndWait("sudo", "firewall-cmd --version");
+                Logger.Warn("FirewallD version {0}", version);
+                if (!Version.TryParse(version?.Trim(), out var versionObj))
+                {
+                    versionObj = new(1, 0, 0);
+                }
+                canUseForwardNode = versionObj.Major >= 1;
+            }
             else
             {
                 // windows virtual layer
@@ -102,7 +110,8 @@ namespace DigitalRuby.IPBanCore
                 ip6s, cancelToken);
 
             // create or update rule
-            result |= CreateOrUpdateRule(zoneFile, zoneFileOrig, false, allowPriority, allowRuleName, allowRuleName6, Array.Empty<PortRange>());
+            result |= CreateOrUpdateRule(zoneFile, zoneFileOrig, false, allowPriority, allowRuleName, allowRuleName6,
+                Array.Empty<PortRange>(), canUseForwardNode);
             dirty = true;
 
             // done
@@ -124,7 +133,7 @@ namespace DigitalRuby.IPBanCore
                 ip6s, cancelToken);
 
             // create or update rule
-            result |= CreateOrUpdateRule(zoneFile, zoneFileOrig, false, allowPriority, set4, set6, allowedPorts);
+            result |= CreateOrUpdateRule(zoneFile, zoneFileOrig, false, allowPriority, set4, set6, allowedPorts, canUseForwardNode);
             dirty = true;
 
             // done
@@ -147,7 +156,7 @@ namespace DigitalRuby.IPBanCore
                 ip6s, cancelToken);
 
             // create or update rule
-            result |= CreateOrUpdateRule(zoneFile, zoneFileOrig, true, dropPriority, set4, set6, allowedPorts);
+            result |= CreateOrUpdateRule(zoneFile, zoneFileOrig, true, dropPriority, set4, set6, allowedPorts, canUseForwardNode);
             dirty = true;
 
             // done
@@ -169,7 +178,7 @@ namespace DigitalRuby.IPBanCore
                 ip6s, cancelToken);
 
             // create or update rule
-            result |= CreateOrUpdateRule(zoneFile, zoneFileOrig, true, dropPriority, set4, set6, allowedPorts);
+            result |= CreateOrUpdateRule(zoneFile, zoneFileOrig, true, dropPriority, set4, set6, allowedPorts, canUseForwardNode);
             dirty = true;
 
             // done
@@ -189,7 +198,7 @@ namespace DigitalRuby.IPBanCore
                 ipAddresses.Where(i => !i.IsIPV4), cancelToken);
 
             // create or update rule
-            result |= CreateOrUpdateRule(zoneFile, zoneFileOrig, true, dropPriority, set4, set6, allowedPorts);
+            result |= CreateOrUpdateRule(zoneFile, zoneFileOrig, true, dropPriority, set4, set6, allowedPorts, canUseForwardNode);
             dirty = true;
 
             // done
@@ -320,9 +329,10 @@ namespace DigitalRuby.IPBanCore
         /// <param name="ruleIP4">IP4 rule name</param>
         /// <param name="ruleIP6">IP6 rule name</param>
         /// <param name="allowedPorts">Allowed ports</param>
+        /// <param name="canUseForwardNode">Whether forward node is allowed</param>
         /// <returns></returns>
         public static bool CreateOrUpdateRule(string zoneFile, string zoneFileOrig, bool drop, int priority, string ruleIP4, string ruleIP6,
-            IEnumerable<PortRange> allowedPorts)
+            IEnumerable<PortRange> allowedPorts, bool canUseForwardNode)
         {
             EnsureZoneFile(zoneFile, zoneFileOrig);
 
@@ -427,7 +437,11 @@ namespace DigitalRuby.IPBanCore
                 forwardNode = doc.CreateElement("forward");
                 forwardNode.IsEmpty = true;
             }
-            doc.DocumentElement.AppendChild(forwardNode);
+
+            if (canUseForwardNode)
+            {
+                doc.DocumentElement.AppendChild(forwardNode);
+            }
 
             // remove global allow rules
             foreach (var ruleNode in doc.SelectNodes("//rule"))
@@ -470,7 +484,14 @@ namespace DigitalRuby.IPBanCore
                 allowIP.AppendChild(allowIPPort);
                 var allowIPAccept = doc.CreateElement("accept");
                 allowIP.AppendChild(allowIPAccept);
-                doc.DocumentElement.InsertBefore(allowIP, forwardNode);
+                if (forwardNode is null)
+                {
+                    doc.DocumentElement.AppendChild(allowIP);
+                }
+                else
+                {
+                    doc.DocumentElement.InsertBefore(allowIP, forwardNode);
+                }
             }
 
             AddAllowAllRule(doc, forwardNode, "tcp", "ipv4", "0.0.0.0/0");
