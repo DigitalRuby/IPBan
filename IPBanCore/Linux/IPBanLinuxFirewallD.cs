@@ -330,7 +330,7 @@ namespace DigitalRuby.IPBanCore
             XmlDocument doc = new();
             doc.Load(zoneFile);
 
-            static void UpsertXmlRule(XmlDocument doc, string ruleName, bool drop, int priority, IEnumerable<PortRange> allowedPorts)
+            static void UpsertXmlRule(XmlDocument doc, string ruleName, string family, bool drop, int priority, IEnumerable<PortRange> allowedPorts)
             {
                 // grab existing rule, if any
                 if (doc.SelectSingleNode($"//rule/source[@ipset='{ruleName}']") is not XmlElement ruleElement)
@@ -363,6 +363,8 @@ namespace DigitalRuby.IPBanCore
                     ruleElement.IsEmpty = true;
                     ruleElement.IsEmpty = false;
                 }
+
+                ruleElement.SetAttribute("family", family);
 
                 // assign rule attributes
                 var action = drop ? "drop" : "accept";
@@ -411,8 +413,8 @@ namespace DigitalRuby.IPBanCore
                 }
             }
 
-            UpsertXmlRule(doc, ruleIP4, drop, priority, allowedPorts);
-            UpsertXmlRule(doc, ruleIP6, drop, priority, allowedPorts);
+            UpsertXmlRule(doc, ruleIP4, "ipv4", drop, priority, allowedPorts);
+            UpsertXmlRule(doc, ruleIP6, "ipv6", drop, priority, allowedPorts);
 
             // make sure forward node is at the end
             var forwardNode = doc.SelectSingleNode("//forward") as XmlElement;
