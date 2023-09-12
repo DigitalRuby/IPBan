@@ -22,13 +22,11 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-using DigitalRuby.IPBanCore;
-
 using System;
-using System.Net;
-using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+
+using DigitalRuby.IPBanCore;
 
 namespace DigitalRuby.IPBan
 {
@@ -75,14 +73,15 @@ namespace DigitalRuby.IPBan
                 }
                 else if (args[0].Contains("logfiletest", StringComparison.OrdinalIgnoreCase))
                 {
-                    if (args.Length != 6)
+                    if (args.Length != 2)
                     {
-                        Console.WriteLine("Usage: log-filename regex-failure-filename regex-failure-timestamp-format regex-success-filename regex-success-timestamp-format");
+                        Console.WriteLine("Usage: param file with lines of log-filename regex-failure-filename regex-failure-timestamp-format regex-success-filename regex-success-timestamp-format");
                         Console.WriteLine("Can use a . to not specify the regex or timestamp format");
                     }
                     else
                     {
-                        IPBanLogFileTester.RunLogFileTest(args[1], args[2], args[3], args[4], args[5]);
+                        var lines = System.IO.File.ReadAllLines(args[1]);
+                        IPBanLogFileTester.RunLogFileTest(lines[0], lines[1], lines[2], lines[3], lines[4]);
                     }
                     return true;
                 }

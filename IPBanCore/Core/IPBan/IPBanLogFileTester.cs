@@ -48,14 +48,14 @@ namespace DigitalRuby.IPBanCore
         /// Test a log file
         /// </summary>
         /// <param name="fileName">Log file</param>
-        /// <param name="regexFailureFile">Failure regex file</param>
+        /// <param name="regexFailure">Failure regex</param>
         /// <param name="regexFailureTimestampFormat">Failure timestamp format</param>
-        /// <param name="regexSuccessFile">Success regex file</param>
+        /// <param name="regexSuccess">Success regex</param>
         /// <param name="regexSuccessTimestampFormat">Success timestamp format</param>
         public static void RunLogFileTest(string fileName,
-            string regexFailureFile,
+            string regexFailure,
             string regexFailureTimestampFormat,
-            string regexSuccessFile,
+            string regexSuccess,
             string regexSuccessTimestampFormat)
         {
             IPBanLogFileScanner scanner = new(new()
@@ -65,31 +65,29 @@ namespace DigitalRuby.IPBanCore
                 FailedLogLevel = LogLevel.Warning,
                 EventHandler = new LogFileWriter(),
                 MaxFileSizeBytes = 0,
-                PathAndMask = fileName.Trim(),
+                PathAndMask = (fileName + ".temp").Trim(),
                 PingIntervalMilliseconds = 0,
-                RegexFailure = (File.Exists(regexFailureFile) && regexFailureFile.Length > 2 ? IPBanRegexParser.ParseRegex(File.ReadAllText(regexFailureFile), true) : null),
+                RegexFailure = string.IsNullOrWhiteSpace(regexFailure) ? null : IPBanRegexParser.ParseRegex(regexFailure, true),
                 RegexFailureTimestampFormat = regexFailureTimestampFormat.Trim('.'),
-                RegexSuccess = (File.Exists(regexSuccessFile) && regexSuccessFile.Length > 2 ? IPBanRegexParser.ParseRegex(File.ReadAllText(regexSuccessFile), true) : null),
+                RegexSuccess = string.IsNullOrWhiteSpace(regexSuccess) ? null : IPBanRegexParser.ParseRegex(regexSuccess, true),
                 RegexSuccessTimestampFormat = regexSuccessTimestampFormat.Trim('.'),
                 Source = "test",
                 SuccessfulLogLevel = LogLevel.Warning
             });
 
             // start with empty file
-            File.Move(fileName, fileName + ".temp");
-            File.WriteAllText(fileName, string.Empty);
+            File.WriteAllText(scanner.PathAndMask, string.Empty);
 
             // read the empty file
             scanner.ProcessFiles();
 
-            // get rid of the empty file
-            File.Delete(fileName);
+            foreach (var line in File.ReadLines(fileName))
+            {
+                File.AppendAllLines(scanner.PathAndMask, new[] { line });
+                scanner.ProcessFiles();
+            }
 
-            // put the full file back
-            File.Move(fileName + ".temp", fileName);
-
-            // now the scanner will process the entire file
-            scanner.ProcessFiles();
+            File.Delete(scanner.PathAndMask);
         }
     }
 }

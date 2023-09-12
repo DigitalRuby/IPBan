@@ -596,7 +596,12 @@ namespace DigitalRuby.IPBanCore
             }
         }
 
-        private async Task LoadFirewall(IPBanConfig oldConfig)
+        /// <summary>
+        /// Load firewall
+        /// </summary>
+        /// <param name="oldConfig">Old config</param>
+        /// <returns>Task</returns>
+        protected virtual async Task LoadFirewall(IPBanConfig oldConfig)
         {
             IIPBanFirewall existing = Firewall;
 
