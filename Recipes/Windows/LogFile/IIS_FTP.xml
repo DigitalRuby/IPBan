@@ -1,4 +1,6 @@
 ﻿<!-- IIS FTP requests on Windows
+https://learn.microsoft.com/en-us/iis/extensions/advanced-logging-module/advanced-logging-for-iis-real-time-logging
+
 #Fields: date time c-ip cs-username s-ip s-port cs-method cs-uri-stem sc-status sc-win32-status sc-substatus x-session x-fullpath
 c-ip is the field with the remote ip
 
