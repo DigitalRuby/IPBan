@@ -433,12 +433,11 @@ namespace DigitalRuby.IPBanCore
             {
                 forwardNode.ParentNode.RemoveChild(forwardNode);
             }
-            else
+            else if (canUseForwardNode)
             {
                 forwardNode = doc.CreateElement("forward");
                 forwardNode.IsEmpty = true;
             }
-
             if (canUseForwardNode)
             {
                 doc.DocumentElement.AppendChild(forwardNode);
