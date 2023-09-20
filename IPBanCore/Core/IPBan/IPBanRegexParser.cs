@@ -255,7 +255,7 @@ namespace DigitalRuby.IPBanCore
 
                 // check for timestamp group
                 var timestampGroup = match.Groups["timestamp"];
-                if (timestampGroup != null && timestampGroup.Success)
+                if (timestampGroup is not null && timestampGroup.Success)
                 {
                     string toParse = timestampGroup.Value.Trim(regexTrimChars);
                     if (string.IsNullOrWhiteSpace(timestampFormat) ||
@@ -264,6 +264,21 @@ namespace DigitalRuby.IPBanCore
                     {
                         DateTime.TryParse(toParse, CultureInfo.InvariantCulture,
                             DateTimeStyles.AssumeLocal | DateTimeStyles.AdjustToUniversal, out timestamp);
+                    }
+                }
+
+                // try utc timestamp group, if any
+                if (timestamp == default &&
+                    (timestampGroup = match.Groups["timestamp_utc"]) is not null &&
+                    timestampGroup.Success)
+                {
+                    string toParse = timestampGroup.Value.Trim(regexTrimChars);
+                    if (string.IsNullOrWhiteSpace(timestampFormat) ||
+                        !DateTime.TryParseExact(toParse, timestampFormat.Trim(), CultureInfo.InvariantCulture,
+                            DateTimeStyles.AssumeUniversal, out timestamp))
+                    {
+                        DateTime.TryParse(toParse, CultureInfo.InvariantCulture,
+                            DateTimeStyles.AssumeUniversal, out timestamp);
                     }
                 }
 

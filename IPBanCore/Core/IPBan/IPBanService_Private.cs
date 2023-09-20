@@ -1100,7 +1100,9 @@ namespace DigitalRuby.IPBanCore
                         // for success logins increase time to log between events as some events (SSH) are reported multiple times
                         minTimeBetweenEvents = TimeSpan.FromSeconds(15.0);
                     }
-                    if ((UtcNow - existing.Timestamp) >= minTimeBetweenEvents)
+
+                    var timeDifference = UtcNow - existing.Timestamp;
+                    if (timeDifference >= minTimeBetweenEvents)
                     {
                         // update to the latest timestamp of the event
                         existing.Timestamp = UtcNow;
@@ -1110,7 +1112,11 @@ namespace DigitalRuby.IPBanCore
                     }
                     else
                     {
-                        Logger.Debug("Ignoring event {0} from {1}, min time between events has not elapsed", type, existing.IPAddress);
+                        Logger.Debug("Ignoring event {0} from ip {1}, time {2:0.00}s did not exceed min time {3:0.00}s between events",
+                            type,
+                            existing.IPAddress,
+                            timeDifference.TotalSeconds,
+                            minTimeBetweenEvents.TotalSeconds);
                     }
                 }
             }
