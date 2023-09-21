@@ -1,6 +1,8 @@
 <!-- RDWeb Log Checking
 https://learn.microsoft.com/en-us/iis/extensions/advanced-logging-module/advanced-logging-for-iis-real-time-logging
 
+*NOTE* If you've setup iis to log in local time, change the timestamp_utc group in the regex to just timestamp.
+
 Usernames are not captured in log file for failed logins, only successful logins.
 Two Example Failed Logins (1.2.3.4 Server IP 2.3.4.5 Client IP):
 2023-03-20 05:43:20 1.2.3.4 POST /RDWeb/Pages/en-US/login.aspx - 443 - 2.3.4.5 Mozilla/5.0+(Macintosh;+Intel+Mac+OS+X+10_15_7)+AppleWebKit/537.36+(KHTML,+like+Gecko)+Chrome/109.0.0.0+Safari/537.36 https://your.rdsserver.org.uk/RDWeb/webclient/ 200 0 0 15
@@ -14,12 +16,12 @@ Two Example successful logins:
 	<PathAndMask>C:/inetpub/logs/LogFiles/W3SVC1/**/*.log</PathAndMask>
 	<FailedLoginRegex>
 		<![CDATA[
-			^(?<timestamp>\d\d\d\d\-\d\d\-\d\d\s\d\d\:\d\d\:\d\d)\s[^\s]+\sPOST\s\/RDWeb\/Pages\/[^\/]+\/login\.aspx\s[^\s]+\s[0-9]+\s-\s(?<ipaddress>[^\s]+).*\s200\s[^\n]+\n
+			^(?<timestamp_utc>\d\d\d\d\-\d\d\-\d\d\s\d\d\:\d\d\:\d\d)\s[^\s]+\sPOST\s\/RDWeb\/Pages\/[^\/]+\/login\.aspx\s[^\s]+\s[0-9]+\s-\s(?<ipaddress>[^\s]+).*\s200\s[^\n]+\n
 		]]>
 	</FailedLoginRegex>
 	<SuccessfulLoginRegex>
           <![CDATA[
-            ^(?<timestamp>\d\d\d\d\-\d\d\-\d\d\s\d\d\:\d\d\:\d\d)\s[^\s]+\sPOST\s\/RDWeb\/Pages\/[^\/]+\/login\.aspx\s[^\s]+\s[0-9]+\s(?<username>[^\s]+)\s(?<ipaddress>[^\s]+).*\s302\s[^\n]+\n
+            ^(?<timestamp_utc>\d\d\d\d\-\d\d\-\d\d\s\d\d\:\d\d\:\d\d)\s[^\s]+\sPOST\s\/RDWeb\/Pages\/[^\/]+\/login\.aspx\s[^\s]+\s[0-9]+\s(?<username>[^\s]+)\s(?<ipaddress>[^\s]+).*\s302\s[^\n]+\n
           ]]>
 	</SuccessfulLoginRegex>
 	<PlatformRegex>Windows</PlatformRegex>

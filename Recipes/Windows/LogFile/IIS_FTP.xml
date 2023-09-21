@@ -1,6 +1,8 @@
 ﻿<!-- IIS FTP requests on Windows
 https://learn.microsoft.com/en-us/iis/extensions/advanced-logging-module/advanced-logging-for-iis-real-time-logging
 
+*NOTE* If you've setup iis to log in local time, change the timestamp_utc group in the regex to just timestamp.
+
 #Fields: date time c-ip cs-username s-ip s-port cs-method cs-uri-stem sc-status sc-win32-status sc-substatus x-session x-fullpath
 c-ip is the field with the remote ip
 
@@ -18,13 +20,13 @@ Success example:
 	<PathAndMask>C:/inetpub/logs/LogFiles/FTPSVC3/*.log</PathAndMask>
 	<FailedLoginRegex>
 		<![CDATA[
-			^(?<timestamp>[0-9A-Z\-]+\s[0-9\:]+)\s(?<ipaddress>[^\s]+)\s.*\sUSER\s(?<username>[^\s]+)[^\n]+\n.*\sPASS\s[^\s]+\s[45][^\n]+\n?
+			^(?<timestamp_utc>[0-9A-Z\-]+\s[0-9\:]+)\s(?<ipaddress>[^\s]+)\s.*\sUSER\s(?<username>[^\s]+)[^\n]+\n.*\sPASS\s[^\s]+\s[45][^\n]+\n?
 		]]>
 	</FailedLoginRegex>
 	<FailedLoginRegexTimestampFormat></FailedLoginRegexTimestampFormat>
 	<SuccessfulLoginRegex>
 		<![CDATA[
-			^(?<timestamp>[0-9A-Z\-]+\s[0-9\:]+)\s(?<ipaddress>[^\s]+)\s.*\sUSER\s(?<username>[^\s]+)\s[^\n]*\n.*\sPASS\s[^\s]+\s2[^\n]+\n?
+			^(?<timestamp_utc>[0-9A-Z\-]+\s[0-9\:]+)\s(?<ipaddress>[^\s]+)\s.*\sUSER\s(?<username>[^\s]+)\s[^\n]*\n.*\sPASS\s[^\s]+\s2[^\n]+\n?
 		]]>
 	</SuccessfulLoginRegex>
 	<SuccessfulLoginRegexTimestampFormat></SuccessfulLoginRegexTimestampFormat>
