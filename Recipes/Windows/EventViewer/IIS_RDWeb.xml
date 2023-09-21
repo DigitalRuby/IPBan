@@ -42,7 +42,7 @@ Example XML:
 			<Regex>^312$</Regex>
 		</Expression>
 		<Expression>
-			<XPath>(//UserName)[1]</XPath>
+			<XPath>(//Username)[1]</XPath>
 			<Regex>
 				<![CDATA[
 					(?<username>.+)
