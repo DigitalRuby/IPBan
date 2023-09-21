@@ -1,0 +1,61 @@
+<!--
+RDWeb successful logins on Windows. This is a good way to see if someone is trying to brute force their way into your network. Lots of successful logins are likely a sign of an attacker.
+
+Example XML:
+
+- <Event xmlns="http://schemas.microsoft.com/win/2004/08/events/event">
+- <System>
+  <Provider Name="Microsoft-Windows-TerminalServices-Gateway" Guid="{4d5ae6a1-c7c8-4e6d-b840-4d8080b42e1b}" />
+  <EventID>312</EventID>
+  <Version>0</Version>
+  <Level>0</Level>
+  <Task>3</Task>
+  <Opcode>30</Opcode>
+  <Keywords>0x4000000000000000</Keywords>
+  <TimeCreated SystemTime="2023-09-21T15:10:11.7719486Z" />
+  <EventRecordID>55692</EventRecordID>
+  <Correlation ActivityID="{0b95082d-f00b-4143-8b8f-7a26fee40000}" />
+  <Execution ProcessID="8184" ThreadID="11960" />
+  <Channel>Microsoft-Windows-TerminalServices-Gateway/Operational</Channel>
+  <Computer>machine.domain.local</Computer>
+  <Security UserID="S-1-5-20" />
+  </System>
+- <UserData>
+- <EventInfo xmlns="aag">
+  <Username>user@example</Username>
+  <IpAddress>3.4.5.6:53189</IpAddress>
+  </EventInfo>
+  </UserData>
+  </Event>
+
+-->
+
+<!-- RDWeb successful login attempts that are treated as failures on Windows. Put in ExpressionsToBlock:Groups xml element in config. -->
+<Group>
+	<Source>IIS</Source>
+	<Keywords>0x4000000000000000</Keywords>
+	<Path>Microsoft-Windows-TerminalServices-Gateway/Operational</Path>
+	<FailedLoginThreshold>10</FailedLoginThreshold>
+	<Expressions>
+		<Expression>
+			<XPath>//EventID</XPath>
+			<Regex>^312$</Regex>
+		</Expression>
+		<Expression>
+			<XPath>(//UserName)[1]</XPath>
+			<Regex>
+				<![CDATA[
+					(?<username>.+)
+				]]>
+			</Regex>
+		</Expression>
+		<Expression>
+			<XPath>(//IpAddress)[1]</XPath>
+			<Regex>
+				<![CDATA[
+					(?<ipaddress_exact>.+)
+				]]>
+			</Regex>
+		</Expression>
+	</Expressions>
+</Group>
