@@ -778,6 +778,45 @@ namespace DigitalRuby.IPBanCore
             return docBase;
         }
 
+        /// <summary>
+        /// Validate firewall uri rules
+        /// </summary>
+        /// <param name="firewallUriRules">Firewall uri rules</param>
+        /// <returns>Null if validated, otherwise an error</returns>
+        public static string ValidateFirewallUriRules(string firewallUriRules)
+        {
+            using StringReader reader = new(firewallUriRules);
+            string line;
+            while ((line = reader.ReadLine()) != null)
+            {
+                line = line.Trim();
+                string[] pieces = line.Split(',', StringSplitOptions.TrimEntries);
+                if (pieces.Length >= 3)
+                {
+                    if (TimeSpan.TryParse(pieces[1], out TimeSpan interval))
+                    {
+                        if (Uri.TryCreate(pieces[2], UriKind.Absolute, out Uri uri))
+                        {
+                            string rulePrefix = pieces[0]?.Trim() ?? string.Empty;
+                            if (string.IsNullOrWhiteSpace(rulePrefix))
+                            {
+                                return $"Invalid empty rule in uri firewall rule {line}";
+                            }
+                        }
+                        else
+                        {
+                            return $"Invalid uri format in uri firewall rule {line}";
+                        }
+                    }
+                    else
+                    {
+                        return $"Invalid timespan format in uri firewall rule {line}";
+                    }
+                }
+            }
+            return null;
+        }
+
         /// <inheritdoc />
         public bool IsWhitelisted(string entry) => whitelistFilter.IsFiltered(entry);
 

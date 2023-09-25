@@ -1310,7 +1310,7 @@ namespace DigitalRuby.IPBanCore
                     }
                     else
                     {
-                        Logger.Warn("Invalid timestamp format in uri firewall rule {0}", line);
+                        Logger.Warn("Invalid timespan format in uri firewall rule {0}", line);
                     }
                 }
             }
