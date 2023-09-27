@@ -479,18 +479,20 @@ namespace DigitalRuby.IPBanTests
 
         private async Task TestMultipleBanTimespansAsync(bool resetFailedLogin)
         {
+            var expectedBanTimes = new[] { TimeSpan.FromMinutes(1.0), TimeSpan.FromHours(1.0), TimeSpan.FromDays(1.0) };
+
             using IPBanConfig.TempConfigChanger configChanger = new(service, xml =>
             {
-                xml = IPBanConfig.ChangeConfigAppSetting(xml, "BanTime", "00:00:01:00,00:00:02:00,00:00:03:00");
+                xml = IPBanConfig.ChangeConfigAppSetting(xml, "BanTime", "00:00:01:00,00:01:00:00,01:00:00:00");
                 xml = IPBanConfig.ChangeConfigAppSetting(xml, "ResetFailedLoginCountForUnbannedIPAddresses", resetFailedLogin.ToString());
                 return xml;
             }, out string newConfig);
 
             Assert.AreEqual(3, service.Config.BanTimes.Length);
             Assert.AreEqual(resetFailedLogin, service.Config.ResetFailedLoginCountForUnbannedIPAddresses);
-            for (int i = 1; i <= 3; i++)
+            for (int i = 0; i < 3; i++)
             {
-                Assert.AreEqual(TimeSpan.FromMinutes(i), service.Config.BanTimes[i - 1]);
+                Assert.AreEqual(expectedBanTimes[i], service.Config.BanTimes[i]);
             }
 
             for (int i = 0; i < 4; i++)
@@ -533,7 +535,7 @@ namespace DigitalRuby.IPBanTests
                     Assert.IsTrue(service.DB.TryGetIPAddress(ip2, out IPBanDB.IPAddressEntry e2));
 
                     // i == 3 means wrap around from 3 minutes back to 1 minute
-                    TimeSpan expectedBanDuration = (i < 3 ? expectedBanDuration = TimeSpan.FromMinutes(i + 1) : TimeSpan.FromMinutes(1.0));
+                    TimeSpan expectedBanDuration = (i < 3 ? expectedBanTimes[i] : expectedBanTimes[0]);
                     Assert.AreEqual(expectedBanDuration, e1.BanEndDate - e1.BanStartDate);
                     Assert.AreEqual(expectedBanDuration, e2.BanEndDate - e2.BanStartDate);
                     if (resetFailedLogin)
@@ -575,7 +577,7 @@ namespace DigitalRuby.IPBanTests
                     }
                     Assert.IsTrue(service.DB.TryGetIPAddress(ip1, out e1));
                     Assert.IsTrue(service.DB.TryGetIPAddress(ip2, out e2));
-                    TimeSpan expectedBanDuration = TimeSpan.FromMinutes(1.0);
+                    TimeSpan expectedBanDuration = expectedBanTimes[0];
                     Assert.AreEqual(expectedBanDuration, e1.BanEndDate - e1.BanStartDate);
                     Assert.AreEqual(expectedBanDuration, e2.BanEndDate - e2.BanStartDate);
                     if (resetFailedLogin)
