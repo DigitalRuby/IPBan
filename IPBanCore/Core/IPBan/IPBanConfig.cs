@@ -113,6 +113,7 @@ namespace DigitalRuby.IPBanCore
         private readonly TimeSpan[] banTimes = new TimeSpan[] { TimeSpan.FromDays(1.0d) };
         private readonly TimeSpan expireTime = TimeSpan.FromDays(1.0d);
         private readonly TimeSpan cycleTime = TimeSpan.FromMinutes(1.0d);
+        private readonly TimeSpan minBanTime = TimeSpan.FromSeconds(5.0);
         private readonly TimeSpan minimumTimeBetweenFailedLoginAttempts = TimeSpan.FromSeconds(5.0);
         private readonly TimeSpan minimumTimeBetweenSuccessfulLoginAttempts = TimeSpan.FromSeconds(5.0);
 
@@ -189,7 +190,7 @@ namespace DigitalRuby.IPBanCore
             GetConfig<int>("FailedLoginAttemptsBeforeBan", ref failedLoginAttemptsBeforeBan, 1, 50);
             TryGetConfig<bool>("ResetFailedLoginCountForUnbannedIPAddresses", ref resetFailedLoginCountForUnbannedIPAddresses);
             GetConfigArray<TimeSpan>("BanTime", ref banTimes, emptyTimeSpanArray);
-            MakeBanTimesValid(ref banTimes);
+            MakeBanTimesValid(ref banTimes, minBanTime);
             TryGetConfig<bool>("ClearBannedIPAddressesOnRestart", ref clearBannedIPAddressesOnRestart);
             TryGetConfig<bool>("ClearFailedLoginsOnSuccessfulLogin", ref clearFailedLoginsOnSuccessfulLogin);
             TryGetConfig<bool>("ProcessInternalIPAddresses", ref processInternalIPAddresses);
@@ -285,7 +286,7 @@ namespace DigitalRuby.IPBanCore
             return stringValue;
         }
 
-        private static void MakeBanTimesValid(ref TimeSpan[] banTimes)
+        private static void MakeBanTimesValid(ref TimeSpan[] banTimes, TimeSpan minBanTime)
         {
             var newBanTimes = new List<TimeSpan>();
             TimeSpan max = TimeSpan.MinValue;
@@ -298,7 +299,7 @@ namespace DigitalRuby.IPBanCore
                 }
                 else
                 {
-                    banTimes[i] = banTimes[i].Clamp(TimeSpan.FromMinutes(1.0), maxBanTimeSpan);
+                    banTimes[i] = banTimes[i].Clamp(minBanTime, maxBanTimeSpan);
                 }
                 // Ensure all times are in strictly ascending order. We remember the up to i largest span in max. If a new span is smaller we have an issue.
                 // It is not enough to check banTimes[i-1] >= banTimes[i]. Example: 5,2,3 -> 2 would be skipped but not 3 which is also violating the order.
