@@ -426,6 +426,8 @@ namespace DigitalRuby.IPBanCore
                 ipDB.TryGetIPAddress(ipAddress, out IPBanDB.IPAddressEntry ipEntry, transaction) &&
                 ipEntry.BanStartDate != null && ipEntry.BanEndDate != null)
             {
+                Logger.Debug("Multiple ban times detected, detecting if ip {0} can move to next ban time slot.", ipAddress);
+
                 // find the next ban time in the array
                 banTime = ipEntry.BanEndDate.Value - ipEntry.BanStartDate.Value;
                 for (int i = 0; i < banTimes.Length; i++)
@@ -440,6 +442,7 @@ namespace DigitalRuby.IPBanCore
                     }
                 }
             }
+
             int adjustedCount = (counter <= 0 ? Config.FailedLoginAttemptsBeforeBan : counter);
             bannedIpAddresses?.Add(new IPAddressLogEvent(ipAddress, userName, source, adjustedCount,
                 IPAddressEventType.Blocked, logData: logData, notificationFlags: notificationFlags));
