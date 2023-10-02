@@ -230,7 +230,8 @@ namespace DigitalRuby.IPBanCore
         public HashSet<Type> FirewallTypes { get; } = new()
         {
             typeof(IPBanWindowsFirewall),
-            typeof(IPBanLinuxFirewallD)
+            typeof(IPBanLinuxFirewallD),
+            typeof(IPBanLinuxFirewallIPTables)
         };
 
         /// <summary>
