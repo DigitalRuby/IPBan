@@ -741,7 +741,6 @@ namespace DigitalRuby.IPBanCore
                     TimeSpan span = ipAddress.BanEndDate.Value - ipAddress.BanStartDate.Value;
                     int i = banTimes.Length;
                     firewallNeedsBlockedIPAddressesUpdate = true;
-                    unbanList?.Add(ipAddress.IPAddress);
 
                     // if more than one ban time, we have tiered ban times where the ban time increases 
                     if (banTimes.Length > 1)
@@ -764,6 +763,7 @@ namespace DigitalRuby.IPBanCore
                     }
                     else
                     {
+                        unbanList?.Add(ipAddress.IPAddress);
                         Logger.Warn("Un-banning ip address {0}, ban expired", ipAddress.IPAddress);
                         ipDB.SetIPAddressesState(new string[] { ipAddress.IPAddress }, IPBanDB.IPAddressState.RemovePending, transaction);
                     }
