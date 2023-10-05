@@ -804,6 +804,7 @@ namespace DigitalRuby.IPBanTests
             RunConfigBanTest("BlacklistRegex", "^(11.0.0.*)|(99.99.99.[0-9])$", "11.0.0.1", "193.168.99.99", 1);
             RunConfigBanTest("BlacklistRegex", "^(11.0.0.*)|(99.99.99.[0-9])$", "99.99.99.1", "193.168.99.98", 1);
             RunConfigBanTest("BlacklistRegex", ".", "99.99.99.2", null);
+            RunConfigBanTest("BlacklistRegex", @"^(?:(?:194\.165\.16.*)|(?:5\.188\.62.*))", "5.188.62.140", null);
         }
 
         [Test]
