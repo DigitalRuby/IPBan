@@ -994,11 +994,31 @@ namespace DigitalRuby.IPBanCore
         /// </summary>
         public string RequiredOS { get; }
 
+        private int priority;
         /// <summary>
         /// Priority - higher priority are preferred when registering firewalls.
         /// Set to less than 0 to not include in regular firewall injection.
         /// </summary>
-        public int Priority { get; set; } = 1;
+        public int Priority
+        {
+            get
+            {
+                if (string.IsNullOrWhiteSpace(PriorityEnvironmentVariable))
+                {
+                    return priority;
+                }
+                string value = Environment.GetEnvironmentVariable(PriorityEnvironmentVariable);
+                if (string.IsNullOrWhiteSpace(value) || !int.TryParse(value, out var priorityOverride))
+                {
+                    return priority;
+                }
+                return priorityOverride;
+            }
+            set
+            {
+                priority = value;
+            }
+        }
 
         /// <summary>
         /// Major version minimum. Set to 0 or less to ignore.
@@ -1019,6 +1039,11 @@ namespace DigitalRuby.IPBanCore
         /// Require an environment variable to exist (key=value syntax)
         /// </summary>
         public string RequireEnvironmentVariable { get; set; }
+
+        /// <summary>
+        /// Priority environment variable to override priority (key=value syntax)
+        /// </summary>
+        public string PriorityEnvironmentVariable { get; set; }
 
         /// <summary>
         /// Whether the current OS is a match for this attribute
