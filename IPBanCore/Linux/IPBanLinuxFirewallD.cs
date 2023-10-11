@@ -83,7 +83,7 @@ namespace DigitalRuby.IPBanCore
                 zoneFile = Path.Combine(zoneFile, "public.xml");
             }
             allowRuleName = AllowRulePrefix + "4";
-            allowRuleName = AllowRulePrefix + "6";
+            allowRuleName6 = AllowRulePrefix + "6";
             EnsureZoneFile(zoneFile, zoneFileOrig);
         }
 
