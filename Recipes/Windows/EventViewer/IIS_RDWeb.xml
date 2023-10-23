@@ -35,7 +35,7 @@ Example XML:
 	<Source>IIS</Source>
 	<Keywords>0x4000000000000000</Keywords>
 	<Path>Microsoft-Windows-TerminalServices-Gateway/Operational</Path>
-	<FailedLoginThreshold>10</FailedLoginThreshold>
+	<FailedLoginThreshold>0</FailedLoginThreshold>
 	<Expressions>
 		<Expression>
 			<XPath>//EventID</XPath>
