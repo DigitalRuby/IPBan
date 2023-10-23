@@ -285,7 +285,12 @@ namespace DigitalRuby.IPBanCore
             }
         }
 
-        private static IEnumerable<IPAddressRange> EnumerateSortedIPAddressRanges(IEnumerable<IPAddressRange> ranges)
+        /// <summary>
+        /// Enumerate sorted ip addresses and break non cidr ranges into individual entries.
+        /// </summary>
+        /// <param name="ranges">Ranges</param>
+        /// <returns>Enumerated ranges</returns>
+        public static IEnumerable<IPAddressRange> EnumerateSortedIPAddressRanges(IEnumerable<IPAddressRange> ranges)
         {
             const int maxIPExtractedFromRange = 256;
 

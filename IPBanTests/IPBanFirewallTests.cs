@@ -331,6 +331,14 @@ namespace DigitalRuby.IPBanTests
                 doc.Load(zoneFile);
                 var rules = doc.SelectNodes("//rule");
                 Assert.AreEqual(6, rules.Count);
+
+                var ip6 = IPBanLinuxIPSetFirewallD.EnumerateSortedIPAddressRanges(new[]
+                {
+                    IPAddressRange.Parse("2001:620:20d0::23-2001:620:20d0::24")
+                }).ToArray();
+                Assert.That(ip6, Has.Length.EqualTo(2));
+                Assert.That(ip6[0].ToString(), Is.EqualTo("2001:620:20d0::23"));
+                Assert.That(ip6[1].ToString(), Is.EqualTo("2001:620:20d0::24"));
             }
             finally
             {
