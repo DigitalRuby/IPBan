@@ -249,6 +249,16 @@ namespace DigitalRuby.IPBanCore
         public bool Outbound { get; init; }
 
         /// <summary>
+        /// Data
+        /// </summary>
+        public IntPtr Data { get; init; }
+
+        /// <summary>
+        /// Data length
+        /// </summary>
+        public int DataLength { get; init; }
+
+        /// <summary>
         /// Header row to match ToString method, including newline character(s).
         /// </summary>
         public static string Header { get; } = "Timestamp|FQDN|RuleName|Protocol|Direction|LocalIpAddress|LocalPort|RemoteIpAddress|RemotePort|RemoteISP|RemoteCountry|RemoteRegion|RemoteCity" + Environment.NewLine;
