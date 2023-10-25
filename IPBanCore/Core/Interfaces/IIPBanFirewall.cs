@@ -24,6 +24,7 @@ SOFTWARE.
 
 using System;
 using System.Collections.Generic;
+using System.Runtime.Serialization;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -251,11 +252,17 @@ namespace DigitalRuby.IPBanCore
         /// <summary>
         /// Data
         /// </summary>
+        [System.Text.Json.Serialization.JsonIgnore]
+        [Newtonsoft.Json.JsonIgnore]
+        [IgnoreDataMember]
         public IntPtr Data { get; init; }
 
         /// <summary>
         /// Data length
         /// </summary>
+        [System.Text.Json.Serialization.JsonIgnore]
+        [Newtonsoft.Json.JsonIgnore]
+        [IgnoreDataMember]
         public int DataLength { get; init; }
 
         /// <summary>
