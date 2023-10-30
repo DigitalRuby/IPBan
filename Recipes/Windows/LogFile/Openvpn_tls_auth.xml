@@ -1,0 +1,19 @@
+<!-- openvpn Windows Server - 2 different interfaces/servers running/tcp443/udp1401 - Line 1 is detecting unwanted Browser-Access if server runs on tcp 443, Line 2 is for UDP-Server tls-auth ta.key not matching  -->
+
+<LogFile>
+
+        <Source>OpenVPN</Source>
+        <PathAndMask>C:/Program Files/OpenVPN/log/*.log</PathAndMask>
+        <Recursive>true</Recursive>
+        <FailedLoginRegex>
+          <![CDATA[
+            ^(?<timestamp>\d\d\d\d-\d\d-\d\d\s\d\d:\d\d:\d\d)\s(.*\/)?(?<ipaddress>.*):\d*\/?\sWARNING: Bad encapsulated packet length from peer|
+            ^(?<timestamp>\d\d\d\d-\d\d-\d\d\s\d\d:\d\d:\d\d)\sTLS Error: cannot locate HMAC in incoming packet from \[AF_INET\](?<ipaddress>.*):\d*
+          ]]>
+        </FailedLoginRegex>
+        <PlatformRegex>Windows</PlatformRegex>
+        <PingInterval>10000</PingInterval>
+        <MaxFileSize>16777216</MaxFileSize>
+        <FailedLoginThreshold>1</FailedLoginThreshold>
+
+    </LogFile>
