@@ -1024,7 +1024,10 @@ namespace DigitalRuby.IPBanCore {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Extra firewall rules, one per line. Great way to persist firewall rules. Format is &apos;rule-name;allow or block;ip list (comma spearated);allowed port list (comma separated);platform regex&apos;. The name should be kept to 16 or less chars..
+        ///   Looks up a localized string similar to Extra firewall rules, one per line. Great way to persist firewall rules. Format is &apos;rule-name;allow or block;ip list (comma spearated);port list (comma separated);platform regex&apos;. The name should be kept to 16 or less chars.
+        ///
+        ///For allow rules, port list is allowed ports, so if you wanted to allow port 3389, just enter 3389.
+        ///For block rules, port list is ignored ports, so if you wanted to block port 3389, you&apos;d enter 0-3388,3390-65535..
         /// </summary>
         public static string FirewallRulesTooltip {
             get {

@@ -725,7 +725,10 @@
     <value>Firewall Rules</value>
   </data>
   <data name="FirewallRulesTooltip" xml:space="preserve">
-    <value>Extra firewall rules, one per line. Great way to persist firewall rules. Format is 'rule-name;allow or block;ip list (comma spearated);allowed port list (comma separated);platform regex'. The name should be kept to 16 or less chars.</value>
+    <value>Extra firewall rules, one per line. Great way to persist firewall rules. Format is 'rule-name;allow or block;ip list (comma spearated);port list (comma separated);platform regex'. The name should be kept to 16 or less chars.
+
+For allow rules, port list is allowed ports, so if you wanted to allow port 3389, just enter 3389.
+For block rules, port list is ignored ports, so if you wanted to block port 3389, you'd enter 0-3388,3390-65535.</value>
   </data>
   <data name="UserNameWhitelistRegex" xml:space="preserve">
     <value>User Name Whitelist Regex</value>
