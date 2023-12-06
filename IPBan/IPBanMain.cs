@@ -81,7 +81,9 @@ namespace DigitalRuby.IPBan
                     else
                     {
                         var lines = System.IO.File.ReadAllLines(args[1]);
-                        IPBanLogFileTester.RunLogFileTest(lines[0], lines[1], lines[2], lines[3], lines[4]);
+                        var regexFailure = System.IO.File.Exists(lines[1]) ? System.IO.File.ReadAllText(lines[1]) : string.Empty;
+                        var regexSuccess = System.IO.File.Exists(lines[2]) ? System.IO.File.ReadAllText(lines[2]) : string.Empty;
+                        IPBanLogFileTester.RunLogFileTest(lines[0], regexFailure, regexSuccess, lines[3], lines[4]);
                     }
                     return true;
                 }

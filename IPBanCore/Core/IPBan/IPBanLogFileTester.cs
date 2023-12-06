@@ -81,10 +81,14 @@ namespace DigitalRuby.IPBanCore
             // read the empty file
             scanner.ProcessFiles();
 
-            foreach (var line in File.ReadLines(fileName))
             {
-                File.AppendAllLines(scanner.PathAndMask, new[] { line });
-                scanner.ProcessFiles();
+                using var fs = File.Open(scanner.PathAndMask, FileMode.Open, FileAccess.Read | FileAccess.Write, FileShare.ReadWrite);
+                using var w = new StreamWriter(fs) { AutoFlush = true };
+                foreach (var line in File.ReadLines(fileName))
+                {
+                    w.WriteLine(line);
+                    scanner.ProcessFiles();
+                }
             }
 
             File.Delete(scanner.PathAndMask);
