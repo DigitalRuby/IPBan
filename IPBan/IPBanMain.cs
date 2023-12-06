@@ -75,15 +75,13 @@ namespace DigitalRuby.IPBan
                 {
                     if (args.Length != 2)
                     {
-                        Console.WriteLine("Usage: param file with lines of log-filename regex-failure-filename regex-failure-timestamp-format regex-success-filename regex-success-timestamp-format");
+                        Console.WriteLine("Usage: param file with lines of log-filename regex-failure regex-failure-timestamp-format regex-success regex-success-timestamp-format");
                         Console.WriteLine("Can use a . to not specify the regex or timestamp format");
                     }
                     else
                     {
                         var lines = System.IO.File.ReadAllLines(args[1]);
-                        var regexFailure = System.IO.File.Exists(lines[1]) ? System.IO.File.ReadAllText(lines[1]) : string.Empty;
-                        var regexSuccess = System.IO.File.Exists(lines[2]) ? System.IO.File.ReadAllText(lines[2]) : string.Empty;
-                        IPBanLogFileTester.RunLogFileTest(lines[0], regexFailure, regexSuccess, lines[3], lines[4]);
+                        IPBanLogFileTester.RunLogFileTest(lines[0], lines[1], lines[2], lines[3], lines[4]);
                     }
                     return true;
                 }
