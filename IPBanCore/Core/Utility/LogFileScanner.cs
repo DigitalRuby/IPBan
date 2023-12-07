@@ -504,56 +504,63 @@ namespace DigitalRuby.IPBanCore
             fs.Position = file.LastPosition;
 
             // fill up to 64K bytes
-            using var bytes = BytePool.Rent(ushort.MaxValue);
-            int read = fs.Read(bytes, 0, ushort.MaxValue);
-
-            // setup state
-            int bytesEnd;
-            bool foundNewLine = false;
-
-            // find the last newline char
-            for (bytesEnd = read - 1; bytesEnd >= 0; bytesEnd--)
+            var bytes = ArrayPool<byte>.Shared.Rent(ushort.MaxValue);
+            try
             {
-                if (bytes[bytesEnd] == '\n')
+                int read = fs.Read(bytes, 0, ushort.MaxValue);
+
+                // setup state
+                int bytesEnd;
+                bool foundNewLine = false;
+
+                // find the last newline char
+                for (bytesEnd = read - 1; bytesEnd >= 0; bytesEnd--)
                 {
-                    // take bytes up to and including the last newline char
-                    bytesEnd++;
-                    foundNewLine = true;
-                    break;
+                    if (bytes[bytesEnd] == '\n')
+                    {
+                        // take bytes up to and including the last newline char
+                        bytesEnd++;
+                        foundNewLine = true;
+                        break;
+                    }
+                }
+
+                // check for binary file
+                if (!foundNewLine)
+                {
+                    if (read > maxLineLength)
+                    {
+                        // max line length bytes without a new line
+                        file.IsBinaryFile = true;
+                        Logger.Warn($"Aborting parsing log file {file.FileName}, file may be a binary file");
+                    }
+                    // reset position try again on next cycle
+                    fs.Position = file.LastPosition;
+                    return;
+                }
+
+                // if we found a newline, process all the text up until that newline
+                if (foundNewLine)
+                {
+                    try
+                    {
+                        // strip out all carriage returns and ensure string starts/ends with newlines
+                        string foundText = encoding.GetString(bytes, 0, bytesEnd).Trim().Replace("\r", string.Empty);
+                        string processText = "\n" + foundText + "\n";
+                        OnProcessText(processText);
+                        ProcessText?.Invoke(processText);
+                    }
+                    finally
+                    {
+                        // set file position for next processing
+                        fs.Position = file.LastPosition + bytesEnd;
+                        file.LastPosition = fs.Position;
+                    }
                 }
             }
-
-            // check for binary file
-            if (!foundNewLine)
+            finally
             {
-                if (read > maxLineLength)
-                {
-                    // max line length bytes without a new line
-                    file.IsBinaryFile = true;
-                    Logger.Warn($"Aborting parsing log file {file.FileName}, file may be a binary file");
-                }
-                // reset position try again on next cycle
-                fs.Position = file.LastPosition;
-                return;
-            }
-
-            // if we found a newline, process all the text up until that newline
-            if (foundNewLine)
-            {
-                try
-                {
-                    // strip out all carriage returns and ensure string starts/ends with newlines
-                    string foundText = encoding.GetString(bytes, 0, bytesEnd).Trim().Replace("\r", string.Empty);
-                    string processText = "\n" + foundText + "\n";
-                    OnProcessText(processText);
-                    ProcessText?.Invoke(processText);
-                }
-                finally
-                {
-                    // set file position for next processing
-                    fs.Position = file.LastPosition + bytesEnd;
-                    file.LastPosition = fs.Position;
-                }
+                ArrayPool<byte>.Shared.Return(bytes);
             }
         }
     }

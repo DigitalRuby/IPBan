@@ -701,12 +701,8 @@ namespace DigitalRuby.IPBanCore
         public static unsafe IPAddress ToIPAddressRaw(this UInt128 value)
         {
             byte* bytes = (byte*)&value;
-            using var managedBytes = BytePool.Rent(16);
-            for (int i = 0; i < 16; i++)
-            {
-                managedBytes[i] = bytes[i];
-            }
-            return new IPAddress(managedBytes.AsSpan());
+            ReadOnlySpan<byte> spanBytes = new(bytes, 16);
+            return new IPAddress(spanBytes);
         }
 
         /// <summary>
