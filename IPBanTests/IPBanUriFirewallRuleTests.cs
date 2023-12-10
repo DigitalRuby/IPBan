@@ -33,6 +33,7 @@ using System.Threading.Tasks;
 using DigitalRuby.IPBanCore;
 
 using NUnit.Framework;
+using NUnit.Framework.Legacy;
 
 namespace DigitalRuby.IPBanTests
 {
@@ -66,12 +67,12 @@ namespace DigitalRuby.IPBanTests
                     File.WriteAllText(tempFile, GetTestFile());
                 }
                 await rule.Update();
-                Assert.AreEqual(1, memoryFirewall.GetRuleNames("TestPrefix").ToArray().Length);
+                ClassicAssert.AreEqual(1, memoryFirewall.GetRuleNames("TestPrefix").ToArray().Length);
                 var ranges = memoryFirewall.EnumerateIPAddresses("TestPrefix").ToArray();
-                Assert.Contains(range1, ranges);
-                Assert.Contains(range2, ranges);
-                Assert.Contains(range3, ranges);
-                Assert.AreEqual(0, memoryFirewall.EnumerateAllowedIPAddresses().ToArray().Length);
+                ClassicAssert.Contains(range1, ranges);
+                ClassicAssert.Contains(range2, ranges);
+                ClassicAssert.Contains(range3, ranges);
+                ClassicAssert.AreEqual(0, memoryFirewall.EnumerateAllowedIPAddresses().ToArray().Length);
             }
             finally
             {
@@ -102,7 +103,7 @@ namespace DigitalRuby.IPBanTests
         {
             using IPBanUriFirewallRule rule = new(memoryFirewall, this, this, "TestPrefix", TimeSpan.FromMinutes(1.0), new Uri("file://c:/temp/qweoqpwejqowtempfirewall.txt"));
             await rule.Update();
-            Assert.AreEqual(0, memoryFirewall.EnumerateIPAddresses().ToArray().Length);
+            ClassicAssert.AreEqual(0, memoryFirewall.EnumerateIPAddresses().ToArray().Length);
         }
 
         [Test]

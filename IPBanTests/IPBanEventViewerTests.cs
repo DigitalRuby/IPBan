@@ -25,6 +25,7 @@ SOFTWARE.
 using DigitalRuby.IPBanCore;
 
 using NUnit.Framework;
+using NUnit.Framework.Legacy;
 
 using System;
 using System.Collections.Generic;
@@ -137,10 +138,10 @@ namespace DigitalRuby.IPBanTests
                     string foundUser = (result is null ? "x" : result.UserName ?? string.Empty);
                     string foundSource = (result is null ? "x" : result.Source ?? string.Empty);
                     IPAddressEventType foundType = (result is null ? IPAddressEventType.None : result.Type);
-                    Assert.AreEqual(test.IPAddress, foundIp);
-                    Assert.AreEqual(test.UserName, foundUser);
-                    Assert.AreEqual(test.Source, foundSource);
-                    Assert.AreEqual(test.EventType, foundType);
+                    ClassicAssert.AreEqual(test.IPAddress, foundIp);
+                    ClassicAssert.AreEqual(test.UserName, foundUser);
+                    ClassicAssert.AreEqual(test.Source, foundSource);
+                    ClassicAssert.AreEqual(test.EventType, foundType);
                 }
                 service.RunCycleAsync().Sync();
 
@@ -158,17 +159,17 @@ namespace DigitalRuby.IPBanTests
             Array.Sort(expectedBlockedIPAddresses);
             if (expectedBlockedIPAddresses.Length != actualBlockedIPAddresses.Length)
             {
-                Assert.Fail("Failed to block ips: " + string.Join(", ", expectedBlockedIPAddresses.Except(actualBlockedIPAddresses)));
+                ClassicAssert.Fail("Failed to block ips: " + string.Join(", ", expectedBlockedIPAddresses.Except(actualBlockedIPAddresses)));
             }
-            Assert.AreEqual(expectedBlockedIPAddresses, actualBlockedIPAddresses);
+            ClassicAssert.AreEqual(expectedBlockedIPAddresses, actualBlockedIPAddresses);
 
             int expectedSuccessCount = tests.Where(t => t.EventType == IPAddressEventType.SuccessfulLogin).Count();
-            Assert.AreEqual(expectedSuccessCount, successEvents.Count);
+            ClassicAssert.AreEqual(expectedSuccessCount, successEvents.Count);
 
             foreach (var test in tests.Where(t => t.EventType == IPAddressEventType.SuccessfulLogin))
             {
                 var shortString = $"{test.IPAddress}_{test.Source}_{test.UserName}";
-                Assert.AreEqual(5, successEvents[shortString]);
+                ClassicAssert.AreEqual(5, successEvents[shortString]);
             }
         }
 
