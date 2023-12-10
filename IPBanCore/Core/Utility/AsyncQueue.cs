@@ -23,8 +23,10 @@ SOFTWARE.
 */
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
+using System.Threading.Channels;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
 
@@ -34,29 +36,46 @@ namespace DigitalRuby.IPBanCore
     /// An async, non-blocking queue. This class is thread safe.
     /// </summary>
     /// <typeparam name="T">Type of object in the queue</typeparam>
-    public class AsyncQueue<T>
+    public class AsyncQueue<T> : IDisposable
     {
-        private readonly BufferBlock<T> queue = new();
+        private readonly SemaphoreSlim locker = new(0);
+        private readonly ConcurrentQueue<T> queue = new();
+
+        /// <summary>
+        /// Dispose
+        /// </summary>
+        public void Dispose()
+        {
+            GC.SuppressFinalize(this);
+            locker.Dispose();
+        }
 
         /// <summary>
         /// Add an item to the queue, causing TryDequeueAsync to return an item
         /// </summary>
         /// <param name="item"></param>
-        public void Enqueue(T item)
+        /// <returns>Task</returns>
+        public ValueTask EnqueueAsync(T item)
         {
-            queue.Post(item);
+            queue.Enqueue(item);
+            locker.Release(1);
+            return new();
         }
 
         /// <summary>
         /// Add many items to the queue, causing TryDequeueAsync to return for each item
         /// </summary>
         /// <param name="source">Source</param>
-        public void EnqueueRange(IEnumerable<T> source)
+        public ValueTask EnqueueRangeAsync(IEnumerable<T> source)
         {
+            int count = 0;
             foreach (var item in source)
             {
-                queue.Post(item);
+                queue.Enqueue(item);
+                count++;
             }
+            locker.Release(count);
+            return new();
         }
 
         /// <summary>
@@ -79,21 +98,17 @@ namespace DigitalRuby.IPBanCore
         {
             try
             {
-                T result = await queue.ReceiveAsync(timeout, cancellationToken);
-                return new KeyValuePair<bool, T>(true, result);
+                await locker.WaitAsync(timeout, cancellationToken);
+                if (queue.TryDequeue(out var result))
+                {
+                    return new KeyValuePair<bool, T>(true, result);
+                }
             }
             catch
             {
-                return new KeyValuePair<bool, T>(false, default);
-            }
-        }
 
-        /// <summary>
-        /// Number of items in the queue
-        /// </summary>
-        public int Count
-        {
-            get { return queue.Count; }
+            }
+            return new KeyValuePair<bool, T>(false, default);
         }
     }
 }
