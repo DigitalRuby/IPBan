@@ -59,6 +59,9 @@ namespace DigitalRuby.IPBanCore
             string rulePrefix = null,
             IIPBanFirewall previousFirewall = null)
         {
+
+#pragma warning disable IL2072
+
             try
             {
                 int priority = int.MinValue;
@@ -142,6 +145,9 @@ namespace DigitalRuby.IPBanCore
             {
                 throw new ArgumentException("Unable to create firewall, please double check your Firewall configuration property", ex);
             }
+
+#pragma warning restore
+
         }
 
         /// <summary>

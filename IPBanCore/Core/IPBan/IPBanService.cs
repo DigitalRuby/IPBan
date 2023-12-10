@@ -84,9 +84,9 @@ namespace DigitalRuby.IPBanCore
         /// Create an IPBanService by searching all types in all assemblies
         /// </summary>
         /// <returns>IPBanService (if not found an exception is thrown)</returns>
-        public static T CreateService<T>() where T : IPBanService
+        public static T CreateService<T>() where T : IPBanService, new()
         {
-            return Activator.CreateInstance(typeof(T), BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance, null, null, null) as T;
+            return new T();
         }
 
         /// <summary>
@@ -415,7 +415,7 @@ namespace DigitalRuby.IPBanCore
         /// <param name="cleanup">Whether to cleanup files first before starting the service</param>
         /// <returns>Service</returns>
         public static T CreateAndStartIPBanTestService<T>(string directory = null, string configFileName = null, string defaultBannedIPAddressHandlerUrl = null,
-            Func<string, string> configFileModifier = null, bool cleanup = true) where T : IPBanService
+            Func<string, string> configFileModifier = null, bool cleanup = true) where T : IPBanService, new()
         {
             // if not running tests, do nothing
             if (!UnitTestDetector.Running)

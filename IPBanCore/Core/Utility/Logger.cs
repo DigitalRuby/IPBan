@@ -203,7 +203,9 @@ namespace DigitalRuby.IPBanCore
                 LogFactory factory;
                 if (File.Exists(nlogConfigPath))
                 {
+#pragma warning disable CS0618 // Type or member is obsolete
                     factory = LogManager.LoadConfiguration(nlogConfigPath);
+#pragma warning restore CS0618 // Type or member is obsolete
                 }
                 else
                 {

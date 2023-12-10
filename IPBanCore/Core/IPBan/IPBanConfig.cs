@@ -423,7 +423,7 @@ namespace DigitalRuby.IPBanCore
         /// <param name="defaultValue">Default value if null or not found</param>
         /// <returns>Value or defaultValue if not found</returns>
         [UnconditionalSuppressMessage("Trimming", "IL2026:Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code", Justification = "jjxtra")]
-        public T GetConfig<T>(string key, T defaultValue = default)
+        public T GetConfig<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] T>(string key, T defaultValue = default)
         {
             T value = defaultValue;
             TryGetConfig(key, ref value);
@@ -439,7 +439,7 @@ namespace DigitalRuby.IPBanCore
         /// <param name="logMissing">Whether to log missing keys</param>
         /// <returns>True if config found, false if not</returns>
         [UnconditionalSuppressMessage("Trimming", "IL2026:Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code", Justification = "jjxtra")]
-        public bool TryGetConfig<T>(string key, ref T value, bool logMissing = true)
+        public bool TryGetConfig<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] T>(string key, ref T value, bool logMissing = true)
         {
             try
             {
@@ -472,7 +472,7 @@ namespace DigitalRuby.IPBanCore
         /// <param name="clampSmallTimeSpan">Whether to clamp small timespan to max value</param>
         /// <returns>Value</returns>
         [UnconditionalSuppressMessage("Trimming", "IL2026:Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code", Justification = "jjxtra")]
-        public void GetConfig<T>(string key, ref T value, T? minValue = null, T? maxValue = null, bool clampSmallTimeSpan = true) where T : struct, IComparable<T>
+        public void GetConfig<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] T>(string key, ref T value, T? minValue = null, T? maxValue = null, bool clampSmallTimeSpan = true) where T : struct, IComparable<T>
         {
             try
             {
@@ -502,7 +502,7 @@ namespace DigitalRuby.IPBanCore
         /// <param name="value">Value</param>
         /// <param name="defaultValue">Default value if array was empty</param>
         [UnconditionalSuppressMessage("Trimming", "IL2026:Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code", Justification = "jjxtra")]
-        public void GetConfigArray<T>(string key, ref T[] value, T[] defaultValue)
+        public void GetConfigArray<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] T>(string key, ref T[] value, T[] defaultValue)
         {
             try
             {

@@ -1252,32 +1252,6 @@ namespace DigitalRuby.IPBanCore
         }
 
         /// <summary>
-        /// Get a System.Type from a string, searching loaded and referenced assemblies if needed
-        /// </summary>
-        /// <param name="typeString"></param>
-        /// <returns>System.Type or null if none found</returns>
-        [UnconditionalSuppressMessage("Trimming", "IL2026:Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code", Justification = "jjxtra")]
-        public static Type GetTypeFromString(string typeString)
-        {
-            Type type = Type.GetType(typeString);
-            if (type != null)
-            {
-                return type;
-            }
-
-            IReadOnlyCollection<Assembly> assemblies = GetAllAssemblies();
-            foreach (Assembly assembly in assemblies)
-            {
-                type = assembly.GetType(typeString);
-                if (type != null)
-                {
-                    return type;
-                }
-            }
-            return null;
-        }
-
-        /// <summary>
         /// Check if type is an anonymous type
         /// </summary>
         /// <param name="type">Type</param>
