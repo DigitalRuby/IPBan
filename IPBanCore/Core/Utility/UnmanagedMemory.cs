@@ -84,6 +84,7 @@ namespace DigitalRuby.IPBanCore
         /// <summary>
         /// Acquire a reference. Call dispose to decrement the ref count. If ref count hits zero, the unmanaged memory is freed.
         /// </summary>
+        /// <remarks>This doesn't need to be called unless you are pasing the unmanaged memory to other places that need to retain a reference. The RefCount will always start at 1.</remarks>
         /// <returns>This</returns>
         public UnmanagedMemory AddRef()
         {
