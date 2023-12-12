@@ -25,6 +25,7 @@
 		<BuiltInComInteropSupport>true</BuiltInComInteropSupport>
 		<ServerGarbageCollection>false</ServerGarbageCollection>
 		<TrimMode>partial</TrimMode>
+		<JsonSerializerIsReflectionEnabledByDefault>true</JsonSerializerIsReflectionEnabledByDefault>
 	</PropertyGroup>
 
 	<ItemGroup>
