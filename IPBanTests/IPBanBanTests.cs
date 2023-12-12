@@ -974,7 +974,7 @@ namespace DigitalRuby.IPBanTests
                 List<IPAddressLogEvent> events =
                 [
                     new IPAddressLogEvent(banIP, "user1", "RDP", 999, IPAddressEventType.FailedLogin),
-                    .. !string.IsNullOrWhiteSpace(noBanIP) ? [new IPAddressLogEvent(noBanIP, "user2", "RDP", noBanIPCount, IPAddressEventType.FailedLogin)] : [],
+                    !string.IsNullOrWhiteSpace(noBanIP) ? new IPAddressLogEvent(noBanIP, "user2", "RDP", noBanIPCount, IPAddressEventType.FailedLogin) : null
                 ];
                 service.AddIPAddressLogEvents(events);
 

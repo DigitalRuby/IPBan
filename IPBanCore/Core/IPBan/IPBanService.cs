@@ -142,7 +142,7 @@ namespace DigitalRuby.IPBanCore
             var eventsArray = events.ToArray();
             lock (pendingLogEvents)
             {
-                pendingLogEvents.AddRange(eventsArray);
+                pendingLogEvents.AddRange(eventsArray.Where(e => e is not null));
             }
         }
 
