@@ -96,12 +96,18 @@ namespace DigitalRuby.IPBanCore
 
         private void InternalDispose()
         {
-            if (Interlocked.Decrement(ref refCount) == 0)
+            if (Pointer != IntPtr.Zero && Interlocked.Decrement(ref refCount) == 0)
             {
-                free.Invoke(Pointer);
-                free = null;
-                Pointer = IntPtr.Zero;
-                Size = 0;
+                try
+                {
+                    free.Invoke(Pointer);
+                }
+                finally
+                {
+                    free = null;
+                    Pointer = IntPtr.Zero;
+                    Size = 0;
+                }
             }
         }
     }
