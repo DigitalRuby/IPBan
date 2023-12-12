@@ -32,16 +32,13 @@ namespace DigitalRuby.IPBanCore
     /// <summary>
     /// Mac firewall (not implemented)
     /// </summary>
+    /// <remarks>
+    /// Constructor
+    /// </remarks>
+    /// <param name="rulePrefix">Rule prefix</param>
     [RequiredOperatingSystem(OSUtility.Mac)]
-    public class IPBanMacFirewall : IPBanBaseFirewall
+    public class IPBanMacFirewall(string rulePrefix = null) : IPBanBaseFirewall(rulePrefix)
     {
-        /// <summary>
-        /// Constructor
-        /// </summary>
-        /// <param name="rulePrefix">Rule prefix</param>
-        public IPBanMacFirewall(string rulePrefix = null) : base(rulePrefix)
-        {
-        }
 
         /// <inheritdoc />
         public override Task<bool> AllowIPAddresses(IEnumerable<string> ipAddresses, CancellationToken cancelToken = default)

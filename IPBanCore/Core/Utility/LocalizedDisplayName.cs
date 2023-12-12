@@ -29,14 +29,12 @@ namespace DigitalRuby.IPBanCore
     /// <summary>
     /// Apply a localized display name to an object
     /// </summary>
-    public class LocalizedDisplayNameAttribute : DisplayNameAttribute
+    /// <remarks>
+    /// Constructor
+    /// </remarks>
+    /// <param name="resourceId">Resource id</param>
+    public class LocalizedDisplayNameAttribute(string resourceId) : DisplayNameAttribute(GetMessageFromResource(resourceId))
     {
-        /// <summary>
-        /// Constructor
-        /// </summary>
-        /// <param name="resourceId">Resource id</param>
-        public LocalizedDisplayNameAttribute(string resourceId) : base(GetMessageFromResource(resourceId)) { }
-
         private static string GetMessageFromResource(string resourceId)
         {
             return IPBanResources.ResourceManager.GetString(resourceId);

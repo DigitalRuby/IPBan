@@ -149,10 +149,7 @@ namespace DigitalRuby.IPBanCore
             if (string.IsNullOrWhiteSpace(info.UserName))
             {
                 XmlNode userNameNode = doc.SelectSingleNode("//Data[@Name='TargetUserName']");
-                if (userNameNode is null)
-                {
-                    userNameNode = doc.SelectSingleNode("//TargetUserName");
-                }
+                userNameNode ??= doc.SelectSingleNode("//TargetUserName");
 
                 // if we have a user name node, use it
                 if (userNameNode != null)

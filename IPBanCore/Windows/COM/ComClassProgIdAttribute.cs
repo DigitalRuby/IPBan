@@ -3,14 +3,9 @@ using System.Linq;
 
 namespace DigitalRuby.IPBanCore.Windows.COM
 {
-    internal class ComClassProgIdAttribute : Attribute
+    internal class ComClassProgIdAttribute(string classProgId) : Attribute
     {
-        public ComClassProgIdAttribute(string classProgId)
-        {
-            ClassProgId = classProgId;
-        }
-
-        public string ClassProgId { get; }
+        public string ClassProgId { get; } = classProgId;
 
         public static string GetClassProgId<T>()
         {

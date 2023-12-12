@@ -177,7 +177,7 @@ namespace DigitalRuby.IPBanCore
                         list.Add(LogFileScanner.NormalizeGlob(s, out _, out _));
                     }
                 }
-                return list.ToArray();
+                return [.. list];
             }
         }
     }

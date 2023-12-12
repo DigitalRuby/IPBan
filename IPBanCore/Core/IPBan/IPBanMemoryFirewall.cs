@@ -190,7 +190,7 @@ namespace DigitalRuby.IPBanCore
             public int GetCount() => ipv4.Count + ipv6.Count;
         }
 
-        private class MemoryFirewallRule : IMemoryFirewallRule
+        private class MemoryFirewallRule(bool block, string name) : IMemoryFirewallRule
         {
             private readonly HashSet<uint> ipv4 = [];
             private readonly HashSet<UInt128> ipv6 = [];
@@ -199,15 +199,9 @@ namespace DigitalRuby.IPBanCore
             public IEnumerable<string> IPV4 => ipv4.Select(i => i.ToIPAddress().ToString());
             public IEnumerable<string> IPV6 => ipv6.Select(i => i.ToIPAddress().ToString());
 
-            public bool Block { get; }
+            public bool Block { get; } = block;
 
-            public string Name { get; }
-
-            public MemoryFirewallRule(bool block, string name)
-            {
-                Block = block;
-                Name = name;
-            }
+            public string Name { get; } = name;
 
             public void SetIPAddresses(IEnumerable<string> ipAddresses, IEnumerable<PortRange> allowPorts)
             {
@@ -385,7 +379,7 @@ namespace DigitalRuby.IPBanCore
             }
         }
 
-        private string ScrubRuleNamePrefix(string prefix, string ruleNamePrefix)
+        private static string ScrubRuleNamePrefix(string prefix, string ruleNamePrefix)
         {
             // in memory firewall does not have a count limit per rule, so remove the trailing underscore if any
             return (prefix + (ruleNamePrefix ?? string.Empty)).Trim('_');

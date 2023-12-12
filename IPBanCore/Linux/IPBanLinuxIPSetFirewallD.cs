@@ -118,12 +118,10 @@ namespace DigitalRuby.IPBanCore
         /// <param name="hashType">Hash type</param>
         /// <param name="inetType">Inet type</param>
         /// <param name="entries">Entries</param>
-        /// <param name="cancelToken">Cancel token</param>
         /// <returns>True if success, false if error</returns>
-        public static bool UpsertSet(string setName, string hashType, string inetType,
-            IEnumerable<IPAddressRange> entries, CancellationToken cancelToken)
+        public static bool UpsertSet(string setName, string hashType, string inetType, IEnumerable<IPAddressRange> entries)
         {
-            WriteSet(setName, hashType, inetType, entries.Select(e => e.ToString()), cancelToken);
+            WriteSet(setName, hashType, inetType, entries.Select(e => e.ToString()));
             return true;
         }
 
@@ -134,10 +132,8 @@ namespace DigitalRuby.IPBanCore
         /// <param name="hashType">Hash type</param>
         /// <param name="inetType">Inet type</param>
         /// <param name="entries">Entries</param>
-        /// <param name="cancelToken">Cancel token</param>
         /// <returns>True if success, false if error</returns>
-        public static bool UpsertSetDelta(string setName, string hashType, string inetType,
-            IEnumerable<IPBanFirewallIPAddressDelta> entries, CancellationToken cancelToken)
+        public static bool UpsertSetDelta(string setName, string hashType, string inetType, IEnumerable<IPBanFirewallIPAddressDelta> entries)
         {
             var existingEntries = ReadSet(setName);
             foreach (var entry in entries)
@@ -151,7 +147,7 @@ namespace DigitalRuby.IPBanCore
                     existingEntries.Remove(entry.IPAddress);
                 }
             }
-            WriteSet(setName, hashType, inetType, existingEntries, cancelToken);
+            WriteSet(setName, hashType, inetType, existingEntries);
             return true;
         }
 
@@ -256,8 +252,7 @@ namespace DigitalRuby.IPBanCore
             return (hashType, family, hashSize, maxElem);
         }
 
-        private static void WriteSet(string setName, string hashType, string inetFamily, IEnumerable<string> entries,
-            CancellationToken cancelToken)
+        private static void WriteSet(string setName, string hashType, string inetFamily, IEnumerable<string> entries)
         {
             // first write the set
             var fileName = Path.Combine(setsFolder, setName + ".xml");

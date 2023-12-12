@@ -44,7 +44,7 @@ namespace DigitalRuby.IPBanTests
             string otherIP = "88.88.88.88";
             string ipv6_1 = IPAddress.Parse("2001:db80:85a3:0:0:8a2e:370:7334").ToString();
             string ipv6_2 = IPAddress.Parse("2001:0db8:0a0b:12f0:0000:0000:0000:0001").ToString();
-            string[] blockIP = new string[] { allowIP, "100.100.100.100" };
+            string[] blockIP = [allowIP, "100.100.100.100"];
             IPBanMemoryFirewall f = new();
             f.AllowIPAddresses(new string[] { allowIP }).Sync();
             f.AllowIPAddresses("TestRuleAllow", new IPAddressRange[] { IPAddressRange.Parse(allowIP2) }).Sync();

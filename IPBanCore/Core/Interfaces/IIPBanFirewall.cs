@@ -297,13 +297,13 @@ namespace DigitalRuby.IPBanCore
         /// <summary>
         /// Whether this is an ipv4 (true) or ipv6 (false)
         /// </summary>
-        public bool IsIPV4 => System.Net.IPAddress.TryParse(IPAddress, out var ip) && ip.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork;
+        public readonly bool IsIPV4 => System.Net.IPAddress.TryParse(IPAddress, out var ip) && ip.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork;
 
         /// <summary>
         /// ToString
         /// </summary>
         /// <returns>String</returns>
-        public override string ToString()
+        public override readonly string ToString()
         {
             return $"{IPAddress} added = {Added}";
         }

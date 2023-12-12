@@ -87,7 +87,7 @@ namespace DigitalRuby.IPBanTests
             }
 
             cancelToken.Cancel();
-            ClassicAssert.IsTrue(Task.WhenAll(tasks.ToArray()).Wait(1000));
+            ClassicAssert.IsTrue(Task.WhenAll([.. tasks]).Wait(1000));
             ClassicAssert.AreEqual(500500, count); // sum of 1 to 1000
         }
     }

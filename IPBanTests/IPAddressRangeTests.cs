@@ -709,8 +709,8 @@ namespace DigitalRuby.IPBanTests
         [Test]
         public void TestFilterIPAddressRanges()
         {
-            IPAddressRange[] expected = new IPAddressRange[]
-            {
+            IPAddressRange[] expected =
+            [
                 "1.1.1.1-1.1.1.3",
                 "2.2.2.2",
                 "3.3.3.1-3.3.3.3",
@@ -720,10 +720,10 @@ namespace DigitalRuby.IPBanTests
                 "6.6.6.31-6.6.6.98",
                 "2620:0:2d0:2df::1-2620:0:2d0:2df::6",
                 "2620:0:2d0:2df::78-2620:0:2d0:2df::79"
-            };
+            ];
 
-            IPAddressRange[] filter = new IPAddressRange[]
-            {
+            IPAddressRange[] filter =
+            [
                 "0.0.0.0-1.1.1.0",
                 "1.1.1.4-2.2.2.1",
                 "2.2.2.3-3.3.3.0",
@@ -733,10 +733,10 @@ namespace DigitalRuby.IPBanTests
                 "6.6.6.20-6.6.6.30",
                 "6.6.6.99-255.255.255.255",
                 "2620:0:2d0:2df::7-2620:0:2d0:2df::77"
-            };
+            ];
 
-            IPAddressRange[] ranges = new IPAddressRange[]
-            {
+            IPAddressRange[] ranges =
+            [
                 "0.0.0.1-1.1.1.0", // filtered out
                 "1.1.1.1-2.2.2.1", // filtered down
                 "2.2.2.2-2.2.2.255", // filtered down
@@ -744,7 +744,7 @@ namespace DigitalRuby.IPBanTests
                 "6.6.6.6-7.7.7.7", // filtered 3x
                 "10.10.10.10-11.11.11.11", // filtered out
                 "2620:0:2d0:2df::1-2620:0:2d0:2df::79" // filtered down
-            };
+            ];
 
             TestFilterIPAddressRangesHelper(expected, null, filter, ranges);
         }
@@ -752,9 +752,9 @@ namespace DigitalRuby.IPBanTests
         [Test]
         public void TestFilterIPAddressRangesNulls()
         {
-            TestFilterIPAddressRangesHelper(System.Array.Empty<IPAddressRange>(), null, null, null);
-            TestFilterIPAddressRangesHelper(System.Array.Empty<IPAddressRange>(), null, new IPAddressRange[] { "1.1.1.1-2.2.2.2" }, null);
-            TestFilterIPAddressRangesHelper(new IPAddressRange[] { "1.1.1.1-2.2.2.2" }, null, null, new IPAddressRange[] { "1.1.1.1-2.2.2.2" });
+            TestFilterIPAddressRangesHelper([], null, null, null);
+            TestFilterIPAddressRangesHelper([], null, ["1.1.1.1-2.2.2.2"], null);
+            TestFilterIPAddressRangesHelper(["1.1.1.1-2.2.2.2"], null, null, ["1.1.1.1-2.2.2.2"]);
         }
 
         [Test]
@@ -762,10 +762,10 @@ namespace DigitalRuby.IPBanTests
         {
             TestFilterIPAddressRangesHelper
             (
-                new IPAddressRange[] { "1.1.1.1-2.2.2.2" },
+                ["1.1.1.1-2.2.2.2"],
                 null,
-                new IPAddressRange[] { "0.0.0.0-1.1.1.0", "2.2.2.3-2.2.2.255" },
-                new IPAddressRange[] { "1.1.1.1-2.2.2.2" }
+                ["0.0.0.0-1.1.1.0", "2.2.2.3-2.2.2.255"],
+                ["1.1.1.1-2.2.2.2"]
             );
         }
 
@@ -774,10 +774,10 @@ namespace DigitalRuby.IPBanTests
         {
             TestFilterIPAddressRangesHelper
             (
-                System.Array.Empty<IPAddressRange>(),
+                [],
                 null,
-                new IPAddressRange[] { "0.0.0.0-255.255.255.255" },
-                new IPAddressRange[] { "0.0.0.0-2.2.2.2", "5.5.5.5-6.6.6.6" }
+                ["0.0.0.0-255.255.255.255"],
+                ["0.0.0.0-2.2.2.2", "5.5.5.5-6.6.6.6"]
             );
         }
 

@@ -187,7 +187,7 @@ namespace DigitalRuby.IPBanCore
                     if (ipAddress.IsInternal())
                     {
                         // try querying through a web service
-                        var bytes = await RequestMaker.MakeRequestAsync(new Uri("https://api.ipban.com/myip"));
+                        var bytes = await RequestMaker.MakeRequestAsync(new Uri("https://api.ipban.com/myip"), cancelToken: cancelToken);
                         var ipString = Encoding.UTF8.GetString(bytes);
                         if (IPAddress.TryParse(ipString, out var ipObj))
                         {
@@ -375,7 +375,7 @@ namespace DigitalRuby.IPBanCore
                     {
                         Logger.Error(ex);
                     }
-                });
+                }, cancelToken);
             }
 
             return Task.CompletedTask;

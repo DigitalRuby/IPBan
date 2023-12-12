@@ -48,27 +48,19 @@ namespace DigitalRuby.IPBanCore
         /// <summary>
         /// Sqlite data reader wrapper
         /// </summary>
-        protected class SqliteDataReaderWrapper : IDisposable
+        /// <remarks>
+        /// Constructor
+        /// </remarks>
+        /// <param name="db">Db</param>
+        /// <param name="conn">Connection</param>
+        /// <param name="reader">Reader</param>
+        /// <param name="closeConn">True to auto close connection</param>
+        protected class SqliteDataReaderWrapper(SqliteDB db, SqliteConnection conn, SqliteDataReader reader, bool closeConn) : IDisposable
         {
-            private readonly SqliteDB db;
-            private readonly SqliteConnection conn;
-            private readonly SqliteDataReader reader;
-            private readonly bool closeConn;
-
-            /// <summary>
-            /// Constructor
-            /// </summary>
-            /// <param name="db">Db</param>
-            /// <param name="conn">Connection</param>
-            /// <param name="reader">Reader</param>
-            /// <param name="closeConn">True to auto close connection</param>
-            public SqliteDataReaderWrapper(SqliteDB db, SqliteConnection conn, SqliteDataReader reader, bool closeConn)
-            {
-                this.db = db;
-                this.conn = conn;
-                this.reader = reader;
-                this.closeConn = closeConn;
-            }
+            private readonly SqliteDB db = db;
+            private readonly SqliteConnection conn = conn;
+            private readonly SqliteDataReader reader = reader;
+            private readonly bool closeConn = closeConn;
 
             /// <inheritdoc />
             public void Dispose()

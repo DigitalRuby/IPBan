@@ -30,10 +30,14 @@ namespace DigitalRuby.IPBanCore
     /// <summary>
     /// Nasty hack for stupid xml serializer that cannot simply mark a property string as cdata
     /// </summary>
+    /// <remarks>
+    /// Constructor
+    /// </remarks>
+    /// <param name="value">Value</param>
     [System.Serializable]
-    public class XmlCData : IXmlSerializable
+    public class XmlCData(string value) : IXmlSerializable
     {
-        private string value;
+        private string value = (value ?? string.Empty).Trim();
 
         /// <summary>
         /// Allow direct assignment from string:
@@ -61,15 +65,6 @@ namespace DigitalRuby.IPBanCore
         /// </summary>
         public XmlCData() : this(string.Empty)
         {
-        }
-
-        /// <summary>
-        /// Constructor
-        /// </summary>
-        /// <param name="value">Value</param>
-        public XmlCData(string value)
-        {
-            this.value = (value ?? string.Empty).Trim();
         }
 
         /// <summary>

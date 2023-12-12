@@ -65,8 +65,8 @@ namespace DigitalRuby.IPBanTests
             const int pingInterval = 10000;
 
             // path and mask, fail expression, fail timestamp format, success expression, success timestamp format, platform regex, source
-            object[] logFileData = new object[]
-            {
+            object[] logFileData =
+            [
                 "/var/log/auth*.log\n/var/log/secure*\n/var/log/messages",
                 @"(?<log>failed\s+password)\s+for\s+(?:invalid\s+user\s+)?(?<username>[^\s]+)\s+from\s+(?<ipaddress>[^\s]+)\s+port\s+[0-9]+\s+ssh|(?<log>did\s+not\s+receive\s+identification\s+string)\s+from\s+(?<ipaddress>[^\s]+)|(?<log>connection\s+closed)\s+by\s+(?:(?:invalid\s+user\s+)?(?<username>[^\s]+)\s+)?(?<ipaddress>[^\s]+)\s+port\s+[0-9]+\s+\[preauth\]|(?<log>disconnected\s+from)\s+(?:invalid\s+user\s+)?(?<username>[^\s]+)\s+(?<ipaddress>[^\s]+)\s+port\s+[0-9]+\s+\[preauth\]|(?<log>disconnected\s+from)\s+(?<ipaddress>[^\s]+)\s+port\s+[0-9]+\s+\[preauth\]|(?<log>disconnected\s+from\s+authenticating\s+user)\s+(?<username>[^\s]+)\s+(?<ipaddress>[^\s]+)\s+port\s+[0-9]+\s+\[preauth\]",
                 @"",
@@ -115,7 +115,7 @@ namespace DigitalRuby.IPBanTests
                 @"(?<timestamp>\d\d\d\d-\d\d-\d\d\s\d\d:\d\d:\d\d(?:\.\d+)?Z?)?(?:,\s)?ipban\ssuccess\slogin,\sip\saddress:\s(?<ipaddress>[^,\n]+),\ssource:\s(?<source>[^,\n]+)?,\suser:\s(?<username>[^\s,]+)?",
                 @"",
                 "Windows", "IPBanCustom"
-            };
+            ];
 
             ClassicAssert.AreEqual(logFileData.Length / 7, cfg.LogFilesToParse.Count);
             for (int i = 0; i < logFileData.Length; i += 7)
@@ -354,7 +354,7 @@ e.g.
         {
             if (hostNameOrAddress == "test.com")
             {
-                return Task.FromResult<IPAddress[]>(new IPAddress[] { IPAddress.Parse("99.88.77.66") });
+                return Task.FromResult<IPAddress[]>([IPAddress.Parse("99.88.77.66")]);
             }
             throw new NotImplementedException();
         }

@@ -104,13 +104,13 @@ namespace DigitalRuby.IPBanCore
         /// </summary>
         public const string DefaultFileName = "ipban.config";
 
-        private static readonly TimeSpan[] emptyTimeSpanArray = new TimeSpan[] { TimeSpan.Zero };
-        private static readonly IPBanLogFileToParse[] emptyLogFilesToParseArray = Array.Empty<IPBanLogFileToParse>();
+        private static readonly TimeSpan[] emptyTimeSpanArray = [TimeSpan.Zero];
+        private static readonly IPBanLogFileToParse[] emptyLogFilesToParseArray = [];
         private static readonly TimeSpan maxBanTimeSpan = TimeSpan.FromDays(9999.0);
 
         private readonly Dictionary<string, string> appSettings = new(StringComparer.OrdinalIgnoreCase);
         private readonly IPBanLogFileToParse[] logFiles;
-        private readonly TimeSpan[] banTimes = new TimeSpan[] { TimeSpan.FromDays(1.0d) };
+        private readonly TimeSpan[] banTimes = [TimeSpan.FromDays(1.0d)];
         private readonly TimeSpan expireTime = TimeSpan.FromDays(1.0d);
         private readonly TimeSpan cycleTime = TimeSpan.FromMinutes(1.0d);
         private readonly TimeSpan minBanTime = TimeSpan.FromSeconds(5.0);
@@ -277,7 +277,7 @@ namespace DigitalRuby.IPBanCore
             var stringValue = appSettings[key];
 
             // config value can be read from env var if value starts and ends with %
-            if (stringValue.StartsWith("%") && stringValue.EndsWith("%"))
+            if (stringValue.StartsWith('%') && stringValue.EndsWith('%'))
             {
                 // read value from environment variable
                 stringValue = Environment.GetEnvironmentVariable(stringValue.Trim('%'))?.Trim() ?? string.Empty;
@@ -313,7 +313,7 @@ namespace DigitalRuby.IPBanCore
                     newBanTimes.Add(max);
                 }
             }
-            banTimes = newBanTimes.ToArray();
+            banTimes = [.. newBanTimes];
         }
 
         private static readonly ConcurrentDictionary<Type, XmlSerializer> eventViewerSerializers = new();
@@ -520,11 +520,11 @@ namespace DigitalRuby.IPBanCore
                 }
                 if (list.Count == 0)
                 {
-                    value = (defaultValue ?? list.ToArray());
+                    value = (defaultValue ?? [.. list]);
                 }
                 else
                 {
-                    value = list.ToArray();
+                    value = [.. list];
                 }
             }
             catch (Exception ex)
@@ -655,11 +655,7 @@ namespace DigitalRuby.IPBanCore
 
             XmlDocument doc = new();
             doc.LoadXml(config);
-            XmlNode appSettings = doc.SelectSingleNode($"/configuration/appSettings");
-            if (appSettings is null)
-            {
-                throw new InvalidOperationException("Unable to find appSettings in config");
-            }
+            XmlNode appSettings = doc.SelectSingleNode($"/configuration/appSettings") ?? throw new InvalidOperationException("Unable to find appSettings in config");
             XmlNode existingSetting = doc.SelectSingleNode($"/configuration/appSettings/add[@key='{key}']");
             if (existingSetting is null)
             {

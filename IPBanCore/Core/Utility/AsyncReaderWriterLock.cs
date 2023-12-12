@@ -46,14 +46,9 @@ namespace DigitalRuby.IPBanCore
     /// </summary>
     public sealed class AsyncReaderWriterLock : IDisposable
     {
-        private sealed class LockDisposer : IDisposable
+        private sealed class LockDisposer(Action disposer) : IDisposable
         {
-            private Action disposer;
-
-            public LockDisposer(Action disposer)
-            {
-                this.disposer = disposer ?? throw new ArgumentNullException(nameof(disposer));
-            }
+            private Action disposer = disposer ?? throw new ArgumentNullException(nameof(disposer));
 
             public void Dispose()
             {

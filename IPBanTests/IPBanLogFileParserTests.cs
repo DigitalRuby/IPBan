@@ -253,22 +253,22 @@ namespace DigitalRuby.IPBanTests
         [Test]
         public void TestNormalizeGlob()
         {
-            string[] files = new string[]
-            {
+            string[] files =
+            [
                 "c:/temp/file.txt",
                 "c:/temp/files/*/subdir/files*.txt",
                 "c:\\temp\\file.txt",
                 "c:\\temp\\files\\*\\subdir\\files*.txt",
                 "/var/log/all*files.txt"
-            };
-            string[] outFiles = new string[]
-            {
+            ];
+            string[] outFiles =
+            [
                 "c:/temp/", "file.txt",
                 "c:/temp/files/", "*/subdir/files*.txt",
                 "c:/temp/", "file.txt",
                 "c:/temp/files/", "*/subdir/files*.txt",
                 "/var/log/", "all*files.txt"
-            };
+            ];
             for (int i = 0; i < files.Length; i++)
             {
                 string result = LogFileScanner.NormalizeGlob(files[i], out string dirPortion, out string globPortion);

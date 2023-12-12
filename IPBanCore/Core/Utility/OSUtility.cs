@@ -23,6 +23,8 @@ SOFTWARE.
 */
 
 #pragma warning disable CA1416 // Validate platform compatibility
+#pragma warning disable SYSLIB1054 // Use 'LibraryImportAttribute' instead of 'DllImportAttribute' to generate P/Invoke marshalling code at compile time
+#pragma warning disable SYSLIB1045 // Convert to 'GeneratedRegexAttribute'.
 
 using System;
 using System.Collections.Generic;
@@ -389,7 +391,7 @@ namespace DigitalRuby.IPBanCore
         }
 
         [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
-        private class MEMORYSTATUSEX
+        private struct MEMORYSTATUSEX
         {
             public uint dwLength;
             public uint dwMemoryLoad;
@@ -408,7 +410,7 @@ namespace DigitalRuby.IPBanCore
 
         [return: MarshalAs(UnmanagedType.Bool)]
         [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
-        private static extern bool GlobalMemoryStatusEx([In, Out] MEMORYSTATUSEX lpBuffer);
+        private static extern bool GlobalMemoryStatusEx([In, Out] ref MEMORYSTATUSEX lpBuffer);
 
         /// <summary>
         /// Get memory usage
@@ -421,7 +423,7 @@ namespace DigitalRuby.IPBanCore
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 MEMORYSTATUSEX mem = new();
-                if (GlobalMemoryStatusEx(mem))
+                if (GlobalMemoryStatusEx(ref mem))
                 {
                     totalMemory = (long)mem.ullTotalPhys;
                     availableMemory = (long)mem.ullAvailPhys;
@@ -977,22 +979,18 @@ namespace DigitalRuby.IPBanCore
     /// <summary>
     /// Mark a class as requiring a specific operating system
     /// </summary>
+    /// <remarks>
+    /// Constructor
+    /// </remarks>
+    /// <param name="os">OS (IPBanOS.*) or null/empty if none</param>
     [AttributeUsage(AttributeTargets.Class)]
-    public class RequiredOperatingSystemAttribute : Attribute
+    public class RequiredOperatingSystemAttribute(string os) : Attribute
     {
-        /// <summary>
-        /// Constructor
-        /// </summary>
-        /// <param name="os">OS (IPBanOS.*) or null/empty if none</param>
-        public RequiredOperatingSystemAttribute(string os)
-        {
-            RequiredOS = os?.Trim();
-        }
 
         /// <summary>
         /// The required operating system (IPBanOS.*)
         /// </summary>
-        public string RequiredOS { get; }
+        public string RequiredOS { get; } = os?.Trim();
 
         private int priority;
         /// <summary>
@@ -1090,3 +1088,5 @@ namespace DigitalRuby.IPBanCore
 }
 
 #pragma warning restore CA1416 // Validate platform compatibility
+#pragma warning restore SYSLIB1054 // Use 'LibraryImportAttribute' instead of 'DllImportAttribute' to generate P/Invoke marshalling code at compile time
+#pragma warning restore SYSLIB1045 // Convert to 'GeneratedRegexAttribute'.

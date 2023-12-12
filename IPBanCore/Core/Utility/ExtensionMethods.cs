@@ -268,8 +268,7 @@ namespace DigitalRuby.IPBanCore
         public static string ToSHA256String(this string s)
         {
             s ??= string.Empty;
-            using var hasher = SHA256.Create();
-            return BitConverter.ToString(hasher.ComputeHash(Encoding.UTF8.GetBytes(s))).Replace("-", string.Empty);
+            return BitConverter.ToString(SHA256.HashData(Encoding.UTF8.GetBytes(s))).Replace("-", string.Empty);
         }
 
         /// <summary>
@@ -684,11 +683,11 @@ namespace DigitalRuby.IPBanCore
             {
                 bytes1 = bytes1.Reverse().ToArray();
                 bytes2 = bytes2.Reverse().ToArray();
-                finalBytes = bytes1.Concat(bytes2).ToArray();
+                finalBytes = [.. bytes1, .. bytes2];
             }
             else
             {
-                finalBytes = bytes2.Concat(bytes1).ToArray();
+                finalBytes = [.. bytes2, .. bytes1];
             }
             return new IPAddress(finalBytes);
         }

@@ -41,7 +41,7 @@ namespace DigitalRuby.IPBanCore
     {
         private record FirewallTask(Delegate TaskToRun, object State, Type StateType, CancellationToken CancelToken);
 
-        private static readonly char[] userNamePrefixChars = new[] { ',', '\\' };
+        private static readonly char[] userNamePrefixChars = [',', '\\'];
 
         // batch failed logins every cycle
         private readonly List<IPAddressLogEvent> pendingFailedLogins = [];

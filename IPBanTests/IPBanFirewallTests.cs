@@ -39,7 +39,7 @@ namespace DigitalRuby.IPBanTests
     [TestFixture]
     public class IPBanFirewallTests
     {
-        internal static readonly Type[] firewallTypes = new[] { typeof(IPBanWindowsFirewall), typeof(IPBanLinuxFirewallD) };
+        internal static readonly Type[] firewallTypes = [typeof(IPBanWindowsFirewall), typeof(IPBanLinuxFirewallD)];
 
         protected IIPBanFirewall firewall;
 
@@ -108,7 +108,7 @@ namespace DigitalRuby.IPBanTests
         [Test]
         public void TestIPV6()
         {
-            string[] toBlock = new string[] { "fe80::c872:be03:5c94:4af2%8", "192.168.0.20" };
+            string[] toBlock = ["fe80::c872:be03:5c94:4af2%8", "192.168.0.20"];
             firewall.BlockIPAddresses(null, toBlock).Sync();
             string[] bannedIP = firewall.EnumerateBannedIPAddresses().ToArray();
             string[] bannedIP2 = firewall.EnumerateIPAddresses().Select(i => i.Begin.ToString()).ToArray();
@@ -184,8 +184,8 @@ namespace DigitalRuby.IPBanTests
                 newIps[i] = ip;
             }
 
-            string[] ipsToRemove = new string[] { ips[999], ips[444], ips[0], ips[1000], ips[1444], ips[1999] };
-            string[] ipsToAddExist = new string[] { ips[995], ips[441], ips[54], ips[1200], ips[1344], ips[1599] };
+            string[] ipsToRemove = [ips[999], ips[444], ips[0], ips[1000], ips[1444], ips[1999]];
+            string[] ipsToAddExist = [ips[995], ips[441], ips[54], ips[1200], ips[1344], ips[1599]];
             Array.Sort(ipsToRemove);
 
             firewall.BlockIPAddresses(null, ips).Sync();

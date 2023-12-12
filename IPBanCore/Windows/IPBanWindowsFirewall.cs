@@ -68,7 +68,7 @@ namespace DigitalRuby.IPBanCore
         [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)]
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Interoperability", "CA1416:Validate platform compatibility", Justification = "jjxtra")]
         private static readonly Type ruleType = Type.GetTypeFromCLSID(new Guid(clsidFwRule));
-        private static readonly char[] firewallEntryDelimiters = new char[] { '/', '-' };
+        private static readonly char[] firewallEntryDelimiters = ['/', '-'];
 
         private static string CreateRuleStringForIPAddresses(IReadOnlyList<string> ipAddresses, int index, int count)
         {
@@ -236,11 +236,8 @@ namespace DigitalRuby.IPBanCore
                         {
                             // not exist, that is OK
                         }
-                        if (rule is null)
-                        {
-                            // migrate IPBan_0 style to IPBan_Block_0 style
-                            rule = policy.Rules.Item("IPBan_" + i.ToString(CultureInfo.InvariantCulture));
-                        }
+                        // migrate IPBan_0 style to IPBan_Block_0 style
+                        rule ??= policy.Rules.Item("IPBan_" + i.ToString(CultureInfo.InvariantCulture));
                         rule.Name = BlockRulePrefix + i.ToString(CultureInfo.InvariantCulture);
                     }
                     catch
@@ -532,7 +529,7 @@ namespace DigitalRuby.IPBanCore
 
             string prefix = (string.IsNullOrWhiteSpace(ruleNamePrefix) ? BlockRulePrefix : RulePrefix + ruleNamePrefix).TrimEnd('_') + "_";
             int ruleIndex;
-            INetFwRule[] rules = EnumerateRulesMatchingPrefix(prefix).ToArray();
+            INetFwRule[] rules = [.. EnumerateRulesMatchingPrefix(prefix)];
             List<HashSet<string>> remoteIPAddresses = [];
             List<bool> ruleChanges = [];
             for (int i = 0; i < rules.Length; i++)

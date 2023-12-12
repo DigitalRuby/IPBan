@@ -39,7 +39,7 @@ namespace DigitalRuby.IPBanCore
     public static class NetworkUtility
     {
         // https://en.wikipedia.org/wiki/Reserved_IP_addresses
-        private static readonly System.Net.IPAddress[] localHostIP = new System.Net.IPAddress[] { System.Net.IPAddress.Parse("127.0.0.1"), System.Net.IPAddress.Parse("::1") };
+        private static readonly System.Net.IPAddress[] localHostIP = [System.Net.IPAddress.Parse("127.0.0.1"), System.Net.IPAddress.Parse("::1")];
 
         /// <summary>
         /// First ipv4
@@ -317,7 +317,7 @@ namespace DigitalRuby.IPBanCore
                 List<KeyValuePair<System.Net.IPAddress, int>> collection;
                 if (ipAddresses is null)
                 {
-                    collection = GetIPAddressesByPriority().ToList();
+                    collection = [.. GetIPAddressesByPriority()];
                 }
                 else
                 {
