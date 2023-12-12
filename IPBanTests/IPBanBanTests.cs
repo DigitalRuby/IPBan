@@ -72,14 +72,14 @@ namespace DigitalRuby.IPBanTests
             int count2 = (count < 0 ? info2.Count : count);
             service.AddIPAddressLogEvents(new IPAddressLogEvent[]
             {
-                new IPAddressLogEvent(info1.IPAddress, info1.UserName, info1.Source, count1, info1.Type),
-                new IPAddressLogEvent(info2.IPAddress, info2.UserName, info2.Source, count2, info2.Type)
+                new(info1.IPAddress, info1.UserName, info1.Source, count1, info1.Type),
+                new(info2.IPAddress, info2.UserName, info2.Source, count2, info2.Type)
             });
             if (ipv6)
             {
                 service.AddIPAddressLogEvents(new IPAddressLogEvent[]
                 {
-                    new IPAddressLogEvent(info4.IPAddress, info4.UserName, info4.Source, count < 0 ? info4.Count : count, info4.Type),
+                    new(info4.IPAddress, info4.UserName, info4.Source, count < 0 ? info4.Count : count, info4.Type),
                 });
             }
             service.RunCycleAsync().Sync();
@@ -199,7 +199,7 @@ namespace DigitalRuby.IPBanTests
             // add the external event to the service
             service.AddIPAddressLogEvents(new IPAddressLogEvent[]
             {
-                new IPAddressLogEvent("11.11.12.13", "TestDomain\\TestUser", "RDP", 0, IPAddressEventType.Blocked, new DateTime(2020, 01, 01))
+                new("11.11.12.13", "TestDomain\\TestUser", "RDP", 0, IPAddressEventType.Blocked, new DateTime(2020, 01, 01))
             });
             service.RunCycleAsync().Sync();
             ClassicAssert.IsTrue(service.Firewall.IsIPAddressBlocked("11.11.12.13", out _));
@@ -219,8 +219,8 @@ namespace DigitalRuby.IPBanTests
         [Test]
         public void TestBlockIPAddressesMethodCall()
         {
-            service.AddIPAddressLogEvents(new IPAddressLogEvent[] { new IPAddressLogEvent(ip1, string.Empty, string.Empty, 1, IPAddressEventType.Blocked),
-                new IPAddressLogEvent(ip2, string.Empty, string.Empty, 1, IPAddressEventType.Blocked) });
+            service.AddIPAddressLogEvents(new IPAddressLogEvent[] { new(ip1, string.Empty, string.Empty, 1, IPAddressEventType.Blocked),
+                new(ip2, string.Empty, string.Empty, 1, IPAddressEventType.Blocked) });
 
             // this should block the ip addresses
             service.RunCycleAsync().Sync();
@@ -249,8 +249,8 @@ namespace DigitalRuby.IPBanTests
             AddFailedLogins();
             AssertIPAddressesAreBanned();
 
-            service.AddIPAddressLogEvents(new IPAddressLogEvent[] { new IPAddressLogEvent(ip1, string.Empty, string.Empty, 1, IPAddressEventType.Unblocked),
-                new IPAddressLogEvent(ip2, string.Empty, string.Empty, 1, IPAddressEventType.Unblocked) });
+            service.AddIPAddressLogEvents(new IPAddressLogEvent[] { new(ip1, string.Empty, string.Empty, 1, IPAddressEventType.Unblocked),
+                new(ip2, string.Empty, string.Empty, 1, IPAddressEventType.Unblocked) });
 
             // this should unblock the ip addresses
             service.RunCycleAsync().Sync();
@@ -386,10 +386,10 @@ namespace DigitalRuby.IPBanTests
             service.AddIPAddressLogEvents(new IPAddressLogEvent[]
             {
                 // a single failed login with a non-blacklisted user name should not get banned
-                new IPAddressLogEvent("99.99.99.99", "Good User Name", "RDP", 1, IPAddressEventType.FailedLogin),
+                new("99.99.99.99", "Good User Name", "RDP", 1, IPAddressEventType.FailedLogin),
 
                 // a single failed login with a blacklisted user name should get banned
-                new IPAddressLogEvent("99.99.99.90", "NaughtyUserName", "RDP", 1, IPAddressEventType.FailedLogin)
+                new("99.99.99.90", "NaughtyUserName", "RDP", 1, IPAddressEventType.FailedLogin)
             });
             await service.RunCycleAsync();
             ClassicAssert.IsTrue(service.Firewall.IsIPAddressBlocked("99.99.99.90", out _));
@@ -407,10 +407,10 @@ namespace DigitalRuby.IPBanTests
             service.AddIPAddressLogEvents(new IPAddressLogEvent[]
             {
                 // a single failed login with a non-blacklisted user name should not get banned
-                new IPAddressLogEvent("99.99.99.99", "ftp_1", "RDP", 1, IPAddressEventType.FailedLogin),
+                new("99.99.99.99", "ftp_1", "RDP", 1, IPAddressEventType.FailedLogin),
 
                 // a single failed login with a failed user name whitelist regex should get banned
-                new IPAddressLogEvent("99.99.99.90", "NaughtyUserName", "RDP", 1, IPAddressEventType.FailedLogin)
+                new("99.99.99.90", "NaughtyUserName", "RDP", 1, IPAddressEventType.FailedLogin)
             });
             await service.RunCycleAsync();
             ClassicAssert.IsTrue(service.Firewall.IsIPAddressBlocked("99.99.99.90", out _));
@@ -428,10 +428,10 @@ namespace DigitalRuby.IPBanTests
             service.AddIPAddressLogEvents(new IPAddressLogEvent[]
             {
                 // should ban, we have a user name whitelist
-                new IPAddressLogEvent("99.99.99.90", "ftp_1", "RDP", 1, IPAddressEventType.FailedLogin),
+                new("99.99.99.90", "ftp_1", "RDP", 1, IPAddressEventType.FailedLogin),
 
                 // should not ban after 19 attempts, user is whitelisted
-                new IPAddressLogEvent("99.99.99.99", "onlyme", "RDP", 19, IPAddressEventType.FailedLogin)
+                new("99.99.99.99", "onlyme", "RDP", 19, IPAddressEventType.FailedLogin)
             });
             await service.RunCycleAsync();
 
@@ -444,12 +444,12 @@ namespace DigitalRuby.IPBanTests
         {
             service.AddIPAddressLogEvents(new IPAddressLogEvent[]
             {
-                new IPAddressLogEvent("10.11.12.13", "TestUser", "RDP", 9, IPAddressEventType.FailedLogin)
+                new("10.11.12.13", "TestUser", "RDP", 9, IPAddressEventType.FailedLogin)
             });
             await service.RunCycleAsync();
             service.AddIPAddressLogEvents(new IPAddressLogEvent[]
             {
-                new IPAddressLogEvent("10.11.12.13", "TestUser", "RDP", 9, IPAddressEventType.FailedLogin)
+                new("10.11.12.13", "TestUser", "RDP", 9, IPAddressEventType.FailedLogin)
             });
             await service.RunCycleAsync();
 
@@ -461,7 +461,7 @@ namespace DigitalRuby.IPBanTests
         {
             service.AddIPAddressLogEvents(new IPAddressLogEvent[]
             {
-                new IPAddressLogEvent("11.11.12.13", "TestUser", "RDP", 9, IPAddressEventType.FailedLogin,
+                new("11.11.12.13", "TestUser", "RDP", 9, IPAddressEventType.FailedLogin,
                     new DateTime(2020, 01, 01), failedLoginThreshold: 10)
             });
 
@@ -470,7 +470,7 @@ namespace DigitalRuby.IPBanTests
 
             service.AddIPAddressLogEvents(new IPAddressLogEvent[]
             {
-                new IPAddressLogEvent("11.11.12.13", "TestUser", "RDP", 1, IPAddressEventType.FailedLogin,
+                new("11.11.12.13", "TestUser", "RDP", 1, IPAddressEventType.FailedLogin,
                     new DateTime(2020, 01, 01), failedLoginThreshold: 10)
             });
 
@@ -595,19 +595,14 @@ namespace DigitalRuby.IPBanTests
             }
         }
 
-        private class ExternalBlocker : IIPBanDelegate
+        private class ExternalBlocker(IIPBanService service) : IIPBanDelegate
         {
-            private readonly IIPBanService service;
-
-            public ExternalBlocker(IIPBanService service)
-            {
-                this.service = service;
-            }
+            private readonly IIPBanService service = service;
 
             public Task LoginAttemptFailed(string ipAddress, string source, string userName, string machineGuid,
                 string osName, string osVersion, int count, DateTime timestamp, IPAddressNotificationFlags notificationFlags)
             {
-                var events = new IPAddressLogEvent[] { new IPAddressLogEvent(ipAddress, userName, source, count, IPAddressEventType.Blocked, IPBanService.UtcNow, true, notificationFlags: notificationFlags) };
+                var events = new IPAddressLogEvent[] { new(ipAddress, userName, source, count, IPAddressEventType.Blocked, IPBanService.UtcNow, true, notificationFlags: notificationFlags) };
                 service.AddIPAddressLogEvents(events);
                 return Task.CompletedTask;
             }
@@ -821,10 +816,10 @@ namespace DigitalRuby.IPBanTests
                 service.AddIPAddressLogEvents(new IPAddressLogEvent[]
                 {
                     // fail login
-                    new IPAddressLogEvent(ip, "user1", "RDP", 1, IPAddressEventType.FailedLogin),
+                    new(ip, "user1", "RDP", 1, IPAddressEventType.FailedLogin),
 
                     // success login
-                    new IPAddressLogEvent(ip, "user1", "RDP", 1, IPAddressEventType.SuccessfulLogin),
+                    new(ip, "user1", "RDP", 1, IPAddressEventType.SuccessfulLogin),
                 });
             }
 
@@ -848,7 +843,7 @@ namespace DigitalRuby.IPBanTests
                 service.AddIPAddressLogEvents(new IPAddressLogEvent[]
                 {
                     // fail login
-                    new IPAddressLogEvent(ip, "user1", "RDP", 1, IPAddressEventType.FailedLogin),
+                    new(ip, "user1", "RDP", 1, IPAddressEventType.FailedLogin),
                 });
             }
 
@@ -856,7 +851,7 @@ namespace DigitalRuby.IPBanTests
 
             service.AddIPAddressLogEvents(new IPAddressLogEvent[]
             {
-                new IPAddressLogEvent(ip, "user1", "RDP", 1, IPAddressEventType.SuccessfulLogin),
+                new(ip, "user1", "RDP", 1, IPAddressEventType.SuccessfulLogin),
             });
 
             await service.RunCycleAsync();
@@ -875,7 +870,7 @@ namespace DigitalRuby.IPBanTests
                 service.AddIPAddressLogEvents(new IPAddressLogEvent[]
                 {
                     // fail login
-                    new IPAddressLogEvent(ip, "user1", "RDP", 1, IPAddressEventType.FailedLogin),
+                    new(ip, "user1", "RDP", 1, IPAddressEventType.FailedLogin),
                 });
             }
 
@@ -883,7 +878,7 @@ namespace DigitalRuby.IPBanTests
 
             service.AddIPAddressLogEvents(new IPAddressLogEvent[]
             {
-                new IPAddressLogEvent(ip, "user1", "RDP", 1, IPAddressEventType.SuccessfulLogin),
+                new(ip, "user1", "RDP", 1, IPAddressEventType.SuccessfulLogin),
             });
 
             await service.RunCycleAsync();
@@ -903,14 +898,14 @@ namespace DigitalRuby.IPBanTests
                 service.AddIPAddressLogEvents(new IPAddressLogEvent[]
                 {
                     // fail login
-                    new IPAddressLogEvent(ip, "", "RDP", 1, IPAddressEventType.FailedLogin),
+                    new(ip, "", "RDP", 1, IPAddressEventType.FailedLogin),
                 });
 
                 // new failed login, should collapse and not be considered due to 1 second default min time between failed logins
                 service.AddIPAddressLogEvents(new IPAddressLogEvent[]
                 {
                     // fail login
-                    new IPAddressLogEvent(ip, "ADMINISTRATOR", "RDP", 10, IPAddressEventType.FailedLogin),
+                    new(ip, "ADMINISTRATOR", "RDP", 10, IPAddressEventType.FailedLogin),
                 });
                 await service.RunCycleAsync();
                 ClassicAssert.IsFalse(service.Firewall.IsIPAddressBlocked(ip));
@@ -924,9 +919,10 @@ namespace DigitalRuby.IPBanTests
         [Test]
         public void TestBase64EncodedUserName()
         {
-            var results = IPBanRegexParser.GetIPAddressEventsFromRegex(new Regex("(?<ipaddress>.*)_(?<username_base64>.+)"),
+            Regex regex = new("(?<ipaddress>.*)_(?<username_base64>.+)");
+            var results = IPBanRegexParser.GetIPAddressEventsFromRegex(regex,
                 "1.1.1.1_dGVzdHVzZXJuYW1l").ToArray();
-            ClassicAssert.IsTrue(results.Any());
+            ClassicAssert.IsTrue(results.Length != 0);
             var result = results.First();
             ClassicAssert.AreEqual("1.1.1.1", result.IPAddress);
             ClassicAssert.AreEqual("testusername", result.UserName);
@@ -940,7 +936,7 @@ namespace DigitalRuby.IPBanTests
             {
                 var results = IPBanRegexParser.GetIPAddressEventsFromRegex(new Regex("(?<ipaddress>.*)_(?<username>.+)"),
                 "1.1.1.1_bob@mydomain.com").ToArray();
-                ClassicAssert.IsTrue(results.Any());
+                ClassicAssert.IsTrue(results.Length != 0);
                 var result = results.First();
                 ClassicAssert.AreEqual("1.1.1.1", result.IPAddress);
                 ClassicAssert.AreEqual("bob", result.UserName);
@@ -950,7 +946,7 @@ namespace DigitalRuby.IPBanTests
 
                 results = IPBanRegexParser.GetIPAddressEventsFromRegex(new Regex("(?<ipaddress>.*)_(?<username>.+)"),
                 "1.1.1.1_bob@mydomain.com").ToArray();
-                ClassicAssert.IsTrue(results.Any());
+                ClassicAssert.IsTrue(results.Length != 0);
                 result = results.First();
                 ClassicAssert.AreEqual("1.1.1.1", result.IPAddress);
                 ClassicAssert.AreEqual("bob@mydomain.com", result.UserName);

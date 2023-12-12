@@ -902,7 +902,7 @@ namespace DigitalRuby.IPBanCore
                 url = ReplaceUrl(url);
                 try
                 {
-                    KeyValuePair<string, object>[] headers = (Authorization is null ? null : new KeyValuePair<string, object>[] { new KeyValuePair<string, object>("Authorization", Authorization) });
+                    KeyValuePair<string, object>[] headers = (Authorization is null ? null : new KeyValuePair<string, object>[] { new("Authorization", Authorization) });
                     byte[] bytes = await RequestMaker.MakeRequestAsync(new Uri(url), headers: headers, cancelToken: cancelToken);
                     if (urlType == UrlType.Start)
                     {

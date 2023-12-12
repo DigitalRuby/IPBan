@@ -87,14 +87,14 @@ namespace DigitalRuby.IPBanTests
             ClassicAssert.IsTrue(db.TryGetBanDates("5.5.5.5", out banDate));
             count = db.SetBannedIPAddresses(new Tuple<string, DateTime, DateTime>[]
             {
-                    new Tuple<string, DateTime, DateTime>(ip, dt2, dt3),
-                    new Tuple<string, DateTime, DateTime>("5.5.5.5", dt2, dt3),
-                    new Tuple<string, DateTime, DateTime>("5.5.5.6", dt2, dt3),
-                    new Tuple<string, DateTime, DateTime>("::5.5.5.5", dt2, dt3),
-                    new Tuple<string, DateTime, DateTime>("6.6.6.6", dt2, dt3),
-                    new Tuple<string, DateTime, DateTime>("11.11.11.11", dt2, dt3),
-                    new Tuple<string, DateTime, DateTime>("12.12.12.12", dt2, dt3),
-                    new Tuple<string, DateTime, DateTime>("11.11.11.11", dt2, dt3)
+                    new(ip, dt2, dt3),
+                    new("5.5.5.5", dt2, dt3),
+                    new("5.5.5.6", dt2, dt3),
+                    new("::5.5.5.5", dt2, dt3),
+                    new("6.6.6.6", dt2, dt3),
+                    new("11.11.11.11", dt2, dt3),
+                    new("12.12.12.12", dt2, dt3),
+                    new("11.11.11.11", dt2, dt3)
             }, now);
             ClassicAssert.AreEqual(6, count);
             IPAddressRange range = IPAddressRange.Parse("5.5.5.0/24");
@@ -106,8 +106,8 @@ namespace DigitalRuby.IPBanTests
             }
             db.SetBannedIPAddresses(new Tuple<string, DateTime, DateTime>[]
             {
-                    new Tuple<string, DateTime, DateTime>("5.5.5.5", dt2, dt3),
-                    new Tuple<string, DateTime, DateTime>("5.5.5.6", dt2, dt3)
+                    new("5.5.5.5", dt2, dt3),
+                    new("5.5.5.6", dt2, dt3)
             }, now);
             count = db.IncrementFailedLoginCount("9.9.9.9", null, null, dt2, 1);
             ClassicAssert.AreEqual(1, count);

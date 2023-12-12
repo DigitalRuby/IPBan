@@ -96,7 +96,7 @@ public sealed class IPBanIPThreatUploader : IUpdater, IIPAddressEventHandler
             var postJson = System.Text.Encoding.UTF8.GetBytes(Newtonsoft.Json.JsonConvert.SerializeObject(jsonObj));
             await service.RequestMaker.MakeRequestAsync(ipThreatReportApiUri,
                 postJson,
-                new KeyValuePair<string, object>[] { new KeyValuePair<string, object>("X-API-KEY", apiKey) },
+                new KeyValuePair<string, object>[] { new("X-API-KEY", apiKey) },
                 null,
                 cancelToken);
             Logger.Warn("Submitted {0} failed logins to ipthreat api", eventsCopy.Count);

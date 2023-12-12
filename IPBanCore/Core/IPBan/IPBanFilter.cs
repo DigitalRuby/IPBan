@@ -48,7 +48,7 @@ namespace DigitalRuby.IPBanCore
 
         private static readonly IEnumerable<KeyValuePair<string, object>> ipListHeaders = new KeyValuePair<string, object>[]
         {
-            new KeyValuePair<string, object>("User-Agent", "ipban.com")
+            new("User-Agent", "ipban.com")
         };
 
         private readonly HashSet<System.Net.IPAddress> set = [];

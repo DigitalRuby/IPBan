@@ -197,27 +197,27 @@ namespace DigitalRuby.IPBanTests
             firewall.BlockIPAddressesDelta(null, new IPBanFirewallIPAddressDelta[]
             {
                 // remove 6 that exist
-                new IPBanFirewallIPAddressDelta { IPAddress = ipsToRemove[0] },
-                new IPBanFirewallIPAddressDelta { IPAddress = ipsToRemove[1] },
-                new IPBanFirewallIPAddressDelta { IPAddress = ipsToRemove[2] },
-                new IPBanFirewallIPAddressDelta { IPAddress = ipsToRemove[3] },
-                new IPBanFirewallIPAddressDelta { IPAddress = ipsToRemove[4] },
-                new IPBanFirewallIPAddressDelta { IPAddress = ipsToRemove[5] },
+                new() { IPAddress = ipsToRemove[0] },
+                new() { IPAddress = ipsToRemove[1] },
+                new() { IPAddress = ipsToRemove[2] },
+                new() { IPAddress = ipsToRemove[3] },
+                new() { IPAddress = ipsToRemove[4] },
+                new() { IPAddress = ipsToRemove[5] },
 
                 // remove 1 that does not exist
-                new IPBanFirewallIPAddressDelta { IPAddress = "88.88.88.88" },
+                new() { IPAddress = "88.88.88.88" },
 
                 // add 10 new
-                new IPBanFirewallIPAddressDelta { Added = true, IPAddress = newIps[0] },
-                new IPBanFirewallIPAddressDelta { Added = true, IPAddress = newIps[1] },
-                new IPBanFirewallIPAddressDelta { Added = true, IPAddress = newIps[2] },
-                new IPBanFirewallIPAddressDelta { Added = true, IPAddress = newIps[3] },
-                new IPBanFirewallIPAddressDelta { Added = true, IPAddress = newIps[4] },
-                new IPBanFirewallIPAddressDelta { Added = true, IPAddress = newIps[5] },
-                new IPBanFirewallIPAddressDelta { Added = true, IPAddress = newIps[6] },
-                new IPBanFirewallIPAddressDelta { Added = true, IPAddress = newIps[7] },
-                new IPBanFirewallIPAddressDelta { Added = true, IPAddress = newIps[8] },
-                new IPBanFirewallIPAddressDelta { Added = true, IPAddress = newIps[9] }
+                new() { Added = true, IPAddress = newIps[0] },
+                new() { Added = true, IPAddress = newIps[1] },
+                new() { Added = true, IPAddress = newIps[2] },
+                new() { Added = true, IPAddress = newIps[3] },
+                new() { Added = true, IPAddress = newIps[4] },
+                new() { Added = true, IPAddress = newIps[5] },
+                new() { Added = true, IPAddress = newIps[6] },
+                new() { Added = true, IPAddress = newIps[7] },
+                new() { Added = true, IPAddress = newIps[8] },
+                new() { Added = true, IPAddress = newIps[9] }
             }).Sync();
 
             foreach (string ip in ipsToRemove)
@@ -239,7 +239,7 @@ namespace DigitalRuby.IPBanTests
             firewall.BlockIPAddressesDelta(null, new IPBanFirewallIPAddressDelta[]
             {
                 // add a one-off, on Windows this should cause a rule overflow
-                new IPBanFirewallIPAddressDelta { Added = true, IPAddress = "91.91.91.91" }
+                new() { Added = true, IPAddress = "91.91.91.91" }
             }).Sync();
 
             firewallIP = firewall.EnumerateIPAddresses().Select(r2 => r2.Begin.ToString()).ToArray();

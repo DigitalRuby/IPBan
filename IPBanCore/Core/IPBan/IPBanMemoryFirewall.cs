@@ -375,7 +375,7 @@ namespace DigitalRuby.IPBanCore
                 {
                     IEnumerable<KeyValuePair<string, IMemoryFirewallRule>> allowRules = new KeyValuePair<string, IMemoryFirewallRule>[]
                     {
-                        new KeyValuePair<string, IMemoryFirewallRule>(allowRule.Name, allowRule)
+                        new(allowRule.Name, allowRule)
                     };
                     return blockRules
                         .Select(kv => new KeyValuePair<string, IMemoryFirewallRule>(kv.Key, kv.Value))
