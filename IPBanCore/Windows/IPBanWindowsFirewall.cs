@@ -294,7 +294,7 @@ namespace DigitalRuby.IPBanCore
             }
         }
 
-        private static IEnumerable<INetFwRule> EnumerateRulesMatchingPrefix(string ruleNamePrefix)
+        private static List<INetFwRule> EnumerateRulesMatchingPrefix(string ruleNamePrefix)
         {
             // powershell example
             // (New-Object -ComObject HNetCfg.FwPolicy2).rules | Where-Object { $_.Name -match '^prefix' } | ForEach-Object { Write-Output "$($_.Name)" }
