@@ -212,7 +212,7 @@ namespace DigitalRuby.IPBanCore
 
         private async Task ProcessPendingFailedLogins(IReadOnlyList<IPAddressLogEvent> ipAddresses, CancellationToken cancelToken)
         {
-            List<IPAddressLogEvent> bannedIpAddresses = new();
+            List<IPAddressLogEvent> bannedIpAddresses = [];
             object transaction = BeginTransaction();
             try
             {
@@ -341,7 +341,7 @@ namespace DigitalRuby.IPBanCore
 
         private Task ProcessPendingSuccessfulLogins(IEnumerable<IPAddressLogEvent> ipAddresses, CancellationToken cancelToken)
         {
-            List<IPAddressLogEvent> finalList = new();
+            List<IPAddressLogEvent> finalList = [];
             foreach (IPAddressLogEvent info in ipAddresses)
             {
                 // if we have a valid ip that is not internal, process the successful login
@@ -779,7 +779,7 @@ namespace DigitalRuby.IPBanCore
 
         private async Task UpdateExpiredIPAddressStates(CancellationToken cancelToken)
         {
-            HashSet<string> unbannedIPAddresses = new();
+            HashSet<string> unbannedIPAddresses = [];
             DateTime now = UtcNow;
             DateTime failLoginCutOff = (now - Config.ExpireTime);
             DateTime banCutOff = now;
@@ -1189,8 +1189,8 @@ namespace DigitalRuby.IPBanCore
                 pendingLogEvents.Clear();
             }
 
-            List<IPAddressLogEvent> bannedIPs = new();
-            List<IPAddressLogEvent> unbannedIPs = new();
+            List<IPAddressLogEvent> bannedIPs = [];
+            List<IPAddressLogEvent> unbannedIPs = [];
             object transaction = BeginTransaction();
             try
             {

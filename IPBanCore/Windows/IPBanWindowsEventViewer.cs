@@ -372,7 +372,7 @@ namespace DigitalRuby.IPBanCore
         private void SetupEventLogWatcher()
         {
             // note- this code will throw when Windows reboots, especially after patches
-            List<string> ignored = new();
+            List<string> ignored = [];
             string queryString = GetEventLogQueryString(ignored);
             if (queryString != null && queryString != previousQueryString)
             {

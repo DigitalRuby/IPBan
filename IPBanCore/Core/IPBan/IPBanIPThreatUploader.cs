@@ -19,7 +19,7 @@ public sealed class IPBanIPThreatUploader : IUpdater, IIPAddressEventHandler
     
     private readonly IPBanService service;
     private readonly Random random = new();
-    private readonly List<IPAddressLogEvent> events = new();
+    private readonly List<IPAddressLogEvent> events = [];
 
     private DateTime nextRun = IPBanService.UtcNow;
 

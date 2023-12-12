@@ -91,7 +91,7 @@ namespace DigitalRuby.IPBanCore
             public bool IsBinaryFile { get; internal set; }
         }
 
-        private readonly HashSet<WatchedFile> watchedFiles = new();
+        private readonly HashSet<WatchedFile> watchedFiles = [];
         private readonly System.Timers.Timer fileProcessingTimer;
         private readonly long maxFileSize;
         private readonly Encoding encoding;
@@ -187,7 +187,7 @@ namespace DigitalRuby.IPBanCore
         /// <returns>Found files</returns>
         public static IReadOnlyCollection<WatchedFile> GetFiles(string pathAndMask, bool startAtBeginning = false)
         {
-            List<WatchedFile> files = new();
+            List<WatchedFile> files = [];
 
             // pull out the directory portion of the path/mask, accounting for * syntax in the folder name
             string replacedPathAndMask = ReplacePathVars(pathAndMask);
@@ -457,11 +457,7 @@ namespace DigitalRuby.IPBanCore
         private HashSet<WatchedFile> GetCurrentWatchedFiles()
         {
             // read in existing files that match the mask in the directory being watched
-            HashSet<WatchedFile> watchedFilesCopy = new();
-            foreach (WatchedFile file in LogFileScanner.GetFiles(PathAndMask, startAtBeginning))
-            {
-                watchedFilesCopy.Add(file);
-            }
+            HashSet<WatchedFile> watchedFilesCopy = [.. LogFileScanner.GetFiles(PathAndMask, startAtBeginning)];
 
             lock (watchedFiles)
             {

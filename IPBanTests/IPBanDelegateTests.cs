@@ -44,7 +44,7 @@ namespace DigitalRuby.IPBanTests
         private static readonly IPAddressLogEvent info2 = new(ip2, "test_user2", "SSH", 99, IPAddressEventType.FailedLogin);
         private static readonly IPAddressLogEvent info3 = new(ip3, "test_user3", "SSH", 97, IPAddressEventType.SuccessfulLogin);
 
-        private readonly Dictionary<string, int> events = new();
+        private readonly Dictionary<string, int> events = [];
         private IPBanService service;
 
         private void AddEvent(string evt, params object[] format)

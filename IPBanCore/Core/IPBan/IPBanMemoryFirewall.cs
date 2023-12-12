@@ -105,8 +105,8 @@ namespace DigitalRuby.IPBanCore
         {
             private static readonly List<PortRange> emptyPortRanges = new(0);
 
-            private readonly List<IPV4Range> ipv4 = new();
-            private readonly List<IPV6Range> ipv6 = new();
+            private readonly List<IPV4Range> ipv4 = [];
+            private readonly List<IPV6Range> ipv6 = [];
             private readonly PortRange[] portRanges;
 
             public IEnumerable<string> IPV4 => ipv4.Select(r => r.ToIPAddressRange().ToString());
@@ -192,9 +192,9 @@ namespace DigitalRuby.IPBanCore
 
         private class MemoryFirewallRule : IMemoryFirewallRule
         {
-            private readonly HashSet<uint> ipv4 = new();
-            private readonly HashSet<UInt128> ipv6 = new();
-            private readonly List<PortRange> allowPorts = new();
+            private readonly HashSet<uint> ipv4 = [];
+            private readonly HashSet<UInt128> ipv6 = [];
+            private readonly List<PortRange> allowPorts = [];
 
             public IEnumerable<string> IPV4 => ipv4.Select(i => i.ToIPAddress().ToString());
             public IEnumerable<string> IPV6 => ipv6.Select(i => i.ToIPAddress().ToString());
@@ -342,10 +342,10 @@ namespace DigitalRuby.IPBanCore
             public int GetCount() => ipv4.Count + ipv6.Count;
         }
 
-        private readonly Dictionary<string, MemoryFirewallRuleRanges> blockRulesRanges = new();
-        private readonly Dictionary<string, MemoryFirewallRule> blockRules = new();
+        private readonly Dictionary<string, MemoryFirewallRuleRanges> blockRulesRanges = [];
+        private readonly Dictionary<string, MemoryFirewallRule> blockRules = [];
         private readonly MemoryFirewallRule allowRule;
-        private readonly Dictionary<string, MemoryFirewallRuleRanges> allowRuleRanges = new();
+        private readonly Dictionary<string, MemoryFirewallRuleRanges> allowRuleRanges = [];
 
         /// <summary>
         /// Get all the rules with ranges
@@ -491,8 +491,7 @@ namespace DigitalRuby.IPBanCore
         {
             lock (this)
             {
-                List<string> ips = new();
-                ips.AddRange(allowRule.EnumerateIPAddresses());
+                List<string> ips = [.. allowRule.EnumerateIPAddresses()];
                 foreach (var rule in allowRuleRanges)
                 {
                     foreach (IPAddressRange range in rule.Value.EnumerateIPAddressesRanges())
@@ -514,7 +513,7 @@ namespace DigitalRuby.IPBanCore
         /// <inheritdoc />
         public override IEnumerable<string> EnumerateBannedIPAddresses()
         {
-            List<string> ips = new();
+            List<string> ips = [];
             lock (this)
             {
                 foreach (MemoryFirewallRule rule in blockRules.Values)
@@ -553,7 +552,7 @@ namespace DigitalRuby.IPBanCore
         {
             lock (this)
             {
-                List<IPAddressRange> results = new();
+                List<IPAddressRange> results = [];
                 string prefix = ScrubRuleNamePrefix(BlockRulePrefix, ruleNamePrefix);
                 foreach (var rule in blockRules)
                 {

@@ -169,7 +169,7 @@ namespace DigitalRuby.IPBanCore
         {
             get
             {
-                List<string> list = new();
+                List<string> list = [];
                 foreach (string s in PathAndMask.Split('\n'))
                 {
                     if (!string.IsNullOrWhiteSpace(s))

@@ -39,8 +39,8 @@ namespace DigitalRuby.IPBanTests
     {
         private static readonly string tempPath = LogFileScanner.NormalizeGlob(Path.Combine(OSUtility.TempFolder, "LogFileParserTest"), out _, out _);
 
-        private readonly List<IPAddressLogEvent> failedIPAddresses = new();
-        private readonly List<IPAddressLogEvent> successIPAddresses = new();
+        private readonly List<IPAddressLogEvent> failedIPAddresses = [];
+        private readonly List<IPAddressLogEvent> successIPAddresses = [];
 
         private string fullPath;
         private string pathAndMask;

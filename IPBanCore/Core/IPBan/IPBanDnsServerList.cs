@@ -37,7 +37,7 @@ namespace DigitalRuby.IPBanCore
     {
         private static readonly TimeSpan dnsServerUpdateInterval = TimeSpan.FromMinutes(1.0);
         private DateTime lastDnsServersUpdate;
-        private HashSet<IPAddress> dnsServers = new();
+        private HashSet<IPAddress> dnsServers = [];
 
         /// <summary>
         /// Constructor

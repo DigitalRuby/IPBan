@@ -47,8 +47,8 @@ namespace DigitalRuby.IPBanCore
     /// </summary>
     public static class IPBanRegexParser
     {
-        private static readonly Dictionary<string, Regex> regexCacheCompiled = new();
-        private static readonly Dictionary<string, Regex> regexCacheNotCompiled = new();
+        private static readonly Dictionary<string, Regex> regexCacheCompiled = [];
+        private static readonly Dictionary<string, Regex> regexCacheNotCompiled = [];
         private static readonly char[] regexTrimChars = new[]
 {
             ',', ';', '|', '_', '-', '/', '\'', '\"', '(', ')', '[', ']', '{', '}', ' ', '\t', '\r', '\n'

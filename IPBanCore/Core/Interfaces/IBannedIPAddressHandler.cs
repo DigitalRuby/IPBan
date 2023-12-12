@@ -112,11 +112,11 @@ namespace DigitalRuby.IPBanCore
                 if (PublicAPIKey != null && PublicAPIKey.Length != 0)
                 {
                     // send api key and timestamp
-                    headers = new List<KeyValuePair<string, object>>
-                    {
+                    headers =
+                    [
                         new KeyValuePair<string, object>("X-IPBAN-API-KEY", PublicAPIKey.ToUnsecureString()),
                         new KeyValuePair<string, object>("X-IPBAN-TIMESTAMP", timestampUnix)
-                    };
+                    ];
                 }
                 else
                 {

@@ -40,7 +40,7 @@ namespace DigitalRuby.IPBanTests
     [TestFixture]
     public class IPBanEventViewerTests : IIPBanDelegate
     {
-        private readonly Dictionary<string, int> successEvents = new();
+        private readonly Dictionary<string, int> successEvents = [];
 
         private IPBanService service;
 

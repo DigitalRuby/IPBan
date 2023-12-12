@@ -171,7 +171,7 @@ namespace DigitalRuby.IPBanCore
                 return null;
             }
 
-            List<PortRange> result = new();
+            List<PortRange> result = [];
             int current = MinPort;
 
             foreach (var range in mergedRanges)
@@ -213,7 +213,7 @@ namespace DigitalRuby.IPBanCore
                 return null;
             }
 
-            List<PortRange> result = new() { sortedRanges[0] };
+            List<PortRange> result = [sortedRanges[0]];
             foreach (var range in sortedRanges.Skip(1))
             {
                 var lastRange = result.Last();

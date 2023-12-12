@@ -215,7 +215,7 @@ namespace DigitalRuby.IPBanCore
         {
             using StringReader reader = new(text);
             string line;
-            List<IPAddressRange> ranges = new();
+            List<IPAddressRange> ranges = [];
             int lines = 0;
 
             while ((line = reader.ReadLine()) != null)

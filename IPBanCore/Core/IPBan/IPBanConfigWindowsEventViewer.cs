@@ -234,7 +234,7 @@ namespace DigitalRuby.IPBanCore
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         [XmlArray("Expressions")]
         [XmlArrayItem("Expression")]
-        public List<EventViewerExpression> Expressions { get; set; } = new List<EventViewerExpression>();
+        public List<EventViewerExpression> Expressions { get; set; } = [];
 
         /// <summary>
         /// If using plain text expressions, this will be set and needs conversion. Leave null if you are using Expressions directly.
@@ -287,7 +287,7 @@ namespace DigitalRuby.IPBanCore
         /// </summary>
         [XmlArray("Groups")]
         [XmlArrayItem("Group")]
-        public List<EventViewerExpressionGroup> Groups { get; set; } = new List<EventViewerExpressionGroup>();
+        public List<EventViewerExpressionGroup> Groups { get; set; } = [];
     }
 
     /// <summary>

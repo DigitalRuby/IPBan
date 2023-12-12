@@ -1186,7 +1186,7 @@ namespace DigitalRuby.IPBanCore
         /// <returns>Task that finishes when all value tasks have finished</returns>
         public static Task WhenAll(this IEnumerable<ValueTask> tasks)
         {
-            List<Task> valueTaskTasks = new();
+            List<Task> valueTaskTasks = [];
             foreach (ValueTask task in tasks)
             {
                 valueTaskTasks.Add(task.AsTask());
@@ -1202,7 +1202,7 @@ namespace DigitalRuby.IPBanCore
         /// <returns>Task that finishes when all value tasks have finished</returns>
         public static Task WhenAll<T>(this IEnumerable<ValueTask<T>> tasks)
         {
-            List<Task> valueTaskTasks = new();
+            List<Task> valueTaskTasks = [];
             foreach (ValueTask<T> task in tasks)
             {
                 valueTaskTasks.Add(task.AsTask());
@@ -1318,7 +1318,7 @@ namespace DigitalRuby.IPBanCore
         /// addresses are in range</returns>
         public static IEnumerable<IPAddressRange> RemoveInternalRanges(this IPAddressRange range)
         {
-            List<IPAddressRange> results = new();
+            List<IPAddressRange> results = [];
             var internalRanges = (range.Begin.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork ? NetworkUtility.InternalRangesIPV4 : NetworkUtility.InternalRangesIPV6);
             foreach (var internalRange in internalRanges)
             {

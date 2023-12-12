@@ -49,7 +49,7 @@ namespace DigitalRuby.IPBanTests
         {
             using StringSet set = new("test", true);
             set.Clear();
-            List<string> strings = new();
+            List<string> strings = [];
             Random r = new();
             for (int i = 0; i < 1000; i++)
             {

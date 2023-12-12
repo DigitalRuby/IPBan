@@ -44,10 +44,10 @@ namespace DigitalRuby.IPBanCore
         private static readonly char[] userNamePrefixChars = new[] { ',', '\\' };
 
         // batch failed logins every cycle
-        private readonly List<IPAddressLogEvent> pendingFailedLogins = new();
-        private readonly List<IPAddressLogEvent> pendingSuccessfulLogins = new();
-        private readonly List<IPAddressLogEvent> pendingLogEvents = new();
-        private readonly HashSet<IUpdater> updaters = new();
+        private readonly List<IPAddressLogEvent> pendingFailedLogins = [];
+        private readonly List<IPAddressLogEvent> pendingSuccessfulLogins = [];
+        private readonly List<IPAddressLogEvent> pendingLogEvents = [];
+        private readonly HashSet<IUpdater> updaters = [];
         private readonly SemaphoreSlim stopEvent = new(0, 1);
         private readonly ConcurrentQueue<FirewallTask> firewallTasks = new();
         private readonly SemaphoreSlim cycleLock = new(1, 1);
@@ -227,12 +227,12 @@ namespace DigitalRuby.IPBanCore
         /// - Windows Firewall (Windows only)<br/>
         /// - FirewallD (Linux only)<br/>
         /// </summary>
-        public HashSet<Type> FirewallTypes { get; } = new()
-        {
+        public HashSet<Type> FirewallTypes { get; } =
+        [
             typeof(IPBanWindowsFirewall),
             typeof(IPBanLinuxFirewallD),
             typeof(IPBanLinuxFirewallIPTables)
-        };
+        ];
 
         /// <summary>
         /// Cancel token

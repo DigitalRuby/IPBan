@@ -40,8 +40,8 @@ namespace DigitalRuby.IPBanTests
     public class IPBanLogFileIntegrationTests : IIPBanDelegate
     {
         private IPBanService service;
-        private readonly List<IPAddressLogEvent> failedEvents = new();
-        private readonly List<IPAddressLogEvent> successfulEvents = new();
+        private readonly List<IPAddressLogEvent> failedEvents = [];
+        private readonly List<IPAddressLogEvent> successfulEvents = [];
 
         [SetUp]
         public void Setup()
@@ -192,7 +192,7 @@ namespace DigitalRuby.IPBanTests
             service.IPBanDelegate = this;
 
             // read all the files, save contents in memory temporarily
-            Dictionary<string, string> files = new();
+            Dictionary<string, string> files = [];
             foreach (var file in LogFileScanner.GetFiles(pathAndMaskOverride))
             {
                 files[file.FileName] = File.ReadAllText(file.FileName);

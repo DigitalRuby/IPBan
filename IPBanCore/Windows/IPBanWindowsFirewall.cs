@@ -299,7 +299,7 @@ namespace DigitalRuby.IPBanCore
             // powershell example
             // (New-Object -ComObject HNetCfg.FwPolicy2).rules | Where-Object { $_.Name -match '^prefix' } | ForEach-Object { Write-Output "$($_.Name)" }
             // TODO: Revisit COM interface in .NET core 3.0
-            List<INetFwRule> rules = new();
+            List<INetFwRule> rules = [];
             var e = policy.Rules.GetEnumeratorVariant();
             object[] results = new object[64];
             int count;
@@ -397,7 +397,7 @@ namespace DigitalRuby.IPBanCore
 
             try
             {
-                List<string> ipAddressesList = new();
+                List<string> ipAddressesList = [];
                 foreach (string ipAddress in ipAddresses)
                 {
                     if (cancelToken.IsCancellationRequested)
@@ -533,12 +533,12 @@ namespace DigitalRuby.IPBanCore
             string prefix = (string.IsNullOrWhiteSpace(ruleNamePrefix) ? BlockRulePrefix : RulePrefix + ruleNamePrefix).TrimEnd('_') + "_";
             int ruleIndex;
             INetFwRule[] rules = EnumerateRulesMatchingPrefix(prefix).ToArray();
-            List<HashSet<string>> remoteIPAddresses = new();
-            List<bool> ruleChanges = new();
+            List<HashSet<string>> remoteIPAddresses = [];
+            List<bool> ruleChanges = [];
             for (int i = 0; i < rules.Length; i++)
             {
                 string[] ipList = rules[i].RemoteAddresses.Split(',');
-                HashSet<string> ipSet = new();
+                HashSet<string> ipSet = [];
                 foreach (string ip in ipList)
                 {
                     // trim out submask

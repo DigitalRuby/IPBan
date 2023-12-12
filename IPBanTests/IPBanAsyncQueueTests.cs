@@ -54,7 +54,7 @@ namespace DigitalRuby.IPBanTests
         {
             AsyncQueue<int> queue = new();
             int count = 0;
-            List<Task> tasks = new();
+            List<Task> tasks = [];
             CancellationTokenSource cancelToken = new();
 
             for (int i = 0; i < 10; i++)

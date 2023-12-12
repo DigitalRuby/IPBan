@@ -162,7 +162,7 @@ namespace DigitalRuby.IPBanCore
         /// <returns>Set names</returns>
         public static IReadOnlyCollection<string> GetSetNames(string setPrefix)
         {
-            HashSet<string> sets = new();
+            HashSet<string> sets = [];
             var setFiles = Directory.GetFiles(setsFolder);
             foreach (var file in setFiles)
             {
@@ -182,7 +182,7 @@ namespace DigitalRuby.IPBanCore
         /// <returns>Entries</returns>
         public static ICollection<string> ReadSet(string setName)
         {
-            HashSet<string> entries = new();
+            HashSet<string> entries = [];
             var setFileName = Path.Combine(setsFolder, setName + ".xml");
             if (File.Exists(setFileName))
             {

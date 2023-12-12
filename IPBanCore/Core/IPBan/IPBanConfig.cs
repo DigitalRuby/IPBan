@@ -140,7 +140,7 @@ namespace DigitalRuby.IPBanCore
         private readonly string getUrlStop = string.Empty;
         private readonly string getUrlConfig = string.Empty;
         private readonly string firewallUriRules = string.Empty;
-        private readonly List<IPBanFirewallRule> extraRules = new();
+        private readonly List<IPBanFirewallRule> extraRules = [];
         private readonly EventViewerExpressionsToBlock expressionsFailure;
         private readonly EventViewerExpressionsToNotify expressionsSuccess;
 
@@ -333,7 +333,7 @@ namespace DigitalRuby.IPBanCore
                 catch (Exception ex)
                 {
                     Logger.Error("Failed to load event viewer expressions of type " + typeof(T).FullName, ex);
-                    eventViewerExpressions = new T { Groups = new List<EventViewerExpressionGroup>() };
+                    eventViewerExpressions = new T { Groups = [] };
                 }
                 foreach (EventViewerExpressionGroup group in eventViewerExpressions.Groups)
                 {
@@ -509,7 +509,7 @@ namespace DigitalRuby.IPBanCore
                 var stringValue = GetAppSettingsValue(key) ?? string.Empty;
                 var converter = TypeDescriptor.GetConverter(typeof(T));
                 string[] items = stringValue.Split('|', ';', ',');
-                List<T> list = new();
+                List<T> list = [];
                 foreach (string item in items)
                 {
                     string normalizedItem = item.Trim();

@@ -532,7 +532,7 @@ namespace DigitalRuby.IPBanCore
 
         private IReadOnlyDictionary<string, bool> GetRuleTypes()
         {
-            Dictionary<string, bool> rules = new();
+            Dictionary<string, bool> rules = [];
             var setNames = IPBanLinuxIPSetFirewallD.GetSetNames(RulePrefix);
             if (File.Exists(zoneFile))
             {
