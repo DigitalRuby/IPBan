@@ -3,7 +3,7 @@ param([Parameter(Mandatory=$true)] [String]$version)
 # Set-ExecutionPolicy -ExecutionPolicy Unrestricted -Scope LocalMachine
 
 $netFrameworkVersion = "net8.0"
-$publishTrimmed = $False
+$publishTrimmed = $True
 $versionDots = $version.Replace('_', '.')
 
 Remove-Item ./package -Recurse -ErrorAction Ignore

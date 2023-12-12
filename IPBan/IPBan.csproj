@@ -20,11 +20,11 @@
 		<AssemblyName>DigitalRuby.IPBan</AssemblyName>
 		<ApplicationManifest>app.manifest</ApplicationManifest>
 		<PreserveCompilationContext>true</PreserveCompilationContext>
-		<PublishTrimmed>true</PublishTrimmed>
 		<GenerateSerializationAssemblies>Off</GenerateSerializationAssemblies>
 		<ApplicationIcon>../ipban_favicon.ico</ApplicationIcon>
 		<BuiltInComInteropSupport>true</BuiltInComInteropSupport>
 		<ServerGarbageCollection>false</ServerGarbageCollection>
+		<TrimMode>partial</TrimMode>
 	</PropertyGroup>
 
 	<ItemGroup>

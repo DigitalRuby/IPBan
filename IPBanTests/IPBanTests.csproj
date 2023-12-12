@@ -9,6 +9,7 @@
 		<PreserveCompilationContext>true</PreserveCompilationContext>
 		<LangVersion>latest</LangVersion>
 		<GenerateSerializationAssemblies>Off</GenerateSerializationAssemblies>
+		<TrimMode>partial</TrimMode>
 	</PropertyGroup>
 
 	<ItemGroup>
