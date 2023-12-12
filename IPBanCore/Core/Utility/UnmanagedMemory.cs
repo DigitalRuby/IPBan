@@ -96,7 +96,7 @@ namespace DigitalRuby.IPBanCore
 
         private void InternalDispose()
         {
-            if (Pointer != IntPtr.Zero && Interlocked.Decrement(ref refCount) == 0)
+            if (refCount != 0 && Interlocked.Decrement(ref refCount) == 0)
             {
                 try
                 {
