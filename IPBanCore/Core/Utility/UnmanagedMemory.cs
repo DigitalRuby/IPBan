@@ -71,7 +71,13 @@ namespace DigitalRuby.IPBanCore
         /// </summary>
         ~UnmanagedMemory()
         {
-            InternalDispose();
+            try
+            {
+                InternalDispose();
+            }
+            catch
+            {
+            }
         }
 
         /// <inheritdoc />
