@@ -40,13 +40,20 @@ namespace DigitalRuby.IPBanTests
         public void TestNotOwn()
         {
             IntPtr ptr = Marshal.AllocHGlobal(4);
-            Marshal.StructureToPtr(5, ptr, false);
+            try
             {
-                using UnmanagedMemory mem = new(ptr, 4);
-                VerifyNotDisposed(mem);
+                Marshal.StructureToPtr(5, ptr, false);
+                {
+                    using UnmanagedMemory mem = new(ptr, 4);
+                    VerifyNotDisposed(mem);
+                }
+                int value = Marshal.PtrToStructure<int>(ptr);
+                Assert.That(value, Is.EqualTo(5));
             }
-            int value = Marshal.PtrToStructure<int>(ptr);
-            Assert.That(value, Is.EqualTo(5));
+            finally
+            {
+                Marshal.FreeHGlobal(ptr);
+            }
         }
 
         [Test]
