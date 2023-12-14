@@ -17,7 +17,7 @@ namespace DigitalRuby.IPBanCore
     /// <summary>
     /// Represents a consecutive range of ip addresses
     /// </summary>
-    public class IPAddressRange : IEnumerable<IPAddress>, IReadOnlyDictionary<string, string>, IComparable<IPAddressRange>
+    public sealed class IPAddressRange : IEnumerable<IPAddress>, IReadOnlyDictionary<string, string>, IComparable<IPAddressRange>
     {
         private static class Bits
         {
@@ -750,14 +750,14 @@ namespace DigitalRuby.IPBanCore
         public int GetPrefixLength(bool throwException = true)
         {
             byte[] byteBegin = Begin.GetAddressBytes();
+            int length = byteBegin.Length * 8;
 
             // Handle single IP
             if (Single)
             {
-                return byteBegin.Length * 8;
+                return length;
             }
-
-            int length = byteBegin.Length * 8;
+            
             for (int i = 0; i < length; i++)
             {
                 byte[] mask = Bits.GetBitMask(byteBegin.Length, i);

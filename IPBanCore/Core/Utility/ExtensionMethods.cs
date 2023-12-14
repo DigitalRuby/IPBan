@@ -69,7 +69,7 @@ namespace DigitalRuby.IPBanCore
             IgnoreReadOnlyFields = true,
             IgnoreReadOnlyProperties = true
         };
-        
+
         static ExtensionMethods()
         {
             emptyXmlNs.Add("", "");
@@ -1441,6 +1441,101 @@ namespace DigitalRuby.IPBanCore
             foreach (var range in Combine(ProcessRanges(sortedRanges, NetworkUtility.FirstIPV6, NetworkUtility.LastIPV6, System.Net.Sockets.AddressFamily.InterNetworkV6)))
             {
                 yield return range;
+            }
+        }
+
+        /// <summary>
+        /// Normalize string for query
+        /// </summary>
+        /// <param name="s">String</param>
+        /// <returns>Normalized string</returns>
+        public static string NormalizeForQuery(this string s)
+        {
+            if (s is null)
+            {
+                return s;
+            }
+            s = s.Normalize(NormalizationForm.FormD);
+            StringBuilder result = new();
+            bool lastWasSpace = true;
+            foreach (char c in s)
+            {
+                switch (char.GetUnicodeCategory(c))
+                {
+                    case System.Globalization.UnicodeCategory.DecimalDigitNumber:
+                    case System.Globalization.UnicodeCategory.LetterNumber:
+                    case System.Globalization.UnicodeCategory.LowercaseLetter:
+                    case System.Globalization.UnicodeCategory.OtherLetter:
+                    case System.Globalization.UnicodeCategory.OtherNumber:
+                    case System.Globalization.UnicodeCategory.TitlecaseLetter:
+                    case System.Globalization.UnicodeCategory.UppercaseLetter:
+                        result.Append(char.ToLowerInvariant(c));
+                        lastWasSpace = false;
+                        break;
+
+                    default:
+                        if (!lastWasSpace)
+                        {
+                            result.Append(' ');
+                            lastWasSpace = true;
+                        }
+                        break;
+                }
+            }
+
+            // trim end spaces without making more garbage
+            while (result.Length > 0 && result[^1] == ' ')
+            {
+                result.Length--;
+            }
+
+            return result.ToString();
+        }
+
+        /// <summary>
+        /// Get all entries from sorted list that match a prefix
+        /// </summary>
+        /// <typeparam name="TValue">Type of value</typeparam>
+        /// <param name="sortedList">Sorted list</param>
+        /// <param name="prefix">Prefix to query, does not need to be normalized</param>
+        /// <returns>All matching entries</returns>
+        public static IEnumerable<KeyValuePair<string, TValue>> GetEntriesMatchingPrefix<TValue>(this SortedList<string, TValue> sortedList, string prefix)
+        {
+            int lower = 0;
+            int upper = sortedList.Count - 1;
+            int middle;
+            string currentKey;
+            prefix = NormalizeForQuery(prefix);
+
+            // Binary search to find the starting index
+            while (lower <= upper)
+            {
+                middle = lower + (upper - lower) / 2;
+                currentKey = sortedList.Keys[middle];
+
+                if (currentKey.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+                {
+                    // Move backwards to find the first occurrence
+                    while (middle > 0 && sortedList.Keys[middle - 1].StartsWith(prefix))
+                    {
+                        middle--;
+                    }
+                    break;
+                }
+                else if (string.Compare(currentKey, prefix, StringComparison.Ordinal) < 0)
+                {
+                    lower = middle + 1;
+                }
+                else
+                {
+                    upper = middle - 1;
+                }
+            }
+
+            // Iterate forward from the found index
+            for (int i = lower; i < sortedList.Count && sortedList.Keys[i].StartsWith(prefix); i++)
+            {
+                yield return new KeyValuePair<string, TValue>(sortedList.Keys[i], sortedList.Values[i]);
             }
         }
     }

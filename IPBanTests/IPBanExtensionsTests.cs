@@ -154,5 +154,26 @@ namespace DigitalRuby.IPBanTests
             ClassicAssert.That(ranges, Has.Length.EqualTo(inputCount));
             ClassicAssert.That(combined, Has.Length.EqualTo(outputCount));
         }
+
+        [Test]
+        public void TestSortedListQueryByPrefix()
+        {
+            SortedList<string, int> list = [];
+            list.Add("boo", 1);
+            list.Add("zoo", 2);
+            list.Add("boot", 3);
+            var result = list.GetEntriesMatchingPrefix("a").ToArray();
+            Assert.That(result.Length, Is.EqualTo(0));
+            result = list.GetEntriesMatchingPrefix("b").ToArray();
+            Assert.That(result.Length, Is.EqualTo(2));
+            Assert.That(result[0].Key, Is.EqualTo("boo"));
+            Assert.That(result[1].Key, Is.EqualTo("boot"));
+            Assert.That(result[0].Value, Is.EqualTo(1));
+            Assert.That(result[1].Value, Is.EqualTo(3));
+            result = list.GetEntriesMatchingPrefix("z").ToArray();
+            Assert.That(result.Length, Is.EqualTo(1));
+            Assert.That(result[0].Key, Is.EqualTo("zoo"));
+            Assert.That(result[0].Value, Is.EqualTo(2));
+        }
     }
 }
