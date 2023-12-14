@@ -24,6 +24,8 @@ SOFTWARE.
 
 #region Imports
 
+using Newtonsoft.Json.Linq;
+
 using System;
 using System.Collections;
 using System.Collections.Concurrent;
@@ -1503,39 +1505,33 @@ namespace DigitalRuby.IPBanCore
         {
             int lower = 0;
             int upper = sortedList.Count - 1;
-            int middle;
-            string currentKey;
+            int middle = 0;
+            int compare;
             prefix = NormalizeForQuery(prefix);
 
-            // Binary search to find the starting index
             while (lower <= upper)
             {
                 middle = lower + (upper - lower) / 2;
-                currentKey = sortedList.Keys[middle];
-
-                if (currentKey.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+                compare = string.Compare(prefix, sortedList.Keys[middle], true);
+                if (compare == 0)
                 {
-                    // Move backwards to find the first occurrence
-                    while (middle > 0 && sortedList.Keys[middle - 1].StartsWith(prefix))
-                    {
-                        middle--;
-                    }
                     break;
                 }
-                else if (string.Compare(currentKey, prefix, StringComparison.Ordinal) < 0)
+                else if (compare < 0)
                 {
-                    lower = middle + 1;
+                    upper = middle - 1;
                 }
                 else
                 {
-                    upper = middle - 1;
+                    lower = middle + 1;
                 }
             }
 
             // Iterate forward from the found index
-            for (int i = lower; i < sortedList.Count && sortedList.Keys[i].StartsWith(prefix); i++)
+            for (int i = middle; i < sortedList.Count && sortedList.Keys[i].StartsWith(prefix, StringComparison.OrdinalIgnoreCase); i++)
             {
-                yield return new KeyValuePair<string, TValue>(sortedList.Keys[i], sortedList.Values[i]);
+                var kv = new KeyValuePair<string, TValue>(sortedList.Keys[i], sortedList.Values[i]);
+                yield return kv;
             }
         }
     }
