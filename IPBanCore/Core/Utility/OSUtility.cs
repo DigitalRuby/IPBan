@@ -974,6 +974,21 @@ namespace DigitalRuby.IPBanCore
                     version.Version.Minor > 1 && version.Version.Minor < 4);
             }
         }
+
+        /// <summary>
+        /// Is OS windows 11 or server 2022 or newer?
+        /// </summary>
+        public static bool IsWindows11OrServer2022OrNewer
+        {
+            get
+            {
+                var version = System.Environment.OSVersion;
+                return (version.Platform == PlatformID.Win32NT &&
+                    version.Version.Major >= 10 &&
+                    version.Version.Minor >= 0 &&
+                    version.Version.Build >= 22000);
+            }
+        }
     }
 
     /// <summary>

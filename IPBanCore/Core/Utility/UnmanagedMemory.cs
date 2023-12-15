@@ -73,7 +73,7 @@ namespace DigitalRuby.IPBanCore
         {
             try
             {
-                InternalDispose();
+                Dispose();
             }
             catch
             {
@@ -84,7 +84,19 @@ namespace DigitalRuby.IPBanCore
         public void Dispose()
         {
             GC.SuppressFinalize(this);
-            InternalDispose();
+            if (refCount != 0 && Interlocked.Decrement(ref refCount) == 0)
+            {
+                try
+                {
+                    free.Invoke(Pointer);
+                }
+                finally
+                {
+                    free = null;
+                    Pointer = IntPtr.Zero;
+                    Size = 0;
+                }
+            }
         }
 
         /// <summary>
@@ -99,23 +111,6 @@ namespace DigitalRuby.IPBanCore
                 Interlocked.Increment(ref refCount);
             }
             return this;
-        }
-
-        private void InternalDispose()
-        {
-            if (refCount != 0 && Interlocked.Decrement(ref refCount) == 0)
-            {
-                try
-                {
-                    free.Invoke(Pointer);
-                }
-                finally
-                {
-                    free = null;
-                    Pointer = IntPtr.Zero;
-                    Size = 0;
-                }
-            }
         }
     }
 }

@@ -39,7 +39,7 @@ namespace DigitalRuby.IPBanCore
 {
     public partial class IPBanService
     {
-        private record FirewallTask(Delegate TaskToRun, object State, Type StateType, CancellationToken CancelToken);
+        private record FirewallTask(Delegate TaskToRun, object State, Type StateType, string Name, CancellationToken CancelToken);
 
         private static readonly char[] userNamePrefixChars = [',', '\\'];
 

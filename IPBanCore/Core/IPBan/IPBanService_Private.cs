@@ -995,8 +995,10 @@ namespace DigitalRuby.IPBanCore
             int count = 0;
             while (firewallTasks.TryDequeue(out var firewallTask))
             {
+                Stopwatch sw = Stopwatch.StartNew();
                 try
                 {
+                    Logger.Info("Running firewall task {0}", firewallTask.Name);
                     var result = firewallTask.TaskToRun.DynamicInvoke(firewallTask.State, firewallTask.CancelToken);
                     if (result is Task task)
                     {
@@ -1013,6 +1015,11 @@ namespace DigitalRuby.IPBanCore
                     {
                         Logger.Error(ex);
                     }
+                }
+                finally
+                {
+                    sw.Stop();
+                    Logger.Info("Ran firewall task {0} in {1:0.00}s", firewallTask.Name, sw.Elapsed.TotalSeconds);
                 }
                 if (++count == maxCount)
                 {

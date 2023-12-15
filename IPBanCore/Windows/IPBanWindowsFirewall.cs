@@ -48,17 +48,16 @@ namespace DigitalRuby.IPBanCore
     /// <summary>
     /// Helper class for Windows firewall and banning ip addresses.
     /// </summary>
-    [RequiredOperatingSystem(OSUtility.Windows)]
+    [RequiredOperatingSystem(OSUtility.Windows, PriorityEnvironmentVariable = "IPBanPro_WindowsFirewallPriority")]
     [System.Diagnostics.CodeAnalysis.DynamicallyAccessedMembers(System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.All)]
     public class IPBanWindowsFirewall : IPBanBaseFirewall
     {
-        // DO NOT CHANGE THESE CONST AND READONLY FIELDS!
-
         /// <summary>
         /// Max number of ip addresses per rule
         /// </summary>
         public const int MaxIpAddressesPerRule = 1000;
 
+        // DO NOT CHANGE THESE CONST AND READONLY FIELDS! ***********************************************************************************
         private const string clsidFwPolicy2 = "{E2B3C97F-6AE1-41AC-817A-F6F92166D7DD}";
         private const string clsidFwRule = "{2C5BC43E-3369-4C33-AB0C-BE9469677AF4}";
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Interoperability", "CA1416:Validate platform compatibility", Justification = "jjxtra")]
@@ -69,6 +68,7 @@ namespace DigitalRuby.IPBanCore
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Interoperability", "CA1416:Validate platform compatibility", Justification = "jjxtra")]
         private static readonly Type ruleType = Type.GetTypeFromCLSID(new Guid(clsidFwRule));
         private static readonly char[] firewallEntryDelimiters = ['/', '-'];
+        // **********************************************************************************************************************************
 
         private static string CreateRuleStringForIPAddresses(IReadOnlyList<string> ipAddresses, int index, int count)
         {
