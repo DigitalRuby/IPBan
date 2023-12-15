@@ -64,7 +64,6 @@ namespace DigitalRuby.IPBanCore
             AppName = appName + " " + version;
             cycleActions = new (string, Func<CancellationToken, Task>)[]
             {
-                ("GC", _cancelToken => { GC.GetTotalMemory(true); return Task.CompletedTask; }),
                 (nameof(UpdateConfiguration), UpdateConfiguration),
                 (nameof(SetNetworkInfo), SetNetworkInfo),
                 (nameof(UpdateDelegate), UpdateDelegate),
