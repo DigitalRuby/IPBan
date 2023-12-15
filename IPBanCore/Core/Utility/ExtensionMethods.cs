@@ -1505,7 +1505,7 @@ namespace DigitalRuby.IPBanCore
         {
             int lower = 0;
             int upper = sortedList.Count - 1;
-            int middle = 0;
+            int middle;
             int compare;
             prefix = NormalizeForQuery(prefix);
 
@@ -1528,7 +1528,7 @@ namespace DigitalRuby.IPBanCore
             }
 
             // Iterate forward from the found index
-            for (int i = middle; i < sortedList.Count && sortedList.Keys[i].StartsWith(prefix, StringComparison.OrdinalIgnoreCase); i++)
+            for (int i = lower; i < sortedList.Count && sortedList.Keys[i].StartsWith(prefix, StringComparison.OrdinalIgnoreCase); i++)
             {
                 var kv = new KeyValuePair<string, TValue>(sortedList.Keys[i], sortedList.Values[i]);
                 yield return kv;
