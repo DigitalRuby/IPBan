@@ -434,22 +434,6 @@ namespace DigitalRuby.IPBanCore
             UpsertXmlRule(doc, ruleIP4, "ipv4", drop, priority, allowedPorts);
             UpsertXmlRule(doc, ruleIP6, "ipv6", drop, priority, allowedPorts);
 
-            // make sure forward node is at the end
-            var forwardNode = doc.SelectSingleNode("//forward") as XmlElement;
-            if (forwardNode is not null)
-            {
-                forwardNode.ParentNode.RemoveChild(forwardNode);
-            }
-            else if (canUseForwardNode)
-            {
-                forwardNode = doc.CreateElement("forward");
-                forwardNode.IsEmpty = true;
-            }
-            if (canUseForwardNode)
-            {
-                doc.DocumentElement.AppendChild(forwardNode);
-            }
-
             // remove global allow rules
             foreach (var ruleNode in doc.SelectNodes("//rule"))
             {
@@ -476,7 +460,7 @@ namespace DigitalRuby.IPBanCore
                 }
             }
 
-            static void AddAllowAllRule(XmlDocument doc, XmlElement forwardNode, string protocol, string family, string ips)
+            static void AddAllowAllRule(XmlDocument doc, string protocol, string family, string ips)
             {
                 // allow all ipv4
                 var allowIP = doc.CreateElement("rule");
@@ -491,20 +475,25 @@ namespace DigitalRuby.IPBanCore
                 allowIP.AppendChild(allowIPPort);
                 var allowIPAccept = doc.CreateElement("accept");
                 allowIP.AppendChild(allowIPAccept);
-                if (forwardNode is null)
-                {
-                    doc.DocumentElement.AppendChild(allowIP);
-                }
-                else
-                {
-                    doc.DocumentElement.InsertBefore(allowIP, forwardNode);
-                }
+                doc.DocumentElement.AppendChild(allowIP);
             }
 
-            AddAllowAllRule(doc, forwardNode, "tcp", "ipv4", "0.0.0.0/0");
-            AddAllowAllRule(doc, forwardNode, "udp", "ipv4", "0.0.0.0/0");
-            AddAllowAllRule(doc, forwardNode, "tcp", "ipv6", "::/0");
-            AddAllowAllRule(doc, forwardNode, "udp", "ipv6", "::/0");
+            AddAllowAllRule(doc, "tcp", "ipv4", "0.0.0.0/0");
+            AddAllowAllRule(doc, "udp", "ipv4", "0.0.0.0/0");
+            AddAllowAllRule(doc, "tcp", "ipv6", "::/0");
+            AddAllowAllRule(doc, "udp", "ipv6", "::/0");
+
+            // make sure forward node is removed
+            var forwardNode = doc.SelectSingleNode("//forward") as XmlElement;
+            forwardNode?.ParentNode.RemoveChild(forwardNode);
+
+            if (canUseForwardNode)
+            {
+                // add forward element if supported
+                forwardNode = doc.CreateElement("forward");
+                forwardNode.IsEmpty = true;
+                doc.DocumentElement.AppendChild(forwardNode);
+            }
 
             // pretty print
             XDocument xDoc = XDocument.Parse(doc.OuterXml);

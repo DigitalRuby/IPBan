@@ -976,6 +976,21 @@ namespace DigitalRuby.IPBanCore
         }
 
         /// <summary>
+        /// Is OS windows 10 or server 2016 or newer?
+        /// </summary>
+        public static bool IsWindows10OrServer2016OrNewer
+        {
+            get
+            {
+                var version = System.Environment.OSVersion;
+                return (version.Platform == PlatformID.Win32NT &&
+                    version.Version.Major >= 10 &&
+                    version.Version.Minor >= 0 &&
+                    version.Version.Build >= 0);
+            }
+        }
+
+        /// <summary>
         /// Is OS windows 11 or server 2022 or newer?
         /// </summary>
         public static bool IsWindows11OrServer2022OrNewer
