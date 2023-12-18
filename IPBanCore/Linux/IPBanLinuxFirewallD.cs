@@ -44,12 +44,14 @@ namespace DigitalRuby.IPBanCore
     {
         private const int allowPriority = -20;
         private const int dropPriority = -10;
+        private const string defaultFallbackZoneFileContents = "<?xml version=\"1.0\" encoding=\"utf-8\"?><zone><short>Public</short><description>For use in public areas. You do not trust the other computers on networks to not harm your computer. Only selected incoming connections are accepted.</description><service name=\"ssh\"/><service name=\"dhcpv6-client\"/><forward/></zone>";
 
         private readonly string zoneFileOrig;
         private readonly string zoneFile;
         private readonly string allowRuleName;
         private readonly string allowRuleName6;
         private readonly bool canUseForwardNode;
+        private readonly string fallbackZoneFileContents = defaultFallbackZoneFileContents;
 
         private bool dirty;
 
@@ -71,6 +73,10 @@ namespace DigitalRuby.IPBanCore
                     versionObj = new(1, 0, 0);
                 }
                 canUseForwardNode = versionObj.Major >= 1;
+                if (!canUseForwardNode)
+                {
+                    fallbackZoneFileContents = fallbackZoneFileContents.Replace("<forward/>", string.Empty);
+                }
             }
             else
             {
@@ -84,7 +90,7 @@ namespace DigitalRuby.IPBanCore
             }
             allowRuleName = AllowRulePrefix + "4";
             allowRuleName6 = AllowRulePrefix + "6";
-            EnsureZoneFile(zoneFile, zoneFileOrig);
+            EnsureZoneFile(zoneFile, zoneFileOrig, fallbackZoneFileContents);
         }
 
         /// <inheritdoc />
@@ -112,7 +118,7 @@ namespace DigitalRuby.IPBanCore
 
             // create or update rule
             result |= CreateOrUpdateRule(zoneFile, zoneFileOrig, false, allowPriority, allowRuleName, allowRuleName6,
-                Array.Empty<PortRange>(), canUseForwardNode);
+                Array.Empty<PortRange>(), canUseForwardNode, fallbackZoneFileContents);
             dirty = true;
 
             // done
@@ -134,7 +140,7 @@ namespace DigitalRuby.IPBanCore
                 ip6s);
 
             // create or update rule
-            result |= CreateOrUpdateRule(zoneFile, zoneFileOrig, false, allowPriority, set4, set6, allowedPorts, canUseForwardNode);
+            result |= CreateOrUpdateRule(zoneFile, zoneFileOrig, false, allowPriority, set4, set6, allowedPorts, canUseForwardNode, fallbackZoneFileContents);
             dirty = true;
 
             // done
@@ -157,7 +163,7 @@ namespace DigitalRuby.IPBanCore
                 ip6s);
 
             // create or update rule
-            result |= CreateOrUpdateRule(zoneFile, zoneFileOrig, true, dropPriority, set4, set6, allowedPorts, canUseForwardNode);
+            result |= CreateOrUpdateRule(zoneFile, zoneFileOrig, true, dropPriority, set4, set6, allowedPorts, canUseForwardNode, fallbackZoneFileContents);
             dirty = true;
 
             // done
@@ -179,7 +185,7 @@ namespace DigitalRuby.IPBanCore
                 ip6s);
 
             // create or update rule
-            result |= CreateOrUpdateRule(zoneFile, zoneFileOrig, true, dropPriority, set4, set6, allowedPorts, canUseForwardNode);
+            result |= CreateOrUpdateRule(zoneFile, zoneFileOrig, true, dropPriority, set4, set6, allowedPorts, canUseForwardNode, fallbackZoneFileContents);
             dirty = true;
 
             // done
@@ -199,7 +205,7 @@ namespace DigitalRuby.IPBanCore
                 ipAddresses.Where(i => !i.IsIPV4));
 
             // create or update rule
-            result |= CreateOrUpdateRule(zoneFile, zoneFileOrig, true, dropPriority, set4, set6, allowedPorts, canUseForwardNode);
+            result |= CreateOrUpdateRule(zoneFile, zoneFileOrig, true, dropPriority, set4, set6, allowedPorts, canUseForwardNode, fallbackZoneFileContents);
             dirty = true;
 
             // done
@@ -311,7 +317,7 @@ namespace DigitalRuby.IPBanCore
         /// <inheritdoc />
         public override void Truncate()
         {
-            EnsureZoneFile(zoneFile, zoneFileOrig);
+            EnsureZoneFile(zoneFile, zoneFileOrig, fallbackZoneFileContents);
             var setNames = IPBanLinuxIPSetFirewallD.GetSetNames(RulePrefix);
             foreach (var ruleName in setNames)
             {
@@ -331,11 +337,12 @@ namespace DigitalRuby.IPBanCore
         /// <param name="ruleIP6">IP6 rule name</param>
         /// <param name="allowedPorts">Allowed ports</param>
         /// <param name="canUseForwardNode">Whether forward node is allowed</param>
+        /// <param name="fallbackZoneFileContents">Fallback zone file contents</param>
         /// <returns></returns>
         public static bool CreateOrUpdateRule(string zoneFile, string zoneFileOrig, bool drop, int priority, string ruleIP4, string ruleIP6,
-            IEnumerable<PortRange> allowedPorts, bool canUseForwardNode)
+            IEnumerable<PortRange> allowedPorts, bool canUseForwardNode, string fallbackZoneFileContents)
         {
-            EnsureZoneFile(zoneFile, zoneFileOrig);
+            EnsureZoneFile(zoneFile, zoneFileOrig, fallbackZoneFileContents);
 
             // load zone from file
             XmlDocument doc = new();
@@ -564,15 +571,14 @@ namespace DigitalRuby.IPBanCore
             return rules;
         }
 
-        private static void EnsureZoneFile(string zoneFile, string zoneFileOrig)
+        private static void EnsureZoneFile(string zoneFile, string zoneFileOrig, string fallbackZoneFileContents)
         {
-            const string fallbackZoneFileContents = "<?xml version=\"1.0\" encoding=\"utf-8\"?><zone><short>Public</short><description>For use in public areas. You do not trust the other computers on networks to not harm your computer. Only selected incoming connections are accepted.</description><service name=\"ssh\"/><service name=\"dhcpv6-client\"/><forward/></zone>";
             if (!File.Exists(zoneFile))
             {
                 string origZoneFileContents;
                 if (!File.Exists(zoneFileOrig))
                 {
-                    origZoneFileContents = fallbackZoneFileContents;
+                    origZoneFileContents = string.IsNullOrWhiteSpace(fallbackZoneFileContents) ? defaultFallbackZoneFileContents : fallbackZoneFileContents;
                 }
                 else
                 {

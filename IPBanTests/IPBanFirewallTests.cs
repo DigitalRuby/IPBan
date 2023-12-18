@@ -326,8 +326,8 @@ namespace DigitalRuby.IPBanTests
             }
             try
             {
-                IPBanLinuxFirewallD.CreateOrUpdateRule(zoneFile, zoneFileOrig, true, 5, "drop4", "drop6", null, true);
-                IPBanLinuxFirewallD.CreateOrUpdateRule(zoneFile, zoneFileOrig, true, 5, "drop4", "drop6", null, true);
+                IPBanLinuxFirewallD.CreateOrUpdateRule(zoneFile, zoneFileOrig, true, 5, "drop4", "drop6", null, true, null);
+                IPBanLinuxFirewallD.CreateOrUpdateRule(zoneFile, zoneFileOrig, true, 5, "drop4", "drop6", null, true, null);
                 XmlDocument doc = new();
                 doc.Load(zoneFile);
                 var rules = doc.SelectNodes("//rule");
