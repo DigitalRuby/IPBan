@@ -38,7 +38,7 @@ namespace DigitalRuby.IPBanCore
     /// <param name="mostSignificant">The most significant 64 bits of the value.</param>
     /// <param name="leastSignificant">The least significant 64 bits of the value.</param>
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
-    public struct UInt128(ulong mostSignificant, ulong leastSignificant) : IComparable<UInt128>, IEquatable<UInt128>, IFormattable
+    public readonly struct UInt128(ulong mostSignificant, ulong leastSignificant) : IComparable<UInt128>, IEquatable<UInt128>, IFormattable
     {
         /// <summary>
         /// The number of bytes this type will take.
@@ -746,11 +746,11 @@ namespace DigitalRuby.IPBanCore
         /// <summary>
         /// Get the least significate ulong
         /// </summary>
-        public ulong LeastSignificant = leastSignificant;
+        public ulong LeastSignificant => leastSignificant;
 
         /// <summary>
         /// Get the most significant ulong
         /// </summary>
-        public ulong MostSignificant = mostSignificant;
+        public ulong MostSignificant => mostSignificant;
     }
 }

@@ -9,8 +9,15 @@ namespace DigitalRuby.IPBanCore
     /// </summary>
     public sealed class UnmanagedMemory : IDisposable
     {
-        private static readonly Action<IntPtr> noFree = ptr => { };
-        private static readonly Action<IntPtr> freeHGlobal = ptr => { Marshal.FreeHGlobal(ptr); };
+        /// <summary>
+        /// No free
+        /// </summary>
+        public static readonly Action<IntPtr> NoFree = ptr => { };
+
+        /// <summary>
+        /// Free HGlobal
+        /// </summary>
+        public static readonly Action<IntPtr> FreeHGlobal = ptr => { Marshal.FreeHGlobal(ptr); };
 
         private Action<IntPtr> free;
         private int refCount = 1;
@@ -38,7 +45,7 @@ namespace DigitalRuby.IPBanCore
         {
             Pointer = Marshal.AllocHGlobal(size);
             Size = size;
-            free = freeHGlobal;
+            free = FreeHGlobal;
         }
 
         /// <summary>
@@ -50,7 +57,7 @@ namespace DigitalRuby.IPBanCore
         {
             Pointer = pointer;
             Size = size;
-            free = noFree;
+            free = NoFree;
         }
 
         /// <summary>
