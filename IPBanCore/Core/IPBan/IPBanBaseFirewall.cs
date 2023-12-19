@@ -65,7 +65,7 @@ namespace DigitalRuby.IPBanCore
         /// <inheritdoc />
         public void SendPacketEvents(IReadOnlyCollection<PacketEvent> events)
         {
-            if (events.Count != 0)
+            if (events.Count != 0 && PacketEvent is not null)
             {
                 var eventsCopy = events.ToArray();
                 Logger.Debug("Sending {0} packet events", eventsCopy.Length);
