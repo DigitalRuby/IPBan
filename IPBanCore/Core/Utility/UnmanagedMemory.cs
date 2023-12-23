@@ -1,6 +1,7 @@
-﻿using System;
+﻿#nullable disable
+
+using System;
 using System.Runtime.InteropServices;
-using System.Threading;
 
 namespace DigitalRuby.IPBanCore
 {
@@ -91,7 +92,7 @@ namespace DigitalRuby.IPBanCore
         public void Dispose()
         {
             GC.SuppressFinalize(this);
-            if (refCount != 0 && Interlocked.Decrement(ref refCount) == 0)
+            if (refCount != 0 && System.Threading.Interlocked.Decrement(ref refCount) == 0)
             {
                 try
                 {
@@ -115,9 +116,11 @@ namespace DigitalRuby.IPBanCore
         {
             if (Pointer != IntPtr.Zero)
             {
-                Interlocked.Increment(ref refCount);
+                System.Threading.Interlocked.Increment(ref refCount);
             }
             return this;
         }
     }
 }
+
+#nullable restore

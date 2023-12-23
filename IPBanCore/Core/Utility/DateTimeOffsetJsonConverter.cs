@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Globalization;
-using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -9,12 +8,12 @@ namespace DigitalRuby.IPBanCore
     /// <summary>
     /// DateTimeOffset converter
     /// </summary>
-    public class DateTimeOffsetJsonConverter : JsonConverter<DateTimeOffset>
+    public sealed class DateTimeOffsetJsonConverter : JsonConverter<DateTimeOffset>
     {
         /// <inheritdoc />
         public override DateTimeOffset Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
-            return DateTimeOffset.Parse(reader.GetString(), CultureInfo.InvariantCulture);
+            return DateTimeOffset.Parse(reader.GetString() ?? string.Empty, CultureInfo.InvariantCulture);
         }
 
         /// <inheritdoc />
