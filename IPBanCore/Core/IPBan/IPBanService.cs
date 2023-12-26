@@ -225,7 +225,7 @@ namespace DigitalRuby.IPBanCore
         /// Initialize and start the service
         /// </summary>
         /// <param name="cancelToken">Cancel token</param>
-        public Task RunAsync(CancellationToken cancelToken)
+        public async Task RunAsync(CancellationToken cancelToken)
         {
             CancelToken = cancelToken;
 
@@ -244,6 +244,7 @@ namespace DigitalRuby.IPBanCore
                     // add some services
                     AddUpdater(new IPBanUnblockIPAddressesUpdater(this, Path.Combine(AppContext.BaseDirectory, "unban*.txt")));
                     AddUpdater(new IPBanBlockIPAddressesUpdater(this, Path.Combine(AppContext.BaseDirectory, "ban*.txt")));
+                    await DnsList.Update(cancelToken);
                     AddUpdater(DnsList);
                     AddUpdater(IPThreatUploader ??= new IPBanIPThreatUploader(this));
 
@@ -261,7 +262,7 @@ namespace DigitalRuby.IPBanCore
                     // setup cycle timer if needed
                     if (!ManualCycle)
                     {
-                        return RunCycleInBackground(cancelToken);
+                        await RunCycleInBackground(cancelToken);
                     }
                 }
                 catch (Exception ex)
@@ -272,8 +273,6 @@ namespace DigitalRuby.IPBanCore
                     }
                 }
             }
-
-            return Task.CompletedTask;
         }
 
         /// <summary>
