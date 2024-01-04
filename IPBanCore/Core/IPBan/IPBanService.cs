@@ -244,8 +244,11 @@ namespace DigitalRuby.IPBanCore
                     // add some services
                     AddUpdater(new IPBanUnblockIPAddressesUpdater(this, Path.Combine(AppContext.BaseDirectory, "unban*.txt")));
                     AddUpdater(new IPBanBlockIPAddressesUpdater(this, Path.Combine(AppContext.BaseDirectory, "ban*.txt")));
-                    await DnsList.Update(cancelToken);
-                    AddUpdater(DnsList);
+                    if (DnsList is not null)
+                    {
+                        await DnsList.Update(cancelToken);
+                        AddUpdater(DnsList);
+                    }
                     AddUpdater(IPThreatUploader ??= new IPBanIPThreatUploader(this));
 
                     // start delegate if we have one
