@@ -25,6 +25,7 @@ SOFTWARE.
 using DigitalRuby.IPBanCore;
 
 using NUnit.Framework;
+using NUnit.Framework.Legacy;
 
 using System;
 using System.Collections.Generic;
@@ -37,23 +38,23 @@ namespace DigitalRuby.IPBanTests
     public class IPBanAsyncQueueTests
     {
         [Test]
-        public void TestEnqueueDequeue()
+        public async Task TestEnqueueDequeue()
         {
             TimeSpan timeout = TimeSpan.FromMilliseconds(1.0);
             AsyncQueue<int> queue = new();
-            queue.Enqueue(1);
-            queue.EnqueueRange(new int[] { 2, 3 });
-            Assert.AreEqual(1, queue.TryDequeueAsync(timeout).Sync().Value);
-            Assert.AreEqual(2, queue.TryDequeueAsync(timeout).Sync().Value);
-            Assert.AreEqual(3, queue.TryDequeueAsync(timeout).Sync().Value);
+            await queue.EnqueueAsync(1);
+            await queue.EnqueueRangeAsync(new[] { 2, 3 });
+            ClassicAssert.AreEqual(1, queue.TryDequeueAsync(timeout).Sync().Value);
+            ClassicAssert.AreEqual(2, queue.TryDequeueAsync(timeout).Sync().Value);
+            ClassicAssert.AreEqual(3, queue.TryDequeueAsync(timeout).Sync().Value);
         }
 
         [Test]
-        public void TestMultipleThreads()
+        public async Task TestMultipleThreads()
         {
             AsyncQueue<int> queue = new();
             int count = 0;
-            List<Task> tasks = new();
+            List<Task> tasks = [];
             CancellationTokenSource cancelToken = new();
 
             for (int i = 0; i < 10; i++)
@@ -77,7 +78,7 @@ namespace DigitalRuby.IPBanTests
 
             for (int i = 1; i <= 1000; i++)
             {
-                queue.Enqueue(i);
+                await queue.EnqueueAsync(i);
             }
 
             for (int i = 0; i < 10 && count != 1000; i++)
@@ -86,8 +87,8 @@ namespace DigitalRuby.IPBanTests
             }
 
             cancelToken.Cancel();
-            Assert.IsTrue(Task.WhenAll(tasks.ToArray()).Wait(1000));
-            Assert.AreEqual(500500, count); // sum of 1 to 1000
+            ClassicAssert.IsTrue(Task.WhenAll([.. tasks]).Wait(1000));
+            ClassicAssert.AreEqual(500500, count); // sum of 1 to 1000
         }
     }
 }

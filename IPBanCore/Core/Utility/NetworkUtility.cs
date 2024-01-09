@@ -39,7 +39,7 @@ namespace DigitalRuby.IPBanCore
     public static class NetworkUtility
     {
         // https://en.wikipedia.org/wiki/Reserved_IP_addresses
-        private static readonly System.Net.IPAddress[] localHostIP = new System.Net.IPAddress[] { System.Net.IPAddress.Parse("127.0.0.1"), System.Net.IPAddress.Parse("::1") };
+        private static readonly System.Net.IPAddress[] localHostIP = [System.Net.IPAddress.Parse("127.0.0.1"), System.Net.IPAddress.Parse("::1")];
 
         /// <summary>
         /// First ipv4
@@ -144,7 +144,7 @@ namespace DigitalRuby.IPBanCore
         /// <returns>All dns servers for this local machine</returns>
         public static IReadOnlyCollection<IPAddress> GetLocalDnsServers()
         {
-            List<IPAddress> dnsServers = new();
+            List<IPAddress> dnsServers = [];
             NetworkInterface[] networkInterfaces = NetworkInterface.GetAllNetworkInterfaces();
 
             foreach (NetworkInterface networkInterface in networkInterfaces)
@@ -195,7 +195,7 @@ namespace DigitalRuby.IPBanCore
         /// <returns>All ips of local machine (key) and priority (value). Higher priority are sorted first.</returns>
         public static IReadOnlyCollection<KeyValuePair<System.Net.IPAddress, int>> GetIPAddressesByPriority()
         {
-            Dictionary<System.Net.IPAddress, int> ips = new();
+            Dictionary<System.Net.IPAddress, int> ips = [];
             foreach (NetworkInterface netInterface in NetworkInterface.GetAllNetworkInterfaces())
             {
                 if (netInterface.OperationalStatus == OperationalStatus.Up &&
@@ -317,7 +317,7 @@ namespace DigitalRuby.IPBanCore
                 List<KeyValuePair<System.Net.IPAddress, int>> collection;
                 if (ipAddresses is null)
                 {
-                    collection = GetIPAddressesByPriority().ToList();
+                    collection = [.. GetIPAddressesByPriority()];
                 }
                 else
                 {

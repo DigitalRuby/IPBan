@@ -2,7 +2,7 @@ param([Parameter(Mandatory=$true)] [String]$version)
 
 # Set-ExecutionPolicy -ExecutionPolicy Unrestricted -Scope LocalMachine
 
-$netFrameworkVersion = "net6.0"
+$netFrameworkVersion = "net8.0"
 $publishTrimmed = $True
 $versionDots = $version.Replace('_', '.')
 

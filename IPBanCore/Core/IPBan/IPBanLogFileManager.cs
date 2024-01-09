@@ -37,7 +37,7 @@ namespace DigitalRuby.IPBanCore
     public class IPBanLogFileManager : IUpdater
     {
         private readonly IIPBanService service;
-        private readonly HashSet<IPBanLogFileScanner> logFilesToParse = new();
+        private readonly HashSet<IPBanLogFileScanner> logFilesToParse = [];
 
         /// <summary>
         /// Log files to parse

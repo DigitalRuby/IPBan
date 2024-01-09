@@ -125,7 +125,7 @@ namespace DigitalRuby.IPBanCore
 
         private void ParseRegex(Regex regex, string text, bool successful, string timestampFormat)
         {
-            List<IPAddressLogEvent> events = new();
+            List<IPAddressLogEvent> events = [];
             IPAddressEventType type = (successful ? IPAddressEventType.SuccessfulLogin : IPAddressEventType.FailedLogin);
             foreach (IPAddressLogEvent info in IPBanRegexParser.GetIPAddressEventsFromRegex(regex, text, timestampFormat, type, Source, dns))
             {

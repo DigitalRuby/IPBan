@@ -31,16 +31,13 @@ namespace DigitalRuby.IPBanCore
     /// <summary>
     /// This firewall implementation does nothing, so is great for performance testing
     /// </summary>
+    /// <remarks>
+    /// Constructor
+    /// </remarks>
+    /// <param name="rulePrefix">Rule prefix</param>
     [RequiredOperatingSystemAttribute(null, Priority = -999)] // low priority, basically any other firewall is preferred unless this one is explicitly specified in the config
-    public class IPBanNullFirewall : IPBanBaseFirewall
+    public class IPBanNullFirewall(string rulePrefix = null) : IPBanBaseFirewall(rulePrefix)
     {
-        /// <summary>
-        /// Constructor
-        /// </summary>
-        /// <param name="rulePrefix">Rule prefix</param>
-        public IPBanNullFirewall(string rulePrefix = null) : base(rulePrefix)
-        {
-        }
 
         /// <inheritdoc />
         public override Task<bool> AllowIPAddresses(IEnumerable<string> ipAddresses, CancellationToken cancelToken = default)

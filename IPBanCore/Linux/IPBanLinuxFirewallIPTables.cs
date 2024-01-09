@@ -40,18 +40,13 @@ namespace DigitalRuby.IPBanCore
         /// <summary>
         /// Linux Firewall iptables for IPV6, is wrapped inside IPBanLinuxFirewallIPTables
         /// </summary>
-        private sealed class IPBanLinuxFirewallIPTables6 : IPBanLinuxBaseFirewallIPTables
+        private sealed class IPBanLinuxFirewallIPTables6(string rulePrefix) : IPBanLinuxBaseFirewallIPTables(rulePrefix + "6_")
         {
             protected override bool IsIPV4 => false;
             protected override string INetFamily => IPBanLinuxIPSetIPTables.INetFamilyIPV6;
             protected override string SetSuffix => ".set6";
             protected override string TableSuffix => ".tbl6";
             protected override string IpTablesProcess => ip6TablesProcess;
-
-            public IPBanLinuxFirewallIPTables6(string rulePrefix) : base(rulePrefix + "6_")
-            {
-
-            }
         }
 
         private readonly IPBanLinuxFirewallIPTables6 firewall6;

@@ -27,6 +27,7 @@ using System;
 using DigitalRuby.IPBanCore;
 
 using NUnit.Framework;
+using NUnit.Framework.Legacy;
 
 namespace DigitalRuby.IPBanTests
 {
@@ -36,71 +37,71 @@ namespace DigitalRuby.IPBanTests
         [Test]
         public void TestOSIsRecognized()
         {
-            Assert.IsTrue(OSUtility.Name == OSUtility.Windows || OSUtility.Name == OSUtility.Linux ||
+            ClassicAssert.IsTrue(OSUtility.Name == OSUtility.Windows || OSUtility.Name == OSUtility.Linux ||
                 OSUtility.Name == OSUtility.Mac);
         }
 
         [Test]
         public void TestMemoryUsage()
         {
-            Assert.IsTrue(OSUtility.GetMemoryUsage(out long total, out long avail));
-            Assert.IsTrue(total >= avail);
-            Assert.IsTrue(avail > 0);
+            ClassicAssert.IsTrue(OSUtility.GetMemoryUsage(out long total, out long avail));
+            ClassicAssert.IsTrue(total >= avail);
+            ClassicAssert.IsTrue(avail > 0);
         }
 
         [Test]
         public void TestDiskUsage()
         {
-            Assert.IsTrue(OSUtility.GetDiskUsage(out long totalStorage, out long availableStorage));
-            Assert.IsTrue(totalStorage >= availableStorage);
-            Assert.IsTrue(availableStorage > 0);
+            ClassicAssert.IsTrue(OSUtility.GetDiskUsage(out long totalStorage, out long availableStorage));
+            ClassicAssert.IsTrue(totalStorage >= availableStorage);
+            ClassicAssert.IsTrue(availableStorage > 0);
         }
 
         [Test]
         public void TestCpuUsage()
         {
-            Assert.IsTrue(OSUtility.GetCpuUsage(out float percentUsed));
-            Assert.IsTrue(percentUsed >= 0.0f && percentUsed <= 1.0f);
+            ClassicAssert.IsTrue(OSUtility.GetCpuUsage(out float percentUsed));
+            ClassicAssert.IsTrue(percentUsed >= 0.0f && percentUsed <= 1.0f);
         }
 
         [Test]
         public void TestNetworkUsage()
         {
-            Assert.IsTrue(OSUtility.GetNetworkUsage(out float percentUsed));
-            Assert.IsTrue(percentUsed >= 0.0f && percentUsed <= 1.0f);
+            ClassicAssert.IsTrue(OSUtility.GetNetworkUsage(out float percentUsed));
+            ClassicAssert.IsTrue(percentUsed >= 0.0f && percentUsed <= 1.0f);
         }
 
         [Test]
         public void TestDiskIopsUsage()
         {
-            Assert.IsTrue(OSUtility.GetDiskIopsUsage(out float percentUsed));
-            Assert.IsTrue(percentUsed >= 0.0f && percentUsed <= 1.0f);
+            ClassicAssert.IsTrue(OSUtility.GetDiskIopsUsage(out float percentUsed));
+            ClassicAssert.IsTrue(percentUsed >= 0.0f && percentUsed <= 1.0f);
         }
 
         [Test]
         public void TestGetMacAddress()
         {
             string mac = NetworkUtility.GetMacAddress();
-            Assert.GreaterOrEqual(12, mac.Length);
+            ClassicAssert.GreaterOrEqual(12, mac.Length);
         }
 
         [Test]
         public void TestGetUserNameIsActive()
         {
             bool result = OSUtility.UserIsActive("root");
-            Assert.AreEqual(result, OSUtility.UserIsActive("root"));
+            ClassicAssert.AreEqual(result, OSUtility.UserIsActive("root"));
 
             result = OSUtility.UserIsActive(Environment.UserName);
-            Assert.AreEqual(result, OSUtility.UserIsActive(Environment.UserName));
+            ClassicAssert.AreEqual(result, OSUtility.UserIsActive(Environment.UserName));
 
             // try something not exist, make sure false
-            Assert.IsFalse(OSUtility.UserIsActive("asdoijasdoajspdojaspdojaspodjaspodjs"));
+            ClassicAssert.IsFalse(OSUtility.UserIsActive("asdoijasdoajspdojaspdojaspodjaspodjs"));
         }
 
         [Test]
         public void TestFqdn()
         {
-            Assert.IsTrue(!string.IsNullOrWhiteSpace(OSUtility.FQDN));
+            ClassicAssert.IsTrue(!string.IsNullOrWhiteSpace(OSUtility.FQDN));
         }
     }
 }

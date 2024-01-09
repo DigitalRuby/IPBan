@@ -25,6 +25,7 @@ SOFTWARE.
 using DigitalRuby.IPBanCore;
 
 using NUnit.Framework;
+using NUnit.Framework.Legacy;
 
 using System;
 using System.Collections.Generic;
@@ -48,40 +49,40 @@ namespace DigitalRuby.IPBanTests
         {
             using StringSet set = new("test", true);
             set.Clear();
-            List<string> strings = new();
+            List<string> strings = [];
             Random r = new();
             for (int i = 0; i < 1000; i++)
             {
                 strings.Add(RandomString(64));
             }
             strings.Sort();
-            Assert.AreEqual(strings.Count, set.AddMany(strings));
-            Assert.AreEqual(0, set.AddMany(strings));
+            ClassicAssert.AreEqual(strings.Count, set.AddMany(strings));
+            ClassicAssert.AreEqual(0, set.AddMany(strings));
             string[] existing = set.Enumerate().ToArray();
-            Assert.AreEqual(strings, existing);
-            Assert.IsFalse(set.Contains("test"));
-            Assert.IsFalse(set.Contains("test2"));
-            Assert.IsTrue(set.Add("test"));
-            Assert.IsTrue(set.Add("test2"));
-            Assert.AreEqual(strings.Count + 2, set.GetCount());
-            Assert.IsFalse(set.Add("test"));
-            Assert.IsFalse(set.Add("test2"));
-            Assert.IsTrue(set.Contains("test"));
-            Assert.IsTrue(set.Contains("test2"));
-            Assert.IsFalse(set.Contains("nothing"));
-            Assert.AreEqual(2, set.DeleteMany(new string[] { "test", "test2" }));
-            Assert.AreEqual(strings.Count, set.GetCount());
-            Assert.IsFalse(set.Contains("test"));
-            Assert.IsFalse(set.Contains("test2"));
-            Assert.IsFalse(set.Contains("test3"));
-            Assert.IsTrue(set.Add("test3"));
-            Assert.AreEqual(strings.Count + 1, set.GetCount());
-            Assert.IsTrue(set.Delete("test3"));
-            Assert.IsFalse(set.Delete("test3"));
-            Assert.AreEqual(strings.Count, set.GetCount());
-            Assert.AreEqual(strings.Count, set.Clear());
-            Assert.AreEqual(0, set.GetCount());
-            Assert.AreEqual(Array.Empty<string>(), set.Enumerate());
+            ClassicAssert.AreEqual(strings, existing);
+            ClassicAssert.IsFalse(set.Contains("test"));
+            ClassicAssert.IsFalse(set.Contains("test2"));
+            ClassicAssert.IsTrue(set.Add("test"));
+            ClassicAssert.IsTrue(set.Add("test2"));
+            ClassicAssert.AreEqual(strings.Count + 2, set.GetCount());
+            ClassicAssert.IsFalse(set.Add("test"));
+            ClassicAssert.IsFalse(set.Add("test2"));
+            ClassicAssert.IsTrue(set.Contains("test"));
+            ClassicAssert.IsTrue(set.Contains("test2"));
+            ClassicAssert.IsFalse(set.Contains("nothing"));
+            ClassicAssert.AreEqual(2, set.DeleteMany(new string[] { "test", "test2" }));
+            ClassicAssert.AreEqual(strings.Count, set.GetCount());
+            ClassicAssert.IsFalse(set.Contains("test"));
+            ClassicAssert.IsFalse(set.Contains("test2"));
+            ClassicAssert.IsFalse(set.Contains("test3"));
+            ClassicAssert.IsTrue(set.Add("test3"));
+            ClassicAssert.AreEqual(strings.Count + 1, set.GetCount());
+            ClassicAssert.IsTrue(set.Delete("test3"));
+            ClassicAssert.IsFalse(set.Delete("test3"));
+            ClassicAssert.AreEqual(strings.Count, set.GetCount());
+            ClassicAssert.AreEqual(strings.Count, set.Clear());
+            ClassicAssert.AreEqual(0, set.GetCount());
+            ClassicAssert.AreEqual(Array.Empty<string>(), set.Enumerate());
         }
     }
 }

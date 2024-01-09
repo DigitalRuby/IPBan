@@ -25,6 +25,7 @@ SOFTWARE.
 using DigitalRuby.IPBanCore;
 
 using NUnit.Framework;
+using NUnit.Framework.Legacy;
 
 using System;
 using System.Collections.Generic;
@@ -45,17 +46,17 @@ namespace DigitalRuby.IPBanTests
             string source, string successfulLoginRegex, string successfulLoginRegexTimestampFormat,
             LogLevel failedLogLevel = LogLevel.Warning, LogLevel successLogLevel = LogLevel.Warning)
         {
-            Assert.AreEqual(IPBanRegexParser.ParseRegex(failedLoginRegex)?.ToString(), IPBanRegexParser.ParseRegex(file.FailedLoginRegex)?.ToString());
-            Assert.AreEqual(failedLoginRegexTimestampFormat, file.FailedLoginRegexTimestampFormat);
-            Assert.AreEqual(maxFileSize, file.MaxFileSize);
-            Assert.AreEqual(Regex.Replace(pathAndMask.Trim().Replace('\n', '|'), "\\s+", string.Empty), Regex.Replace(file.PathAndMask.Trim().Replace('\n', '|'), "\\s+", string.Empty));
-            Assert.AreEqual(pingInterval, file.PingInterval);
-            Assert.AreEqual(IPBanRegexParser.ParseRegex(platformRegex)?.ToString(), IPBanRegexParser.ParseRegex(file.PlatformRegex)?.ToString());
-            Assert.AreEqual(source, file.Source);
-            Assert.AreEqual(IPBanRegexParser.ParseRegex(successfulLoginRegex)?.ToString(), IPBanRegexParser.ParseRegex(file.SuccessfulLoginRegex)?.ToString());
-            Assert.AreEqual(successfulLoginRegexTimestampFormat, file.SuccessfulLoginRegexTimestampFormat);
-            Assert.AreEqual(failedLogLevel, file.FailedLoginLogLevel);
-            Assert.AreEqual(successLogLevel, file.SuccessfulLoginLogLevel);
+            ClassicAssert.AreEqual(IPBanRegexParser.ParseRegex(failedLoginRegex)?.ToString(), IPBanRegexParser.ParseRegex(file.FailedLoginRegex)?.ToString());
+            ClassicAssert.AreEqual(failedLoginRegexTimestampFormat, file.FailedLoginRegexTimestampFormat);
+            ClassicAssert.AreEqual(maxFileSize, file.MaxFileSize);
+            ClassicAssert.AreEqual(Regex.Replace(pathAndMask.Trim().Replace('\n', '|'), "\\s+", string.Empty), Regex.Replace(file.PathAndMask.Trim().Replace('\n', '|'), "\\s+", string.Empty));
+            ClassicAssert.AreEqual(pingInterval, file.PingInterval);
+            ClassicAssert.AreEqual(IPBanRegexParser.ParseRegex(platformRegex)?.ToString(), IPBanRegexParser.ParseRegex(file.PlatformRegex)?.ToString());
+            ClassicAssert.AreEqual(source, file.Source);
+            ClassicAssert.AreEqual(IPBanRegexParser.ParseRegex(successfulLoginRegex)?.ToString(), IPBanRegexParser.ParseRegex(file.SuccessfulLoginRegex)?.ToString());
+            ClassicAssert.AreEqual(successfulLoginRegexTimestampFormat, file.SuccessfulLoginRegexTimestampFormat);
+            ClassicAssert.AreEqual(failedLogLevel, file.FailedLoginLogLevel);
+            ClassicAssert.AreEqual(successLogLevel, file.SuccessfulLoginLogLevel);
         }
 
         private static void AssertLogFilesToParse(IPBanConfig cfg)
@@ -64,8 +65,8 @@ namespace DigitalRuby.IPBanTests
             const int pingInterval = 10000;
 
             // path and mask, fail expression, fail timestamp format, success expression, success timestamp format, platform regex, source
-            object[] logFileData = new object[]
-            {
+            object[] logFileData =
+            [
                 "/var/log/auth*.log\n/var/log/secure*\n/var/log/messages",
                 @"(?<log>failed\s+password)\s+for\s+(?:invalid\s+user\s+)?(?<username>[^\s]+)\s+from\s+(?<ipaddress>[^\s]+)\s+port\s+[0-9]+\s+ssh|(?<log>did\s+not\s+receive\s+identification\s+string)\s+from\s+(?<ipaddress>[^\s]+)|(?<log>connection\s+closed)\s+by\s+(?:(?:invalid\s+user\s+)?(?<username>[^\s]+)\s+)?(?<ipaddress>[^\s]+)\s+port\s+[0-9]+\s+\[preauth\]|(?<log>disconnected\s+from)\s+(?:invalid\s+user\s+)?(?<username>[^\s]+)\s+(?<ipaddress>[^\s]+)\s+port\s+[0-9]+\s+\[preauth\]|(?<log>disconnected\s+from)\s+(?<ipaddress>[^\s]+)\s+port\s+[0-9]+\s+\[preauth\]|(?<log>disconnected\s+from\s+authenticating\s+user)\s+(?<username>[^\s]+)\s+(?<ipaddress>[^\s]+)\s+port\s+[0-9]+\s+\[preauth\]",
                 @"",
@@ -114,9 +115,9 @@ namespace DigitalRuby.IPBanTests
                 @"(?<timestamp>\d\d\d\d-\d\d-\d\d\s\d\d:\d\d:\d\d(?:\.\d+)?Z?)?(?:,\s)?ipban\ssuccess\slogin,\sip\saddress:\s(?<ipaddress>[^,\n]+),\ssource:\s(?<source>[^,\n]+)?,\suser:\s(?<username>[^\s,]+)?",
                 @"",
                 "Windows", "IPBanCustom"
-            };
+            ];
 
-            Assert.AreEqual(logFileData.Length / 7, cfg.LogFilesToParse.Count);
+            ClassicAssert.AreEqual(logFileData.Length / 7, cfg.LogFilesToParse.Count);
             for (int i = 0; i < logFileData.Length; i += 7)
             {
                 AssertLogFileToParse(cfg.LogFilesToParse[i / 7],
@@ -135,24 +136,24 @@ namespace DigitalRuby.IPBanTests
         private static void AssertEventViewerGroup(EventViewerExpressionGroup group, string keywords, int windowsMinimumMajorVersion, int windowsMinimumMinorVersion,
             bool notifyOnly, string path, string source, params string[] expressions)
         {
-            Assert.NotNull(group);
-            Assert.AreEqual(keywords, group.Keywords);
-            Assert.AreEqual(ulong.Parse(keywords.Replace("0x", string.Empty), System.Globalization.NumberStyles.HexNumber), group.KeywordsULONG);
-            Assert.AreEqual(windowsMinimumMajorVersion, group.MinimumWindowsMajorVersion);
-            Assert.AreEqual(windowsMinimumMinorVersion, group.MinimumWindowsMinorVersion);
-            Assert.AreEqual(notifyOnly, group.NotifyOnly);
-            Assert.AreEqual(path, group.Path);
-            Assert.AreEqual(source, group.Source);
-            Assert.NotNull(group.Expressions);
-            Assert.AreEqual(group.Expressions.Count, expressions.Length / 2);
+            ClassicAssert.NotNull(group);
+            ClassicAssert.AreEqual(keywords, group.Keywords);
+            ClassicAssert.AreEqual(ulong.Parse(keywords.Replace("0x", string.Empty), System.Globalization.NumberStyles.HexNumber), group.KeywordsULONG);
+            ClassicAssert.AreEqual(windowsMinimumMajorVersion, group.MinimumWindowsMajorVersion);
+            ClassicAssert.AreEqual(windowsMinimumMinorVersion, group.MinimumWindowsMinorVersion);
+            ClassicAssert.AreEqual(notifyOnly, group.NotifyOnly);
+            ClassicAssert.AreEqual(path, group.Path);
+            ClassicAssert.AreEqual(source, group.Source);
+            ClassicAssert.NotNull(group.Expressions);
+            ClassicAssert.AreEqual(group.Expressions.Count, expressions.Length / 2);
             for (int i = 0; i < expressions.Length;)
             {
                 int groupIndex = i / 2;
                 Regex regex = IPBanRegexParser.ParseRegex(group.Expressions[groupIndex].Regex);
-                Assert.AreEqual(expressions[i++], group.Expressions[groupIndex].XPath?.Trim());
-                Assert.AreEqual(expressions[i++], (regex is null ? string.Empty : regex.ToString()));
+                ClassicAssert.AreEqual(expressions[i++], group.Expressions[groupIndex].XPath?.Trim());
+                ClassicAssert.AreEqual(expressions[i++], (regex is null ? string.Empty : regex.ToString()));
             }
-            Assert.AreEqual(LogLevel.Warning, group.LogLevel);
+            ClassicAssert.AreEqual(LogLevel.Warning, group.LogLevel);
         }
 
         private static void AssertEventViewer(IPBanConfig cfg)
@@ -167,9 +168,9 @@ namespace DigitalRuby.IPBanTests
             var groupCount = 14;
             var i = 0;
             List<EventViewerExpressionGroup> groups = cfg.WindowsEventViewerExpressionsToBlock.Groups;
-            Assert.NotNull(groups);
-            Assert.AreEqual(groupCount, groups.Count);
-            AssertEventViewerGroup(groups[i++], "0x8010000000000000", minimumWindowsMajorVersion, 0, false, "Security", "RDP", "//EventID", "^(?<log>4625|5152)$", "//Data[@Name='IpAddress' or @Name='Workstation' or @Name='SourceAddress']", "(?<ipaddress>.+)", "//Data[@Name='ProcessName']", "(?<source_IIS>c:\\\\Windows\\\\System32\\\\inetsrv\\\\w3wp.exe)?$");
+            ClassicAssert.NotNull(groups);
+            ClassicAssert.AreEqual(groupCount, groups.Count);
+            AssertEventViewerGroup(groups[i++], "0x8010000000000000", minimumWindowsMajorVersion, 0, false, "Security", "RDP", "//EventID", "^(?<log>4625|5152|6273)$", "//Data[@Name='IpAddress' or @Name='Workstation' or @Name='SourceAddress' or @Name='ClientIPAddress']", "(?<ipaddress>.+)", "//Data[@Name='ProcessName']", "(?<source_IIS>c:\\\\Windows\\\\System32\\\\inetsrv\\\\w3wp.exe)?$");
             AssertEventViewerGroup(groups[i++], "0x8010000000000000", minimumWindowsMajorVersion, 0, false, "Security", "RDP", "//EventID", "^(?<log>4653)$", "//Data[@Name='FailureReason']", ".", "//Data[@Name='RemoteAddress']", "(?<ipaddress>.+)");
             AssertEventViewerGroup(groups[i++], "0x80000000000000", minimumWindowsMajorVersion, 0, false, "Application", "IPBanCustom", "//Data", @"(?<timestamp>\d\d\d\d-\d\d-\d\d\s\d\d:\d\d:\d\d(?:\.\d+)?Z?)?(?:,\s)?(?<log>ipban\sfailed\slogin),\sip\saddress:\s(?<ipaddress>[^,]+),\ssource:\s(?<source>[^,]+)?,\suser:\s(?<username>[^\s,]+)?");
             AssertEventViewerGroup(groups[i++], "0x90000000000000", minimumWindowsMajorVersion, 0, false, "Application", "MSSQL", "//Provider[contains(@Name,'MSSQL')]", string.Empty, "//EventID", "^(?<log>18456)$", "(//Data)[1]", "^(?<username>.+)$", "(//Data)[2]", @"^(?:(?!Reason:\sFailed\sto\sopen\sthe(?:\sexplicitly\sspecified)?\sdatabase)(?:.))+$", "(//Data)[3]", @"\[CLIENTE?\s?:\s?(?<ipaddress>[^\]]+)\]");
@@ -187,8 +188,8 @@ namespace DigitalRuby.IPBanTests
             groupCount = 6;
             groups = cfg.WindowsEventViewerExpressionsToNotify.Groups;
             i = 0;
-            Assert.NotNull(groups);
-            Assert.AreEqual(groupCount, groups.Count);
+            ClassicAssert.NotNull(groups);
+            ClassicAssert.AreEqual(groupCount, groups.Count);
             AssertEventViewerGroup(groups[i++], "0x8020000000000000", minimumWindowsMajorVersion, 0, true, "Security", "RDP", "//EventID", "^4624$", "//Data[@Name='ProcessName' or @Name='LogonProcessName']", "winlogon|svchost|ntlmssp", "//Data[@Name='IpAddress' or @Name='Workstation' or @Name='SourceAddress']", "(?<ipaddress>.+)");
             AssertEventViewerGroup(groups[i++], "0x4000000000000000", minimumWindowsMajorVersion, 0, true, "OpenSSH/Operational", "SSH", "//Data[@Name='payload']", @"Accepted\s+(?:password|publickey)\s+for\s+(?<username>[^\s]+)\s+from\s+(?<ipaddress>[^\s]+)\s+port\s+[0-9]+\s+ssh");
             AssertEventViewerGroup(groups[i++], "0x80000000000000", minimumWindowsMajorVersion, 0, true, "Application", "IPBanCustom", "//Data", @"(?<timestamp>\d\d\d\d-\d\d-\d\d\s\d\d:\d\d:\d\d(?:\.\d+)?Z?)?(?:,\s)?ipban\ssuccess\slogin,\sip\saddress:\s(?<ipaddress>[^,]+),\ssource:\s(?<source>[^,]+)?,\suser:\s(?<username>[^\s,]+)?");
@@ -205,38 +206,38 @@ namespace DigitalRuby.IPBanTests
             try
             {
                 IPBanConfig cfg = service.Config;
-                Assert.IsNotNull(cfg);
-                Assert.AreEqual(TimeSpan.FromDays(1.0), cfg.BanTimes.First());
-                Assert.AreEqual(1, cfg.BanTimes.Length);
-                Assert.IsEmpty(cfg.BlacklistFilter.IPAddressRanges);
-                Assert.IsTrue(string.IsNullOrEmpty(cfg.BlacklistFilter.Regex?.ToString()));
-                Assert.IsFalse(cfg.ClearBannedIPAddressesOnRestart);
-                Assert.IsFalse(cfg.ClearFailedLoginsOnSuccessfulLogin);
-                Assert.IsFalse(cfg.ProcessInternalIPAddresses);
-                Assert.AreEqual(TimeSpan.FromSeconds(15.0), cfg.CycleTime);
-                Assert.AreEqual(TimeSpan.FromDays(1.0), cfg.ExpireTime);
-                Assert.AreEqual(5, cfg.FailedLoginAttemptsBeforeBan);
-                Assert.AreEqual(20, cfg.FailedLoginAttemptsBeforeBanUserNameWhitelist);
-                Assert.AreEqual("IPBan_", cfg.FirewallRulePrefix);
-                Assert.AreEqual(TimeSpan.FromSeconds(1.0), cfg.MinimumTimeBetweenFailedLoginAttempts);
-                Assert.IsEmpty(cfg.ProcessToRunOnBan);
-                Assert.IsEmpty(cfg.ProcessToRunOnUnban);
-                Assert.IsFalse(cfg.ResetFailedLoginCountForUnbannedIPAddresses);
-                Assert.IsTrue(cfg.UseDefaultBannedIPAddressHandler);
-                Assert.AreEqual(cfg.TruncateUserNameChars, "@");
-                Assert.AreEqual(IPBanRegexParser.TruncateUserNameChars, cfg.TruncateUserNameChars);
-                Assert.IsEmpty(cfg.UserNameWhitelist);
-                Assert.IsEmpty(cfg.UserNameWhitelistRegex);
-                Assert.IsEmpty(cfg.WhitelistFilter.IPAddressRanges);
-                Assert.IsTrue(string.IsNullOrEmpty(cfg.WhitelistFilter.Regex?.ToString()));
-                Assert.AreEqual(0, cfg.ExtraRules.Count);
-                Assert.AreEqual(cfg.FirewallUriRules.Trim(), "");// EmergingThreats,01:00:00:00,https://rules.emergingthreats.net/fwrules/emerging-Block-IPs.txt");
+                ClassicAssert.IsNotNull(cfg);
+                ClassicAssert.AreEqual(TimeSpan.FromDays(1.0), cfg.BanTimes.First());
+                ClassicAssert.AreEqual(1, cfg.BanTimes.Length);
+                ClassicAssert.IsEmpty(cfg.BlacklistFilter.IPAddressRanges);
+                ClassicAssert.IsTrue(string.IsNullOrEmpty(cfg.BlacklistFilter.Regex?.ToString()));
+                ClassicAssert.IsFalse(cfg.ClearBannedIPAddressesOnRestart);
+                ClassicAssert.IsFalse(cfg.ClearFailedLoginsOnSuccessfulLogin);
+                ClassicAssert.IsFalse(cfg.ProcessInternalIPAddresses);
+                ClassicAssert.AreEqual(TimeSpan.FromSeconds(15.0), cfg.CycleTime);
+                ClassicAssert.AreEqual(TimeSpan.FromDays(1.0), cfg.ExpireTime);
+                ClassicAssert.AreEqual(5, cfg.FailedLoginAttemptsBeforeBan);
+                ClassicAssert.AreEqual(20, cfg.FailedLoginAttemptsBeforeBanUserNameWhitelist);
+                ClassicAssert.AreEqual("IPBan_", cfg.FirewallRulePrefix);
+                ClassicAssert.AreEqual(TimeSpan.FromSeconds(1.0), cfg.MinimumTimeBetweenFailedLoginAttempts);
+                ClassicAssert.IsEmpty(cfg.ProcessToRunOnBan);
+                ClassicAssert.IsEmpty(cfg.ProcessToRunOnUnban);
+                ClassicAssert.IsFalse(cfg.ResetFailedLoginCountForUnbannedIPAddresses);
+                ClassicAssert.IsTrue(cfg.UseDefaultBannedIPAddressHandler);
+                ClassicAssert.AreEqual(cfg.TruncateUserNameChars, "@");
+                ClassicAssert.AreEqual(IPBanRegexParser.TruncateUserNameChars, cfg.TruncateUserNameChars);
+                ClassicAssert.IsEmpty(cfg.UserNameWhitelist);
+                ClassicAssert.IsEmpty(cfg.UserNameWhitelistRegex);
+                ClassicAssert.IsEmpty(cfg.WhitelistFilter.IPAddressRanges);
+                ClassicAssert.IsTrue(string.IsNullOrEmpty(cfg.WhitelistFilter.Regex?.ToString()));
+                ClassicAssert.AreEqual(0, cfg.ExtraRules.Count);
+                ClassicAssert.AreEqual(cfg.FirewallUriRules.Trim(), "");// EmergingThreats,01:00:00:00,https://rules.emergingthreats.net/fwrules/emerging-Block-IPs.txt");
 
                 AssertLogFilesToParse(cfg);
                 AssertEventViewer(cfg);
                 string xml = await service.ConfigReaderWriter.ReadConfigAsync();
                 IPBanConfig prod = IPBanConfig.LoadFromXml(xml);
-                Assert.IsTrue(prod.UseDefaultBannedIPAddressHandler);
+                ClassicAssert.IsTrue(prod.UseDefaultBannedIPAddressHandler);
             }
             finally
             {
@@ -254,11 +255,11 @@ namespace DigitalRuby.IPBanTests
             string config2 = "<?xml version=\"1.0\"?><configuration><appSettings><add key='Whitelist' value='2.2.2.2' /><add key='Blacklist' value='3.3.3.3' /></appSettings></configuration>";
             XmlDocument doc = IPBanConfig.MergeXml(config1, config2);
             var nodes = doc["configuration"]["appSettings"].ChildNodes;
-            Assert.AreEqual(2, nodes.Count);
+            ClassicAssert.AreEqual(2, nodes.Count);
             string value1 = nodes[0].Attributes["value"].Value;
             string value2 = nodes[1].Attributes["value"].Value;
-            Assert.AreEqual("2.2.2.2", value1);
-            Assert.AreEqual("3.3.3.3", value2);
+            ClassicAssert.AreEqual("2.2.2.2", value1);
+            ClassicAssert.AreEqual("3.3.3.3", value2);
 
             // more complicated merge
             string config3 = @"<?xml version='1.0'?>
@@ -287,7 +288,7 @@ e.g.
 
             XmlDocument doc2 = IPBanConfig.MergeXml(config1, config3);
             string resultXml = doc2.OuterXml.Replace('"', '\'');
-            Assert.AreEqual(@"<?xml version='1.0'?><configuration><appSettings><add key='Whitelist' value='127.0.0.1,127.0.0.2' /><add key='UseDefaultBannedIPAddressHandler' value='false' /><add key='FailedLoginAttemptsBeforeBan' value='2' /><add key='BanTime' value='03:00:00:00' /><add key='ExpireTime' value='10:00:00:00' /><add key='CycleTime' value='00:00:00:30' /><add key='Blacklist' value='52.95.229.0/24,54.72.0.0/15' /></appSettings></configuration>", resultXml);
+            ClassicAssert.AreEqual(@"<?xml version='1.0'?><configuration><appSettings><add key='Whitelist' value='127.0.0.1,127.0.0.2' /><add key='UseDefaultBannedIPAddressHandler' value='false' /><add key='FailedLoginAttemptsBeforeBan' value='2' /><add key='BanTime' value='03:00:00:00' /><add key='ExpireTime' value='10:00:00:00' /><add key='CycleTime' value='00:00:00:30' /><add key='Blacklist' value='52.95.229.0/24,54.72.0.0/15' /></appSettings></configuration>", resultXml);
         }
 
         /// <summary>
@@ -300,10 +301,10 @@ e.g.
                 "<appSettings><add key='Whitelist' value='99.99.99.99?TestIP?2020-05-25," +
                 "88.88.88.88?TestIP2?2020-05-24' /></appSettings></configuration>",
                 DefaultDnsLookup.Instance);
-            Assert.AreEqual(string.Join(",", config.WhitelistFilter.IPAddressRanges.OrderBy(i => i)), "88.88.88.88,99.99.99.99");
-            Assert.IsTrue(config.IsWhitelisted("99.99.99.99"));
-            Assert.IsTrue(config.IsWhitelisted("88.88.88.88"));
-            Assert.IsFalse(config.IsWhitelisted("77.77.77.77"));
+            ClassicAssert.AreEqual(string.Join(",", config.WhitelistFilter.IPAddressRanges.OrderBy(i => i)), "88.88.88.88,99.99.99.99");
+            ClassicAssert.IsTrue(config.IsWhitelisted("99.99.99.99"));
+            ClassicAssert.IsTrue(config.IsWhitelisted("88.88.88.88"));
+            ClassicAssert.IsFalse(config.IsWhitelisted("77.77.77.77"));
         }
 
         [Test]
@@ -312,8 +313,8 @@ e.g.
             IPBanConfig config = IPBanConfig.LoadFromXml("<?xml version='1.0'?><configuration>" +
                 "<appSettings><add key='Whitelist' value='test.com' /></appSettings></configuration>",
                 this);
-            Assert.IsTrue(config.WhitelistFilter.IsFiltered("99.88.77.66"));
-            Assert.IsFalse(config.BlacklistFilter.IsFiltered("99.88.77.66"));
+            ClassicAssert.IsTrue(config.WhitelistFilter.IsFiltered("99.88.77.66"));
+            ClassicAssert.IsFalse(config.BlacklistFilter.IsFiltered("99.88.77.66"));
         }
 
         [Test]
@@ -322,8 +323,8 @@ e.g.
             IPBanConfig config = IPBanConfig.LoadFromXml("<?xml version='1.0'?><configuration>" +
                 "<appSettings><add key='Blacklist' value='test.com' /></appSettings></configuration>",
                 this);
-            Assert.IsFalse(config.WhitelistFilter.IsFiltered("99.88.77.66"));
-            Assert.IsTrue(config.BlacklistFilter.IsFiltered("99.88.77.66"));
+            ClassicAssert.IsFalse(config.WhitelistFilter.IsFiltered("99.88.77.66"));
+            ClassicAssert.IsTrue(config.BlacklistFilter.IsFiltered("99.88.77.66"));
         }
 
         [Test]
@@ -331,7 +332,7 @@ e.g.
         {
             Environment.SetEnvironmentVariable("IPBAN_APP_SETTING_ENV_VAR_EXIST", "1.2.3.4", EnvironmentVariableTarget.Process);
             var envVar = Environment.GetEnvironmentVariable("IPBAN_APP_SETTING_ENV_VAR_EXIST");
-            Assert.That(envVar, Is.EqualTo("1.2.3.4"));
+            ClassicAssert.That(envVar, Is.EqualTo("1.2.3.4"));
 
             IPBanConfig config = IPBanConfig.LoadFromXml(
                 "<?xml version='1.0'?>" +
@@ -343,8 +344,8 @@ e.g.
                 "</configuration>",
                 this);
 
-            Assert.That(config.BlacklistFilter.Value, Is.Empty);
-            Assert.That(config.WhitelistFilter.Value, Is.EqualTo("1.2.3.4"));
+            ClassicAssert.That(config.BlacklistFilter.Value, Is.Empty);
+            ClassicAssert.That(config.WhitelistFilter.Value, Is.EqualTo("1.2.3.4"));
 
             Environment.SetEnvironmentVariable("IPBAN_APP_SETTING_ENV_VAR_EXIST", null);
         }
@@ -353,7 +354,7 @@ e.g.
         {
             if (hostNameOrAddress == "test.com")
             {
-                return Task.FromResult<IPAddress[]>(new IPAddress[] { IPAddress.Parse("99.88.77.66") });
+                return Task.FromResult<IPAddress[]>([IPAddress.Parse("99.88.77.66")]);
             }
             throw new NotImplementedException();
         }

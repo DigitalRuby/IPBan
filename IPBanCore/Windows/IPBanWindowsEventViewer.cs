@@ -149,10 +149,7 @@ namespace DigitalRuby.IPBanCore
             if (string.IsNullOrWhiteSpace(info.UserName))
             {
                 XmlNode userNameNode = doc.SelectSingleNode("//Data[@Name='TargetUserName']");
-                if (userNameNode is null)
-                {
-                    userNameNode = doc.SelectSingleNode("//TargetUserName");
-                }
+                userNameNode ??= doc.SelectSingleNode("//TargetUserName");
 
                 // if we have a user name node, use it
                 if (userNameNode != null)
@@ -372,7 +369,7 @@ namespace DigitalRuby.IPBanCore
         private void SetupEventLogWatcher()
         {
             // note- this code will throw when Windows reboots, especially after patches
-            List<string> ignored = new();
+            List<string> ignored = [];
             string queryString = GetEventLogQueryString(ignored);
             if (queryString != null && queryString != previousQueryString)
             {

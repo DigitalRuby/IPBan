@@ -30,6 +30,7 @@ using System.Net.Sockets;
 using DigitalRuby.IPBanCore;
 
 using NUnit.Framework;
+using NUnit.Framework.Legacy;
 
 namespace DigitalRuby.IPBanTests
 {
@@ -46,7 +47,7 @@ namespace DigitalRuby.IPBanTests
         /// <exception cref="AssertionException">Objects are not equal</exception>
         public static void Is(this object a, object b, string message = null)
         {
-            Assert.AreEqual(b, a, message);
+            ClassicAssert.AreEqual(b, a, message);
         }
 
         /// <summary>
@@ -57,7 +58,7 @@ namespace DigitalRuby.IPBanTests
         /// <exception cref="AssertionException">Objects are equal</exception>
         public static void IsNot(this object a, object b, string message = null)
         {
-            Assert.AreNotEqual(b, a, message);
+            ClassicAssert.AreNotEqual(b, a, message);
         }
     }
 
@@ -348,7 +349,7 @@ namespace DigitalRuby.IPBanTests
         [Test]
         public void SubnetMaskLengthTest_Invalid()
         {
-            Assert.Throws<ArgumentException>(() =>
+            ClassicAssert.Throws<ArgumentException>(() =>
                 new IPAddressRange(IPAddress.Parse("192.168.75.23"), IPAddressRange.SubnetMaskLength(IPAddress.Parse("255.255.54.0"))));
         }
 
@@ -445,11 +446,11 @@ namespace DigitalRuby.IPBanTests
             try
             {
                 IPAddressRange.Parse(input).GetPrefixLength();
-                Assert.Fail("Expected exception of type {0} to be thrown for input \"{1}\"", expectedException.Name, input);
+                ClassicAssert.Fail(string.Format("Expected exception of type {0} to be thrown for input \"{1}\"", expectedException.Name, input));
             }
             catch (AssertionException)
             {
-                throw; // allow Assert.Fail to pass through 
+                throw; // allow ClassicAssert.Fail to pass through 
             }
             catch (Exception ex)
             {
@@ -468,11 +469,11 @@ namespace DigitalRuby.IPBanTests
             {
                 range = new IPAddressRange(IPAddress.Parse(begin), IPAddress.Parse(end));
                 range.GetPrefixLength();
-                Assert.Fail($"Expected exception of type {expectedException.Name} to be thrown for input \"{begin}\"~\"{end}\"");
+                ClassicAssert.Fail($"Expected exception of type {expectedException.Name} to be thrown for input \"{begin}\"~\"{end}\"");
             }
             catch (AssertionException)
             {
-                throw; // allow Assert.Fail to pass through 
+                throw; // allow ClassicAssert.Fail to pass through 
             }
             catch (Exception ex)
             {
@@ -510,7 +511,7 @@ namespace DigitalRuby.IPBanTests
         {
             Console.WriteLine("TestCase: \"{0}\", Expected output: {1}", input, output);
             string s = IPAddressRange.Parse(input).ToCidrString();
-            Assert.AreEqual(output, s);
+            ClassicAssert.AreEqual(output, s);
         }
 
         [Test]
@@ -661,11 +662,11 @@ namespace DigitalRuby.IPBanTests
             try
             {
                 IPAddressRange.Parse(input);
-                Assert.Fail("Expected exception of type {0} to be thrown for input \"{1}\"", expectedException.Name, input);
+                ClassicAssert.Fail(string.Format("Expected exception of type {0} to be thrown for input \"{1}\"", expectedException.Name, input));
             }
             catch (AssertionException)
             {
-                throw; // allow Assert.Fail to pass through 
+                throw; // allow ClassicAssert.Fail to pass through 
             }
             catch (Exception ex)
             {
@@ -708,8 +709,8 @@ namespace DigitalRuby.IPBanTests
         [Test]
         public void TestFilterIPAddressRanges()
         {
-            IPAddressRange[] expected = new IPAddressRange[]
-            {
+            IPAddressRange[] expected =
+            [
                 "1.1.1.1-1.1.1.3",
                 "2.2.2.2",
                 "3.3.3.1-3.3.3.3",
@@ -719,10 +720,10 @@ namespace DigitalRuby.IPBanTests
                 "6.6.6.31-6.6.6.98",
                 "2620:0:2d0:2df::1-2620:0:2d0:2df::6",
                 "2620:0:2d0:2df::78-2620:0:2d0:2df::79"
-            };
+            ];
 
-            IPAddressRange[] filter = new IPAddressRange[]
-            {
+            IPAddressRange[] filter =
+            [
                 "0.0.0.0-1.1.1.0",
                 "1.1.1.4-2.2.2.1",
                 "2.2.2.3-3.3.3.0",
@@ -732,10 +733,10 @@ namespace DigitalRuby.IPBanTests
                 "6.6.6.20-6.6.6.30",
                 "6.6.6.99-255.255.255.255",
                 "2620:0:2d0:2df::7-2620:0:2d0:2df::77"
-            };
+            ];
 
-            IPAddressRange[] ranges = new IPAddressRange[]
-            {
+            IPAddressRange[] ranges =
+            [
                 "0.0.0.1-1.1.1.0", // filtered out
                 "1.1.1.1-2.2.2.1", // filtered down
                 "2.2.2.2-2.2.2.255", // filtered down
@@ -743,7 +744,7 @@ namespace DigitalRuby.IPBanTests
                 "6.6.6.6-7.7.7.7", // filtered 3x
                 "10.10.10.10-11.11.11.11", // filtered out
                 "2620:0:2d0:2df::1-2620:0:2d0:2df::79" // filtered down
-            };
+            ];
 
             TestFilterIPAddressRangesHelper(expected, null, filter, ranges);
         }
@@ -751,9 +752,9 @@ namespace DigitalRuby.IPBanTests
         [Test]
         public void TestFilterIPAddressRangesNulls()
         {
-            TestFilterIPAddressRangesHelper(System.Array.Empty<IPAddressRange>(), null, null, null);
-            TestFilterIPAddressRangesHelper(System.Array.Empty<IPAddressRange>(), null, new IPAddressRange[] { "1.1.1.1-2.2.2.2" }, null);
-            TestFilterIPAddressRangesHelper(new IPAddressRange[] { "1.1.1.1-2.2.2.2" }, null, null, new IPAddressRange[] { "1.1.1.1-2.2.2.2" });
+            TestFilterIPAddressRangesHelper([], null, null, null);
+            TestFilterIPAddressRangesHelper([], null, ["1.1.1.1-2.2.2.2"], null);
+            TestFilterIPAddressRangesHelper(["1.1.1.1-2.2.2.2"], null, null, ["1.1.1.1-2.2.2.2"]);
         }
 
         [Test]
@@ -761,10 +762,10 @@ namespace DigitalRuby.IPBanTests
         {
             TestFilterIPAddressRangesHelper
             (
-                new IPAddressRange[] { "1.1.1.1-2.2.2.2" },
+                ["1.1.1.1-2.2.2.2"],
                 null,
-                new IPAddressRange[] { "0.0.0.0-1.1.1.0", "2.2.2.3-2.2.2.255" },
-                new IPAddressRange[] { "1.1.1.1-2.2.2.2" }
+                ["0.0.0.0-1.1.1.0", "2.2.2.3-2.2.2.255"],
+                ["1.1.1.1-2.2.2.2"]
             );
         }
 
@@ -773,21 +774,21 @@ namespace DigitalRuby.IPBanTests
         {
             TestFilterIPAddressRangesHelper
             (
-                System.Array.Empty<IPAddressRange>(),
+                [],
                 null,
-                new IPAddressRange[] { "0.0.0.0-255.255.255.255" },
-                new IPAddressRange[] { "0.0.0.0-2.2.2.2", "5.5.5.5-6.6.6.6" }
+                ["0.0.0.0-255.255.255.255"],
+                ["0.0.0.0-2.2.2.2", "5.5.5.5-6.6.6.6"]
             );
         }
 
         [Test]
         public void TestIPAddressIsLocalHost()
         {
-            Assert.IsTrue(System.Net.IPAddress.Parse("127.0.0.1").IsLocalHost());
-            Assert.IsTrue(System.Net.IPAddress.Parse("::1").IsLocalHost());
-            Assert.IsFalse(System.Net.IPAddress.Parse("127.0.0.2").IsLocalHost());
-            Assert.IsFalse(System.Net.IPAddress.Parse("::2").IsLocalHost());
-            Assert.IsFalse(((System.Net.IPAddress)null).IsLocalHost());
+            ClassicAssert.IsTrue(System.Net.IPAddress.Parse("127.0.0.1").IsLocalHost());
+            ClassicAssert.IsTrue(System.Net.IPAddress.Parse("::1").IsLocalHost());
+            ClassicAssert.IsFalse(System.Net.IPAddress.Parse("127.0.0.2").IsLocalHost());
+            ClassicAssert.IsFalse(System.Net.IPAddress.Parse("::2").IsLocalHost());
+            ClassicAssert.IsFalse(((System.Net.IPAddress)null).IsLocalHost());
         }
 
         [Test]
@@ -803,24 +804,24 @@ namespace DigitalRuby.IPBanTests
             var ip8 = IPAddressRange.Parse("1.1.1.11-1.1.1.22");
 
             IPAddressRange range = IPAddressRange.TryCreateFromIPAddressRanges(ip1, ip2, ip3, ip4);
-            Assert.AreEqual("1.1.1.1-1.1.1.4", range.ToString());
+            ClassicAssert.AreEqual("1.1.1.1-1.1.1.4", range.ToString());
             range = IPAddressRange.TryCreateFromIPAddresses(ip1, ip2, ip3, ip4);
-            Assert.AreEqual("1.1.1.1-1.1.1.4", range.ToString());
+            ClassicAssert.AreEqual("1.1.1.1-1.1.1.4", range.ToString());
 
             range = IPAddressRange.TryCreateFromIPAddressRanges(ip1, ip2, ip3, ip4, ip5);
-            Assert.AreEqual("1.1.1.1-1.1.1.10", range.ToString());
+            ClassicAssert.AreEqual("1.1.1.1-1.1.1.10", range.ToString());
 
             range = IPAddressRange.TryCreateFromIPAddressRanges(ip4, ip7);
-            Assert.IsNull(range);
+            ClassicAssert.IsNull(range);
             range = IPAddressRange.TryCreateFromIPAddresses(ip6, ip7);
-            Assert.AreEqual("255.255.255.254/31", range.ToString());
+            ClassicAssert.AreEqual("255.255.255.254/31", range.ToString());
             range = IPAddressRange.TryCreateFromIPAddressRanges(ip5, ip8);
-            Assert.AreEqual("1.1.1.5-1.1.1.22", range.ToString());
+            ClassicAssert.AreEqual("1.1.1.5-1.1.1.22", range.ToString());
 
             range = IPAddressRange.TryCreateFromIPAddressRanges(ip1, ip3);
-            Assert.IsNull(range);
+            ClassicAssert.IsNull(range);
             range = IPAddressRange.TryCreateFromIPAddresses(ip1, ip3);
-            Assert.IsNull(range);
+            ClassicAssert.IsNull(range);
         }
 
         [TestCase("10.10.10.10-10.10.10.20", "9.9.9.9-10.10.10.9", false, null, null)]
@@ -851,16 +852,16 @@ namespace DigitalRuby.IPBanTests
             }
             catch (Exception ex)
             {
-                Assert.AreEqual(ex.GetType(), expectedException);
+                ClassicAssert.AreEqual(ex.GetType(), expectedException);
                 return;
             }
             if (expectedException is not null)
             {
-                Assert.Fail("Failed to throw expected exception type {0}", expectedException.Name);
+                ClassicAssert.Fail(string.Format("Failed to throw expected exception type {0}", expectedException.Name));
             }
-            Assert.AreEqual(expectedResult, result);
-            Assert.AreEqual(expectedLeft, leftObj?.ToString());
-            Assert.AreEqual(expectedRight, rightObj?.ToString());
+            ClassicAssert.AreEqual(expectedResult, result);
+            ClassicAssert.AreEqual(expectedLeft, leftObj?.ToString());
+            ClassicAssert.AreEqual(expectedRight, rightObj?.ToString());
         }
 
         [TestCase("2.19.128.0/20", "2.19.144.0/20", "2.19.128.0-2.19.159.255")]
@@ -876,12 +877,12 @@ namespace DigitalRuby.IPBanTests
             r1.TryCombine(r2, out IPAddressRange combined);
             if (combined is null)
             {
-                Assert.IsNull(expected);
+                ClassicAssert.IsNull(expected);
             }
             else
             {
                 string actual = combined.ToString('-');
-                Assert.AreEqual(expected, actual);
+                ClassicAssert.AreEqual(expected, actual);
             }
         }
 
@@ -892,13 +893,13 @@ namespace DigitalRuby.IPBanTests
             {
                 if (index >= expected.Length)
                 {
-                    Assert.Fail("Too many filtered results, expected max count of {0}", expected.Length - 1);
+                    ClassicAssert.Fail(string.Format("Too many filtered results, expected max count of {0}", expected.Length - 1));
                 }
 
                 // nunit areequal is strange, it calls enumerators and other crap, why it doesn't just do .Equals is beyond me...
                 IPAddressRange existing = expected[index++];
                 IPAddressRange actual = range;
-                Assert.That(existing.Equals(actual), message);
+                ClassicAssert.That(existing.Equals(actual), message);
             }
         }
     }

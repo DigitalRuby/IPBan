@@ -13,26 +13,20 @@ namespace DigitalRuby.IPBanCore;
 /// <summary>
 /// Sync failed logins to ipthreat api
 /// </summary>
-public sealed class IPBanIPThreatUploader : IUpdater, IIPAddressEventHandler
+/// <remarks>
+/// Constructor
+/// </remarks>
+/// <param name="service">Service</param>
+public sealed class IPBanIPThreatUploader(IPBanService service) : IUpdater, IIPAddressEventHandler
 {
     private static readonly Uri ipThreatReportApiUri = new("https://api.ipthreat.net/api/bulkreport");
     
-    private readonly IPBanService service;
+    private readonly IPBanService service = service;
     private readonly Random random = new();
-    private readonly List<IPAddressLogEvent> events = new();
+    private readonly List<IPAddressLogEvent> events = [];
 
     private DateTime nextRun = IPBanService.UtcNow;
 
-    /// <summary>
-    /// Constructor
-    /// </summary>
-    /// <param name="service">Service</param>
-    public IPBanIPThreatUploader(IPBanService service)
-    {
-        this.service = service;
-        nextRun = IPBanService.UtcNow;
-    }
-    
     /// <inheritdoc />
     public void Dispose()
     {
@@ -96,7 +90,7 @@ public sealed class IPBanIPThreatUploader : IUpdater, IIPAddressEventHandler
             var postJson = System.Text.Encoding.UTF8.GetBytes(Newtonsoft.Json.JsonConvert.SerializeObject(jsonObj));
             await service.RequestMaker.MakeRequestAsync(ipThreatReportApiUri,
                 postJson,
-                new KeyValuePair<string, object>[] { new KeyValuePair<string, object>("X-API-KEY", apiKey) },
+                new KeyValuePair<string, object>[] { new("X-API-KEY", apiKey) },
                 null,
                 cancelToken);
             Logger.Warn("Submitted {0} failed logins to ipthreat api", eventsCopy.Count);

@@ -205,7 +205,7 @@ namespace DigitalRuby.IPBanCore
                 }
             };
             p.Start();
-            List<string> lineList = new();
+            List<string> lineList = [];
             string line;
             while ((line = p.StandardOutput.ReadLine()) != null)
             {

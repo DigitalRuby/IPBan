@@ -29,6 +29,7 @@ using System.Net;
 using DigitalRuby.IPBanCore;
 
 using NUnit.Framework;
+using NUnit.Framework.Legacy;
 
 namespace DigitalRuby.IPBanTests
 {
@@ -43,7 +44,7 @@ namespace DigitalRuby.IPBanTests
             string otherIP = "88.88.88.88";
             string ipv6_1 = IPAddress.Parse("2001:db80:85a3:0:0:8a2e:370:7334").ToString();
             string ipv6_2 = IPAddress.Parse("2001:0db8:0a0b:12f0:0000:0000:0000:0001").ToString();
-            string[] blockIP = new string[] { allowIP, "100.100.100.100" };
+            string[] blockIP = [allowIP, "100.100.100.100"];
             IPBanMemoryFirewall f = new();
             f.AllowIPAddresses(new string[] { allowIP }).Sync();
             f.AllowIPAddresses("TestRuleAllow", new IPAddressRange[] { IPAddressRange.Parse(allowIP2) }).Sync();
@@ -52,20 +53,20 @@ namespace DigitalRuby.IPBanTests
             f.BlockIPAddresses("TestRuleBlock", new IPAddressRange[] { range }, Array.Empty<PortRange>());
             string[] banned = f.EnumerateBannedIPAddresses().ToArray();
             IPAddressRange[] banned2 = f.EnumerateIPAddresses("TestRuleBlock").ToArray();
-            Assert.AreEqual(0, f.GetRuleNames("CB").Count());
-            Assert.IsTrue(f.IsIPAddressAllowed(allowIP));
-            Assert.IsFalse(f.IsIPAddressBlocked(allowIP, out _));
-            Assert.IsTrue(f.IsIPAddressAllowed(allowIP2));
-            Assert.IsFalse(f.IsIPAddressBlocked(allowIP2, out _));
-            Assert.IsFalse(f.IsIPAddressBlocked(otherIP, out _));
-            Assert.IsTrue(f.IsIPAddressBlocked(blockIP[1], out _));
-            Assert.AreEqual(4, banned.Length);
-            Assert.IsTrue(banned.Contains(blockIP[1]));
-            Assert.IsTrue(banned.Contains(ipv6_1));
-            Assert.IsTrue(banned.Contains(ipv6_2));
-            Assert.AreEqual(1, banned2.Length);
-            Assert.AreEqual(range.Begin, banned2[0].Begin);
-            Assert.AreEqual(range.End, banned2[0].End);
+            ClassicAssert.AreEqual(0, f.GetRuleNames("CB").Count());
+            ClassicAssert.IsTrue(f.IsIPAddressAllowed(allowIP));
+            ClassicAssert.IsFalse(f.IsIPAddressBlocked(allowIP, out _));
+            ClassicAssert.IsTrue(f.IsIPAddressAllowed(allowIP2));
+            ClassicAssert.IsFalse(f.IsIPAddressBlocked(allowIP2, out _));
+            ClassicAssert.IsFalse(f.IsIPAddressBlocked(otherIP, out _));
+            ClassicAssert.IsTrue(f.IsIPAddressBlocked(blockIP[1], out _));
+            ClassicAssert.AreEqual(4, banned.Length);
+            ClassicAssert.IsTrue(banned.Contains(blockIP[1]));
+            ClassicAssert.IsTrue(banned.Contains(ipv6_1));
+            ClassicAssert.IsTrue(banned.Contains(ipv6_2));
+            ClassicAssert.AreEqual(1, banned2.Length);
+            ClassicAssert.AreEqual(range.Begin, banned2[0].Begin);
+            ClassicAssert.AreEqual(range.End, banned2[0].End);
         }
     }
 }

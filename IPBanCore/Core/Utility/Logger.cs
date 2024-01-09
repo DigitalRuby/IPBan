@@ -114,7 +114,7 @@ namespace DigitalRuby.IPBanCore
     /// </summary>
     public static class Logger
     {
-        private class NLogWrapper : Microsoft.Extensions.Logging.ILogger
+        private class NLogWrapper(NLog.Logger logger) : Microsoft.Extensions.Logging.ILogger
         {
             private class EmptyDisposable : IDisposable
             {
@@ -122,12 +122,7 @@ namespace DigitalRuby.IPBanCore
             }
 
             private static readonly EmptyDisposable emptyDisposable = new();
-            private readonly NLog.Logger logger;
-
-            public NLogWrapper(NLog.Logger logger)
-            {
-                this.logger = logger;
-            }
+            private readonly NLog.Logger logger = logger;
 
             public IDisposable BeginScope<TState>(TState state)
             {
@@ -203,7 +198,9 @@ namespace DigitalRuby.IPBanCore
                 LogFactory factory;
                 if (File.Exists(nlogConfigPath))
                 {
+#pragma warning disable CS0618 // Type or member is obsolete
                     factory = LogManager.LoadConfiguration(nlogConfigPath);
+#pragma warning restore CS0618 // Type or member is obsolete
                 }
                 else
                 {

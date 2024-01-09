@@ -44,18 +44,13 @@ namespace DigitalRuby.IPBanCore
         /// <summary>
         /// Represents a watched file from a log file scanner
         /// </summary>
-        public class WatchedFile
+        /// <remarks>
+        /// Constructor
+        /// </remarks>
+        /// <param name="fileName">File name</param>
+        /// <param name="lastPosition">Last position scanned</param>
+        public class WatchedFile(string fileName, long lastPosition = 0)
         {
-            /// <summary>
-            /// Constructor
-            /// </summary>
-            /// <param name="fileName">File name</param>
-            /// <param name="lastPosition">Last position scanned</param>
-            public WatchedFile(string fileName, long lastPosition = 0)
-            {
-                this.FileName = fileName;
-                LastPosition = lastPosition;
-            }
 
             /// <inheritdoc />
             public override bool Equals(object obj)
@@ -73,12 +68,12 @@ namespace DigitalRuby.IPBanCore
             /// <summary>
             /// File name
             /// </summary>
-            public string FileName { get; private set; }
+            public string FileName { get; private set; } = fileName;
 
             /// <summary>
             /// Last scanned position
             /// </summary>
-            public long LastPosition { get; set; }
+            public long LastPosition { get; set; } = lastPosition;
 
             /// <summary>
             /// Last file length
@@ -91,7 +86,7 @@ namespace DigitalRuby.IPBanCore
             public bool IsBinaryFile { get; internal set; }
         }
 
-        private readonly HashSet<WatchedFile> watchedFiles = new();
+        private readonly HashSet<WatchedFile> watchedFiles = [];
         private readonly System.Timers.Timer fileProcessingTimer;
         private readonly long maxFileSize;
         private readonly Encoding encoding;
@@ -187,7 +182,7 @@ namespace DigitalRuby.IPBanCore
         /// <returns>Found files</returns>
         public static IReadOnlyCollection<WatchedFile> GetFiles(string pathAndMask, bool startAtBeginning = false)
         {
-            List<WatchedFile> files = new();
+            List<WatchedFile> files = [];
 
             // pull out the directory portion of the path/mask, accounting for * syntax in the folder name
             string replacedPathAndMask = ReplacePathVars(pathAndMask);
@@ -340,7 +335,7 @@ namespace DigitalRuby.IPBanCore
             }
             if (dirPortion is null)
             {
-                pos = glob.LastIndexOfAny(new[] { '/', '\\' });
+                pos = glob.LastIndexOfAny(['/', '\\']);
                 if (pos < 0)
                 {
                     throw new ArgumentException("Cannot normalize a glob that does not have a directory and a file piece");
@@ -457,11 +452,7 @@ namespace DigitalRuby.IPBanCore
         private HashSet<WatchedFile> GetCurrentWatchedFiles()
         {
             // read in existing files that match the mask in the directory being watched
-            HashSet<WatchedFile> watchedFilesCopy = new();
-            foreach (WatchedFile file in LogFileScanner.GetFiles(PathAndMask, startAtBeginning))
-            {
-                watchedFilesCopy.Add(file);
-            }
+            HashSet<WatchedFile> watchedFilesCopy = [.. LogFileScanner.GetFiles(PathAndMask, startAtBeginning)];
 
             lock (watchedFiles)
             {

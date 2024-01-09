@@ -29,6 +29,7 @@ using System.Linq;
 using DigitalRuby.IPBanCore;
 
 using NUnit.Framework;
+using NUnit.Framework.Legacy;
 
 namespace DigitalRuby.IPBanTests
 {
@@ -39,14 +40,14 @@ namespace DigitalRuby.IPBanTests
         public void TestNetworkGetAllIPAddresses()
         {
             var ips = NetworkUtility.GetSortedIPAddresses();
-            Assert.IsTrue(ips.Any());
+            ClassicAssert.IsTrue(ips.Any());
         }
 
         [Test]
         public void TestNetworkGetPriorityIPAddresses()
         {
             var ips = NetworkUtility.GetIPAddressesByPriority();
-            Assert.IsTrue(ips.Any());
+            ClassicAssert.IsTrue(ips.Any());
 
             var sortedIps = NetworkUtility.GetSortedIPAddresses(new KeyValuePair<string, int>[]
             {
@@ -56,9 +57,9 @@ namespace DigitalRuby.IPBanTests
                 new("44.44.44.44", 0),
                 new("2003:0db8:85a3:0000:0000:8a2e:0370:7334", 0)
             });
-            Assert.IsTrue(sortedIps.Any());
+            ClassicAssert.IsTrue(sortedIps.Any());
 
-            Assert.AreEqual("44.44.44.44", sortedIps.First().ToString());
+            ClassicAssert.AreEqual("44.44.44.44", sortedIps.First().ToString());
 
             sortedIps = NetworkUtility.GetSortedIPAddresses(new KeyValuePair<string, int>[]
             {
@@ -69,9 +70,9 @@ namespace DigitalRuby.IPBanTests
                 new("2003:0db8:85a3:0000:0000:8a2e:0370:7334", 5),
                 new("215.4.5.6", 10),
             });
-            Assert.IsTrue(sortedIps.Any());
+            ClassicAssert.IsTrue(sortedIps.Any());
 
-            Assert.AreEqual("215.4.5.6", sortedIps.First().ToString());
+            ClassicAssert.AreEqual("215.4.5.6", sortedIps.First().ToString());
         }
 
         [Test]
@@ -85,7 +86,7 @@ namespace DigitalRuby.IPBanTests
                 new("2003:0db8:85a3:0000:0000:8a2e:0370:7334", 0),
             };
             var sortedIps = NetworkUtility.GetSortedIPAddresses(ips, true);
-            Assert.That(sortedIps.First().ToString(), Is.EqualTo("10.0.0.1"));
+            ClassicAssert.That(sortedIps.First().ToString(), Is.EqualTo("10.0.0.1"));
         }
 
         [Test]
@@ -98,7 +99,7 @@ namespace DigitalRuby.IPBanTests
                 new("5.150.137.167", 0)
             };
             var localIPAddressString = NetworkUtility.GetSortedIPAddresses(ips, true).FirstOrDefault()?.ToString();
-            Assert.That(localIPAddressString, Is.EqualTo("5.150.137.166"));
+            ClassicAssert.That(localIPAddressString, Is.EqualTo("5.150.137.166"));
         }
 
 
@@ -125,7 +126,7 @@ namespace DigitalRuby.IPBanTests
             IEnumerable<IPAddressRange> rangesObj = ranges.Split(',').Select(r => IPAddressRange.Parse(r)).ToArray();
             IEnumerable<IPAddressRange> invertedRangesObj = rangesObj.Invert().ToArray();
             string invertedRangesObjString = string.Join(',', invertedRangesObj.Select(r => r.ToString('-')));
-            Assert.AreEqual(invertedRanges, invertedRangesObjString);
+            ClassicAssert.AreEqual(invertedRanges, invertedRangesObjString);
         }
 
         [Test]
@@ -136,7 +137,7 @@ namespace DigitalRuby.IPBanTests
             var range3 = IPAddressRange.Parse("103.32.0.0/16");
             var range4 = IPAddressRange.Parse("103.32.132.0/22");
             var merged = ExtensionMethods.Combine(new[] { range1, range2, range3, range4 }).ToArray();
-            Assert.That(merged.Length, Is.EqualTo(2));
+            ClassicAssert.That(merged.Length, Is.EqualTo(2));
         }
 
         [TestCase("./TestData/IPSets/EmergingThreats.txt", 1354, 1243)]
@@ -150,8 +151,29 @@ namespace DigitalRuby.IPBanTests
                 .ToArray();
             var combined = ranges.Combine().ToArray();
 
-            Assert.That(ranges, Has.Length.EqualTo(inputCount));
-            Assert.That(combined, Has.Length.EqualTo(outputCount));
+            ClassicAssert.That(ranges, Has.Length.EqualTo(inputCount));
+            ClassicAssert.That(combined, Has.Length.EqualTo(outputCount));
+        }
+
+        [Test]
+        public void TestSortedListQueryByPrefix()
+        {
+            SortedList<string, int> list = [];
+            list.Add("boo", 1);
+            list.Add("zoo", 2);
+            list.Add("boot", 3);
+            var result = list.GetEntriesMatchingPrefix("a").ToArray();
+            Assert.That(result.Length, Is.EqualTo(0));
+            result = list.GetEntriesMatchingPrefix("b").ToArray();
+            Assert.That(result.Length, Is.EqualTo(2));
+            Assert.That(result[0].Key, Is.EqualTo("boo"));
+            Assert.That(result[1].Key, Is.EqualTo("boot"));
+            Assert.That(result[0].Value, Is.EqualTo(1));
+            Assert.That(result[1].Value, Is.EqualTo(3));
+            result = list.GetEntriesMatchingPrefix("z").ToArray();
+            Assert.That(result.Length, Is.EqualTo(1));
+            Assert.That(result[0].Key, Is.EqualTo("zoo"));
+            Assert.That(result[0].Value, Is.EqualTo(2));
         }
     }
 }

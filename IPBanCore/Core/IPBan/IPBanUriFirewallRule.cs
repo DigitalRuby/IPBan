@@ -39,14 +39,14 @@ namespace DigitalRuby.IPBanCore
     /// </summary>
     public class IPBanUriFirewallRule : IUpdater
     {
-        private static readonly string[] commentDelimiters = new[]
-        {
+        private static readonly string[] commentDelimiters =
+        [
             "#",
             "'",
             "REM",
             ";",
             "//"
-        };
+        ];
 
         private static readonly TimeSpan fiveSeconds = TimeSpan.FromSeconds(5.0);
         private static readonly TimeSpan thirtySeconds = TimeSpan.FromSeconds(30.0);
@@ -102,7 +102,7 @@ namespace DigitalRuby.IPBanCore
             if (!uri.IsFile)
             {
                 // ensure uri ends with slash
-                if (!uri.ToString().EndsWith("/"))
+                if (!uri.ToString().EndsWith('/'))
                 {
                     uri = new Uri(uri.ToString() + "/");
                 }
@@ -215,7 +215,7 @@ namespace DigitalRuby.IPBanCore
         {
             using StringReader reader = new(text);
             string line;
-            List<IPAddressRange> ranges = new();
+            List<IPAddressRange> ranges = [];
             int lines = 0;
 
             while ((line = reader.ReadLine()) != null)

@@ -24,6 +24,8 @@ SOFTWARE.
 
 #region Imports
 
+using Newtonsoft.Json.Linq;
+
 using System;
 using System.Collections;
 using System.Collections.Concurrent;
@@ -69,7 +71,7 @@ namespace DigitalRuby.IPBanCore
             IgnoreReadOnlyFields = true,
             IgnoreReadOnlyProperties = true
         };
-        
+
         static ExtensionMethods()
         {
             emptyXmlNs.Add("", "");
@@ -268,8 +270,7 @@ namespace DigitalRuby.IPBanCore
         public static string ToSHA256String(this string s)
         {
             s ??= string.Empty;
-            using var hasher = SHA256.Create();
-            return BitConverter.ToString(hasher.ComputeHash(Encoding.UTF8.GetBytes(s))).Replace("-", string.Empty);
+            return BitConverter.ToString(SHA256.HashData(Encoding.UTF8.GetBytes(s))).Replace("-", string.Empty);
         }
 
         /// <summary>
@@ -684,11 +685,11 @@ namespace DigitalRuby.IPBanCore
             {
                 bytes1 = bytes1.Reverse().ToArray();
                 bytes2 = bytes2.Reverse().ToArray();
-                finalBytes = bytes1.Concat(bytes2).ToArray();
+                finalBytes = [.. bytes1, .. bytes2];
             }
             else
             {
-                finalBytes = bytes2.Concat(bytes1).ToArray();
+                finalBytes = [.. bytes2, .. bytes1];
             }
             return new IPAddress(finalBytes);
         }
@@ -896,129 +897,6 @@ namespace DigitalRuby.IPBanCore
         public static void SerializeUtf8Json(this object obj, Stream stream)
         {
             System.Text.Json.JsonSerializer.Serialize(stream, obj, options: jsonOptions);
-        }
-
-        private static Assembly[] allAssemblies;
-
-        /// <summary>
-        /// Get all assemblies, including referenced assemblies. This method will be cached beyond the first call.
-        /// </summary>
-        /// <returns>All referenced assemblies</returns>
-        [UnconditionalSuppressMessage("Trimming", "IL2026:Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code", Justification = "jjxtra")]
-        public static IReadOnlyCollection<Assembly> GetAllAssemblies()
-        {
-            if (allAssemblies != null)
-            {
-                return allAssemblies;
-            }
-
-            var allAssembliesHashSet = new HashSet<Assembly>();
-            foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies().ToArray())
-            {
-                allAssembliesHashSet.Add(assembly);
-                AssemblyName[] references = assembly.GetReferencedAssemblies();
-                foreach (AssemblyName reference in references)
-                {
-                    try
-                    {
-                        Assembly referenceAssembly = Assembly.Load(reference);
-                        allAssembliesHashSet.Add(referenceAssembly);
-                    }
-                    catch
-                    {
-                        // don't care, if the assembly can't be loaded there's nothing more to be done
-                    }
-                }
-            }
-
-            // get referenced assemblies does not include every assembly if no code was referenced from that assembly
-            string path = AppContext.BaseDirectory;
-            string[] appFiles = Directory.GetFiles(path);
-            string pluginPath = Path.Combine(path, "plugins");
-            if (Directory.Exists(pluginPath))
-            {
-                string[] pluginFiles = Directory.GetFiles(pluginPath);
-                appFiles = appFiles.Concat(pluginFiles).ToArray();
-            }
-            foreach (string dllFile in appFiles.Where(f => f.EndsWith(".dll", StringComparison.OrdinalIgnoreCase)))
-            {
-                try
-                {
-                    bool exists = false;
-                    foreach (Assembly assembly in allAssembliesHashSet)
-                    {
-                        try
-                        {
-                            exists = assembly.Location.Equals(dllFile, StringComparison.OrdinalIgnoreCase);
-                            if (exists)
-                            {
-                                break;
-                            }
-                        }
-                        catch
-                        {
-                            // some assemblies will throw upon attempt to access Location property...
-                        }
-                    }
-                    if (!exists)
-                    {
-                        allAssembliesHashSet.Add(Assembly.LoadFrom(dllFile));
-                    }
-                }
-                catch
-                {
-                    // nothing to be done
-                }
-            }
-            return allAssemblies = allAssembliesHashSet.ToArray();
-        }
-
-        private static Type[] allTypes;
-
-        /// <summary>
-        /// Get all types from all assemblies
-        /// </summary>
-        /// <returns>List of all types</returns>
-        [UnconditionalSuppressMessage("Trimming", "IL2026:Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code", Justification = "jjxtra")]
-        public static IReadOnlyCollection<Type> GetAllTypes()
-        {
-            if (allTypes != null)
-            {
-                return allTypes;
-            }
-            IReadOnlyCollection<Assembly> assemblies = GetAllAssemblies();
-            List<Type> types = new();
-
-            // prefix to entry assembly first pattern to greatly reduce ram usage
-            string prefix = Assembly.GetEntryAssembly()?.GetName().Name ?? string.Empty;
-            int pos = prefix.IndexOf('.');
-            if (pos >= 0)
-            {
-                pos++;
-                prefix = prefix[..pos];
-            }
-
-            // no filter if running unit tests, need to scan all assemblies
-            if (UnitTestDetector.Running)
-            {
-                prefix = null;
-            }
-
-            foreach (Assembly assembly in assemblies.Where(a => a.FullName is null ||
-                string.IsNullOrWhiteSpace(prefix) ||
-                a.FullName.StartsWith(prefix)))
-            {
-                try
-                {
-                    // some assemblys throw in unit tests in VS 2019, bug in MSFT...
-                    types.AddRange(assembly.GetTypes());
-                }
-                catch
-                {
-                    // ignore
-                }
-            }
-            return allTypes = types.ToArray();
         }
 
         /// <summary>
@@ -1252,32 +1130,6 @@ namespace DigitalRuby.IPBanCore
         }
 
         /// <summary>
-        /// Get a System.Type from a string, searching loaded and referenced assemblies if needed
-        /// </summary>
-        /// <param name="typeString"></param>
-        /// <returns>System.Type or null if none found</returns>
-        [UnconditionalSuppressMessage("Trimming", "IL2026:Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code", Justification = "jjxtra")]
-        public static Type GetTypeFromString(string typeString)
-        {
-            Type type = Type.GetType(typeString);
-            if (type != null)
-            {
-                return type;
-            }
-
-            IReadOnlyCollection<Assembly> assemblies = GetAllAssemblies();
-            foreach (Assembly assembly in assemblies)
-            {
-                type = assembly.GetType(typeString);
-                if (type != null)
-                {
-                    return type;
-                }
-            }
-            return null;
-        }
-
-        /// <summary>
         /// Check if type is an anonymous type
         /// </summary>
         /// <param name="type">Type</param>
@@ -1335,7 +1187,7 @@ namespace DigitalRuby.IPBanCore
         /// <returns>Task that finishes when all value tasks have finished</returns>
         public static Task WhenAll(this IEnumerable<ValueTask> tasks)
         {
-            List<Task> valueTaskTasks = new();
+            List<Task> valueTaskTasks = [];
             foreach (ValueTask task in tasks)
             {
                 valueTaskTasks.Add(task.AsTask());
@@ -1351,7 +1203,7 @@ namespace DigitalRuby.IPBanCore
         /// <returns>Task that finishes when all value tasks have finished</returns>
         public static Task WhenAll<T>(this IEnumerable<ValueTask<T>> tasks)
         {
-            List<Task> valueTaskTasks = new();
+            List<Task> valueTaskTasks = [];
             foreach (ValueTask<T> task in tasks)
             {
                 valueTaskTasks.Add(task.AsTask());
@@ -1467,7 +1319,7 @@ namespace DigitalRuby.IPBanCore
         /// addresses are in range</returns>
         public static IEnumerable<IPAddressRange> RemoveInternalRanges(this IPAddressRange range)
         {
-            List<IPAddressRange> results = new();
+            List<IPAddressRange> results = [];
             var internalRanges = (range.Begin.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork ? NetworkUtility.InternalRangesIPV4 : NetworkUtility.InternalRangesIPV6);
             foreach (var internalRange in internalRanges)
             {
@@ -1591,6 +1443,95 @@ namespace DigitalRuby.IPBanCore
             foreach (var range in Combine(ProcessRanges(sortedRanges, NetworkUtility.FirstIPV6, NetworkUtility.LastIPV6, System.Net.Sockets.AddressFamily.InterNetworkV6)))
             {
                 yield return range;
+            }
+        }
+
+        /// <summary>
+        /// Normalize string for query
+        /// </summary>
+        /// <param name="s">String</param>
+        /// <returns>Normalized string</returns>
+        public static string NormalizeForQuery(this string s)
+        {
+            if (s is null)
+            {
+                return s;
+            }
+            s = s.Normalize(NormalizationForm.FormD);
+            StringBuilder result = new();
+            bool lastWasSpace = true;
+            foreach (char c in s)
+            {
+                switch (char.GetUnicodeCategory(c))
+                {
+                    case System.Globalization.UnicodeCategory.DecimalDigitNumber:
+                    case System.Globalization.UnicodeCategory.LetterNumber:
+                    case System.Globalization.UnicodeCategory.LowercaseLetter:
+                    case System.Globalization.UnicodeCategory.OtherLetter:
+                    case System.Globalization.UnicodeCategory.OtherNumber:
+                    case System.Globalization.UnicodeCategory.TitlecaseLetter:
+                    case System.Globalization.UnicodeCategory.UppercaseLetter:
+                        result.Append(char.ToLowerInvariant(c));
+                        lastWasSpace = false;
+                        break;
+
+                    default:
+                        if (!lastWasSpace)
+                        {
+                            result.Append(' ');
+                            lastWasSpace = true;
+                        }
+                        break;
+                }
+            }
+
+            // trim end spaces without making more garbage
+            while (result.Length > 0 && result[^1] == ' ')
+            {
+                result.Length--;
+            }
+
+            return result.ToString();
+        }
+
+        /// <summary>
+        /// Get all entries from sorted list that match a prefix
+        /// </summary>
+        /// <typeparam name="TValue">Type of value</typeparam>
+        /// <param name="sortedList">Sorted list</param>
+        /// <param name="prefix">Prefix to query, does not need to be normalized</param>
+        /// <returns>All matching entries</returns>
+        public static IEnumerable<KeyValuePair<string, TValue>> GetEntriesMatchingPrefix<TValue>(this SortedList<string, TValue> sortedList, string prefix)
+        {
+            int lower = 0;
+            int upper = sortedList.Count - 1;
+            int middle;
+            int compare;
+            prefix = NormalizeForQuery(prefix);
+
+            while (lower <= upper)
+            {
+                middle = lower + (upper - lower) / 2;
+                compare = string.Compare(prefix, sortedList.Keys[middle], true);
+                if (compare == 0)
+                {
+                    break;
+                }
+                else if (compare < 0)
+                {
+                    upper = middle - 1;
+                }
+                else
+                {
+                    lower = middle + 1;
+                }
+            }
+
+            // Iterate forward from the found index
+            for (int i = lower; i < sortedList.Count && sortedList.Keys[i].StartsWith(prefix, StringComparison.OrdinalIgnoreCase); i++)
+            {
+                var kv = new KeyValuePair<string, TValue>(sortedList.Keys[i], sortedList.Values[i]);
+                yield return kv;
             }
         }
     }

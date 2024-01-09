@@ -37,24 +37,24 @@ namespace DigitalRuby.IPBanCore
     /// </summary>
     public class IPBanFilter : IIPBanFilter
     {
-        private static readonly HashSet<string> ignoreListEntries = new()
-        {
+        private static readonly HashSet<string> ignoreListEntries =
+        [
             "0.0.0.0",
             "::0",
             "127.0.0.1",
             "::1",
             "localhost"
-        };
+        ];
 
         private static readonly IEnumerable<KeyValuePair<string, object>> ipListHeaders = new KeyValuePair<string, object>[]
         {
-            new KeyValuePair<string, object>("User-Agent", "ipban.com")
+            new("User-Agent", "ipban.com")
         };
 
-        private readonly HashSet<System.Net.IPAddress> set = new();
+        private readonly HashSet<System.Net.IPAddress> set = [];
         private readonly string value;
         private readonly Regex regex;
-        private readonly HashSet<IPAddressRange> ranges = new();
+        private readonly HashSet<IPAddressRange> ranges = [];
         private readonly HashSet<string> others = new(StringComparer.OrdinalIgnoreCase);
         private readonly IDnsServerList dnsList;
         private readonly IIPBanFilter counterFilter;
@@ -120,7 +120,7 @@ namespace DigitalRuby.IPBanCore
 
             if (!string.IsNullOrWhiteSpace(value))
             {
-                List<string> entries = new();
+                List<string> entries = [];
 
                 // primary entries (entry?timestamp?notes) are delimited by comma
                 foreach (string entry in value.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
@@ -139,7 +139,7 @@ namespace DigitalRuby.IPBanCore
                         entries.Add(subEntry);
                     }
                 }
-                List<Task> entryTasks = new();
+                List<Task> entryTasks = [];
 
                 // iterate in parallel for performance
                 foreach (string entry in entries)

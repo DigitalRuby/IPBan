@@ -104,13 +104,13 @@ namespace DigitalRuby.IPBanCore
         /// </summary>
         public const string DefaultFileName = "ipban.config";
 
-        private static readonly TimeSpan[] emptyTimeSpanArray = new TimeSpan[] { TimeSpan.Zero };
-        private static readonly IPBanLogFileToParse[] emptyLogFilesToParseArray = Array.Empty<IPBanLogFileToParse>();
+        private static readonly TimeSpan[] emptyTimeSpanArray = [TimeSpan.Zero];
+        private static readonly IPBanLogFileToParse[] emptyLogFilesToParseArray = [];
         private static readonly TimeSpan maxBanTimeSpan = TimeSpan.FromDays(9999.0);
 
         private readonly Dictionary<string, string> appSettings = new(StringComparer.OrdinalIgnoreCase);
         private readonly IPBanLogFileToParse[] logFiles;
-        private readonly TimeSpan[] banTimes = new TimeSpan[] { TimeSpan.FromDays(1.0d) };
+        private readonly TimeSpan[] banTimes = [TimeSpan.FromDays(1.0d)];
         private readonly TimeSpan expireTime = TimeSpan.FromDays(1.0d);
         private readonly TimeSpan cycleTime = TimeSpan.FromMinutes(1.0d);
         private readonly TimeSpan minBanTime = TimeSpan.FromSeconds(5.0);
@@ -140,7 +140,7 @@ namespace DigitalRuby.IPBanCore
         private readonly string getUrlStop = string.Empty;
         private readonly string getUrlConfig = string.Empty;
         private readonly string firewallUriRules = string.Empty;
-        private readonly List<IPBanFirewallRule> extraRules = new();
+        private readonly List<IPBanFirewallRule> extraRules = [];
         private readonly EventViewerExpressionsToBlock expressionsFailure;
         private readonly EventViewerExpressionsToNotify expressionsSuccess;
 
@@ -277,7 +277,7 @@ namespace DigitalRuby.IPBanCore
             var stringValue = appSettings[key];
 
             // config value can be read from env var if value starts and ends with %
-            if (stringValue.StartsWith("%") && stringValue.EndsWith("%"))
+            if (stringValue.StartsWith('%') && stringValue.EndsWith('%'))
             {
                 // read value from environment variable
                 stringValue = Environment.GetEnvironmentVariable(stringValue.Trim('%'))?.Trim() ?? string.Empty;
@@ -313,7 +313,7 @@ namespace DigitalRuby.IPBanCore
                     newBanTimes.Add(max);
                 }
             }
-            banTimes = newBanTimes.ToArray();
+            banTimes = [.. newBanTimes];
         }
 
         private static readonly ConcurrentDictionary<Type, XmlSerializer> eventViewerSerializers = new();
@@ -333,7 +333,7 @@ namespace DigitalRuby.IPBanCore
                 catch (Exception ex)
                 {
                     Logger.Error("Failed to load event viewer expressions of type " + typeof(T).FullName, ex);
-                    eventViewerExpressions = new T { Groups = new List<EventViewerExpressionGroup>() };
+                    eventViewerExpressions = new T { Groups = [] };
                 }
                 foreach (EventViewerExpressionGroup group in eventViewerExpressions.Groups)
                 {
@@ -423,7 +423,7 @@ namespace DigitalRuby.IPBanCore
         /// <param name="defaultValue">Default value if null or not found</param>
         /// <returns>Value or defaultValue if not found</returns>
         [UnconditionalSuppressMessage("Trimming", "IL2026:Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code", Justification = "jjxtra")]
-        public T GetConfig<T>(string key, T defaultValue = default)
+        public T GetConfig<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] T>(string key, T defaultValue = default)
         {
             T value = defaultValue;
             TryGetConfig(key, ref value);
@@ -439,7 +439,7 @@ namespace DigitalRuby.IPBanCore
         /// <param name="logMissing">Whether to log missing keys</param>
         /// <returns>True if config found, false if not</returns>
         [UnconditionalSuppressMessage("Trimming", "IL2026:Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code", Justification = "jjxtra")]
-        public bool TryGetConfig<T>(string key, ref T value, bool logMissing = true)
+        public bool TryGetConfig<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] T>(string key, ref T value, bool logMissing = true)
         {
             try
             {
@@ -472,7 +472,7 @@ namespace DigitalRuby.IPBanCore
         /// <param name="clampSmallTimeSpan">Whether to clamp small timespan to max value</param>
         /// <returns>Value</returns>
         [UnconditionalSuppressMessage("Trimming", "IL2026:Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code", Justification = "jjxtra")]
-        public void GetConfig<T>(string key, ref T value, T? minValue = null, T? maxValue = null, bool clampSmallTimeSpan = true) where T : struct, IComparable<T>
+        public void GetConfig<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] T>(string key, ref T value, T? minValue = null, T? maxValue = null, bool clampSmallTimeSpan = true) where T : struct, IComparable<T>
         {
             try
             {
@@ -502,14 +502,14 @@ namespace DigitalRuby.IPBanCore
         /// <param name="value">Value</param>
         /// <param name="defaultValue">Default value if array was empty</param>
         [UnconditionalSuppressMessage("Trimming", "IL2026:Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code", Justification = "jjxtra")]
-        public void GetConfigArray<T>(string key, ref T[] value, T[] defaultValue)
+        public void GetConfigArray<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] T>(string key, ref T[] value, T[] defaultValue)
         {
             try
             {
                 var stringValue = GetAppSettingsValue(key) ?? string.Empty;
                 var converter = TypeDescriptor.GetConverter(typeof(T));
                 string[] items = stringValue.Split('|', ';', ',');
-                List<T> list = new();
+                List<T> list = [];
                 foreach (string item in items)
                 {
                     string normalizedItem = item.Trim();
@@ -520,11 +520,11 @@ namespace DigitalRuby.IPBanCore
                 }
                 if (list.Count == 0)
                 {
-                    value = (defaultValue ?? list.ToArray());
+                    value = (defaultValue ?? [.. list]);
                 }
                 else
                 {
-                    value = list.ToArray();
+                    value = [.. list];
                 }
             }
             catch (Exception ex)
@@ -655,11 +655,7 @@ namespace DigitalRuby.IPBanCore
 
             XmlDocument doc = new();
             doc.LoadXml(config);
-            XmlNode appSettings = doc.SelectSingleNode($"/configuration/appSettings");
-            if (appSettings is null)
-            {
-                throw new InvalidOperationException("Unable to find appSettings in config");
-            }
+            XmlNode appSettings = doc.SelectSingleNode($"/configuration/appSettings") ?? throw new InvalidOperationException("Unable to find appSettings in config");
             XmlNode existingSetting = doc.SelectSingleNode($"/configuration/appSettings/add[@key='{key}']");
             if (existingSetting is null)
             {

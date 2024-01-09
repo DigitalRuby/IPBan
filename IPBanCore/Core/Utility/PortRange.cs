@@ -45,7 +45,7 @@ namespace DigitalRuby.IPBanCore
         /// <summary>
         /// Return whether the range is valid
         /// </summary>
-        public bool IsValid { get { return MinPort <= MaxPort && MinPort >= 0 && MinPort <= 65535 && MaxPort >= 0 && MaxPort <= 65535; } }
+        public readonly bool IsValid { get { return MinPort <= MaxPort && MinPort >= 0 && MinPort <= 65535 && MaxPort >= 0 && MaxPort <= 65535; } }
 
         /// <summary>
         /// Constructor
@@ -68,7 +68,7 @@ namespace DigitalRuby.IPBanCore
         }
 
         /// <inheritdoc />
-        public override bool Equals(object portRange)
+        public override readonly bool Equals(object portRange)
         {
             if (portRange is not PortRange portRangeObj)
             {
@@ -78,7 +78,7 @@ namespace DigitalRuby.IPBanCore
         }
 
         /// <inheritdoc />
-        public override int GetHashCode()
+        public override readonly int GetHashCode()
         {
             return MinPort.GetHashCode() ^ MaxPort.GetHashCode();
         }
@@ -87,7 +87,7 @@ namespace DigitalRuby.IPBanCore
         /// ToString
         /// </summary>
         /// <returns>String or null if invalid range</returns>
-        public override string ToString()
+        public override readonly string ToString()
         {
             if (MinPort > 65535 || MaxPort > 65535 || MinPort < 0 || MaxPort < 0 || MaxPort < MinPort)
             {
@@ -115,7 +115,7 @@ namespace DigitalRuby.IPBanCore
         /// </summary>
         /// <param name="port">Port</param>
         /// <returns>True if contains the port, false otherwise</returns>
-        public bool Contains(int port)
+        public readonly bool Contains(int port)
         {
             return port >= MinPort && port <= MaxPort;
         }
@@ -157,7 +157,7 @@ namespace DigitalRuby.IPBanCore
         }
 
         /// <inheritdoc />
-        int IComparable<PortRange>.CompareTo(PortRange other)
+        readonly int IComparable<PortRange>.CompareTo(PortRange other)
         {
             if (MinPort < other.MinPort)
             {

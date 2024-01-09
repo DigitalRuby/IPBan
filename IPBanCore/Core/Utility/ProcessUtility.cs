@@ -31,8 +31,8 @@ using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
 
-#pragma warning disable IDE0059 // Unnecessary assignment of a value
 #pragma warning disable IDE0051 // Remove unused private members
+#pragma warning disable SYSLIB1054 // Use 'LibraryImportAttribute' instead of 'DllImportAttribute' to generate P/Invoke marshalling code at compile time
 
 namespace DigitalRuby.IPBanCore
 {
@@ -222,5 +222,5 @@ namespace DigitalRuby.IPBanCore
     }
 }
 
-#pragma warning restore IDE0059 // Unnecessary assignment of a value
 #pragma warning restore IDE0051 // Remove unused private members
+#pragma warning restore SYSLIB1054 // Use 'LibraryImportAttribute' instead of 'DllImportAttribute' to generate P/Invoke marshalling code at compile time

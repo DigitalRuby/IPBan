@@ -29,14 +29,18 @@ namespace DigitalRuby.IPBanCore
     /// <summary>
     /// Allows using byte array as a key
     /// </summary>
-    public struct ByteArrayKey
+    /// <remarks>
+    /// Constructor
+    /// </remarks>
+    /// <param name="bytes">Bytes</param>
+    public struct ByteArrayKey(byte[] bytes)
     {
         /// <summary>
         /// Bytes
         /// </summary>
-        public byte[] Bytes { get; private set; }
+        public byte[] Bytes { get; private set; } = bytes;
 
-        private readonly int _hashCode;
+        private readonly int _hashCode = GetHashCode(bytes);
 
         private static int GetHashCode(Span<byte> bytes)
         {
@@ -52,21 +56,11 @@ namespace DigitalRuby.IPBanCore
         }
 
         /// <summary>
-        /// Constructor
-        /// </summary>
-        /// <param name="bytes">Bytes</param>
-        public ByteArrayKey(byte[] bytes)
-        {
-            Bytes = bytes;
-            _hashCode = GetHashCode(bytes);
-        }
-
-        /// <summary>
         /// Check if equal to other byte array key
         /// </summary>
         /// <param name="obj">Other byte array key</param>
         /// <returns>True if equal, false otherwise</returns>
-        public override bool Equals(object obj)
+        public override readonly bool Equals(object obj)
         {
             var other = obj as ByteArrayKey?;
             return other is not null && Bytes.AsSpan().SequenceEqual(other.Value.Bytes.AsSpan());
@@ -98,7 +92,7 @@ namespace DigitalRuby.IPBanCore
         /// Get hash code for the bytes
         /// </summary>
         /// <returns>Hash code</returns>
-        public override int GetHashCode()
+        public override readonly int GetHashCode()
         {
             return _hashCode;
         }

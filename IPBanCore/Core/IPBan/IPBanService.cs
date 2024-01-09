@@ -64,7 +64,6 @@ namespace DigitalRuby.IPBanCore
             AppName = appName + " " + version;
             cycleActions = new (string, Func<CancellationToken, Task>)[]
             {
-                ("GC", _cancelToken => { GC.GetTotalMemory(true); return Task.CompletedTask; }),
                 (nameof(UpdateConfiguration), UpdateConfiguration),
                 (nameof(SetNetworkInfo), SetNetworkInfo),
                 (nameof(UpdateDelegate), UpdateDelegate),
@@ -84,9 +83,9 @@ namespace DigitalRuby.IPBanCore
         /// Create an IPBanService by searching all types in all assemblies
         /// </summary>
         /// <returns>IPBanService (if not found an exception is thrown)</returns>
-        public static T CreateService<T>() where T : IPBanService
+        public static T CreateService<T>() where T : IPBanService, new()
         {
-            return Activator.CreateInstance(typeof(T), BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance, null, null, null) as T;
+            return new T();
         }
 
         /// <summary>
@@ -142,7 +141,7 @@ namespace DigitalRuby.IPBanCore
             var eventsArray = events.ToArray();
             lock (pendingLogEvents)
             {
-                pendingLogEvents.AddRange(eventsArray);
+                pendingLogEvents.AddRange(eventsArray.Where(e => e is not null));
             }
         }
 
@@ -226,7 +225,7 @@ namespace DigitalRuby.IPBanCore
         /// Initialize and start the service
         /// </summary>
         /// <param name="cancelToken">Cancel token</param>
-        public Task RunAsync(CancellationToken cancelToken)
+        public async Task RunAsync(CancellationToken cancelToken)
         {
             CancelToken = cancelToken;
 
@@ -245,7 +244,11 @@ namespace DigitalRuby.IPBanCore
                     // add some services
                     AddUpdater(new IPBanUnblockIPAddressesUpdater(this, Path.Combine(AppContext.BaseDirectory, "unban*.txt")));
                     AddUpdater(new IPBanBlockIPAddressesUpdater(this, Path.Combine(AppContext.BaseDirectory, "ban*.txt")));
-                    AddUpdater(DnsList);
+                    if (DnsList is not null)
+                    {
+                        await DnsList.Update(cancelToken);
+                        AddUpdater(DnsList);
+                    }
                     AddUpdater(IPThreatUploader ??= new IPBanIPThreatUploader(this));
 
                     // start delegate if we have one
@@ -262,7 +265,7 @@ namespace DigitalRuby.IPBanCore
                     // setup cycle timer if needed
                     if (!ManualCycle)
                     {
-                        return RunCycleInBackground(cancelToken);
+                        await RunCycleInBackground(cancelToken);
                     }
                 }
                 catch (Exception ex)
@@ -273,8 +276,6 @@ namespace DigitalRuby.IPBanCore
                     }
                 }
             }
-
-            return Task.CompletedTask;
         }
 
         /// <summary>
@@ -378,7 +379,8 @@ namespace DigitalRuby.IPBanCore
         /// <typeparam name="T">Type of state</typeparam>
         /// <param name="action">Action to run</param>
         /// <param name="state">State</param>
-        public void RunFirewallTask<T>(Func<T, CancellationToken, Task> action, T state)
+        /// <param name="name">Task name</param>
+        public void RunFirewallTask<T>(Func<T, CancellationToken, Task> action, T state, string name)
         {
             if (!IsRunning || CancelToken.IsCancellationRequested)
             {
@@ -386,7 +388,7 @@ namespace DigitalRuby.IPBanCore
             }
             else if (MultiThreaded)
             {
-                var task = new FirewallTask(action, state, typeof(T), CancelToken);
+                var task = new FirewallTask(action, state, typeof(T), name, CancelToken);
                 firewallTasks.Enqueue(task);
             }
             else
@@ -415,7 +417,7 @@ namespace DigitalRuby.IPBanCore
         /// <param name="cleanup">Whether to cleanup files first before starting the service</param>
         /// <returns>Service</returns>
         public static T CreateAndStartIPBanTestService<T>(string directory = null, string configFileName = null, string defaultBannedIPAddressHandlerUrl = null,
-            Func<string, string> configFileModifier = null, bool cleanup = true) where T : IPBanService
+            Func<string, string> configFileModifier = null, bool cleanup = true) where T : IPBanService, new()
         {
             // if not running tests, do nothing
             if (!UnitTestDetector.Running)

@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 
+#pragma warning disable IL2072
+
 namespace DigitalRuby.IPBanCore.Windows.COM
 {
     // ReSharper disable once HollowTypeName
@@ -69,3 +71,5 @@ namespace DigitalRuby.IPBanCore.Windows.COM
         }
     }
 }
+
+#pragma warning restore

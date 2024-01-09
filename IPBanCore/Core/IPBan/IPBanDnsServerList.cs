@@ -37,21 +37,19 @@ namespace DigitalRuby.IPBanCore
     {
         private static readonly TimeSpan dnsServerUpdateInterval = TimeSpan.FromMinutes(1.0);
         private DateTime lastDnsServersUpdate;
-        private HashSet<IPAddress> dnsServers = new();
+        private HashSet<IPAddress> dnsServers = [];
 
         /// <summary>
         /// Constructor
         /// </summary>
         public IPBanDnsServerList()
         {
-            UpdateDnsServersIfNeeded();
         }
 
         /// <inheritdoc />
         public Task Update(CancellationToken cancelToken = default)
         {
-            UpdateDnsServersIfNeeded();
-            return Task.CompletedTask;
+            return UpdateDnsServersIfNeeded(cancelToken);
         }
 
         /// <inheritdoc />
@@ -79,14 +77,17 @@ namespace DigitalRuby.IPBanCore
             return false;
         }
 
-        private void UpdateDnsServersIfNeeded()
+        private async Task UpdateDnsServersIfNeeded(CancellationToken cancelToken)
         {
             if ((IPBanService.UtcNow - lastDnsServersUpdate) > dnsServerUpdateInterval)
             {
                 try
                 {
-                    HashSet<IPAddress> newDnsServers = new(NetworkUtility.GetLocalDnsServers());
-                    foreach (var ip in Dns.GetHostAddresses(Dns.GetHostName()))
+                    var localServers = NetworkUtility.GetLocalDnsServers();
+                    HashSet<IPAddress> newDnsServers = new(localServers);
+                    var hostName = Dns.GetHostName();
+                    var hostAddresses = await Dns.GetHostAddressesAsync(hostName, cancelToken);
+                    foreach (var ip in hostAddresses)
                     {
                         newDnsServers.Add(ip);
                     }

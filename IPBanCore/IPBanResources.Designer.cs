@@ -1945,7 +1945,7 @@ namespace DigitalRuby.IPBanCore {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Recent Banned IP IPAddresses.
+        ///   Looks up a localized string similar to Recent Banned IP Addresses.
         /// </summary>
         public static string RecentBannedIPAddresses {
             get {
@@ -2706,6 +2706,15 @@ namespace DigitalRuby.IPBanCore {
         public static string Welcome {
             get {
                 return ResourceManager.GetString("Welcome", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Whitelister.
+        /// </summary>
+        public static string Whitelister {
+            get {
+                return ResourceManager.GetString("Whitelister", resourceCulture);
             }
         }
         

@@ -187,7 +187,7 @@ namespace DigitalRuby.IPBanCore
                     if (ipAddress.IsInternal())
                     {
                         // try querying through a web service
-                        var bytes = await RequestMaker.MakeRequestAsync(new Uri("https://api.ipban.com/myip"));
+                        var bytes = await RequestMaker.MakeRequestAsync(new Uri("https://api.ipban.com/myip"), cancelToken: cancelToken);
                         var ipString = Encoding.UTF8.GetString(bytes);
                         if (IPAddress.TryParse(ipString, out var ipObj))
                         {
@@ -212,7 +212,7 @@ namespace DigitalRuby.IPBanCore
 
         private async Task ProcessPendingFailedLogins(IReadOnlyList<IPAddressLogEvent> ipAddresses, CancellationToken cancelToken)
         {
-            List<IPAddressLogEvent> bannedIpAddresses = new();
+            List<IPAddressLogEvent> bannedIpAddresses = [];
             object transaction = BeginTransaction();
             try
             {
@@ -341,7 +341,7 @@ namespace DigitalRuby.IPBanCore
 
         private Task ProcessPendingSuccessfulLogins(IEnumerable<IPAddressLogEvent> ipAddresses, CancellationToken cancelToken)
         {
-            List<IPAddressLogEvent> finalList = new();
+            List<IPAddressLogEvent> finalList = [];
             foreach (IPAddressLogEvent info in ipAddresses)
             {
                 // if we have a valid ip that is not internal, process the successful login
@@ -375,7 +375,7 @@ namespace DigitalRuby.IPBanCore
                     {
                         Logger.Error(ex);
                     }
-                });
+                }, cancelToken);
             }
 
             return Task.CompletedTask;
@@ -779,7 +779,7 @@ namespace DigitalRuby.IPBanCore
 
         private async Task UpdateExpiredIPAddressStates(CancellationToken cancelToken)
         {
-            HashSet<string> unbannedIPAddresses = new();
+            HashSet<string> unbannedIPAddresses = [];
             DateTime now = UtcNow;
             DateTime failLoginCutOff = (now - Config.ExpireTime);
             DateTime banCutOff = now;
@@ -902,7 +902,7 @@ namespace DigitalRuby.IPBanCore
                 url = ReplaceUrl(url);
                 try
                 {
-                    KeyValuePair<string, object>[] headers = (Authorization is null ? null : new KeyValuePair<string, object>[] { new KeyValuePair<string, object>("Authorization", Authorization) });
+                    KeyValuePair<string, object>[] headers = (Authorization is null ? null : new KeyValuePair<string, object>[] { new("Authorization", Authorization) });
                     byte[] bytes = await RequestMaker.MakeRequestAsync(new Uri(url), headers: headers, cancelToken: cancelToken);
                     if (urlType == UrlType.Start)
                     {
@@ -995,8 +995,10 @@ namespace DigitalRuby.IPBanCore
             int count = 0;
             while (firewallTasks.TryDequeue(out var firewallTask))
             {
+                Stopwatch sw = Stopwatch.StartNew();
                 try
                 {
+                    Logger.Debug("Running firewall task {0}", firewallTask.Name);
                     var result = firewallTask.TaskToRun.DynamicInvoke(firewallTask.State, firewallTask.CancelToken);
                     if (result is Task task)
                     {
@@ -1013,6 +1015,11 @@ namespace DigitalRuby.IPBanCore
                     {
                         Logger.Error(ex);
                     }
+                }
+                finally
+                {
+                    sw.Stop();
+                    Logger.Debug("Ran firewall task {0} in {1:0.00}s", firewallTask.Name, sw.Elapsed.TotalSeconds);
                 }
                 if (++count == maxCount)
                 {
@@ -1189,8 +1196,8 @@ namespace DigitalRuby.IPBanCore
                 pendingLogEvents.Clear();
             }
 
-            List<IPAddressLogEvent> bannedIPs = new();
-            List<IPAddressLogEvent> unbannedIPs = new();
+            List<IPAddressLogEvent> bannedIPs = [];
+            List<IPAddressLogEvent> unbannedIPs = [];
             object transaction = BeginTransaction();
             try
             {

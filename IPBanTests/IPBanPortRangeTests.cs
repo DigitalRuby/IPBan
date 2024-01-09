@@ -25,6 +25,7 @@ SOFTWARE.
 using DigitalRuby.IPBanCore;
 
 using NUnit.Framework;
+using NUnit.Framework.Legacy;
 
 namespace DigitalRuby.IPBanTests
 {
@@ -34,13 +35,13 @@ namespace DigitalRuby.IPBanTests
         private static void TestPortRangeAllow(string expected, string message, params PortRange[] ranges)
         {
             string actual = IPBanFirewallUtility.GetPortRangeStringAllow(ranges);
-            Assert.AreEqual(expected, actual, message ?? "Invalid port string");
+            ClassicAssert.AreEqual(expected, actual, message ?? "Invalid port string");
         }
 
         private static void TestPortRangeBlockExcept(string expected, string message, params PortRange[] ranges)
         {
             string actual = IPBanFirewallUtility.GetPortRangeStringBlock(ranges);
-            Assert.AreEqual(expected, actual, message ?? "Invalid port string");
+            ClassicAssert.AreEqual(expected, actual, message ?? "Invalid port string");
         }
 
         [Test]
@@ -69,8 +70,8 @@ namespace DigitalRuby.IPBanTests
         {
             var value = IPBanFirewallUtility.GetBlockPortRanges(new[] { new PortRange(25) });
             var again = IPBanFirewallUtility.GetBlockPortRanges(value);
-            Assert.That(again, Has.Count.EqualTo(1));
-            Assert.That(again, Has.Exactly(1).Matches<PortRange>(x => x.MinPort == 25 && x.MinPort == 25));
+            ClassicAssert.That(again, Has.Count.EqualTo(1));
+            ClassicAssert.That(again, Has.Exactly(1).Matches<PortRange>(x => x.MinPort == 25 && x.MinPort == 25));
         }
     }
 }

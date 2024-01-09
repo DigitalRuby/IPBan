@@ -33,7 +33,10 @@ namespace DigitalRuby.IPBanCore
     /// <summary>
     /// IPBan local storage for ip addresses
     /// </summary>
-    public class IPBanDB : SqliteDB
+    /// <remarks>
+    /// Constructor
+    /// </remarks>
+    public class IPBanDB(string dbPath = null) : SqliteDB(dbPath ?? FileName)
     {
         /// <summary>
         /// State of ip addresses
@@ -203,11 +206,6 @@ namespace DigitalRuby.IPBanCore
             // set to failed login state if no ban date
             ExecuteNonQuery("UPDATE IPAddresses SET State = 3 WHERE State IN (0, 1) AND BanDate IS NULL");
         }
-
-        /// <summary>
-        /// Constructor
-        /// </summary>
-        public IPBanDB(string dbPath = null) : base(dbPath ?? FileName) { }
 
         /// <summary>
         /// Delete all data from the database but keep the database file

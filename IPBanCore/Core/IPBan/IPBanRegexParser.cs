@@ -47,17 +47,17 @@ namespace DigitalRuby.IPBanCore
     /// </summary>
     public static class IPBanRegexParser
     {
-        private static readonly Dictionary<string, Regex> regexCacheCompiled = new();
-        private static readonly Dictionary<string, Regex> regexCacheNotCompiled = new();
-        private static readonly char[] regexTrimChars = new[]
-{
+        private static readonly Dictionary<string, Regex> regexCacheCompiled = [];
+        private static readonly Dictionary<string, Regex> regexCacheNotCompiled = [];
+        private static readonly char[] regexTrimChars =
+[
             ',', ';', '|', '_', '-', '/', '\'', '\"', '(', ')', '[', ']', '{', '}', ' ', '\t', '\r', '\n'
-        };
+        ];
 
         /// <summary>
         /// Allow truncating user names at any of these chars or empty array for no truncation
         /// </summary>
-        private static char[] truncateUserNameCharsArray = Array.Empty<char>();
+        private static char[] truncateUserNameCharsArray = [];
 
         /// <summary>
         /// Truncate user name chars value
@@ -65,7 +65,7 @@ namespace DigitalRuby.IPBanCore
         public static string TruncateUserNameChars
         {
             get => new(truncateUserNameCharsArray);
-            set => truncateUserNameCharsArray = value?.ToCharArray() ?? Array.Empty<char>();
+            set => truncateUserNameCharsArray = value?.ToCharArray() ?? [];
         }
 
         /// <summary>

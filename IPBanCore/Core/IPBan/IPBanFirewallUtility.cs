@@ -59,6 +59,9 @@ namespace DigitalRuby.IPBanCore
             string rulePrefix = null,
             IIPBanFirewall previousFirewall = null)
         {
+
+#pragma warning disable IL2072
+
             try
             {
                 int priority = int.MinValue;
@@ -142,6 +145,9 @@ namespace DigitalRuby.IPBanCore
             {
                 throw new ArgumentException("Unable to create firewall, please double check your Firewall configuration property", ex);
             }
+
+#pragma warning restore
+
         }
 
         /// <summary>
@@ -165,7 +171,7 @@ namespace DigitalRuby.IPBanCore
                 return null;
             }
 
-            List<PortRange> result = new();
+            List<PortRange> result = [];
             int current = MinPort;
 
             foreach (var range in mergedRanges)
@@ -207,7 +213,7 @@ namespace DigitalRuby.IPBanCore
                 return null;
             }
 
-            List<PortRange> result = new() { sortedRanges[0] };
+            List<PortRange> result = [sortedRanges[0]];
             foreach (var range in sortedRanges.Skip(1))
             {
                 var lastRange = result.Last();

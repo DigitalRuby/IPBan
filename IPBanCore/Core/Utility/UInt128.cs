@@ -32,8 +32,13 @@ namespace DigitalRuby.IPBanCore
     /// <summary>
     /// A 128 bit unsigned integer.
     /// </summary>
+    /// <remarks>
+    /// Creates a value using two 64 bit values.
+    /// </remarks>
+    /// <param name="mostSignificant">The most significant 64 bits of the value.</param>
+    /// <param name="leastSignificant">The least significant 64 bits of the value.</param>
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
-    public struct UInt128 : IComparable<UInt128>, IEquatable<UInt128>, IFormattable
+    public readonly struct UInt128(ulong mostSignificant, ulong leastSignificant) : IComparable<UInt128>, IEquatable<UInt128>, IFormattable
     {
         /// <summary>
         /// The number of bytes this type will take.
@@ -59,17 +64,6 @@ namespace DigitalRuby.IPBanCore
         /// A One UInt128 value.
         /// </summary>
         public static readonly UInt128 One = 1;
-
-        /// <summary>
-        /// Creates a value using two 64 bit values.
-        /// </summary>
-        /// <param name="mostSignificant">The most significant 64 bits of the value.</param>
-        /// <param name="leastSignificant">The least significant 64 bits of the value.</param>
-        public UInt128(ulong mostSignificant, ulong leastSignificant)
-        {
-            MostSignificant = mostSignificant;
-            LeastSignificant = leastSignificant;
-        }
 
         /// <summary>
         /// Conversion of a <see cref="BigInteger"/> object to an unsigned 128-bit integer value.
@@ -247,8 +241,7 @@ namespace DigitalRuby.IPBanCore
         /// </remarks>
         public static UInt128 Parse(string value, NumberStyles style, IFormatProvider provider)
         {
-            if (value is null)
-                throw new ArgumentNullException(nameof(value));
+            ArgumentNullException.ThrowIfNull(value);
             if ((style & NumberStyles.HexNumber) == NumberStyles.HexNumber)
                 value = "0" + value;
             BigInteger bigIntegerValue = BigInteger.Parse(value, style, provider);
@@ -370,7 +363,7 @@ namespace DigitalRuby.IPBanCore
         /// </summary>
         /// <param name="other">The value to compare to.</param>
         /// <returns>True iff the two values represent the same value.</returns>
-        public bool Equals(UInt128 other)
+        public readonly bool Equals(UInt128 other)
         {
             return MostSignificant == other.MostSignificant &&
                    LeastSignificant == other.LeastSignificant;
@@ -381,7 +374,7 @@ namespace DigitalRuby.IPBanCore
         /// </summary>
         /// <param name="other">The value to compare to.</param>
         /// <returns>True iff the two values represent the same value.</returns>
-        public bool EqualsIn(in UInt128 other)
+        public readonly bool EqualsIn(in UInt128 other)
         {
             return MostSignificant == other.MostSignificant &&
                    LeastSignificant == other.LeastSignificant;
@@ -394,7 +387,7 @@ namespace DigitalRuby.IPBanCore
         /// true if <paramref name="obj"/> and this instance are the same type and represent the same value; otherwise, false.
         /// </returns>
         /// <param name="obj">Another object to compare to. </param><filterpriority>2</filterpriority>
-        public override bool Equals(object obj)
+        public override readonly bool Equals(object obj)
         {
             return (obj is UInt128 @int) && EqualsIn(@int);
         }
@@ -410,7 +403,7 @@ namespace DigitalRuby.IPBanCore
         /// Greater than zero - This object is greater than <paramref name="other"/>. 
         /// </returns>
         /// <param name="other">An object to compare with this object.</param>
-        public int CompareTo(UInt128 other)
+        public readonly int CompareTo(UInt128 other)
         {
             if (MostSignificant != other.MostSignificant)
                 return MostSignificant.CompareTo(other.MostSignificant);
@@ -428,7 +421,7 @@ namespace DigitalRuby.IPBanCore
         /// Greater than zero - This object is greater than <paramref name="other"/>. 
         /// </returns>
         /// <param name="other">An object to compare with this object.</param>
-        public int CompareToIn(in UInt128 other)
+        public readonly int CompareToIn(in UInt128 other)
         {
             if (MostSignificant != other.MostSignificant)
                 return MostSignificant.CompareTo(other.MostSignificant);
@@ -655,7 +648,7 @@ namespace DigitalRuby.IPBanCore
         /// A 32-bit signed integer that is the hash code for this instance.
         /// </returns>
         /// <filterpriority>2</filterpriority>
-        public override int GetHashCode()
+        public override readonly int GetHashCode()
         {
             return MostSignificant.GetHashCode() + LeastSignificant.GetHashCode();
         }
@@ -691,7 +684,7 @@ namespace DigitalRuby.IPBanCore
         /// If <paramref name="formatProvider"/> is <see langword="null"/>, the formatting of the returned string is based on the <see cref="NumberFormatInfo "/> object of the current culture.
         /// </para>
         /// </remarks>
-        public string ToString(string format, IFormatProvider formatProvider)
+        public readonly string ToString(string format, IFormatProvider formatProvider)
         {
             string bigIntegerString = ((BigInteger)this).ToString(format, formatProvider);
             if (MostSignificant >> 63 == 1 && bigIntegerString[0] == '0')
@@ -709,7 +702,7 @@ namespace DigitalRuby.IPBanCore
         /// <remarks>
         /// See <see cref="ToString(string, IFormatProvider)"/> for remarks.
         /// </remarks>
-        public string ToString(string format)
+        public readonly string ToString(string format)
         {
             return ToString(format, CultureInfo.CurrentCulture);
         }
@@ -723,7 +716,7 @@ namespace DigitalRuby.IPBanCore
         /// <remarks>
         /// See <see cref="ToString(string, IFormatProvider)"/> for remarks.
         /// </remarks>
-        public string ToString(IFormatProvider provider)
+        public readonly string ToString(IFormatProvider provider)
         {
             return ToString("G", provider);
         }
@@ -737,12 +730,12 @@ namespace DigitalRuby.IPBanCore
         /// <remarks>
         /// See <see cref="ToString(string, IFormatProvider)"/> for remarks.
         /// </remarks>
-        public override string ToString()
+        public override readonly string ToString()
         {
             return ToString(CultureInfo.CurrentCulture);
         }
 
-        private BigInteger ToBigInteger()
+        private readonly BigInteger ToBigInteger()
         {
             BigInteger value = MostSignificant;
             value <<= 64;
@@ -753,11 +746,11 @@ namespace DigitalRuby.IPBanCore
         /// <summary>
         /// Get the least significate ulong
         /// </summary>
-        public ulong LeastSignificant;
+        public ulong LeastSignificant => leastSignificant;
 
         /// <summary>
         /// Get the most significant ulong
         /// </summary>
-        public ulong MostSignificant;
+        public ulong MostSignificant => mostSignificant;
     }
 }

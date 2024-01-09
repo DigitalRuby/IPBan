@@ -44,12 +44,14 @@ namespace DigitalRuby.IPBanCore
     {
         private const int allowPriority = -20;
         private const int dropPriority = -10;
+        private const string defaultFallbackZoneFileContents = "<?xml version=\"1.0\" encoding=\"utf-8\"?><zone><short>Public</short><description>For use in public areas. You do not trust the other computers on networks to not harm your computer. Only selected incoming connections are accepted.</description><service name=\"ssh\"/><service name=\"dhcpv6-client\"/><forward/></zone>";
 
         private readonly string zoneFileOrig;
         private readonly string zoneFile;
         private readonly string allowRuleName;
         private readonly string allowRuleName6;
         private readonly bool canUseForwardNode;
+        private readonly string fallbackZoneFileContents = defaultFallbackZoneFileContents;
 
         private bool dirty;
 
@@ -71,6 +73,10 @@ namespace DigitalRuby.IPBanCore
                     versionObj = new(1, 0, 0);
                 }
                 canUseForwardNode = versionObj.Major >= 1;
+                if (!canUseForwardNode)
+                {
+                    fallbackZoneFileContents = fallbackZoneFileContents.Replace("<forward/>", string.Empty);
+                }
             }
             else
             {
@@ -84,7 +90,7 @@ namespace DigitalRuby.IPBanCore
             }
             allowRuleName = AllowRulePrefix + "4";
             allowRuleName6 = AllowRulePrefix + "6";
-            EnsureZoneFile(zoneFile, zoneFileOrig);
+            EnsureZoneFile(zoneFile, zoneFileOrig, fallbackZoneFileContents);
         }
 
         /// <inheritdoc />
@@ -106,13 +112,13 @@ namespace DigitalRuby.IPBanCore
             var ip4s = ranges.Where(i => i.Begin.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork);
             var ip6s = ranges.Where(i => i.Begin.AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6);
             var result = IPBanLinuxIPSetFirewallD.UpsertSet(allowRuleName, IPBanLinuxIPSetIPTables.HashTypeSingleIP, IPBanLinuxIPSetIPTables.INetFamilyIPV4,
-                ip4s, cancelToken);
+                ip4s);
             result |= IPBanLinuxIPSetFirewallD.UpsertSet(allowRuleName6, IPBanLinuxIPSetIPTables.HashTypeSingleIP, IPBanLinuxIPSetIPTables.INetFamilyIPV6,
-                ip6s, cancelToken);
+                ip6s);
 
             // create or update rule
             result |= CreateOrUpdateRule(zoneFile, zoneFileOrig, false, allowPriority, allowRuleName, allowRuleName6,
-                Array.Empty<PortRange>(), canUseForwardNode);
+                Array.Empty<PortRange>(), canUseForwardNode, fallbackZoneFileContents);
             dirty = true;
 
             // done
@@ -129,12 +135,12 @@ namespace DigitalRuby.IPBanCore
             var ip4s = ipAddresses.Where(i => i.Begin.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork);
             var ip6s = ipAddresses.Where(i => i.Begin.AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6);
             var result = IPBanLinuxIPSetFirewallD.UpsertSet(set4, IPBanLinuxIPSetIPTables.HashTypeNetwork, IPBanLinuxIPSetIPTables.INetFamilyIPV4,
-                ip4s, cancelToken);
+                ip4s);
             result |= IPBanLinuxIPSetFirewallD.UpsertSet(set6, IPBanLinuxIPSetIPTables.HashTypeNetwork, IPBanLinuxIPSetIPTables.INetFamilyIPV6,
-                ip6s, cancelToken);
+                ip6s);
 
             // create or update rule
-            result |= CreateOrUpdateRule(zoneFile, zoneFileOrig, false, allowPriority, set4, set6, allowedPorts, canUseForwardNode);
+            result |= CreateOrUpdateRule(zoneFile, zoneFileOrig, false, allowPriority, set4, set6, allowedPorts, canUseForwardNode, fallbackZoneFileContents);
             dirty = true;
 
             // done
@@ -152,12 +158,12 @@ namespace DigitalRuby.IPBanCore
             var ip4s = ranges.Where(i => i.Begin.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork);
             var ip6s = ranges.Where(i => i.Begin.AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6);
             var result = IPBanLinuxIPSetFirewallD.UpsertSet(set4, IPBanLinuxIPSetIPTables.HashTypeSingleIP, IPBanLinuxIPSetIPTables.INetFamilyIPV4,
-                ip4s, cancelToken);
+                ip4s);
             result |= IPBanLinuxIPSetFirewallD.UpsertSet(set6, IPBanLinuxIPSetIPTables.HashTypeSingleIP, IPBanLinuxIPSetIPTables.INetFamilyIPV6,
-                ip6s, cancelToken);
+                ip6s);
 
             // create or update rule
-            result |= CreateOrUpdateRule(zoneFile, zoneFileOrig, true, dropPriority, set4, set6, allowedPorts, canUseForwardNode);
+            result |= CreateOrUpdateRule(zoneFile, zoneFileOrig, true, dropPriority, set4, set6, allowedPorts, canUseForwardNode, fallbackZoneFileContents);
             dirty = true;
 
             // done
@@ -174,12 +180,12 @@ namespace DigitalRuby.IPBanCore
             var ip4s = ipAddresses.Where(i => i.Begin.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork);
             var ip6s = ipAddresses.Where(i => i.Begin.AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6);
             var result = IPBanLinuxIPSetFirewallD.UpsertSet(set4, IPBanLinuxIPSetIPTables.HashTypeNetwork, IPBanLinuxIPSetIPTables.INetFamilyIPV4,
-                ip4s, cancelToken);
+                ip4s);
             result |= IPBanLinuxIPSetFirewallD.UpsertSet(set6, IPBanLinuxIPSetIPTables.HashTypeNetwork, IPBanLinuxIPSetIPTables.INetFamilyIPV6,
-                ip6s, cancelToken);
+                ip6s);
 
             // create or update rule
-            result |= CreateOrUpdateRule(zoneFile, zoneFileOrig, true, dropPriority, set4, set6, allowedPorts, canUseForwardNode);
+            result |= CreateOrUpdateRule(zoneFile, zoneFileOrig, true, dropPriority, set4, set6, allowedPorts, canUseForwardNode, fallbackZoneFileContents);
             dirty = true;
 
             // done
@@ -194,12 +200,12 @@ namespace DigitalRuby.IPBanCore
             var set4 = set + "4";
             var set6 = set + "6";
             var result = IPBanLinuxIPSetFirewallD.UpsertSetDelta(set4, IPBanLinuxIPSetIPTables.HashTypeNetwork, IPBanLinuxIPSetIPTables.INetFamilyIPV4,
-                ipAddresses.Where(i => i.IsIPV4), cancelToken);
+                ipAddresses.Where(i => i.IsIPV4));
             result |= IPBanLinuxIPSetFirewallD.UpsertSetDelta(set6, IPBanLinuxIPSetIPTables.HashTypeNetwork, IPBanLinuxIPSetIPTables.INetFamilyIPV6,
-                ipAddresses.Where(i => !i.IsIPV4), cancelToken);
+                ipAddresses.Where(i => !i.IsIPV4));
 
             // create or update rule
-            result |= CreateOrUpdateRule(zoneFile, zoneFileOrig, true, dropPriority, set4, set6, allowedPorts, canUseForwardNode);
+            result |= CreateOrUpdateRule(zoneFile, zoneFileOrig, true, dropPriority, set4, set6, allowedPorts, canUseForwardNode, fallbackZoneFileContents);
             dirty = true;
 
             // done
@@ -311,7 +317,7 @@ namespace DigitalRuby.IPBanCore
         /// <inheritdoc />
         public override void Truncate()
         {
-            EnsureZoneFile(zoneFile, zoneFileOrig);
+            EnsureZoneFile(zoneFile, zoneFileOrig, fallbackZoneFileContents);
             var setNames = IPBanLinuxIPSetFirewallD.GetSetNames(RulePrefix);
             foreach (var ruleName in setNames)
             {
@@ -331,11 +337,12 @@ namespace DigitalRuby.IPBanCore
         /// <param name="ruleIP6">IP6 rule name</param>
         /// <param name="allowedPorts">Allowed ports</param>
         /// <param name="canUseForwardNode">Whether forward node is allowed</param>
+        /// <param name="fallbackZoneFileContents">Fallback zone file contents</param>
         /// <returns></returns>
         public static bool CreateOrUpdateRule(string zoneFile, string zoneFileOrig, bool drop, int priority, string ruleIP4, string ruleIP6,
-            IEnumerable<PortRange> allowedPorts, bool canUseForwardNode)
+            IEnumerable<PortRange> allowedPorts, bool canUseForwardNode, string fallbackZoneFileContents)
         {
-            EnsureZoneFile(zoneFile, zoneFileOrig);
+            EnsureZoneFile(zoneFile, zoneFileOrig, fallbackZoneFileContents);
 
             // load zone from file
             XmlDocument doc = new();
@@ -427,22 +434,6 @@ namespace DigitalRuby.IPBanCore
             UpsertXmlRule(doc, ruleIP4, "ipv4", drop, priority, allowedPorts);
             UpsertXmlRule(doc, ruleIP6, "ipv6", drop, priority, allowedPorts);
 
-            // make sure forward node is at the end
-            var forwardNode = doc.SelectSingleNode("//forward") as XmlElement;
-            if (forwardNode is not null)
-            {
-                forwardNode.ParentNode.RemoveChild(forwardNode);
-            }
-            else if (canUseForwardNode)
-            {
-                forwardNode = doc.CreateElement("forward");
-                forwardNode.IsEmpty = true;
-            }
-            if (canUseForwardNode)
-            {
-                doc.DocumentElement.AppendChild(forwardNode);
-            }
-
             // remove global allow rules
             foreach (var ruleNode in doc.SelectNodes("//rule"))
             {
@@ -469,7 +460,7 @@ namespace DigitalRuby.IPBanCore
                 }
             }
 
-            static void AddAllowAllRule(XmlDocument doc, XmlElement forwardNode, string protocol, string family, string ips)
+            static void AddAllowAllRule(XmlDocument doc, string protocol, string family, string ips)
             {
                 // allow all ipv4
                 var allowIP = doc.CreateElement("rule");
@@ -484,20 +475,25 @@ namespace DigitalRuby.IPBanCore
                 allowIP.AppendChild(allowIPPort);
                 var allowIPAccept = doc.CreateElement("accept");
                 allowIP.AppendChild(allowIPAccept);
-                if (forwardNode is null)
-                {
-                    doc.DocumentElement.AppendChild(allowIP);
-                }
-                else
-                {
-                    doc.DocumentElement.InsertBefore(allowIP, forwardNode);
-                }
+                doc.DocumentElement.AppendChild(allowIP);
             }
 
-            AddAllowAllRule(doc, forwardNode, "tcp", "ipv4", "0.0.0.0/0");
-            AddAllowAllRule(doc, forwardNode, "udp", "ipv4", "0.0.0.0/0");
-            AddAllowAllRule(doc, forwardNode, "tcp", "ipv6", "::/0");
-            AddAllowAllRule(doc, forwardNode, "udp", "ipv6", "::/0");
+            AddAllowAllRule(doc, "tcp", "ipv4", "0.0.0.0/0");
+            AddAllowAllRule(doc, "udp", "ipv4", "0.0.0.0/0");
+            AddAllowAllRule(doc, "tcp", "ipv6", "::/0");
+            AddAllowAllRule(doc, "udp", "ipv6", "::/0");
+
+            // make sure forward node is removed
+            var forwardNode = doc.SelectSingleNode("//forward") as XmlElement;
+            forwardNode?.ParentNode.RemoveChild(forwardNode);
+
+            if (canUseForwardNode)
+            {
+                // add forward element if supported
+                forwardNode = doc.CreateElement("forward");
+                forwardNode.IsEmpty = true;
+                doc.DocumentElement.AppendChild(forwardNode);
+            }
 
             // pretty print
             XDocument xDoc = XDocument.Parse(doc.OuterXml);
@@ -532,7 +528,7 @@ namespace DigitalRuby.IPBanCore
 
         private IReadOnlyDictionary<string, bool> GetRuleTypes()
         {
-            Dictionary<string, bool> rules = new();
+            Dictionary<string, bool> rules = [];
             var setNames = IPBanLinuxIPSetFirewallD.GetSetNames(RulePrefix);
             if (File.Exists(zoneFile))
             {
@@ -564,15 +560,14 @@ namespace DigitalRuby.IPBanCore
             return rules;
         }
 
-        private static void EnsureZoneFile(string zoneFile, string zoneFileOrig)
+        private static void EnsureZoneFile(string zoneFile, string zoneFileOrig, string fallbackZoneFileContents)
         {
-            const string fallbackZoneFileContents = "<?xml version=\"1.0\" encoding=\"utf-8\"?><zone><short>Public</short><description>For use in public areas. You do not trust the other computers on networks to not harm your computer. Only selected incoming connections are accepted.</description><service name=\"ssh\"/><service name=\"dhcpv6-client\"/><forward/></zone>";
             if (!File.Exists(zoneFile))
             {
                 string origZoneFileContents;
                 if (!File.Exists(zoneFileOrig))
                 {
-                    origZoneFileContents = fallbackZoneFileContents;
+                    origZoneFileContents = string.IsNullOrWhiteSpace(fallbackZoneFileContents) ? defaultFallbackZoneFileContents : fallbackZoneFileContents;
                 }
                 else
                 {

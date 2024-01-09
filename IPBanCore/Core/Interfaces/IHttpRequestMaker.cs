@@ -106,15 +106,7 @@ namespace DigitalRuby.IPBanCore
             {
                 Interlocked.Increment(ref liveRequestCount);
             }
-            Assembly versionAssembly = Assembly.GetEntryAssembly();
-            if (versionAssembly is null)
-            {
-                versionAssembly = Assembly.GetAssembly(typeof(IPBanService));
-                if (versionAssembly is null)
-                {
-                    versionAssembly = GetType().Assembly;
-                }
-            }
+            Assembly versionAssembly = Assembly.GetEntryAssembly() ?? Assembly.GetAssembly(typeof(IPBanService)) ?? GetType().Assembly;
             HttpRequestMessage msg = new()
             {
                 RequestUri = uri

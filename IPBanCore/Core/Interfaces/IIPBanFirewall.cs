@@ -174,112 +174,6 @@ namespace DigitalRuby.IPBanCore
     public delegate void PacketEventDelegate(IEnumerable<PacketEvent> packets);
 
     /// <summary>
-    /// Packet event
-    /// </summary>
-    public class PacketEvent
-    {
-        /// <summary>
-        /// Timestamp
-        /// </summary>
-        [System.Text.Json.Serialization.JsonConverter(typeof(DateTimeOffsetJsonConverter))]
-        public DateTimeOffset Timestamp { get; init; }
-
-        /// <summary>
-        /// FQDN of machine sending the event
-        /// </summary>
-        public string FQDN { get; init; }
-
-        /// <summary>
-        /// Source ip address of the packet
-        /// </summary>
-        public string LocalIpAddress { get; init; }
-
-        /// <summary>
-        /// Source port of the packet or 0 if unknown/not applicable
-        /// </summary>
-        public int LocalPort { get; init; }
-
-        /// <summary>
-        /// Remote ISP (if known)
-        /// </summary>
-        public string RemoteISP { get; set; }
-
-        /// <summary>
-        /// Remote country (if known)
-        /// </summary>
-        public string RemoteCountry { get; set; }
-
-        /// <summary>
-        /// Remote region (if known)
-        /// </summary>
-        public string RemoteRegion { get; set; }
-
-        /// <summary>
-        /// Remote city (if known)
-        /// </summary>
-        public string RemoteCity { get; set; }
-
-        /// <summary>
-        /// Destination ip address of the packet
-        /// </summary>
-        public string RemoteIpAddress { get; init; }
-
-        /// <summary>
-        /// Destination port of the packet or 0 if unknown/not applicable
-        /// </summary>
-        public int RemotePort { get; init; }
-
-        /// <summary>
-        /// Rule name if known, otherwise null
-        /// </summary>
-        public string RuleName { get; init; }
-
-        /// <summary>
-        /// RFC 1700 protocol
-        /// </summary>
-        public System.Net.Sockets.ProtocolType Protocol { get; init; }
-
-        /// <summary>
-        /// Whether the packet was allowed (true) or blocked (false)
-        /// </summary>
-        public bool Allowed { get; init; }
-
-        /// <summary>
-        /// Whether the packet is outgoing (true) or incoming (false)
-        /// </summary>
-        public bool Outbound { get; init; }
-
-        /// <summary>
-        /// Data
-        /// </summary>
-        [System.Text.Json.Serialization.JsonIgnore]
-        [Newtonsoft.Json.JsonIgnore]
-        [IgnoreDataMember]
-        public IntPtr Data { get; init; }
-
-        /// <summary>
-        /// Data length
-        /// </summary>
-        [System.Text.Json.Serialization.JsonIgnore]
-        [Newtonsoft.Json.JsonIgnore]
-        [IgnoreDataMember]
-        public int DataLength { get; init; }
-
-        /// <summary>
-        /// Header row to match ToString method, including newline character(s).
-        /// </summary>
-        public static string Header { get; } = "Timestamp|FQDN|RuleName|Protocol|Direction|LocalIpAddress|LocalPort|RemoteIpAddress|RemotePort|RemoteISP|RemoteCountry|RemoteRegion|RemoteCity" + Environment.NewLine;
-
-        /// <inheritdoc />
-        public override string ToString()
-        {
-            var dir = Outbound ? "outbound" : "inbound";
-            var protocol = Protocol.ToString();
-            return $"{Timestamp:s}Z|{FQDN}|{RuleName}|{protocol}|{dir}|{LocalIpAddress}|{LocalPort}|{RemoteIpAddress}|{RemotePort}|{RemoteISP}|{RemoteCountry}|{RemoteRegion}|{RemoteCity}";
-        }
-    }
-
-    /// <summary>
     /// Represents an ip address delta operation
     /// </summary>
     public struct IPBanFirewallIPAddressDelta
@@ -297,13 +191,13 @@ namespace DigitalRuby.IPBanCore
         /// <summary>
         /// Whether this is an ipv4 (true) or ipv6 (false)
         /// </summary>
-        public bool IsIPV4 => System.Net.IPAddress.TryParse(IPAddress, out var ip) && ip.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork;
+        public readonly bool IsIPV4 => System.Net.IPAddress.TryParse(IPAddress, out var ip) && ip.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork;
 
         /// <summary>
         /// ToString
         /// </summary>
         /// <returns>String</returns>
-        public override string ToString()
+        public override readonly string ToString()
         {
             return $"{IPAddress} added = {Added}";
         }
