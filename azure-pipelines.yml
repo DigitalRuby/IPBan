@@ -19,7 +19,7 @@ steps:
       displayName: 'Install .Net SDK'
       inputs:
         packageType: 'sdk'
-        version: '6.x'
+        version: '8.x'
         includePreviewVersions: false
         installationPath: $(Agent.ToolsDirectory)/dotnet_latest
 
