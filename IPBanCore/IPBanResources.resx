@@ -419,7 +419,7 @@
     <comment>Recent activity, i.e. the most recent ip addresses that have been banned</comment>
   </data>
   <data name="RecentBannedIPAddresses" xml:space="preserve">
-    <value>Recent Banned IP IPAddresses</value>
+    <value>Recent Banned IP Addresses</value>
     <comment>Recently banned ip addresses</comment>
   </data>
   <data name="RecentFailedLogins" xml:space="preserve">
@@ -1097,5 +1097,8 @@ For block rules, port list is ignored ports, so if you wanted to block port 3389
   </data>
   <data name="Import" xml:space="preserve">
     <value>Import</value>
+  </data>
+  <data name="Whitelister" xml:space="preserve">
+    <value>Whitelister</value>
   </data>
 </root>
