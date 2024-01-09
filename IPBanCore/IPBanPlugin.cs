@@ -57,6 +57,10 @@ namespace DigitalRuby.IPBanCore
                 {
                     eventLog = new EventLog("Application", Environment.MachineName, "IPBanCustom");
                 }
+                else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                {
+                    Directory.CreateDirectory("/var/log");
+                }
                 using Process p = Process.GetCurrentProcess();
                 ProcessName = p.ProcessName;
             }
