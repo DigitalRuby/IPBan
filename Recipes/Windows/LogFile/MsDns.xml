@@ -1,0 +1,21 @@
+﻿<!-- Microsoft DNS bad request
+Example:
+1/14/2024 10:15:52 AM 1720 PACKET  000001ABCBA8C4D0 UDP Snd 198.58.10.80    6139 R Q [0281   D  SERVFAIL] TXT    (5)cisco(3)com(0)
+-->
+<LogFile>
+	<Source>DNS</Source>
+	<PathAndMask>c:/log/dns*.txt</PathAndMask>
+	<FailedLoginRegex>
+		<![CDATA[
+			^(?<timestamp>[^\s]+\s[^\s]+)\s+[^\s]+\s+[^\s]+\s+[^\s]+\s+[^\s]+\s[^\s]+\s[^\s]+\s(?<ipaddress>[^\s]+)\s+[^\s]+\s+[^\s]+\s+[^\s]+\s+[^\s]+\s+[^\s]+\s+SERVFAIL
+		]]>
+	</FailedLoginRegex>
+	<FailedLoginRegexTimestampFormat></FailedLoginRegexTimestampFormat>
+	<SuccessfulLoginRegex></SuccessfulLoginRegex>
+	<SuccessfulLoginRegexTimestampFormat></SuccessfulLoginRegexTimestampFormat>
+	<PlatformRegex>Windows</PlatformRegex>
+	<PingInterval>10000</PingInterval>
+	<MaxFileSize>0</MaxFileSize>
+	<FailedLoginThreshold>0</FailedLoginThreshold>
+</LogFile>
+
