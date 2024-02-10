@@ -106,6 +106,24 @@ namespace DigitalRuby.IPBanCore {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Allow blank user names.
+        /// </summary>
+        public static string AggregateBanUserNamesAllowBlank {
+            get {
+                return ResourceManager.GetString("AggregateBanUserNamesAllowBlank", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Whether to include blank user names in aggregation for banning across your entire network..
+        /// </summary>
+        public static string AggregateBanUserNamesAllowBlankTooltip {
+            get {
+                return ResourceManager.GetString("AggregateBanUserNamesAllowBlankTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Threshold,hours to examine common user names and ban attackers that meet a threshold within hours timespan. Set to empty to disable this feature..
         /// </summary>
         public static string AggregateBanUserNamesTooltip {

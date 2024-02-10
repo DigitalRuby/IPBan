@@ -1101,4 +1101,10 @@ For block rules, port list is ignored ports, so if you wanted to block port 3389
   <data name="Whitelister" xml:space="preserve">
     <value>Whitelister</value>
   </data>
+  <data name="AggregateBanUserNamesAllowBlank" xml:space="preserve">
+    <value>Allow blank user names</value>
+  </data>
+  <data name="AggregateBanUserNamesAllowBlankTooltip" xml:space="preserve">
+    <value>Whether to include blank user names in aggregation for banning across your entire network.</value>
+  </data>
 </root>
