@@ -49,7 +49,7 @@ Please note that for IPBan Pro, you can find install instructions at https://ipb
 - IPBan is supported on Windows Server 2012 and Windows 8, or newer.
 - Easy one click install, open admin powershell and run:
 ```
-[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; iex ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/DigitalRuby/IPBan/master/IPBanCore/Windows/Scripts/install_latest.ps1'))
+$ProgressPreference = 'SilentlyContinue'; [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; iex ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/DigitalRuby/IPBan/master/IPBanCore/Windows/Scripts/install_latest.ps1'))
 ```
 Note: Powershell 5.1 or greater is required.
 
