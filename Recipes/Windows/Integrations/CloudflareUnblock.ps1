@@ -20,7 +20,7 @@ Write-Output "$date Unblock task started..." >> $logfile
 <#
 Write-Output "$date Checking AbuseIPDB Score of $ip" >> $logfile # uncomment if you're using the AbuseIPDB check
 Try {
-	$confidence=Invoke-RestMethod -Uri "https://api.abuseipdb.com/api/v2/check?ipAddress=$Ip&maxAgeInDays=90" -Method 'GET' -Headers @{'Accept'='application/json';'Key'="$abuseipdbapikey"} |
+	$confidence=Invoke-RestMethod -UseBasicParsing -Uri "https://api.abuseipdb.com/api/v2/check?ipAddress=$Ip&maxAgeInDays=90" -Method 'GET' -Headers @{'Accept'='application/json';'Key'="$abuseipdbapikey"} |
         % {$_.data.abuseConfidenceScore }
 } Catch {
 	Write-Output "$date $_" >> $logfile
