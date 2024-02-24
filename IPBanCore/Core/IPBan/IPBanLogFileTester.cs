@@ -79,7 +79,7 @@ namespace DigitalRuby.IPBanCore
             File.WriteAllText(scanner.PathAndMask, string.Empty);
 
             // read the empty file
-            scanner.ProcessFiles();
+            scanner.Update();
 
             {
                 using var fs = File.Open(scanner.PathAndMask, FileMode.Open, FileAccess.Read | FileAccess.Write, FileShare.ReadWrite);
@@ -87,7 +87,7 @@ namespace DigitalRuby.IPBanCore
                 foreach (var line in File.ReadLines(fileName))
                 {
                     w.WriteLine(line);
-                    scanner.ProcessFiles();
+                    scanner.Update();
                 }
             }
 

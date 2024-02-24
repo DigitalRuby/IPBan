@@ -80,20 +80,20 @@ namespace DigitalRuby.IPBanTests
         [Test]
         public void SimpleLogParseTest()
         {
-            using LogFileScanner scanner = SetupLogFileScanner(failureRegex: "__prefix__(?<ipaddress>.+)__suffix(__(?<username>.*?)__end)?",
+            using var scanner = SetupLogFileScanner(failureRegex: "__prefix__(?<ipaddress>.+)__suffix(__(?<username>.*?)__end)?",
                 successRegex: "success_prefix__(?<ipaddress>.+)__suffix(__(?<username>.*?)__end)?");
             {
                 using StreamWriter writer = new(CreateFile(), Encoding.UTF8) { AutoFlush = true };
 
                 // scan once before writing any data, otherwise scanner starts at end of file and will miss
                 // the first data written
-                scanner.ProcessFiles();
+                scanner.Update();
 
                 // start off with one ip, do not write the last newline, we will do that later
                 writer.Write("asdasdasdasdasdasd ");
                 writer.Write("__prefix__1.1.1.1__suffix message repeated 3 times");
 
-                scanner.ProcessFiles();
+                scanner.Update();
 
                 ClassicAssert.AreEqual(0, failedIPAddresses.Count, "Should not have found ip address yet");
 
@@ -101,7 +101,7 @@ namespace DigitalRuby.IPBanTests
                 writer.WriteLine(" aaa ");
                 writer.WriteLine();
 
-                scanner.ProcessFiles();
+                scanner.Update();
 
                 ClassicAssert.AreEqual(1, failedIPAddresses.Count, "Did not find all expected ip addresses");
                 ClassicAssert.AreEqual("1.1.1.1", failedIPAddresses[0].IPAddress, "First ip address is wrong");
@@ -109,7 +109,7 @@ namespace DigitalRuby.IPBanTests
                 ClassicAssert.AreEqual(3, failedIPAddresses[0].Count, "Repeat count is wrong");
                 ClassicAssert.IsNull(failedIPAddresses[0].UserName, "First user name should be null");
 
-                scanner.ProcessFiles();
+                scanner.Update();
 
                 ClassicAssert.AreEqual(1, failedIPAddresses.Count, "Should not have found more ip address yet");
 
@@ -117,7 +117,7 @@ namespace DigitalRuby.IPBanTests
                 writer.WriteLine("__prefix__2.2.2.2__suffix__THISUSER__end");
                 writer.WriteLine("success_prefix__4.4.4.4__suffix__THISUSER__end");
 
-                scanner.ProcessFiles();
+                scanner.Update();
 
                 ClassicAssert.AreEqual(2, failedIPAddresses.Count, "Did not find all expected ip addresses");
                 ClassicAssert.AreEqual("2.2.2.2", failedIPAddresses[1].IPAddress, "Second ip address is wrong");
@@ -139,7 +139,7 @@ namespace DigitalRuby.IPBanTests
                     AutoFlush = true
                 };
                 writer.WriteLine("__prefix__3.3.3.3__suffix message repeated 4 times");
-                scanner.ProcessFiles();
+                scanner.Update();
             }
             ClassicAssert.AreEqual(3, failedIPAddresses.Count, "Did not find all expected ip addresses");
             ClassicAssert.AreEqual("3.3.3.3", failedIPAddresses[2].IPAddress, "Second ip address is wrong");
@@ -158,7 +158,7 @@ namespace DigitalRuby.IPBanTests
 
             File.AppendAllText(fullPath, "fail, ip: 99.99.99.99, user: testuser\n");
             File.AppendAllText(fullPath, "success, ip: 98.99.99.99, user: testuser\n");
-            scanner.ProcessFiles();
+            scanner.Update();
             ClassicAssert.AreEqual(1, failedIPAddresses.Count, "Did not find all expected ip addresses");
             ClassicAssert.AreEqual("99.99.99.99", failedIPAddresses[0].IPAddress);
             ClassicAssert.AreEqual(1, successIPAddresses.Count, "Did not find all expected ip addresses");
@@ -168,7 +168,7 @@ namespace DigitalRuby.IPBanTests
             IPBanService.UtcNow = new DateTime(2019, 6, 5, 1, 1, 1, DateTimeKind.Utc);
             File.AppendAllText(fullPath, "fail, ip: 97.99.99.99, user: testuser\n");
             File.AppendAllText(fullPath, "success, ip: 96.99.99.99, user: testuser\n");
-            scanner.ProcessFiles();
+            scanner.Update();
 
             // should be no change in parsing as file should have dropped out
             ClassicAssert.AreEqual(1, failedIPAddresses.Count, "Did not find all expected ip addresses");
@@ -185,7 +185,7 @@ namespace DigitalRuby.IPBanTests
             File.AppendAllText(fullPath, "SSH2 98.97.97.97\n");
             File.AppendAllText(fullPath, "SSH3 99.97.97.97\n"); // fail
             File.AppendAllText(fullPath, "SSH Default 100.97.97.97\n");
-            scanner.ProcessFiles();
+            scanner.Update();
             ClassicAssert.AreEqual(3, failedIPAddresses.Count, "Did not find all expected ip addresses");
             ClassicAssert.AreEqual("97.97.97.97", failedIPAddresses[0].IPAddress);
             ClassicAssert.AreEqual("ssh1", failedIPAddresses[0].Source);
@@ -204,7 +204,7 @@ namespace DigitalRuby.IPBanTests
             File.AppendAllText(fullPath, "2020-01-13 22:34:20Z, SSH, 99.97.97.98\n");
             File.AppendAllText(fullPath, "2020-01-14 22:34:20.5Z, SSH, 99.97.97.98\n");
             File.AppendAllText(fullPath, "2020-01-15 22:34:21.5Z, SSH, 99.97.97.98\n");
-            scanner.ProcessFiles();
+            scanner.Update();
 
             ClassicAssert.AreEqual(5, failedIPAddresses.Count, "Did not find all expected ip addresses");
 
@@ -240,7 +240,7 @@ namespace DigitalRuby.IPBanTests
             using LogFileScanner scanner = SetupLogFileScanner(@"^(?<ipaddress>[^\s]+)\s.*?\[(?<timestamp>.*?)\].*?((php|md5sum|cgi-bin|joomla).*?\s404\s[0-9]+|\s400\s-)$",
                 "dd/MMM/yyyy:HH:mm:ss zzzz");
             File.AppendAllText(fullPath, "97.97.97.97 - - [28/Mar/2020:09:30:56 -0400] \"GET /TP/html /public/index.php HTTP/1.1\" 404 1110\n");
-            scanner.ProcessFiles();
+            scanner.Update();
 
             ClassicAssert.AreEqual(1, failedIPAddresses.Count, "Did not find all expected ip addresses");
 
@@ -290,7 +290,7 @@ namespace DigitalRuby.IPBanTests
             string successRegexTimestampFormat = null,
             string source = "SSH")
         {
-            IPBanIPAddressLogFileScannerOptions options = new()
+            LogScannerOptions options = new()
             {
                 Dns = TestDnsLookup.Instance,
                 EventHandler = this,
@@ -303,7 +303,7 @@ namespace DigitalRuby.IPBanTests
             };
             LogFileScanner scanner = new IPBanLogFileScanner(options);
             ExtensionMethods.FileWriteAllTextWithRetry(fullPath, string.Empty);
-            scanner.ProcessFiles();
+            scanner.Update();
             return scanner;
         }
 

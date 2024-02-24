@@ -39,7 +39,7 @@ namespace DigitalRuby.IPBanCore
     /// <summary>
     /// Scans a file periodically looking for patterns.
     /// </summary>
-    public class LogFileScanner : IDisposable
+    public class LogFileScanner : ILogScanner
     {
         /// <summary>
         /// Represents a watched file from a log file scanner
@@ -98,7 +98,7 @@ namespace DigitalRuby.IPBanCore
         /// </summary>
         /// <param name="pathAndMask">File path and mask with glob syntax (i.e. /var/log/auth*.log)</param>
         /// <param name="maxFileSizeBytes">Max size of file (in bytes) before it is deleted or 0 for unlimited</param>
-        /// <param name="fileProcessingIntervalMilliseconds">How often to process files, in milliseconds, less than 1 for manual processing, in which case <see cref="ProcessFiles"/> must be called as needed.</param>
+        /// <param name="fileProcessingIntervalMilliseconds">How often to process files, in milliseconds, less than 1 for manual processing, in which case <see cref="Update"/> must be called as needed.</param>
         /// <param name="encoding">Encoding or null for utf-8. The encoding must either be single or variable byte, like ASCII, Ansi, utf-8, etc. UTF-16 and the like are not supported.</param>
         /// <param name="maxLineLength">Maximum line length before considering the file a binary file and failing</param>
         /// <param name="startAtBeginning">Whether to start scanning at beginning of file (true) or end (false)</param>
@@ -139,7 +139,7 @@ namespace DigitalRuby.IPBanCore
             if (fileProcessingIntervalMilliseconds > 0)
             {
                 fileProcessingTimer = new System.Timers.Timer(fileProcessingIntervalMilliseconds);
-                fileProcessingTimer.Elapsed += (sender, args) => ProcessFiles();
+                fileProcessingTimer.Elapsed += (sender, args) => Update();
                 fileProcessingTimer.Start();
             }
         }
@@ -173,6 +173,9 @@ namespace DigitalRuby.IPBanCore
         {
             return $"Path/Mask: {PathAndMask}, Files: {watchedFiles.Count}, Encoding: {encoding.EncodingName}";
         }
+
+        /// <inheritdoc />
+        public virtual bool MatchesOptions(LogScannerOptions options) => false;
 
         /// <summary>
         /// Get all files from a path and mask
@@ -219,7 +222,7 @@ namespace DigitalRuby.IPBanCore
         /// Process the files, this is normally done on a timer, but if you have passed a 0 second
         /// processing interval to the constructor, you must call this manually
         /// </summary>
-        public void ProcessFiles()
+        public void Update()
         {
             // disable timer while we parse so it doesn't stack
             SetProcessingTimerEnabled(false);

@@ -56,7 +56,7 @@ namespace DigitalRuby.IPBanCore
             OSVersion = OSUtility.Version;
 
             // by default, all IPBan services will parse log files
-            updaters.Add(new IPBanLogFileManager(this));
+            updaters.Add(new IPBanLogManager(this));
 
             var version = Assembly.GetEntryAssembly()?.GetName().Version?.ToString(3) ?? string.Empty;
             var appName = Assembly.GetEntryAssembly()?.GetName().Name ?? string.Empty;
@@ -539,5 +539,13 @@ namespace DigitalRuby.IPBanCore
 
         /// <inheritdoc />
         public bool IsWhitelisted(IPAddressRange range) => Config.IsWhitelisted(range);
+
+        /// <inheritdoc />
+        public virtual void AddLogScanner(LogScannerOptions options, ICollection<ILogScanner> logs)
+        {
+            // log files use a timer internally and do not need to be updated regularly
+            IPBanLogFileScanner scanner = new(options);
+            logs.Add(scanner);
+        }
     }
 }

@@ -103,6 +103,13 @@ namespace DigitalRuby.IPBanCore
         bool RemoveUpdater(IUpdater updater);
 
         /// <summary>
+        /// Add a log scanner
+        /// </summary>
+        /// <param name="options">Options</param>
+        /// <param name="logs">Logs</param>
+        void AddLogScanner(LogScannerOptions options, ICollection<ILogScanner> logs);
+
+        /// <summary>
         /// Run an action on the firewall queue, this will execute later
         /// </summary>
         /// <typeparam name="T">Type of state</typeparam>
