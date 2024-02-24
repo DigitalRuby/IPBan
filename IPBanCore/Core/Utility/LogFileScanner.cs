@@ -311,7 +311,7 @@ namespace DigitalRuby.IPBanCore
         public static string NormalizeGlob(string glob, out string dirPortion, out string globPortion)
         {
             dirPortion = globPortion = null;
-            if (string.IsNullOrWhiteSpace(glob))
+            if (string.IsNullOrWhiteSpace(glob) || glob.StartsWith("db:", StringComparison.OrdinalIgnoreCase))
             {
                 return glob;
             }
