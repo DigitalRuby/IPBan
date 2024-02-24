@@ -296,9 +296,9 @@ namespace DigitalRuby.IPBanTests
                 EventHandler = this,
                 Source = source,
                 PathAndMask = pathAndMask,
-                RegexFailure = IPBanRegexParser.ParseRegex(failureRegex, true),
+                RegexFailure = failureRegex,
                 RegexFailureTimestampFormat = failureRegexTimestampFormat,
-                RegexSuccess = IPBanRegexParser.ParseRegex(successRegex, true),
+                RegexSuccess = successRegex,
                 RegexSuccessTimestampFormat = successRegexTimestampFormat
             };
             LogFileScanner scanner = new IPBanLogFileScanner(options);

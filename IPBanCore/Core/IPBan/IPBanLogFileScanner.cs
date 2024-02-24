@@ -35,7 +35,9 @@ namespace DigitalRuby.IPBanCore
     {
         private readonly IIPAddressEventHandler eventHandler;
         private readonly IDnsLookup dns;
+        private readonly string regexFailureString;
         private readonly Regex regexFailure;
+        private readonly string regexSuccessString;
         private readonly Regex regexSuccess;
         private readonly string regexFailureTimestampFormat;
         private readonly string regexSuccessTimestampFormat;
@@ -83,10 +85,11 @@ namespace DigitalRuby.IPBanCore
             this.eventHandler = options.EventHandler;
             this.dns = options.Dns;
 
-            this.regexFailure = options.RegexFailure;
+            this.regexFailureString = options.RegexFailure;
+            this.regexFailure = IPBanRegexParser.ParseRegex(options.RegexFailure, true);
             this.regexFailureTimestampFormat = options.RegexFailureTimestampFormat;
-
-            this.regexSuccess = options.RegexSuccess;
+            this.regexSuccessString = options.RegexSuccess;
+            this.regexSuccess = IPBanRegexParser.ParseRegex(options.RegexSuccess, true);
             this.regexSuccessTimestampFormat = options.RegexSuccessTimestampFormat;
         }
 
@@ -109,9 +112,9 @@ namespace DigitalRuby.IPBanCore
                 SuccessfulLogLevel == options.SuccessfulLogLevel &&
                 this.eventHandler == options.EventHandler &&
                 this.dns == options.Dns &&
-                this.regexFailure?.ToString() == options.RegexFailure?.ToString() &&
+                this.regexFailureString == options.RegexFailure &&
                 this.regexFailureTimestampFormat == options.RegexFailureTimestampFormat &&
-                this.regexSuccess?.ToString() == options.RegexSuccess?.ToString() &&
+                this.regexSuccessString == options.RegexSuccess &&
                 this.regexSuccessTimestampFormat == options.RegexSuccessTimestampFormat;
         }
 
@@ -181,7 +184,7 @@ namespace DigitalRuby.IPBanCore
         /// Regular expression for failed logins, should at minimum have an ipaddress group, but can also have
         /// a timestamp group, source group and username group.
         /// </summary>
-        public Regex RegexFailure { get; set; }
+        public string RegexFailure { get; set; }
 
         /// <summary>
         /// Optional date/time format if RegexFailure has a timestamp group
@@ -191,7 +194,7 @@ namespace DigitalRuby.IPBanCore
         /// <summary>
         /// Regular expression for successful logins, see RegexFailure for regex group names.
         /// </summary>
-        public Regex RegexSuccess { get; set; }
+        public string RegexSuccess { get; set; }
 
         /// <summary>
         /// Optional date/time format if RegexSuccess has a timestamp group

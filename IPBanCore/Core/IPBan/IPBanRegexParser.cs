@@ -78,6 +78,11 @@ namespace DigitalRuby.IPBanCore
         {
             const int maxCacheSize = 200;
 
+            if (string.IsNullOrWhiteSpace(text))
+            {
+                return null;
+            }
+
             text = (text ?? string.Empty).Trim();
             if (text.Length == 0)
             {
