@@ -513,7 +513,7 @@ namespace DigitalRuby.IPBanCore
 
                     foreach (var ipAddress in ipAddresses)
                     {
-                        if (string.IsNullOrWhiteSpace(ipAddress?.IPAddress))
+                        if (string.IsNullOrWhiteSpace(ipAddress?.IPAddress) || ipAddress.External)
                         {
                             continue;
                         }
