@@ -163,5 +163,11 @@ namespace DigitalRuby.IPBanCore
             }
             return false;
         }
+
+        /// <inheritdoc />
+        public override int GetHashCode()
+        {
+            return PathAndMask?.GetHashCode() ?? 0;
+        }
     }
 }
