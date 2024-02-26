@@ -74,7 +74,7 @@ namespace DigitalRuby.IPBanCore
             GC.SuppressFinalize(this);
 
             service.ConfigChanged -= UpdateLogFiles;
-            foreach (LogFileScanner file in logsToParse)
+            foreach (var file in logsToParse)
             {
                 file.Dispose();
             }
