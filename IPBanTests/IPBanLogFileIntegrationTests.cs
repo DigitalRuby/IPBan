@@ -169,6 +169,46 @@ namespace DigitalRuby.IPBanTests
             ClassicAssert.AreEqual(6, failedEvents.First().Count);
         }
 
+        [Test]
+        public async Task TestLogFilesRDWeb()
+        {
+            string path = Path.Combine(AppContext.BaseDirectory, "TestData/LogFiles/RDWeb/everything.log");
+            await RunTest(null, path, doc =>
+            {
+                XmlNode logFiles = doc.SelectSingleNode("//LogFiles");
+                XmlNode logFile = doc.CreateElement("LogFile");
+                XmlNode source = doc.CreateElement("Source");
+                source.InnerText = "RDWeb";
+                logFile.AppendChild(source);
+                XmlNode pathAndMask = doc.CreateElement("PathAndMask");
+                pathAndMask.InnerText = path;
+                logFile.AppendChild(pathAndMask);
+                XmlNode failedLoginRegex = doc.CreateElement("FailedLoginRegex");
+                failedLoginRegex.InnerText = @"(?<timestamp_utc>\d\d\d\d\-\d\d\-\d\d\s\d\d\:\d\d\:\d\d)\s[^\s]+\sPOST\s\/RDWeb\/Pages\/[^\/]+\/login\.aspx\s[^\s]+\s[0-9]+\s-\s(?<ipaddress>[^\s]+).*\s200\s[^\n]+\n";
+                logFile.AppendChild(failedLoginRegex);
+                XmlNode platformRegex = doc.CreateElement("PlatformRegex");
+                platformRegex.InnerText = ".";
+                logFile.AppendChild(platformRegex);
+                XmlNode pingInterval = doc.CreateElement("PingInterval");
+                pingInterval.InnerText = "10000";
+                logFile.AppendChild(pingInterval);
+                XmlNode maxFileSize = doc.CreateElement("MaxFileSize");
+                maxFileSize.InnerText = "0";
+                logFile.AppendChild(maxFileSize);
+                XmlNode failedLoginThreshold = doc.CreateElement("FailedLoginThreshold");
+                failedLoginThreshold.InnerText = "0";
+                logFile.AppendChild(failedLoginThreshold);
+                XmlNode minTimeFailedLogins = doc.CreateElement("MinimumTimeBetweenFailedLoginAttempts");
+                minTimeFailedLogins.InnerText = "00:00:00:00";
+                logFile.AppendChild(minTimeFailedLogins);
+                logFiles.AppendChild(logFile);
+            });
+
+            ClassicAssert.AreEqual(0, successfulEvents.Count);
+            ClassicAssert.AreEqual(1, failedEvents.Count);
+            ClassicAssert.AreEqual(5, failedEvents.First().Count);
+        }
+
         private async Task RunTest(string pathAndMaskXPath, string pathAndMaskOverride, Action<XmlDocument> modifier = null)
         {
             // create a test service with log file path/mask overriden

@@ -26,10 +26,12 @@ SOFTWARE.
 
 using Newtonsoft.Json;
 
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Globalization;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 using System.Xml.Serialization;
 
@@ -257,6 +259,26 @@ namespace DigitalRuby.IPBanCore
         [LocalizedDisplayName(nameof(IPBanResources.FailedLoginThreshold))]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public int FailedLoginThreshold { get; set; }
+
+        /// <summary>
+        /// Override minimum time between logins
+        /// </summary>
+        [DisplayFormat(ConvertEmptyStringToNull = false)]
+        [LocalizedDisplayName(nameof(IPBanResources.MinimumTimeBetweenFailedLoginAttempts))]
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        public string MinimumTimeBetweenLoginAttempts
+        {
+            get => MinimumTimeBetweenLoginAttemptsTimeSpan?.ToString();
+            set => MinimumTimeBetweenLoginAttemptsTimeSpan = value.ParseTimeSpan();
+        }
+
+        /// <summary>
+        /// MinimumTimeBetweenLoginAttempts TimeSpan value, or null if none.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonIgnore]
+        [Newtonsoft.Json.JsonIgnore]
+        [XmlIgnore]
+        public TimeSpan? MinimumTimeBetweenLoginAttemptsTimeSpan { get; set; }
 
         /// <summary>
         /// Log level for event

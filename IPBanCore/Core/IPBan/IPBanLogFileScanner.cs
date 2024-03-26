@@ -22,6 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -53,6 +54,11 @@ namespace DigitalRuby.IPBanCore
         public int FailedLoginThreshold { get; }
 
         /// <summary>
+        /// Failed login minimum timespan
+        /// </summary>
+        public TimeSpan? FailedLoginMinimumTimespan { get; }
+
+        /// <summary>
         /// Failed login log level
         /// </summary>
         public LogLevel FailedLogLevel { get; }
@@ -79,6 +85,7 @@ namespace DigitalRuby.IPBanCore
             Source = options.Source;
             FailedLoginThreshold = options.FailedLoginThreshold;
             FailedLogLevel = options.FailedLogLevel;
+            FailedLoginMinimumTimespan = options.MinimumTimeBetweenFailedLoginAttempts;
             SuccessfulLogLevel = options.SuccessfulLogLevel;
             NotificationFlags = options.NotificationFlags;
 
@@ -104,6 +111,7 @@ namespace DigitalRuby.IPBanCore
             return Source == options.Source &&
                 FailedLoginThreshold == options.FailedLoginThreshold &&
                 FailedLogLevel == options.FailedLogLevel &&
+                FailedLoginMinimumTimespan == options.MinimumTimeBetweenFailedLoginAttempts &&
                 NotificationFlags == options.NotificationFlags &&
                 SuccessfulLogLevel == options.SuccessfulLogLevel &&
                 this.eventHandler == options.EventHandler &&
@@ -133,6 +141,7 @@ namespace DigitalRuby.IPBanCore
                 {
                     info.FailedLoginThreshold = FailedLoginThreshold;
                 }
+                info.MinimumTimeBetweenLogins ??= FailedLoginMinimumTimespan;
                 if (successful)
                 {
                     info.LogLevel = SuccessfulLogLevel;

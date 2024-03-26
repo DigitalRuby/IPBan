@@ -44,7 +44,8 @@ namespace DigitalRuby.IPBanTests
         private static void AssertLogFileToParse(IPBanLogFileToParse file, string failedLoginRegex, string failedLoginRegexTimestampFormat,
             int maxFileSize, string pathAndMask, int pingInterval, string platformRegex,
             string source, string successfulLoginRegex, string successfulLoginRegexTimestampFormat,
-            LogLevel failedLogLevel = LogLevel.Warning, LogLevel successLogLevel = LogLevel.Warning)
+            LogLevel failedLogLevel = LogLevel.Warning, LogLevel successLogLevel = LogLevel.Warning,
+            TimeSpan? minimumTimeBetweenFailedLogins = null)
         {
             ClassicAssert.AreEqual(IPBanRegexParser.ParseRegex(failedLoginRegex)?.ToString(), IPBanRegexParser.ParseRegex(file.FailedLoginRegex)?.ToString());
             ClassicAssert.AreEqual(failedLoginRegexTimestampFormat, file.FailedLoginRegexTimestampFormat);
@@ -57,6 +58,7 @@ namespace DigitalRuby.IPBanTests
             ClassicAssert.AreEqual(successfulLoginRegexTimestampFormat, file.SuccessfulLoginRegexTimestampFormat);
             ClassicAssert.AreEqual(failedLogLevel, file.FailedLoginLogLevel);
             ClassicAssert.AreEqual(successLogLevel, file.SuccessfulLoginLogLevel);
+            ClassicAssert.AreEqual(minimumTimeBetweenFailedLogins, file.MinimumTimeBetweenFailedLoginAttempts.ParseTimeSpan());
         }
 
         private static void AssertLogFilesToParse(IPBanConfig cfg)
@@ -65,78 +67,91 @@ namespace DigitalRuby.IPBanTests
             const int pingInterval = 10000;
 
             // path and mask, fail expression, fail timestamp format, success expression, success timestamp format, platform regex, source
-            object[] logFileData =
+            object[][] logFileDatas =
             [
-                "/var/log/auth*.log\n/var/log/secure*\n/var/log/messages",
-                @"(?<log>failed\s+password)\s+for\s+(?:invalid\s+user\s+)?(?<username>[^\s]+)\s+from\s+(?<ipaddress>[^\s]+)\s+port\s+[0-9]+\s+ssh|(?<log>did\s+not\s+receive\s+identification\s+string)\s+from\s+(?<ipaddress>[^\s]+)|(?<log>connection\s+closed)\s+by\s+(?:(?:invalid\s+user\s+)?(?<username>[^\s]+)\s+)?(?<ipaddress>[^\s]+)\s+port\s+[0-9]+\s+\[preauth\]|(?<log>disconnected\s+from)\s+(?:invalid\s+user\s+)?(?<username>[^\s]+)\s+(?<ipaddress>[^\s]+)\s+port\s+[0-9]+\s+\[preauth\]|(?<log>disconnected\s+from)\s+(?<ipaddress>[^\s]+)\s+port\s+[0-9]+\s+\[preauth\]|(?<log>disconnected\s+from\s+authenticating\s+user)\s+(?<username>[^\s]+)\s+(?<ipaddress>[^\s]+)\s+port\s+[0-9]+\s+\[preauth\]",
-                @"",
-                @"\s+Accepted\s+(?:password|publickey)\s+for\s+(?<username>[^\s]+)\s+from\s+(?<ipaddress>[^\s]+)\s+port\s+[0-9]+\s+ssh",
-                @"",
-                "Linux", "SSH",
-
-                "/var/log/ipbancustom*.log",
-                @"(?<timestamp>\d\d\d\d-\d\d-\d\d\s\d\d:\d\d:\d\d(?:\.\d+)?Z?)?(?:,\s)?(?<log>ipban\sfailed\slogin),\sip\saddress:\s(?<ipaddress>[^,\n]+),\ssource:\s(?<source>[^,\n]+)?,\suser:\s(?<username>[^\s,]+)?",
-                @"",
-                @"(?<timestamp>\d\d\d\d-\d\d-\d\d\s\d\d:\d\d:\d\d(?:\.\d+)?Z?)?(?:,\s)?ipban\ssuccess\slogin,\sip\saddress:\s(?<ipaddress>[^,\n]+),\ssource:\s(?<source>[^,\n]+)?,\suser:\s(?<username>[^\s,]+)?",
-                @"",
-                "Linux", "IPBanCustom",
-
-                "C:/Program Files/Microsoft/Exchange Server/*/TransportRoles/Logs/FrontEnd/ProtocolLog/**.log",
-                @"^(?<timestamp>[0-9TZ\-:\.]+),(?:.*?\\(?:.*?),)?(?:[^,\n]*,){3}(?<ipaddress>[^,\n]+).*?(?:(?:504\s5\.7\.4\s(?<log>Unrecognized\sauthentication\stype))|(?:(?<log>LogonDenied)\n?.*?(?:User\:|User\sName\:)\s(?<username>[^\n,""]+)))",
-                @"",
-                @"^(?<timestamp>[0-9TZ\-:\.]+)?,(?:[^,\n]*,){4}(?<ipaddress>[^,\n]+),(?:[^,\n]*),(?<username>[^,\n]*),authenticated",
-                @"",
-                "Windows", "MSExchange",
-
-                "C:/Program Files/Smarter Tools/Smarter Mail/**/*.log\nC:/Program Files (x86)/Smarter Tools/Smarter Mail/**/*.log\nC:/SmarterMail/logs/**/*.log\nC:/Smarter Mail/logs/**/*.log",
-                @"\[(?<ipaddress>[^\]\n]+)\](?:\[[^\]\n]*\]\s+).*?(?<log>login\sfailed|IP\sis\sblacklisted|Authentication\sfailed|EHLO\sSMTP\sblocking\srule|rsp:\s554\sSecurity\sfailure|too\smany\sauthentication\sfailures|Mail\srejected\sdue\sto\sSMTP\sSpam\sBlocking|IP\sblocked\sby\sbrute\sforce\sabuse\sdetection\srule|The\sdomain\sgiven\sin\sthe\sEHLO\scommand\sviolates\san\sEHLO\sSMTP)",
-                @"",
-                @"",
-                @"",
-                "Windows", "SmarterMail",
-
-                "C:/Program Files (x86)/Mail Enable/Logging/SMTP/SMTP-Activity-*.log\nC:/Program Files/Mail Enable/Logging/SMTP/SMTP-Activity-*.log\nC:/Program Files (x86)/Mail Enable/Logging/IMAP\nC:/Program Files/Mail Enable/Logging/IMAP",
-                @"^(?<timestamp>[0-9\/:\s]+)SMTP\-IN\s+[^\s]+\s+[^\s]+\s(?<ipaddress>[^\s]+)\s+[^\s]+\s+[^\s]+\s+[^\s]+\s+(?<log>Invalid\sUsername\sor\sPassword)\s+[^\s]+\s+[^\s]+\s+(?<username>[^\n]+)$|^(?<timestamp>[0-9\/:\s]+)IMAP\-IN\s+[^\s]+\s+(?<ipaddress>[^\s]+)\s+LOGIN\s+LOGIN\s+""(?<username>[^""]+)""\s+""[^""]+""\s+[^\s]+\s+NO\s+LOGIN\s+Failed\s+[^\s]+\s+(?<log>Invalid\s+username\s+or\s+password)[^\n]*$",
-                @"MM/dd/yy HH:mm:ss",
-                @"",
-                @"",
-                "Windows", "MailEnable",
-
-                "C:/Program Files/Tomcat/logs/**/*access_log*.txt\n/var/log/httpd/access_log",
-                @"^(?<ipaddress>[^\s]+)\s.*?\[(?<timestamp>.*?)\].*?(?:\s(?<log>40[03])\s(-|[0-9]+)|((php|md5sum|cgi-bin|joomla).*?\s(?<log>40[03]\s[0-9]+|\s400\s-)))[^\n]*",
-                @"dd/MMM/yyyy:HH:mm:ss zzzz",
-                @"",
-                @"",
-                "Windows|Linux", "Apache",
-
-                "C:/inetpub/logs/LogFiles/W3SVC1/**/*.log",
-                @"(?<timestamp_utc>\d\d\d\d\-\d\d\-\d\d\s\d\d\:\d\d\:\d\d)\s[^\s]+\sPOST\s\/RDWeb\/Pages\/[^\/]+\/login\.aspx\s[^\s]+\s[0-9]+\s-\s(?<ipaddress>[^\s]+).*\s200\s[^\n]+\n",
-                @"",
-                @"(?<timestamp_utc>\d\d\d\d\-\d\d\-\d\d\s\d\d\:\d\d\:\d\d)\s[^\s]+\sPOST\s\/RDWeb\/Pages\/[^\/]+\/login\.aspx\s[^\s]+\s[0-9]+\s(?<username>[^\s]+)\s(?<ipaddress>[^\s]+).*\s302\s[^\n]+\n",
-                @"",
-                "Windows", "RDWeb",
-
-                "C:/IPBanCustomLogs/**/*.log",
-                @"(?<timestamp>\d\d\d\d-\d\d-\d\d\s\d\d:\d\d:\d\d(?:\.\d+)?Z?)?(?:,\s)?(?<log>ipban\sfailed\slogin),\sip\saddress:\s(?<ipaddress>[^,\n]+),\ssource:\s(?<source>[^,\n]+)?,\suser:\s(?<username>[^\s,]+)?",
-                @"",
-                @"(?<timestamp>\d\d\d\d-\d\d-\d\d\s\d\d:\d\d:\d\d(?:\.\d+)?Z?)?(?:,\s)?ipban\ssuccess\slogin,\sip\saddress:\s(?<ipaddress>[^,\n]+),\ssource:\s(?<source>[^,\n]+)?,\suser:\s(?<username>[^\s,]+)?",
-                @"",
-                "Windows", "IPBanCustom"
+                [
+                    "/var/log/auth*.log\n/var/log/secure*\n/var/log/messages",
+                    @"(?<log>failed\s+password)\s+for\s+(?:invalid\s+user\s+)?(?<username>[^\s]+)\s+from\s+(?<ipaddress>[^\s]+)\s+port\s+[0-9]+\s+ssh|(?<log>did\s+not\s+receive\s+identification\s+string)\s+from\s+(?<ipaddress>[^\s]+)|(?<log>connection\s+closed)\s+by\s+(?:(?:invalid\s+user\s+)?(?<username>[^\s]+)\s+)?(?<ipaddress>[^\s]+)\s+port\s+[0-9]+\s+\[preauth\]|(?<log>disconnected\s+from)\s+(?:invalid\s+user\s+)?(?<username>[^\s]+)\s+(?<ipaddress>[^\s]+)\s+port\s+[0-9]+\s+\[preauth\]|(?<log>disconnected\s+from)\s+(?<ipaddress>[^\s]+)\s+port\s+[0-9]+\s+\[preauth\]|(?<log>disconnected\s+from\s+authenticating\s+user)\s+(?<username>[^\s]+)\s+(?<ipaddress>[^\s]+)\s+port\s+[0-9]+\s+\[preauth\]",
+                    @"",
+                    @"\s+Accepted\s+(?:password|publickey)\s+for\s+(?<username>[^\s]+)\s+from\s+(?<ipaddress>[^\s]+)\s+port\s+[0-9]+\s+ssh",
+                    @"",
+                    "Linux", "SSH", null
+                ],
+                [
+                    "/var/log/ipbancustom*.log",
+                    @"(?<timestamp>\d\d\d\d-\d\d-\d\d\s\d\d:\d\d:\d\d(?:\.\d+)?Z?)?(?:,\s)?(?<log>ipban\sfailed\slogin),\sip\saddress:\s(?<ipaddress>[^,\n]+),\ssource:\s(?<source>[^,\n]+)?,\suser:\s(?<username>[^\s,]+)?",
+                    @"",
+                    @"(?<timestamp>\d\d\d\d-\d\d-\d\d\s\d\d:\d\d:\d\d(?:\.\d+)?Z?)?(?:,\s)?ipban\ssuccess\slogin,\sip\saddress:\s(?<ipaddress>[^,\n]+),\ssource:\s(?<source>[^,\n]+)?,\suser:\s(?<username>[^\s,]+)?",
+                    @"",
+                    "Linux", "IPBanCustom", null
+                ],
+                [
+                    "C:/Program Files/Microsoft/Exchange Server/*/TransportRoles/Logs/FrontEnd/ProtocolLog/**.log",
+                    @"^(?<timestamp>[0-9TZ\-:\.]+),(?:.*?\\(?:.*?),)?(?:[^,\n]*,){3}(?<ipaddress>[^,\n]+).*?(?:(?:504\s5\.7\.4\s(?<log>Unrecognized\sauthentication\stype))|(?:(?<log>LogonDenied)\n?.*?(?:User\:|User\sName\:)\s(?<username>[^\n,""]+)))",
+                    @"",
+                    @"^(?<timestamp>[0-9TZ\-:\.]+)?,(?:[^,\n]*,){4}(?<ipaddress>[^,\n]+),(?:[^,\n]*),(?<username>[^,\n]*),authenticated",
+                    @"",
+                    "Windows", "MSExchange", null
+                ],
+                [
+                    "C:/Program Files/Smarter Tools/Smarter Mail/**/*.log\nC:/Program Files (x86)/Smarter Tools/Smarter Mail/**/*.log\nC:/SmarterMail/logs/**/*.log\nC:/Smarter Mail/logs/**/*.log",
+                    @"\[(?<ipaddress>[^\]\n]+)\](?:\[[^\]\n]*\]\s+).*?(?<log>login\sfailed|IP\sis\sblacklisted|Authentication\sfailed|EHLO\sSMTP\sblocking\srule|rsp:\s554\sSecurity\sfailure|too\smany\sauthentication\sfailures|Mail\srejected\sdue\sto\sSMTP\sSpam\sBlocking|IP\sblocked\sby\sbrute\sforce\sabuse\sdetection\srule|The\sdomain\sgiven\sin\sthe\sEHLO\scommand\sviolates\san\sEHLO\sSMTP)",
+                    @"",
+                    @"",
+                    @"",
+                    "Windows", "SmarterMail", null
+                ],
+                [
+                    "C:/Program Files (x86)/Mail Enable/Logging/SMTP/SMTP-Activity-*.log\nC:/Program Files/Mail Enable/Logging/SMTP/SMTP-Activity-*.log\nC:/Program Files (x86)/Mail Enable/Logging/IMAP\nC:/Program Files/Mail Enable/Logging/IMAP",
+                    @"^(?<timestamp>[0-9\/:\s]+)SMTP\-IN\s+[^\s]+\s+[^\s]+\s(?<ipaddress>[^\s]+)\s+[^\s]+\s+[^\s]+\s+[^\s]+\s+(?<log>Invalid\sUsername\sor\sPassword)\s+[^\s]+\s+[^\s]+\s+(?<username>[^\n]+)$|^(?<timestamp>[0-9\/:\s]+)IMAP\-IN\s+[^\s]+\s+(?<ipaddress>[^\s]+)\s+LOGIN\s+LOGIN\s+""(?<username>[^""]+)""\s+""[^""]+""\s+[^\s]+\s+NO\s+LOGIN\s+Failed\s+[^\s]+\s+(?<log>Invalid\s+username\s+or\s+password)[^\n]*$",
+                    @"MM/dd/yy HH:mm:ss",
+                    @"",
+                    @"",
+                    "Windows", "MailEnable", null
+                ],
+                [
+                    "C:/Program Files/Tomcat/logs/**/*access_log*.txt\n/var/log/httpd/access_log",
+                    @"^(?<ipaddress>[^\s]+)\s.*?\[(?<timestamp>.*?)\].*?(?:\s(?<log>40[03])\s(-|[0-9]+)|((php|md5sum|cgi-bin|joomla).*?\s(?<log>40[03]\s[0-9]+|\s400\s-)))[^\n]*",
+                    @"dd/MMM/yyyy:HH:mm:ss zzzz",
+                    @"",
+                    @"",
+                    "Windows|Linux", "Apache", null
+                ],
+                [
+                    "C:/inetpub/logs/LogFiles/W3SVC1/**/*.log",
+                    @"(?<timestamp_utc>\d\d\d\d\-\d\d\-\d\d\s\d\d\:\d\d\:\d\d)\s[^\s]+\sPOST\s\/RDWeb\/Pages\/[^\/]+\/login\.aspx\s[^\s]+\s[0-9]+\s-\s(?<ipaddress>[^\s]+).*\s200\s[^\n]+\n",
+                    @"",
+                    @"(?<timestamp_utc>\d\d\d\d\-\d\d\-\d\d\s\d\d\:\d\d\:\d\d)\s[^\s]+\sPOST\s\/RDWeb\/Pages\/[^\/]+\/login\.aspx\s[^\s]+\s[0-9]+\s(?<username>[^\s]+)\s(?<ipaddress>[^\s]+).*\s302\s[^\n]+\n",
+                    @"",
+                    "Windows", "RDWeb", "00:00:00:00"
+                ],
+                [
+                    "C:/IPBanCustomLogs/**/*.log",
+                    @"(?<timestamp>\d\d\d\d-\d\d-\d\d\s\d\d:\d\d:\d\d(?:\.\d+)?Z?)?(?:,\s)?(?<log>ipban\sfailed\slogin),\sip\saddress:\s(?<ipaddress>[^,\n]+),\ssource:\s(?<source>[^,\n]+)?,\suser:\s(?<username>[^\s,]+)?",
+                    @"",
+                    @"(?<timestamp>\d\d\d\d-\d\d-\d\d\s\d\d:\d\d:\d\d(?:\.\d+)?Z?)?(?:,\s)?ipban\ssuccess\slogin,\sip\saddress:\s(?<ipaddress>[^,\n]+),\ssource:\s(?<source>[^,\n]+)?,\suser:\s(?<username>[^\s,]+)?",
+                    @"",
+                    "Windows", "IPBanCustom", null
+                ]
             ];
 
-            ClassicAssert.AreEqual(logFileData.Length / 7, cfg.LogFilesToParse.Count);
-            for (int i = 0; i < logFileData.Length; i += 7)
+            ClassicAssert.AreEqual(logFileDatas.Length, cfg.LogFilesToParse.Count);
+            int i = 0;
+            foreach (object[] logFileData in logFileDatas)
             {
-                AssertLogFileToParse(cfg.LogFilesToParse[i / 7],
-                    (string)logFileData[i + 1],
-                    (string)logFileData[i + 2],
+                AssertLogFileToParse(cfg.LogFilesToParse[i++],
+                    (string)logFileData[1],
+                    (string)logFileData[2],
                     maxFileSize,
-                    (string)logFileData[i],
+                    (string)logFileData[0],
                     pingInterval,
-                    (string)logFileData[i + 5],
-                    (string)logFileData[i + 6],
-                    (string)logFileData[i + 3],
-                    (string)logFileData[i + 4]);
+                    (string)logFileData[5],
+                    (string)logFileData[6],
+                    (string)logFileData[3],
+                    (string)logFileData[4],
+                    LogLevel.Warn,
+                    LogLevel.Warn,
+                    logFileData[7]?.ToString().ParseTimeSpan());
             }
         }
 

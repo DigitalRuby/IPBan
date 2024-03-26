@@ -790,6 +790,20 @@ namespace DigitalRuby.IPBanCore
         }
 
         /// <summary>
+        /// Parse text into Timespan
+        /// </summary>
+        /// <param name="text">Text</param>
+        /// <returns>TimeSpan or null if failure</returns>
+        public static TimeSpan? ParseTimeSpan(this string text)
+        {
+            if (TimeSpan.TryParse(text, CultureInfo.InvariantCulture, out var result))
+            {
+                return result;
+            }
+            return null;
+        }
+
+        /// <summary>
         /// Clamp a timespan, if out of bounds it will be clamped. If timespan is less than 1 second, it will be set to timeMax.
         /// </summary>
         /// <param name="value">Value to clamp</param>

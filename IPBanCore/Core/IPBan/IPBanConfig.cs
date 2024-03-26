@@ -114,7 +114,7 @@ namespace DigitalRuby.IPBanCore
         private readonly TimeSpan expireTime = TimeSpan.FromDays(1.0d);
         private readonly TimeSpan cycleTime = TimeSpan.FromMinutes(1.0d);
         private readonly TimeSpan minBanTime = TimeSpan.FromSeconds(5.0);
-        private readonly TimeSpan minimumTimeBetweenFailedLoginAttempts = TimeSpan.FromSeconds(5.0);
+        private readonly TimeSpan minimumTimeBetweenFailedLoginAttempts = TimeSpan.FromSeconds(1.0);
         private readonly TimeSpan minimumTimeBetweenSuccessfulLoginAttempts = TimeSpan.FromSeconds(5.0);
 
         private readonly string ipThreatApiKey = string.Empty;

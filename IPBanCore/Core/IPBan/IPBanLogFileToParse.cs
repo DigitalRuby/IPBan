@@ -82,6 +82,15 @@ namespace DigitalRuby.IPBanCore
         public LogLevel FailedLoginLogLevel { get; set; } = LogLevel.Warning;
 
         /// <summary>
+        /// Override minimum time between failed login attempts
+        /// </summary>
+        [DisplayFormat(ConvertEmptyStringToNull = false)]
+        [Required(AllowEmptyStrings = true)]
+        [LocalizedDisplayName(nameof(IPBanResources.MinimumTimeBetweenFailedLoginAttempts))]
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        public string MinimumTimeBetweenFailedLoginAttempts { get; set; }
+
+        /// <summary>
         /// Successful login regex
         /// </summary>
         [DisplayFormat(ConvertEmptyStringToNull = false)]

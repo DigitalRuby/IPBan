@@ -99,6 +99,11 @@ namespace DigitalRuby.IPBanCore
         public string RegexSuccessTimestampFormat { get; set; }
 
         /// <summary>
+        /// Override minimum time between failed login attempts
+        /// </summary>
+        public TimeSpan? MinimumTimeBetweenFailedLoginAttempts { get; set; }
+
+        /// <summary>
         /// Max file size for the log file before auto-deleting, default is unlimited
         /// </summary>
         public long MaxFileSizeBytes { get; set; }
@@ -158,6 +163,7 @@ namespace DigitalRuby.IPBanCore
                     (MaxLineLength == other.MaxLineLength) &&
                     (FailedLoginThreshold == other.FailedLoginThreshold) &&
                     (FailedLogLevel == other.FailedLogLevel) &&
+                    (MinimumTimeBetweenFailedLoginAttempts == other.MinimumTimeBetweenFailedLoginAttempts) &&
                     (SuccessfulLogLevel == other.SuccessfulLogLevel) &&
                     (NotificationFlags == other.NotificationFlags);
             }

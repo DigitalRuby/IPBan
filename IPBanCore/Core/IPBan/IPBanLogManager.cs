@@ -113,6 +113,7 @@ namespace DigitalRuby.IPBanCore
                             RegexSuccess = newFile.SuccessfulLoginRegex.ToString(),
                             RegexFailureTimestampFormat = newFile.FailedLoginRegexTimestampFormat,
                             RegexSuccessTimestampFormat = newFile.SuccessfulLoginRegexTimestampFormat,
+                            MinimumTimeBetweenFailedLoginAttempts = newFile.MinimumTimeBetweenFailedLoginAttempts.ParseTimeSpan(),
                             Source = newFile.Source,
                             FailedLoginThreshold = newFile.FailedLoginThreshold,
                             FailedLogLevel = newFile.FailedLoginLogLevel,

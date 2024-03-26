@@ -61,6 +61,9 @@
 		<None Update="TestData\LogFiles\Exchange\smtp_auth_unsuccessful.log">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
+		<None Update="TestData\LogFiles\RDWeb\everything.log">
+		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
 	</ItemGroup>
 
 </Project>

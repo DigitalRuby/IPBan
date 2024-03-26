@@ -42,6 +42,7 @@ namespace DigitalRuby.IPBanCore
         private record FirewallTask(Delegate TaskToRun, object State, Type StateType, string Name, CancellationToken CancelToken);
 
         private static readonly char[] userNamePrefixChars = [',', '\\'];
+        private static readonly TimeSpan successMinTimeOverride = TimeSpan.FromSeconds(15.0);
 
         // batch failed logins every cycle
         private readonly List<IPAddressLogEvent> pendingFailedLogins = [];

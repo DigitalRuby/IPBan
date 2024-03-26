@@ -575,7 +575,7 @@ namespace DigitalRuby.IPBanCore
     /// <summary>
     /// Information about an ip address from a log entry
     /// </summary>
-    public class IPAddressLogEvent
+    public sealed class IPAddressLogEvent
     {
         /// <summary>
         /// Constructor
@@ -592,10 +592,12 @@ namespace DigitalRuby.IPBanCore
         /// <param name="logLevel">Log level when the event is logged</param>
         /// <param name="logData">Log data, if any</param>
         /// <param name="notificationFlags">Notification flags</param>
+        /// <param name="minimumTimeBetweenLogins">Minimum time between logins</param>
         public IPAddressLogEvent(string ipAddress, string userName, string source,
             int count, IPAddressEventType type, DateTime timestamp = default, bool external = false,
             string extraInfo = null, int failedLoginThreshold = 0, LogLevel logLevel = LogLevel.Warning,
-            string logData = null, IPAddressNotificationFlags notificationFlags = IPAddressNotificationFlags.None)
+            string logData = null, IPAddressNotificationFlags notificationFlags = IPAddressNotificationFlags.None,
+            TimeSpan? minimumTimeBetweenLogins = null)
         {
             // normalize ip address if possible
             if (System.Net.IPAddress.TryParse(ipAddress, out System.Net.IPAddress parsedIPAddress))
@@ -617,6 +619,7 @@ namespace DigitalRuby.IPBanCore
             LogLevel = logLevel;
             LogData = logData;
             NotificationFlags = notificationFlags;
+            MinimumTimeBetweenLogins = minimumTimeBetweenLogins;
         }
 
         /// <summary>
@@ -672,6 +675,11 @@ namespace DigitalRuby.IPBanCore
         /// Failed login threshold or 0 for default
         /// </summary>
         public int FailedLoginThreshold { get; set; }
+
+        /// <summary>
+        /// Minimum time between logins or null for default
+        /// </summary>
+        public TimeSpan? MinimumTimeBetweenLogins { get; set; }
 
         /// <summary>
         /// Log level

@@ -395,7 +395,8 @@ namespace DigitalRuby.IPBanCore
 
         private void AddBannedIPAddress(string ipAddress, string source, string userName,
             List<IPAddressLogEvent> bannedIpAddresses, DateTime startBanDate, bool configBlacklisted,
-            int counter, string extraInfo, object transaction, bool external, string logData, IPAddressNotificationFlags notificationFlags)
+            int counter, string extraInfo, object transaction, bool external, string logData,
+            IPAddressNotificationFlags notificationFlags)
         {
             if (!System.Net.IPAddress.TryParse(ipAddress, out System.Net.IPAddress ipAddressObj))
             {
@@ -1081,6 +1082,7 @@ namespace DigitalRuby.IPBanCore
                 return;
             }
 
+            TimeSpan minTimeBetweenEventsCurrent;
             newEvent.Source ??= "?";
             newEvent.UserName ??= string.Empty;
 
@@ -1108,11 +1110,15 @@ namespace DigitalRuby.IPBanCore
                     if (newEvent.Type == IPAddressEventType.SuccessfulLogin)
                     {
                         // for success logins increase time to log between events as some events (SSH) are reported multiple times
-                        minTimeBetweenEvents = TimeSpan.FromSeconds(15.0);
+                        minTimeBetweenEventsCurrent = successMinTimeOverride;
+                    }
+                    else
+                    {
+                        minTimeBetweenEventsCurrent = (existing.MinimumTimeBetweenLogins ?? newEvent.MinimumTimeBetweenLogins ?? minTimeBetweenEvents);
                     }
 
                     var timeDifference = UtcNow - existing.Timestamp;
-                    if (timeDifference >= minTimeBetweenEvents)
+                    if (timeDifference >= minTimeBetweenEventsCurrent)
                     {
                         // update to the latest timestamp of the event
                         existing.Timestamp = UtcNow;
