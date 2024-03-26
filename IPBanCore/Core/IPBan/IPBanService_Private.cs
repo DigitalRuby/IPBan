@@ -1114,7 +1114,7 @@ namespace DigitalRuby.IPBanCore
                     }
                     else
                     {
-                        minTimeBetweenEventsCurrent = (existing.MinimumTimeBetweenLogins ?? newEvent.MinimumTimeBetweenLogins ?? minTimeBetweenEvents);
+                        minTimeBetweenEventsCurrent = ExtensionMethods.SmallestTimeSpan(existing.MinimumTimeBetweenLogins, newEvent.MinimumTimeBetweenLogins, minTimeBetweenEvents);
                     }
 
                     var timeDifference = UtcNow - existing.Timestamp;

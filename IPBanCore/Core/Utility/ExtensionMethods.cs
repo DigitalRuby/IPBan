@@ -804,6 +804,30 @@ namespace DigitalRuby.IPBanCore
         }
 
         /// <summary>
+        /// Get smallest timespan
+        /// </summary>
+        /// <param name="t1">First TimeSpan</param>
+        /// <param name="t2">Second TimeSpan</param>
+        /// <param name="defaultValue">Default if both t1 and t2 are null</param>
+        /// <returns>Smallest TimeSpan or defaultValue if both t1 and t2 are null</returns>
+        public static TimeSpan SmallestTimeSpan(TimeSpan? t1, TimeSpan? t2, TimeSpan defaultValue)
+        {
+            if (t1 is null && t2 is null)
+            {
+                return defaultValue;
+            }
+            else if (t1 is null)
+            {
+                return t2.Value;
+            }
+            else if (t2 is null)
+            {
+                return t1.Value;
+            }
+            return t1.Value > t2.Value ? t2.Value : t1.Value;
+        }
+
+        /// <summary>
         /// Clamp a timespan, if out of bounds it will be clamped. If timespan is less than 1 second, it will be set to timeMax.
         /// </summary>
         /// <param name="value">Value to clamp</param>
