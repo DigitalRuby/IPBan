@@ -47,6 +47,7 @@ Please note that for IPBan Pro, you can find install instructions at https://ipb
 ### **Windows**
 
 - IPBan is supported on Windows Server 2016 and Windows 10, or newer.
+- Fail2Ban but for Windows!
 - Easy one click install, open admin powershell and run:
 ```
 $ProgressPreference = 'SilentlyContinue'; [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; iex ((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/DigitalRuby/IPBan/master/IPBanCore/Windows/Scripts/install_latest.ps1'))
