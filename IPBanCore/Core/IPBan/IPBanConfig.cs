@@ -776,6 +776,54 @@ namespace DigitalRuby.IPBanCore
         }
 
         /// <summary>
+        /// Parse firewall uri rules
+        /// </summary>
+        /// <param name="text">Text</param>
+        /// <param name="firewall">Firewall</param>
+        /// <param name="whitelistChecker">Whitelist checker</param>
+        /// <param name="requestMaker">Request maker</param>
+        /// <returns>Parsed rules</returns>
+        public static IReadOnlyCollection<IPBanUriFirewallRule> ParseFirewallUriRules(string text,
+            IIPBanFirewall firewall, IIsWhitelisted whitelistChecker, IHttpRequestMaker requestMaker)
+        {
+            using StringReader reader = new(text);
+            List<IPBanUriFirewallRule> rules = [];
+            string line;
+            while ((line = reader.ReadLine()) != null)
+            {
+                line = line.Trim();
+                string[] pieces = line.Split(',', StringSplitOptions.TrimEntries);
+                if (pieces.Length >= 3)
+                {
+                    if (TimeSpan.TryParse(pieces[1], out TimeSpan interval))
+                    {
+                        if (Uri.TryCreate(pieces[2], UriKind.Absolute, out Uri uri))
+                        {
+                            string rulePrefix = pieces[0];
+                            int maxCount = 10000;
+                            if (pieces.Length > 3 && int.TryParse(pieces[3], out int _maxCount))
+                            {
+                                maxCount = _maxCount;
+                            }
+                            IPBanUriFirewallRule newRule = new(firewall, whitelistChecker, requestMaker, rulePrefix, interval, uri, maxCount);
+                            rules.Add(newRule);
+                        }
+                        else
+                        {
+                            Logger.Warn("Invalid uri format in uri firewall rule {0}", line);
+                        }
+                    }
+                    else
+                    {
+                        Logger.Warn("Invalid timespan format in uri firewall rule {0}", line);
+                    }
+                }
+            }
+
+            return rules;
+        }
+
+        /// <summary>
         /// Validate firewall uri rules
         /// </summary>
         /// <param name="firewallUriRules">Firewall uri rules</param>

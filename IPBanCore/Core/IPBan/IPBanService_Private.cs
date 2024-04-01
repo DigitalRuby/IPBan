@@ -1288,50 +1288,29 @@ namespace DigitalRuby.IPBanCore
 
         private void ParseAndAddUriFirewallRules()
         {
-            List<IPBanUriFirewallRule> toRemove = new(updaters.Where(u => u is IPBanUriFirewallRule).Select(u => u as IPBanUriFirewallRule));
-            using StringReader reader = new(Config.FirewallUriRules);
-            string line;
-            while ((line = reader.ReadLine()) != null)
+            // all rules will be removed unless the config specifies to keep them
+            List<IPBanUriFirewallRule> toRemove = new(updaters.Where(u => u is IPBanUriFirewallRule)
+                .Select(u => u as IPBanUriFirewallRule));
+
+            // get lis of all rules defined by current config
+            var rules = IPBanConfig.ParseFirewallUriRules(Config.FirewallUriRules, Firewall, this, RequestMaker);
+
+            // for each rule, determine if it still exists or needs adding
+            foreach (var rule in rules)
             {
-                line = line.Trim();
-                string[] pieces = line.Split(',', StringSplitOptions.TrimEntries);
-                if (pieces.Length >= 3)
+                if (updaters.Where(u => u.Equals(rule)).FirstOrDefault() is IPBanUriFirewallRule existingRule)
                 {
-                    if (TimeSpan.TryParse(pieces[1], out TimeSpan interval))
-                    {
-                        if (Uri.TryCreate(pieces[2], UriKind.Absolute, out Uri uri))
-                        {
-                            string rulePrefix = pieces[0];
-                            int maxCount = 10000;
-                            if (pieces.Length > 3 && int.TryParse(pieces[3], out int _maxCount))
-                            {
-                                maxCount = _maxCount;
-                            }
-                            IPBanUriFirewallRule newRule = new(Firewall, this, RequestMaker, rulePrefix, interval, uri, maxCount);
-                            if (updaters.Where(u => u.Equals(newRule)).FirstOrDefault() is IPBanUriFirewallRule existingRule)
-                            {
-                                // exact duplicate rule, do nothing
-                                toRemove.Remove(existingRule);
-                            }
-                            else
-                            {
-                                // new rule, add it
-                                updaters.Add(newRule);
-                            }
-                        }
-                        else
-                        {
-                            Logger.Warn("Invalid uri format in uri firewall rule {0}", line);
-                        }
-                    }
-                    else
-                    {
-                        Logger.Warn("Invalid timespan format in uri firewall rule {0}", line);
-                    }
+                    // exact duplicate rule, don't remove
+                    toRemove.Remove(existingRule);
+                }
+                else
+                {
+                    // new rule, add it
+                    updaters.Add(rule);
                 }
             }
 
-            // remove any left-over rules that were not in the new config
+            // remove any left-over rules not in the new config
             foreach (IPBanUriFirewallRule updater in toRemove.ToArray())
             {
                 updater.DeleteRule();

@@ -81,9 +81,9 @@ namespace DigitalRuby.IPBanCore
         /// <summary>
         /// Constructor
         /// </summary>
-        /// <param name="firewall">The firewall to block with</param>
-        /// <param name="whitelistChecker">Whitelist checker</param>
-        /// <param name="httpRequestMaker">Http request maker for http uris, can leave null if uri is file</param>
+        /// <param name="firewall">The firewall to block with (must not be null)</param>
+        /// <param name="whitelistChecker">Whitelist checker (can be null)</param>
+        /// <param name="httpRequestMaker">Http request maker for http uris (must not be null)</param>
         /// <param name="rulePrefix">Firewall rule prefix</param>
         /// <param name="interval">Interval to check uri for changes</param>
         /// <param name="uri">Uri, can be either file or http(s).</param>
@@ -92,8 +92,8 @@ namespace DigitalRuby.IPBanCore
             TimeSpan interval, Uri uri, int maxCount = 10000)
         {
             this.firewall = firewall.ThrowIfNull();
-            this.whitelistChecker = whitelistChecker.ThrowIfNull();
-            this.httpRequestMaker = httpRequestMaker;
+            this.whitelistChecker = whitelistChecker;
+            this.httpRequestMaker = httpRequestMaker.ThrowIfNull();
             RulePrefix = rulePrefix.ThrowIfNull();
             Uri = uri.ThrowIfNull();
             Interval = (interval.TotalSeconds < 5.0 ? fiveSeconds : interval);
@@ -211,7 +211,7 @@ namespace DigitalRuby.IPBanCore
             }
         }
 
-        private Task ProcessResult(string text, CancellationToken cancelToken)
+        private Task<bool> ProcessResult(string text, CancellationToken cancelToken)
         {
             using StringReader reader = new(text);
             string line;
