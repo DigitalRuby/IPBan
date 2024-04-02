@@ -43,14 +43,19 @@ namespace DigitalRuby.IPBanCore
         protected bool Disposed { get; private set; }
 
         /// <summary>
+        /// Rule prefix - defaults to 'IPBan_'
+        /// </summary>
+        public string RulePrefix { get; set; } = "IPBan_";
+
+        /// <summary>
         /// Allow rule prefix
         /// </summary>
-        protected string AllowRulePrefix { get; private set; }
+        public string AllowRulePrefix { get; set; }
 
         /// <summary>
         /// Block rule prefix
         /// </summary>
-        protected string BlockRulePrefix { get; private set; }
+        public string BlockRulePrefix { get; set; }
 
         /// <summary>
         /// Packet event handler
@@ -170,10 +175,5 @@ namespace DigitalRuby.IPBanCore
         /// Truncate
         /// </summary>
         public abstract void Truncate();
-
-        /// <summary>
-        /// Rule prefix - defaults to 'IPBan_'
-        /// </summary>
-        public string RulePrefix { get; } = "IPBan_";
     }
 }
