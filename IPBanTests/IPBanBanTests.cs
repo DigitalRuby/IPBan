@@ -211,7 +211,7 @@ namespace DigitalRuby.IPBanTests
         public void TestBlockIPAddresesBlockFile()
         {
             // put an ban.txt file in path, service should pick it up and ban the ip addresses
-            File.WriteAllLines(service.BlockIPAddressesFileName, new string[] { ip1, ip2 });
+            File.WriteAllLines(service.BlockIPAddressesFileName, [ip1, ip2]);
             service.RunCycleAsync().Sync();
             AssertIPAddressesAreBanned(0, 0);
         }
@@ -234,7 +234,7 @@ namespace DigitalRuby.IPBanTests
             AssertIPAddressesAreBanned(ipv6: true);
 
             // put an unban.txt file in path, service should pick it up
-            File.WriteAllLines(service.UnblockIPAddressesFileName, new string[] { ip1, ip2, ip3 });
+            File.WriteAllLines(service.UnblockIPAddressesFileName, [ip1, ip2, ip3]);
 
             // this should un ban the ip addresses
             service.RunCycleAsync().Sync();

@@ -115,7 +115,7 @@ namespace DigitalRuby.IPBanCore
                 }
                 try
                 {
-                    return Activator.CreateInstance(firewallType, new object[] { rulePrefix }) as IIPBanFirewall;
+                    return Activator.CreateInstance(firewallType, [rulePrefix]) as IIPBanFirewall;
                 }
                 catch (Exception ex)
                 {
@@ -127,7 +127,7 @@ namespace DigitalRuby.IPBanCore
                     Logger.Error(ex, "Failed to create firewall of type {0}, falling back to firewall type {1}", firewallType, fallbackType);
                     try
                     {
-                        return Activator.CreateInstance(fallbackType, new object[] { rulePrefix }) as IIPBanFirewall;
+                        return Activator.CreateInstance(fallbackType, [rulePrefix]) as IIPBanFirewall;
                     }
                     catch (Exception ex2)
                     {
@@ -137,7 +137,7 @@ namespace DigitalRuby.IPBanCore
                             throw;
                         }
                         Logger.Error(ex2, "Failed to create firewall of type {0}, falling back to final attempt with firewall type {1}", fallbackType, fallbackAttr.FallbackFirewallType);
-                        return Activator.CreateInstance(fallbackAttr.FallbackFirewallType, new object[] { rulePrefix }) as IIPBanFirewall;
+                        return Activator.CreateInstance(fallbackAttr.FallbackFirewallType, [rulePrefix]) as IIPBanFirewall;
                     }
                 }
             }
