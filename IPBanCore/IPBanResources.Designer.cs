@@ -106,7 +106,7 @@ namespace DigitalRuby.IPBanCore {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Allow blank user names.
+        ///   Looks up a localized string similar to Process blank user names.
         /// </summary>
         public static string AggregateBanUserNamesAllowBlank {
             get {
@@ -1072,7 +1072,7 @@ namespace DigitalRuby.IPBanCore {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Config entry for firewall uri rules, one per line. Format is RulePrefix,Interval(DD:HH:MM:SS),Uri[NEWLINE]..
+        ///   Looks up a localized string similar to Config entry for firewall uri rules, one per line. Format is RulePrefix,Interval(DD:HH:MM:SS),Uri[NEWLINE]. $ts$ in uri&apos;s will be replaced with timestamp..
         /// </summary>
         public static string FirewallUriRulesTooltip {
             get {

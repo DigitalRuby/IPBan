@@ -740,7 +740,7 @@ For block rules, port list is ignored ports, so if you wanted to block port 3389
     <value>Firewall Uri Rules</value>
   </data>
   <data name="FirewallUriRulesTooltip" xml:space="preserve">
-    <value>Config entry for firewall uri rules, one per line. Format is RulePrefix,Interval(DD:HH:MM:SS),Uri[NEWLINE].</value>
+    <value>Config entry for firewall uri rules, one per line. Format is RulePrefix,Interval(DD:HH:MM:SS),Uri[NEWLINE]. $ts$ in uri's will be replaced with timestamp.</value>
   </data>
   <data name="FailedLoginRegexTimestampFormat" xml:space="preserve">
     <value>Failed Login Regex Timestamp Format</value>
@@ -1102,7 +1102,7 @@ For block rules, port list is ignored ports, so if you wanted to block port 3389
     <value>Whitelister</value>
   </data>
   <data name="AggregateBanUserNamesAllowBlank" xml:space="preserve">
-    <value>Allow blank user names</value>
+    <value>Process blank user names</value>
   </data>
   <data name="AggregateBanUserNamesAllowBlankTooltip" xml:space="preserve">
     <value>Whether to include blank user names in aggregation for banning across your entire network.</value>
