@@ -60,6 +60,7 @@ Note: Powershell 5.1 or greater is required.
 ![](IPBan/img/WindowsCredSSP.png)
 - On Windows Server running Exchange, it is impossible to disable NTLM (deny all clients in Security restrict ntlm incoming ntlm traffic) as then Outlook on client computers permanently asks users for entering username and password. To workaround this, set LAN Manager authenticating level in Security Options of Local Policies to "Send NTLMv2 response only. Refuse LM & NTLM". There is one small issue – when somebody tries to login with an undefined username, the log does not contain an IP address. Not sure why Microsoft can't log an ip address properly.
 - If using Exchange, disabling app pool 'MSExchangeServicesAppPool' can eliminate quite a lot of problems in the event viewer with ip addresses not being logged.
+- Uninstaller: https://github.com/DigitalRuby/IPBan/blob/master/IPBanCore/Windows/Scripts/uninstall.cmd
 
 ### Linux
 
@@ -67,6 +68,8 @@ Easy one click install:
 ```
 sudo -i; bash <(wget -qO- https://raw.githubusercontent.com/DigitalRuby/IPBan/master/IPBanCore/Linux/Scripts/Install.sh)
 ```
+
+Uninstall: `sudo systemctl stop ipban; sudo systemctl disable ipban; sudo rm /opt/ipban -r`
 
 ## Other Information
 
