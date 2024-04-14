@@ -430,7 +430,7 @@ namespace DigitalRuby.IPBanCore
         /// Get a UInt32 from an ipv4 address. By default, the UInt32 will be in the byte order of the CPU.
         /// </summary>
         /// <param name="ip">IPV4 address</param>
-        /// <param name="swap">Whether to make the uint in the byte order of the cpu (true) or network host order (false)</param>
+        /// <param name="swap">Whether to make the uint in the byte order of the cpu (true and default) or network host order (false)</param>
         /// <returns>UInt32</returns>
         /// <exception cref="InvalidOperationException">Not an ipv4 address</exception>
         public static uint ToUInt32(this IPAddress ip, bool swap = true)
@@ -454,10 +454,10 @@ namespace DigitalRuby.IPBanCore
         }
 
         /// <summary>
-        /// Get a UInt128 from an ipv6 address. The UInt128 will be in the byte order of the CPU.
+        /// Get a UInt128 from an ipv6 address. By default, the UInt128 will be in the byte order of the CPU.
         /// </summary>
         /// <param name="ip">IPV6 address</param>
-        /// <param name="swap">Whether to make the byte order of the cpu (true) or network host order (false)</param>
+        /// <param name="swap">Whether to make the byte order of the cpu (true and default) or network host order (false)</param>
         /// <returns>UInt128</returns>
         /// <exception cref="InvalidOperationException">Not an ipv6 address</exception>
         public static unsafe UInt128 ToUInt128(this IPAddress ip, bool swap = true)
