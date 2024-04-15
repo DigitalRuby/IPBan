@@ -106,7 +106,7 @@ namespace DigitalRuby.IPBanCore {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Process blank user names.
+        ///   Looks up a localized string similar to Process Blank User Names.
         /// </summary>
         public static string AggregateBanUserNamesAllowBlank {
             get {
@@ -124,7 +124,7 @@ namespace DigitalRuby.IPBanCore {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Threshold,hours to examine common user names and ban attackers that meet a threshold within hours timespan. Set to empty to disable this feature..
+        ///   Looks up a localized string similar to Count,hours to examine common user names and ban attackers that meet a count within hours timespan. Set to empty to disable this feature..
         /// </summary>
         public static string AggregateBanUserNamesTooltip {
             get {
@@ -462,6 +462,24 @@ namespace DigitalRuby.IPBanCore {
         public static string Cloudflare_ZoneIds_Description {
             get {
                 return ResourceManager.GetString("Cloudflare_ZoneIds_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Concurrent Remote IP Ban.
+        /// </summary>
+        public static string ConcurrentRemoteIPBan {
+            get {
+                return ResourceManager.GetString("ConcurrentRemoteIPBan", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Count,seconds for banning connected remote ips that meet a concurrent count for a specified number of seconds. Set to empty to disable this feature..
+        /// </summary>
+        public static string ConcurrentRemoteIPBanTooltip {
+            get {
+                return ResourceManager.GetString("ConcurrentRemoteIPBanTooltip", resourceCulture);
             }
         }
         

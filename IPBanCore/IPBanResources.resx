@@ -885,7 +885,7 @@ For block rules, port list is ignored ports, so if you wanted to block port 3389
     <value>Common Failed User Name Ban</value>
   </data>
   <data name="AggregateBanUserNamesTooltip" xml:space="preserve">
-    <value>Threshold,hours to examine common user names and ban attackers that meet a threshold within hours timespan. Set to empty to disable this feature.</value>
+    <value>Count,hours to examine common user names and ban attackers that meet a count within hours timespan. Set to empty to disable this feature.</value>
   </data>
   <data name="CountryBlacklistInvert" xml:space="preserve">
     <value>Invert Country Blocklist</value>
@@ -1102,9 +1102,15 @@ For block rules, port list is ignored ports, so if you wanted to block port 3389
     <value>Whitelister</value>
   </data>
   <data name="AggregateBanUserNamesAllowBlank" xml:space="preserve">
-    <value>Process blank user names</value>
+    <value>Process Blank User Names</value>
   </data>
   <data name="AggregateBanUserNamesAllowBlankTooltip" xml:space="preserve">
     <value>Whether to include blank user names in aggregation for banning across your entire network.</value>
+  </data>
+  <data name="ConcurrentRemoteIPBan" xml:space="preserve">
+    <value>Concurrent Remote IP Ban</value>
+  </data>
+  <data name="ConcurrentRemoteIPBanTooltip" xml:space="preserve">
+    <value>Count,seconds for banning connected remote ips that meet a concurrent count for a specified number of seconds. Set to empty to disable this feature.</value>
   </data>
 </root>

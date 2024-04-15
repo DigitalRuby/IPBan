@@ -75,7 +75,7 @@ namespace DigitalRuby.IPBanCore
         /// Update
         /// </summary>
         /// <param name="cancelToken">Cancel token</param>
-        Task Update(CancellationToken cancelToken = default) => throw new NotImplementedException();
+        Task Update(CancellationToken cancelToken = default);
     }
 
     /// <summary>
