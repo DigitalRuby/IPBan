@@ -295,7 +295,7 @@ namespace DigitalRuby.IPBanCore
                 }
                 if (ipAddressGroup != null && ipAddressGroup.Success && !string.IsNullOrWhiteSpace(ipAddressGroup.Value))
                 {
-                    string tempIPAddress = ipAddressGroup.Value.Trim();
+                    string tempIPAddress = ipAddressGroup.Value.Trim().Trim('.', ';', '|', '-', '%', '@');
 
                     // in case of IP:PORT format, try a second time, stripping off the :PORT, saves having to do this in all
                     //  the different ip regex.
