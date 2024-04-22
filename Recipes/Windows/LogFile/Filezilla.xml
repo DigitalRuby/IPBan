@@ -33,7 +33,7 @@ Example success logins:
 	<FailedLoginRegexTimestampFormat></FailedLoginRegexTimestampFormat>
 	<SuccessfulLoginRegex>
 		<![CDATA[
-			^(?<timestamp>.+Z).*\sftp\ssession.*\sauthenticating\suser\s(?<username>[^\s]+)\sfrom\sip\s(?<ipaddress>[^\s]+)\n.*\sspecify\sthe\spassword.*\n.*\spass\s[^\s]+\n.*\s230\slogin\ssuccessful|
+			^(?<timestamp>.+Z).*ftp\ssession\s[0-9]+\s(?<ipaddress>[^\s]+)\s(?<username>[^\]]+)\]\s230\slogin\ssuccessful|
 			^(?:\([0-9]+\)\s)?(?<timestamp>.+)\s\-\s(?<username>[^\s]+)\s\((?<ipaddress>[^\)]+)\).*\s230\slogged\son
 		]]>
 	</SuccessfulLoginRegex>
