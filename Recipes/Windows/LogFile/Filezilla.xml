@@ -1,11 +1,22 @@
 ﻿<!-- Filezilla logins, Windows
-Example failed login:
-(000175) 1/5/2022 19:04:11 PM - (not logged in) (22.55.10.170)> 331 Password required for www
-(000175) 1/5/2022 19:04:11 PM - (not logged in) (22.55.10.170)> PASS www
-(000175) 1/5/2022 19:04:11 PM - (not logged in) (22.55.10.170)> 530 Login or password incorrect!
 
-Example success login:
-(000487) 12/21/2021 14:07:08 PM - username (22.55.10.170)> 230 Logged on
+Example failed logins:
+2024-04-17T20:50:00.069Z DI [Throttled Authenticator, FTP Session: 3636] Authenticating user root from IP 1.2.3.4.
+2024-04-17T20:50:00.069Z << [FTP Session 3636 1.2.3.4] 331 Please, specify the password.
+2024-04-17T20:50:00.086Z >> [FTP Session 3636 1.2.3.4] PASS ****
+2024-04-17T20:50:00.101Z DI [Throttled Authenticator, FTP Session: 3636] Recording failed login for user root from IP 1.2.3.4.
+
+(000175) 1/5/2022 19:04:11 PM - (not logged in) (1.2.3.4)> 331 Password required for www
+(000175) 1/5/2022 19:04:11 PM - (not logged in) (1.2.3.4)> PASS www
+(000175) 1/5/2022 19:04:11 PM - (not logged in) (1.2.3.4)> 530 Login or password incorrect!
+
+Example success logins:
+2024-04-17T20:48:58.754Z DI [Throttled Authenticator, FTP Session: 3635] Authenticating user root from IP 1.2.3.4.
+2024-04-17T20:48:58.754Z << [FTP Session 3635 1.2.3.4] 331 Please, specify the password.
+2024-04-17T20:48:58.774Z >> [FTP Session 3635 1.2.3.4] PASS ****
+2024-04-17T20:48:58.788Z << [FTP Session 3635 1.2.3.4 root] 230 Login successful.
+
+(000487) 12/21/2021 14:07:08 PM - username (1.2.3.4)> 230 Logged on
 -->
 <LogFile>
 	<Source>Filezilla</Source>
@@ -15,14 +26,15 @@ Example success login:
 	</PathAndMask>
 	<FailedLoginRegex>
 		<![CDATA[
-			(?<timestamp>[^\s]+)\s.*\s\[FTP\sSession\s[0-9]+\s(?<ipaddress>[^\]]+)\]\sUSER\s(?<username>[^\n]+)\n.*\sspecify\sthe\spassword[^\n]*\n.*\sPASS\s[^\n]*\n.*\s(?<log>Login\s(?:or\spassword\s)?incorrect)[^\n]*|
-			Recording\sfailed\slogin\sfor\suser\s(?<username>[^\s]+)\sfrom\sIP\s(?<ipaddress>.+)
+			^(?<timestamp>.+Z).*\srecording\sfailed\slogin\sfor\suser\s(?<username>[^\s]+)\sfrom\sip\s(?<ipaddress>[^\s]+)|
+			^(?:\([0-9]+\)\s)?(?<timestamp>.+)\s\-\s.*\((?<ipaddress>[^\)]+)\).*\s331\spassword\srequired\sfor\s(?<username>[^\s]+)\n.*\spass\s.*\n.*\s530\slogin\sor\spassword\sincorrect
 		]]>
 	</FailedLoginRegex>
 	<FailedLoginRegexTimestampFormat></FailedLoginRegexTimestampFormat>
 	<SuccessfulLoginRegex>
 		<![CDATA[
-			(?<timestamp>[^\s]+)\s.*\s\[FTP\sSession\s[0-9]+\s(?<ipaddress>[^\]]+)\]\sPASS\s[^\n]*\n.*\[FTP\sSession\s[0-9]+\s[^\s]+\s(?<username>[^\]]+)\].*Login\ssuccessful[^\n]*
+			^(?<timestamp>.+Z).*\sftp\ssession.*\sauthenticating\suser\s(?<username>[^\s]+)\sfrom\sip\s(?<ipaddress>[^\s]+)\n.*\sspecify\sthe\spassword.*\n.*\spass\s[^\s]+\n.*\s230\slogin\ssuccessful|
+			^(?:\([0-9]+\)\s)?(?<timestamp>.+)\s\-\s(?<username>[^\s]+)\s\((?<ipaddress>[^\)]+)\).*\s230\slogged\son
 		]]>
 	</SuccessfulLoginRegex>
 	<SuccessfulLoginRegexTimestampFormat></SuccessfulLoginRegexTimestampFormat>
