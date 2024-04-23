@@ -478,25 +478,45 @@ namespace DigitalRuby.IPBanCore
                 doc.DocumentElement.AppendChild(allowIP);
             }
 
+            static int ParseInt(string value)
+            {
+                _ = int.TryParse(value, out var valueInt);
+                return valueInt;
+            }
+
             AddAllowAllRule(doc, "tcp", "ipv4", "0.0.0.0/0");
             AddAllowAllRule(doc, "udp", "ipv4", "0.0.0.0/0");
             AddAllowAllRule(doc, "tcp", "ipv6", "::/0");
             AddAllowAllRule(doc, "udp", "ipv6", "::/0");
 
+            // use XDocument for sorting and pretty printing
+            XDocument xDoc = XDocument.Parse(doc.OuterXml);
+            var sortedRules = (from rule in xDoc.Root.Descendants("rule")
+                               orderby ParseInt(rule.Attribute("priority")?.Value)
+                               select rule).ToArray();
+
+            // remove all rules
+            foreach (var node in sortedRules)
+            {
+                node.Remove();
+            }
+
+            // add back in sorted order
+            foreach (var node in sortedRules)
+            {
+                xDoc.Root.Add(node);
+            }
+
             // make sure forward node is removed
-            var forwardNode = doc.SelectSingleNode("//forward") as XmlElement;
-            forwardNode?.ParentNode.RemoveChild(forwardNode);
+            var forwardNode = xDoc.Root.Descendants("forward").FirstOrDefault();
+            forwardNode?.Remove();
 
             if (canUseForwardNode)
             {
                 // add forward element if supported
-                forwardNode = doc.CreateElement("forward");
-                forwardNode.IsEmpty = true;
-                doc.DocumentElement.AppendChild(forwardNode);
+                xDoc.Root.Add(new XElement("forward"));
             }
 
-            // pretty print
-            XDocument xDoc = XDocument.Parse(doc.OuterXml);
             var xml = xDoc.ToString();
 
             // write the zone file back out and reload the firewall
