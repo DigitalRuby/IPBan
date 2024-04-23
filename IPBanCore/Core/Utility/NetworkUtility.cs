@@ -90,9 +90,9 @@ namespace DigitalRuby.IPBanCore
         /// </summary>
         public static readonly IReadOnlyCollection<IPAddressRange> InternalRangesIPV6 = new IPAddressRange[]
         {
-            IPAddressRange.Parse("::-1FFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF"), // loopbacks
+            IPAddressRange.Parse("::-1FFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF"), // loopbacks and locals
             //IPAddressRange.Parse("::FFFF:0:0-::FFFF:FFFF:FFFF"), // ipv4 mapped
-            IPAddressRange.Parse("100::-100:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF"), // discard prefix
+            //IPAddressRange.Parse("100::-100:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF"), // discard prefix
             //IPAddressRange.Parse("2001::-2001:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF"), // teredo
             IPAddressRange.Parse("2001:10::-2001:2F:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF"), // ORCHID
             IPAddressRange.Parse("2001:DB8::-2001:DB8:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF"), // documentation

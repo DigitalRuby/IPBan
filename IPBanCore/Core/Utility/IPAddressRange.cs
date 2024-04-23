@@ -369,9 +369,15 @@ namespace DigitalRuby.IPBanCore
             // check if the passed range is fully inside this range with room to spare on both ends
             int cmpLeft = range.Begin.CompareTo(Begin);
             int cmpRight = range.End.CompareTo(End);
-            if (cmpLeft > 0 && cmpRight < 0)
+            left = right = null;
+            if (cmpLeft <= 0 && cmpRight >= 0)
             {
-                // full chomp, left and right will be set
+                // full chomp
+                return true;
+            }
+            else if (cmpLeft > 0 && cmpRight < 0)
+            {
+                // middle chomp, left and right will be set
                 if (!range.Begin.TryDecrement(out IPAddress end))
                 {
                     throw new ApplicationException("Unexpected failed decrement of " + range.Begin);
@@ -384,15 +390,9 @@ namespace DigitalRuby.IPBanCore
                 right = new IPAddressRange(start, End);
                 return true;
             }
-            else if (cmpLeft == 0 && cmpRight == 0)
-            {
-                left = right = null;
-                return true;
-            }
             else if (cmpRight < 0 && range.End.CompareTo(Begin) >= 0)
             {
                 // chomp with only right piece remaining
-                left = null;
                 if (!range.End.TryIncrement(out IPAddress start))
                 {
                     throw new ApplicationException("Unexpected failed increment of " + range.End);
@@ -408,10 +408,9 @@ namespace DigitalRuby.IPBanCore
                     throw new ApplicationException("Unexpected failed decrement of " + range.Begin);
                 }
                 left = new IPAddressRange(Begin, end);
-                right = null;
                 return true;
             }
-            left = right = null;
+            
             return false;
         }
 
