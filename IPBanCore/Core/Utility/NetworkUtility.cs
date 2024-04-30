@@ -325,12 +325,6 @@ namespace DigitalRuby.IPBanCore
                 }
                 collection.Sort((ip1, ip2) =>
                 {
-                    int internal1 = ip1.Key.IsInternal() ? 1 : 0;
-                    int internal2 = ip2.Key.IsInternal() ? 1 : 0;
-                    if (internal1 != internal2)
-                    {
-                        return preferInternal ? internal2.CompareTo(internal1) : internal1.CompareTo(internal2);
-                    }
                     int priority1 = ip1.Value;
                     int priority2 = ip2.Value;
                     if (priority1 != priority2)
@@ -342,6 +336,12 @@ namespace DigitalRuby.IPBanCore
                     if (family1 != family2)
                     {
                         return family1.CompareTo(family2);
+                    }
+                    int internal1 = ip1.Key.IsInternal() ? 1 : 0;
+                    int internal2 = ip2.Key.IsInternal() ? 1 : 0;
+                    if (internal1 != internal2)
+                    {
+                        return preferInternal ? internal2.CompareTo(internal1) : internal1.CompareTo(internal2);
                     }
                     return ip1.Key.CompareTo(ip2.Key);
                 });
