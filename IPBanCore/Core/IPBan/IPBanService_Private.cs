@@ -992,7 +992,7 @@ namespace DigitalRuby.IPBanCore
 
         private async Task RunFirewallTasks(CancellationToken cancelToken)
         {
-            const int maxCount = 1000;
+            const int maxCount = 10000;
             int count = 0;
             while (firewallTasks.TryDequeue(out var firewallTask))
             {
@@ -1022,10 +1022,10 @@ namespace DigitalRuby.IPBanCore
                     sw.Stop();
                     Logger.Debug("Ran firewall task {0} in {1:0.00}s", firewallTask.Name, sw.Elapsed.TotalSeconds);
                 }
-                if (++count == maxCount)
+                if (++count >= maxCount)
                 {
                     // behind in task processing
-                    Logger.Warn("Firewall task processing is running behind, this will cause memory to increase.");
+                    Logger.Warn("Firewall task processing is running behind with {0} tasks, this will cause memory to increase.", count);
                     break;
                 }
             }
