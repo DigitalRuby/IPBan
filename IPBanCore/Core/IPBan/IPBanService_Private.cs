@@ -1022,7 +1022,7 @@ namespace DigitalRuby.IPBanCore
                     sw.Stop();
                     Logger.Debug("Ran firewall task {0} in {1:0.00}s", firewallTask.Name, sw.Elapsed.TotalSeconds);
                 }
-                if (++count >= maxCount)
+                if (++count == maxCount)
                 {
                     // behind in task processing
                     Logger.Warn("Firewall task processing is running behind with {0} tasks, this will cause memory to increase.", count);
