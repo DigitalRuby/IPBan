@@ -19,7 +19,9 @@ param
 	[Parameter(Mandatory=$False, Position = 0)]
 	[String] $uninstall,
 	[Parameter(Mandatory=$False, Position = 1)]
-	[Boolean] $silent = $False
+	[Boolean] $silent = $False,
+	[Parameter(Mandatory=$False, Position = 2)]
+	[Boolean] $autostart = $True
 )
 
 if ($PSVersionTable.PSVersion.Major -lt 5 -or ($PSVersionTable.PSVersion.Major -eq 5 -and $PSVersionTable.PSVersion.Minor -lt 1))
@@ -58,6 +60,7 @@ if (Get-Service $SERVICE_NAME -ErrorAction SilentlyContinue)
     }
     & sc.exe delete $SERVICE_NAME
 }
+
 if (Test-Path -Path $INSTALL_PATH)
 {
     & echo "Removing existing directory at $INSTALL_PATH"
@@ -75,17 +78,17 @@ if (Test-Path -Path $INSTALL_PATH)
         {
             copy "$INSTALL_PATH/ipban.sqlite" $tempPath
         }
-	if (Test-Path "$INSTALL_PATH/nlog.config")
+		if (Test-Path "$INSTALL_PATH/nlog.config")
         {
             copy "$INSTALL_PATH/nlog.config" $tempPath
         }
     }
-}
-
-if ($isUninstall -eq $True)
-{
-    & echo "IPBan is fully uninstalled from this system"
-    exit
+	else
+	{
+		& rm -r "$INSTALL_PATH"
+		& echo "IPBan is fully uninstalled from this system"
+		exit 0
+	}
 }
 
 # download zip file
@@ -132,7 +135,14 @@ if (Test-Path -Path "$tempPath/nlog.config")
 & sc.exe create IPBAN type= own start= delayed-auto binPath= $INSTALL_EXE DisplayName= $SERVICE_NAME
 & sc.exe description IPBAN "Automatically builds firewall rules for abusive login attempts: https://github.com/DigitalRuby/IPBan"
 & sc.exe failure IPBAN reset= 9999 actions= "restart/60000/restart/60000/restart/60000"
-& sc.exe start IPBAN
+if ($autostart -eq $True)
+{
+	& sc.exe start IPBAN
+}
+else
+{
+	& echo "IPBAN Service is in stopped state, you must start it manually."
+}
 
 if ($silent -eq $False)
 {

@@ -8,9 +8,13 @@
 # To uninstall: sudo systemctl stop ipban; sudo systemctl disable ipban; sudo rm /opt/ipban -r
 #
 
+# env var arg options
+: ${AUTOSTART=true}
+
 VERSION_DOTS="2.0.0"
 VERSION_UNDERSCORES=${VERSION_DOTS//./_}
 FILE_NAME="IPBan-Linux-x64_$VERSION_UNDERSCORES.zip"
+
 
 # run entire script from url, do sudo -i first
 # sudo -i;
@@ -68,7 +72,14 @@ cp /tmp/ipban.override.config /opt/ipban>/dev/null || :
 rm /tmp/ipban.override.config>/dev/null || :
 
 # enable and start service, ensure that it is running on reboots as well
-sudo systemctl daemon-reload; sudo systemctl start ipban; sudo systemctl restart ipban; sudo systemctl enable ipban;
+sudo systemctl daemon-reload; sudo systemctl enable ipban;
+
+# auto start if asked for
+if [ "$AUTOSTART" == "true" ]; then
+	sudo systemctl start ipban; sudo systemctl restart ipban; 
+else
+	echo "Autostart disabled. To start, run: systemctl start ipban; sudo systemctl restart ipban;"
+fi
 
 # open up config editor to make any additional changes like whitelist or min failed attempt to ban, etc.
 sudo nano /opt/ipban/ipban.config
