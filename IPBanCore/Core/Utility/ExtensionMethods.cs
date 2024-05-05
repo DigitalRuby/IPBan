@@ -731,7 +731,7 @@ namespace DigitalRuby.IPBanCore
         /// <returns>String or null if not found</returns>
         public static string GetString(this System.Text.Json.JsonElement elem, string name, string defaultValue = null)
         {
-            if (elem.TryGetProperty(name, out var elem2))
+            if (elem.ValueKind == JsonValueKind.Object && elem.TryGetProperty(name, out var elem2))
             {
                 return elem2.ToString();
             }
@@ -747,8 +747,12 @@ namespace DigitalRuby.IPBanCore
         /// <returns></returns>
         public static int GetInt32(this System.Text.Json.JsonElement elem, string name, int defaultValue = 0)
         {
-            if (!elem.TryGetProperty(name, out var elem2) ||
-                !int.TryParse(elem2.ToString(), NumberStyles.None, CultureInfo.InvariantCulture, out var value))
+            int value = defaultValue;
+            if (elem.ValueKind != JsonValueKind.Object || !elem.TryGetProperty(name, out var elem2))
+            {
+                return value;
+            }
+            else if (!int.TryParse(elem2.ToString(), NumberStyles.None, CultureInfo.InvariantCulture, out value))
             {
                 value = defaultValue;
             }
