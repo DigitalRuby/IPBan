@@ -2,7 +2,7 @@
 # format:
 # xml on one line [newline]
 # ip, or x if failure to parse [newline]
-# user, can be a user name, [nouser] for no found user name or x [newline]
+# user, can be a user name, or x for no found user [newline]
 # source, must have a value or can be x [newline]
 # FailedLogin, SuccessfulLogin or None [newline]
 # --- [newline]
@@ -13,6 +13,12 @@
 #RDP
 #FailedLogin
 #
+<Event xmlns="http://schemas.microsoft.com/win/2004/08/events/event"><System><Provider Name="Microsoft-Windows-Security-Auditing" Guid="{54849625-5478-4994-a5ba-3e3b0328c30d}" /><EventID>4624</EventID><Version>1</Version><Level>0</Level><Task>12544</Task><Opcode>0</Opcode><Keywords>0x8020000000000000</Keywords><TimeCreated SystemTime="2024-05-07T02:26:42.4265359Z" /><EventRecordID>40836627</EventRecordID><Correlation /><Execution ProcessID="676" ThreadID="848" /><Channel>Security</Channel><Computer>vm1.ca</Computer><Security /></System><EventData><Data Name="SubjectUserSid">S-1-5-18</Data><Data Name="SubjectUserName">suser1</Data><Data Name="SubjectDomainName">WORKGROUP</Data><Data Name="SubjectLogonId">0x3e7</Data><Data Name="TargetUserSid">S-1-5-21-1177279303-949486707-1478838325-1067</Data><Data Name="TargetUserName">user123456</Data><Data Name="TargetDomainName">DOMAIN1</Data><Data Name="TargetLogonId">0x1eba563</Data><Data Name="LogonType">8</Data><Data Name="LogonProcessName">Advapi</Data><Data Name="AuthenticationPackageName">Negotiate</Data><Data Name="WorkstationName">CPU1</Data><Data Name="LogonGuid">{00000000-0000-0000-0000-000000000000}</Data><Data Name="TransmittedServices">-</Data><Data Name="LmPackageName">-</Data><Data Name="KeyLength">0</Data><Data Name="ProcessId">0x4c0</Data><Data Name="ProcessName">C:\Windows\System32\svchost.exe</Data><Data Name="IpAddress">-</Data><Data Name="IpPort">-</Data><Data Name="ImpersonationLevel">%%1833</Data></EventData></Event>
+x
+x
+x
+None
+
 <Event xmlns="http://schemas.microsoft.com/win/2004/08/events/event"><System><Provider Name="MSSQLSERVER" /><EventID Qualifiers="49152">18456</EventID><Version>0</Version><Level>0</Level><Task>4</Task><Opcode>0</Opcode><Keywords>0x90000000000000</Keywords><TimeCreated SystemTime="2024-01-04T16:06:58.9357365Z" /><EventRecordID>10899</EventRecordID><Correlation /><Execution ProcessID="0" ThreadID="0" /><Channel>Application</Channel><Computer>REDACTED</Computer><Security /></System><EventData><Data>vice</Data><Data> Reason: Could not find a login matching the name provided.</Data><Data> [CLIENT: 92.94.91.95]</Data><Binary>184800000E0000000D00000076006D00630069007300730071006C0064006200300031000000070000006D00610073007400650072000000</Binary></EventData></Event>
 92.94.91.95
 vice

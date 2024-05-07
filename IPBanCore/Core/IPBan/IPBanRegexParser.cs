@@ -53,6 +53,7 @@ namespace DigitalRuby.IPBanCore
 [
             ',', ';', '|', '_', '-', '/', '\'', '\"', '(', ')', '[', ']', '{', '}', ' ', '\t', '\r', '\n'
         ];
+        private static readonly char[] ipTrimChars = [' ','\t','\r','\n','.', ';', '|', '-', '%', '@'];
 
         /// <summary>
         /// Allow truncating user names at any of these chars or empty array for no truncation
@@ -295,38 +296,39 @@ namespace DigitalRuby.IPBanCore
                 }
                 if (ipAddressGroup != null && ipAddressGroup.Success && !string.IsNullOrWhiteSpace(ipAddressGroup.Value))
                 {
-                    string tempIPAddress = ipAddressGroup.Value.Trim().Trim('.', ';', '|', '-', '%', '@');
-
-                    // in case of IP:PORT format, try a second time, stripping off the :PORT, saves having to do this in all
-                    //  the different ip regex.
-                    int lastColon = tempIPAddress.LastIndexOf(':');
-                    bool isValidIPAddress = IPAddress.TryParse(tempIPAddress, out IPAddress tmp);
-                    if (isValidIPAddress || (lastColon >= 0 && IPAddress.TryParse(tempIPAddress[..lastColon], out tmp)))
+                    string tempIPAddress = ipAddressGroup.Value.Trim(ipTrimChars);
+                    if (!string.IsNullOrWhiteSpace(tempIPAddress))
                     {
-                        ipAddress = tmp.ToString();
-                    }
-
-                    // if we are parsing anything as ip address (including dns names)
-                    if (string.IsNullOrWhiteSpace(ipAddress) &&
-                        dns != null &&
-                        ipAddressGroup.Name == "ipaddress" &&
-                        tempIPAddress != Environment.MachineName &&
-                        tempIPAddress != "-")
-                    {
-                        // Check Host by name
-                        Logger.Info("Parsing as IP failed for {0}, info: {1}. Checking dns...", tempIPAddress, info);
-                        try
+                        // in case of IP:PORT format, try a second time, stripping off the :PORT, saves having to do this in all
+                        //  the different ip regex.
+                        int lastColon = tempIPAddress.LastIndexOf(':');
+                        bool isValidIPAddress = IPAddress.TryParse(tempIPAddress, out IPAddress tmp);
+                        if (isValidIPAddress || (lastColon >= 0 && IPAddress.TryParse(tempIPAddress[..lastColon], out tmp)))
                         {
-                            IPAddress[] ipAddresses = dns.GetHostAddressesAsync(tempIPAddress).Sync();
-                            if (ipAddresses != null && ipAddresses.Length > 0)
-                            {
-                                ipAddress = ipAddresses.FirstOrDefault().ToString();
-                                Logger.Info("Dns result '{0}' = '{1}'", tempIPAddress, ipAddress);
-                            }
+                            ipAddress = tmp.ToString();
                         }
-                        catch
+
+                        // if we are parsing anything as ip address (including dns names)
+                        if (string.IsNullOrWhiteSpace(ipAddress) &&
+                            dns != null &&
+                            ipAddressGroup.Name == "ipaddress" &&
+                            tempIPAddress != Environment.MachineName)
                         {
-                            Logger.Info("Parsing as dns failed '{0}'", tempIPAddress);
+                            // Check Host by name
+                            Logger.Info("Parsing as IP failed for {0}, info: {1}. Checking dns...", tempIPAddress, info);
+                            try
+                            {
+                                IPAddress[] ipAddresses = dns.GetHostAddressesAsync(tempIPAddress).Sync();
+                                if (ipAddresses != null && ipAddresses.Length > 0)
+                                {
+                                    ipAddress = ipAddresses.FirstOrDefault().ToString();
+                                    Logger.Info("Dns result '{0}' = '{1}'", tempIPAddress, ipAddress);
+                                }
+                            }
+                            catch
+                            {
+                                Logger.Info("Parsing as dns failed '{0}'", tempIPAddress);
+                            }
                         }
                     }
                 }
