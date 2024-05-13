@@ -2134,6 +2134,15 @@ namespace DigitalRuby.IPBanCore {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Reset License Keys.
+        /// </summary>
+        public static string ResetLicenseKeys {
+            get {
+                return ResourceManager.GetString("ResetLicenseKeys", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Resolve IP Address.
         /// </summary>
         public static string ResolveIPAddress {

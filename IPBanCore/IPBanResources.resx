@@ -1113,4 +1113,7 @@ For block rules, port list is ignored ports, so if you wanted to block port 3389
   <data name="ConcurrentRemoteIPBanTooltip" xml:space="preserve">
     <value>Count,seconds for banning connected remote ips that meet a concurrent count for a specified number of seconds. Set to empty to disable this feature.</value>
   </data>
+  <data name="ResetLicenseKeys" xml:space="preserve">
+    <value>Reset License Keys</value>
+  </data>
 </root>
