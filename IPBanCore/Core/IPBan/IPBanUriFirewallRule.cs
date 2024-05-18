@@ -162,40 +162,30 @@ namespace DigitalRuby.IPBanCore
             if ((now - lastRun) >= Interval)
             {
                 lastRun = now;
-                try
+                if (Uri.IsFile)
                 {
-                    if (Uri.IsFile)
+                    string filePath = Uri.LocalPath;
+                    if (File.Exists(filePath))
                     {
-                        string filePath = Uri.LocalPath;
-                        if (File.Exists(filePath))
+                        string text;
+                        if (filePath.EndsWith(".gz", StringComparison.OrdinalIgnoreCase))
                         {
-                            string text;
-                            if (filePath.EndsWith(".gz", StringComparison.OrdinalIgnoreCase))
-                            {
-                                using var fs = File.OpenRead(filePath);
-                                var bytes = DecompressBytes(fs);
-                                text = Encoding.UTF8.GetString(bytes);
-                            }
-                            else
-                            {
-                                text = await File.ReadAllTextAsync(filePath, cancelToken);
-                            }
-                            await ProcessResult(text, cancelToken);
+                            using var fs = File.OpenRead(filePath);
+                            var bytes = DecompressBytes(fs);
+                            text = Encoding.UTF8.GetString(bytes);
                         }
-                    }
-                    else
-                    {
-                        byte[] bytes = await httpRequestMaker.MakeRequestAsync(Uri, cancelToken: cancelToken);
-                        string text = Encoding.UTF8.GetString(bytes);
+                        else
+                        {
+                            text = await File.ReadAllTextAsync(filePath, cancelToken);
+                        }
                         await ProcessResult(text, cancelToken);
                     }
                 }
-                catch (Exception ex)
+                else
                 {
-                    if (ex is not OperationCanceledException)
-                    {
-                        Logger.Error(ex);
-                    }
+                    byte[] bytes = await httpRequestMaker.MakeRequestAsync(Uri, cancelToken: cancelToken);
+                    string text = Encoding.UTF8.GetString(bytes);
+                    await ProcessResult(text, cancelToken);
                 }
             }
         }

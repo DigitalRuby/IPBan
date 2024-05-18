@@ -961,6 +961,10 @@ namespace DigitalRuby.IPBanCore
                 {
                     await updater.Update(cancelToken);
                 }
+                catch (OperationCanceledException)
+                {
+                    // ignore
+                }
                 catch (Exception ex)
                 {
                     Logger.Error("Error in updater {0}: {1}", updater.GetType().FullName, ex);
@@ -1292,7 +1296,7 @@ namespace DigitalRuby.IPBanCore
             List<IPBanUriFirewallRule> toRemove = new(updaters.Where(u => u is IPBanUriFirewallRule)
                 .Select(u => u as IPBanUriFirewallRule));
 
-            // get lis of all rules defined by current config
+            // get list of all rules defined by current config
             var rules = IPBanConfig.ParseFirewallUriRules(Config.FirewallUriRules, Firewall, this, RequestMaker);
 
             // for each rule, determine if it still exists or needs adding
