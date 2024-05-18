@@ -239,6 +239,8 @@ namespace DigitalRuby.IPBanCore
 
             var sortedDistinct = ranges.OrderBy(r => r).Combine().ToArray();
 
+            Logger.Warn("Updating firewall uri rule {0} with {1} ips", RulePrefix, sortedDistinct.Length);
+
             return firewall.BlockIPAddresses(RulePrefix, sortedDistinct, null, cancelToken);
         }
 
