@@ -38,7 +38,7 @@ using NUnit.Framework.Legacy;
 namespace DigitalRuby.IPBanTests
 {
     [TestFixture]
-    public class IPBanUriFirewallRuleTests : IIsWhitelisted, IHttpRequestMaker
+    public class IPBanUriFirewallRuleTests : IFirewallTaskRunner, IIsWhitelisted, IHttpRequestMaker
     {
         private static readonly IPAddressRange range1 = IPAddressRange.Parse("99.99.99.99");
         private static readonly IPAddressRange range2 = IPAddressRange.Parse("100.100.100.100/31");
@@ -61,7 +61,7 @@ namespace DigitalRuby.IPBanTests
             try
             {
                 Uri uriObj = (tempFile == null ? new Uri(uri) : new Uri("file://" + tempFile));
-                using IPBanUriFirewallRule rule = new(memoryFirewall, this, this, "TestPrefix", TimeSpan.FromMinutes(1.0), uriObj);
+                using IPBanUriFirewallRule rule = new(memoryFirewall, this, this, this, "TestPrefix", TimeSpan.FromMinutes(1.0), uriObj);
                 if (tempFile != null)
                 {
                     File.WriteAllText(tempFile, GetTestFile());
@@ -101,7 +101,7 @@ namespace DigitalRuby.IPBanTests
         [Test]
         public async Task TestNoOp()
         {
-            using IPBanUriFirewallRule rule = new(memoryFirewall, this, this, "TestPrefix", TimeSpan.FromMinutes(1.0), new Uri("file://c:/temp/qweoqpwejqowtempfirewall.txt"));
+            using IPBanUriFirewallRule rule = new(memoryFirewall, this, this, this, "TestPrefix", TimeSpan.FromMinutes(1.0), new Uri("file://c:/temp/qweoqpwejqowtempfirewall.txt"));
             await rule.Update();
             ClassicAssert.AreEqual(0, memoryFirewall.EnumerateIPAddresses().ToArray().Length);
         }
@@ -126,6 +126,11 @@ namespace DigitalRuby.IPBanTests
         public bool IsWhitelisted(IPAddressRange range)
         {
             return memoryFirewall.IsIPAddressAllowed(range.ToString());
+        }
+
+        public Task RunFirewallTask<T>(Func<T, CancellationToken, Task> action, T state, string name)
+        {
+            return action(state, default);
         }
     }
 }

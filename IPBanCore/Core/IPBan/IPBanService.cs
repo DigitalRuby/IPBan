@@ -370,27 +370,22 @@ namespace DigitalRuby.IPBanCore
             }
         }
 
-        /// <summary>
-        /// Run a task on the firewall queue
-        /// </summary>
-        /// <typeparam name="T">Type of state</typeparam>
-        /// <param name="action">Action to run</param>
-        /// <param name="state">State</param>
-        /// <param name="name">Task name</param>
-        public void RunFirewallTask<T>(Func<T, CancellationToken, Task> action, T state, string name)
+        /// <inheritdoc />
+        public Task RunFirewallTask<T>(Func<T, CancellationToken, Task> action, T state, string name)
         {
             if (!IsRunning || CancelToken.IsCancellationRequested)
             {
-                return;
+                return Task.CompletedTask;
             }
             else if (MultiThreaded)
             {
                 var task = new FirewallTask(action, state, typeof(T), name, CancelToken);
                 firewallTasks.Enqueue(task);
+                return Task.CompletedTask;
             }
             else
             {
-                action.Invoke(state, CancelToken).Sync();
+                return action.Invoke(state, CancelToken);
             }
         }
 

@@ -780,11 +780,15 @@ namespace DigitalRuby.IPBanCore
         /// </summary>
         /// <param name="text">Text</param>
         /// <param name="firewall">Firewall</param>
+        /// <param name="firewallTaskRunner">Firewall task runner</param>
         /// <param name="whitelistChecker">Whitelist checker</param>
         /// <param name="requestMaker">Request maker</param>
         /// <returns>Parsed rules</returns>
         public static IReadOnlyCollection<IPBanUriFirewallRule> ParseFirewallUriRules(string text,
-            IIPBanFirewall firewall, IIsWhitelisted whitelistChecker, IHttpRequestMaker requestMaker)
+            IIPBanFirewall firewall,
+            IFirewallTaskRunner firewallTaskRunner,
+            IIsWhitelisted whitelistChecker,
+            IHttpRequestMaker requestMaker)
         {
             using StringReader reader = new(text);
             List<IPBanUriFirewallRule> rules = [];
@@ -797,7 +801,7 @@ namespace DigitalRuby.IPBanCore
                 {
                     if (TimeSpan.TryParse(pieces[1], out TimeSpan interval))
                     {
-                        if (Uri.TryCreate(pieces[2].Replace("$ts$", IPBanService.UtcNow.Ticks.ToStringInvariant()), UriKind.Absolute, out Uri uri))
+                        if (Uri.TryCreate(pieces[2], UriKind.Absolute, out Uri uri))
                         {
                             string rulePrefix = pieces[0];
                             int maxCount = 10000;
@@ -805,7 +809,7 @@ namespace DigitalRuby.IPBanCore
                             {
                                 maxCount = _maxCount;
                             }
-                            IPBanUriFirewallRule newRule = new(firewall, whitelistChecker, requestMaker, rulePrefix, interval, uri, maxCount);
+                            IPBanUriFirewallRule newRule = new(firewall, firewallTaskRunner, whitelistChecker, requestMaker, rulePrefix, interval, uri, maxCount);
                             rules.Add(newRule);
                         }
                         else

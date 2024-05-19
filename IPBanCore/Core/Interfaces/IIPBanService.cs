@@ -64,7 +64,7 @@ namespace DigitalRuby.IPBanCore
     /// <summary>
     /// IPBan service interface
     /// </summary>
-    public interface IIPBanService : IIPAddressEventHandler, IConfigReaderWriter, IDisposable
+    public interface IIPBanService : IFirewallTaskRunner, IIPAddressEventHandler, IConfigReaderWriter, IDisposable
     {
         /// <summary>
         /// Manually run regular processing - useful if testing
@@ -108,15 +108,6 @@ namespace DigitalRuby.IPBanCore
         /// <param name="options">Options</param>
         /// <param name="logs">Logs</param>
         void AddLogScanner(LogScannerOptions options, ICollection<ILogScanner> logs);
-
-        /// <summary>
-        /// Run an action on the firewall queue, this will execute later
-        /// </summary>
-        /// <typeparam name="T">Type of state</typeparam>
-        /// <param name="action">Action to run on the firewall queue</param>
-        /// <param name="state">State</param>
-        /// <param name="name">Task name</param>
-        void RunFirewallTask<T>(Func<T, CancellationToken, Task> action, T state, string name);
 
         /// <summary>
         /// Whether the service is running
@@ -286,5 +277,21 @@ namespace DigitalRuby.IPBanCore
         /// <param name="events">Packet events</param>
         /// <returns>Task</returns>
         Task ProcessPacketEvents(IEnumerable<PacketEvent> events) => Task.CompletedTask;
+    }
+
+    /// <summary>
+    /// Firewall task runner
+    /// </summary>
+    public interface IFirewallTaskRunner
+    {
+        /// <summary>
+        /// Run a task on the firewall queue
+        /// </summary>
+        /// <typeparam name="T">Type of state</typeparam>
+        /// <param name="action">Action to run</param>
+        /// <param name="state">State</param>
+        /// <param name="name">Task name</param>
+        /// <returns>Task</returns>
+        public Task RunFirewallTask<T>(Func<T, CancellationToken, Task> action, T state, string name);
     }
 }

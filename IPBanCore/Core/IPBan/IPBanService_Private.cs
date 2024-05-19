@@ -1297,7 +1297,7 @@ namespace DigitalRuby.IPBanCore
                 .Select(u => u as IPBanUriFirewallRule));
 
             // get list of all rules defined by current config
-            var rules = IPBanConfig.ParseFirewallUriRules(Config.FirewallUriRules, Firewall, this, RequestMaker);
+            var rules = IPBanConfig.ParseFirewallUriRules(Config.FirewallUriRules, Firewall, this, this, RequestMaker);
 
             // for each rule, determine if it still exists or needs adding
             foreach (var rule in rules)
