@@ -567,15 +567,15 @@ namespace DigitalRuby.IPBanCore
         /// Check if a user name fails the user name whitelist regex. If the regex is empty, method returns false.
         /// </summary>
         /// <param name="userName">User name</param>
-        /// <returns>True if failed the regex, false otherwise</returns>
-        public bool UserNameFailsUserNameWhitelistRegex(string userName)
+        /// <returns>True if passed the regex, false otherwise</returns>
+        public bool UserNameWhitelistedRegex(string userName)
         {
             if (userNameWhitelistRegex is null)
             {
                 return false;
             }
             userName = userName.Normalize().Trim();
-            return !userNameWhitelistRegex.IsMatch(userName);
+            return userNameWhitelistRegex.IsMatch(userName);
         }
 
         /// <summary>

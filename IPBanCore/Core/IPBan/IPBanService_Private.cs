@@ -253,9 +253,9 @@ namespace DigitalRuby.IPBanCore
                         else
                         {
                             int maxFailedLoginAttempts;
-                            bool hasUserNameWhitelist = false;
-                            bool userNameWhitelisted = Config.IsWhitelisted(userName) ||
-                                Config.IsUserNameWithinMaximumEditDistanceOfUserNameWhitelist(userName, out hasUserNameWhitelist);
+                            bool userNameWhitelisted = Config.IsUserNameWithinMaximumEditDistanceOfUserNameWhitelist(userName, out bool hasUserNameWhitelistEditDistance) ||
+                                Config.IsWhitelisted(userName) ||
+                                Config.UserNameWhitelistedRegex(userName);
                             if (userNameWhitelisted)
                             {
                                 maxFailedLoginAttempts = Config.FailedLoginAttemptsBeforeBanUserNameWhitelist;
@@ -271,10 +271,9 @@ namespace DigitalRuby.IPBanCore
                             // check for the target user name for additional blacklisting checks
                             bool ipBlacklisted = Config.BlacklistFilter.IsFiltered(ipAddress);
                             bool userBlacklisted = (!ipBlacklisted && Config.BlacklistFilter.IsFiltered(userName));
-                            bool userFailsWhitelistRegex = (!userBlacklisted && Config.UserNameFailsUserNameWhitelistRegex(userName));
-                            bool editDistanceBlacklisted = (!ipBlacklisted && !userBlacklisted && !userFailsWhitelistRegex &&
-                                (hasUserNameWhitelist && !userNameWhitelisted));
-                            bool configBlacklisted = ipBlacklisted || userBlacklisted || userFailsWhitelistRegex || editDistanceBlacklisted;
+                            bool editDistanceBlacklisted = (!ipBlacklisted && !userBlacklisted && hasUserNameWhitelistEditDistance && !userNameWhitelisted);
+                            bool userNameMismatchBlacklisted = (!userNameWhitelisted && (hasUserNameWhitelistEditDistance || !string.IsNullOrWhiteSpace(Config.UserNameWhitelistRegex)));
+                            bool configBlacklisted = ipBlacklisted || userBlacklisted || editDistanceBlacklisted || userNameMismatchBlacklisted;
 
                             // if the event came in with a count of 0 that means it is an automatic ban
                             int incrementCount = (failedLogin.Count < 1 ? maxFailedLoginAttempts : failedLogin.Count);
@@ -285,8 +284,8 @@ namespace DigitalRuby.IPBanCore
                             // if the ip address is black listed or the ip address has reached the maximum failed login attempts before ban, ban the ip address
                             if (configBlacklisted || newCount >= maxFailedLoginAttempts)
                             {
-                                Logger.Info("IP blacklisted: {0}, user name blacklisted: {1}, fails user name white list regex: {2}, user name edit distance blacklisted: {3}",
-                                    ipBlacklisted, userBlacklisted, userFailsWhitelistRegex, editDistanceBlacklisted);
+                                Logger.Info("IP blacklisted: {0}, user name blacklisted: {1}, user name edit distance blacklisted: {2}, user name whitelisted: {3}",
+                                    ipBlacklisted, userBlacklisted, editDistanceBlacklisted, userNameWhitelisted);
 
                                 if (ipDB.TryGetIPAddressState(ipAddress, out IPBanDB.IPAddressState? state, transaction) &&
                                     (state.Value == IPBanDB.IPAddressState.Active || state.Value == IPBanDB.IPAddressState.AddPending))
