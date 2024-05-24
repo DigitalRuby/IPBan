@@ -186,10 +186,6 @@ namespace DigitalRuby.IPBanCore
                 else
                 {
                     string newUri = Uri.ToString().Replace("$ts$", IPBanService.UtcNow.Ticks.ToStringInvariant());
-                    if (!newUri.Contains('?') && !newUri.EndsWith('/'))
-                    {
-                        newUri += "/";
-                    }
                     byte[] bytes = await httpRequestMaker.MakeRequestAsync(new Uri(newUri), cancelToken: cancelToken);
                     string text = Encoding.UTF8.GetString(bytes);
                     ProcessResult(text, cancelToken);
