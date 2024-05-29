@@ -67,9 +67,9 @@ namespace DigitalRuby.IPBanCore
                 MaxFileSizeBytes = 0,
                 PathAndMask = (fileName + ".temp").Trim(),
                 PingIntervalMilliseconds = 0,
-                RegexFailure = regexFailure,
+                RegexFailure = regexFailure.Trim('.'),
                 RegexFailureTimestampFormat = regexFailureTimestampFormat.Trim('.'),
-                RegexSuccess = regexSuccess,
+                RegexSuccess = regexSuccess.Trim('.'),
                 RegexSuccessTimestampFormat = regexSuccessTimestampFormat.Trim('.'),
                 Source = "test",
                 SuccessfulLogLevel = LogLevel.Warning
