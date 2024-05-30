@@ -567,7 +567,7 @@ namespace DigitalRuby.IPBanCore
                 if (instance is not null)
                 {
                     instance.Log(nLogLevel, text, args);
-                    if (!inLog)
+                    if (!inLog && instance.IsEnabled(nLogLevel))
                     {
                         inLog = true;
                         try
