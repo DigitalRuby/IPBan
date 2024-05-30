@@ -560,11 +560,17 @@ namespace DigitalRuby.IPBanCore
 
                 //timeSource.CurrentTime = ts;
                 nlogInstance?.Log(GetNLogLevel(level), text, args);
+                OnLog?.Invoke(level, ts, text, args);
             }
             catch
             {
             }
         }
+
+        /// <summary>
+        /// OnLog event -- do not log in these events or you will have a stackoverflow error
+        /// </summary>
+        public static event Action<IPBanCore.LogLevel, DateTime, string, object[]> OnLog;
 
         /// <summary>
         /// Internal access to the logger

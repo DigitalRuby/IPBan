@@ -744,7 +744,7 @@ namespace DigitalRuby.IPBanCore
         /// <param name="elem">Element</param>
         /// <param name="name">Property name</param>
         /// <param name="defaultValue">Default value if not found</param>
-        /// <returns></returns>
+        /// <returns>Int32</returns>
         public static int GetInt32(this System.Text.Json.JsonElement elem, string name, int defaultValue = 0)
         {
             int value = defaultValue;
@@ -753,6 +753,27 @@ namespace DigitalRuby.IPBanCore
                 return value;
             }
             else if (!int.TryParse(elem2.ToString(), NumberStyles.None, CultureInfo.InvariantCulture, out value))
+            {
+                value = defaultValue;
+            }
+            return value;
+        }
+
+        /// <summary>
+        /// Attempt to get int64
+        /// </summary>
+        /// <param name="elem">Element</param>
+        /// <param name="name">Property name</param>
+        /// <param name="defaultValue">Default value if not found</param>
+        /// <returns>Int64</returns>
+        public static long GetInt64(this System.Text.Json.JsonElement elem, string name, long defaultValue = 0)
+        {
+            long value = defaultValue;
+            if (elem.ValueKind != JsonValueKind.Object || !elem.TryGetProperty(name, out var elem2))
+            {
+                return value;
+            }
+            else if (!long.TryParse(elem2.ToString(), NumberStyles.None, CultureInfo.InvariantCulture, out value))
             {
                 value = defaultValue;
             }
