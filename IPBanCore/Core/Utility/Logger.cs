@@ -537,6 +537,9 @@ namespace DigitalRuby.IPBanCore
             Log(level, IPBanService.UtcNow, text, args);
         }
 
+        [ThreadStatic]
+        private static bool inLog;
+
         /// <summary>
         /// Write to the log
         /// </summary>
@@ -559,8 +562,24 @@ namespace DigitalRuby.IPBanCore
 #endif
 
                 //timeSource.CurrentTime = ts;
-                nlogInstance?.Log(GetNLogLevel(level), text, args);
-                OnLog?.Invoke(level, ts, text, args);
+                var nLogLevel = GetNLogLevel(level);
+                var instance = nlogInstance;
+                if (instance is not null)
+                {
+                    instance.Log(nLogLevel, text, args);
+                    if (!inLog)
+                    {
+                        inLog = true;
+                        try
+                        {
+                            OnLog?.Invoke(level, ts, text, args);
+                        }
+                        finally
+                        {
+                            inLog = false;
+                        }
+                    }
+                }
             }
             catch
             {
@@ -568,7 +587,7 @@ namespace DigitalRuby.IPBanCore
         }
 
         /// <summary>
-        /// OnLog event -- do not log in these events or you will have a stackoverflow error
+        /// OnLog event
         /// </summary>
         public static event Action<IPBanCore.LogLevel, DateTime, string, object[]> OnLog;
 
