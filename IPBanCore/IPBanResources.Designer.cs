@@ -655,6 +655,24 @@ namespace DigitalRuby.IPBanCore {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Critical.
+        /// </summary>
+        public static string Critical {
+            get {
+                return ResourceManager.GetString("Critical", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cut Off.
+        /// </summary>
+        public static string Cutoff {
+            get {
+                return ResourceManager.GetString("Cutoff", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Cycle Time.
         /// </summary>
         public static string CycleTime {
@@ -1153,6 +1171,15 @@ namespace DigitalRuby.IPBanCore {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Information.
+        /// </summary>
+        public static string Information {
+            get {
+                return ResourceManager.GetString("Information", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to IP Address.
         /// </summary>
         public static string IPAddress {
@@ -1563,6 +1590,15 @@ namespace DigitalRuby.IPBanCore {
         public static string MaxActiveBlacklistedIPAddressesTooltip {
             get {
                 return ResourceManager.GetString("MaxActiveBlacklistedIPAddressesTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Max Count.
+        /// </summary>
+        public static string MaxCount {
+            get {
+                return ResourceManager.GetString("MaxCount", resourceCulture);
             }
         }
         
@@ -2751,6 +2787,15 @@ namespace DigitalRuby.IPBanCore {
         public static string Version {
             get {
                 return ResourceManager.GetString("Version", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Warning.
+        /// </summary>
+        public static string Warning {
+            get {
+                return ResourceManager.GetString("Warning", resourceCulture);
             }
         }
         

@@ -1119,4 +1119,19 @@ For block rules, port list is ignored ports, so if you wanted to block port 3389
   <data name="Logs" xml:space="preserve">
     <value>Logs</value>
   </data>
+  <data name="MaxCount" xml:space="preserve">
+    <value>Max Count</value>
+  </data>
+  <data name="Critical" xml:space="preserve">
+    <value>Critical</value>
+  </data>
+  <data name="Information" xml:space="preserve">
+    <value>Information</value>
+  </data>
+  <data name="Warning" xml:space="preserve">
+    <value>Warning</value>
+  </data>
+  <data name="Cutoff" xml:space="preserve">
+    <value>Cut Off</value>
+  </data>
 </root>
