@@ -755,12 +755,27 @@ namespace DigitalRuby.IPBanCore
                 {
                     if (overrideNode.NodeType == XmlNodeType.Element)
                     {
+                        string mergeAttribute = overrideNode.Attributes["merge"]?.Value;
+                        bool doMerge = !string.IsNullOrWhiteSpace(mergeAttribute) && mergeAttribute.Equals("true", StringComparison.OrdinalIgnoreCase);
                         string xpath = $"/configuration/appSettings/add[@key='{overrideNode.Attributes["key"].Value}']";
                         XmlNode existing = appSettingsBase.SelectSingleNode(xpath);
                         if (existing is null)
                         {
                             // create a new node
                             appSettingsBase.AppendChild(docBase.ImportNode(overrideNode, true));
+                        }
+                        else if (doMerge)
+                        {
+                            // merge override with existing
+                            string overrideValue = overrideNode.Attributes["value"]?.Value ?? string.Empty;
+                            string origValue = existing.Attributes["value"]?.Value ?? string.Empty;
+                            string mergeDelimiter = overrideNode.Attributes["mergeDelimiter"]?.Value;
+                            if (string.IsNullOrWhiteSpace(mergeDelimiter))
+                            {
+                                mergeDelimiter = Environment.NewLine;
+                            }
+                            string mergedValue = (origValue + mergeDelimiter + overrideValue).Trim();
+                            existing.Attributes["value"].Value = mergedValue;
                         }
                         else
                         {
