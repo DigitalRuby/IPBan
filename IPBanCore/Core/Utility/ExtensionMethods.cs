@@ -1577,13 +1577,10 @@ namespace DigitalRuby.IPBanCore
             {
                 middle = lower + (upper - lower) / 2;
                 compare = string.Compare(prefix, sortedList.Keys[middle], true);
-                if (sortedList.Keys[middle].StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+                if (compare < 0 ||
+                    sortedList.Keys[middle].StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
                 {
                     // Move upper down to find the first match
-                    upper = middle - 1;
-                }
-                else if (compare < 0)
-                {
                     upper = middle - 1;
                 }
                 else
