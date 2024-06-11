@@ -1572,13 +1572,15 @@ namespace DigitalRuby.IPBanCore
             int compare;
             prefix = NormalizeForQuery(prefix);
 
+            // Perform binary search to find the first occurrence of the prefix
             while (lower <= upper)
             {
                 middle = lower + (upper - lower) / 2;
                 compare = string.Compare(prefix, sortedList.Keys[middle], true);
-                if (compare == 0)
+                if (sortedList.Keys[middle].StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
                 {
-                    break;
+                    // Move upper down to find the first match
+                    upper = middle - 1;
                 }
                 else if (compare < 0)
                 {
