@@ -1873,7 +1873,8 @@ namespace DigitalRuby.IPBanCore {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Paths and masks to search, one per line. Glob syntax can be used for recursion, i.e. /logs/**/*.log.
+        ///   Looks up a localized string similar to Paths and masks to search, one per line. Glob syntax can be used for recursion, i.e. /logs/**/*.log
+        ///Can prefix with DB: to make it a db connection string instead of files, using format DB:TYPE:CONN_STRING. Type can be SqlServer, PostgreSql, MySql, or Sqlite. The regex in this case are sql queries, and must retrieve these columns: timestamp, ip_address, source, user_name. The query must also include a WHERE clause with ONE of the following: timestamp &gt; @Timestamp; timestamp &gt; @TimestampLocal; timestamp &gt; @T [rest of string was truncated]&quot;;.
         /// </summary>
         public static string PathAndMaskTooltip {
             get {
