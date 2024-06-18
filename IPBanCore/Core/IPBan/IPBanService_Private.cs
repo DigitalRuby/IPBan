@@ -505,7 +505,7 @@ namespace DigitalRuby.IPBanCore
                 {
                     Logger.Error("Invalid config option for process to run: " + programToRun +
                         " -- should be two strings, | delimited with program and arguments.");
-                    return;
+                    continue;
                 }
 
                 RunTask(() =>
