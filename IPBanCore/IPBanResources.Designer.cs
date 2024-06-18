@@ -1955,7 +1955,7 @@ namespace DigitalRuby.IPBanCore {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Process to Run on Ban.
+        ///   Looks up a localized string similar to Run on Ban.
         /// </summary>
         public static string ProcessToRunOnBan {
             get {
@@ -1973,7 +1973,25 @@ namespace DigitalRuby.IPBanCore {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Process to Run on Unban.
+        ///   Looks up a localized string similar to Run on Successful Login.
+        /// </summary>
+        public static string ProcessToRunOnSuccessfulLogin {
+            get {
+                return ResourceManager.GetString("ProcessToRunOnSuccessfulLogin", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Run an external process when a successful login occurs. Separate the process and any arguments with a pipe (|). ###IPADDRESS### will be replaced with the actual IP which was banned. The pipe is required. Example: c:\system\files\on_ip_banned.exe|###IPADDRESS### -q.
+        /// </summary>
+        public static string ProcessToRunOnSuccessfulLoginTooltip {
+            get {
+                return ResourceManager.GetString("ProcessToRunOnSuccessfulLoginTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Run on Unban.
         /// </summary>
         public static string ProcessToRunOnUnban {
             get {

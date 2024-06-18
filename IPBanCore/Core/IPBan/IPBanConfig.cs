@@ -133,6 +133,7 @@ namespace DigitalRuby.IPBanCore
         private readonly Regex userNameWhitelistRegex;
         private readonly int failedLoginAttemptsBeforeBanUserNameWhitelist = 20;
         private readonly string processToRunOnBan = string.Empty;
+        private readonly string processToRunOnSuccessfulLogin = string.Empty;
         private readonly string processToRunOnUnban = string.Empty;
         private readonly bool useDefaultBannedIPAddressHandler;
         private readonly string getUrlUpdate = string.Empty;
@@ -217,6 +218,8 @@ namespace DigitalRuby.IPBanCore
 
             TryGetConfig<string>("ProcessToRunOnBan", ref processToRunOnBan);
             processToRunOnBan = processToRunOnBan?.Trim();
+            TryGetConfig<string>("ProcessToRunOnSuccessfulLogin", ref processToRunOnSuccessfulLogin);
+            processToRunOnSuccessfulLogin = processToRunOnSuccessfulLogin?.Trim();
             TryGetConfig<string>("ProcessToRunOnUnban", ref processToRunOnUnban);
             processToRunOnUnban = processToRunOnUnban?.Trim();
             TryGetConfig<bool>("UseDefaultBannedIPAddressHandler", ref useDefaultBannedIPAddressHandler);
@@ -1009,6 +1012,11 @@ namespace DigitalRuby.IPBanCore
         /// Process to run on ban. See ReplaceUrl in IPBanService.cs for place-holders.
         /// </summary>
         public string ProcessToRunOnBan { get { return processToRunOnBan; } }
+
+        /// <summary>
+        /// Process to run on successful login. See ReplaceUrl in IPBanService.cs for place-holders.
+        /// </summary>
+        public string ProcessToRunOnSuccessfulLogin { get { return processToRunOnSuccessfulLogin; } }
 
         /// <summary>
         /// Process to run on unban. See ReplaceUrl in IPBanService.cs for place-holders.

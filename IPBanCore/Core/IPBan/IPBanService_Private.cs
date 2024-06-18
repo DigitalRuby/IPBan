@@ -338,7 +338,7 @@ namespace DigitalRuby.IPBanCore
             }
         }
 
-        private Task ProcessPendingSuccessfulLogins(IEnumerable<IPAddressLogEvent> ipAddresses, CancellationToken cancelToken)
+        private Task ProcessPendingSuccessfulLogins(IReadOnlyCollection<IPAddressLogEvent> ipAddresses, CancellationToken cancelToken)
         {
             List<IPAddressLogEvent> finalList = [];
             foreach (IPAddressLogEvent info in ipAddresses)
@@ -358,6 +358,7 @@ namespace DigitalRuby.IPBanCore
                     }
                 }
             }
+            ExecuteExternalProcessForIPAddresses(Config.ProcessToRunOnSuccessfulLogin, ipAddresses);
             if (IPBanDelegate != null)
             {
                 return Task.Run(() =>
@@ -486,7 +487,7 @@ namespace DigitalRuby.IPBanCore
         }
 
         /// <summary>
-        /// Execute unban process in background
+        /// Execute a process in background against ip addresses
         /// </summary>
         /// <param name="programToRun">Program to run</param>
         /// <param name="ipAddresses">IP addresses, should be a non-shared collection</param>
@@ -502,8 +503,9 @@ namespace DigitalRuby.IPBanCore
                 string[] pieces = process.Trim().Split('|', StringSplitOptions.TrimEntries);
                 if (pieces.Length != 2)
                 {
-                    throw new ArgumentException("Invalid config option for process to run: " + programToRun +
+                    Logger.Error("Invalid config option for process to run: " + programToRun +
                         " -- should be two strings, | delimited with program and arguments.");
+                    return;
                 }
 
                 RunTask(() =>
