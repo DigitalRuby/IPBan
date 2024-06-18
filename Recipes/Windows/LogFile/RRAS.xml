@@ -1,0 +1,23 @@
+﻿<!-- RRAS successful logins on Windows. They also appear in the event viewer, but unlike failed RRAS logins, they don't have the remote ip.
+
+Examples:
+"CPU123","RAS",06/18/2024,14:45:48,4,"myusername",,"192.168.180.4","80.90.100.110",,"192.168.180.52","CPU123","192.168.180.4",9,,"192.168.180.4","CPU123",1718718348,,5,,1,2,,,0,"311 1 192.168.180.2 06/15/2024 17:41:37 169",,1800,,,1,,,,"168",3,,,,,"117",1,,79617,1,"80.90.100.110","192.168.180.4",,,,,,,"CPU123.20",311,,"0x01574741444F4D41494E",0,,"Microsoft Routing and Remote Access Service Policy",1,,,"MSRAS-0-CPU123","CPU123.20"
+
+-->
+<LogFile>
+	<Source>RRAS</Source>
+	<PathAndMask>C:/Windows/System32/LogFiles/*.log</PathAndMask>
+	<FailedLoginRegex></FailedLoginRegex>
+	<FailedLoginRegexTimestampFormat></FailedLoginRegexTimestampFormat>
+	<SuccessfulLoginRegex>
+		<![CDATA[
+			""[^""]+"",""RAS"",(?<timestamp>[^""]+),4,""(?<username>[^""]+)""[^,]*,[^,]*,""[^""]+"",""(?<ipaddress>[^""]+)"".*Microsoft\sRouting\sand\sRemote\sAccess\sService\sPolicy.*MSRAS.*\n
+		]]>
+	</SuccessfulLoginRegex>
+	<SuccessfulLoginRegexTimestampFormat></SuccessfulLoginRegexTimestampFormat>
+	<PlatformRegex>Windows</PlatformRegex>
+	<PingInterval>10000</PingInterval>
+	<MaxFileSize>0</MaxFileSize>
+	<FailedLoginThreshold>0</FailedLoginThreshold>
+</LogFile>
+
