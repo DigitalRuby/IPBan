@@ -204,7 +204,7 @@ namespace DigitalRuby.IPBanTests
             AssertEventViewerGroup(groups[i++], "0x80000000000000", minimumWindowsMajorVersion, 0, false, "Application", "SSH", "//EventID", "^0$", "//Data", "^sshd:\\spid\\s[0-9]+:\\sinvalid\\suser\\s(?<username>[^\\s]+)\\sfrom\\s(?<ipaddress>[^\\s]+)\\sport\\s[0-9]+");
             AssertEventViewerGroup(groups[i++], "0x4000000000000000", minimumWindowsMajorVersion, 0, false, "Microsoft-Windows-RemoteDesktopServices-RdpCoreTS/Operational", "RDP", "//Opcode", "^(?<log>14)$", "//Data[@Name='ClientIP' or @Name='IPString']", "(?<ipaddress>.+)");
             AssertEventViewerGroup(groups[i++], "0x80000000000000", minimumWindowsMajorVersion, 0, false, "Application", "VNC", "//EventID", "^258$", "//Data", @"(?<log>Authentication\sfailed)\sfrom\s(?<ipaddress>.+)");
-            AssertEventViewerGroup(groups[i++], "0x80000000000000", minimumWindowsMajorVersion, 0, false, "System", "RRAS", "//EventID", "^20271$", "(//Data)[2]", @"(?<username>.*)", "(//Data)[3]", @"(?<ipaddress>.+)", "(//Data)[4]", @"(?<log>denied|Die\sRemoteverbindung\swurde\sverweigert)");
+            AssertEventViewerGroup(groups[i++], "0x80000000000000", minimumWindowsMajorVersion, 0, false, "System", "RRAS", "//EventID", "^20271$", "(//Data)[2]", @"(?<username>.*)", "(//Data)[3]", @"(?<ipaddress>.+)", "(//Data)[4]", @"(?<log>denied|connection\swas\sprevented|Die\sRemoteverbindung\swurde\sverweigert)");
             AssertEventViewerGroup(groups[i++], "0x80000000000000", minimumWindowsMajorVersion, 0, false, "VisualSVNServer", "SVN", "//EventID", "^1004$", "(//Data)[1]", @"user\s(?<username>.*?):\s\(.*\)\s.*?(?<log>falsch|wrong|incorrect|bad)", "(//Data)[2]", @"(?<ipaddress_exact>.+)");
 
             groupCount = 6;

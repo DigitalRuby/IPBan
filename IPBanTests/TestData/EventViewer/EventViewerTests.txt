@@ -12,13 +12,19 @@
 #[nouser]
 #RDP
 #FailedLogin
-#
+#---
+<Event xmlns="http://schemas.microsoft.com/win/2004/08/events/event"><System><Provider Name="RemoteAccess" /><EventID Qualifiers="0">20271</EventID><Level>3</Level><Task>0</Task><Keywords>0x80000000000000</Keywords><TimeCreated SystemTime="2024-06-18T14:41:36.317952200Z" /><EventRecordID>423380</EventRecordID><Channel>System</Channel><Computer>BIGCPU1</Computer><Security /></System><EventData><Data>{AC09A421-BFB0-0007-50C4-2BACB0BFDA01}</Data><Data>UZER12</Data><Data>5.10.15.20</Data><Data>The connection was prevented because of a policy configured on your RAS/VPN server. Specifically, the authentication method used by the server to verify your username and password may not match the authentication method configured in your connection profile. Please contact the Administrator of the RAS server and notify them of this error.</Data><Data>0x70</Data><Binary>2C030000</Binary></EventData></Event>
+5.10.15.20
+UZER12
+RRAS
+FailedLogin
+---
 <Event xmlns="http://schemas.microsoft.com/win/2004/08/events/event"><System><Provider Name="Microsoft-Windows-Security-Auditing" Guid="{54849625-5478-4994-a5ba-3e3b0328c30d}" /><EventID>4624</EventID><Version>1</Version><Level>0</Level><Task>12544</Task><Opcode>0</Opcode><Keywords>0x8020000000000000</Keywords><TimeCreated SystemTime="2024-05-07T02:26:42.4265359Z" /><EventRecordID>40836627</EventRecordID><Correlation /><Execution ProcessID="676" ThreadID="848" /><Channel>Security</Channel><Computer>vm1.ca</Computer><Security /></System><EventData><Data Name="SubjectUserSid">S-1-5-18</Data><Data Name="SubjectUserName">suser1</Data><Data Name="SubjectDomainName">WORKGROUP</Data><Data Name="SubjectLogonId">0x3e7</Data><Data Name="TargetUserSid">S-1-5-21-1177279303-949486707-1478838325-1067</Data><Data Name="TargetUserName">user123456</Data><Data Name="TargetDomainName">DOMAIN1</Data><Data Name="TargetLogonId">0x1eba563</Data><Data Name="LogonType">8</Data><Data Name="LogonProcessName">Advapi</Data><Data Name="AuthenticationPackageName">Negotiate</Data><Data Name="WorkstationName">CPU1</Data><Data Name="LogonGuid">{00000000-0000-0000-0000-000000000000}</Data><Data Name="TransmittedServices">-</Data><Data Name="LmPackageName">-</Data><Data Name="KeyLength">0</Data><Data Name="ProcessId">0x4c0</Data><Data Name="ProcessName">C:\Windows\System32\svchost.exe</Data><Data Name="IpAddress">-</Data><Data Name="IpPort">-</Data><Data Name="ImpersonationLevel">%%1833</Data></EventData></Event>
 x
 x
 x
 None
-
+---
 <Event xmlns="http://schemas.microsoft.com/win/2004/08/events/event"><System><Provider Name="MSSQLSERVER" /><EventID Qualifiers="49152">18456</EventID><Version>0</Version><Level>0</Level><Task>4</Task><Opcode>0</Opcode><Keywords>0x90000000000000</Keywords><TimeCreated SystemTime="2024-01-04T16:06:58.9357365Z" /><EventRecordID>10899</EventRecordID><Correlation /><Execution ProcessID="0" ThreadID="0" /><Channel>Application</Channel><Computer>REDACTED</Computer><Security /></System><EventData><Data>vice</Data><Data> Reason: Could not find a login matching the name provided.</Data><Data> [CLIENT: 92.94.91.95]</Data><Binary>184800000E0000000D00000076006D00630069007300730071006C0064006200300031000000070000006D00610073007400650072000000</Binary></EventData></Event>
 92.94.91.95
 vice
