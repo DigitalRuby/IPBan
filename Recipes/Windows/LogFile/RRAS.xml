@@ -11,7 +11,7 @@ Examples:
 	<FailedLoginRegexTimestampFormat></FailedLoginRegexTimestampFormat>
 	<SuccessfulLoginRegex>
 		<![CDATA[
-			""[^""]+"",""RAS"",(?<timestamp>[^""]+),4,""(?<username>[^""]+)""[^,]*,[^,]*,""[^""]+"",""(?<ipaddress>[^""]+)"".*Microsoft\sRouting\sand\sRemote\sAccess\sService\sPolicy.*MSRAS.*\n
+			"[^"]+","RAS",(?<timestamp>[^"]+),4,"(?<username>[^"]+)"[^,]*,[^,]*,"[^"]+","(?<ipaddress>[^"]+)".*Microsoft\sRouting\sand\sRemote\sAccess\sService\sPolicy.*MSRAS.*\n
 		]]>
 	</SuccessfulLoginRegex>
 	<SuccessfulLoginRegexTimestampFormat></SuccessfulLoginRegexTimestampFormat>
