@@ -9,6 +9,7 @@ Example failed logins:
 (000175) 1/5/2022 19:04:11 PM - (not logged in) (1.2.3.4)> 331 Password required for www
 (000175) 1/5/2022 19:04:11 PM - (not logged in) (1.2.3.4)> PASS www
 (000175) 1/5/2022 19:04:11 PM - (not logged in) (1.2.3.4)> 530 Login or password incorrect!
+(007069) 19.06.2024 01:03:09 - (not logged in) (1.2.3.4)> 500 Syntax error, command unrecognized.
 
 Example success logins:
 2024-04-17T20:48:58.754Z DI [Throttled Authenticator, FTP Session: 3635] Authenticating user root from IP 1.2.3.4.
@@ -27,7 +28,8 @@ Example success logins:
 	<FailedLoginRegex>
 		<![CDATA[
 			^(?<timestamp>.+Z).*\srecording\sfailed\slogin\sfor\suser\s(?<username>[^\s]+)\sfrom\sip\s(?<ipaddress>[^\s]+)|
-			^(?:\([0-9]+\)\s)?(?<timestamp>.+)\s\-\s.*\((?<ipaddress>[^\)]+)\).*\s331\spassword\srequired\sfor\s(?<username>[^\s]+)\n.*\spass\s.*\n.*\s530\slogin\sor\spassword\sincorrect
+			^(?:\([0-9]+\)\s)?(?<timestamp>.+)\s\-\s.*\((?<ipaddress>[^\)]+)\).*\s331\spassword\srequired\sfor\s(?<username>[^\s]+)\n.*\spass\s.*\n.*\s530\slogin\sor\spassword\sincorrect|
+			^[^\s]+\s(?<timestamp>[0-9\.]+\s[0-9:]+)\s[^\s]+\s\([^\)]+\)\s\((?<ipaddress>[^\)]+)\)[^\s]+\s500\ssyntax\serror,\scommand\sunrecognized
 		]]>
 	</FailedLoginRegex>
 	<FailedLoginRegexTimestampFormat></FailedLoginRegexTimestampFormat>
