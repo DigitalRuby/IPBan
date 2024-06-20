@@ -16,7 +16,7 @@
 - IPBan free version requires .NET 8 SDK to build and debug code. For an IDE, I suggest Visual Studio Community for Windows, or VS code for Linux. All are free. You can build a self contained executable to eliminate the need for dotnet core on the server machine, or just download the precompiled binaries in releases.
 - Running and/or debugging code requires that you run your IDE or terminal as administrator or root.
 - Officially supported platforms:
-	- Windows 8.1 or newer (x86, x64)
+	- Windows 10 or newer (x86, x64)
 	- Windows Server 2016 or newer (x86, x64)
 	- Linux Ubuntu x64 (requires firewalld)
 	- Linux Debian x64 (requires firewalld)
