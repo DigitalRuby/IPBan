@@ -4,7 +4,12 @@ https://learn.microsoft.com/en-us/iis/extensions/advanced-logging-module/advance
 *NOTE* If you've setup iis to log in local time, change the timestamp_utc group in the regex to just timestamp.
 
 Examples:
+
+Failed...
 2022-03-22 00:00:01 1.2.3.4 POST /admin/ - 443 - 5.6.7.8 Mozilla/5.0+(X11;+Ubuntu;+Linux+x86_64;+rv:62.0)+Gecko/20100101+Firefox/62.0 - 404 5 0 1445 792 15
+
+Success...
+2024-06-28 00:48:01 1.2.3.4 POST /owa/auth.owa &ClientId=FFE0193F3E554CEF803430F768C190D2&CorrelationID=<empty>;&cafeReqId=f93d12d7-80e5-4d34-bb66-7150d505a7dc;&LogoffReason=NoCookiesGetOrE14AuthPost&encoding=; 443 a@b.net 5.6.7.8 Mozilla/5.0+(iPhone;+CPU+iPhone+OS+17_5_1+like+Mac+OS+X)+AppleWebKit/605.1.15+(KHTML,+like+Gecko)+Version/17.5+Mobile/15E148+Safari/604.1 https://mail.domain.net/owa/auth/logon.aspx?url=https%3a%2f%2fmail.domain.net%2fowa%2f&reason=0 302 0 0 212 https://mail.domain.net/owa/auth/logon.aspx?url=https%3a%2f%2fmail.domain.net%2fowa%2f&reason=2
 
 -->
 <LogFile>
@@ -16,7 +21,11 @@ Examples:
 		]]>
 	</FailedLoginRegex>
 	<FailedLoginRegexTimestampFormat></FailedLoginRegexTimestampFormat>
-	<SuccessfulLoginRegex></SuccessfulLoginRegex>
+	<SuccessfulLoginRegex>
+	    <![CDATA[
+            ^(?<timestamp_utc>\d\d\d\d\-\d\d\-\d\d\s\d\d\:\d\d\:\d\d)\s[^\s]+\sPOST\s\/owa\/auth\.owa\s[^\s]+\s[0-9]+\s(?<username>[^\s]+)\s(?<ipaddress>[^\s]+).*\s302\s[^\s]+\s[^\s]+\s[^\s]+\s[^\s]+(?:(?<!reason=2))[^\n]+\n
+        ]]>
+	</SuccessfulLoginRegex>
 	<SuccessfulLoginRegexTimestampFormat></SuccessfulLoginRegexTimestampFormat>
 	<PlatformRegex>Windows</PlatformRegex>
 	<PingInterval>10000</PingInterval>
