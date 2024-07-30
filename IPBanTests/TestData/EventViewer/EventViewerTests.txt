@@ -13,6 +13,12 @@
 #RDP
 #FailedLogin
 #---
+<Event xmlns="http://schemas.microsoft.com/win/2004/08/events/event"><System><Provider Name="Microsoft-Windows-TerminalServices-LocalSessionManager" Guid="{5d896912-022d-40aa-a3a8-4fa5515c76d7}" /><EventID>21</EventID><Version>0</Version><Level>4</Level><Task>0</Task><Opcode>0</Opcode><Keywords>0x1000000000000000</Keywords><TimeCreated SystemTime="2024-07-29T14:46:15.1643635Z" /><EventRecordID>22666</EventRecordID><Correlation ActivityID="{f420aeab-a084-43d7-90e4-8da43a060000}" /><Execution ProcessID="1136" ThreadID="15364" /><Channel>Microsoft-Windows-TerminalServices-LocalSessionManager/Operational</Channel><Computer>emachine28</Computer><Security UserID="S-1-5-18" /></System><UserData><EventXML xmlns="Event_NS"><User>CORP-IT\user.bob</User><SessionID>24</SessionID><Address>20.30.20.30</Address></EventXML></UserData></Event>
+20.30.20.30
+user.bob
+RDP
+SuccessfulLogin
+---
 <Event xmlns="http://schemas.microsoft.com/win/2004/08/events/event"><System><Provider Name="RemoteAccess" /><EventID Qualifiers="0">20271</EventID><Level>3</Level><Task>0</Task><Keywords>0x80000000000000</Keywords><TimeCreated SystemTime="2024-06-18T14:41:36.317952200Z" /><EventRecordID>423380</EventRecordID><Channel>System</Channel><Computer>BIGCPU1</Computer><Security /></System><EventData><Data>{AC09A421-BFB0-0007-50C4-2BACB0BFDA01}</Data><Data>UZER12</Data><Data>5.10.15.20</Data><Data>The connection was prevented because of a policy configured on your RAS/VPN server. Specifically, the authentication method used by the server to verify your username and password may not match the authentication method configured in your connection profile. Please contact the Administrator of the RAS server and notify them of this error.</Data><Data>0x70</Data><Binary>2C030000</Binary></EventData></Event>
 5.10.15.20
 UZER12
