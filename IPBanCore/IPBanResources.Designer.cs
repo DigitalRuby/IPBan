@@ -295,6 +295,24 @@ namespace DigitalRuby.IPBanCore {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Threshold Ban Range /24.
+        /// </summary>
+        public static string BanRangeThreshold {
+            get {
+                return ResourceManager.GetString("BanRangeThreshold", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Format: threshold,days. Threshold is number of banned ips in a cidr mask before the entire cidr mask is banned for x days. For ipv4, /24 mask is used with 256 ips. For ipv6, /112 mask is used with 65536 ips. Set to empty to turn this feature off..
+        /// </summary>
+        public static string BanRangeThresholdTooltip {
+            get {
+                return ResourceManager.GetString("BanRangeThresholdTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Ban Time.
         /// </summary>
         public static string BanTime {
@@ -2590,24 +2608,6 @@ namespace DigitalRuby.IPBanCore {
         public static string Test {
             get {
                 return ResourceManager.GetString("Test", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Threshold Ban Range /24.
-        /// </summary>
-        public static string ThresholdBanRange24 {
-            get {
-                return ResourceManager.GetString("ThresholdBanRange24", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Format: threshold,days. Number of banned ips in a /24 cidr mask before the entire /24 cidr mask is banned for days. Set to empty to turn this feature off. For ipv4, /24 bans 256 ips. For ipv6, /112 is used, banning 65536 ips..
-        /// </summary>
-        public static string ThresholdBanRange24Tooltip {
-            get {
-                return ResourceManager.GetString("ThresholdBanRange24Tooltip", resourceCulture);
             }
         }
         
