@@ -1148,6 +1148,6 @@ For block rules, port list is ignored ports, so if you wanted to block port 3389
     <value>Ban range threshold</value>
   </data>
   <data name="BanRangeThresholdTooltip" xml:space="preserve">
-    <value>Format: threshold,days. Threshold is number of banned ips in a cidr mask before the entire cidr mask is banned for x days. For ipv4, /24 mask is used with 256 ips. For ipv6, /112 mask is used with 65536 ips. Set to empty to turn this feature off.</value>
+    <value>Format: threshold,days. Threshold is number of banned ips in a cidr mask before the entire cidr mask is banned for x days. For ipv4, /24 mask is used with 256 ips. For ipv6, /112 mask is used with 65536 ips. Set to empty to disable this feature.</value>
   </data>
 </root>
