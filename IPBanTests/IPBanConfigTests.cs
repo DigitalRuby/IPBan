@@ -103,7 +103,7 @@ namespace DigitalRuby.IPBanTests
                 ],
                 [
                     "C:/Program Files (x86)/Mail Enable/Logging/SMTP/SMTP-Activity-*.log\nC:/Program Files/Mail Enable/Logging/SMTP/SMTP-Activity-*.log\nC:/Program Files (x86)/Mail Enable/Logging/IMAP\nC:/Program Files/Mail Enable/Logging/IMAP",
-                    @"^(?<timestamp>[0-9\/:\s]+)SMTP\-IN\s+[^\s]+\s+[^\s]+\s(?<ipaddress>[^\s]+)\s+[^\s]+\s+[^\s]+\s+[^\s]+\s+(?<log>Invalid\sUsername\sor\sPassword)\s+[^\s]+\s+[^\s]+\s+(?<username>[^\n]+)$|^(?<timestamp>[0-9\/:\s]+)IMAP\-IN\s+[^\s]+\s+(?<ipaddress>[^\s]+)\s+LOGIN\s+LOGIN\s+""(?<username>[^""]+)""\s+""[^""]+""\s+[^\s]+\s+NO\s+LOGIN\s+Failed\s+[^\s]+\s+(?<log>Invalid\s+username\s+or\s+password)[^\n]*$",
+                    @"^(?<timestamp>[0-9\/:\s]+)SMTP\-IN\s+[^\s]+\s+[^\s]+\s(?<ipaddress>[^\s]+)\s+[^\s]+\s+[^\s]+\s+[^\s]+\s+(?<log>Invalid\sUsername\sor\sPassword)\s+[^\s]+\s+[^\s]+\s+(?<username>[^\n]+)$|^(?<timestamp>[0-9\/:\s]+)IMAP\-IN\s+[^\s]+\s+(?<ipaddress>[^\s]+)\s+LOGIN\s+LOGIN\s+""(?<username>[^""]+)""\s+""[^""]+""\s+[^\s]+\s+NO\s+LOGIN\s+Failed\s+[^\s]+\s+(?<log>Invalid\s+username\s+or\s+password)[^\n]*$|^(?<timestamp>[0-9\/]+\s[0-9\:]+)\sSMTP\-IN\s[^\s]+\s[^\s]+\s(?<ipaddress>[^\s]+)\s[^\s]+\s[^\s]+\sTO\:(?<username>[^\s]+)\s[^\s]+\sthis\smail\sserver\srequires\sauthentication\swhen\sattempting\sto\ssend\sto\sa\snon-local\se-mail\saddress[^\n]+\n$",
                     @"MM/dd/yy HH:mm:ss",
                     @"",
                     @"",
