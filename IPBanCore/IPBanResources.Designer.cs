@@ -295,7 +295,7 @@ namespace DigitalRuby.IPBanCore {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Threshold Ban Range /24.
+        ///   Looks up a localized string similar to Ban range threshold.
         /// </summary>
         public static string BanRangeThreshold {
             get {

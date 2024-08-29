@@ -1145,7 +1145,7 @@ For block rules, port list is ignored ports, so if you wanted to block port 3389
     <value>Run an external process when a successful login occurs. Separate the process and any arguments with a pipe (|). ###IPADDRESS### will be replaced with the actual IP which was banned. The pipe is required. Example: c:\system\files\on_ip_banned.exe|###IPADDRESS### -q</value>
   </data>
   <data name="BanRangeThreshold" xml:space="preserve">
-    <value>Threshold Ban Range /24</value>
+    <value>Ban range threshold</value>
   </data>
   <data name="BanRangeThresholdTooltip" xml:space="preserve">
     <value>Format: threshold,days. Threshold is number of banned ips in a cidr mask before the entire cidr mask is banned for x days. For ipv4, /24 mask is used with 256 ips. For ipv6, /112 mask is used with 65536 ips. Set to empty to turn this feature off.</value>
