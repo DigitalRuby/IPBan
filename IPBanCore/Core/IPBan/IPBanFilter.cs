@@ -43,11 +43,6 @@ namespace DigitalRuby.IPBanCore
         public const char ItemDelimiter = ',';
 
         /// <summary>
-        /// Item pieces delimiters including the legacy ? and the current |
-        /// </summary>
-        public static readonly char[] ItemPiecesDelimitersLegacy = ['?', '|'];
-
-        /// <summary>
         /// Item pieces delimiter |
         /// </summary>
         public const char ItemPiecesDelimiter = '|';
@@ -56,6 +51,11 @@ namespace DigitalRuby.IPBanCore
         /// Used if multiple ips in one entry (rare)
         /// </summary>
         public const char SubEntryDelimiter = ';';
+
+        /// <summary>
+        /// Legacy item pieces delimiter ?
+        /// </summary>
+        private const char itemPiecesDelimiterLegacy = '?';
 
         private static readonly HashSet<string> ignoreListEntries =
         [
@@ -146,13 +146,7 @@ namespace DigitalRuby.IPBanCore
                 // | can be used as a sub delimiter instead of ? mark
                 foreach (string entry in value.Split(ItemDelimiter, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
                 {
-                    string entryWithoutComment = entry;
-                    int pos = entryWithoutComment.IndexOfAny(ItemPiecesDelimitersLegacy);
-                    if (pos >= 0)
-                    {
-                        entryWithoutComment = entryWithoutComment[..pos];
-                    }
-                    entryWithoutComment = entryWithoutComment.Trim();
+                    string entryWithoutComment = GetEntryWithoutComment(entry);
 
                     // sub entries (multiple ip addresses) are delimited by semi-colon
                     foreach (string subEntry in entryWithoutComment.Split(SubEntryDelimiter, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
@@ -336,6 +330,63 @@ namespace DigitalRuby.IPBanCore
                 return true;
             }
             return false;
+        }
+
+        /// <summary>
+        /// Get entry without comment
+        /// </summary>
+        /// <param name="entry">Entry</param>
+        /// <returns>Entry without comment</returns>
+        public static string GetEntryWithoutComment(string entry)
+        {
+            string entryWithoutComment = entry;
+            int pos = entryWithoutComment.IndexOf(ItemPiecesDelimiter);
+
+            // if using new delimiter, remove it and everything after
+            if (pos >= 0)
+            {
+                entryWithoutComment = entryWithoutComment[..pos];
+            }
+            // if using two or more of old delimiter, remove it and everything after
+            else if (entryWithoutComment.Count(e => e == itemPiecesDelimiterLegacy) > 1)
+            {
+                pos = entryWithoutComment.IndexOf(itemPiecesDelimiterLegacy);
+                entryWithoutComment = entryWithoutComment[..pos];
+            }
+            entryWithoutComment = entryWithoutComment.Trim();
+
+            return entryWithoutComment;
+        }
+
+        /// <summary>
+        /// Split entry on new delimiter. If it doesn't exist, legacy delimiter is used.
+        /// </summary>
+        /// <param name="entry">Entry</param>
+        /// <returns>Pieces (always at least 3 items)</returns>
+        public static string[] SplitEntry(string entry)
+        {
+            entry ??= string.Empty;
+            string[] pieces = [];
+
+            // split on new delimiter if we have it
+            if (entry.Contains(ItemPiecesDelimiter))
+            {
+                pieces = entry.Split(ItemPiecesDelimiter, StringSplitOptions.TrimEntries);
+            }
+
+            // split on legacy delimiter if there's two or more
+            else if (entry.Count(e => e == itemPiecesDelimiterLegacy) > 1)
+            {
+                pieces = entry.Split(itemPiecesDelimiterLegacy, StringSplitOptions.TrimEntries);
+            }
+
+            // the split should have at least 3 pieces, if not, return the original entry and two empty ones
+            if (pieces.Length < 3)
+            {
+                return [entry, string.Empty, string.Empty];
+            }
+
+            return pieces;
         }
 
         /// <summary>
