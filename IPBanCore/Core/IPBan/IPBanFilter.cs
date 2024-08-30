@@ -37,6 +37,26 @@ namespace DigitalRuby.IPBanCore
     /// </summary>
     public class IPBanFilter : IIPBanFilter
     {
+        /// <summary>
+        /// Delimiter for each item in a filter string
+        /// </summary>
+        public const char ItemDelimiter = ',';
+
+        /// <summary>
+        /// Item pieces delimiters including the legacy ? and the current |
+        /// </summary>
+        public static readonly char[] ItemPiecesDelimitersLegacy = ['?', '|'];
+
+        /// <summary>
+        /// Item pieces delimiter |
+        /// </summary>
+        public const char ItemPiecesDelimiter = '|';
+
+        /// <summary>
+        /// Used if multiple ips in one entry (rare)
+        /// </summary>
+        public const char SubEntryDelimiter = ';';
+
         private static readonly HashSet<string> ignoreListEntries =
         [
             "0.0.0.0",
@@ -123,10 +143,11 @@ namespace DigitalRuby.IPBanCore
                 List<string> entries = [];
 
                 // primary entries (entry?timestamp?notes) are delimited by comma
-                foreach (string entry in value.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+                // | can be used as a sub delimiter instead of ? mark
+                foreach (string entry in value.Split(ItemDelimiter, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
                 {
                     string entryWithoutComment = entry;
-                    int pos = entryWithoutComment.IndexOf('?');
+                    int pos = entryWithoutComment.IndexOfAny(ItemPiecesDelimitersLegacy);
                     if (pos >= 0)
                     {
                         entryWithoutComment = entryWithoutComment[..pos];
@@ -134,7 +155,7 @@ namespace DigitalRuby.IPBanCore
                     entryWithoutComment = entryWithoutComment.Trim();
 
                     // sub entries (multiple ip addresses) are delimited by semi-colon
-                    foreach (string subEntry in entryWithoutComment.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+                    foreach (string subEntry in entryWithoutComment.Split(SubEntryDelimiter, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
                     {
                         entries.Add(subEntry);
                     }
