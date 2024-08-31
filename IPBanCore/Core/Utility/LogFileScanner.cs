@@ -259,17 +259,17 @@ namespace DigitalRuby.IPBanCore
                             Logger.Trace("Watched file {0} length has not changed", file.FileName);
                         }
 
-                        // if a max file size is specified and the file is over the max size, delete the file
+                        // if a max file size is specified and the file is over the max size, truncate the file
                         if (maxFileSize > 0 && len > maxFileSize)
                         {
                             try
                             {
-                                Logger.Warn("Deleting log file over max size: {0}", file.FileName);
-                                File.Delete(file.FileName);
+                                Logger.Warn("Truncating log file over max size: {0}", file.FileName);
+                                using var _ = new FileStream(file.FileName, FileMode.Truncate, FileAccess.Write, FileShare.ReadWrite);
                             }
                             catch
                             {
-                                // someone else might have it open, in which case we have no chance to delete
+                                // someone else might have it open, in which case we can try again later
                             }
                         }
                     }

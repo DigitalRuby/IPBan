@@ -284,6 +284,28 @@ namespace DigitalRuby.IPBanTests
             ClassicAssert.Throws<ArgumentException>(() => LogFileScanner.NormalizeGlob("\\", out _, out _));
         }
 
+        /// <summary>
+        /// Ensure files are truncated to 0 bytes instead of deleted
+        /// </summary>
+        [Test]
+        public void TestTruncateFile()
+        {
+            var tempFile = Path.GetTempFileName();
+            try
+            {
+                using LogFileScanner scanner = new(tempFile, 4, 0);
+                scanner.Update();
+                File.AppendAllText(tempFile, "12345");
+                scanner.Update();
+                var bytes = File.ReadAllBytes(tempFile);
+                ClassicAssert.AreEqual(0, bytes.Length);
+            }
+            finally
+            {
+                File.Delete(tempFile);
+            }
+        }
+
         private LogFileScanner SetupLogFileScanner(string failureRegex = "",
             string failureRegexTimestampFormat = null,
             string successRegex = null,
