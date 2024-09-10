@@ -44,7 +44,7 @@ namespace DigitalRuby.IPBanCore
     /// <summary>
     /// Operating system utility methods
     /// </summary>
-    public class OSUtility
+    public static class OSUtility
     {
         /// <summary>
         /// Unknown operating system
