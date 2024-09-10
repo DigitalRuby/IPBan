@@ -29,6 +29,7 @@ SOFTWARE.
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.DirectoryServices.AccountManagement;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -277,22 +278,17 @@ namespace DigitalRuby.IPBanCore
 
         private static void PopulateUsersWindows(Dictionary<string, bool> newUsers)
         {
-            // Windows: WMIC
-            // wmic useraccount get disabled,name
-            // FALSE username
-            // TRUE  disabledusername
-            string output = StartProcessAndWait("wmic", "useraccount get disabled,name");
-            string[] lines = output.Split('\n').Skip(1).ToArray();
-            foreach (string line in lines)
+            using var context = new PrincipalContext(ContextType.Machine);
+            using var searcher = new PrincipalSearcher(new UserPrincipal(context));
+
+            foreach (var result in searcher.FindAll())
             {
-                string trimmedLine = line.Trim();
-                int pos = trimmedLine.IndexOf(' ');
-                if (pos >= 0)
+                if (result is UserPrincipal userPrincipal)
                 {
-                    string disabled = trimmedLine[..pos].Trim();
-                    string foundUserName = trimmedLine[pos..].Trim();
-                    _ = bool.TryParse(disabled, out bool disabledBool);
-                    newUsers[foundUserName] = !disabledBool;
+                    var foundUserName = userPrincipal.SamAccountName;
+                    // Treat as enabled if null
+                    var isAccountEnabled = userPrincipal.Enabled.GetValueOrDefault(true);
+                    newUsers[foundUserName] = isAccountEnabled;
                 }
             }
         }
