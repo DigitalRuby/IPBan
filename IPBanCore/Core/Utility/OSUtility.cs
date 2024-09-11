@@ -152,7 +152,7 @@ namespace DigitalRuby.IPBanCore
                             {
                                 USER_INFO_1 userInfo = (USER_INFO_1)Marshal.PtrToStructure(iter, typeof(USER_INFO_1));
                                 var active = (userInfo.usri1_flags & UfAccountDisable) == 0;
-                                userList.Add(userInfo.usri1_name, active);
+                                userList[userInfo.usri1_name] = active;
                                 iter += Marshal.SizeOf(typeof(USER_INFO_1));
                             }
                         }
