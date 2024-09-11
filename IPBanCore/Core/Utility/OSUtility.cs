@@ -135,6 +135,8 @@ namespace DigitalRuby.IPBanCore
             {
                 IntPtr buffer = IntPtr.Zero;
                 IntPtr resumeHandle = IntPtr.Zero;
+                Type userInfoStructType = typeof(USER_INFO_1);
+                int userInfoStructSize = Marshal.SizeOf(userInfoStructType);
                 int entriesRead = 0;
                 int result = 0;
                 Dictionary<string, bool> userList = new(StringComparer.OrdinalIgnoreCase);
@@ -145,15 +147,16 @@ namespace DigitalRuby.IPBanCore
                     {
                         result = NetUserEnum(null, 1, 0, out buffer, MaxPreferredLength, out entriesRead, out _, ref resumeHandle);
 
-                        if (entriesRead > 0 && (result == ErrSuccess || result == ErrorMoreData))
+                        // protect in case entries read is garbled
+                        if (entriesRead > 0 && entriesRead <= ushort.MaxValue && buffer != IntPtr.Zero && (result == ErrSuccess || result == ErrorMoreData))
                         {
                             IntPtr iter = buffer;
-                            for (int i = 0; i < entriesRead; i++)
+                            while (entriesRead-- > 0)
                             {
-                                USER_INFO_1 userInfo = (USER_INFO_1)Marshal.PtrToStructure(iter, typeof(USER_INFO_1));
+                                USER_INFO_1 userInfo = Marshal.PtrToStructure<USER_INFO_1>(iter);
                                 var active = (userInfo.usri1_flags & UfAccountDisable) == 0;
                                 userList[userInfo.usri1_name] = active;
-                                iter += Marshal.SizeOf(typeof(USER_INFO_1));
+                                iter += userInfoStructSize;
                             }
                         }
                     }
