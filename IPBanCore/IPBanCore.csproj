@@ -45,7 +45,6 @@
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
 		<PackageReference Include="NLog" Version="5.3.2" />
 		<PackageReference Include="System.Diagnostics.PerformanceCounter" Version="8.0.0" />
-		<PackageReference Include="System.DirectoryServices.AccountManagement" Version="8.0.0" />
 		<PackageReference Include="System.Linq.Async" Version="6.0.1" />
 		<PackageReference Include="System.Threading.Tasks.Dataflow" Version="8.0.0" />
 		<PackageReference Include="TaskScheduler" Version="2.11.0" />

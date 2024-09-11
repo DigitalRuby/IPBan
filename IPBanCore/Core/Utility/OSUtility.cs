@@ -29,7 +29,6 @@ SOFTWARE.
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.DirectoryServices.AccountManagement;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -97,6 +96,85 @@ namespace DigitalRuby.IPBanCore
         /// False: Uses apt (Ubuntu/Degian).
         /// </summary>
         public static bool UsesYumPackageManager { get; private set; }
+
+        private static class WindowsAccountPInvoke
+        {
+            private const int MaxPreferredLength = -1;
+            private const int ErrSuccess = 0;
+            private const int ErrorMoreData = 234;
+            private const uint UfAccountDisable = 0x00000002;
+
+            [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+            public struct USER_INFO_1
+            {
+                public string usri1_name;
+                public uint usri1_password;
+                public uint usri1_password_age;
+                public uint usri1_priv;
+                public string usri1_home_dir;
+                public string usri1_comment;
+                public uint usri1_flags;
+                public string usri1_script_path;
+            }
+
+            [DllImport("Netapi32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+            public static extern int NetUserEnum(
+                string servername,
+                int level,
+                uint filter,
+                out IntPtr bufptr,
+                int prefmaxlen,
+                out int entriesread,
+                out int totalentries,
+                ref IntPtr resume_handle);
+
+            [DllImport("Netapi32.dll")]
+            public static extern int NetApiBufferFree(IntPtr Buffer);
+
+            public static IReadOnlyDictionary<string, bool> GetUserAccounts()
+            {
+                IntPtr buffer = IntPtr.Zero;
+                IntPtr resumeHandle = IntPtr.Zero;
+                int entriesRead = 0;
+                int result = 0;
+                Dictionary<string, bool> userList = new(StringComparer.OrdinalIgnoreCase);
+
+                do
+                {
+                    try
+                    {
+                        result = NetUserEnum(null, 1, 0, out buffer, MaxPreferredLength, out entriesRead, out _, ref resumeHandle);
+
+                        if (entriesRead > 0 && (result == ErrSuccess || result == ErrorMoreData))
+                        {
+                            IntPtr iter = buffer;
+                            for (int i = 0; i < entriesRead; i++)
+                            {
+                                USER_INFO_1 userInfo = (USER_INFO_1)Marshal.PtrToStructure(iter, typeof(USER_INFO_1));
+                                var active = (userInfo.usri1_flags & UfAccountDisable) == 0;
+                                userList.Add(userInfo.usri1_name, active);
+                                iter += Marshal.SizeOf(typeof(USER_INFO_1));
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Error("Error getting user accounts", ex);
+                        break;
+                    }
+                    finally
+                    {
+                        if (buffer != IntPtr.Zero)
+                        {
+                            _ = NetApiBufferFree(buffer);
+                        }
+                    }
+                }
+                while (result == ErrorMoreData);
+
+                return userList;
+            }
+        }
 
         private static readonly string tempFolder;
         private static readonly object locker = new();
@@ -278,18 +356,10 @@ namespace DigitalRuby.IPBanCore
 
         private static void PopulateUsersWindows(Dictionary<string, bool> newUsers)
         {
-            using var context = new PrincipalContext(ContextType.Machine);
-            using var searcher = new PrincipalSearcher(new UserPrincipal(context));
-
-            foreach (var result in searcher.FindAll())
+            var dictionary = WindowsAccountPInvoke.GetUserAccounts();
+            foreach (var kv in dictionary)
             {
-                if (result is UserPrincipal userPrincipal)
-                {
-                    var foundUserName = userPrincipal.SamAccountName;
-                    // Treat as enabled if null
-                    var isAccountEnabled = userPrincipal.Enabled.GetValueOrDefault(true);
-                    newUsers[foundUserName] = isAccountEnabled;
-                }
+                newUsers[kv.Key] = kv.Value;
             }
         }
 
