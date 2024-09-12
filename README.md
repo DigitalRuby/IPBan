@@ -18,6 +18,7 @@
 - Officially supported platforms:
 	- Windows 10 or newer (x86, x64)
 	- Windows Server 2016 or newer (x86, x64)
+   	- Windows Server 2025 or newer requires IPBan 2.0.1 or newer.
 	- Linux Ubuntu x64 (requires firewalld)
 	- Linux Debian x64 (requires firewalld)
 	- Linux CentOS x64 (requires firewalld)
