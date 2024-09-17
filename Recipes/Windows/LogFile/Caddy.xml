@@ -1,0 +1,31 @@
+<!--
+You must configure Caddy to output log files, and change the timestamp to UTC format.
+
+# to be added in the global settings of the caddyfile
+# The logs are produced by the caddy-security module 
+log {
+  output file C:\Caddy\caddy_files\access.log
+  format json {
+    time_format iso8601
+  }
+}
+
+Example failure:
+{"level":"warn","ts":"2024-09-17T22:18:49.159+0200","logger":"security","msg":"password authentication failed","session_id":"asYexk6Uq3435gsdrgsergKKyejUw","request_id":"200ec47a-69f3-4e2a-a533-73949c36d0e4","checkpoint_id":0,"src_ip":"1.2.3.4","src_conn_ip":"1.2.3.0","checkpoint_name":"Authenticate with password","checkpoint_type":"password"}
+-->
+
+<LogFile>
+        <Source>Caddy</Source>
+        <PathAndMask>
+          C:/Caddy/caddy_files/access.log
+        </PathAndMask>
+        <FailedLoginRegex>
+          <![CDATA[
+              ^.*"ts":"?(?<timestamp>[^",]+)[",].*password\sauthentication\sfailed.*"src_ip":"(?<ipaddress>[^"]+)".*$
+          ]]>
+        </FailedLoginRegex>
+        <PlatformRegex>Windows</PlatformRegex>
+        <PingInterval>10000</PingInterval>
+        <MaxFileSize>16777216</MaxFileSize>
+        <FailedLoginThreshold>0</FailedLoginThreshold>
+</LogFile>
