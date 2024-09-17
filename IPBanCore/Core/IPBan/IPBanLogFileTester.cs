@@ -25,6 +25,7 @@ SOFTWARE.
 using System;
 using System.IO;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace DigitalRuby.IPBanCore
 {
@@ -37,7 +38,7 @@ namespace DigitalRuby.IPBanCore
         {
             public void AddIPAddressLogEvents(IEnumerable<IPAddressLogEvent> events)
             {
-                foreach (var evt in events)
+                foreach (var evt in events.Where(e => !string.IsNullOrWhiteSpace(e.IPAddress)))
                 {
                     Console.WriteLine(evt);
                 }
