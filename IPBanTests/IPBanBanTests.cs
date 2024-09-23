@@ -110,45 +110,82 @@ namespace DigitalRuby.IPBanTests
             }
         }
 
-        private void AssertIPAddressesAreNotBanned(bool exists1 = false, bool exists2 = false, bool exists3 = false)
+        private void AssertIPAddressesAreNotBanned(bool exists1 = false, bool exists2 = false, bool exists3 = false,
+            bool ban1 = false, bool ban2 = false, bool ban3 = false)
         {
-            ClassicAssert.IsFalse(service.Firewall.IsIPAddressBlocked(ip1, out _));
-            ClassicAssert.IsFalse(service.Firewall.IsIPAddressBlocked(ip2, out _));
-            ClassicAssert.IsFalse(service.Firewall.IsIPAddressBlocked(ip3, out _));
-            if (exists1)
+            if (ban1)
             {
+                ClassicAssert.IsTrue(service.Firewall.IsIPAddressBlocked(ip1, out _));
                 ClassicAssert.IsTrue(service.DB.TryGetIPAddress(ip1, out IPBanDB.IPAddressEntry e1));
-                ClassicAssert.AreNotEqual(IPBanDB.IPAddressState.Active, e1.State);
+                ClassicAssert.AreEqual(IPBanDB.IPAddressState.Active, e1.State);
             }
             else
             {
-                ClassicAssert.IsFalse(service.DB.TryGetIPAddress(ip1, out _));
+                ClassicAssert.IsFalse(service.Firewall.IsIPAddressBlocked(ip1, out _));
+                if (exists1)
+                {
+                    ClassicAssert.IsTrue(service.DB.TryGetIPAddress(ip1, out IPBanDB.IPAddressEntry e1));
+                    ClassicAssert.AreNotEqual(IPBanDB.IPAddressState.Active, e1.State);
+                }
+                else
+                {
+                    ClassicAssert.IsFalse(service.DB.TryGetIPAddress(ip1, out _));
+                }
             }
-            if (exists2)
+            if (ban2)
             {
+                ClassicAssert.IsTrue(service.DB.TryGetIPAddress(ip2, out _));
                 ClassicAssert.IsTrue(service.DB.TryGetIPAddress(ip2, out IPBanDB.IPAddressEntry e2));
-                ClassicAssert.AreNotEqual(IPBanDB.IPAddressState.Active, e2.State);
+                ClassicAssert.AreEqual(IPBanDB.IPAddressState.Active, e2.State);
             }
             else
             {
-                ClassicAssert.IsFalse(service.DB.TryGetIPAddress(ip2, out _));
+                ClassicAssert.IsFalse(service.Firewall.IsIPAddressBlocked(ip2, out _));
+                if (exists2)
+                {
+                    ClassicAssert.IsTrue(service.DB.TryGetIPAddress(ip2, out IPBanDB.IPAddressEntry e2));
+                    ClassicAssert.AreNotEqual(IPBanDB.IPAddressState.Active, e2.State);
+                }
+                else
+                {
+                    ClassicAssert.IsFalse(service.DB.TryGetIPAddress(ip2, out _));
+                }
             }
-            if (exists3)
+            if (ban3)
             {
+                ClassicAssert.IsTrue(service.DB.TryGetIPAddress(ip3, out _));
                 ClassicAssert.IsTrue(service.DB.TryGetIPAddress(ip3, out IPBanDB.IPAddressEntry e3));
-                ClassicAssert.AreNotEqual(IPBanDB.IPAddressState.Active, e3.State);
+                ClassicAssert.AreEqual(IPBanDB.IPAddressState.Active, e3.State);
             }
             else
             {
-                ClassicAssert.IsFalse(service.DB.TryGetIPAddress(ip3, out _));
+                ClassicAssert.IsFalse(service.Firewall.IsIPAddressBlocked(ip3, out _));
+                if (exists3)
+                {
+                    ClassicAssert.IsTrue(service.DB.TryGetIPAddress(ip3, out IPBanDB.IPAddressEntry e3));
+                    ClassicAssert.AreNotEqual(IPBanDB.IPAddressState.Active, e3.State);
+                }
+                else
+                {
+                    ClassicAssert.IsFalse(service.DB.TryGetIPAddress(ip3, out _));
+                }
             }
         }
 
-        private void AssertNoIPInDB()
+        private void AssertNoIPInDB(bool one = true, bool two = true, bool three = true)
         {
-            ClassicAssert.IsFalse(service.DB.TryGetIPAddress(ip1, out _));
-            ClassicAssert.IsFalse(service.DB.TryGetIPAddress(ip2, out _));
-            ClassicAssert.IsFalse(service.DB.TryGetIPAddress(ip3, out _));
+            if (one)
+            {
+                ClassicAssert.IsFalse(service.DB.TryGetIPAddress(ip1, out _));
+            }
+            if (two)
+            {
+                ClassicAssert.IsFalse(service.DB.TryGetIPAddress(ip2, out _));
+            }
+            if (three)
+            {
+                ClassicAssert.IsFalse(service.DB.TryGetIPAddress(ip3, out _));
+            }
         }
 
         [Test]
@@ -234,13 +271,13 @@ namespace DigitalRuby.IPBanTests
             AssertIPAddressesAreBanned(ipv6: true);
 
             // put an unban.txt file in path, service should pick it up
-            File.WriteAllLines(service.UnblockIPAddressesFileName, [ip1, ip2, ip3]);
+            File.WriteAllLines(service.UnblockIPAddressesFileName, [ip1, ip2]);
 
             // this should un ban the ip addresses
             service.RunCycleAsync().Sync();
 
-            AssertIPAddressesAreNotBanned();
-            AssertNoIPInDB();
+            AssertIPAddressesAreNotBanned(ban3: true);
+            AssertNoIPInDB(three: false);
         }
 
         [Test]
