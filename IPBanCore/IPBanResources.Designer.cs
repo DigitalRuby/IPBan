@@ -385,6 +385,15 @@ namespace DigitalRuby.IPBanCore {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Check Last Whitelist Access.
+        /// </summary>
+        public static string CheckLastWhitelistAccess {
+            get {
+                return ResourceManager.GetString("CheckLastWhitelistAccess", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to City.
         /// </summary>
         public static string City {
