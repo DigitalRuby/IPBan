@@ -79,16 +79,23 @@ namespace DigitalRuby.IPBanTests
                 {
                     throw new System.IO.InvalidDataException("Expected 5 lines of event viewer test data");
                 }
-                Xml = lines[0].Trim();
-                IPAddress = lines[1].Trim();
-                UserName = lines[2].Trim();
+                Xml = CleanLine(lines[0]);
+                IPAddress = CleanLine(lines[1]);
+                UserName = CleanLine(lines[2]);
                 if (UserName == "[nouser]")
                 {
                     UserName = string.Empty;
                 }
-                Source = lines[3].Trim();
-                Enum.TryParse<IPAddressEventType>(lines[4].Trim(), true, out var eventType);
-                EventType = eventType;
+                Source = CleanLine(lines[3]);
+                var eventTypeString = CleanLine(lines[4]);
+                if (Enum.TryParse<IPAddressEventType>(eventTypeString, true, out var eventType))
+                {
+                    EventType = eventType;
+                }
+                else
+                {
+                    EventType = (IPAddressEventType)int.Parse(eventTypeString);
+                }
             }
 
             public override string ToString()
@@ -101,6 +108,16 @@ namespace DigitalRuby.IPBanTests
             public string UserName { get; init; }
             public string Source { get; init; }
             public IPAddressEventType EventType { get; init; }
+
+            private static string CleanLine(string line)
+            {
+                int pos = line.IndexOf('#');
+                if (pos >= 0)
+                {
+                    line = line[..pos];
+                }
+                return line.Trim();
+            }
         }
 
         private static IReadOnlyCollection<EventViewerTest> ReadEventViewerTests()
@@ -129,11 +146,22 @@ namespace DigitalRuby.IPBanTests
 
             IReadOnlyCollection<EventViewerTest> tests = ReadEventViewerTests();
 
+            // avert thine eyes
+            const string eventViewerHackyXml = @"<Source>RDP</Source><Keywords>0x8020000000000000</Keywords><Path>Security</Path><Expressions><Expression><XPath>//EventID</XPath><Regex>^4624$</Regex></Expression><Expression><XPath>//Data[@Name='ProcessName' or @Name='LogonProcessName']</XPath><Regex>ntlmssp</Regex></Expression><Expression><XPath>//Data[@Name='IpAddress' or @Name='Workstation' or @Name='SourceAddress']</XPath><Regex><![CDATA[(?<ipaddress>.+)]]></Regex></Expression></Expressions>";
+
             for (int i = 0; i < 5; i++)
             {
                 foreach (var test in tests)
                 {
+                    if ((int)test.EventType == 9999)
+                    {
+                        // add a failed login matching a succesful login - we should get both events
+                        var newConfig = IPBanConfig.ChangeConfigEventViewer(service.Config.Xml, true, false, [eventViewerHackyXml]);
+                        service.ConfigReaderWriter.WriteConfigAsync(newConfig).Sync();
+                        service.RunCycleAsync().Sync();
+                    }
                     var results = service.EventViewer.ProcessEventViewerXml(test.Xml).ToArray();
+                    var resultIndex = 0;
                     foreach (var result in results)
                     {
                         string foundIp = (result is null ? "x" : result.IPAddress ?? string.Empty);
@@ -143,7 +171,31 @@ namespace DigitalRuby.IPBanTests
                         ClassicAssert.AreEqual(test.IPAddress, foundIp);
                         ClassicAssert.AreEqual(test.UserName, foundUser);
                         ClassicAssert.AreEqual(test.Source, foundSource);
-                        ClassicAssert.AreEqual(test.EventType, foundType);
+                        if ((int)test.EventType == 9999)
+                        {
+                            if (resultIndex == 0)
+                            {
+                                // failed login
+                                ClassicAssert.AreEqual(IPAddressEventType.FailedLogin, foundType);
+                            }
+                            else
+                            {
+                                // successful login
+                                ClassicAssert.AreEqual(IPAddressEventType.SuccessfulLogin, foundType);
+                            }
+                        }
+                        else
+                        {
+                            ClassicAssert.AreEqual(test.EventType, foundType);
+                        }
+                        resultIndex++;
+                    }
+                    if ((int)test.EventType == 9999)
+                    {
+                        // return config to original state
+                        var newConfig = IPBanConfig.ChangeConfigEventViewer(service.Config.Xml, true, true, [eventViewerHackyXml]);
+                        service.ConfigReaderWriter.WriteConfigAsync(newConfig).Sync();
+                        service.RunCycleAsync().Sync();
                     }
                 }
                 service.RunCycleAsync().Sync();
@@ -166,7 +218,7 @@ namespace DigitalRuby.IPBanTests
             }
             ClassicAssert.AreEqual(expectedBlockedIPAddresses, actualBlockedIPAddresses);
 
-            int expectedSuccessCount = tests.Where(t => t.EventType == IPAddressEventType.SuccessfulLogin).Count();
+            int expectedSuccessCount = tests.Where(t => t.EventType == IPAddressEventType.SuccessfulLogin || t.EventType == (IPAddressEventType)9999).Count();
             ClassicAssert.AreEqual(expectedSuccessCount, successEvents.Count);
 
             foreach (var test in tests.Where(t => t.EventType == IPAddressEventType.SuccessfulLogin))

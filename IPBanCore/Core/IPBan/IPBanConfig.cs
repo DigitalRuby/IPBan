@@ -614,22 +614,22 @@ namespace DigitalRuby.IPBanCore
         /// </summary>
         /// <param name="keywords">Keywords</param>
         /// <returns>Groups that match</returns>
-        public IEnumerable<EventViewerExpressionGroup> WindowsEventViewerGetGroupsMatchingKeywords(ulong keywords)
+        public IReadOnlyCollection<EventViewerExpressionGroup> WindowsEventViewerGetGroupsMatchingKeywords(ulong keywords)
         {
             if (WindowsEventViewerExpressionsToBlock is null && expressionsSuccess is null)
             {
-                return Array.Empty<EventViewerExpressionGroup>();
+                return [];
             }
             else if (WindowsEventViewerExpressionsToBlock is null)
             {
-                return expressionsSuccess.Groups.Where(g => (g.KeywordsULONG == keywords));
+                return expressionsSuccess.Groups.Where(g => (g.KeywordsULONG == keywords)).ToArray();
             }
             else if (expressionsSuccess is null)
             {
-                return WindowsEventViewerExpressionsToBlock.Groups.Where(g => (g.KeywordsULONG == keywords));
+                return WindowsEventViewerExpressionsToBlock.Groups.Where(g => (g.KeywordsULONG == keywords)).ToArray();
             }
             return WindowsEventViewerExpressionsToBlock.Groups.Where(g => (g.KeywordsULONG == keywords))
-                .Union(expressionsSuccess.Groups.Where(g => (g.KeywordsULONG == keywords)));
+                .Union(expressionsSuccess.Groups.Where(g => (g.KeywordsULONG == keywords))).ToArray();
         }
 
         /// <summary>
@@ -674,6 +674,44 @@ namespace DigitalRuby.IPBanCore
             else
             {
                 existingSetting.Attributes["value"].Value = newValue;
+            }
+            return doc.OuterXml;
+        }
+
+        /// <summary>
+        /// Change event viewer settings in config
+        /// </summary>
+        /// <param name="config">Config xml</param>
+        /// <param name="failedLogin">True for failed login section, false for successful login section</param>
+        /// <param name="delete">True to delete, false to insert</param>
+        /// <param name="groups">Groups to add, minues the Group container element</param>
+        /// <returns>New config</returns>
+        public static string ChangeConfigEventViewer(string config, bool failedLogin, bool delete, string[] groups)
+        {
+            XmlDocument doc = new();
+            doc.LoadXml(config);
+            var section = failedLogin ? "ExpressionsToBlock" : "ExpressionsToNotify";
+            XmlNode eventViewerSection = doc.SelectSingleNode($"/configuration/{section}/Groups") ?? throw new InvalidOperationException("Unable to find " + section + " in config");
+            foreach (var groupXml in groups)
+            {
+                if (delete)
+                {
+                    var children = eventViewerSection.ChildNodes.Cast<XmlNode>().ToArray();
+                    foreach (var node in children)
+                    {
+                        if (node is XmlElement element && element.Name == "Group" && element.InnerXml == groupXml)
+                        {
+                            eventViewerSection.RemoveChild(node);
+                            break;
+                        }
+                    }
+                }
+                else
+                {
+                    var element = doc.CreateElement("Group");
+                    element.InnerXml = groupXml;
+                    eventViewerSection.AppendChild(element);
+                }
             }
             return doc.OuterXml;
         }

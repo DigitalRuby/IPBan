@@ -182,7 +182,8 @@ namespace DigitalRuby.IPBanCore
             ulong keywordsULONG = ulong.Parse(keywordsText, NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture);
 
             // we must match on keywords
-            foreach (EventViewerExpressionGroup group in service.Config.WindowsEventViewerGetGroupsMatchingKeywords(keywordsULONG))
+            var groupsMatched = service.Config.WindowsEventViewerGetGroupsMatchingKeywords(keywordsULONG);
+            foreach (EventViewerExpressionGroup group in groupsMatched)
             {
                 IPAddressLogEvent info;
                 bool successfulLogin = false;
