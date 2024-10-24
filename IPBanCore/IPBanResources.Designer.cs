@@ -304,7 +304,7 @@ namespace DigitalRuby.IPBanCore {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Format: threshold,days. Threshold is number of banned ips in a cidr mask before the entire cidr mask is banned for x days. For ipv4, /24 mask is used with 256 ips. For ipv6, /112 mask is used with 65536 ips. Set to empty to disable this feature..
+        ///   Looks up a localized string similar to Format: threshold,days,event_type. Threshold is number of failed logins or banned ips in a cidr mask before the entire cidr mask is banned for x days. For ipv4, /24 mask is used with 256 ips. For ipv6, /112 mask is used with 65536 ips. Days specifies duration to ban the range. Login type can be empty or b for banned ip adresses, or f for failed logins. Set to empty to disable this feature..
         /// </summary>
         public static string BanRangeThresholdTooltip {
             get {

@@ -133,15 +133,18 @@ namespace DigitalRuby.IPBanTests
             {
                 foreach (var test in tests)
                 {
-                    IPAddressLogEvent result = service.EventViewer.ProcessEventViewerXml(test.Xml);
-                    string foundIp = (result is null ? "x" : result.IPAddress ?? string.Empty);
-                    string foundUser = (result is null ? "x" : result.UserName ?? string.Empty);
-                    string foundSource = (result is null ? "x" : result.Source ?? string.Empty);
-                    IPAddressEventType foundType = (result is null ? IPAddressEventType.None : result.Type);
-                    ClassicAssert.AreEqual(test.IPAddress, foundIp);
-                    ClassicAssert.AreEqual(test.UserName, foundUser);
-                    ClassicAssert.AreEqual(test.Source, foundSource);
-                    ClassicAssert.AreEqual(test.EventType, foundType);
+                    var results = service.EventViewer.ProcessEventViewerXml(test.Xml).ToArray();
+                    foreach (var result in results)
+                    {
+                        string foundIp = (result is null ? "x" : result.IPAddress ?? string.Empty);
+                        string foundUser = (result is null ? "x" : result.UserName ?? string.Empty);
+                        string foundSource = (result is null ? "x" : result.Source ?? string.Empty);
+                        IPAddressEventType foundType = (result is null ? IPAddressEventType.None : result.Type);
+                        ClassicAssert.AreEqual(test.IPAddress, foundIp);
+                        ClassicAssert.AreEqual(test.UserName, foundUser);
+                        ClassicAssert.AreEqual(test.Source, foundSource);
+                        ClassicAssert.AreEqual(test.EventType, foundType);
+                    }
                 }
                 service.RunCycleAsync().Sync();
 

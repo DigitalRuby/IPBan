@@ -99,33 +99,39 @@ namespace DigitalRuby.IPBanCore
         /// Process event viewer XML
         /// </summary>
         /// <param name="xml">XML</param>
-        /// <returns>Log event or null if fail to parse/process</returns>
-        public IPAddressLogEvent ProcessEventViewerXml(string xml)
+        /// <returns>Log events or nothing if failure to parse</returns>
+        public IReadOnlyCollection<IPAddressLogEvent> ProcessEventViewerXml(string xml)
         {
             Logger.Trace("Processing event viewer xml: {0}", xml);
-
+            List<IPAddressLogEvent> events = [];
             XmlDocument doc = ParseXml(xml);
-            IPAddressLogEvent info = ExtractEventViewerXml(doc);
-            if (info != null && info.IPAddress != null &&
-                (info.Type == IPAddressEventType.FailedLogin ||
-                info.Type == IPAddressEventType.SuccessfulLogin))
+
+            foreach (var evt in ExtractEventViewerXml(doc))
             {
-                if (!FindSourceAndUserNameForInfo(info, doc))
+                if (evt is not null &&
+                    evt.IPAddress is not null &&
+                    (evt.Type == IPAddressEventType.FailedLogin ||
+                    evt.Type == IPAddressEventType.SuccessfulLogin))
                 {
-                    // bad ip address
-                    return null;
+                    if (!FindSourceAndUserNameForInfo(evt, doc))
+                    {
+                        // bad ip address
+                        continue;
+                    }
+                    else if (evt.Type == IPAddressEventType.SuccessfulLogin &&
+                        !string.IsNullOrWhiteSpace(evt.UserName) &&
+                        evt.UserName.Contains("anonymous", StringComparison.OrdinalIgnoreCase))
+                    {
+                        Logger.Debug("Ignoring anonymous login from windows event viewer: {0}", evt.UserName);
+                        evt.Type = IPAddressEventType.None;
+                    }
+                    service.AddIPAddressLogEvents(new IPAddressLogEvent[] { evt });
+                    Logger.Debug("Event viewer found: {0}, {1}, {2}, {3}", evt.IPAddress, evt.Source, evt.UserName, evt.Type);
                 }
-                else if (info.Type == IPAddressEventType.SuccessfulLogin &&
-                    !string.IsNullOrWhiteSpace(info.UserName) &&
-                    info.UserName.Contains("anonymous", StringComparison.OrdinalIgnoreCase))
-                {
-                    Logger.Debug("Ignoring anonymous login from windows event viewer: {0}", info.UserName);
-                    info.Type = IPAddressEventType.None;
-                }
-                service.AddIPAddressLogEvents(new IPAddressLogEvent[] { info });
-                Logger.Debug("Event viewer found: {0}, {1}, {2}, {3}", info.IPAddress, info.Source, info.UserName, info.Type);
+                events.Add(evt);
             }
-            return info;
+
+            return events;
         }
 
         private static bool FindSourceAndUserNameForInfo(IPAddressLogEvent info, XmlDocument doc)
@@ -160,12 +166,12 @@ namespace DigitalRuby.IPBanCore
             return true;
         }
 
-        private IPAddressLogEvent ExtractEventViewerXml(XmlDocument doc)
+        private IEnumerable<IPAddressLogEvent> ExtractEventViewerXml(XmlDocument doc)
         {
             XmlNode keywordsNode = doc.SelectSingleNode("//Keywords");
             if (keywordsNode is null)
             {
-                return null;
+                yield break;
             }
 
             string keywordsText = keywordsNode.InnerText;
@@ -174,24 +180,23 @@ namespace DigitalRuby.IPBanCore
                 keywordsText = keywordsText[2..];
             }
             ulong keywordsULONG = ulong.Parse(keywordsText, NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture);
-            IPAddressLogEvent info;
-            bool successfulLogin = false;
-            string userName = null;
-            string source = null;
-            string ipAddress = null;
-            DateTime? timestamp = null;
-            string logData = null;
-            int count = 1;
-            bool mismatch;
-            int failedLoginThreshold = 0;
-            TimeSpan? failedLoginMinimumTimespan = null;
-            LogLevel logLevel = LogLevel.Warning;
-            IPAddressNotificationFlags notificationFlags = IPAddressNotificationFlags.None;
 
             // we must match on keywords
             foreach (EventViewerExpressionGroup group in service.Config.WindowsEventViewerGetGroupsMatchingKeywords(keywordsULONG))
             {
-                logLevel = group.LogLevel;
+                IPAddressLogEvent info;
+                bool successfulLogin = false;
+                string userName = null;
+                string source = null;
+                string ipAddress = null;
+                DateTime? timestamp = null;
+                string logData = null;
+                int count = 1;
+                bool mismatch;
+                int failedLoginThreshold = 0;
+                TimeSpan? failedLoginMinimumTimespan = null;
+                LogLevel logLevel = group.LogLevel;
+                IPAddressNotificationFlags notificationFlags = IPAddressNotificationFlags.None;
 
                 // we must match all the expressions, if even one does not match, null everything out and move on
                 foreach (EventViewerExpression expression in group.Expressions)
@@ -277,20 +282,13 @@ namespace DigitalRuby.IPBanCore
                     source ??= group.Source;
                     failedLoginThreshold = group.FailedLoginThreshold;
                     failedLoginMinimumTimespan = group.MinimumTimeBetweenLoginAttemptsTimeSpan;
-                    break;
+
+                    IPAddressEventType eventType = (successfulLogin ? IPAddressEventType.SuccessfulLogin : IPAddressEventType.FailedLogin);
+                    yield return new IPAddressLogEvent(ipAddress, userName, source, count, eventType,
+                        timestamp is null ? default : timestamp.Value, false, string.Empty,
+                        failedLoginThreshold, logLevel, logData, notificationFlags, failedLoginMinimumTimespan);
                 }
             }
-
-            // if no ip, no match
-            if (ipAddress is null)
-            {
-                return null;
-            }
-
-            IPAddressEventType type = (successfulLogin ? IPAddressEventType.SuccessfulLogin : IPAddressEventType.FailedLogin);
-            return new IPAddressLogEvent(ipAddress, userName, source, count, type,
-                timestamp is null ? default : timestamp.Value, false, string.Empty,
-                failedLoginThreshold, logLevel, logData, notificationFlags, failedLoginMinimumTimespan);
         }
 
         private static XmlDocument ParseXml(string xml)
