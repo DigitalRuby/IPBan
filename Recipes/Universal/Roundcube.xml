@@ -19,7 +19,7 @@
             ^\[(?<timestamp>[^\]]+).*Successful\slogin\sfor\s(?<username>[^\s]+).*from\s(?<ipaddress>[^\s]+)
           ]]>
         </SuccessfulLoginRegex>
-        <PlatformRegex>Windows</PlatformRegex>
+        <PlatformRegex>Windows|Linux</PlatformRegex>
         <PingInterval>10000</PingInterval>
         <MaxFileSize>0</MaxFileSize>
         <FailedLoginThreshold>5</FailedLoginThreshold>
