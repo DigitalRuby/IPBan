@@ -136,8 +136,7 @@ namespace DigitalRuby.IPBanCore
             this.counterFilter = counterFilter;
 
             value = (value ?? string.Empty).Trim();
-            regexValue = (regexValue ?? string.Empty).Replace("*", @"[0-9A-Fa-f]+?").Trim();
-
+            regexValue ??= string.Empty;
             if (!string.IsNullOrWhiteSpace(value))
             {
                 List<string> entries = [];

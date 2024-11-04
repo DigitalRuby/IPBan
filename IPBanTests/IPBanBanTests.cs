@@ -413,6 +413,27 @@ namespace DigitalRuby.IPBanTests
         }
 
         [Test]
+        public async Task TestUserNameBanRegex()
+        {
+            using IPBanConfig.TempConfigChanger configChanger = new(service, xml =>
+            {
+                return IPBanConfig.ChangeConfigAppSetting(xml, "BlacklistRegex", "Naughty.*");
+            }, out string newConfig);
+
+            service.AddIPAddressLogEvents(new IPAddressLogEvent[]
+            {
+                // a single failed login with a non-blacklisted user name should not get banned
+                new("99.99.99.99", "Good User Name", "RDP", 1, IPAddressEventType.FailedLogin),
+
+                // a single failed login with a blacklisted user name should get banned
+                new("99.99.99.90", "NaughtyUserName", "RDP", 1, IPAddressEventType.FailedLogin)
+            });
+            await service.RunCycleAsync();
+            ClassicAssert.IsTrue(service.Firewall.IsIPAddressBlocked("99.99.99.90", out _));
+            ClassicAssert.IsFalse(service.Firewall.IsIPAddressBlocked("99.99.99.99", out _));
+        }
+
+        [Test]
         public async Task TestUserNameBan()
         {
             using IPBanConfig.TempConfigChanger configChanger = new(service, xml =>
