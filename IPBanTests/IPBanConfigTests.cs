@@ -207,13 +207,14 @@ namespace DigitalRuby.IPBanTests
             AssertEventViewerGroup(groups[i++], "0x80000000000000", minimumWindowsMajorVersion, 0, false, "System", "RRAS", "//EventID", "^20271$", "(//Data)[2]", @"(?<username>.*)", "(//Data)[3]", @"(?<ipaddress>.+)", "(//Data)[4]", @"(?<log>denied|connection\swas\sprevented|Die\sRemoteverbindung\swurde\sverweigert)");
             AssertEventViewerGroup(groups[i++], "0x80000000000000", minimumWindowsMajorVersion, 0, false, "VisualSVNServer", "SVN", "//EventID", "^1004$", "(//Data)[1]", @"user\s(?<username>.*?):\s\(.*\)\s.*?(?<log>falsch|wrong|incorrect|bad)", "(//Data)[2]", @"(?<ipaddress_exact>.+)");
 
-            groupCount = 7;
+            groupCount = 8;
             groups = cfg.WindowsEventViewerExpressionsToNotify.Groups;
             i = 0;
             ClassicAssert.NotNull(groups);
             ClassicAssert.AreEqual(groupCount, groups.Count);
             AssertEventViewerGroup(groups[i++], "0x8020000000000000", minimumWindowsMajorVersion, 0, true, "Security", "RDP", "//EventID", "^4624$", "//Data[@Name='ProcessName' or @Name='LogonProcessName']", "winlogon|svchost|ntlmssp", "//Data[@Name='IpAddress' or @Name='Workstation' or @Name='SourceAddress']", "(?<ipaddress>.+)");
             AssertEventViewerGroup(groups[i++], "0x1000000000000000", minimumWindowsMajorVersion, 0, true, "Microsoft-Windows-TerminalServices-LocalSessionManager/Operational", "RDP", "//EventID", "^(?<log>25)$", "//Address", "(?<ipaddress>.+)", "//User", "(?<username>[^\\\\\\/]+)$");
+            AssertEventViewerGroup(groups[i++], "0x4020000001000000", minimumWindowsMajorVersion, 0, true, "Microsoft-Windows-TerminalServices-Gateway/Operational", "RDP", "//EventID", "^(?<log>200)$", "//IpAddress", "(?<ipaddress>.+)", "//Username", "(?<username>[^\\\\\\/]+)$", "//AuthType", "NTLM");
             AssertEventViewerGroup(groups[i++], "0x4000000000000000", minimumWindowsMajorVersion, 0, true, "OpenSSH/Operational", "SSH", "//Data[@Name='payload']", @"Accepted\s+(?:password|publickey)\s+for\s+(?<username>[^\s]+)\s+from\s+(?<ipaddress>[^\s]+)\s+port\s+[0-9]+\s+ssh");
             AssertEventViewerGroup(groups[i++], "0x80000000000000", minimumWindowsMajorVersion, 0, true, "Application", "IPBanCustom", "//Data", @"(?<timestamp>\d\d\d\d-\d\d-\d\d\s\d\d:\d\d:\d\d(?:\.\d+)?Z?)?(?:,\s)?ipban\ssuccess\slogin,\sip\saddress:\s(?<ipaddress>[^,]+),\ssource:\s(?<source>[^,]+)?,\suser:\s(?<username>[^\s,]+)?");
             AssertEventViewerGroup(groups[i++], "0x80000000000000", minimumWindowsMajorVersion, 0, true, "Application", "VNC", "//EventID", "^257$", "//Data", @"Authentication\spassed\sby\s(?<ipaddress>.+)");

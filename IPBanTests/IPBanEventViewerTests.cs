@@ -190,6 +190,10 @@ namespace DigitalRuby.IPBanTests
                         }
                         resultIndex++;
                     }
+                    if (resultIndex == 0 && test.EventType != IPAddressEventType.None)
+                    {
+                        ClassicAssert.Fail("No results found for test: " + test.Xml);
+                    }
                     if ((int)test.EventType == 9999)
                     {
                         // return config to original state
