@@ -353,7 +353,12 @@ namespace DigitalRuby.IPBanCore
             StringBuilder queryString = new("<QueryList>");
             int id = 0;
             HashSet<string> logNames = new(System.Diagnostics.Eventing.Reader.EventLogSession.GlobalSession.GetLogNames());
-            foreach (EventViewerExpressionGroup group in service.Config.WindowsEventViewerExpressionsToBlock.Groups)
+            IEnumerable<EventViewerExpressionGroup> groups = service.Config.WindowsEventViewerExpressionsToBlock.Groups;
+            if (service.Config.WindowsEventViewerExpressionsToNotify?.Groups is not null)
+            {
+                groups = groups.Concat(service.Config.WindowsEventViewerExpressionsToNotify.Groups);
+            }
+            foreach (EventViewerExpressionGroup group in groups)
             {
                 if (!logNames.Contains(group.Path) ||
                     (Environment.OSVersion.Version.Major < group.MinimumWindowsMajorVersion ||
