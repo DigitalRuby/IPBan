@@ -103,35 +103,36 @@ namespace DigitalRuby.IPBanCore
         public IReadOnlyCollection<IPAddressLogEvent> ProcessEventViewerXml(string xml)
         {
             Logger.Trace("Processing event viewer xml: {0}", xml);
-            List<IPAddressLogEvent> events = [];
             XmlDocument doc = ParseXml(xml);
+            var extractedEvents = ExtractEventViewerXml(doc);
 
-            foreach (var evt in ExtractEventViewerXml(doc))
+            foreach (var extractedEvent in extractedEvents)
             {
-                if (evt is not null &&
-                    evt.IPAddress is not null &&
-                    (evt.Type == IPAddressEventType.FailedLogin ||
-                    evt.Type == IPAddressEventType.SuccessfulLogin))
+                if (extractedEvent is not null &&
+                    extractedEvent.IPAddress is not null &&
+                    (extractedEvent.Type == IPAddressEventType.FailedLogin ||
+                    extractedEvent.Type == IPAddressEventType.SuccessfulLogin))
                 {
-                    if (!FindSourceAndUserNameForInfo(evt, doc))
+                    if (!FindSourceAndUserNameForInfo(extractedEvent, doc))
                     {
                         // bad ip address
                         continue;
                     }
-                    else if (evt.Type == IPAddressEventType.SuccessfulLogin &&
-                        !string.IsNullOrWhiteSpace(evt.UserName) &&
-                        evt.UserName.Contains("anonymous", StringComparison.OrdinalIgnoreCase))
+                    else if (extractedEvent.Type == IPAddressEventType.SuccessfulLogin &&
+                        !string.IsNullOrWhiteSpace(extractedEvent.UserName) &&
+                        extractedEvent.UserName.Contains("anonymous", StringComparison.OrdinalIgnoreCase))
                     {
-                        Logger.Debug("Ignoring anonymous login from windows event viewer: {0}", evt.UserName);
-                        evt.Type = IPAddressEventType.None;
+                        Logger.Debug("Ignoring anonymous login from windows event viewer: {0}", extractedEvent.UserName);
+                        extractedEvent.Type = IPAddressEventType.None;
                     }
-                    service.AddIPAddressLogEvents(new IPAddressLogEvent[] { evt });
-                    Logger.Debug("Event viewer found: {0}, {1}, {2}, {3}", evt.IPAddress, evt.Source, evt.UserName, evt.Type);
+
+                    Logger.Debug("Event viewer found: {0}, {1}, {2}, {3}", extractedEvent.IPAddress, extractedEvent.Source, extractedEvent.UserName, extractedEvent.Type);
                 }
-                events.Add(evt);
             }
 
-            return events;
+            service.AddIPAddressLogEvents(extractedEvents);
+
+            return extractedEvents;
         }
 
         private static bool FindSourceAndUserNameForInfo(IPAddressLogEvent info, XmlDocument doc)
@@ -166,12 +167,13 @@ namespace DigitalRuby.IPBanCore
             return true;
         }
 
-        private IEnumerable<IPAddressLogEvent> ExtractEventViewerXml(XmlDocument doc)
+        private List<IPAddressLogEvent> ExtractEventViewerXml(XmlDocument doc)
         {
+            List<IPAddressLogEvent> events = [];
             XmlNode keywordsNode = doc.SelectSingleNode("//Keywords");
             if (keywordsNode is null)
             {
-                yield break;
+                return [];
             }
 
             string keywordsText = keywordsNode.InnerText;
@@ -285,11 +287,13 @@ namespace DigitalRuby.IPBanCore
                     failedLoginMinimumTimespan = group.MinimumTimeBetweenLoginAttemptsTimeSpan;
 
                     IPAddressEventType eventType = (successfulLogin ? IPAddressEventType.SuccessfulLogin : IPAddressEventType.FailedLogin);
-                    yield return new IPAddressLogEvent(ipAddress, userName, source, count, eventType,
+                    events.Add(new IPAddressLogEvent(ipAddress, userName, source, count, eventType,
                         timestamp is null ? default : timestamp.Value, false, string.Empty,
-                        failedLoginThreshold, logLevel, logData, notificationFlags, failedLoginMinimumTimespan);
+                        failedLoginThreshold, logLevel, logData, notificationFlags, failedLoginMinimumTimespan));
                 }
             }
+
+            return events;
         }
 
         private static XmlDocument ParseXml(string xml)
