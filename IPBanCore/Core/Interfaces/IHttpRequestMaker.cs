@@ -24,9 +24,8 @@ SOFTWARE.
 
 using System;
 using System.Collections.Generic;
-using System.IO.Compression;
 using System.IO;
-using System.Net;
+using System.IO.Compression;
 using System.Net.Http;
 using System.Reflection;
 using System.Text;

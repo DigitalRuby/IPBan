@@ -118,7 +118,7 @@ namespace DigitalRuby.IPBanCore
 
             // create or update rule
             result |= CreateOrUpdateRule(zoneFile, zoneFileOrig, false, allowPriority, allowRuleName, allowRuleName6,
-                Array.Empty<PortRange>(), canUseForwardNode, fallbackZoneFileContents);
+                [], canUseForwardNode, fallbackZoneFileContents);
             dirty = true;
 
             // done
@@ -546,7 +546,7 @@ namespace DigitalRuby.IPBanCore
             return foundOne;
         }
 
-        private IReadOnlyDictionary<string, bool> GetRuleTypes()
+        private Dictionary<string, bool> GetRuleTypes()
         {
             Dictionary<string, bool> rules = [];
             var setNames = IPBanLinuxIPSetFirewallD.GetSetNames(RulePrefix);
@@ -572,7 +572,6 @@ namespace DigitalRuby.IPBanCore
                                     rules[ipsetName] = acceptNode is not null;
                                 }
                             }
-
                         }
                     }
                 }

@@ -85,8 +85,8 @@ namespace DigitalRuby.IPBanTests
             ClassicAssert.AreEqual(dt2, banDate.Key);
             ClassicAssert.AreEqual(dt3, banDate.Value);
             ClassicAssert.IsTrue(db.TryGetBanDates("5.5.5.5", out banDate));
-            count = db.SetBannedIPAddresses(new Tuple<string, DateTime, DateTime>[]
-            {
+            count = db.SetBannedIPAddresses(
+            [
                     new(ip, dt2, dt3),
                     new("5.5.5.5", dt2, dt3),
                     new("5.5.5.6", dt2, dt3),
@@ -95,7 +95,7 @@ namespace DigitalRuby.IPBanTests
                     new("11.11.11.11", dt2, dt3),
                     new("12.12.12.12", dt2, dt3),
                     new("11.11.11.11", dt2, dt3)
-            }, now);
+            ], now);
             ClassicAssert.AreEqual(6, count);
             IPAddressRange range = IPAddressRange.Parse("5.5.5.0/24");
             count = 0;
@@ -104,11 +104,11 @@ namespace DigitalRuby.IPBanTests
                 ClassicAssert.IsTrue(ipAddress == "5.5.5.5" || ipAddress == "5.5.5.6");
                 count++;
             }
-            db.SetBannedIPAddresses(new Tuple<string, DateTime, DateTime>[]
-            {
+            db.SetBannedIPAddresses(
+            [
                     new("5.5.5.5", dt2, dt3),
                     new("5.5.5.6", dt2, dt3)
-            }, now);
+            ], now);
             count = db.IncrementFailedLoginCount("9.9.9.9", null, null, dt2, 1);
             ClassicAssert.AreEqual(1, count);
             count = 0;
@@ -123,7 +123,7 @@ namespace DigitalRuby.IPBanTests
             ClassicAssert.AreEqual(7, ipAll.Length);
 
             // ensure deltas work properly
-            ClassicAssert.AreEqual(1, db.SetIPAddressesState(new string[] { "5.5.5.5" }, IPBanDB.IPAddressState.RemovePending));
+            ClassicAssert.AreEqual(1, db.SetIPAddressesState(["5.5.5.5"], IPBanDB.IPAddressState.RemovePending));
             IPBanFirewallIPAddressDelta[] deltas = db.EnumerateIPAddressesDeltaAndUpdateState(false, now).ToArray();
             ClassicAssert.AreEqual(6, deltas.Length);
             ClassicAssert.AreEqual("10.10.10.10", deltas[0].IPAddress);

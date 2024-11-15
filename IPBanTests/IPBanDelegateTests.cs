@@ -80,7 +80,7 @@ namespace DigitalRuby.IPBanTests
 
         private void AddLoginEvents()
         {
-            service.AddIPAddressLogEvents(new IPAddressLogEvent[] { info1, info2, info3 });
+            service.AddIPAddressLogEvents([info1, info2, info3]);
             service.RunCycleAsync().Sync();
 
             ClassicAssert.AreEqual(6, events.Count);

@@ -25,18 +25,12 @@ SOFTWARE.
 #region Imports
 
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
-using System.IO;
 using System.Linq;
 using System.Net;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Xml;
-using System.Xml.Serialization;
 
 #endregion Imports
 
@@ -53,7 +47,7 @@ namespace DigitalRuby.IPBanCore
 [
             ',', ';', '|', '_', '-', '/', '\'', '\"', '(', ')', '[', ']', '{', '}', ' ', '\t', '\r', '\n'
         ];
-        private static readonly char[] ipTrimChars = [' ','\t','\r','\n','.', ';', '|', '-', '%', '@'];
+        private static readonly char[] ipTrimChars = [' ', '\t', '\r', '\n', '.', ';', '|', '-', '%', '@'];
 
         /// <summary>
         /// Allow truncating user names at any of these chars or empty array for no truncation

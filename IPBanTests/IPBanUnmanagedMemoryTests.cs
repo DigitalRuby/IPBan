@@ -1,9 +1,9 @@
-﻿using System;
-using System.Runtime.InteropServices;
-
-using DigitalRuby.IPBanCore;
+﻿using DigitalRuby.IPBanCore;
 
 using NUnit.Framework;
+
+using System;
+using System.Runtime.InteropServices;
 
 namespace DigitalRuby.IPBanTests
 {

@@ -24,7 +24,6 @@ SOFTWARE.
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Threading;
@@ -103,7 +102,7 @@ namespace DigitalRuby.IPBanCore
 
         private class MemoryFirewallRuleRanges : IComparer<IPV4Range>, IComparer<IPV6Range>, IMemoryFirewallRuleRanges
         {
-            private static readonly List<PortRange> emptyPortRanges = new(0);
+            private static readonly List<PortRange> emptyPortRanges = [];
 
             private readonly List<IPV4Range> ipv4 = [];
             private readonly List<IPV6Range> ipv6 = [];
@@ -367,10 +366,10 @@ namespace DigitalRuby.IPBanCore
             {
                 lock (this)
                 {
-                    IEnumerable<KeyValuePair<string, IMemoryFirewallRule>> allowRules = new KeyValuePair<string, IMemoryFirewallRule>[]
-                    {
+                    IEnumerable<KeyValuePair<string, IMemoryFirewallRule>> allowRules =
+                    [
                         new(allowRule.Name, allowRule)
-                    };
+                    ];
                     return blockRules
                         .Select(kv => new KeyValuePair<string, IMemoryFirewallRule>(kv.Key, kv.Value))
                         .Union(allowRules)
@@ -760,7 +759,7 @@ namespace DigitalRuby.IPBanCore
             {
                 blockRules.Clear();
                 blockRulesRanges.Clear();
-                allowRule.SetIPAddresses(Array.Empty<string>(), null);
+                allowRule.SetIPAddresses([], null);
             }
         }
     }

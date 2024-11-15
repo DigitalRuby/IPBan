@@ -301,7 +301,7 @@ namespace DigitalRuby.IPBanCore
             object[] results = new object[64];
             int count;
             bool matchAll = (string.IsNullOrWhiteSpace(ruleNamePrefix) || ruleNamePrefix == "*");
-            IntPtr bufferLengthPointer = Marshal.AllocCoTaskMem(Marshal.SizeOf(typeof(int)));
+            IntPtr bufferLengthPointer = Marshal.AllocCoTaskMem(Marshal.SizeOf<int>());
             try
             {
                 do
@@ -397,10 +397,7 @@ namespace DigitalRuby.IPBanCore
                 List<string> ipAddressesList = [];
                 foreach (string ipAddress in ipAddresses)
                 {
-                    if (cancelToken.IsCancellationRequested)
-                    {
-                        throw new OperationCanceledException(cancelToken);
-                    }
+                    cancelToken.ThrowIfCancellationRequested();
                     ipAddressesList.Add(ipAddress);
                     if (ipAddressesList.Count == MaxIpAddressesPerRule)
                     {
@@ -416,10 +413,7 @@ namespace DigitalRuby.IPBanCore
                         ipAddressesList.Clear();
                     }
                 }
-                if (cancelToken.IsCancellationRequested)
-                {
-                    throw new OperationCanceledException(cancelToken);
-                }
+                cancelToken.ThrowIfCancellationRequested();
                 if (ipAddressesList.Count != 0)
                 {
                     if (block)

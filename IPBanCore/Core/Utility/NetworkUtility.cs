@@ -39,7 +39,6 @@ namespace DigitalRuby.IPBanCore
     public static class NetworkUtility
     {
         // https://en.wikipedia.org/wiki/Reserved_IP_addresses
-        private static readonly System.Net.IPAddress[] localHostIP = [System.Net.IPAddress.Parse("127.0.0.1"), System.Net.IPAddress.Parse("::1")];
 
         /// <summary>
         /// First ipv4
@@ -54,8 +53,8 @@ namespace DigitalRuby.IPBanCore
         /// <summary>
         /// IPV4 internal ranges
         /// </summary>
-        public static readonly IReadOnlyCollection<IPAddressRange> InternalRangesIPV4 = new IPAddressRange[]
-        {
+        public static readonly IReadOnlyCollection<IPAddressRange> InternalRangesIPV4 =
+        [
             IPAddressRange.Parse("0.0.0.0-0.255.255.255"),
             IPAddressRange.Parse("10.0.0.0-10.255.255.255"),
             IPAddressRange.Parse("100.64.0.0-100.127.255.255"),
@@ -72,7 +71,7 @@ namespace DigitalRuby.IPBanCore
             IPAddressRange.Parse("224.0.0.0-239.255.255.255"),
             IPAddressRange.Parse("233.252.0.0-233.252.0.255"),
             IPAddressRange.Parse("240.0.0.0-255.255.255.255")
-        };
+        ];
         private static readonly List<IPV4Range> internalRangesIPV4Optimized = InternalRangesIPV4.Select(r => new IPV4Range(r)).ToList();
 
         /// <summary>
@@ -88,8 +87,8 @@ namespace DigitalRuby.IPBanCore
         /// <summary>
         /// Internal IPV6 ranges
         /// </summary>
-        public static readonly IReadOnlyCollection<IPAddressRange> InternalRangesIPV6 = new IPAddressRange[]
-        {
+        public static readonly IReadOnlyCollection<IPAddressRange> InternalRangesIPV6 =
+        [
             IPAddressRange.Parse("::-1FFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF"), // loopbacks and locals
             //IPAddressRange.Parse("::FFFF:0:0-::FFFF:FFFF:FFFF"), // ipv4 mapped
             //IPAddressRange.Parse("100::-100:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF"), // discard prefix
@@ -101,7 +100,7 @@ namespace DigitalRuby.IPBanCore
             IPAddressRange.Parse("FE80::-FE80:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF"), // link local
             IPAddressRange.Parse("FEC0::-FEC0:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF"), // site local
             IPAddressRange.Parse("FF00::-FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF") // multicast
-        };
+        ];
         private static readonly List<IPV6Range> internalRangesIPV6Optimized = InternalRangesIPV6.Select(r => new IPV6Range(r)).ToList();
 
         /// <summary>
@@ -243,9 +242,7 @@ namespace DigitalRuby.IPBanCore
                     }
                 }
             }
-            return ips.OrderByDescending(i => i.Value)
-                .ThenBy(i => i.Key.AddressFamily)
-                .ToArray();
+            return [.. ips.OrderByDescending(i => i.Value).ThenBy(i => i.Key.AddressFamily)];
         }
 
         /// <summary>
@@ -351,7 +348,7 @@ namespace DigitalRuby.IPBanCore
             {
                 // non-fatal
             }
-            return Array.Empty<System.Net.IPAddress>();
+            return [];
         }
     }
 }

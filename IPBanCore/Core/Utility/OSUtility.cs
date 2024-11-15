@@ -180,7 +180,7 @@ namespace DigitalRuby.IPBanCore
         }
 
         private static readonly string tempFolder;
-        private static readonly object locker = new();
+        private static readonly Lock locker = new();
 
         private static PerformanceCounter windowsCpuCounter;
         private static PerformanceCounter windowsDiskIopsCounter;
@@ -473,7 +473,7 @@ namespace DigitalRuby.IPBanCore
             public ulong ullAvailExtendedVirtual;
             public MEMORYSTATUSEX()
             {
-                this.dwLength = (uint)Marshal.SizeOf(typeof(MEMORYSTATUSEX));
+                this.dwLength = (uint)Marshal.SizeOf<MEMORYSTATUSEX>();
             }
         }
 

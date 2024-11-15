@@ -27,13 +27,11 @@ SOFTWARE.
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net;
 using System.Runtime.InteropServices;
 using System.Text;
-using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
@@ -107,7 +105,7 @@ namespace DigitalRuby.IPBanCore
                     await LoadFirewall(oldConfig);
 
                     // process firewall changes from configuration
-                    await HandleFirewallConfigChange();                    
+                    await HandleFirewallConfigChange();
                     ParseAndAddUriFirewallRules();
                 }
             }
@@ -708,7 +706,7 @@ namespace DigitalRuby.IPBanCore
                         {
                             Logger.Warn("Un-banning whitelisted ip address {0}", ipAddress.IPAddress);
                             unbanList?.Add(ipAddress.IPAddress);
-                            DB.SetIPAddressesState(new string[] { ipAddress.IPAddress }, IPBanDB.IPAddressState.RemovePending, transaction);
+                            DB.SetIPAddressesState([ipAddress.IPAddress], IPBanDB.IPAddressState.RemovePending, transaction);
                             firewallNeedsBlockedIPAddressesUpdate = true;
                         }
                         else
@@ -761,13 +759,13 @@ namespace DigitalRuby.IPBanCore
                     if (i < banTimes.Length)
                     {
                         Logger.Warn("Preparing ip address {0} for next ban time {1}", ipAddress.IPAddress, banTimes[i]);
-                        ipDB.SetIPAddressesState(new string[] { ipAddress.IPAddress }, IPBanDB.IPAddressState.RemovePendingBecomeFailedLogin, transaction);
+                        ipDB.SetIPAddressesState([ipAddress.IPAddress], IPBanDB.IPAddressState.RemovePendingBecomeFailedLogin, transaction);
                     }
                     else
                     {
                         unbanList?.Add(ipAddress.IPAddress);
                         Logger.Warn("Un-banning ip address {0}, ban expired", ipAddress.IPAddress);
-                        ipDB.SetIPAddressesState(new string[] { ipAddress.IPAddress }, IPBanDB.IPAddressState.RemovePending, transaction);
+                        ipDB.SetIPAddressesState([ipAddress.IPAddress], IPBanDB.IPAddressState.RemovePending, transaction);
                     }
                 }
                 // if fail login has expired, remove ip address from db
@@ -853,7 +851,7 @@ namespace DigitalRuby.IPBanCore
                 Logger.Error("Error in delegate Update", ex);
             }
         }
-        
+
         /// <summary>
         /// Fires when firewall is created. Firewall property.
         /// </summary>
@@ -1262,7 +1260,7 @@ namespace DigitalRuby.IPBanCore
                             break;
 
                         case IPAddressEventType.Unblocked:
-                            DB.SetIPAddressesState(new string[] { evt.IPAddress }, IPBanDB.IPAddressState.RemovePending, transaction);
+                            DB.SetIPAddressesState([evt.IPAddress], IPBanDB.IPAddressState.RemovePending, transaction);
                             firewallNeedsBlockedIPAddressesUpdate = true;
                             unbannedIPs.Add(evt);
                             break;

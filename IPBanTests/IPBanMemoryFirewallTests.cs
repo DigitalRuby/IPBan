@@ -22,14 +22,14 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-using System;
-using System.Linq;
-using System.Net;
-
 using DigitalRuby.IPBanCore;
 
 using NUnit.Framework;
 using NUnit.Framework.Legacy;
+
+using System;
+using System.Linq;
+using System.Net;
 
 namespace DigitalRuby.IPBanTests
 {
@@ -46,11 +46,11 @@ namespace DigitalRuby.IPBanTests
             string ipv6_2 = IPAddress.Parse("2001:0db8:0a0b:12f0:0000:0000:0000:0001").ToString();
             string[] blockIP = [allowIP, "100.100.100.100"];
             IPBanMemoryFirewall f = new();
-            f.AllowIPAddresses(new string[] { allowIP }).Sync();
-            f.AllowIPAddresses("TestRuleAllow", new IPAddressRange[] { IPAddressRange.Parse(allowIP2) }).Sync();
-            f.BlockIPAddresses(null, blockIP.Concat(new string[] { allowIP, allowIP2, ipv6_1, ipv6_2 })).Sync();
+            f.AllowIPAddresses([allowIP]).Sync();
+            f.AllowIPAddresses("TestRuleAllow", [IPAddressRange.Parse(allowIP2)]).Sync();
+            f.BlockIPAddresses(null, blockIP.Concat([allowIP, allowIP2, ipv6_1, ipv6_2])).Sync();
             IPAddressRange range = new(IPAddress.Parse(ipv6_2), IPAddress.Parse(ipv6_1));
-            f.BlockIPAddresses("TestRuleBlock", new IPAddressRange[] { range }, Array.Empty<PortRange>());
+            f.BlockIPAddresses("TestRuleBlock", [range], []);
             string[] banned = f.EnumerateBannedIPAddresses().ToArray();
             IPAddressRange[] banned2 = f.EnumerateIPAddresses("TestRuleBlock").ToArray();
             ClassicAssert.AreEqual(0, f.GetRuleNames("CB").Count());

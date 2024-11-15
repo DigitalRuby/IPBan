@@ -294,11 +294,7 @@ namespace DigitalRuby.IPBanCore
                 RunProcess(IpTablesProcess, true, $"{addCommand} {newRootCommand} {action}");
             }
 
-            if (cancelToken.IsCancellationRequested)
-            {
-                throw new OperationCanceledException(cancelToken);
-            }
-
+            cancelToken.ThrowIfCancellationRequested();
             SaveTableToDisk();
 
             return true;

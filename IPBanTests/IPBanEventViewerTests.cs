@@ -120,20 +120,23 @@ namespace DigitalRuby.IPBanTests
             }
         }
 
-        private static IReadOnlyCollection<EventViewerTest> ReadEventViewerTests()
+        private static IReadOnlyCollection<EventViewerTest> ReadEventViewerTests
         {
-            string[] lines = File.ReadAllLines("TestData/EventViewer/EventViewerTests.txt")
-                .Select(l => l.Trim())
-                .Where(l => !l.StartsWith('#'))
-                .ToArray();
-            List<EventViewerTest> tests = new(lines.Length / 6);
-
-            for (int i = 0; i < lines.Length; i += 6)
+            get
             {
-                tests.Add(new(lines.Skip(i).Take(5).ToArray()));
-            }
+                string[] lines = File.ReadAllLines("TestData/EventViewer/EventViewerTests.txt")
+                    .Select(l => l.Trim())
+                    .Where(l => !l.StartsWith('#'))
+                    .ToArray();
+                List<EventViewerTest> tests = new(lines.Length / 6);
 
-            return tests;
+                for (int i = 0; i < lines.Length; i += 6)
+                {
+                    tests.Add(new(lines.Skip(i).Take(5).ToArray()));
+                }
+
+                return tests;
+            }
         }
 
         [Test]
@@ -144,7 +147,7 @@ namespace DigitalRuby.IPBanTests
                 return;
             }
 
-            IReadOnlyCollection<EventViewerTest> tests = ReadEventViewerTests();
+            IReadOnlyCollection<EventViewerTest> tests = ReadEventViewerTests;
 
             // avert thine eyes
             const string eventViewerHackyXml = @"<Source>RDP</Source><Keywords>0x8020000000000000</Keywords><Path>Security</Path><Expressions><Expression><XPath>//EventID</XPath><Regex>^4624$</Regex></Expression><Expression><XPath>//Data[@Name='ProcessName' or @Name='LogonProcessName']</XPath><Regex>ntlmssp</Regex></Expression><Expression><XPath>//Data[@Name='IpAddress' or @Name='Workstation' or @Name='SourceAddress']</XPath><Regex><![CDATA[(?<ipaddress>.+)]]></Regex></Expression></Expressions>";

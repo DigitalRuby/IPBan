@@ -37,7 +37,7 @@ namespace DigitalRuby.IPBanCore
         /// Size of unmanaged memory. Will be 0 if freed.
         /// </summary>
         public int Size { get; private set; }
-                
+
         /// <summary>
         /// Constructor. Allocates unmanaged memory with Marshal.AllocHGlobal.
         /// </summary>

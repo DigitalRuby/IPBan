@@ -66,10 +66,10 @@ namespace DigitalRuby.IPBanCore
             "localhost"
         ];
 
-        private static readonly IEnumerable<KeyValuePair<string, object>> ipListHeaders = new KeyValuePair<string, object>[]
-        {
+        private static readonly IEnumerable<KeyValuePair<string, object>> ipListHeaders =
+        [
             new("User-Agent", "ipban.com")
-        };
+        ];
 
         private readonly HashSet<System.Net.IPAddress> set = [];
         private readonly string value;
@@ -218,9 +218,9 @@ namespace DigitalRuby.IPBanCore
                                         await ExtensionMethods.RetryAsync(async () => addresses = await dns.GetHostAddressesAsync(entryWithoutComment),
                                             exceptionRetry: _ex =>
                                             {
-                                            // ignore host not found errors
-                                            return (_ex is not System.Net.Sockets.SocketException socketEx ||
-                                                    socketEx.SocketErrorCode != System.Net.Sockets.SocketError.HostNotFound);
+                                                // ignore host not found errors
+                                                return (_ex is not System.Net.Sockets.SocketException socketEx ||
+                                                        socketEx.SocketErrorCode != System.Net.Sockets.SocketError.HostNotFound);
                                             });
 
                                         lock (set)

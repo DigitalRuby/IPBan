@@ -29,11 +29,8 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
-using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Net;
-using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml;
 using System.Xml.Serialization;
@@ -942,7 +939,7 @@ namespace DigitalRuby.IPBanCore
         /// Api key from https://ipthreat.net, if any
         /// </summary>
         public string IPThreatApiKey { get { return ipThreatApiKey; } }
-        
+
         /// <summary>
         /// Number of failed login attempts before a ban is initiated
         /// </summary>

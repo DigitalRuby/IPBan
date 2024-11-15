@@ -22,8 +22,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-using Microsoft.VisualBasic;
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -303,12 +301,12 @@ namespace DigitalRuby.IPBanCore
                 }
                 else
                 {
-                    portRanges = Array.Empty<PortRange>();
+                    portRanges = [];
                 }
             }
             else
             {
-                portRanges = Array.Empty<PortRange>();
+                portRanges = [];
             }
             return portRanges;
         }

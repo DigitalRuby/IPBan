@@ -132,35 +132,35 @@ namespace DigitalRuby.IPBanTests
             string path = Path.Combine(AppContext.BaseDirectory, "TestData/LogFiles/Apache/everything.log");
             await RunTest(null, path, doc =>
             {
-                XmlNode logFiles = doc.SelectSingleNode("//LogFiles");
-                XmlNode logFile = doc.CreateElement("LogFile");
-                XmlNode source = doc.CreateElement("Source");
+                var logFiles = doc.SelectSingleNode("//LogFiles");
+                var logFile = doc.CreateElement("LogFile");
+                var source = doc.CreateElement("Source");
                 source.InnerText = "Apache";
                 logFile.AppendChild(source);
-                XmlNode pathAndMask = doc.CreateElement("PathAndMask");
+                var pathAndMask = doc.CreateElement("PathAndMask");
                 pathAndMask.InnerText = path;
                 logFile.AppendChild(pathAndMask);
-                XmlNode failedLoginRegex = doc.CreateElement("FailedLoginRegex");
+                var failedLoginRegex = doc.CreateElement("FailedLoginRegex");
                 failedLoginRegex.InnerText = @"\n(?<ipaddress>[^\s]+)[^\[]+\[(?<timestamp>[^\]]+)\]\s""(?:\\x|[^\n]+?\s(?:301|40[04])\s[0-9\-])[^\n]*";
                 logFile.AppendChild(failedLoginRegex);
-                XmlNode failedLoginRegexTimestampFormat = doc.CreateElement("FailedLoginRegexTimestampFormat");
+                var failedLoginRegexTimestampFormat = doc.CreateElement("FailedLoginRegexTimestampFormat");
                 failedLoginRegexTimestampFormat.InnerText = "dd/MMM/yyyy:HH:mm:ss zzzz";
                 logFile.AppendChild(failedLoginRegexTimestampFormat);
-                XmlNode platformRegex = doc.CreateElement("PlatformRegex");
+                var platformRegex = doc.CreateElement("PlatformRegex");
                 platformRegex.InnerText = ".";
                 logFile.AppendChild(platformRegex);
-                XmlNode pingInterval = doc.CreateElement("PingInterval");
+                var pingInterval = doc.CreateElement("PingInterval");
                 pingInterval.InnerText = "10000";
                 logFile.AppendChild(pingInterval);
-                XmlNode maxFileSize = doc.CreateElement("MaxFileSize");
+                var maxFileSize = doc.CreateElement("MaxFileSize");
                 maxFileSize.InnerText = "0";
                 logFile.AppendChild(maxFileSize);
-                XmlNode failedLoginThreshold = doc.CreateElement("FailedLoginThreshold");
+                var failedLoginThreshold = doc.CreateElement("FailedLoginThreshold");
                 failedLoginThreshold.InnerText = "0";
                 logFile.AppendChild(failedLoginThreshold);
                 logFiles.AppendChild(logFile);
 
-                XmlNode minTimeBetweenFailures = doc.SelectSingleNode("//add[@key='MinimumTimeBetweenFailedLoginAttempts']");
+                var minTimeBetweenFailures = doc.SelectSingleNode("//add[@key='MinimumTimeBetweenFailedLoginAttempts']");
                 minTimeBetweenFailures.Attributes["value"].Value = "00:00:00:00";
             });
 
@@ -175,30 +175,30 @@ namespace DigitalRuby.IPBanTests
             string path = Path.Combine(AppContext.BaseDirectory, "TestData/LogFiles/RDWeb/everything.log");
             await RunTest(null, path, doc =>
             {
-                XmlNode logFiles = doc.SelectSingleNode("//LogFiles");
-                XmlNode logFile = doc.CreateElement("LogFile");
-                XmlNode source = doc.CreateElement("Source");
+                var logFiles = doc.SelectSingleNode("//LogFiles");
+                var logFile = doc.CreateElement("LogFile");
+                var source = doc.CreateElement("Source");
                 source.InnerText = "RDWeb";
                 logFile.AppendChild(source);
-                XmlNode pathAndMask = doc.CreateElement("PathAndMask");
+                var pathAndMask = doc.CreateElement("PathAndMask");
                 pathAndMask.InnerText = path;
                 logFile.AppendChild(pathAndMask);
-                XmlNode failedLoginRegex = doc.CreateElement("FailedLoginRegex");
+                var failedLoginRegex = doc.CreateElement("FailedLoginRegex");
                 failedLoginRegex.InnerText = @"(?<timestamp_utc>\d\d\d\d\-\d\d\-\d\d\s\d\d\:\d\d\:\d\d)\s[^\s]+\sPOST\s\/RDWeb\/Pages\/[^\/]+\/login\.aspx\s[^\s]+\s[0-9]+\s-\s(?<ipaddress>[^\s]+).*\s200\s[^\n]+\n";
                 logFile.AppendChild(failedLoginRegex);
-                XmlNode platformRegex = doc.CreateElement("PlatformRegex");
+                var platformRegex = doc.CreateElement("PlatformRegex");
                 platformRegex.InnerText = ".";
                 logFile.AppendChild(platformRegex);
-                XmlNode pingInterval = doc.CreateElement("PingInterval");
+                var pingInterval = doc.CreateElement("PingInterval");
                 pingInterval.InnerText = "10000";
                 logFile.AppendChild(pingInterval);
-                XmlNode maxFileSize = doc.CreateElement("MaxFileSize");
+                var maxFileSize = doc.CreateElement("MaxFileSize");
                 maxFileSize.InnerText = "0";
                 logFile.AppendChild(maxFileSize);
-                XmlNode failedLoginThreshold = doc.CreateElement("FailedLoginThreshold");
+                var failedLoginThreshold = doc.CreateElement("FailedLoginThreshold");
                 failedLoginThreshold.InnerText = "0";
                 logFile.AppendChild(failedLoginThreshold);
-                XmlNode minTimeFailedLogins = doc.CreateElement("MinimumTimeBetweenFailedLoginAttempts");
+                var minTimeFailedLogins = doc.CreateElement("MinimumTimeBetweenFailedLoginAttempts");
                 minTimeFailedLogins.InnerText = "00:00:00:00";
                 logFile.AppendChild(minTimeFailedLogins);
                 logFiles.AppendChild(logFile);
@@ -222,8 +222,8 @@ namespace DigitalRuby.IPBanTests
                 doc.LoadXml(config);
                 if (!string.IsNullOrWhiteSpace(pathAndMaskXPath))
                 {
-                    XmlNode logFileNode = doc.SelectSingleNode(pathAndMaskXPath);
-                    XmlNode pathAndMask = logFileNode["PathAndMask"];
+                    var logFileNode = doc.SelectSingleNode(pathAndMaskXPath);
+                    var pathAndMask = logFileNode["PathAndMask"];
                     pathAndMask.InnerText = pathAndMaskOverride;
                 }
                 modifier?.Invoke(doc);

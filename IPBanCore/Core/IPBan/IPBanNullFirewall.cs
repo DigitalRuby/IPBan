@@ -78,25 +78,25 @@ namespace DigitalRuby.IPBanCore
         /// <inheritdoc />
         public override IEnumerable<string> EnumerateAllowedIPAddresses()
         {
-            return System.Array.Empty<string>();
+            return [];
         }
 
         /// <inheritdoc />
         public override IEnumerable<string> EnumerateBannedIPAddresses()
         {
-            return System.Array.Empty<string>();
+            return [];
         }
 
         /// <inheritdoc />
         public override IEnumerable<IPAddressRange> EnumerateIPAddresses(string ruleNamePrefix = null)
         {
-            return System.Array.Empty<IPAddressRange>();
+            return [];
         }
 
         /// <inheritdoc />
         public override IEnumerable<string> GetRuleNames(string ruleNamePrefix = null)
         {
-            return System.Array.Empty<string>();
+            return [];
         }
 
         /// <inheritdoc />

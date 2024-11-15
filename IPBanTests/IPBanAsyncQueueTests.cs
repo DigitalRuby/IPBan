@@ -43,7 +43,7 @@ namespace DigitalRuby.IPBanTests
             TimeSpan timeout = TimeSpan.FromMilliseconds(1.0);
             AsyncQueue<int> queue = new();
             await queue.EnqueueAsync(1);
-            await queue.EnqueueRangeAsync(new[] { 2, 3 });
+            await queue.EnqueueRangeAsync([2, 3]);
             ClassicAssert.AreEqual(1, queue.TryDequeueAsync(timeout).Sync().Value);
             ClassicAssert.AreEqual(2, queue.TryDequeueAsync(timeout).Sync().Value);
             ClassicAssert.AreEqual(3, queue.TryDequeueAsync(timeout).Sync().Value);

@@ -157,7 +157,7 @@ namespace DigitalRuby.IPBanCore
         }
 
         /// <inheritdoc />
-        readonly int IComparable<PortRange>.CompareTo(PortRange other)
+        public readonly int CompareTo(PortRange other)
         {
             if (MinPort < other.MinPort)
             {
@@ -186,6 +186,42 @@ namespace DigitalRuby.IPBanCore
         public static implicit operator PortRange(string s)
         {
             return Parse(s);
+        }
+
+        /// <inheritdoc />
+        public static bool operator ==(PortRange left, PortRange right)
+        {
+            return left.Equals(right);
+        }
+
+        /// <inheritdoc />
+        public static bool operator !=(PortRange left, PortRange right)
+        {
+            return !(left == right);
+        }
+
+        /// <inheritdoc />
+        public static bool operator <(PortRange left, PortRange right)
+        {
+            return left.CompareTo(right) < 0;
+        }
+
+        /// <inheritdoc />
+        public static bool operator <=(PortRange left, PortRange right)
+        {
+            return left.CompareTo(right) <= 0;
+        }
+
+        /// <inheritdoc />
+        public static bool operator >(PortRange left, PortRange right)
+        {
+            return left.CompareTo(right) > 0;
+        }
+
+        /// <inheritdoc />
+        public static bool operator >=(PortRange left, PortRange right)
+        {
+            return left.CompareTo(right) >= 0;
         }
     }
 }

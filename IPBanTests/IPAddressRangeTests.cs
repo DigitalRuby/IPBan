@@ -22,15 +22,15 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-using System;
-using System.Linq;
-using System.Net;
-using System.Net.Sockets;
-
 using DigitalRuby.IPBanCore;
 
 using NUnit.Framework;
 using NUnit.Framework.Legacy;
+
+using System;
+using System.Linq;
+using System.Net;
+using System.Net.Sockets;
 
 namespace DigitalRuby.IPBanTests
 {

@@ -70,7 +70,7 @@ namespace DigitalRuby.IPBanTests
             ClassicAssert.IsTrue(set.Contains("test"));
             ClassicAssert.IsTrue(set.Contains("test2"));
             ClassicAssert.IsFalse(set.Contains("nothing"));
-            ClassicAssert.AreEqual(2, set.DeleteMany(new string[] { "test", "test2" }));
+            ClassicAssert.AreEqual(2, set.DeleteMany(["test", "test2"]));
             ClassicAssert.AreEqual(strings.Count, set.GetCount());
             ClassicAssert.IsFalse(set.Contains("test"));
             ClassicAssert.IsFalse(set.Contains("test2"));

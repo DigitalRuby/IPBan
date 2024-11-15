@@ -22,17 +22,17 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+using DigitalRuby.IPBanCore;
+
+using NUnit.Framework;
+using NUnit.Framework.Legacy;
+
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
 using System.Xml;
-
-using DigitalRuby.IPBanCore;
-
-using NUnit.Framework;
-using NUnit.Framework.Legacy;
 
 namespace DigitalRuby.IPBanTests
 {
@@ -64,7 +64,7 @@ namespace DigitalRuby.IPBanTests
         [Test]
         public void TestBlock()
         {
-            firewall.BlockIPAddresses(null, new string[] { "99.99.99.99" }).Sync();
+            firewall.BlockIPAddresses(null, ["99.99.99.99"]).Sync();
             ClassicAssert.IsTrue(firewall.IsIPAddressBlocked("99.99.99.99", out _));
         }
 
@@ -144,11 +144,11 @@ namespace DigitalRuby.IPBanTests
             ClassicAssert.IsNull("a".ToIPAddress());
             ClassicAssert.IsNull("".ToIPAddress());
             ClassicAssert.IsNull(((string)null).ToIPAddress());
-            ClassicAssert.Throws(typeof(InvalidOperationException), () =>
+            Assert.Throws<InvalidOperationException>(() =>
             {
                 "192.168.1.123".ToIPAddress().ToUInt128();
             });
-            ClassicAssert.Throws(typeof(InvalidOperationException), () =>
+            Assert.Throws<InvalidOperationException>(() =>
             {
                 "fe80::c872:be03:5c94:4af2".ToIPAddress().ToUInt32();
             });
@@ -194,8 +194,8 @@ namespace DigitalRuby.IPBanTests
             ClassicAssert.AreEqual(ipsBlocked.Length, new HashSet<string>(ipsBlocked).Count, "Duplicate ip from firewall block and retrieval");
             Array.Sort(ipsBlocked);
             ClassicAssert.AreEqual(ips, ipsBlocked);
-            firewall.BlockIPAddressesDelta(null, new IPBanFirewallIPAddressDelta[]
-            {
+            firewall.BlockIPAddressesDelta(null,
+            [
                 // remove 6 that exist
                 new() { IPAddress = ipsToRemove[0] },
                 new() { IPAddress = ipsToRemove[1] },
@@ -218,7 +218,7 @@ namespace DigitalRuby.IPBanTests
                 new() { Added = true, IPAddress = newIps[7] },
                 new() { Added = true, IPAddress = newIps[8] },
                 new() { Added = true, IPAddress = newIps[9] }
-            }).Sync();
+            ]).Sync();
 
             foreach (string ip in ipsToRemove)
             {
@@ -236,14 +236,14 @@ namespace DigitalRuby.IPBanTests
             // block 1000, on Windows this will cause a rule overflow
             firewall.BlockIPAddresses(null, ips.Take(1000));
 
-            firewall.BlockIPAddressesDelta(null, new IPBanFirewallIPAddressDelta[]
-            {
+            firewall.BlockIPAddressesDelta(null,
+            [
                 // add a one-off, on Windows this should cause a rule overflow
                 new() { Added = true, IPAddress = "91.91.91.91" }
-            }).Sync();
+            ]).Sync();
 
             firewallIP = firewall.EnumerateIPAddresses().Select(r2 => r2.Begin.ToString()).ToArray();
-            sentIP = ips.Take(1000).Concat(new string[] { "91.91.91.91" }).ToArray();
+            sentIP = ips.Take(1000).Concat(["91.91.91.91"]).ToArray();
             Array.Sort(firewallIP);
             Array.Sort(sentIP);
             ClassicAssert.AreEqual(sentIP, firewallIP);
@@ -273,7 +273,7 @@ namespace DigitalRuby.IPBanTests
             DateTimeOffset timestamp = new(2022, 1, 1, 1, 1, 1, TimeSpan.Zero);
             try
             {
-                firewall.SendPacketEvents(new[] { new PacketEvent
+                firewall.SendPacketEvents([ new PacketEvent
                 {
                     Allowed = false,
                     LocalIpAddress = "2.2.2.2",
@@ -289,7 +289,7 @@ namespace DigitalRuby.IPBanTests
                     RemoteISP = "isp",
                     RemoteRegion = "region",
                     Timestamp = timestamp
-                } });
+                } ]);
                 ClassicAssert.IsNotNull(packetEvent);
                 ClassicAssert.AreEqual("2.2.2.2", packetEvent.LocalIpAddress);
                 ClassicAssert.AreEqual(1234, packetEvent.LocalPort);
@@ -333,10 +333,10 @@ namespace DigitalRuby.IPBanTests
                 var rules = doc.SelectNodes("//rule");
                 ClassicAssert.AreEqual(6, rules.Count);
 
-                var ip6 = IPBanLinuxIPSetFirewallD.EnumerateSortedIPAddressRanges(new[]
-                {
+                var ip6 = IPBanLinuxIPSetFirewallD.EnumerateSortedIPAddressRanges(
+                [
                     IPAddressRange.Parse("2001:620:20d0::23-2001:620:20d0::24")
-                }).ToArray();
+                ]).ToArray();
                 ClassicAssert.That(ip6, Has.Length.EqualTo(2));
                 ClassicAssert.That(ip6[0].ToString(), Is.EqualTo("2001:620:20d0::23"));
                 ClassicAssert.That(ip6[1].ToString(), Is.EqualTo("2001:620:20d0::24"));

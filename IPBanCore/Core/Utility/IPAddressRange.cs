@@ -46,13 +46,13 @@ namespace DigitalRuby.IPBanCore
                                 if (bit == 0x00) f = 0x00;
                                 break;
                             default:
-                            {
-                                if (throwException)
                                 {
-                                    throw new FormatException("The subnet mask is not linear, bad bit: " + ipRangeString);
+                                    if (throwException)
+                                    {
+                                        throw new FormatException("The subnet mask is not linear, bad bit: " + ipRangeString);
+                                    }
+                                    return false;
                                 }
-                                return false;
-                            }
                         }
                         maskByte <<= 1;
                     }
@@ -410,7 +410,7 @@ namespace DigitalRuby.IPBanCore
                 left = new IPAddressRange(Begin, end);
                 return true;
             }
-            
+
             return false;
         }
 
@@ -756,7 +756,7 @@ namespace DigitalRuby.IPBanCore
             {
                 return length;
             }
-            
+
             for (int i = 0; i < length; i++)
             {
                 byte[] mask = Bits.GetBitMask(byteBegin.Length, i);
@@ -856,7 +856,7 @@ namespace DigitalRuby.IPBanCore
         IEnumerable<string> IReadOnlyDictionary<string, string>.Values => GetDictionaryItems().Select(item => item.Value);
 
         /// <inheritdoc />
-        int IReadOnlyCollection<KeyValuePair<string, string>>.Count => GetDictionaryItems().Count();
+        int IReadOnlyCollection<KeyValuePair<string, string>>.Count => GetDictionaryItems().Length;
 
         /// <inheritdoc />
         string IReadOnlyDictionary<string, string>.this[string key] => TryGetValue(key, out var value) ? value : throw new KeyNotFoundException();

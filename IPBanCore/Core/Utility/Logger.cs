@@ -27,7 +27,6 @@ SOFTWARE.
 using Microsoft.Extensions.Logging;
 
 using NLog;
-using NLog.Config;
 
 using System;
 using System.IO;

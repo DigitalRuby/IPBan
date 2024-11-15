@@ -53,7 +53,7 @@ namespace DigitalRuby.IPBanCore
         private readonly ConcurrentQueue<FirewallTask> firewallTasks = new();
         private readonly SemaphoreSlim cycleLock = new(1, 1);
         private readonly IReadOnlyCollection<(string name, Func<CancellationToken, Task> action)> cycleActions;
-        
+
         private bool firewallNeedsBlockedIPAddressesUpdate;
         private IPBanDB ipDB;
         private bool whitelistChanged;
@@ -107,7 +107,7 @@ namespace DigitalRuby.IPBanCore
         /// If an api key is specified in the IPThreatApiKey app setting
         /// </summary>
         public IPBanIPThreatUploader IPThreatUploader { get; set; }
-    
+
         /// <summary>
         /// Extra handler for banned ip addresses (optional)
         /// </summary>
@@ -284,7 +284,7 @@ namespace DigitalRuby.IPBanCore
             {
                 lock (pendingLogEvents)
                 {
-                    return pendingLogEvents.ToArray();
+                    return [.. pendingLogEvents];
                 }
             }
         }

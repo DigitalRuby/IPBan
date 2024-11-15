@@ -68,7 +68,7 @@ namespace DigitalRuby.IPBanTests
         [Test]
         public void TestPort25()
         {
-            var value = IPBanFirewallUtility.GetBlockPortRanges(new[] { new PortRange(25) });
+            var value = IPBanFirewallUtility.GetBlockPortRanges([new PortRange(25)]);
             var again = IPBanFirewallUtility.GetBlockPortRanges(value);
             ClassicAssert.That(again, Has.Count.EqualTo(1));
             ClassicAssert.That(again, Has.Exactly(1).Matches<PortRange>(x => x.MinPort == 25 && x.MinPort == 25));

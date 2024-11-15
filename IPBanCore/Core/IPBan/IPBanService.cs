@@ -59,8 +59,8 @@ namespace DigitalRuby.IPBanCore
             var appName = Assembly.GetEntryAssembly()?.GetName().Name ?? string.Empty;
             appName = (appName.Contains("ipbanpro", StringComparison.OrdinalIgnoreCase) ? "ipbanpro" : "ipban");
             AppName = appName + " " + version;
-            cycleActions = new (string, Func<CancellationToken, Task>)[]
-            {
+            cycleActions =
+            [
                 (nameof(UpdateConfiguration), UpdateConfiguration),
                 (nameof(SetNetworkInfo), SetNetworkInfo),
                 (nameof(UpdateDelegate), UpdateDelegate),
@@ -73,7 +73,7 @@ namespace DigitalRuby.IPBanCore
                 (nameof(RunFirewallTasks), RunFirewallTasks),
                 (nameof(OnUpdate), cancelToken => OnUpdate(cancelToken)),
                 (nameof(ShowRunningMessage), ShowRunningMessage)
-            };
+            ];
         }
 
         /// <summary>

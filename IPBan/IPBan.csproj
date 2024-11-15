@@ -2,7 +2,7 @@
 
 	<PropertyGroup>
 		<OutputType>Exe</OutputType>
-		<TargetFrameworks>net8.0</TargetFrameworks>
+		<TargetFrameworks>net9.0</TargetFrameworks>
 		<PlatformTarget>AnyCPU</PlatformTarget>
 		<Company>Digital Ruby, LLC</Company>
 		<Copyright>(c) 2010 Digital Ruby, LLC</Copyright>
@@ -31,7 +31,7 @@
 	<ItemGroup>
 		<Content Include="../ipban_favicon.ico" Link="ipban_favicon.ico" />
 		<Content Include="../README.md" Link="README.md">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</Content>
 	</ItemGroup>
 

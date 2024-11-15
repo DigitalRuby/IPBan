@@ -22,14 +22,14 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-
 using DigitalRuby.IPBanCore;
 
 using NUnit.Framework;
 using NUnit.Framework.Legacy;
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace DigitalRuby.IPBanTests
 {
@@ -49,27 +49,27 @@ namespace DigitalRuby.IPBanTests
             var ips = NetworkUtility.GetIPAddressesByPriority();
             ClassicAssert.IsTrue(ips.Any());
 
-            var sortedIps = NetworkUtility.GetSortedIPAddresses(new KeyValuePair<string, int>[]
-            {
+            var sortedIps = NetworkUtility.GetSortedIPAddresses(
+            [
                 new("1999:0db8:85a3:0000:0000:8a2e:0370:7334", 0),
                 new("127.0.0.1", 0),
                 new("10.0.0.1", 0),
                 new("44.44.44.44", 0),
                 new("2003:0db8:85a3:0000:0000:8a2e:0370:7334", 0)
-            });
+            ]);
             ClassicAssert.IsTrue(sortedIps.Any());
 
             ClassicAssert.AreEqual("44.44.44.44", sortedIps.First().ToString());
 
-            sortedIps = NetworkUtility.GetSortedIPAddresses(new KeyValuePair<string, int>[]
-            {
+            sortedIps = NetworkUtility.GetSortedIPAddresses(
+            [
                 new("1999:0db8:85a3:0000:0000:8a2e:0370:7334", 1),
                 new("127.0.0.1", 2),
                 new("10.0.0.1", 3),
                 new("44.44.44.44", 4),
                 new("2003:0db8:85a3:0000:0000:8a2e:0370:7334", 5),
                 new("215.4.5.6", 10),
-            });
+            ]);
             ClassicAssert.IsTrue(sortedIps.Any());
 
             ClassicAssert.AreEqual("215.4.5.6", sortedIps.First().ToString());
@@ -136,7 +136,7 @@ namespace DigitalRuby.IPBanTests
             var range2 = IPAddressRange.Parse("5.188.11.0/24");
             var range3 = IPAddressRange.Parse("103.32.0.0/16");
             var range4 = IPAddressRange.Parse("103.32.132.0/22");
-            var merged = ExtensionMethods.Combine(new[] { range1, range2, range3, range4 }).ToArray();
+            var merged = ExtensionMethods.Combine([range1, range2, range3, range4]).ToArray();
             ClassicAssert.That(merged.Length, Is.EqualTo(2));
         }
 
@@ -145,7 +145,7 @@ namespace DigitalRuby.IPBanTests
         public void TestCombineList(string path, int inputCount, int outputCount)
         {
             var lines = System.IO.File.ReadAllText(path);
-            var ranges = lines.Split(new[] { '\n' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            var ranges = lines.Split(['\n'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
                 .Select(l => IPAddressRange.Parse(l))
                 .OrderBy(l => l)
                 .ToArray();

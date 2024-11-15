@@ -24,11 +24,10 @@ SOFTWARE.
 
 //#define CONNECTION_LEAK_DEBUG // turn on for connection leak debugging
 
-using System;
-using System.Collections.Generic;
-using System.IO;
-
 using Microsoft.Data.Sqlite;
+
+using System;
+using System.IO;
 
 namespace DigitalRuby.IPBanCore
 {

@@ -196,10 +196,7 @@ namespace DigitalRuby.IPBanCore
                 writer.WriteLine($"create {setName} hash:{hashType} family {inetFamily} hashsize {HashSize} maxelem {MaxCount} -exist");
                 foreach (string ipAddress in items)
                 {
-                    if (cancelToken.IsCancellationRequested)
-                    {
-                        throw new OperationCanceledException(cancelToken);
-                    }
+                    cancelToken.ThrowIfCancellationRequested();
 
                     // if we have a valid ip range of the correct address family, process it
                     if (IPAddressRange.TryParse(ipAddress, out IPAddressRange range) &&
@@ -277,10 +274,7 @@ namespace DigitalRuby.IPBanCore
                 writer.WriteLine($"create {setName} hash:{hashType} family {inetFamily} hashsize {HashSize} maxelem {MaxCount} -exist");
                 foreach (IPBanFirewallIPAddressDelta delta in items)
                 {
-                    if (cancelToken.IsCancellationRequested)
-                    {
-                        throw new OperationCanceledException(cancelToken);
-                    }
+                    cancelToken.ThrowIfCancellationRequested();
 
                     // if we have a valid ip range of the correct address family, process it
                     if (IPAddressRange.TryParse(delta.IPAddress, out IPAddressRange range) &&

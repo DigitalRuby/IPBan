@@ -65,7 +65,7 @@ namespace DigitalRuby.IPBanCore
         public IPBanLinuxFirewallIPTables(string rulePrefix) : base(rulePrefix)
         {
             firewall6 = new IPBanLinuxFirewallIPTables6(RulePrefix);
-            
+
             // ensure legacy iptables are used
             RunProcess("update-alternatives", true, "--set iptables /usr/sbin/iptables-legacy");
             RunProcess("update-alternatives", true, "--set ip6tables /usr/sbin/ip6tables-legacy");

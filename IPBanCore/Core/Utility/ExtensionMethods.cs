@@ -24,10 +24,7 @@ SOFTWARE.
 
 #region Imports
 
-using Newtonsoft.Json.Linq;
-
 using System;
-using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -270,7 +267,7 @@ namespace DigitalRuby.IPBanCore
         public static string ToSHA256String(this string s)
         {
             s ??= string.Empty;
-            return BitConverter.ToString(SHA256.HashData(Encoding.UTF8.GetBytes(s))).Replace("-", string.Empty);
+            return Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(s)));
         }
 
         /// <summary>
@@ -280,7 +277,7 @@ namespace DigitalRuby.IPBanCore
         /// <returns>Hex string</returns>
         public static string ToHexString(this byte[] bytes)
         {
-            return BitConverter.ToString(bytes).Replace("-", string.Empty);
+            return Convert.ToHexString(bytes);
         }
 
         /// <summary>
