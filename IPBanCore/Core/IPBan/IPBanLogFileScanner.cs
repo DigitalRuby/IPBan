@@ -91,11 +91,11 @@ namespace DigitalRuby.IPBanCore
             this.eventHandler = options.EventHandler;
             this.dns = options.Dns;
 
-            this.regexFailureString = options.RegexFailure;
             this.regexFailure = IPBanRegexParser.ParseRegex(options.RegexFailure, true);
+            this.regexFailureString = regexFailure?.ToString();
             this.regexFailureTimestampFormat = options.RegexFailureTimestampFormat;
-            this.regexSuccessString = options.RegexSuccess;
             this.regexSuccess = IPBanRegexParser.ParseRegex(options.RegexSuccess, true);
+            this.regexSuccessString = regexSuccess?.ToString();
             this.regexSuccessTimestampFormat = options.RegexSuccessTimestampFormat;
         }
 

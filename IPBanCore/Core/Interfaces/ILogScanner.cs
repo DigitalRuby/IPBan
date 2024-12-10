@@ -75,21 +75,31 @@ namespace DigitalRuby.IPBanCore
         /// </summary>
         public string PathAndMask { get; set; }
 
+        private string regexFailure;
         /// <summary>
         /// Regular expression for failed logins, should at minimum have an ipaddress group, but can also have
         /// a timestamp group, source group and username group.
         /// </summary>
-        public string RegexFailure { get; set; }
+        public string RegexFailure
+        {
+            get => regexFailure;
+            set => regexFailure = IPBanRegexParser.ParseRegex(value)?.ToString();
+        }
 
         /// <summary>
         /// Optional date/time format if RegexFailure has a timestamp group
         /// </summary>
         public string RegexFailureTimestampFormat { get; set; }
 
+        private string regexSuccess;
         /// <summary>
         /// Regular expression for successful logins, see RegexFailure for regex group names.
         /// </summary>
-        public string RegexSuccess { get; set; }
+        public string RegexSuccess
+        {
+            get => regexSuccess;
+            set => regexSuccess = IPBanRegexParser.ParseRegex(value)?.ToString();
+        }
 
         /// <summary>
         /// Optional date/time format if RegexSuccess has a timestamp group
