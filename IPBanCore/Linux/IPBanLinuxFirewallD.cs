@@ -87,6 +87,7 @@ namespace DigitalRuby.IPBanCore
                 Directory.CreateDirectory(zoneFile);
                 zoneFileOrig = Path.Combine(zoneFileOrig, "public.xml");
                 zoneFile = Path.Combine(zoneFile, "public.xml");
+                canUseForwardNode = true;
             }
             allowRuleName = AllowRulePrefix + "4";
             allowRuleName6 = AllowRulePrefix + "6";
@@ -222,11 +223,13 @@ namespace DigitalRuby.IPBanCore
         }
 
         /// <inheritdoc />
-        public override IEnumerable<string> EnumerateAllowedIPAddresses()
+        public override IEnumerable<string> EnumerateAllowedIPAddresses(string ruleNamePrefix = null)
         {
             var ruleTypes = GetRuleTypes();
             var ruleNames = GetRuleNames(RulePrefix);
-            foreach (var rule in ruleNames.Where(r => ruleTypes.TryGetValue(r, out var accept) && accept))
+            foreach (var rule in ruleNames.Where(r => ruleTypes.TryGetValue(r, out var accept) &&
+                accept &&
+                (ruleNamePrefix is null || r.StartsWith(ruleNamePrefix, StringComparison.OrdinalIgnoreCase))))
             {
                 var entries = IPBanLinuxIPSetFirewallD.ReadSet(rule);
                 foreach (var entry in entries)
@@ -237,11 +240,13 @@ namespace DigitalRuby.IPBanCore
         }
 
         /// <inheritdoc />
-        public override IEnumerable<string> EnumerateBannedIPAddresses()
+        public override IEnumerable<string> EnumerateBannedIPAddresses(string ruleNamePrefix = null)
         {
             var ruleTypes = GetRuleTypes();
             var ruleNames = GetRuleNames(RulePrefix);
-            foreach (var rule in ruleNames.Where(r => ruleTypes.TryGetValue(r, out var accept) && !accept))
+            foreach (var rule in ruleNames.Where(r => ruleTypes.TryGetValue(r, out var accept) &&
+                !accept &&
+                (ruleNamePrefix is null || r.StartsWith(ruleNamePrefix, StringComparison.OrdinalIgnoreCase))))
             {
                 var entries = IPBanLinuxIPSetFirewallD.ReadSet(rule);
                 foreach (var entry in entries)

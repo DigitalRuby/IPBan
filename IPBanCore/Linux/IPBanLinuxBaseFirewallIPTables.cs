@@ -631,20 +631,20 @@ namespace DigitalRuby.IPBanCore
 
 
         /// <inheritdoc />
-        public override IEnumerable<string> EnumerateBannedIPAddresses()
+        public override IEnumerable<string> EnumerateBannedIPAddresses(string ruleNamePrefix = null)
         {
             return IPBanLinuxIPSetIPTables
                 .EnumerateSets()
-                .Where(s => !allowRules.Contains(s.SetName))
+                .Where(s => !allowRules.Contains(s.SetName) && (ruleNamePrefix is null || s.SetName.StartsWith(ruleNamePrefix, StringComparison.OrdinalIgnoreCase)))
                 .Select(s => s.Range.ToString());
         }
 
         /// <inheritdoc />
-        public override IEnumerable<string> EnumerateAllowedIPAddresses()
+        public override IEnumerable<string> EnumerateAllowedIPAddresses(string ruleNamePrefix = null)
         {
             return IPBanLinuxIPSetIPTables
                 .EnumerateSets()
-                .Where(s => allowRules.Contains(s.SetName))
+                .Where(s => allowRules.Contains(s.SetName) && (ruleNamePrefix is null || s.SetName.StartsWith(ruleNamePrefix, StringComparison.OrdinalIgnoreCase)))
                 .Select(s => s.Range.ToString());
         }
 

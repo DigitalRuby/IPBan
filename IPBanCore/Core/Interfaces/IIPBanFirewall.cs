@@ -128,14 +128,16 @@ namespace DigitalRuby.IPBanCore
         /// <summary>
         /// Gets all banned ip addresses from BlockIPAddresses calls using the built in block rule
         /// </summary>
+        /// <param name="ruleNamePrefix">Rule name prefix or null for all</param>
         /// <returns>IEnumerable of all ip addresses</returns>
-        IEnumerable<string> EnumerateBannedIPAddresses();
+        IEnumerable<string> EnumerateBannedIPAddresses(string ruleNamePrefix = null);
 
         /// <summary>
         /// Gets all explicitly allowed ip addresses
         /// </summary>
+        /// <param name="ruleNamePrefix">Rule name prefix or null for all</param>
         /// <returns>IEnumerable of all ip addresses</returns>
-        IEnumerable<string> EnumerateAllowedIPAddresses();
+        IEnumerable<string> EnumerateAllowedIPAddresses(string ruleNamePrefix = null);
 
         /// <summary>
         /// Gets all ip addresses for a rule prefix
@@ -159,6 +161,16 @@ namespace DigitalRuby.IPBanCore
         /// The rule prefix for the firewall
         /// </summary>
         string RulePrefix { get; }
+
+        /// <summary>
+        /// Allow rule prefix
+        /// </summary>
+        string AllowRulePrefix { get; }
+
+        /// <summary>
+        /// Block rule prefix
+        /// </summary>
+        string BlockRulePrefix { get; }
 
         /// <summary>
         /// Fires when a packet is blocked or allowed. Not all firewall implementations will trigger this event.

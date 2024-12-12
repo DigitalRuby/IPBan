@@ -480,12 +480,12 @@ namespace DigitalRuby.IPBanCore
         }
 
         /// <inheritdoc />
-        public override IEnumerable<string> EnumerateAllowedIPAddresses()
+        public override IEnumerable<string> EnumerateAllowedIPAddresses(string ruleNamePrefix = null)
         {
             lock (this)
             {
                 List<string> ips = [.. allowRule.EnumerateIPAddresses()];
-                foreach (var rule in allowRuleRanges)
+                foreach (var rule in allowRuleRanges.Where(r => ruleNamePrefix is null || r.Key.StartsWith(ruleNamePrefix, StringComparison.OrdinalIgnoreCase)))
                 {
                     foreach (IPAddressRange range in rule.Value.EnumerateIPAddressesRanges())
                     {
@@ -504,12 +504,12 @@ namespace DigitalRuby.IPBanCore
         }
 
         /// <inheritdoc />
-        public override IEnumerable<string> EnumerateBannedIPAddresses()
+        public override IEnumerable<string> EnumerateBannedIPAddresses(string ruleNamePrefix = null)
         {
             List<string> ips = [];
             lock (this)
             {
-                foreach (MemoryFirewallRule rule in blockRules.Values)
+                foreach (MemoryFirewallRule rule in blockRules.Values.Where(r => ruleNamePrefix is null || r.Name.StartsWith(ruleNamePrefix, StringComparison.OrdinalIgnoreCase)))
                 {
                     foreach (string ipAddress in rule.EnumerateIPAddresses())
                     {

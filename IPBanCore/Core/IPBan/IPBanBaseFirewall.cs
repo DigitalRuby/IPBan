@@ -163,10 +163,10 @@ namespace DigitalRuby.IPBanCore
         public abstract bool DeleteRule(string ruleName);
 
         /// <inheritdoc />
-        public abstract IEnumerable<string> EnumerateBannedIPAddresses();
+        public abstract IEnumerable<string> EnumerateBannedIPAddresses(string ruleNamePrefix = null);
 
         /// <inheritdoc />
-        public abstract IEnumerable<string> EnumerateAllowedIPAddresses();
+        public abstract IEnumerable<string> EnumerateAllowedIPAddresses(string ruleNamePrefix = null);
 
         /// <inheritdoc />
         public abstract IEnumerable<IPAddressRange> EnumerateIPAddresses(string ruleNamePrefix = null);

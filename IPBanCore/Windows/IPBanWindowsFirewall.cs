@@ -752,14 +752,14 @@ namespace DigitalRuby.IPBanCore
         }
 
         /// <inheritdoc />
-        public override IEnumerable<string> EnumerateBannedIPAddresses()
+        public override IEnumerable<string> EnumerateBannedIPAddresses(string ruleNamePrefix = null)
         {
             int i = 0;
             INetFwRule rule;
-
+            string prefix = (ruleNamePrefix is null ? BlockRulePrefix : ruleNamePrefix);
             while (true)
             {
-                string ruleName = BlockRulePrefix + i.ToString(CultureInfo.InvariantCulture);
+                string ruleName = prefix + i.ToString(CultureInfo.InvariantCulture);
                 try
                 {
                     rule = policy.Rules.Item(ruleName);
@@ -790,14 +790,16 @@ namespace DigitalRuby.IPBanCore
         }
 
         /// <inheritdoc />
-        public override IEnumerable<string> EnumerateAllowedIPAddresses()
+        public override IEnumerable<string> EnumerateAllowedIPAddresses(string ruleNamePrefix = null)
         {
             INetFwRule rule;
+            string prefix = (ruleNamePrefix is null ? AllowRulePrefix : ruleNamePrefix);
+
             for (int i = 0; ; i += MaxIpAddressesPerRule)
             {
                 try
                 {
-                    rule = policy.Rules.Item(AllowRulePrefix + i.ToString(CultureInfo.InvariantCulture));
+                    rule = policy.Rules.Item(prefix + i.ToString(CultureInfo.InvariantCulture));
                     if (rule is null)
                     {
                         break;

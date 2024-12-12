@@ -579,8 +579,9 @@ namespace DigitalRuby.IPBanCore
 
                 Logger.Warn("Syncing firewall and {0} database...", IPBanDB.FileName);
 
-                // bring all firewall ip into the database, if they already exist they will be ignored
-                ipDB.SetBannedIPAddresses(Firewall.EnumerateBannedIPAddresses().Select(i => new Tuple<string, DateTime, DateTime>(i, now, banEnd)), UtcNow);
+                // bring all blocked firewall ip into the database from the standard block rule, if they already exist they will be ignored
+                ipDB.SetBannedIPAddresses(Firewall.EnumerateBannedIPAddresses(Firewall.BlockRulePrefix)
+                    .Select(i => new Tuple<string, DateTime, DateTime>(i, now, banEnd)), UtcNow);
 
                 // remove any rows where the ip address was going to be removed
                 ipDB.DeletePendingRemoveIPAddresses();
