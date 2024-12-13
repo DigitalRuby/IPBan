@@ -230,18 +230,47 @@ namespace DigitalRuby.IPBanTests
             }
         }
 
+        private sealed class TestExternalProcessRunner : IIPAddressProcessExecutor
+        {
+            public bool Ran { get; set; }
+            public void Execute(string programToRun, IReadOnlyCollection<IPAddressLogEvent> ipAddresses, string appName, Action<Action> taskRunner)
+            {
+                Ran = true;
+            }
+        }
+
         [Test]
         public void TestBanIPAddressExternal()
         {
-            // add the external event to the service
-            service.AddIPAddressLogEvents(
-            [
-                new("11.11.12.13", "TestDomain\\TestUser", "RDP", 0, IPAddressEventType.Blocked, new DateTime(2020, 01, 01))
-            ]);
-            service.RunCycleAsync().Sync();
-            ClassicAssert.IsTrue(service.Firewall.IsIPAddressBlocked("11.11.12.13", out _));
-            ClassicAssert.IsTrue(service.DB.TryGetIPAddress("11.11.12.13", out IPBanDB.IPAddressEntry entry));
-            ClassicAssert.IsNotNull(entry.BanStartDate);
+            var origExecutor = service.ProcessExecutor;
+            try
+            {
+                TestExternalProcessRunner test = new();
+                service.ProcessExecutor = test;
+
+                // add the external event to the service
+                service.AddIPAddressLogEvents(
+                [
+                    new("11.11.12.13", "TestDomain\\TestUser", "RDP", 0, IPAddressEventType.Blocked, new DateTime(2020, 01, 01))
+                ]);
+                service.RunCycleAsync().Sync();
+                ClassicAssert.IsTrue(service.Firewall.IsIPAddressBlocked("11.11.12.13", out _));
+                ClassicAssert.IsTrue(service.DB.TryGetIPAddress("11.11.12.13", out IPBanDB.IPAddressEntry entry));
+                ClassicAssert.IsNotNull(entry.BanStartDate);
+                ClassicAssert.IsTrue(test.Ran);
+                test.Ran = false;
+
+                // ensure not ran for external events
+                service.AddIPAddressLogEvents(
+                [
+                    new("11.11.12.14", "TestDomain\\TestUser", "RDP", 0, IPAddressEventType.Blocked, new DateTime(2020, 01, 01), true)
+                ]);
+                ClassicAssert.IsFalse(test.Ran);
+            }
+            finally
+            {
+                service.ProcessExecutor = origExecutor;
+            }
         }
 
         [Test]

@@ -134,6 +134,11 @@ namespace DigitalRuby.IPBanCore
         public IIPBanFilter Blacklist => Config.BlacklistFilter;
 
         /// <summary>
+        /// Execute process for ip address events
+        /// </summary>
+        public IIPAddressProcessExecutor ProcessExecutor { get; set; } = new IPAddressProcessExecutor();
+
+        /// <summary>
         /// Config changed event
         /// </summary>
         public event Action<IPBanConfig> ConfigChanged;

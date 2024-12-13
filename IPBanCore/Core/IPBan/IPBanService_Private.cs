@@ -46,7 +46,7 @@ namespace DigitalRuby.IPBanCore
         {
             if (MultiThreaded)
             {
-                System.Threading.Tasks.Task.Run(action);
+                System.Threading.Tasks.Task.Run(action).GetAwaiter();
             }
             else
             {
@@ -241,12 +241,6 @@ namespace DigitalRuby.IPBanCore
                         if (IsWhitelisted(ipAddress))
                         {
                             Logger.Log(failedLogin.LogLevel, "Login failure, ignoring whitelisted ip address {0}, {1}, {2}", ipAddress, userName, source);
-
-                            // if delegate is not null and not an external event, send the event to the delegate
-                            if (IPBanDelegate != null && !failedLogin.External)
-                            {
-                                await IPBanDelegate.LoginAttemptFailed(ipAddress, source, userName, MachineGuid, OSName, OSVersion, 0, UtcNow, failedLogin.NotificationFlags);
-                            }
                         }
                         else
                         {
@@ -327,7 +321,7 @@ namespace DigitalRuby.IPBanCore
                 }
                 CommitTransaction(transaction);
                 IPThreatUploader.AddIPAddressLogEvents(bannedIpAddresses);
-                ExecuteExternalProcessForIPAddresses(Config.ProcessToRunOnBan, bannedIpAddresses);
+                ProcessExecutor.Execute(Config.ProcessToRunOnBan, bannedIpAddresses, AppName, RunTask);
             }
             catch (Exception ex)
             {
@@ -356,7 +350,7 @@ namespace DigitalRuby.IPBanCore
                     }
                 }
             }
-            ExecuteExternalProcessForIPAddresses(Config.ProcessToRunOnSuccessfulLogin, ipAddresses);
+            ProcessExecutor.Execute(Config.ProcessToRunOnSuccessfulLogin, ipAddresses, AppName, RunTask);
             if (IPBanDelegate != null)
             {
                 return Task.Run(() =>
@@ -484,76 +478,6 @@ namespace DigitalRuby.IPBanCore
             }
         }
 
-        /// <summary>
-        /// Execute a process in background against ip addresses
-        /// </summary>
-        /// <param name="programToRun">Program to run</param>
-        /// <param name="ipAddresses">IP addresses, should be a non-shared collection</param>
-        private void ExecuteExternalProcessForIPAddresses(string programToRun,
-            IReadOnlyCollection<IPAddressLogEvent> ipAddresses)
-        {
-            if (ipAddresses is null || ipAddresses.Count == 0 || string.IsNullOrWhiteSpace(programToRun))
-            {
-                return;
-            }
-            foreach (string process in programToRun.Split('\n'))
-            {
-                string[] pieces = process.Trim().Split('|', StringSplitOptions.TrimEntries);
-                if (pieces.Length != 2)
-                {
-                    Logger.Error("Invalid config option for process to run: " + programToRun +
-                        " -- should be two strings, | delimited with program and arguments.");
-                    continue;
-                }
-
-                RunTask(() =>
-                {
-                    string programFullPath = Path.GetFullPath(pieces[0]);
-                    string programArgs = pieces[1];
-
-                    foreach (var ipAddress in ipAddresses)
-                    {
-                        if (string.IsNullOrWhiteSpace(ipAddress?.IPAddress) || ipAddress.External)
-                        {
-                            continue;
-                        }
-
-                        // log data cleanup
-                        var logData = (ipAddress.LogData ?? string.Empty)
-                            .Replace("\"", string.Empty)
-                            .Replace("'", string.Empty)
-                            .Replace("\\", "/")
-                            .Replace("\n", " ")
-                            .Replace("\r", " ")
-                            .Replace("\t", " ")
-                            .Trim();
-
-                        string replacedArgs = programArgs.Replace("###IPADDRESS###", ipAddress.IPAddress)
-                            .Replace("###SOURCE###", ipAddress.Source ?? string.Empty)
-                            .Replace("###USERNAME###", ipAddress.UserName ?? string.Empty)
-                            .Replace("###APP###", AppName)
-                            .Replace("###COUNT###", ipAddress.Count.ToStringInvariant())
-                            .Replace("###LOG###", logData);
-
-                        try
-                        {
-                            ProcessStartInfo psi = new()
-                            {
-                                FileName = programFullPath,
-                                WorkingDirectory = Path.GetDirectoryName(programFullPath),
-                                Arguments = replacedArgs
-                            };
-                            using Process p = Process.Start(psi);
-                        }
-                        catch (Exception ex)
-                        {
-                            Logger.Error(ex, "Failed to execute process {0} {1}", programFullPath, replacedArgs);
-                        }
-                    }
-                });
-            }
-        }
-
         private async Task UpdateBannedIPAddressesOnStart()
         {
             if (updateBannedIPAddressesOnStartCalled)
@@ -565,10 +489,12 @@ namespace DigitalRuby.IPBanCore
             if (Config.ClearBannedIPAddressesOnRestart)
             {
                 Logger.Warn("Clearing all banned ip addresses on start because ClearBannedIPAddressesOnRestart is set");
-                ExecuteExternalProcessForIPAddresses(Config.ProcessToRunOnUnban,
+                ProcessExecutor.Execute(Config.ProcessToRunOnUnban,
                     Firewall.EnumerateBannedIPAddresses()
                     .Select(i => new IPAddressLogEvent(i, string.Empty, string.Empty, 0, IPAddressEventType.Unblocked))
-                    .ToArray());
+                    .ToArray(),
+                    AppName,
+                    RunTask);
                 Firewall.Truncate();
                 ipDB.Truncate(true);
             }
@@ -789,8 +715,8 @@ namespace DigitalRuby.IPBanCore
             {
                 HandleWhitelistChanged(transaction, unbannedIPAddresses);
                 HandleExpiredLoginsAndBans(failLoginCutOff, banCutOff, transaction, unbannedIPAddresses);
-                ExecuteExternalProcessForIPAddresses(Config.ProcessToRunOnUnban, unbannedIPAddresses
-                    .Select(i => new IPAddressLogEvent(i, null, null, 0, IPAddressEventType.Unblocked)).ToArray());
+                ProcessExecutor.Execute(Config.ProcessToRunOnUnban, unbannedIPAddresses
+                    .Select(i => new IPAddressLogEvent(i, null, null, 0, IPAddressEventType.Unblocked)).ToArray(), AppName, RunTask);
 
                 // notify delegate of all unbanned ip addresses
                 if (IPBanDelegate != null)
@@ -1274,8 +1200,8 @@ namespace DigitalRuby.IPBanCore
                 RollbackTransaction(transaction);
                 Logger.Error(ex);
             }
-            ExecuteExternalProcessForIPAddresses(Config.ProcessToRunOnBan, bannedIPs);
-            ExecuteExternalProcessForIPAddresses(Config.ProcessToRunOnUnban, unbannedIPs);
+            ProcessExecutor.Execute(Config.ProcessToRunOnBan, bannedIPs, AppName, RunTask);
+            ProcessExecutor.Execute(Config.ProcessToRunOnUnban, unbannedIPs, AppName, RunTask);
             return Task.CompletedTask;
         }
 
