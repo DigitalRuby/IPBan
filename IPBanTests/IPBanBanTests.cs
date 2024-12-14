@@ -230,22 +230,13 @@ namespace DigitalRuby.IPBanTests
             }
         }
 
-        private sealed class TestExternalProcessRunner : IIPAddressProcessExecutor
-        {
-            public bool Ran { get; set; }
-            public void Execute(string programToRun, IReadOnlyCollection<IPAddressLogEvent> ipAddresses, string appName, Action<Action> taskRunner)
-            {
-                Ran = true;
-            }
-        }
-
         [Test]
         public void TestBanIPAddressExternal()
         {
             var origExecutor = service.ProcessExecutor;
             try
             {
-                TestExternalProcessRunner test = new();
+                DigitalRuby.IPBanCore.IPAddressProcessExecutor.TestIPAddressProcessExecutor test = new();
                 service.ProcessExecutor = test;
 
                 // add the external event to the service

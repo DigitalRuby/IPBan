@@ -90,4 +90,21 @@ public sealed class IPAddressProcessExecutor : IIPAddressProcessExecutor
             });
         }
     }
+
+    /// <summary>
+    /// For testing only
+    /// </summary>
+    public sealed class TestIPAddressProcessExecutor : IIPAddressProcessExecutor
+    {
+        /// <summary>
+        /// Whether the process was run
+        /// </summary>
+        public bool Ran { get; set; }
+
+        /// <inheritdoc />
+        public void Execute(string programToRun, IReadOnlyCollection<IPAddressLogEvent> ipAddresses, string appName, Action<Action> taskRunner)
+        {
+            Ran = true;
+        }
+    }
 }

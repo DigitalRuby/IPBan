@@ -121,7 +121,7 @@ namespace DigitalRuby.IPBanTests
                     "C:/inetpub/logs/LogFiles/W3SVC1/**/*.log",
                     @"(?<timestamp_utc>\d\d\d\d\-\d\d\-\d\d\s\d\d\:\d\d\:\d\d)\s[^\s]+\sPOST\s\/RDWeb\/Pages\/[^\/]+\/login\.aspx\s[^\s]+\s[0-9]+\s-\s(?<ipaddress>[^\s]+).*\s200\s[^\n]+\n",
                     @"",
-                    @"(?<timestamp_utc>\d\d\d\d\-\d\d\-\d\d\s\d\d\:\d\d\:\d\d)\s[^\s]+\sPOST\s\/RDWeb\/Pages\/[^\/]+\/login\.aspx\s[^\s]+\s[0-9]+\s(?<username>[^\s]+)\s(?<ipaddress>[^\s]+).*\s302\s[^\n]+\n",
+                    @"(?<timestamp_utc>\d\d\d\d\-\d\d\-\d\d\s\d\d\:\d\d\:\d\d)\s[^\s]+\sPOST\s\/RDWeb\/Pages\/[^\/]+\/login\.aspx\s[^\s]+\s[0-9]+\s(?<username>[^\s\-]+)\s(?<ipaddress>[^\s]+).*\s302\s[^\n]+\n",
                     @"",
                     "Windows", "RDWeb", "00:00:00:00"
                 ],
