@@ -50,7 +50,6 @@ namespace DigitalRuby.IPBanCore
         private const string acceptAction = "ACCEPT";
         private const string dropAction = "DROP";
 
-        private readonly AddressFamily addressFamily;
         private readonly string allowRuleName;
 
         private DateTime lastUpdate = IPBanService.UtcNow;
@@ -267,7 +266,7 @@ namespace DigitalRuby.IPBanCore
 
             // create or update the rule in iptables
             PortRange[] allowedPortsArray = allowedPorts?.ToArray();
-            RunProcess(IpTablesProcess, true, out IReadOnlyList<string> lines, "-L --line-numbers");
+            RunProcess(IpTablesProcess, true, out IReadOnlyList<string> lines, "-L -n --line-numbers");
             string portString = " ";
             bool replaced = false;
             bool block = (action == dropAction);
@@ -449,7 +448,6 @@ namespace DigitalRuby.IPBanCore
         /// <param name="rulePrefix">Rule prefix</param>
         public IPBanLinuxBaseFirewallIPTables(string rulePrefix = null) : base(rulePrefix)
         {
-            addressFamily = (IsIPV4 ? AddressFamily.InterNetwork : AddressFamily.InterNetworkV6);
             allowRuleName = AllowRulePrefix + "0";
             RestoreSetsFromDisk();
             RestoreTablesFromDisk();
@@ -503,7 +501,7 @@ namespace DigitalRuby.IPBanCore
         /// <inheritdoc />
         public override bool DeleteRule(string ruleName)
         {
-            RunProcess(IpTablesProcess, true, out IReadOnlyList<string> lines, "-L --line-numbers");
+            RunProcess(IpTablesProcess, true, out IReadOnlyList<string> lines, "-L -n --line-numbers");
             string ruleNameWithSpaces = " " + ruleName + " ";
             allowRules.Remove(ruleName);
 
