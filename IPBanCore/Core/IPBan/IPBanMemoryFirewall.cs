@@ -47,12 +47,12 @@ namespace DigitalRuby.IPBanCore
             /// <summary>
             /// IPV4 ranges
             /// </summary>
-            IEnumerable<string> IPV4String { get; }
+            IEnumerable<string> IPV4Strings { get; }
 
             /// <summary>
             /// IPV6 ranges
             /// </summary>
-            IEnumerable<string> IPV6String { get; }
+            IEnumerable<string> IPV6Strings { get; }
 
             /// <summary>
             /// Port ranges, empty for none
@@ -104,8 +104,8 @@ namespace DigitalRuby.IPBanCore
             private readonly List<IPV6Range> ipv6 = [];
             private readonly PortRange[] portRanges = [];
 
-            public IEnumerable<string> IPV4String => ipv4.Select(r => r.ToIPAddressRange().ToString());
-            public IEnumerable<string> IPV6String => ipv6.Select(r => r.ToIPAddressRange().ToString());
+            public IEnumerable<string> IPV4Strings => ipv4.Select(r => r.ToIPAddressRange().ToString());
+            public IEnumerable<string> IPV6Strings => ipv6.Select(r => r.ToIPAddressRange().ToString());
             public IEnumerable<string> PortRangeStrings => portRanges.Select(r => r.ToString());
 
             public bool Block { get; }

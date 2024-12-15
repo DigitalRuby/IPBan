@@ -37,7 +37,7 @@ namespace DigitalRuby.IPBanCore
     public static class IPBanFirewallExtensions
     {
         /// <summary>
-        /// Check if ip address is allowed - DO NOT USE OUTSIDE OF TESTS, instead use AreIPAddressesAllowed
+        /// Check if ip address is allowed. Only use from tests.
         /// </summary>
         /// <param name="firewall">Firewall</param>
         /// <param name="ipAddress">IP addresses</param>
@@ -57,7 +57,7 @@ namespace DigitalRuby.IPBanCore
         }
 
         /// <summary>
-        /// Check if ip blocked - DO NOT USE OUTSIDE OF TESTS, instead use AreIPAddressesBlocked
+        /// Check if ip is blocked. Only use from tests.
         /// </summary>
         /// <param name="firewall">Firewall</param>
         /// <param name="ipAddress">IP</param>
@@ -69,7 +69,7 @@ namespace DigitalRuby.IPBanCore
         }
 
         /// <summary>
-        /// Check if ip blocked - DO NOT USE OUTSIDE OF TESTS, instead use AreIPAddressesBlocked
+        /// Check if ip is blocked. Only use from tests.
         /// </summary>
         /// <param name="firewall">Firewall</param>
         /// <param name="ipAddress">IP</param>
