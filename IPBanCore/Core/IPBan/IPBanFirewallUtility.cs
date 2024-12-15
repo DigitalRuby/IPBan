@@ -149,21 +149,21 @@ namespace DigitalRuby.IPBanCore
         }
 
         /// <summary>
-        /// Get a collection of block port ranges from a set of allow port ranges. Overlap ranges are not allowed.
+        /// Invert port ranges. For example, if just port 80 was open, inverting it would get you 0-79, 81-65535.
         /// </summary>
-        /// <param name="allowPortRanges">Allow port ranges</param>
-        /// <returns>Set of block port ranges</returns>
-        public static IReadOnlyCollection<PortRange> GetBlockPortRanges(IEnumerable<PortRange> allowPortRanges)
+        /// <param name="portRanges">Port ranges</param>
+        /// <returns>Inverted port ranges</returns>
+        public static IReadOnlyCollection<PortRange> InvertPortRanges(IEnumerable<PortRange> portRanges)
         {
             const int MinPort = 0;
             const int MaxPort = 65535;
 
-            if (allowPortRanges is null)
+            if (portRanges is null)
             {
                 return null;
             }
 
-            var mergedRanges = MergePortRanges(allowPortRanges);
+            var mergedRanges = MergePortRanges(portRanges);
             if (mergedRanges is null)
             {
                 return null;
@@ -241,7 +241,7 @@ namespace DigitalRuby.IPBanCore
                 return null;
             }
 
-            IReadOnlyCollection<PortRange> blockPortRanges = GetBlockPortRanges(allowPortRanges);
+            IReadOnlyCollection<PortRange> blockPortRanges = InvertPortRanges(allowPortRanges);
 
             // handle null again
             if (blockPortRanges is null)

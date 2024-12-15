@@ -24,6 +24,7 @@ SOFTWARE.
 
 using System;
 using System.Collections.Generic;
+using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -95,18 +96,6 @@ namespace DigitalRuby.IPBanCore
         }
 
         /// <inheritdoc />
-        public override bool IsIPAddressAllowed(string ipAddress, int port = -1)
-        {
-            throw new NotImplementedException();
-        }
-
-        /// <inheritdoc />
-        public override bool IsIPAddressBlocked(string ipAddress, out string ruleName, int port = -1)
-        {
-            throw new NotImplementedException();
-        }
-
-        /// <inheritdoc />
         public override IEnumerable<IPAddressRange> EnumerateIPAddresses(string ruleNamePrefix = null)
         {
             throw new NotImplementedException();
@@ -114,6 +103,12 @@ namespace DigitalRuby.IPBanCore
 
         /// <inheritdoc />
         public override void Truncate()
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <inheritdoc />
+        public override IPBanMemoryFirewall Compile()
         {
             throw new NotImplementedException();
         }

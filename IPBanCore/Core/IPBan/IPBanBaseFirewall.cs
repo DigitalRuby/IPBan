@@ -25,6 +25,7 @@ SOFTWARE.
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -135,6 +136,12 @@ namespace DigitalRuby.IPBanCore
             return Task.CompletedTask;
         }
 
+        /// <summary>
+        /// Compile into an optimized in memory representation
+        /// </summary>
+        /// <returns>Optimized version</returns>
+        public abstract IPBanMemoryFirewall Compile();
+
         /// <inheritdoc />
         public abstract Task<bool> BlockIPAddresses(string ruleNamePrefix, IEnumerable<string> ipAddresses, IEnumerable<PortRange> allowedPorts = null, CancellationToken cancelToken = default);
 
@@ -151,10 +158,17 @@ namespace DigitalRuby.IPBanCore
         public abstract Task<bool> AllowIPAddresses(string ruleNamePrefix, IEnumerable<IPAddressRange> ipAddresses, IEnumerable<PortRange> allowedPorts = null, CancellationToken cancelToken = default);
 
         /// <inheritdoc />
-        public abstract bool IsIPAddressBlocked(string ipAddress, out string ruleName, int port = -1);
-
-        /// <inheritdoc />
-        public abstract bool IsIPAddressAllowed(string ipAddress, int port = -1);
+        public virtual IReadOnlyList<(bool blocked, bool allowed, string ruleName)> Query(IReadOnlyCollection<System.Net.IPEndPoint> ipAddresses)
+        {
+            List<(bool, bool, string)> result = [];
+            var memoryFirewall = Compile();
+            foreach (var ipAddress in ipAddresses)
+            {
+                var blocked = memoryFirewall.IsIPAddressBlocked(ipAddress.Address, out var ruleName, out var allowed, ipAddress.Port);
+                result.Add((blocked, allowed, ruleName));
+            }
+            return result;
+        }
 
         /// <inheritdoc />
         public abstract IEnumerable<string> GetRuleNames(string ruleNamePrefix = null);

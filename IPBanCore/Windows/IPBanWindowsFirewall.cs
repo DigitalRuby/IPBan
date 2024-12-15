@@ -490,6 +490,60 @@ namespace DigitalRuby.IPBanCore
         }
 
         /// <inheritdoc />
+        public override IPBanMemoryFirewall Compile()
+        {
+            IPBanMemoryFirewall firewall = new(RulePrefix);
+            try
+            {
+                lock (policy)
+                {
+                    List<INetFwRule> rules = [];
+                    foreach (INetFwRule rule in policy.Rules)
+                    {
+                        try
+                        {
+                            if (rule is not null &&
+                                !string.IsNullOrWhiteSpace(rule.Name) &&
+                                !string.IsNullOrWhiteSpace(rule.RemoteAddresses) &&
+                                rule.Name.StartsWith(RulePrefix, StringComparison.OrdinalIgnoreCase))
+                            {
+                                var ips = rule.RemoteAddresses.Split(',').Select(r => IPAddressRange.Parse(r));
+                                var ports = (rule.LocalPorts ?? string.Empty).Split(',').Select(p => PortRange.Parse(p));
+                                if (rule.Action == NetFwAction.Allow)
+                                {
+                                    firewall.AllowIPAddresses(rule.Name, ips, ports);
+                                }
+                                else
+                                {
+                                    // firewall methods for now, always take allow ports, so we need to invert block ports to allow
+                                    // the firewall block method will invert them back to block ports
+                                    var invertedPorts = IPBanFirewallUtility.InvertPortRanges(ports);
+                                    firewall.BlockIPAddresses(rule.Name, ips, invertedPorts);
+                                }
+                            }
+                        }
+                        catch (Exception inner)
+                        {
+                            // in case COM api throws
+                            if (inner is not OperationCanceledException)
+                            {
+                                Logger.Error(inner);
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                if (ex is not OperationCanceledException)
+                {
+                    Logger.Error(ex);
+                }
+            }
+            return firewall;
+        }
+
+        /// <inheritdoc />
         public override Task<bool> BlockIPAddresses(string ruleNamePrefix, IEnumerable<string> ipAddresses, IEnumerable<PortRange> allowedPorts = null, CancellationToken cancelToken = default)
         {
             string prefix = (string.IsNullOrWhiteSpace(ruleNamePrefix) ? BlockRulePrefix : RulePrefix + ruleNamePrefix).TrimEnd('_') + "_";
@@ -640,93 +694,6 @@ namespace DigitalRuby.IPBanCore
             ruleNamePrefix.ThrowIfNullOrWhiteSpace();
             return BlockOrAllowIPAddresses(RulePrefix + ruleNamePrefix, false, ipAddresses.Select(i => i.ToCidrString()),
                 allowedPorts, null, cancelToken);
-        }
-
-        /// <inheritdoc />
-        public override bool IsIPAddressBlocked(string ipAddress, out string ruleName, int port = -1)
-        {
-            ruleName = null;
-
-            try
-            {
-                lock (policy)
-                {
-                    for (int i = 0; ; i += MaxIpAddressesPerRule)
-                    {
-                        string firewallRuleName = BlockRulePrefix + i.ToString(CultureInfo.InvariantCulture);
-                        try
-                        {
-                            INetFwRule rule = policy.Rules.Item(firewallRuleName);
-                            if (rule is null)
-                            {
-                                // no more rules to check
-                                break;
-                            }
-                            else
-                            {
-                                HashSet<string> set = new(rule.RemoteAddresses.Split(',').Select(i2 => IPAddressRange.Parse(i2).Begin.ToString()));
-                                if (set.Contains(ipAddress))
-                                {
-                                    ruleName = firewallRuleName;
-                                    return true;
-                                }
-                            }
-                        }
-                        catch
-                        {
-                            // no more rules to check
-                            break;
-                        }
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                if (ex is not OperationCanceledException)
-                {
-                    Logger.Error(ex);
-                }
-            }
-            return false;
-        }
-
-        /// <inheritdoc />
-        public override bool IsIPAddressAllowed(string ipAddress, int port = -1)
-        {
-            try
-            {
-                lock (policy)
-                {
-                    for (int i = 0; ; i += MaxIpAddressesPerRule)
-                    {
-                        string ruleName = AllowRulePrefix + i.ToString(CultureInfo.InvariantCulture);
-                        try
-                        {
-                            INetFwRule rule = policy.Rules.Item(ruleName);
-                            if (rule is null)
-                            {
-                                break;
-                            }
-                            else if (rule.RemoteAddresses.Contains(ipAddress))
-                            {
-                                return true;
-                            }
-                        }
-                        catch
-                        {
-                            // OK, rule does not exist
-                        }
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                if (ex is not OperationCanceledException)
-                {
-                    Logger.Error(ex);
-                }
-            }
-            return false;
         }
 
         /// <inheritdoc />

@@ -282,41 +282,28 @@ namespace DigitalRuby.IPBanCore
         }
 
         /// <inheritdoc />
-        public override bool IsIPAddressAllowed(string ipAddress, int port = -1)
+        public override IPBanMemoryFirewall Compile()
         {
-            if (System.Net.IPAddress.TryParse(ipAddress, out var ipObj))
+            IPBanMemoryFirewall firewall = new();
+            var ruleTypes = GetRuleTypes();
+            var ruleNames = GetRuleNames(RulePrefix).ToArray();
+            foreach (var rule in ruleNames)
             {
-                foreach (var ip in EnumerateAllowedIPAddresses())
+                var ranges = IPBanLinuxIPSetFirewallD.ReadSetRanges(rule);
+                var ports = IPBanLinuxIPSetFirewallD.ReadSetPorts(rule);
+                var allow = ruleTypes.TryGetValue(rule, out var accept) && accept;
+                if (allow)
                 {
-                    if (IPAddressRange.TryParse(ip, out var range) && range.Contains(ipObj))
-                    {
-                        return true;
-                    }
+                    firewall.AllowIPAddresses(rule, ranges, ports);
+                }
+                else
+                {
+                    // invert block ports back to allow (they'll get inverted back)
+                    ports = IPBanFirewallUtility.InvertPortRanges(ports);
+                    firewall.BlockIPAddresses(rule, ranges, ports);
                 }
             }
-            return false;
-        }
-
-        /// <inheritdoc />
-        public override bool IsIPAddressBlocked(string ipAddress, out string ruleName, int port = -1)
-        {
-            if (System.Net.IPAddress.TryParse(ipAddress, out var ipObj))
-            {
-                var ruleTypes = GetRuleTypes();
-                foreach (var kv in ruleTypes.Where(r => !r.Value))
-                {
-                    foreach (var ip in IPBanLinuxIPSetFirewallD.ReadSet(kv.Key))
-                    {
-                        if (IPAddressRange.TryParse(ip, out var range) && range.Contains(ipObj))
-                        {
-                            ruleName = kv.Key;
-                            return true;
-                        }
-                    }
-                }
-            }
-            ruleName = null;
-            return false;
+            return firewall;
         }
 
         /// <inheritdoc />
@@ -403,7 +390,7 @@ namespace DigitalRuby.IPBanCore
                 var ports = allowedPorts;
                 if (drop)
                 {
-                    ports = IPBanFirewallUtility.GetBlockPortRanges(ports);
+                    ports = IPBanFirewallUtility.InvertPortRanges(ports);
                 }
                 if (ports is not null)
                 {
