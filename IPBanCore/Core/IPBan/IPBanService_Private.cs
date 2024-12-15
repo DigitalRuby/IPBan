@@ -321,12 +321,27 @@ namespace DigitalRuby.IPBanCore
                 }
                 CommitTransaction(transaction);
                 IPThreatUploader.AddIPAddressLogEvents(bannedIpAddresses);
-                ProcessExecutor.Execute(Config.ProcessToRunOnBan, bannedIpAddresses, AppName, RunTask);
+                ExecuteProcess(Config.ProcessToRunOnBan, bannedIpAddresses, AppName, RunTask);
             }
             catch (Exception ex)
             {
                 RollbackTransaction(transaction);
                 Logger.Error(ex);
+            }
+        }
+
+        private void ExecuteProcess(string processToRunOnBan, IReadOnlyCollection<IPAddressLogEvent> ipAddresses,
+            string appName, Action<Action> runTask)
+        {
+            // verify inputs
+            if (ipAddresses is not null && runTask is not null && !string.IsNullOrWhiteSpace(processToRunOnBan))
+            {
+                // filter external ips
+                IPAddressLogEvent[] ipAddressesArray = ipAddresses.Where(i => !string.IsNullOrWhiteSpace(i.IPAddress) && !i.External).ToArray();
+                if (ipAddressesArray.Length != 0)
+                {
+                    ProcessExecutor.Execute(processToRunOnBan, ipAddressesArray, appName, runTask);
+                }
             }
         }
 
@@ -350,7 +365,7 @@ namespace DigitalRuby.IPBanCore
                     }
                 }
             }
-            ProcessExecutor.Execute(Config.ProcessToRunOnSuccessfulLogin, ipAddresses, AppName, RunTask);
+            ExecuteProcess(Config.ProcessToRunOnSuccessfulLogin, ipAddresses, AppName, RunTask);
             if (IPBanDelegate != null)
             {
                 return Task.Run(() =>
@@ -489,7 +504,7 @@ namespace DigitalRuby.IPBanCore
             if (Config.ClearBannedIPAddressesOnRestart)
             {
                 Logger.Warn("Clearing all banned ip addresses on start because ClearBannedIPAddressesOnRestart is set");
-                ProcessExecutor.Execute(Config.ProcessToRunOnUnban,
+                ExecuteProcess(Config.ProcessToRunOnUnban,
                     Firewall.EnumerateBannedIPAddresses()
                     .Select(i => new IPAddressLogEvent(i, string.Empty, string.Empty, 0, IPAddressEventType.Unblocked))
                     .ToArray(),
@@ -715,7 +730,7 @@ namespace DigitalRuby.IPBanCore
             {
                 HandleWhitelistChanged(transaction, unbannedIPAddresses);
                 HandleExpiredLoginsAndBans(failLoginCutOff, banCutOff, transaction, unbannedIPAddresses);
-                ProcessExecutor.Execute(Config.ProcessToRunOnUnban, unbannedIPAddresses
+                ExecuteProcess(Config.ProcessToRunOnUnban, unbannedIPAddresses
                     .Select(i => new IPAddressLogEvent(i, null, null, 0, IPAddressEventType.Unblocked)).ToArray(), AppName, RunTask);
 
                 // notify delegate of all unbanned ip addresses
@@ -1200,8 +1215,8 @@ namespace DigitalRuby.IPBanCore
                 RollbackTransaction(transaction);
                 Logger.Error(ex);
             }
-            ProcessExecutor.Execute(Config.ProcessToRunOnBan, bannedIPs, AppName, RunTask);
-            ProcessExecutor.Execute(Config.ProcessToRunOnUnban, unbannedIPs, AppName, RunTask);
+            ExecuteProcess(Config.ProcessToRunOnBan, bannedIPs, AppName, RunTask);
+            ExecuteProcess(Config.ProcessToRunOnUnban, unbannedIPs, AppName, RunTask);
             return Task.CompletedTask;
         }
 

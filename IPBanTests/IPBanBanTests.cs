@@ -239,7 +239,7 @@ namespace DigitalRuby.IPBanTests
                 DigitalRuby.IPBanCore.IPAddressProcessExecutor.TestIPAddressProcessExecutor test = new();
                 service.ProcessExecutor = test;
 
-                // add the external event to the service
+                // add the external event to the service, denoted by count of 0 (before external property was introduced)
                 service.AddIPAddressLogEvents(
                 [
                     new("11.11.12.13", "TestDomain\\TestUser", "RDP", 0, IPAddressEventType.Blocked, new DateTime(2020, 01, 01))
@@ -248,13 +248,12 @@ namespace DigitalRuby.IPBanTests
                 ClassicAssert.IsTrue(service.Firewall.IsIPAddressBlocked("11.11.12.13", out _));
                 ClassicAssert.IsTrue(service.DB.TryGetIPAddress("11.11.12.13", out IPBanDB.IPAddressEntry entry));
                 ClassicAssert.IsNotNull(entry.BanStartDate);
-                ClassicAssert.IsTrue(test.Ran);
-                test.Ran = false;
+                ClassicAssert.IsFalse(test.Ran);
 
-                // ensure not ran for external events
+                // ensure not ran for external events using the bool property
                 service.AddIPAddressLogEvents(
                 [
-                    new("11.11.12.14", "TestDomain\\TestUser", "RDP", 0, IPAddressEventType.Blocked, new DateTime(2020, 01, 01), true)
+                    new("11.11.12.14", "TestDomain\\TestUser", "RDP", 1, IPAddressEventType.Blocked, new DateTime(2020, 01, 01), true)
                 ]);
                 ClassicAssert.IsFalse(test.Ran);
             }
