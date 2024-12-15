@@ -635,7 +635,7 @@ namespace DigitalRuby.IPBanCore
         /// <inheritdoc />
         public override IPBanMemoryFirewall Compile()
         {
-            IPBanMemoryFirewall firewall = new();
+            IPBanMemoryFirewall firewall = new(RulePrefix);
 
             // snapshot latest firewall
             SaveTableToDisk();

@@ -284,7 +284,7 @@ namespace DigitalRuby.IPBanCore
         /// <inheritdoc />
         public override IPBanMemoryFirewall Compile()
         {
-            IPBanMemoryFirewall firewall = new();
+            IPBanMemoryFirewall firewall = new(RulePrefix);
             var ruleTypes = GetRuleTypes();
             var ruleNames = GetRuleNames(RulePrefix).ToArray();
             foreach (var rule in ruleNames)
