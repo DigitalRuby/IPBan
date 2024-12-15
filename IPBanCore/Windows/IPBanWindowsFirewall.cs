@@ -497,7 +497,6 @@ namespace DigitalRuby.IPBanCore
             {
                 lock (policy)
                 {
-                    List<INetFwRule> rules = [];
                     foreach (INetFwRule rule in policy.Rules)
                     {
                         try

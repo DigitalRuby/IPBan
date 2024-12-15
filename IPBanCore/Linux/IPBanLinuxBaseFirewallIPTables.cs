@@ -670,7 +670,7 @@ namespace DigitalRuby.IPBanCore
                 int pos = line.IndexOf(matchSetPrefix);
                 if (pos >= 0)
                 {
-                    pos += matchSetPrefix.Length;
+                    pos += " match-set ".Length;
                     int start = pos;
                     while (++pos < line.Length && line[pos] != ' ');
                     string ruleName = line[start..pos].TrimEnd();

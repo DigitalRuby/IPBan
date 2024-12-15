@@ -44,7 +44,7 @@ namespace DigitalRuby.IPBanCore
         /// <param name="ruleName">Rule name</param>
         /// <param name="port">Port</param>
         /// <returns>True if allowed, false otherwise</returns>
-        public static bool IsIPAddressAllowed(this IIPBanFirewall firewall, string ipAddress, out string ruleName, int port = -1)
+        public static bool IsIPAddressAllowed(this IIPBanFirewall firewall, string ipAddress, out string ruleName, int port = 0)
         {
             var result = firewall.Query([new IPEndPoint(System.Net.IPAddress.Parse(ipAddress), port)]);
             if (result.Count == 0)
@@ -63,7 +63,7 @@ namespace DigitalRuby.IPBanCore
         /// <param name="ipAddress">IP</param>
         /// <param name="port">Port</param>
         /// <returns>True if blocked, false otherwise</returns>
-        public static bool IsIPAddressBlocked(this IIPBanFirewall firewall, string ipAddress, int port = -1)
+        public static bool IsIPAddressBlocked(this IIPBanFirewall firewall, string ipAddress, int port = 0)
         {
             return IsIPAddressBlocked(firewall, ipAddress, out _, port);
         }
@@ -76,7 +76,7 @@ namespace DigitalRuby.IPBanCore
         /// <param name="ruleName">Found rule name</param>
         /// <param name="port">Port</param>
         /// <returns>True if blocked, false otherwise</returns>
-        public static bool IsIPAddressBlocked(this IIPBanFirewall firewall, string ipAddress, out string ruleName, int port = -1)
+        public static bool IsIPAddressBlocked(this IIPBanFirewall firewall, string ipAddress, out string ruleName, int port = 0)
         {
             var result = firewall.Query([new IPEndPoint(IPAddress.Parse(ipAddress), port)]);
             if (result.Count == 0)

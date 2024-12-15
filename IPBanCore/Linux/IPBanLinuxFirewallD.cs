@@ -299,8 +299,8 @@ namespace DigitalRuby.IPBanCore
                 else
                 {
                     // invert block ports back to allow (they'll get inverted back)
-                    ports = IPBanFirewallUtility.InvertPortRanges(ports);
-                    firewall.BlockIPAddresses(rule, ranges, ports);
+                    var invertedPorts = IPBanFirewallUtility.InvertPortRanges(ports);
+                    firewall.BlockIPAddresses(rule, ranges, invertedPorts);
                 }
             }
             return firewall;
@@ -387,11 +387,7 @@ namespace DigitalRuby.IPBanCore
                 ruleElement.AppendChild(source);
 
                 // create and add port elements for each port entry
-                var ports = allowedPorts;
-                if (drop)
-                {
-                    ports = IPBanFirewallUtility.InvertPortRanges(ports);
-                }
+                var ports = drop ? IPBanFirewallUtility.InvertPortRanges(allowedPorts) : allowedPorts;
                 if (ports is not null)
                 {
                     foreach (var port in ports)

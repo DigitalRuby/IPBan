@@ -102,13 +102,13 @@ namespace DigitalRuby.IPBanCore
         }
 
         /// <inheritdoc />
-        public override void Truncate()
+        public override IPBanMemoryFirewall Compile()
         {
             throw new NotImplementedException();
         }
 
         /// <inheritdoc />
-        public override IPBanMemoryFirewall Compile()
+        public override void Truncate()
         {
             throw new NotImplementedException();
         }

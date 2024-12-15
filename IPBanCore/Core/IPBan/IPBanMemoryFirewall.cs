@@ -133,7 +133,7 @@ namespace DigitalRuby.IPBanCore
                 ipv4.TrimExcess();
                 ipv6.TrimExcess();
 
-                if (allowPorts is not null)
+                if (allowPorts is not null && allowPorts.Count != 0)
                 {
                     if (block)
                     {
@@ -159,13 +159,13 @@ namespace DigitalRuby.IPBanCore
 
             public bool Contains(uint ipAddress, int port)
             {
-                bool foundPort = port < 0 || portRanges.Length == 0 || portRanges.Any(p => p.Contains(port));
+                bool foundPort = port < 1 || portRanges.Length == 0 || portRanges.Any(p => p.Contains(port));
                 return (foundPort && ipv4.BinarySearch(new IPV4Range(ipAddress, ipAddress), this) >= 0);
             }
 
             public bool Contains(UInt128 ipAddress, int port)
             {
-                bool foundPort = port < 0 || portRanges.Length == 0 || portRanges.Any(p => p.Contains(port));
+                bool foundPort = port < 1 || portRanges.Length == 0 || portRanges.Any(p => p.Contains(port));
                 return (foundPort && ipv6.BinarySearch(new IPV6Range(ipAddress, ipAddress), this) >= 0);
             }
 
@@ -633,7 +633,7 @@ namespace DigitalRuby.IPBanCore
         }
 
         /// <inheritdoc />
-        public bool IsIPAddressAllowed(string ipAddress, int port = -1)
+        public bool IsIPAddressAllowed(string ipAddress, int port = 0)
         {
             if (!IPAddress.TryParse(ipAddress, out IPAddress ipAddressObj))
             {
@@ -649,7 +649,7 @@ namespace DigitalRuby.IPBanCore
         /// <param name="ruleName">Receives rule name if found</param>
         /// <param name="port">Port</param>
         /// <returns>True if ip is allowed</returns>
-        public bool IsIPAddressAllowed(System.Net.IPAddress ipAddressObj, out string ruleName, int port = -1)
+        public bool IsIPAddressAllowed(System.Net.IPAddress ipAddressObj, out string ruleName, int port = 0)
         {
             lock (this)
             {
@@ -678,7 +678,7 @@ namespace DigitalRuby.IPBanCore
         /// <param name="ipAddress">IP address</param>
         /// <param name="port">Port</param>
         /// <returns>True if ip is blocked</returns>
-        public bool IsIPAddressBlocked(string ipAddress, int port = -1)
+        public bool IsIPAddressBlocked(string ipAddress, int port = 0)
         {
             return IsIPAddressBlocked(ipAddress, out _, port);
         }
@@ -747,7 +747,7 @@ namespace DigitalRuby.IPBanCore
         }
 
         /// <inheritdoc />
-        public bool IsIPAddressBlocked(string ipAddress, out string ruleName, int port = -1)
+        public bool IsIPAddressBlocked(string ipAddress, out string ruleName, int port = 0)
         {
             if (!System.Net.IPAddress.TryParse(ipAddress, out System.Net.IPAddress ipAddressObj))
             {
@@ -764,7 +764,7 @@ namespace DigitalRuby.IPBanCore
         /// <param name="ruleName">Receives rule name if found</param>
         /// <param name="port">Port</param>
         /// <returns>True if ip is allowed</returns>
-        private bool IsIPAddressAllowedInternal(System.Net.IPAddress ipAddressObj, out string ruleName, int port = -1)
+        private bool IsIPAddressAllowedInternal(System.Net.IPAddress ipAddressObj, out string ruleName, int port = 0)
         {
             lock (this)
             {
@@ -824,7 +824,7 @@ namespace DigitalRuby.IPBanCore
         /// <param name="allowed">True if ip is in allow rule</param>
         /// <param name="port">Port</param>
         /// <returns>True if ip is blocked</returns>
-        private bool IsIPAddressBlockedInternal(System.Net.IPAddress ipAddressObj, out string ruleName, out bool allowed, int port = -1)
+        private bool IsIPAddressBlockedInternal(System.Net.IPAddress ipAddressObj, out string ruleName, out bool allowed, int port = 0)
         {
             allowed = false;
             lock (this)
