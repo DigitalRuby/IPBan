@@ -129,14 +129,22 @@ namespace DigitalRuby.IPBanCore
         /// <summary>
         /// Enumerate all set values
         /// </summary>
+        /// <param name="setFile">Set file</param>
         /// <returns>Set values</returns>
-        public static IEnumerable<SetEntry> EnumerateSets()
+        public static IEnumerable<SetEntry> EnumerateSets(string setFile = null)
         {
-            string tempFile = OSUtility.GetTempFileName();
+            bool temp = !File.Exists(setFile);
+            if (temp)
+            {
+                setFile = OSUtility.GetTempFileName();
+            }
             try
             {
-                IPBanLinuxIPSetIPTables.SaveToFile(tempFile);
-                foreach (string line in File.ReadLines(tempFile))
+                if (temp)
+                {
+                    IPBanLinuxIPSetIPTables.SaveToFile(setFile);
+                }
+                foreach (string line in File.ReadLines(setFile))
                 {
                     string[] pieces = line.Split(' ');
                     if (pieces.Length > 2)
@@ -152,7 +160,10 @@ namespace DigitalRuby.IPBanCore
             }
             finally
             {
-                ExtensionMethods.FileDeleteWithRetry(tempFile);
+                if (temp)
+                {
+                    ExtensionMethods.FileDeleteWithRetry(setFile);
+                }
             }
         }
 

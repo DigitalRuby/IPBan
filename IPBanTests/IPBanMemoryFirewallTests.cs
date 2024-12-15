@@ -54,9 +54,9 @@ namespace DigitalRuby.IPBanTests
             string[] banned = f.EnumerateBannedIPAddresses().ToArray();
             IPAddressRange[] banned2 = f.EnumerateIPAddresses("TestRuleBlock").ToArray();
             ClassicAssert.AreEqual(0, f.GetRuleNames("CB").Count());
-            ClassicAssert.IsTrue(f.IsIPAddressAllowed(allowIP));
+            ClassicAssert.IsTrue(f.IsIPAddressAllowed(allowIP, out _));
             ClassicAssert.IsFalse(f.IsIPAddressBlocked(allowIP, out _));
-            ClassicAssert.IsTrue(f.IsIPAddressAllowed(allowIP2));
+            ClassicAssert.IsTrue(f.IsIPAddressAllowed(allowIP2, out _));
             ClassicAssert.IsFalse(f.IsIPAddressBlocked(allowIP2, out _));
             ClassicAssert.IsFalse(f.IsIPAddressBlocked(otherIP, out _));
             ClassicAssert.IsTrue(f.IsIPAddressBlocked(blockIP[1], out _));

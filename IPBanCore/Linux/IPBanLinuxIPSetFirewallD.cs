@@ -25,6 +25,7 @@ SOFTWARE.
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Xml;
 
 namespace DigitalRuby.IPBanCore
 {
@@ -36,6 +37,7 @@ namespace DigitalRuby.IPBanCore
     public static class IPBanLinuxIPSetFirewallD
     {
         private static readonly string setsFolder;
+        private static readonly string zoneFile;
 
         /// <summary>
         /// INetFamily for ipv4
@@ -72,11 +74,13 @@ namespace DigitalRuby.IPBanCore
             if (OSUtility.IsLinux)
             {
                 setsFolder = "/etc/firewalld/ipsets";
+                zoneFile = "/etc/firewalld/zones/public.xml";
             }
             else
             {
                 // windows virtual layer
                 setsFolder = Path.Combine(System.AppContext.BaseDirectory, "firewalld", "override", "ipsets");
+                zoneFile = Path.Combine(System.AppContext.BaseDirectory, "firewalld", "override", "zones", "public.xml");
                 Directory.CreateDirectory(setsFolder);
             }
         }
@@ -191,6 +195,74 @@ namespace DigitalRuby.IPBanCore
                 }
             }
             return entries;
+        }
+
+        /// <summary>
+        /// Get the entries in a set
+        /// </summary>
+        /// <param name="setName">Set name</param>
+        /// <returns>Entries</returns>
+        public static IReadOnlyCollection<IPAddressRange> ReadSetRanges(string setName)
+        {
+            HashSet<IPAddressRange> entries = [];
+            var setFileName = Path.Combine(setsFolder, setName + ".xml");
+            if (File.Exists(setFileName))
+            {
+                using var xmlReader = System.Xml.XmlReader.Create(setFileName);
+                while (xmlReader.Read())
+                {
+                    if (xmlReader.NodeType == System.Xml.XmlNodeType.Element &&
+                        xmlReader.Name == "entry")
+                    {
+                        var entry = xmlReader.ReadElementContentAsString();
+                        entries.Add(entry);
+                    }
+                }
+            }
+            return entries;
+        }
+
+        /// <summary>
+        /// Read set ports
+        /// </summary>
+        /// <param name="setName">Set name</param>
+        /// <returns>Port ranges</returns>
+        public static IReadOnlyCollection<PortRange> ReadSetPorts(string setName)
+        {
+            if (!File.Exists(zoneFile))
+            {
+                return [];
+            }
+
+            XmlDocument doc = new();
+            doc.Load(zoneFile);
+
+            // example allow:
+            // <rule family="ipv6" priority="-20">
+            //   <source ipset="IPBan_WhitelistUrlG_R_6" />
+            //   <port port="0-65535" protocol="tcp" />
+            //   <accept />
+            // </rule>
+
+            // example drop:
+            // <rule family="ipv6" priority="-10">
+            //   <source ipset="IPBan_AsnBlock_S_6" />
+            //   <port port="0-65535" protocol="tcp" />
+            //   <drop />
+            // </rule>
+
+            // find the rule wit source ipset of name and grab the port port attribute
+            foreach (XmlNode node in doc.SelectNodes($"//rule/source[@ipset='{setName}']/../port"))
+            {
+                if (node.Attributes["port"] is not null)
+                {
+                    var ports = node.Attributes["port"].Value ?? string.Empty;
+                    return ports.Split(',').Select(p => PortRange.Parse(p)).ToArray();
+                }
+            }
+
+
+            return [];
         }
 
         /// <summary>

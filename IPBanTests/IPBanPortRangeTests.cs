@@ -68,8 +68,11 @@ namespace DigitalRuby.IPBanTests
         [Test]
         public void TestPort25()
         {
-            var value = IPBanFirewallUtility.GetBlockPortRanges([new PortRange(25)]);
-            var again = IPBanFirewallUtility.GetBlockPortRanges(value);
+            var value = IPBanFirewallUtility.InvertPortRanges([new PortRange(25)]);
+            ClassicAssert.That(value, Has.Count.EqualTo(2));
+            ClassicAssert.That(value, Has.Exactly(1).Matches<PortRange>(x => x.MinPort == 0 && x.MaxPort == 24));
+            ClassicAssert.That(value, Has.Exactly(1).Matches<PortRange>(x => x.MinPort == 26 && x.MaxPort == 65535));
+            var again = IPBanFirewallUtility.InvertPortRanges(value);
             ClassicAssert.That(again, Has.Count.EqualTo(1));
             ClassicAssert.That(again, Has.Exactly(1).Matches<PortRange>(x => x.MinPort == 25 && x.MinPort == 25));
         }

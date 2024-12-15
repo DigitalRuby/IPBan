@@ -29,10 +29,6 @@ public sealed class IPAddressProcessExecutor : IIPAddressProcessExecutor
     public void Execute(string programToRun, IReadOnlyCollection<IPAddressLogEvent> ipAddresses,
         string appName, Action<Action> taskRunner)
     {
-        if (ipAddresses is null || ipAddresses.Count == 0 || string.IsNullOrWhiteSpace(programToRun) || taskRunner is null)
-        {
-            return;
-        }
         foreach (string process in programToRun.Split('\n'))
         {
             string[] pieces = process.Trim().Split('|', StringSplitOptions.TrimEntries);
@@ -50,11 +46,6 @@ public sealed class IPAddressProcessExecutor : IIPAddressProcessExecutor
 
                 foreach (var ipAddress in ipAddresses)
                 {
-                    if (string.IsNullOrWhiteSpace(ipAddress?.IPAddress) || ipAddress.External)
-                    {
-                        continue;
-                    }
-
                     // log data cleanup
                     var logData = (ipAddress.LogData ?? string.Empty)
                         .Replace("\"", string.Empty)

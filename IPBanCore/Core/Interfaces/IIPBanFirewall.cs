@@ -87,29 +87,11 @@ namespace DigitalRuby.IPBanCore
         Task<bool> AllowIPAddresses(string ruleNamePrefix, IEnumerable<IPAddressRange> ipAddresses, IEnumerable<PortRange> allowedPorts = null, CancellationToken cancelToken = default);
 
         /// <summary>
-        /// Checks if an ip address is blocked in the firewall
+        /// Checks if ip addresses are allowed or blocked in the firewall
         /// </summary>
-        /// <param name="ipAddress">IP Address</param>
-        /// <param name="ruleName">Found rule name if known by the firewall implementation if ip is blocked, otherwise null</param>
-        /// <param name="port">Optional port, -1 to not check the port. Not all firewalls will check the port.</param>
-        /// <returns>True if the ip address is blocked in the firewall, false otherwise</returns>
-        bool IsIPAddressBlocked(string ipAddress, out string ruleName, int port = -1);
-
-        /// <summary>
-        /// Checks if an ip address is blocked in the firewall
-        /// </summary>
-        /// <param name="ipAddress">IP Address</param>
-        /// <param name="port">Optional port, -1 to not check the port. Not all firewalls will check the port.</param>
-        /// <returns>True if the ip address is blocked in the firewall, false otherwise</returns>
-        bool IsIPAddressBlocked(string ipAddress, int port = -1) => IsIPAddressBlocked(ipAddress, out _, port);
-
-        /// <summary>
-        /// Checks if an ip address is explicitly allowed in the firewall
-        /// </summary>
-        /// <param name="ipAddress">IP Address</param>
-        /// <param name="port">Optional port, -1 to not check the port. Not all firewalls will check the port.</param>
-        /// <returns>True if explicitly allowed, false if not</returns>
-        bool IsIPAddressAllowed(string ipAddress, int port = -1);
+        /// <param name="ipAddresses">IP end points (remote ip, local port)</param>
+        /// <returns>List of blocked,allow,ruleName matching ip position in ipAddresses</returns>
+        IReadOnlyList<(bool blocked, bool allowed, string ruleName)> Query(IReadOnlyCollection<System.Net.IPEndPoint> ipAddresses);
 
         /// <summary>
         /// Get all rules with the specified rule name prefix
