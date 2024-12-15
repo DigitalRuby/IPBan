@@ -474,7 +474,7 @@ namespace DigitalRuby.IPBanCore
         {
             const string setText = " match-set ";
             string prefix = setText + RulePrefix + (ruleNamePrefix ?? string.Empty);
-            RunProcess(IpTablesProcess, true, out IReadOnlyList<string> lines, "-L");
+            RunProcess(IpTablesProcess, true, out IReadOnlyList<string> lines, "-L -n");
             foreach (string line in lines)
             {
                 int pos = line.IndexOf(prefix);
@@ -747,5 +747,5 @@ namespace DigitalRuby.IPBanCore
 // iptables-save > file.txt
 // iptables-restore < file.txt
 // port ranges? iptables -A INPUT -p tcp -m tcp -m multiport --dports 1:79,81:442,444:65535 -j DROP
-// list rules with line numbers: iptables -L --line-numbers
+// list rules with line numbers: iptables -L -n --line-numbers
 // modify rule at line number: iptables -R INPUT 12 -s 5.158.0.0/16 -j DROP
