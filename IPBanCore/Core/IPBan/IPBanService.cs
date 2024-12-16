@@ -380,6 +380,7 @@ namespace DigitalRuby.IPBanCore
             else if (MultiThreaded)
             {
                 var task = new FirewallTask(action, state, typeof(T), name, CancelToken);
+                Logger.Debug("Queued firewall task {0}", name);
                 firewallTasks.Enqueue(task);
                 return Task.CompletedTask;
             }

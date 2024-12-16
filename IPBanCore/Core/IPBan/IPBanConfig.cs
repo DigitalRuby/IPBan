@@ -264,7 +264,8 @@ namespace DigitalRuby.IPBanCore
                 Logger.Warn("Ignoring null/empty key");
                 return null;
             }
-            else if (!appSettings.ContainsKey(key))
+
+            if (!appSettings.TryGetValue(key, out var stringValue) || stringValue is null)
             {
                 if (logMissing)
                 {
@@ -272,9 +273,6 @@ namespace DigitalRuby.IPBanCore
                 }
                 return null; // skip trying to convert
             }
-
-            // read value from appSettings
-            var stringValue = appSettings[key];
 
             // config value can be read from env var if value starts and ends with %
             if (stringValue.StartsWith('%') && stringValue.EndsWith('%'))
