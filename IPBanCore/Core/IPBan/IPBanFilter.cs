@@ -97,7 +97,7 @@ namespace DigitalRuby.IPBanCore
             }
         }
 
-        private bool IsNonIPMatch(string entry)
+        private bool IsNonIPMatch(string entry, out string reason)
         {
             if (!string.IsNullOrWhiteSpace(entry))
             {
@@ -106,6 +106,7 @@ namespace DigitalRuby.IPBanCore
                 if (others.Contains(entry))
                 {
                     // direct string match in other set
+                    reason = "Other";
                     return true;
                 }
 
@@ -113,10 +114,15 @@ namespace DigitalRuby.IPBanCore
                 if (regex is not null)
                 {
                     // try the regex as last resort
-                    return regex.IsMatch(entry);
+                    if (regex.IsMatch(entry))
+                    {
+                        reason = "Regex";
+                        return true;
+                    }
                 }
             }
 
+            reason = string.Empty;
             return false;
         }
 
@@ -297,37 +303,49 @@ namespace DigitalRuby.IPBanCore
         }
 
         /// <inheritdoc />
-        public bool IsFiltered(string entry)
+        public bool IsFiltered(string entry, out string reason)
         {
             if (IPAddressRange.TryParse(entry, out IPAddressRange ipAddressRange) &&
-                IsFiltered(ipAddressRange))
+                IsFiltered(ipAddressRange, out reason))
             {
                 return true;
             }
-            else if (counterFilter is not null && counterFilter.IsFiltered(entry))
+            else if (counterFilter is not null && counterFilter.IsFiltered(entry, out reason))
             {
+                reason = "Counter filter";
                 return false;
             }
 
             // default behavior
-            return IsNonIPMatch(entry);
+            return IsNonIPMatch(entry, out reason);
         }
 
         /// <inheritdoc/>
-        public bool IsFiltered(IPAddressRange range)
+        public bool IsFiltered(IPAddressRange range, out string reason)
         {
             // if we have a counter filter or a dns list and one of our dns servers is in the range, the range is not filtered
-            if ((counterFilter is not null && counterFilter.IsFiltered(range)) ||
-                (dnsList != null && dnsList.ContainsIPAddressRange(range)))
+            if (counterFilter is not null && counterFilter.IsFiltered(range, out reason))
             {
+                if (string.IsNullOrWhiteSpace(reason))
+                {
+                    reason = "Counter filter";
+                }
+                return false;
+            }
+            else if (dnsList != null && dnsList.ContainsIPAddressRange(range))
+            {
+                reason = "Dns list";
                 return false;
             }
             // if the set or ranges contains the range, it is filtered
             else if ((range.Single && set.Contains(range.Begin)) ||
                 (set.Any(i => range.Contains(i)) || ranges.Any(r => r.Contains(range))))
             {
+                reason = "IP list";
                 return true;
             }
+
+            reason = "Not found";
             return false;
         }
 

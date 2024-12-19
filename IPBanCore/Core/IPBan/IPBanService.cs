@@ -528,10 +528,10 @@ namespace DigitalRuby.IPBanCore
         }
 
         /// <inheritdoc />
-        public bool IsWhitelisted(string entry) => Config.IsWhitelisted(entry);
+        public bool IsWhitelisted(string entry, out string reason) => Config.IsWhitelisted(entry, out reason);
 
         /// <inheritdoc />
-        public bool IsWhitelisted(IPAddressRange range) => Config.IsWhitelisted(range);
+        public bool IsWhitelisted(IPAddressRange range, out string reason) => Config.IsWhitelisted(range, out reason);
 
         /// <inheritdoc />
         public virtual void AddLogScanner(LogScannerOptions options, ICollection<ILogScanner> logs)

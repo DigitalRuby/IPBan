@@ -361,9 +361,9 @@ e.g.
                 "88.88.88.88?TestIP2?2020-05-24' /></appSettings></configuration>",
                 DefaultDnsLookup.Instance);
             ClassicAssert.AreEqual(string.Join(",", config.WhitelistFilter.IPAddressRanges.OrderBy(i => i)), "88.88.88.88,99.99.99.99");
-            ClassicAssert.IsTrue(config.IsWhitelisted("99.99.99.99"));
-            ClassicAssert.IsTrue(config.IsWhitelisted("88.88.88.88"));
-            ClassicAssert.IsFalse(config.IsWhitelisted("77.77.77.77"));
+            ClassicAssert.IsTrue(config.IsWhitelisted("99.99.99.99", out _));
+            ClassicAssert.IsTrue(config.IsWhitelisted("88.88.88.88", out _));
+            ClassicAssert.IsFalse(config.IsWhitelisted("77.77.77.77", out _));
         }
 
         [Test]
@@ -372,8 +372,8 @@ e.g.
             IPBanConfig config = IPBanConfig.LoadFromXml("<?xml version='1.0'?><configuration>" +
                 "<appSettings><add key='Whitelist' value='test.com' /></appSettings></configuration>",
                 this);
-            ClassicAssert.IsTrue(config.WhitelistFilter.IsFiltered("99.88.77.66"));
-            ClassicAssert.IsFalse(config.BlacklistFilter.IsFiltered("99.88.77.66"));
+            ClassicAssert.IsTrue(config.WhitelistFilter.IsFiltered("99.88.77.66", out _));
+            ClassicAssert.IsFalse(config.BlacklistFilter.IsFiltered("99.88.77.66", out _));
         }
 
         [Test]
@@ -382,8 +382,8 @@ e.g.
             IPBanConfig config = IPBanConfig.LoadFromXml("<?xml version='1.0'?><configuration>" +
                 "<appSettings><add key='Blacklist' value='test.com' /></appSettings></configuration>",
                 this);
-            ClassicAssert.IsFalse(config.WhitelistFilter.IsFiltered("99.88.77.66"));
-            ClassicAssert.IsTrue(config.BlacklistFilter.IsFiltered("99.88.77.66"));
+            ClassicAssert.IsFalse(config.WhitelistFilter.IsFiltered("99.88.77.66", out _));
+            ClassicAssert.IsTrue(config.BlacklistFilter.IsFiltered("99.88.77.66", out _));
         }
 
         [Test]

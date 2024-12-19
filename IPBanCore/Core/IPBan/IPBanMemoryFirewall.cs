@@ -749,12 +749,12 @@ namespace DigitalRuby.IPBanCore
         /// <inheritdoc />
         public bool IsIPAddressBlocked(string ipAddress, out string ruleName, int port = 0)
         {
-            if (!System.Net.IPAddress.TryParse(ipAddress, out System.Net.IPAddress ipAddressObj))
+            if (!IPAddressRange.TryParse(ipAddress, out var range))
             {
                 ruleName = null;
                 return false;
             }
-            return IsIPAddressBlocked(ipAddressObj, out ruleName, out _, port);
+            return IsIPAddressBlocked(range.Begin, out ruleName, out _, port);
         }
 
         /// <summary>

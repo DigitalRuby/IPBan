@@ -237,7 +237,7 @@ namespace DigitalRuby.IPBanCore
                 {
                     continue;
                 }
-                else if (whitelistChecker is null || !whitelistChecker.IsWhitelisted(range))
+                else if (whitelistChecker is null || !whitelistChecker.IsWhitelisted(range, out _))
                 {
                     // make sure to add only ranges that are not whitelisted
                     ranges.Add(range);

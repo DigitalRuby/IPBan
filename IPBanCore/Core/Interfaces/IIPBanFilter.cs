@@ -42,15 +42,17 @@ namespace DigitalRuby.IPBanCore
         /// Check if an entry is filtered
         /// </summary>
         /// <param name="entry">Entry</param>
+        /// <param name="reason">Reason</param>
         /// <returns>True if whitelisted, false otherwise</returns>
-        bool IsFiltered(string entry);
+        bool IsFiltered(string entry, out string reason);
 
         /// <summary>
         /// Check if an ip address range is filtered. If any ip or range intersects, the range is filtered.
         /// </summary>
         /// <param name="range">Range</param>
+        /// <param name="reason">Reason</param>
         /// <returns>True if range is whitelisted, false otherwise</returns>
-        bool IsFiltered(IPAddressRange range);
+        bool IsFiltered(IPAddressRange range, out string reason);
 
         /// <summary>
         /// Gets all ip address ranges in the filter

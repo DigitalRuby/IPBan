@@ -918,10 +918,10 @@ namespace DigitalRuby.IPBanCore
         }
 
         /// <inheritdoc />
-        public bool IsWhitelisted(string entry) => whitelistFilter.IsFiltered(entry);
+        public bool IsWhitelisted(string entry, out string reason) => whitelistFilter.IsFiltered(entry, out reason);
 
         /// <inheritdoc />
-        public bool IsWhitelisted(IPAddressRange range) => whitelistFilter.IsFiltered(range);
+        public bool IsWhitelisted(IPAddressRange range, out string reason) => whitelistFilter.IsFiltered(range, out reason);
 
         /// <summary>
         /// Raw xml

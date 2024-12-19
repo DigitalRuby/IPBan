@@ -46,7 +46,7 @@ namespace DigitalRuby.IPBanCore
         /// <returns>True if allowed, false otherwise</returns>
         public static bool IsIPAddressAllowed(this IIPBanFirewall firewall, string ipAddress, out string ruleName, int port = 0)
         {
-            var result = firewall.Query([new IPEndPoint(System.Net.IPAddress.Parse(ipAddress), port)]);
+            var result = firewall.Query([new IPEndPoint(IPAddressRange.Parse(ipAddress).Begin, port)]);
             if (result.Count == 0)
             {
                 ruleName = null;
@@ -78,7 +78,7 @@ namespace DigitalRuby.IPBanCore
         /// <returns>True if blocked, false otherwise</returns>
         public static bool IsIPAddressBlocked(this IIPBanFirewall firewall, string ipAddress, out string ruleName, int port = 0)
         {
-            var result = firewall.Query([new IPEndPoint(IPAddress.Parse(ipAddress), port)]);
+            var result = firewall.Query([new IPEndPoint(IPAddressRange.Parse(ipAddress).Begin, port)]);
             if (result.Count == 0)
             {
                 ruleName = null;

@@ -109,7 +109,7 @@ public sealed class IPBanIPThreatUploader(IPBanService service) : IUpdater, IIPA
             this.events.AddRange(events.Where(e => e.Type == IPAddressEventType.Blocked &&
                 e.Count > 0 &&
                 !e.External &&
-                !service.Config.IsWhitelisted(e.IPAddress)));
+                !service.Config.IsWhitelisted(e.IPAddress, out _)));
         }
     }
 }

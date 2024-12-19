@@ -118,14 +118,14 @@ namespace DigitalRuby.IPBanTests
             await TestFileInternal("http://localhost");
         }
 
-        public bool IsWhitelisted(string entry)
+        public bool IsWhitelisted(string entry, out string reason)
         {
-            return memoryFirewall.IsIPAddressAllowed(entry);
+            return memoryFirewall.IsIPAddressAllowed(entry, out reason);
         }
 
-        public bool IsWhitelisted(IPAddressRange range)
+        public bool IsWhitelisted(IPAddressRange range, out string reason)
         {
-            return memoryFirewall.IsIPAddressAllowed(range.ToString());
+            return memoryFirewall.IsIPAddressAllowed(range.ToString(), out reason);
         }
 
         public Task RunFirewallTask<T>(Func<T, CancellationToken, Task> action, T state, string name)

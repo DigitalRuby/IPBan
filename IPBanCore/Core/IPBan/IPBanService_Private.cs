@@ -238,15 +238,16 @@ namespace DigitalRuby.IPBanCore
                         string userName = failedLogin.UserName;
                         string source = failedLogin.Source;
                         string logData = failedLogin.LogData ?? string.Empty;
-                        if (IsWhitelisted(ipAddress))
+                        if (IsWhitelisted(ipAddress, out var reason))
                         {
-                            Logger.Log(failedLogin.LogLevel, "Login failure, ignoring whitelisted ip address {0}, {1}, {2}", ipAddress, userName, source);
+                            Logger.Log(failedLogin.LogLevel, "Login failure, ignoring whitelisted ip address {0}, {1}, {2}, reason: {3}",
+                                ipAddress, userName, source, reason);
                         }
                         else
                         {
                             int maxFailedLoginAttempts;
                             bool userNameWhitelisted = Config.IsUserNameWithinMaximumEditDistanceOfUserNameWhitelist(userName, out bool hasUserNameWhitelistEditDistance) ||
-                                Config.IsWhitelisted(userName) ||
+                                Config.IsWhitelisted(userName, out _) ||
                                 Config.UserNameWhitelistedRegex(userName);
                             if (userNameWhitelisted)
                             {
@@ -261,8 +262,8 @@ namespace DigitalRuby.IPBanCore
                             DateTime now = failedLogin.Timestamp;
 
                             // check for the target user name for additional blacklisting checks
-                            bool ipBlacklisted = Config.BlacklistFilter.IsFiltered(ipAddress);
-                            bool userBlacklisted = (!ipBlacklisted && Config.BlacklistFilter.IsFiltered(userName));
+                            bool ipBlacklisted = Config.BlacklistFilter.IsFiltered(ipAddress, out reason);
+                            bool userBlacklisted = (!ipBlacklisted && Config.BlacklistFilter.IsFiltered(userName, out reason));
                             bool editDistanceBlacklisted = (!ipBlacklisted && !userBlacklisted && hasUserNameWhitelistEditDistance && !userNameWhitelisted);
                             bool userNameMismatchBlacklisted = (!userNameWhitelisted && (hasUserNameWhitelistEditDistance || !string.IsNullOrWhiteSpace(Config.UserNameWhitelistRegex)));
                             bool configBlacklisted = ipBlacklisted || userBlacklisted || editDistanceBlacklisted || userNameMismatchBlacklisted;
@@ -271,7 +272,8 @@ namespace DigitalRuby.IPBanCore
                             int incrementCount = (failedLogin.Count < 1 ? maxFailedLoginAttempts : failedLogin.Count);
                             int newCount = ipDB.IncrementFailedLoginCount(ipAddress, userName, source, UtcNow, incrementCount, transaction);
 
-                            Logger.Log(failedLogin.LogLevel, now, "Login failure: {0}, {1}, {2}, {3}, {4}", ipAddress, userName, source, newCount, logData);
+                            Logger.Log(failedLogin.LogLevel, now, "Login failure: {0}, {1}, {2}, {3}, {4}, reason: {5}",
+                                ipAddress, userName, source, newCount, logData, reason);
 
                             // if the ip address is black listed or the ip address has reached the maximum failed login attempts before ban, ban the ip address
                             if (configBlacklisted || newCount >= maxFailedLoginAttempts)
@@ -416,10 +418,10 @@ namespace DigitalRuby.IPBanCore
                 Logger.Info("Ignoring ban request for internal ip address {0} because ProcessInternalIPAddresses is false", ipAddress);
                 return;
             }
-            else if (IsWhitelisted(ipAddress))
+            else if (IsWhitelisted(ipAddress, out var reason))
             {
                 // never ban whitelisted ip addresses
-                Logger.Info("Ignoring ban request for whitelisted ip address {0}", ipAddress);
+                Logger.Info("Ignoring ban request for whitelisted ip address {0}, reason: {1}", ipAddress, reason);
                 return;
             }
 
@@ -642,18 +644,18 @@ namespace DigitalRuby.IPBanCore
                 whitelistChanged = false;
                 foreach (IPBanDB.IPAddressEntry ipAddress in ipDB.EnumerateIPAddresses(null, null, transaction))
                 {
-                    if (IsWhitelisted(ipAddress.IPAddress))
+                    if (IsWhitelisted(ipAddress.IPAddress, out var reason))
                     {
                         if (ipAddress.State == IPBanDB.IPAddressState.Active)
                         {
-                            Logger.Warn("Un-banning whitelisted ip address {0}", ipAddress.IPAddress);
+                            Logger.Warn("Un-banning whitelisted ip address {0}, reason: {1}", ipAddress.IPAddress, reason);
                             unbanList?.Add(ipAddress.IPAddress);
                             DB.SetIPAddressesState([ipAddress.IPAddress], IPBanDB.IPAddressState.RemovePending, transaction);
                             firewallNeedsBlockedIPAddressesUpdate = true;
                         }
                         else
                         {
-                            Logger.Warn("Forgetting whitelisted ip address {0}", ipAddress.IPAddress);
+                            Logger.Warn("Forgetting whitelisted ip address {0}, reason: {1}", ipAddress.IPAddress, reason);
                             DB.DeleteIPAddress(ipAddress.IPAddress, transaction);
                         }
                     }
@@ -669,9 +671,9 @@ namespace DigitalRuby.IPBanCore
             foreach (IPBanDB.IPAddressEntry ipAddress in ipDB.EnumerateIPAddresses(failLoginCutOff, banCutOff, transaction))
             {
                 // never un-ban a blacklisted entry
-                if (Config.BlacklistFilter.IsFiltered(ipAddress.IPAddress))
+                if (Config.BlacklistFilter.IsFiltered(ipAddress.IPAddress, out var reason))
                 {
-                    Logger.Debug("Not unbanning blacklisted ip {0}", ipAddress.IPAddress);
+                    Logger.Debug("Not unbanning blacklisted ip {0}, reason: {1}", ipAddress.IPAddress, reason);
                     continue;
                 }
                 // if ban duration has expired, un-ban, check this first as these must trigger a firewall update
@@ -918,7 +920,9 @@ namespace DigitalRuby.IPBanCore
             if (firewallNeedsBlockedIPAddressesUpdate)
             {
                 firewallNeedsBlockedIPAddressesUpdate = false;
-                List<IPBanFirewallIPAddressDelta> deltas = ipDB.EnumerateIPAddressesDeltaAndUpdateState(true, UtcNow, Config.ResetFailedLoginCountForUnbannedIPAddresses).Where(i => !i.Added || !IsWhitelisted(i.IPAddress)).ToList();
+                List<IPBanFirewallIPAddressDelta> deltas = ipDB.EnumerateIPAddressesDeltaAndUpdateState(true, UtcNow, Config.ResetFailedLoginCountForUnbannedIPAddresses)
+                    .Where(i => !i.Added || !IsWhitelisted(i.IPAddress, out _))
+                    .ToList();
                 Logger.Warn("Updating firewall with {0} entries...", deltas.Count);
                 Logger.Info("Firewall entries updated: {0}", string.Join(',', deltas.Select(d => d.IPAddress)));
                 await Firewall.BlockIPAddressesDelta(null, deltas, null, cancelToken);

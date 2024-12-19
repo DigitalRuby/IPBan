@@ -33,14 +33,16 @@ namespace DigitalRuby.IPBanCore
         /// Determines if an entry is whitelisted
         /// </summary>
         /// <param name="entry">Entry - can be ip address, user name, dns entry, etc.</param>
+        /// <param name="reason">Reason</param>
         /// <returns>True if the entry is whitelisted, false otherwise</returns>
-        bool IsWhitelisted(string entry);
+        bool IsWhitelisted(string entry, out string reason);
 
         /// <summary>
         /// Determines if an ip address range is whitelisted
         /// </summary>
         /// <param name="range">IP address range</param>
+        /// <param name="reason">Reason</param>
         /// <returns>True if any part of the range is whitelisted, false otherwise</returns>
-        bool IsWhitelisted(IPAddressRange range);
+        bool IsWhitelisted(IPAddressRange range, out string reason);
     }
 }
