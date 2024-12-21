@@ -1153,4 +1153,7 @@ For block rules, port list is ignored ports, so if you wanted to block port 3389
   <data name="CheckLastWhitelistAccess" xml:space="preserve">
     <value>Check Last Whitelist Access</value>
   </data>
+  <data name="Client" xml:space="preserve">
+    <value>Client</value>
+  </data>
 </root>
