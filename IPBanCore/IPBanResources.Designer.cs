@@ -664,6 +664,15 @@ namespace DigitalRuby.IPBanCore {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Created At.
+        /// </summary>
+        public static string CreatedAt {
+            get {
+                return ResourceManager.GetString("CreatedAt", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Create Whitelist Firewall Rule.
         /// </summary>
         public static string CreateWhitelistFirewallRule {
@@ -2707,6 +2716,15 @@ namespace DigitalRuby.IPBanCore {
         public static string UpdateClients {
             get {
                 return ResourceManager.GetString("UpdateClients", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Updated At.
+        /// </summary>
+        public static string UpdatedAt {
+            get {
+                return ResourceManager.GetString("UpdatedAt", resourceCulture);
             }
         }
         
