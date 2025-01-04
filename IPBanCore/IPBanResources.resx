@@ -841,7 +841,7 @@ For block rules, port list is ignored ports, so if you wanted to block port 3389
     <value>Notification Web Hook</value>
   </data>
   <data name="NotificationWebHookTooltip" xml:space="preserve">
-    <value>Url to POST a json request for notifications. The posted json contains Subject, Body and ToAddresses fields. Advanced: Use Uri=[uri] | Template=[template] | Format=[plain or markdown or slack, leave off for html]. Template will transform notification to your json. Example: { "text":"###SUBJECT###","blocks": [ { "type": "section", "text": { "type": "mrkdwn", "text": "###SUBJECT###\n\n###BODY###" } } ] } | format = slack | Uri = https://hooks.slack.com/services/KEY1/KEY2</value>
+    <value>Url to POST a json request for notifications. The posted json contains Subject, Body and ToAddresses fields. Advanced: Use Uri=[uri] | Template=[template] | Format=[plain or markdown or slack, leave off for html]. Template will transform notification to your json. Example: { "text":"###SUBJECT###","blocks": [ { "type": "section", "text": { "type": "mrkdwn", "text": "###SUBJECT###\n\n###BODY###\n\n###DATA###" } } ] } | format = slack | Uri = https://hooks.slack.com/services/KEY1/KEY2</value>
   </data>
   <data name="FailedLoginLogLevel" xml:space="preserve">
     <value>Failed Log Level</value>

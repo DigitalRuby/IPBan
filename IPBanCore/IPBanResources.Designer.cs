@@ -1792,7 +1792,7 @@ namespace DigitalRuby.IPBanCore {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Url to POST a json request for notifications. The posted json contains Subject, Body and ToAddresses fields. Advanced: Use Uri=[uri] | Template=[template] | Format=[plain or markdown or slack, leave off for html]. Template will transform notification to your json. Example: { &quot;text&quot;:&quot;###SUBJECT###&quot;,&quot;blocks&quot;: [ { &quot;type&quot;: &quot;section&quot;, &quot;text&quot;: { &quot;type&quot;: &quot;mrkdwn&quot;, &quot;text&quot;: &quot;###SUBJECT###\n\n###BODY###&quot; } } ] } | format = slack | Uri = https://hooks.slack.com/services/KEY1/KEY2.
+        ///   Looks up a localized string similar to Url to POST a json request for notifications. The posted json contains Subject, Body and ToAddresses fields. Advanced: Use Uri=[uri] | Template=[template] | Format=[plain or markdown or slack, leave off for html]. Template will transform notification to your json. Example: { &quot;text&quot;:&quot;###SUBJECT###&quot;,&quot;blocks&quot;: [ { &quot;type&quot;: &quot;section&quot;, &quot;text&quot;: { &quot;type&quot;: &quot;mrkdwn&quot;, &quot;text&quot;: &quot;###SUBJECT###\n\n###BODY###\n\n###DATA###&quot; } } ] } | format = slack | Uri = https://hooks.slack.com/services/KEY1/KEY2.
         /// </summary>
         public static string NotificationWebHookTooltip {
             get {
