@@ -1,0 +1,32 @@
+<!--
+Zimbra Postfix brute force errors on Linux
+
+Examples:
+Aug 31 11:04:14 webmail postfix/smtpd[14202]: warning: unknown[9.11.62.17]: SASL LOGIN authentication failed: authentication failure
+Dec  9 00:54:01 webmail postfix/smtps/smtpd[971784]: warning: c-198-20-197-128.domain.net[198-20-197-128]: SASL LOGIN authentication failed: authentication failure
+
+-->
+<LogFile>
+ <Source>Postfix</Source>
+ <PathAndMask>/var/log/mail.log</PathAndMask>
+ <FailedLoginRegex>
+ <![CDATA[
+ ^(?<timestamp>[A-Za-z]+\s.*[0-9]+\s.*[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]{1,3})?)(\s+([A-Za-z]+\s+)+)([A-Za-z]+(\/[A-Za-z]+)+)\[[0-9]+\]\:(.*?)\[(?<ipaddress>[^\]]*)\]\:\sSASL\sLOGIN\sauthentication\sfailed\:\sauthentication\sfailure
+ ]]>
+ </FailedLoginRegex>
+ <FailedLoginRegexTimestampFormat>MMM d HH:mm:ss</FailedLoginRegexTimestampFormat>
+ <FailedLoginLogLevel>Warning</FailedLoginLogLevel>
+ <MinimumTimeBetweenFailedLoginAttempts />
+ <SuccessfulLoginRegex></SuccessfulLoginRegex>
+ <SuccessfulLoginRegexTimestampFormat />
+ <SuccessfulLoginLogLevel>Warning</SuccessfulLoginLogLevel>
+ <PlatformRegex>
+ <![CDATA[
+ Linux
+ ]]>
+ </PlatformRegex>
+ <PingInterval>10000</PingInterval>
+ <MaxFileSize>0</MaxFileSize>
+ <FailedLoginThreshold>0</FailedLoginThreshold>
+ <NotificationFlags>None</NotificationFlags>
+</LogFile>
