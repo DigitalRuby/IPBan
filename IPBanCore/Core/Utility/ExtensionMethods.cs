@@ -166,6 +166,17 @@ namespace DigitalRuby.IPBanCore
         }
 
         /// <summary>
+        /// Convert DateTime to Iso8601 string with Z suffix
+        /// </summary>
+        /// <param name="dt">DateTime</param>
+        /// <returns>Iso 8601 string</returns>
+        public static string ToStringIso8601(this DateTime dt)
+        {
+            return dt.ToString("yyyy-MM-ddTHH:mm:ss.fffZ", System.Globalization.CultureInfo.InvariantCulture)
+                .Replace(IPBanFilter.ItemDelimiterString, string.Empty);
+        }
+
+        /// <summary>
         /// Url encode a string
         /// </summary>
         /// <param name="text">String to url encode</param>

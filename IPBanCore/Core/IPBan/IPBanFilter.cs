@@ -43,6 +43,11 @@ namespace DigitalRuby.IPBanCore
         public const char ItemDelimiter = ',';
 
         /// <summary>
+        /// Delimiter for each item in a filter string
+        /// </summary>
+        public const string ItemDelimiterString = ",";
+
+        /// <summary>
         /// Item pieces delimiter |
         /// </summary>
         public const char ItemPiecesDelimiter = '|';
