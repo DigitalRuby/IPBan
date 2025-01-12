@@ -947,7 +947,7 @@ namespace DigitalRuby.IPBanCore
 
             if (taskCount == 0)
             {
-                Logger.Info("No firewall tasks to run");
+                Logger.Debug("No firewall tasks to run");
                 return;
             }
 
