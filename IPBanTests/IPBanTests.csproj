@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFrameworks>net9.0</TargetFrameworks>
+		<TargetFramework>net9.0</TargetFramework>
 		<PlatformTarget>AnyCPU</PlatformTarget>
 		<IsPackable>false</IsPackable>
 		<RootNamespace>DigitalRuby.IPBanTests</RootNamespace>
