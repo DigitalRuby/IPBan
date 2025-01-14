@@ -75,7 +75,7 @@ namespace DigitalRuby.IPBanCore
             catch (Exception ex)
             {
                 previousQueryString = null;
-                Logger.Warn("Failed to initialize windows event viewer, will retry initialization on next cycle: {0}", ex.Message);
+                Logger.Warn("Failed to initialize windows event viewer, will retry initialization on next cycle: {0}", ex);
             }
             return Task.CompletedTask;
         }

@@ -53,9 +53,19 @@ namespace DigitalRuby.IPBanCore
         public const char ItemPiecesDelimiter = '|';
 
         /// <summary>
+        /// Item pieces delimiter |
+        /// </summary>
+        public const string ItemPiecesDelimiterString = "|";
+
+        /// <summary>
         /// Used if multiple ips in one entry (rare)
         /// </summary>
         public const char SubEntryDelimiter = ';';
+
+        /// <summary>
+        /// Used if multiple ips in one entry (rare)
+        /// </summary>
+        public const string SubEntryDelimiterString = ";";
 
         /// <summary>
         /// Legacy item pieces delimiter ?

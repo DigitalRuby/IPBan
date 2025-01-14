@@ -409,6 +409,17 @@ e.g.
             Environment.SetEnvironmentVariable("IPBAN_APP_SETTING_ENV_VAR_EXIST", null);
         }
 
+        [Test]
+        public void TestParseTimeSpan()
+        {
+            var v = "365:00:00:00";
+            var ts = v.ParseTimeSpan();
+            Assert.That(ts.Equals(TimeSpan.FromDays(365.0)));
+            v = "365.00:00:00";
+            ts = v.ParseTimeSpan();
+            Assert.That(ts.Equals(TimeSpan.FromDays(365.0)));
+        }
+
         public Task<IPAddress[]> GetHostAddressesAsync(string hostNameOrAddress)
         {
             if (hostNameOrAddress == "test.com")

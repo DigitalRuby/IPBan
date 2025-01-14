@@ -781,6 +781,24 @@ namespace DigitalRuby.IPBanCore {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Duration.
+        /// </summary>
+        public static string Duration {
+            get {
+                return ResourceManager.GetString("Duration", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Duration (DD:HH:MM:SS).
+        /// </summary>
+        public static string Duration_Tooltip {
+            get {
+                return ResourceManager.GetString("Duration_Tooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Edit.
         /// </summary>
         public static string Edit {

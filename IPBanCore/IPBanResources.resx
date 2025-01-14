@@ -1162,4 +1162,10 @@ For block rules, port list is ignored ports, so if you wanted to block port 3389
   <data name="UpdatedAt" xml:space="preserve">
     <value>Updated At</value>
   </data>
+  <data name="Duration" xml:space="preserve">
+    <value>Duration</value>
+  </data>
+  <data name="Duration_Tooltip" xml:space="preserve">
+    <value>Duration (DD:HH:MM:SS)</value>
+  </data>
 </root>
