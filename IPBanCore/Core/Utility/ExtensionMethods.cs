@@ -837,6 +837,20 @@ namespace DigitalRuby.IPBanCore
         }
 
         /// <summary>
+        /// Parse text into an int
+        /// </summary>
+        /// <param name="text">Text</param>
+        /// <returns>int or null if failure</returns>
+        public static int? ParseInt(this string text)
+        {
+            if (int.TryParse(text, CultureInfo.InvariantCulture, out var result))
+            {
+                return result;
+            }
+            return null;
+        }
+
+        /// <summary>
         /// Get smallest timespan
         /// </summary>
         /// <param name="t1">First TimeSpan</param>
