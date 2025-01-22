@@ -125,7 +125,8 @@ namespace DigitalRuby.IPBanTests
         public void TestInvertRanges(string ranges, string invertedRanges)
         {
             IEnumerable<IPAddressRange> rangesObj = ranges.Split(',').Select(r => IPAddressRange.Parse(r)).ToArray();
-            IEnumerable<IPAddressRange> invertedRangesObj = rangesObj.Invert().ToArray();
+            var sortedUniqueRanges = rangesObj.Distinct().OrderBy(r => r).ToArray();
+            IEnumerable<IPAddressRange> invertedRangesObj = sortedUniqueRanges.Invert().ToArray();
             string invertedRangesObjString = string.Join(',', invertedRangesObj.Select(r => r.ToString('-')));
             ClassicAssert.AreEqual(invertedRanges, invertedRangesObjString);
         }
