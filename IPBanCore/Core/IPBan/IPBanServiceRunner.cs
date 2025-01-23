@@ -79,8 +79,9 @@ namespace DigitalRuby.IPBanCore
             Logger.Warn("Preparing to run service");
             try
             {
-                ThreadPool.SetMinThreads(512, 1024);
-                ThreadPool.SetMaxThreads(1024 * 1024, 1024 * 1024 * 2);
+#if !DEBUG
+                ThreadPool.SetMaxThreads(8192, 8192 * 2);
+#endif
                 await host.RunAsync(cancelToken.Token);
             }
             finally

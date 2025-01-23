@@ -1801,6 +1801,15 @@ namespace DigitalRuby.IPBanCore {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Notifications Debug.
+        /// </summary>
+        public static string NotificationsDebug {
+            get {
+                return ResourceManager.GetString("NotificationsDebug", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Notification Web Hook.
         /// </summary>
         public static string NotificationWebHook {
