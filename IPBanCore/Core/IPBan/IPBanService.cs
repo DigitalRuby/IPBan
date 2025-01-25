@@ -521,7 +521,7 @@ namespace DigitalRuby.IPBanCore
                 service.RunCycleAsync().Sync();
                 service.IPBanDelegate = null;
                 service.Dispose();
-                ExtensionMethods.RemoveDatabaseFiles();
+                IPBanService.CleanupIPBanTestFiles();
                 NLog.Time.TimeSource.Current = new NLog.Time.AccurateUtcTimeSource();
                 IPBanService.UtcNow = default;
             }

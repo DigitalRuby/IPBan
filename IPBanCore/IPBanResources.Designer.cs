@@ -754,6 +754,15 @@ namespace DigitalRuby.IPBanCore {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Diagnostics.
+        /// </summary>
+        public static string Diagnostics {
+            get {
+                return ResourceManager.GetString("Diagnostics", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Direction.
         /// </summary>
         public static string Direction {
@@ -1797,15 +1806,6 @@ namespace DigitalRuby.IPBanCore {
         public static string Notifications {
             get {
                 return ResourceManager.GetString("Notifications", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Notifications Debug.
-        /// </summary>
-        public static string NotificationsDebug {
-            get {
-                return ResourceManager.GetString("NotificationsDebug", resourceCulture);
             }
         }
         

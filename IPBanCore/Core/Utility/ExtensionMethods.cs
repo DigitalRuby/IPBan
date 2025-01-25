@@ -172,7 +172,7 @@ namespace DigitalRuby.IPBanCore
         /// <returns>Iso 8601 string</returns>
         public static string ToStringIso8601(this DateTime dt)
         {
-            return dt.ToString("yyyy-MM-ddTHH:mm:ss.fffZ", System.Globalization.CultureInfo.InvariantCulture)
+            return dt.ToString("yyyy-MM-ddTHH:mm:ssZ", System.Globalization.CultureInfo.InvariantCulture)
                 .Replace(IPBanFilter.ItemDelimiterString, string.Empty);
         }
 

@@ -1168,7 +1168,7 @@ For block rules, port list is ignored ports, so if you wanted to block port 3389
   <data name="Duration_Tooltip" xml:space="preserve">
     <value>Duration (DD:HH:MM:SS)</value>
   </data>
-  <data name="NotificationsDebug" xml:space="preserve">
-    <value>Notifications Debug</value>
+  <data name="Diagnostics" xml:space="preserve">
+    <value>Diagnostics</value>
   </data>
 </root>
