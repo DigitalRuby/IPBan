@@ -27,6 +27,8 @@ using DigitalRuby.IPBanCore;
 using NUnit.Framework;
 using NUnit.Framework.Legacy;
 
+using System.Linq;
+
 namespace DigitalRuby.IPBanTests
 {
     [TestFixture]
@@ -75,6 +77,14 @@ namespace DigitalRuby.IPBanTests
             var again = IPBanFirewallUtility.InvertPortRanges(value);
             ClassicAssert.That(again, Has.Count.EqualTo(1));
             ClassicAssert.That(again, Has.Exactly(1).Matches<PortRange>(x => x.MinPort == 25 && x.MinPort == 25));
+        }
+
+        [TestCase("80,443,5000-5050", "80,443,5000-5050")]
+        [TestCase("a", "")]
+        public void TestParsePortRanges(string ranges, string expected)
+        {
+            var parsedRanges = PortRange.ParseRanges(ranges);
+            Assert.That(string.Join(',', parsedRanges.Select(r => r.ToString())), Is.EqualTo(expected));
         }
     }
 }

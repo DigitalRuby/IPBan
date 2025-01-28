@@ -23,6 +23,7 @@ SOFTWARE.
 */
 
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 
 namespace DigitalRuby.IPBanCore
@@ -154,6 +155,30 @@ namespace DigitalRuby.IPBanCore
                 }
             }
             return new PortRange(-1, -1);
+        }
+
+        /// <summary>
+        /// Parse a list of port ranges (comma separated)
+        /// </summary>
+        /// <param name="ranges">Port ranges string</param>
+        /// <returns>Parsed port ranges or empty array if parse fail</returns>
+        public static PortRange[] ParseRanges(string ranges)
+        {
+            if (string.IsNullOrWhiteSpace(ranges))
+            {
+                return [];
+            }
+            string[] pieces = ranges.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            List<PortRange> parsedRanges = [];
+            for (int i = 0; i < pieces.Length; i++)
+            {
+                var parsedPort = Parse(pieces[i]);
+                if (parsedPort.MinPort >= 0)
+                {
+                    parsedRanges.Add(parsedPort);
+                }
+            }
+            return parsedRanges.ToArray();
         }
 
         /// <inheritdoc />

@@ -444,9 +444,11 @@ namespace DigitalRuby.IPBanCore
             DateTime nowUtc = IPBanService.UtcNow;
             DateTime nowLocal = nowUtc.ToLocalTime();
             return path.Replace("{year}", nowUtc.Year.ToString("0000"))
+                .Replace("{shortyear}", nowUtc.Year.ToString("00"))
                 .Replace("{month}", nowUtc.Month.ToString("00"))
                 .Replace("{day}", nowUtc.Day.ToString("00"))
                 .Replace("{year-local}", nowLocal.Year.ToString("0000"))
+                .Replace("{shortyear-local}", nowLocal.Year.ToString("00"))
                 .Replace("{month-local}", nowLocal.Month.ToString("00"))
                 .Replace("{day-local}", nowLocal.Day.ToString("00"));
         }
