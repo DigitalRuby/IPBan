@@ -513,9 +513,15 @@ namespace DigitalRuby.IPBanCore
 
             if (service != null)
             {
-                if (File.Exists(Path.Combine(AppContext.BaseDirectory, "nlog.config")))
+                var nlogFile = Path.Combine(AppContext.BaseDirectory, "nlog.config");
+                if (File.Exists(nlogFile))
                 {
-                    File.Delete(Path.Combine(AppContext.BaseDirectory, "nlog.config"));
+                    File.Delete(nlogFile);
+                }
+                var appDataCache = Path.Combine(AppContext.BaseDirectory, "AppData", "Cache");
+                if (Directory.Exists(appDataCache))
+                {
+                    Directory.Delete(appDataCache, true);
                 }
                 service.Firewall.Truncate();
                 service.RunCycleAsync().Sync();

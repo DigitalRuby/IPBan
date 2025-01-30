@@ -55,24 +55,44 @@ namespace DigitalRuby.IPBanCore
         /// </summary>
         public static readonly IReadOnlyCollection<IPAddressRange> InternalRangesIPV4 =
         [
-            IPAddressRange.Parse("0.0.0.0-0.255.255.255"),
-            IPAddressRange.Parse("10.0.0.0-10.255.255.255"),
-            IPAddressRange.Parse("100.64.0.0-100.127.255.255"),
-            IPAddressRange.Parse("127.0.0.0–127.255.255.255"),
-            IPAddressRange.Parse("169.254.0.0-169.254.255.255"),
-            IPAddressRange.Parse("172.16.0.0-172.31.255.255"),
-            IPAddressRange.Parse("192.0.0.0-192.0.0.255"),
-            IPAddressRange.Parse("192.0.2.0-192.0.2.255"),
-            IPAddressRange.Parse("192.88.99.0-192.88.99.255 "),
-            IPAddressRange.Parse("192.168.0.0-192.168.255.255"),
-            IPAddressRange.Parse("198.18.0.0-198.19.255.255"),
-            IPAddressRange.Parse("198.51.100.0-198.51.100.255"),
-            IPAddressRange.Parse("203.0.113.0-203.0.113.255"),
-            IPAddressRange.Parse("224.0.0.0-239.255.255.255"),
-            IPAddressRange.Parse("233.252.0.0-233.252.0.255"),
-            IPAddressRange.Parse("240.0.0.0-255.255.255.255")
+            IPAddressRange.Parse("0.0.0.0-0.255.255.255"), // current local/this network
+            IPAddressRange.Parse("10.0.0.0-10.255.255.255"), // local comms within private network
+            IPAddressRange.Parse("100.64.0.0-100.127.255.255"), // shared address space
+            IPAddressRange.Parse("127.0.0.0–127.255.255.255"), // loopback
+            IPAddressRange.Parse("169.254.0.0-169.254.255.255"), // link-local
+            IPAddressRange.Parse("172.16.0.0-172.31.255.255"), // local comms within private network
+            IPAddressRange.Parse("192.0.0.0-192.0.0.255"), // ds-lite
+            IPAddressRange.Parse("192.0.2.0-192.0.2.255"), // test-net-1
+            IPAddressRange.Parse("192.88.99.0-192.88.99.255 "), // reserved
+            IPAddressRange.Parse("192.168.0.0-192.168.255.255"), // local comms within private network
+            IPAddressRange.Parse("198.18.0.0-198.19.255.255"), // benchmark internetwork subnet
+            IPAddressRange.Parse("198.51.100.0-198.51.100.255"), // test-net-2
+            IPAddressRange.Parse("203.0.113.0-203.0.113.255"), // test-net-3
+            IPAddressRange.Parse("224.0.0.0-255.255.255.255"), // test-net-3
+            //IPAddressRange.Parse("224.0.0.0-239.255.255.255"), // multicast D
+            //IPAddressRange.Parse("240.0.0.0-255.255.255.255") // subnet
         ];
         private static readonly List<IPV4Range> internalRangesIPV4Optimized = InternalRangesIPV4.Select(r => new IPV4Range(r)).ToList();
+
+        /// <summary>
+        /// Public ranges ipv4
+        /// </summary>
+        public static readonly IReadOnlyCollection<IPAddressRange> PublicRangesIPV4 = // InternalRangesIPV4.Invert(false).ToList();
+        [
+            IPAddressRange.Parse("1.0.0.0-9.255.255.255"),
+            IPAddressRange.Parse("11.0.0.0-100.63.255.255"),
+            IPAddressRange.Parse("100.128.0.0-126.255.255.255"),
+            IPAddressRange.Parse("128.0.0.0-169.253.255.255"),
+            IPAddressRange.Parse("169.255.0.0-172.15.255.255"),
+            IPAddressRange.Parse("172.32.0.0-191.255.255.255"),
+            IPAddressRange.Parse("192.0.1.0-192.0.1.255"),
+            IPAddressRange.Parse("192.0.3.0-192.88.98.255"),
+            IPAddressRange.Parse("192.88.100.0-192.167.255.255"),
+            IPAddressRange.Parse("192.169.0.0-198.17.255.255"),
+            IPAddressRange.Parse("198.20.0.0-198.51.99.255"),
+            IPAddressRange.Parse("198.51.101.0-203.0.112.255"),
+            IPAddressRange.Parse("203.0.114.0-223.255.255.255")
+        ];
 
         /// <summary>
         /// First iPV6
@@ -101,6 +121,25 @@ namespace DigitalRuby.IPBanCore
             IPAddressRange.Parse("FEC0::-FEC0:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF"), // site local
             IPAddressRange.Parse("FF00::-FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF") // multicast
         ];
+
+        /// <summary>
+        /// Public ranges ipv6
+        /// </summary>
+        public static readonly IReadOnlyCollection<IPAddressRange> PublicRangesIPV6 = //InternalRangesIPV6.Invert(false).ToList();
+        [
+            IPAddressRange.Parse("2000::-2001:f:ffff:ffff:ffff:ffff:ffff:ffff"),
+            IPAddressRange.Parse("2001:30::-2001:db7:ffff:ffff:ffff:ffff:ffff:ffff"),
+            IPAddressRange.Parse("2001:db9::-fbff:ffff:ffff:ffff:ffff:ffff:ffff:ffff"),
+            IPAddressRange.Parse("fd00::-fe7f:ffff:ffff:ffff:ffff:ffff:ffff:ffff"),
+            IPAddressRange.Parse("fe81::-febf:ffff:ffff:ffff:ffff:ffff:ffff:ffff"),
+            IPAddressRange.Parse("fec1::-feff:ffff:ffff:ffff:ffff:ffff:ffff:ffff")
+        ];
+
+        /// <summary>
+        /// All public ranges as comma separated string
+        /// </summary>
+        public static readonly string PublicRangesAll = string.Join(',', PublicRangesIPV4.Concat(PublicRangesIPV6));
+
         private static readonly List<IPV6Range> internalRangesIPV6Optimized = InternalRangesIPV6.Select(r => new IPV6Range(r)).ToList();
 
         /// <summary>

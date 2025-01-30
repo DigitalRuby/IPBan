@@ -132,6 +132,13 @@ namespace DigitalRuby.IPBanTests
         }
 
         [Test]
+        public void TestInvertInternalRanges()
+        {
+            var inverted4 = NetworkUtility.InternalRangesIPV4.Invert(false).ToArray();
+            var inverted6 = NetworkUtility.InternalRangesIPV6.Invert(false).ToArray();
+        }
+
+        [Test]
         public void TestCombineRanges()
         {
             var range1 = IPAddressRange.Parse("5.188.10.0/23");

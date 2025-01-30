@@ -1476,18 +1476,24 @@ namespace DigitalRuby.IPBanCore
         /// Ranges must be sorted with duplicates removed
         /// </summary>
         /// <param name="ranges">Ranges</param>
+        /// <param name="removeInternal">Whether to remove internal ranges</param>
         /// <returns>Inverted ip address ranges, in sorted order and combined where needed</returns>
-        public static IEnumerable<IPAddressRange> Invert(this IEnumerable<IPAddressRange> ranges)
+        public static IEnumerable<IPAddressRange> Invert(this IEnumerable<IPAddressRange> ranges, bool removeInternal = true)
         {
             static IEnumerable<IPAddressRange> ProcessRanges(IEnumerable<IPAddressRange> _ranges,
                 System.Net.IPAddress startPrev,
                 System.Net.IPAddress lastPrev,
-                System.Net.Sockets.AddressFamily addressFamily)
+                System.Net.Sockets.AddressFamily addressFamily,
+                bool removeInternal)
             {
                 IPAddressRange leftGap = null;
                 System.Net.IPAddress endPrev = null;
-                foreach (var range in Combine(_ranges.Where(r => r.Begin.AddressFamily == addressFamily)
-                    .SelectMany(r => r.RemoveInternalRanges())))
+                var query = _ranges.Where(r => r.Begin.AddressFamily == addressFamily);
+                if (removeInternal)
+                {
+                    query = query.SelectMany(r => r.RemoveInternalRanges());
+                }
+                foreach (var range in query)
                 {
                     // left gap
                     if (range.Begin.TryDecrement(out endPrev) &&
@@ -1521,14 +1527,14 @@ namespace DigitalRuby.IPBanCore
             }
 
             {
-                var ipv4Ranges = ProcessRanges(ranges, NetworkUtility.FirstIPV4, NetworkUtility.LastIPV4, System.Net.Sockets.AddressFamily.InterNetwork);
+                var ipv4Ranges = ProcessRanges(ranges, NetworkUtility.FirstIPV4, NetworkUtility.LastIPV4, System.Net.Sockets.AddressFamily.InterNetwork, removeInternal);
                 foreach (var range in Combine(ipv4Ranges))
                 {
                     yield return range;
                 }
             }
             {
-                var ipv6Ranges = ProcessRanges(ranges, NetworkUtility.FirstIPV6, NetworkUtility.LastIPV6, System.Net.Sockets.AddressFamily.InterNetworkV6);
+                var ipv6Ranges = ProcessRanges(ranges, NetworkUtility.FirstIPV6, NetworkUtility.LastIPV6, System.Net.Sockets.AddressFamily.InterNetworkV6, removeInternal);
                 foreach (var range in Combine(ipv6Ranges))
                 {
                     yield return range;
