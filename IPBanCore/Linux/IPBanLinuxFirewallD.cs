@@ -275,6 +275,17 @@ namespace DigitalRuby.IPBanCore
         }
 
         /// <inheritdoc />
+        public override string GetPorts(string ruleName)
+        {
+            var ports = IPBanLinuxIPSetFirewallD.ReadSetPorts(ruleName);
+            if (ports is null)
+            {
+                return null;
+            }
+            return string.Join(',', ports.Select(p => p.ToString()));
+        }
+
+        /// <inheritdoc />
         public override IEnumerable<string> GetRuleNames(string ruleNamePrefix = null)
         {
             var rules = IPBanLinuxIPSetFirewallD.GetSetNames(ruleNamePrefix ?? RulePrefix);

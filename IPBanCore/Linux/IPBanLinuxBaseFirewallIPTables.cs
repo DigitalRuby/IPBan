@@ -25,6 +25,7 @@ SOFTWARE.
 // #define ENABLE_FIREWALL_PROFILING
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -146,6 +147,27 @@ namespace DigitalRuby.IPBanCore
             {
                 RunProcess($"{IpTablesProcess}-restore", true, $"< \"{tableFileName}\"");
             }
+        }
+
+        private static PortRange[] GetPortsFromLine(string line)
+        {
+            // check both --dports and dports, just to be safe
+            string dports = " --dports ";
+            var pos = line.IndexOf(dports, StringComparison.OrdinalIgnoreCase);
+            if (pos < 0)
+            {
+                dports = " dports ";
+                pos = line.IndexOf(dports, StringComparison.OrdinalIgnoreCase);
+            }
+            if (pos >= 0)
+            {
+                pos += dports.Length;
+                var start = pos;
+                while (++pos < line.Length && line[pos] != ' ') { }
+                string portString = line[start..pos].Replace(':', '-').TrimEnd();
+                return PortRange.ParseRanges(portString);
+            }
+            return null;
         }
 
         /// <summary>
@@ -631,8 +653,28 @@ namespace DigitalRuby.IPBanCore
         }
 
         /// <inheritdoc />
+        public override string GetPorts(string ruleName)
+        {
+            RunProcess(IpTablesProcess, true, out IReadOnlyList<string> lines, "-L -n --line-numbers");
+            var match = " match-set " + ruleName + " ";
+            foreach (var line in lines)
+            {
+                if (line.Contains(match, StringComparison.OrdinalIgnoreCase))
+                {
+                    var ports = GetPortsFromLine(line);
+                    if (ports is not null)
+                    {
+                        return string.Join(',', ports.Select(p => p.ToString()));
+                    }
+                }
+            }
+            return null;
+        }
+
+        /// <inheritdoc />
         public override IPBanMemoryFirewall Compile()
         {
+            const string matchSet = " match-set ";
             IPBanMemoryFirewall firewall = new(RulePrefix);
 
             // snapshot latest firewall
@@ -662,30 +704,20 @@ namespace DigitalRuby.IPBanCore
 
             // find all lines with match-set that start with RulePrefix and grab the set name along with the ports including
             //  whether it is an ACCEPT or DROP (allow or block) rule
-            var matchSetPrefix = " match-set " + RulePrefix;
+            var matchSetPrefix = matchSet + RulePrefix;
             foreach (var line in lines)
             {
                 int pos = line.IndexOf(matchSetPrefix);
                 if (pos >= 0)
                 {
-                    pos += " match-set ".Length;
+                    pos += matchSetPrefix.Length + 1; // skip space
                     int start = pos;
                     while (++pos < line.Length && line[pos] != ' ');
                     string ruleName = line[start..pos].TrimEnd();
 
                     if (ruleRanges.TryGetValue(ruleName, out var ips))
                     {
-                        // find ports after dports
-                        IEnumerable<PortRange> ports = [];
-                        pos = line.IndexOf(" dports ", pos);
-                        if (pos >= 0)
-                        {
-                            pos += 10;
-                            start = pos;
-                            while (++pos < line.Length && line[pos] != ' ') ;
-                            string portString = line[start..pos].Replace(':', '-').TrimEnd();
-                            ports = portString.Split(',').Select(p => PortRange.Parse(p));
-                        }
+                        var ports = GetPortsFromLine(line);
 
                         if (line.StartsWith("DROP "))
                         {

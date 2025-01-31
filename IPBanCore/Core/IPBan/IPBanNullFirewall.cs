@@ -94,6 +94,12 @@ namespace DigitalRuby.IPBanCore
         }
 
         /// <inheritdoc />
+        public override string GetPorts(string ruleName)
+        {
+            return null;
+        }
+
+        /// <inheritdoc />
         public override IEnumerable<string> GetRuleNames(string ruleNamePrefix = null)
         {
             return [];

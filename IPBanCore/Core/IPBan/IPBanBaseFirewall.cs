@@ -185,6 +185,9 @@ namespace DigitalRuby.IPBanCore
         /// <inheritdoc />
         public abstract IEnumerable<IPAddressRange> EnumerateIPAddresses(string ruleNamePrefix = null);
 
+        /// <inheritdoc />
+        public abstract string GetPorts(string ruleName);
+
         /// <summary>
         /// Truncate
         /// </summary>

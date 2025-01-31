@@ -107,6 +107,7 @@ namespace DigitalRuby.IPBanCore
             public IEnumerable<string> IPV4Strings => ipv4.Select(r => r.ToIPAddressRange().ToString());
             public IEnumerable<string> IPV6Strings => ipv6.Select(r => r.ToIPAddressRange().ToString());
             public IEnumerable<string> PortRangeStrings => portRanges.Select(r => r.ToString());
+            public string Ports => string.Join(',', PortRangeStrings);
 
             public bool Block { get; }
 
@@ -206,6 +207,7 @@ namespace DigitalRuby.IPBanCore
 
             public IEnumerable<string> IPV4 => ipv4.Select(i => i.ToIPAddress().ToString());
             public IEnumerable<string> IPV6 => ipv6.Select(i => i.ToIPAddress().ToString());
+            public string Ports => string.Join(",", ports.Select(p => p.ToString()));
 
             public bool Block { get; } = block;
 
@@ -357,8 +359,8 @@ namespace DigitalRuby.IPBanCore
             public int GetCount() => ipv4.Count + ipv6.Count;
         }
 
-        private readonly Dictionary<string, MemoryFirewallRuleRanges> blockRulesRanges = [];
         private readonly Dictionary<string, MemoryFirewallRule> blockRules = [];
+        private readonly Dictionary<string, MemoryFirewallRuleRanges> blockRulesRanges = [];
         private readonly MemoryFirewallRule allowRule;
         private readonly Dictionary<string, MemoryFirewallRuleRanges> allowRuleRanges = [];
 
@@ -614,6 +616,28 @@ namespace DigitalRuby.IPBanCore
                 }
                 return results;
             }
+        }
+
+        /// <inheritdoc />
+        public override string GetPorts(string ruleName)
+        {
+            if (blockRules.TryGetValue(ruleName, out var rule))
+            {
+                return rule.Ports;
+            }
+            else if (blockRulesRanges.TryGetValue(ruleName, out var ruleRanges))
+            {
+                return ruleRanges.Ports;
+            }
+            else if (!allowRuleRanges.TryGetValue(ruleName, out ruleRanges))
+            {
+                return ruleRanges.Ports;
+            }
+            else if (allowRule.Name.Equals(ruleName, StringComparison.OrdinalIgnoreCase))
+            {
+                return allowRule.Ports;
+            }
+            return null;
         }
 
         /// <inheritdoc />

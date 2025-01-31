@@ -24,6 +24,8 @@ SOFTWARE.
 
 using DigitalRuby.IPBanCore;
 
+using Newtonsoft.Json.Linq;
+
 using NUnit.Framework;
 using NUnit.Framework.Legacy;
 
@@ -859,6 +861,31 @@ namespace DigitalRuby.IPBanTests
             RunConfigBanTest("BlacklistRegex", "^(11.0.0.*)|(99.99.99.[0-9])$", "99.99.99.1", "193.168.99.98", 1);
             RunConfigBanTest("BlacklistRegex", ".", "99.99.99.2", null);
             RunConfigBanTest("BlacklistRegex", @"^(?:(?:194\.165\.16.*)|(?:5\.188\.62.*))", "5.188.62.140", null);
+        }
+
+        [Test]
+        public async Task TestIPWhitelistMultipleEntries()
+        {
+            const string whitelistedIpToTry = "184.198.155.191";
+            const string whitelist = "1.1.1.1|2024-10-31T14:55:47Z|adm1,2.2.2.2|2024-10-31T14:56:06Z|adm2,3.3.3.3|2024-10-30T00:56:34Z|Whitelisted from Web Admin,184.198.155.191|2024-10-31T15:45:46Z|Whitelisted from Web Admin,4.4.4.4|2024-10-31T13:59:14Z|d2,5.5.5.5|2024-10-31T13:59:31Z|testtenant,6.6.6.6?2024-11-04T16:02:34.663Z?Whitelisted from Web Admin,7.7.7.7?2024-11-22T21:52:16.962Z?Whitelisted from Web Admin";
+
+            try
+            {
+                using IPBanConfig.TempConfigChanger configChanger = new(service, xml =>
+                {
+                    return IPBanConfig.ChangeConfigAppSetting(xml, "Whitelist", whitelist);
+                }, out string newConfig);
+
+                var evt = new IPAddressLogEvent(whitelistedIpToTry, "admin", "RDP", 30, IPAddressEventType.FailedLogin, IPBanService.UtcNow);
+                service.AddIPAddressLogEvents([evt]);
+                await service.RunCycleAsync();
+                ClassicAssert.IsFalse(service.Firewall.IsIPAddressBlocked(whitelistedIpToTry));
+            }
+            finally
+            {
+                service.Firewall.Truncate();
+                service.DB.Truncate(true);
+            }
         }
 
         [Test]

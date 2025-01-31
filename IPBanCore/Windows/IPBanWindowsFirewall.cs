@@ -814,6 +814,25 @@ namespace DigitalRuby.IPBanCore
         }
 
         /// <inheritdoc />
+        public override string GetPorts(string ruleName)
+        {
+            try
+            {
+                lock (policy)
+                {
+                    INetFwRule rule = policy.Rules.Item(ruleName);
+                    return rule.LocalPorts ?? string.Empty;
+                }
+            }
+            catch
+            {
+                // not exist, no way to determine this without throwing
+            }
+            return null;
+
+        }
+
+        /// <inheritdoc />
         public override void Truncate()
         {
             foreach (INetFwRule rule in EnumerateRulesMatchingPrefix(RulePrefix).ToArray())

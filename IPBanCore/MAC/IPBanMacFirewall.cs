@@ -102,6 +102,12 @@ namespace DigitalRuby.IPBanCore
         }
 
         /// <inheritdoc />
+        public override string GetPorts(string ruleName)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <inheritdoc />
         public override IPBanMemoryFirewall Compile()
         {
             throw new NotImplementedException();

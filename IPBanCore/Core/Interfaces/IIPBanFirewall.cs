@@ -129,6 +129,13 @@ namespace DigitalRuby.IPBanCore
         IEnumerable<IPAddressRange> EnumerateIPAddresses(string ruleNamePrefix = null);
 
         /// <summary>
+        /// Get ports for a rule.
+        /// </summary>
+        /// <param name="ruleName">Rule name</param>
+        /// <returns>Ports or null if no rule found</returns>
+        string GetPorts(string ruleName);
+
+        /// <summary>
         /// Send a packet event. This method should not throw an exception.
         /// </summary>
         /// <param name="events">Packet events. This can be cleared by the caller safely after this method is called.</param>

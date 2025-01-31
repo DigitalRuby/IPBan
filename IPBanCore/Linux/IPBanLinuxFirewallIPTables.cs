@@ -137,6 +137,12 @@ namespace DigitalRuby.IPBanCore
         }
 
         /// <inheritdoc />
+        public override string GetPorts(string ruleName)
+        {
+            return base.GetPorts(ruleName) ?? firewall6.GetPorts(ruleName);
+        }
+
+        /// <inheritdoc />
         public override void Truncate()
         {
             base.Truncate();
