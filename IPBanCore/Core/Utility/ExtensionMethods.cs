@@ -1439,7 +1439,7 @@ namespace DigitalRuby.IPBanCore
         }
 
         /// <summary>
-        /// Combine IPAddressRange instances that are consecutive, ranges are assumed to be sorted
+        /// Combine IPAddressRange instances that are consecutive, ranges are assumed to be unqiue and sorted
         /// </summary>
         /// <param name="ranges">Ranges</param>
         /// <returns>Combined ranges</returns>
