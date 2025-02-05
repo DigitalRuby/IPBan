@@ -30,19 +30,11 @@ if ($PSVersionTable.PSVersion.Major -lt 5 -or ($PSVersionTable.PSVersion.Major -
     exit -1
 }
 
-$VERSION_DOTS = "2.0.0"
-$VERSION_UNDERSCORES = $VERSION_DOTS -replace "\.","_"
-$FILE_NAME = "IPBan-Windows-x64_$VERSION_UNDERSCORES.zip"
 $INSTALL_PATH = "C:/Program Files/IPBan"
 $SERVICE_NAME = "IPBan"
 $ErrorActionPreference = "Stop"
 $tempPath = [System.IO.Path]::GetTempPath()
 [bool] $isUninstall = ($uninstall -eq "u" -or $uninstall -eq "uninstall")
-
-if ([System.Environment]::Is64BitOperatingSystem -ne $True)
-{
-    $FILE_NAME = "IPBan-Windows-x86_$VERSION_UNDERSCORES.zip"
-}
 
 $CONFIG_FILE = "$INSTALL_PATH/ipban.config"
 $INSTALL_EXE = "$INSTALL_PATH/DigitalRuby.IPBan.exe"
@@ -93,7 +85,13 @@ if (Test-Path -Path $INSTALL_PATH)
 
 # download zip file
 & mkdir -p $INSTALL_PATH -ErrorAction SilentlyContinue
-$Url = "https://github.com/DigitalRuby/IPBan/releases/download/$VERSION_DOTS/$FILE_NAME"
+$ReleaseAssets = Invoke-RestMethod "https://api.github.com/repos/DigitalRuby/IPBan/releases/latest"
+if ([System.Environment]::Is64BitOperatingSystem)
+{
+    $url        = ($ReleaseAssets.assets | ? name -Match "\-Windows\-x64").browser_download_url
+} else {
+    $url        = ($ReleaseAssets.assets | ? name -Match "\-Windows\-x86").browser_download_url
+}
 & echo "Downloading ipban from $Url"
 $ZipFile = "$INSTALL_PATH/IPBan.zip"
 
