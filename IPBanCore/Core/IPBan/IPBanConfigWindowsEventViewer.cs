@@ -162,6 +162,23 @@ namespace DigitalRuby.IPBanCore
             }
         }
 
+        /// <inheritdoc />
+        public override bool Equals(object obj)
+        {
+            return obj is EventViewerExpressionGroup group &&
+                Source == group.Source &&
+                Keywords == group.Keywords &&
+                MinimumWindowsMajorVersion == group.MinimumWindowsMajorVersion &&
+                MinimumWindowsMinorVersion == group.MinimumWindowsMinorVersion &&
+                NotifyOnly == group.NotifyOnly;
+        }
+
+        /// <inheritdoc />
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(Source, Keywords, MinimumWindowsMajorVersion, MinimumWindowsMinorVersion, NotifyOnly);
+        }
+
         /// <summary>
         /// Append event viewer query to string builder
         /// </summary>
@@ -309,6 +326,19 @@ namespace DigitalRuby.IPBanCore
         [XmlArray("Groups")]
         [XmlArrayItem("Group")]
         public List<EventViewerExpressionGroup> Groups { get; set; } = [];
+
+        /// <inheritdoc />
+        public override bool Equals(object obj)
+        {
+            return obj is EventViewerExpressions expressions &&
+                EqualityComparer<List<EventViewerExpressionGroup>>.Default.Equals(Groups, expressions.Groups);
+        }
+
+        /// <inheritdoc />
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(Groups);
+        }
     }
 
     /// <summary>
