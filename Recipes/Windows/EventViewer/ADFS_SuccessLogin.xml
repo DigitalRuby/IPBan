@@ -1,0 +1,29 @@
+<!-- ADFS successful token issued 1200 or fresh credentials success 1202 -->
+<Group>
+	<Source>ADFS</Source>
+	<Keywords>0x80a0000000000000</Keywords>
+	<Path>Security</Path>
+	<FailedLoginThreshold>0</FailedLoginThreshold>
+	<Expressions>
+		<Expression>
+			<XPath>//EventID</XPath>
+			<Regex>^1200|1202$</Regex>
+		</Expression>
+		<Expression>
+			<XPath>substring-before(substring-after(//EventData/Data[2], '<UserId>'), '</UserId>')</XPath>
+			<Regex>
+				<![CDATA[
+					(?<username>.+)
+				]]>
+			</Regex>
+		</Expression>
+		<Expression>
+			<XPath>substring-before(substring-after(//EventData/Data[2], '<IpAddress>'), '</IpAddress>')</XPath>
+			<Regex>
+				<![CDATA[
+					(?<ipaddress>.+)
+				]]>
+			</Regex>
+		</Expression>
+	</Expressions>
+</Group>
