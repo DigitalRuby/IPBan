@@ -624,7 +624,7 @@ namespace DigitalRuby.IPBanCore
                 return WindowsEventViewerExpressionsToBlock.Groups.Where(g => (g.KeywordsULONG == keywords)).ToArray();
             }
             return WindowsEventViewerExpressionsToBlock.Groups.Where(g => (g.KeywordsULONG == keywords))
-                .Union(expressionsSuccess.Groups.Where(g => (g.KeywordsULONG == keywords))).ToArray();
+                .Concat(expressionsSuccess.Groups.Where(g => (g.KeywordsULONG == keywords))).ToArray();
         }
 
         /// <summary>
