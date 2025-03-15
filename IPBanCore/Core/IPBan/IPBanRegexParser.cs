@@ -150,6 +150,9 @@ namespace DigitalRuby.IPBanCore
         /// <returns>Cleaned multi-line string</returns>
         public static string CleanMultilineString(string text)
         {
+            const string cDataStart = "<![CDATA[";
+            const string cDataEnd = "]]>";
+
             text = (text ?? string.Empty).Trim();
             if (text.Length == 0)
             {
@@ -167,7 +170,12 @@ namespace DigitalRuby.IPBanCore
                     sb.Append('\n');
                 }
             }
-            return sb.ToString().Trim();
+            text = sb.ToString().Trim();
+            if (text.StartsWith(cDataStart) && text.EndsWith(cDataEnd))
+            {
+                text = text[cDataStart.Length..^cDataEnd.Length];
+            }
+            return text;
         }
 
         /// <summary>

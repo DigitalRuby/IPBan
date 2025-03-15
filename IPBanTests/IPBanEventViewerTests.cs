@@ -140,7 +140,7 @@ namespace DigitalRuby.IPBanTests
         }
 
         [Test]
-        public void TestEventViewer()
+        public async Task TestEventViewer()
         {
             if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
@@ -160,8 +160,8 @@ namespace DigitalRuby.IPBanTests
                     {
                         // add a failed login matching a succesful login - we should get both events
                         var newConfig = IPBanConfig.ChangeConfigEventViewer(service.Config.Xml, true, false, [eventViewerHackyXml]);
-                        service.ConfigReaderWriter.WriteConfigAsync(newConfig).Sync();
-                        service.RunCycleAsync().Sync();
+                        await service.ConfigReaderWriter.WriteConfigAsync(newConfig);
+                        await service.RunCycleAsync();
                     }
                     var results = service.EventViewer.ProcessEventViewerXml(test.Xml).ToArray();
                     var resultIndex = 0;
@@ -201,11 +201,11 @@ namespace DigitalRuby.IPBanTests
                     {
                         // return config to original state
                         var newConfig = IPBanConfig.ChangeConfigEventViewer(service.Config.Xml, true, true, [eventViewerHackyXml]);
-                        service.ConfigReaderWriter.WriteConfigAsync(newConfig).Sync();
-                        service.RunCycleAsync().Sync();
+                        await service.ConfigReaderWriter.WriteConfigAsync(newConfig);
+                        await service.RunCycleAsync();
                     }
                 }
-                service.RunCycleAsync().Sync();
+                await service.RunCycleAsync();
 
                 // pretend enough time has passed to not batch the login attempts
                 IPBanService.UtcNow += TimeSpan.FromSeconds(10.0);

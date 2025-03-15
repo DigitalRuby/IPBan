@@ -10,7 +10,7 @@
 			<Regex>^1201|1203$</Regex>
 		</Expression>
 		<Expression>
-			<XPath>(substring-before(substring-after(//EventData/Data[2], '<UserId>'), '</UserId>')</XPath>
+			<XPath>substring-before(substring-after((//EventData/Data)[2], '<UserId>'), '</UserId>')</XPath>
 			<Regex>
 				<![CDATA[
 					(?<username>.+)
@@ -18,7 +18,7 @@
 			</Regex>
 		</Expression>
 		<Expression>
-			<XPath>substring-before(substring-after(//EventData/Data'][2], '<IpAddress>'), '</IpAddress>')</XPath>
+			<XPath>substring-before(substring-after((//EventData/Data)[2], '<IpAddress>'), '</IpAddress>')</XPath>
 			<Regex>
 				<![CDATA[
 					(?<ipaddress>.+)

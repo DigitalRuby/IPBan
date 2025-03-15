@@ -90,6 +90,20 @@ namespace DigitalRuby.IPBanCore
         [System.Text.Json.Serialization.JsonIgnore]
         [Newtonsoft.Json.JsonIgnore]
         public bool XPathIsOptional { get; private set; }
+
+        /// <inheritdoc />
+        public override bool Equals(object obj)
+        {
+            return obj is EventViewerExpression expression &&
+                XPath == expression.XPath &&
+                Regex?.ToString() == expression.Regex?.ToString();
+        }
+
+        /// <inheritdoc />
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(XPath, Regex.ToString());
+        }
     }
 
     /// <summary>
@@ -160,6 +174,24 @@ namespace DigitalRuby.IPBanCore
                 }
                 KeywordsULONG = ulong.Parse(value, NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture);
             }
+        }
+
+        /// <inheritdoc />
+        public override bool Equals(object obj)
+        {
+            return obj is EventViewerExpressionGroup group &&
+                Source == group.Source &&
+                Keywords == group.Keywords &&
+                MinimumWindowsMajorVersion == group.MinimumWindowsMajorVersion &&
+                MinimumWindowsMinorVersion == group.MinimumWindowsMinorVersion &&
+                NotifyOnly == group.NotifyOnly &&
+                Array.Equals(Expressions, group.Expressions);
+        }
+
+        /// <inheritdoc />
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(Source, Keywords, MinimumWindowsMajorVersion, MinimumWindowsMinorVersion, NotifyOnly);
         }
 
         /// <summary>
@@ -309,6 +341,19 @@ namespace DigitalRuby.IPBanCore
         [XmlArray("Groups")]
         [XmlArrayItem("Group")]
         public List<EventViewerExpressionGroup> Groups { get; set; } = [];
+
+        /// <inheritdoc />
+        public override bool Equals(object obj)
+        {
+            return obj is EventViewerExpressions expressions &&
+                EqualityComparer<List<EventViewerExpressionGroup>>.Default.Equals(Groups, expressions.Groups);
+        }
+
+        /// <inheritdoc />
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(Groups);
+        }
     }
 
     /// <summary>
