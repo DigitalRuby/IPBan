@@ -214,6 +214,24 @@ namespace DigitalRuby.IPBanCore {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Whitelist.
+        /// </summary>
+        public static string AsnBlacklistWhitelist {
+            get {
+                return ResourceManager.GetString("AsnBlacklistWhitelist", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Whitelist instead of blacklist.
+        /// </summary>
+        public static string AsnBlacklistWhitelistTooltip {
+            get {
+                return ResourceManager.GetString("AsnBlacklistWhitelistTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Start typing and select ASN that appear from the dropdown, can use id or name.
         /// </summary>
         public static string AsnBlockHelpLabel {

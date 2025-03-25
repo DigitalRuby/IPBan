@@ -1174,4 +1174,10 @@ For block rules, port list is ignored ports, so if you wanted to block port 3389
   <data name="Reset" xml:space="preserve">
     <value>Reset</value>
   </data>
+  <data name="AsnBlacklistWhitelist" xml:space="preserve">
+    <value>Whitelist</value>
+  </data>
+  <data name="AsnBlacklistWhitelistTooltip" xml:space="preserve">
+    <value>Whitelist instead of blacklist</value>
+  </data>
 </root>
