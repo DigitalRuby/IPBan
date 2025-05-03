@@ -74,6 +74,11 @@ namespace DigitalRuby.IPBanCore
         Task RunCycleAsync(CancellationToken cancelToken = default);
 
         /// <summary>
+        /// Reset machine guid
+        /// </summary>
+        void ResetMachineGuid();
+
+        /// <summary>
         /// Replace place-holders in url with values from this service
         /// </summary>
         /// <param name="url">Url to replace</param>

@@ -130,6 +130,13 @@ namespace DigitalRuby.IPBanCore
         }
 
         /// <summary>
+        /// Reset machine guid
+        /// </summary>
+        public virtual void ResetMachineGuid()
+        {
+        }
+
+        /// <summary>
         /// Add an ip address log event
         /// </summary>
         /// <param name="events">IP address events</param>
