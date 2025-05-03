@@ -161,6 +161,11 @@ namespace DigitalRuby.IPBanCore
         string MachineGuid { get; }
 
         /// <summary>
+        /// Software version
+        /// </summary>
+        string Version { get; }
+
+        /// <summary>
         /// Http request maker
         /// </summary>
         IHttpRequestMaker RequestMaker { get; }
