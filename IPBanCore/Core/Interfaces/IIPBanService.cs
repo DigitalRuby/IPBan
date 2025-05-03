@@ -76,7 +76,8 @@ namespace DigitalRuby.IPBanCore
         /// <summary>
         /// Reset machine guid
         /// </summary>
-        void ResetMachineGuid();
+        /// <param name="guid">Guid, or null/empty to make a new one</param>
+        void ResetMachineGuid(string guid);
 
         /// <summary>
         /// Replace place-holders in url with values from this service

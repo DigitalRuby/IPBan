@@ -132,7 +132,8 @@ namespace DigitalRuby.IPBanCore
         /// <summary>
         /// Reset machine guid
         /// </summary>
-        public virtual void ResetMachineGuid()
+        /// <param name="guid">Guid</param>
+        public virtual void ResetMachineGuid(string guid)
         {
         }
 
