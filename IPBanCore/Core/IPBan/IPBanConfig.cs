@@ -640,7 +640,6 @@ namespace DigitalRuby.IPBanCore
                 return null;
             }
 
-            XmlNode appSettings = doc.SelectSingleNode($"/configuration/appSettings") ?? throw new InvalidOperationException("Unable to find appSettings in config");
             XmlNode existingSetting = doc.SelectSingleNode($"/configuration/appSettings/add[@key='{key}']");
             if (existingSetting is null)
             {
