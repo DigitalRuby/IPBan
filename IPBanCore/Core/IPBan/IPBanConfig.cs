@@ -691,7 +691,7 @@ namespace DigitalRuby.IPBanCore
             var doc = new XmlDocument();
             doc.LoadXml(xml);
             ChangeConfigAppSetting(doc, key, newValue);
-            return doc.OuterXml;
+            return doc.PrettyPrint();
         }
 
         /// <summary>
