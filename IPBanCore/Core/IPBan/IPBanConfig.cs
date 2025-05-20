@@ -628,33 +628,41 @@ namespace DigitalRuby.IPBanCore
         }
 
         /// <summary>
-        /// Change an app settings - no XML encoding is done, so ensure your key and new value are already encoded
+        /// Get an app setting, decoding the XML value
         /// </summary>
-        /// <param name="config">Entire XML config</param>
+        /// <param name="doc">XML config</param>
         /// <param name="key">App setting key to look for</param>
         /// <returns>The config value or null if not found</returns>
-        public static string GetConfigAppSetting(string config, string key)
+        public static string GetConfigAppSetting(XmlDocument doc, string key)
         {
-            string find = $@"\<add key=""{key}"" value=""(?<value>[^""]*)"" *\/\>";
-            Match match = Regex.Match(config, find, RegexOptions.IgnoreCase);
-            return (match is null || !match.Success ? null : match.Groups["value"].Value);
+            if (string.IsNullOrWhiteSpace(key))
+            {
+                return null;
+            }
+
+            XmlNode appSettings = doc.SelectSingleNode($"/configuration/appSettings") ?? throw new InvalidOperationException("Unable to find appSettings in config");
+            XmlNode existingSetting = doc.SelectSingleNode($"/configuration/appSettings/add[@key='{key}']");
+            if (existingSetting is null)
+            {
+                return null;
+            }
+
+            return existingSetting.Attributes["value"].Value;
         }
 
         /// <summary>
-        /// Change an app settings - no XML encoding is done, so ensure your key and new value are already encoded
+        /// Change an app setting, XML encoding the value
         /// </summary>
-        /// <param name="config">Entire XML config</param>
+        /// <param name="doc">XML config</param>
         /// <param name="key">App setting key to look for</param>
         /// <param name="newValue">Replacement value</param>
-        /// <returns>Modified config or the config passed in if not found</returns>
-        public static string ChangeConfigAppSetting(string config, string key, string newValue)
+        public static void ChangeConfigAppSetting(XmlDocument doc, string key, string newValue)
         {
             newValue ??= string.Empty;
 
-            XmlDocument doc = new();
-            doc.LoadXml(config);
             XmlNode appSettings = doc.SelectSingleNode($"/configuration/appSettings") ?? throw new InvalidOperationException("Unable to find appSettings in config");
             XmlNode existingSetting = doc.SelectSingleNode($"/configuration/appSettings/add[@key='{key}']");
+
             if (existingSetting is null)
             {
                 existingSetting = doc.CreateElement("add");
@@ -670,6 +678,20 @@ namespace DigitalRuby.IPBanCore
             {
                 existingSetting.Attributes["value"].Value = newValue;
             }
+        }
+
+        /// <summary>
+        /// Change an app setting, XML encoding the value
+        /// </summary>
+        /// <param name="xml">XML config</param>
+        /// <param name="key">App setting key to look for</param>
+        /// <param name="newValue">Replacement value</param>
+        /// <returns>New XML config</returns>
+        public static string ChangeConfigAppSettingAndGetXml(string xml, string key, string newValue)
+        {
+            var doc = new XmlDocument();
+            doc.LoadXml(xml);
+            ChangeConfigAppSetting(doc, key, newValue);
             return doc.OuterXml;
         }
 

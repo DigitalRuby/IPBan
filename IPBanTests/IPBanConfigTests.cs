@@ -420,6 +420,19 @@ e.g.
             Assert.That(ts.Equals(TimeSpan.FromDays(365.0)));
         }
 
+        [Test]
+        public void TestGetSetAppSettings()
+        {
+            string xml = "<?xml version=\"1.0\"?><configuration><appSettings><add key=\"Blacklist\" value=\"test.com\" /></appSettings></configuration>";
+            var doc = new XmlDocument();
+            doc.LoadXml(xml);
+            var value = IPBanConfig.GetConfigAppSetting(doc, "Blacklist");
+            ClassicAssert.AreEqual("test.com", value);
+            IPBanConfig.ChangeConfigAppSetting(doc, "Blacklist", "test2.com&co");
+            value = IPBanConfig.GetConfigAppSetting(doc, "Blacklist");
+            ClassicAssert.AreEqual("test2.com&co", value);
+        }
+
         public Task<IPAddress[]> GetHostAddressesAsync(string hostNameOrAddress)
         {
             if (hostNameOrAddress == "test.com")

@@ -1633,5 +1633,21 @@ namespace DigitalRuby.IPBanCore
                 yield return kv;
             }
         }
+
+        /// <summary>
+        /// Pretty print xml
+        /// </summary>
+        /// <param name="doc">Xml doc</param>
+        /// <returns>Pretty printed xml</returns>
+        public static string PrettyPrint(this XmlDocument doc)
+        {
+            StringBuilder sb = new();
+            StringWriter sw = new(sb);
+            using (var xtw = new XmlTextWriter(sw) { Formatting = System.Xml.Formatting.Indented, Indentation = 2, IndentChar = ' ' })
+            {
+                doc.WriteTo(xtw);
+            }
+            return sb.ToString();
+        }
     }
 }
