@@ -659,7 +659,6 @@ namespace DigitalRuby.IPBanCore
         {
             newValue ??= string.Empty;
 
-            XmlNode appSettings = doc.SelectSingleNode($"/configuration/appSettings") ?? throw new InvalidOperationException("Unable to find appSettings in config");
             XmlNode existingSetting = doc.SelectSingleNode($"/configuration/appSettings/add[@key='{key}']");
 
             if (existingSetting is null)
@@ -671,6 +670,20 @@ namespace DigitalRuby.IPBanCore
                 XmlAttribute valueAttr = doc.CreateAttribute("value");
                 valueAttr.Value = newValue;
                 existingSetting.Attributes.Append(valueAttr);
+
+                XmlNode appSettings = doc.SelectSingleNode($"/configuration/appSettings");
+
+                // if not found, create appSettings node
+                if (appSettings is null)
+                {
+                    var configuration = doc.SelectSingleNode("/configuration");
+                    if (configuration is null)
+                    {
+                        configuration = doc.PrependChild(doc.CreateElement("configuration"));
+                    }
+                    appSettings = configuration.AppendChild(doc.CreateElement("appSettings"));
+
+                }
                 appSettings.AppendChild(existingSetting);
             }
             else
