@@ -218,6 +218,7 @@ namespace DigitalRuby.IPBanCore
                 if (range.MinPort <= lastRange.MaxPort)
                 {
                     lastRange.MaxPort = range.MaxPort;
+                    result[^1] = lastRange; // struct, must assign back into list
                 }
                 else
                 {
@@ -439,7 +440,5 @@ namespace DigitalRuby.IPBanCore
                 }
             }
         }
-
-
     }
 }
