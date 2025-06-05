@@ -447,7 +447,7 @@ namespace DigitalRuby.IPBanCore
                         // ban for next timespan
                         banTime = banTimes[i];
                         banEndDate = startBanDate + banTime;
-                        Logger.Info("Moving to next ban duration {0} at index {1} for ip {1}", banTimes[i], i, ipAddress);
+                        Logger.Info("Moving to next ban duration {0} at index {1} for ip {2}", banTimes[i], i, ipAddress);
                         break;
                     }
                 }
