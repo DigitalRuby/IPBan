@@ -96,8 +96,8 @@ namespace DigitalRuby.IPBanCore
         {
             try
             {
-                await locker.WaitAsync(timeout, cancellationToken);
-                if (queue.TryDequeue(out var result))
+                bool acquiredLock = await locker.WaitAsync(timeout, cancellationToken);
+                if (acquiredLock && queue.TryDequeue(out var result))
                 {
                     return new KeyValuePair<bool, T>(true, result);
                 }
