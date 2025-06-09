@@ -916,7 +916,7 @@ For block rules, port list is ignored ports, so if you wanted to block port 3389
     <value>Auto Whitelist Success Logins</value>
   </data>
   <data name="AutoWhitelistSuccessLoginsTooltip" xml:space="preserve">
-    <value>Number of days to whitelist remote ip addresses that have a successful login</value>
+    <value>Number of days to whitelist remote ip addresses that have a successful login (set to negative number to also process blank user names, where the number will be converted to a positive number)</value>
   </data>
   <data name="Toggle" xml:space="preserve">
     <value>Toggle</value>

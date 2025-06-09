@@ -277,7 +277,7 @@ namespace DigitalRuby.IPBanCore {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Number of days to whitelist remote ip addresses that have a successful login.
+        ///   Looks up a localized string similar to Number of days to whitelist remote ip addresses that have a successful login (set to negative number to also process blank user names, where the number will be converted to a positive number).
         /// </summary>
         public static string AutoWhitelistSuccessLoginsTooltip {
             get {
