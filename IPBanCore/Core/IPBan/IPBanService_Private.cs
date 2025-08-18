@@ -924,7 +924,7 @@ namespace DigitalRuby.IPBanCore
                     .Where(i => !i.Added || !IsWhitelisted(i.IPAddress, out _))
                     .ToList();
                 Logger.Warn("Updating firewall with {0} entries...", deltas.Count);
-                Logger.Info("Firewall entries updated: {0}", string.Join(',', deltas.Select(d => d.IPAddress)));
+                Logger.Info("Firewall entries updated: {0}", string.Join(',', deltas.Select(d => d.IPAddress + ":" + (d.Added ? "add" : "remove"))));
                 await Firewall.BlockIPAddressesDelta(null, deltas, null, cancelToken);
             }
         }
