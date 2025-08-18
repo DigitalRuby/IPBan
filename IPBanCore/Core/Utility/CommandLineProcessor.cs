@@ -41,20 +41,14 @@ namespace DigitalRuby.IPBanCore.Core.Utility
             var logFileTestCommand = new Command(
                 "logfiletest",
                 "Test a log file with regexes for failures and successes. The file should contain 5 lines with log-filename regex-failure regex-failure-timestamp-format regex-success regex-success-timestamp-format");
-            var fileOption = new Option<string>(
-                name: "--file",
-                description: "File containing information about test."
+            var fileArgument = new Argument<string>(
+                "file", 
+                description: "File containing information about test. THe file should contain the following lines: log-filename regex-failure regex-failure-timestamp-format regex-success regex-success-timestamp-format"
             );
-            fileOption.AddAlias("-f");
-            logFileTestCommand.AddOption(fileOption);
+            logFileTestCommand.AddArgument(fileArgument);
 
             logFileTestCommand.SetHandler(async file =>
             {
-                if (string.IsNullOrWhiteSpace(file))
-                {
-                    Console.WriteLine("Usage: param file with lines of log-filename regex-failure regex-failure-timestamp-format regex-success regex-success-timestamp-format");
-                    return;
-                }
                 var lines = await System.IO.File.ReadAllLinesAsync(file);
                 if (lines.Length != 5)
                 {
@@ -62,7 +56,7 @@ namespace DigitalRuby.IPBanCore.Core.Utility
                     return;
                 }
                 IPBanLogFileTester.RunLogFileTest(lines[0], lines[1], lines[2], lines[3], lines[4]);
-            }, fileOption);
+            }, fileArgument);
 
             // list
             var listCommand = new Command("list", "List currently banned IPs (State=Active/in firewall).");
@@ -102,13 +96,13 @@ namespace DigitalRuby.IPBanCore.Core.Utility
 
             // unban <ip>  =====================
             var unbanCommand = new Command("unban", "Request UNBAN for an IP or for all currently banned IPs (writes to unban.txt).");
-            var ipArg = new Argument<string>("ip", () => null, "IP address (IPv4/IPv6) to unban. Omit and use --all to unban all.");
-            var allOption = new Option<bool>(name: "--all", description: "Unban all currently banned IPs.");
+            var ipArgument = new Argument<string>("ip", () => null, "IP address (IPv4/IPv6) to unban. Omit and use --all to unban all.");
+            var allOption = new Option<bool>(name: "--all", description: "Unban all currently banned IPs.") { Arity = ArgumentArity.ZeroOrOne };
             allOption.AddAlias("-a");
             var yesOption = new Option<bool>(name: "--yes", description: "Auto-confirm destructive actions without prompting.") { Arity = ArgumentArity.ZeroOrOne };
             yesOption.AddAlias("-y");
 
-            unbanCommand.AddArgument(ipArg);
+            unbanCommand.AddArgument(ipArgument);
             unbanCommand.AddOption(allOption);
             unbanCommand.AddOption(yesOption);
             unbanCommand.AddOption(directoryOption);
@@ -178,12 +172,12 @@ namespace DigitalRuby.IPBanCore.Core.Utility
                     await Console.Error.WriteLineAsync("[ERROR] " + ex.Message);
                     Environment.ExitCode = 1;
                 }
-            }, ipArg, allOption, yesOption, directoryOption);
+            }, ipArgument, allOption, yesOption, directoryOption);
 
             // ban <ip> =====================
             var banCommand = new Command("ban", "Request BAN for an IP (writes to ban.txt).");
-            var banIpArg = new Argument<string>("ip", "IP address (IPv4/IPv6) to ban.");
-            banCommand.AddArgument(banIpArg);
+            var ipRequiredArgument = new Argument<string>("ip", "IP address (IPv4/IPv6) to ban.");
+            banCommand.AddArgument(ipRequiredArgument);
             banCommand.AddOption(directoryOption);
 
             banCommand.SetHandler(async (ip, directory) =>
@@ -210,7 +204,7 @@ namespace DigitalRuby.IPBanCore.Core.Utility
                     Console.Error.WriteLine("[ERROR] " + ex.Message);
                     Environment.ExitCode = 1;
                 }
-            }, banIpArg, directoryOption);
+            }, ipRequiredArgument, directoryOption);
 
             rootCommand.Add(infoCommand);
             rootCommand.Add(logFileTestCommand);
