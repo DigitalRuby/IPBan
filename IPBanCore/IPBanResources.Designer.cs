@@ -376,6 +376,15 @@ namespace DigitalRuby.IPBanCore {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to BlacklisterWhitelister.
+        /// </summary>
+        public static string BlacklisterWhitelister {
+            get {
+                return ResourceManager.GetString("BlacklisterWhitelister", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Blocked and Allowed Packets by Country last 24 hours.
         /// </summary>
         public static string BlockedPacketsByCountry {
