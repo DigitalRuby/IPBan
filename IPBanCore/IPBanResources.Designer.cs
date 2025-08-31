@@ -763,6 +763,24 @@ namespace DigitalRuby.IPBanCore {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Default whitelist/blacklist days.
+        /// </summary>
+        public static string DefaultWhitelistBlacklistDurationDays {
+            get {
+                return ResourceManager.GetString("DefaultWhitelistBlacklistDurationDays", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Default days to show in whitelist/blacklist UI.
+        /// </summary>
+        public static string DefaultWhitelistBlacklistDurationDaysTooltip {
+            get {
+                return ResourceManager.GetString("DefaultWhitelistBlacklistDurationDaysTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Delete.
         /// </summary>
         public static string Delete {

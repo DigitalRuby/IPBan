@@ -1183,4 +1183,10 @@ For block rules, port list is ignored ports, so if you wanted to block port 3389
   <data name="BlacklisterWhitelister" xml:space="preserve">
     <value>BlacklisterWhitelister</value>
   </data>
+  <data name="DefaultWhitelistBlacklistDurationDaysTooltip" xml:space="preserve">
+    <value>Default days to show in whitelist/blacklist UI</value>
+  </data>
+  <data name="DefaultWhitelistBlacklistDurationDays" xml:space="preserve">
+    <value>Default whitelist/blacklist days</value>
+  </data>
 </root>
