@@ -48,7 +48,7 @@ namespace DigitalRuby.IPBanCore
             protected override string INetFamily => IPBanLinuxIPSetIPTables.INetFamilyIPV6;
             protected override string SetSuffix => ".set6";
             protected override string TableSuffix => ".tbl6";
-            protected override string IpTablesProcess => ip6TablesProcess;
+            protected override string IpTablesProcess => Ip6TablesProcess;
         }
 
         private readonly IPBanLinuxFirewallIPTables6 firewall6;
@@ -69,8 +69,8 @@ namespace DigitalRuby.IPBanCore
             firewall6 = new IPBanLinuxFirewallIPTables6(RulePrefix);
 
             // ensure legacy iptables are used
-            RunProcess("update-alternatives", true, "--set iptables /usr/sbin/iptables-legacy");
-            RunProcess("update-alternatives", true, "--set ip6tables /usr/sbin/ip6tables-legacy");
+            IPBanFirewallUtility.RunLinuxProcess("update-alternatives", true, "--set iptables /usr/sbin/iptables-legacy");
+            IPBanFirewallUtility.RunLinuxProcess("update-alternatives", true, "--set ip6tables /usr/sbin/ip6tables-legacy");
         }
 
         /// <inheritdoc />

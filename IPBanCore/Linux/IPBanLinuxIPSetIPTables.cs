@@ -78,7 +78,7 @@ namespace DigitalRuby.IPBanCore
         /// </summary>
         public static void Reset()
         {
-            IPBanLinuxFirewallIPTables.RunProcess("ipset", true, "-F");
+            IPBanFirewallUtility.RunLinuxProcess("ipset", true, "-F");
         }
 
         /// <summary>
@@ -88,7 +88,7 @@ namespace DigitalRuby.IPBanCore
         /// <returns>True if set was reset, false otherwise</returns>
         public static bool Reset(string setName)
         {
-            int exitCode = IPBanLinuxFirewallIPTables.RunProcess("ipset", true, $"-F {setName}");
+            int exitCode = IPBanFirewallUtility.RunLinuxProcess("ipset", true, $"-F {setName}");
             return exitCode == 0;
         }
 
@@ -98,7 +98,7 @@ namespace DigitalRuby.IPBanCore
         /// <param name="fileName">File name to write ipset to</param>
         public static void SaveToFile(string fileName)
         {
-            IPBanLinuxFirewallIPTables.RunProcess("ipset", true, $"save > \"{fileName}\"");
+            IPBanFirewallUtility.RunLinuxProcess("ipset", true, $"save > \"{fileName}\"");
         }
 
         /// <summary>
@@ -110,7 +110,7 @@ namespace DigitalRuby.IPBanCore
         {
             if (File.Exists(fileName))
             {
-                int exitCode = IPBanLinuxFirewallIPTables.RunProcess("ipset", true, $"restore < \"{fileName}\"");
+                int exitCode = IPBanFirewallUtility.RunLinuxProcess("ipset", true, $"restore < \"{fileName}\"");
                 return exitCode == 0;
             }
             return false;
@@ -122,7 +122,7 @@ namespace DigitalRuby.IPBanCore
         /// <returns>Set names</returns>
         public static IReadOnlyCollection<string> GetSetNames()
         {
-            IPBanLinuxFirewallIPTables.RunProcess("ipset", true, out IReadOnlyList<string> sets, "-L -n");
+            IPBanFirewallUtility.RunLinuxProcess("ipset", true, out IReadOnlyList<string> sets, "-L -n");
             return sets;
         }
 
@@ -325,12 +325,12 @@ namespace DigitalRuby.IPBanCore
         /// <param name="setName">The set to delete</param>
         public static void DeleteSet(string setName)
         {
-            IPBanLinuxFirewallIPTables.RunProcess("ipset", true, out IReadOnlyList<string> lines, "-L -n");
+            IPBanFirewallUtility.RunLinuxProcess("ipset", true, out IReadOnlyList<string> lines, "-L -n");
             foreach (string line in lines)
             {
                 if (line.Trim().Equals(setName, StringComparison.OrdinalIgnoreCase))
                 {
-                    IPBanLinuxFirewallIPTables.RunProcess("ipset", true, $"destroy {setName}");
+                    IPBanFirewallUtility.RunLinuxProcess("ipset", true, $"destroy {setName}");
                     break;
                 }
             }

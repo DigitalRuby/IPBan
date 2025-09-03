@@ -24,6 +24,7 @@ SOFTWARE.
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Reflection;
@@ -276,6 +277,29 @@ namespace DigitalRuby.IPBanCore
         }
 
         /// <summary>
+        /// Get port range string without modifying the ranges
+        /// </summary>
+        /// <param name="portRanges">Port ranges</param>
+        /// <returns>String</returns>
+        public static string GetPortRangeString(IEnumerable<PortRange> portRanges)
+        {
+            StringBuilder portRangeStringBuilder = new();
+
+            foreach (PortRange portRange in portRanges)
+            {
+                AppendRange(portRangeStringBuilder, portRange);
+            }
+
+            // trim ending comma
+            if (portRangeStringBuilder.Length != 0)
+            {
+                portRangeStringBuilder.Length--;
+            }
+
+            return portRangeStringBuilder.ToString();
+        }
+
+        /// <summary>
         /// Get port ranges that will be applicable to a block or allow rule
         /// </summary>
         /// <param name="portRanges">Port ranges</param>
@@ -439,6 +463,93 @@ namespace DigitalRuby.IPBanCore
                     }
                 }
             }
+        }
+
+        /// <summary>
+        /// Execute a process
+        /// </summary>
+        /// <param name="program">Program</param>
+        /// <param name="requireExitCode">Required exit code</param>
+        /// <param name="commandLine">Command line</param>
+        /// <param name="args">Args</param>
+        /// <returns>Exit code</returns>
+        public static int RunLinuxProcess(string program, bool requireExitCode, string commandLine, params object[] args)
+        {
+            return RunLinuxProcess(program, requireExitCode, out _, commandLine, args);
+        }
+
+        /// <summary>
+        /// Execute a process
+        /// </summary>
+        /// <param name="program">Program</param>
+        /// <param name="requireExitCode">Required exit code</param>
+        /// <param name="lines">Lines of output</param>
+        /// <param name="commandLine">Command line</param>
+        /// <param name="args">Args</param>
+        /// <returns>Exit code</returns>
+        public static int RunLinuxProcess(string program, bool requireExitCode, out IReadOnlyList<string> lines, string commandLine, params object[] args)
+        {
+            if (!OSUtility.IsLinux)
+            {
+                throw new PlatformNotSupportedException($"{nameof(RunLinuxProcess)} can only be called on Linux");
+            }
+
+            if (args is not null && args.Length != 0)
+            {
+                commandLine = string.Format(commandLine, args);
+            }
+            string bash = "-c \"" + program + " " + commandLine.Replace("\"", "\\\"") + "\"";
+
+#if ENABLE_FIREWALL_PROFILING
+
+            StackTrace stackTrace = new();
+            StringBuilder methods = new();
+            var frames = stackTrace.GetFrames();
+            foreach (var frame in frames)
+            {
+                if (methods.Length != 0)
+                {
+                    methods.Append(" > ");
+                }
+                methods.Append(frame.GetMethod().Name);
+            }
+            Logger.Info("Running firewall process: {0} {1}; stack: {2}", program, commandLine, methods);
+
+#else
+
+            Logger.Debug("Running firewall process: {0} {1}", program, commandLine);
+
+#endif
+
+            using Process p = new()
+            {
+                StartInfo = new ProcessStartInfo
+                {
+                    FileName = "/bin/bash",
+                    Arguments = bash,
+                    UseShellExecute = false,
+                    CreateNoWindow = true,
+                    RedirectStandardOutput = true
+                }
+            };
+            p.Start();
+            List<string> lineList = [];
+            string line;
+            while ((line = p.StandardOutput.ReadLine()) != null)
+            {
+                lineList.Add(line);
+            }
+            lines = lineList;
+            if (!p.WaitForExit(60000))
+            {
+                Logger.Error("Process {0} {1} timed out", program, commandLine);
+                p.Kill();
+            }
+            if (requireExitCode && p.ExitCode != 0)
+            {
+                Logger.Error("Process {0} {1} had exit code {2}", program, commandLine, p.ExitCode);
+            }
+            return p.ExitCode;
         }
     }
 }
