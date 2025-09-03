@@ -46,17 +46,17 @@ namespace DigitalRuby.IPBanCore
         /// <summary>
         /// Rule prefix - defaults to 'IPBan_'
         /// </summary>
-        public string RulePrefix { get; set; } = "IPBan_";
+        public string RulePrefix { get; private set; } = "IPBan_";
 
         /// <summary>
         /// Allow rule prefix
         /// </summary>
-        public string AllowRulePrefix { get; set; }
+        public string AllowRulePrefix { get; private set; }
 
         /// <summary>
         /// Block rule prefix
         /// </summary>
-        public string BlockRulePrefix { get; set; }
+        public string BlockRulePrefix { get; private set; }
 
         /// <summary>
         /// Packet event handler
@@ -134,6 +134,14 @@ namespace DigitalRuby.IPBanCore
         public virtual Task Update(CancellationToken cancelToken = default)
         {
             return Task.CompletedTask;
+        }
+
+        /// <summary>
+        /// Clear prefixes - use with caution!
+        /// </summary>
+        public void ClearPrefixes()
+        {
+            RulePrefix = AllowRulePrefix = BlockRulePrefix = string.Empty;
         }
 
         /// <summary>
