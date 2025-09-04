@@ -673,8 +673,6 @@ namespace DigitalRuby.IPBanCore
                 }
             }
 
-            Logger.Warn("Mem: {0}", mem);
-
             return mem;
         }
 

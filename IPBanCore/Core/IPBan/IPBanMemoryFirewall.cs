@@ -103,7 +103,7 @@ namespace DigitalRuby.IPBanCore
         {
             private readonly List<IPV4Range> ipv4 = [];
             private readonly List<IPV6Range> ipv6 = [];
-            private readonly PortRange[] portRanges = [];
+            internal readonly PortRange[] portRanges = [];
 
             public IEnumerable<string> IPV4Strings => ipv4.Select(r => r.ToIPAddressRange().ToString());
             public IEnumerable<string> IPV6Strings => ipv6.Select(r => r.ToIPAddressRange().ToString());
@@ -114,15 +114,15 @@ namespace DigitalRuby.IPBanCore
 
             public string Name { get; }
 
-            public MemoryFirewallRuleRanges(IEnumerable<IPAddressRange> ipRanges, List<PortRange> allowPorts, bool block, string name)
+            public MemoryFirewallRuleRanges(IEnumerable<IPAddressRange> ipRanges, IReadOnlyCollection<PortRange> allowPorts, bool block, string name)
             {
-                List<IPAddressRange> ipRangesSorted = new(ipRanges);
-                ipRangesSorted.Sort();
                 Block = block;
                 Name = name;
+
+                List<IPAddressRange> ipRangesSorted = [.. ipRanges];
+                ipRangesSorted.Sort();
                 foreach (IPAddressRange range in ipRangesSorted)
                 {
-                    // optimized storage, no pointers or other overhead
                     if (range.Begin.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
                     {
                         ipv4.Add(new IPV4Range(range));
@@ -148,6 +148,36 @@ namespace DigitalRuby.IPBanCore
                         portRanges = [.. allowPorts];
                     }
                 }
+            }
+
+            public void Add(IEnumerable<IPAddressRange> ipRanges)
+            {
+                List<IPAddressRange> ipRangesSorted = [.. ipRanges];
+                foreach (IPAddressRange range in ipRangesSorted)
+                {
+                    // binary search in the list and insert the ip where it belongs (or at the end if not found)
+                    // note: there could be duplicates, but that's ok, this method is really only called during testing iptables
+                    if (range.Begin.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
+                    {
+                        var newRange = new IPV4Range(range);
+                        int pos = ipv4.BinarySearch(newRange, this);
+                        if (pos < 0)
+                        {
+                            ipv4.Insert(~pos, newRange);
+                        }
+                    }
+                    else
+                    {
+                        var newRange = new IPV6Range(range);
+                        int pos = ipv6.BinarySearch(newRange, this);
+                        if (pos < 0)
+                        {
+                            ipv6.Insert(~pos, newRange);
+                        }
+                    }
+                }
+                ipv4.TrimExcess();
+                ipv6.TrimExcess();
             }
 
             public bool Contains(System.Net.IPAddress ipAddressObj, int port)
@@ -947,6 +977,42 @@ namespace DigitalRuby.IPBanCore
                 blockRules.Clear();
                 blockRulesRanges.Clear();
                 allowRule.SetIPAddresses([], null);
+            }
+        }
+
+        /// <summary>
+        /// Merge another memory firewall into this one
+        /// </summary>
+        /// <param name="mem">Memory firewall to merge</param>
+        public void Merge(IPBanMemoryFirewall mem)
+        {
+            lock (this)
+            {
+                foreach (var kv in mem.blockRules)
+                {
+                    if (!blockRules.TryGetValue(kv.Key, out var rule))
+                    {
+                        blockRules[kv.Key] = rule = new MemoryFirewallRule(true, kv.Key);
+                    }
+                    rule.AddIPAddressesDelta(kv.Value.EnumerateIPAddresses().Select(ip => new IPBanFirewallIPAddressDelta(true, ip)));
+                }
+                foreach (var kv in mem.blockRulesRanges)
+                {
+                    if (!blockRulesRanges.TryGetValue(kv.Key, out var rule))
+                    {
+                        blockRulesRanges[kv.Key] = rule = new MemoryFirewallRuleRanges([], kv.Value.portRanges, true, kv.Key);
+                    }
+                    rule.Add(kv.Value.EnumerateIPAddressesRanges());
+                }
+                allowRule.AddIPAddressesDelta(mem.allowRule.EnumerateIPAddresses().Select(ip => new IPBanFirewallIPAddressDelta(true, ip)));
+                foreach (var kv in mem.allowRuleRanges)
+                {
+                    if (!allowRuleRanges.TryGetValue(kv.Key, out var rule))
+                    {
+                        allowRuleRanges[kv.Key] = rule = new MemoryFirewallRuleRanges([], kv.Value.portRanges, false, kv.Key);
+                    }
+                    rule.Add(kv.Value.EnumerateIPAddressesRanges());
+                }
             }
         }
     }

@@ -150,5 +150,14 @@ namespace DigitalRuby.IPBanCore
             base.Truncate();
             firewall6.Truncate();
         }
+
+        /// <inheritdoc />
+        public override IPBanMemoryFirewall Compile()
+        {
+            var baseMem = base.Compile();
+            var mem6 = firewall6.Compile();
+            baseMem.Merge(mem6);
+            return baseMem;
+        }
     }
 }
