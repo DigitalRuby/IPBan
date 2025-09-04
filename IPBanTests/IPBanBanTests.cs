@@ -1,7 +1,7 @@
 ﻿/*
 MIT License
 
-Copyright (c) 2012-present Digital Ruby, LLC - https://www.digitalruby.com
+Copyright (c) 2012-present Digital Ruby, LLC - https://ipban.com
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -22,22 +22,19 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-using DigitalRuby.IPBanCore;
-
-using Newtonsoft.Json.Linq;
-
-using NUnit.Framework;
-using NUnit.Framework.Legacy;
-
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using System.Xml;
+
+using DigitalRuby.IPBanCore;
+
+using NUnit.Framework;
+using NUnit.Framework.Legacy;
 
 namespace DigitalRuby.IPBanTests
 {
@@ -390,13 +387,14 @@ namespace DigitalRuby.IPBanTests
                 finally
                 {
                     ExtensionMethods.DirectoryDeleteWithRetry(Path.GetDirectoryName(file));
-                    using EventLog appLog = new("Application", System.Environment.MachineName);
+                    using System.Diagnostics.EventLog appLog = new("Application", System.Environment.MachineName);
                     appLog.Clear();
                 }
             }
         }
 
         [Test]
+        [Category("Smoke")]
         public void TestExtraFirewallRules()
         {
             using IPBanConfig.TempConfigChanger configChanger = new(service, xml =>

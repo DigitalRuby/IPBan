@@ -1,7 +1,7 @@
 ﻿/*
 MIT License
 
-Copyright (c) 2012-present Digital Ruby, LLC - https://www.digitalruby.com
+Copyright (c) 2012-present Digital Ruby, LLC - https://ipban.com
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -47,6 +47,8 @@ namespace DigitalRuby.IPBanCore
         /// Prefix put into log file for dropped packets
         /// </summary>
         public const string LogPacketPrefix = "X";
+
+        internal const string matchSetDirective = "--match-set";
 
         private const string acceptAction = "ACCEPT";
         private const string dropAction = "DROP";
@@ -229,7 +231,7 @@ namespace DigitalRuby.IPBanCore
             string[] logAction = ["LOG", "--log-prefix", logPrefix, "--log-level", "4"];
             string[] rootCommand = ["-R", "INPUT", "0", "-m", "state", "--state", "NEW", "-m", "set"];
             rootCommand = [.. rootCommand, .. portCommand];
-            rootCommand = [.. rootCommand, "--match-set", ruleName, "src", "-j"];
+            rootCommand = [.. rootCommand, matchSetDirective, ruleName, "src", "-j"];
 
             // if we have an existing rule, replace it
             using var reader = new StreamReader(tmp);
@@ -425,8 +427,7 @@ namespace DigitalRuby.IPBanCore
         /// <inheritdoc />
         public override IEnumerable<string> GetRuleNames(string ruleNamePrefix = null)
         {
-            const string setText = " match-set ";
-            string prefix = setText + RulePrefix + (ruleNamePrefix ?? string.Empty);
+            string prefix = " " + matchSetDirective + " " + RulePrefix + (ruleNamePrefix ?? string.Empty);
             using var tmp = new TempFile();
             IPBanFirewallUtility.RunProcess(IpTablesProcess, null, tmp, "-L", "-n");
             using var reader = new StreamReader(tmp);
@@ -436,7 +437,7 @@ namespace DigitalRuby.IPBanCore
                 int pos = line.IndexOf(prefix);
                 if (pos >= 0)
                 {
-                    pos += setText.Length;
+                    pos += matchSetDirective.Length + 2; // skip 2 spaces to get to rule name
                     int start = pos;
                     while (++pos < line.Length && line[pos] != ' ') { }
                     yield return line[start..pos];
@@ -593,7 +594,7 @@ namespace DigitalRuby.IPBanCore
         {
             using var tmp = new TempFile();
             IPBanFirewallUtility.RunProcess(IpTablesProcess, null, tmp, "-L", "-n", "--line-numbers");
-            var match = " match-set " + ruleName + " ";
+            var match = " " + matchSetDirective + " " + ruleName + " ";
             using var reader = new StreamReader(tmp);
             string line;
             while ((line = reader.ReadLine()) != null)
@@ -613,9 +614,7 @@ namespace DigitalRuby.IPBanCore
         /// <inheritdoc />
         public override IPBanMemoryFirewall Compile()
         {
-            const string matchSet = " match-set ";
-            IPBanMemoryFirewall mem = new();
-            mem.ClearPrefixes();
+            IPBanMemoryFirewall mem = new(RulePrefix);
 
             // snapshot latest firewall
             SaveTableToDisk();
@@ -625,7 +624,7 @@ namespace DigitalRuby.IPBanCore
             var tableFileName = GetTableFileName();
             if (!File.Exists(tableFileName))
             {
-                return mem;
+                throw new IOException("Table file does not exist: " + tableFileName);
             }
 
             // parse out all sets
@@ -642,15 +641,15 @@ namespace DigitalRuby.IPBanCore
             // read rules
             string[] lines = File.ReadAllLines(tableFileName);
 
-            // find all lines with match-set that start with RulePrefix and grab the set name along with the ports including
+            // find all lines with --match-set that start with RulePrefix and grab the set name along with the ports including
             //  whether it is an ACCEPT or DROP (allow or block) rule
-            var matchSetPrefix = matchSet + RulePrefix;
+            var matchSetPrefix = " " + matchSetDirective + " " + RulePrefix;
             foreach (var line in lines)
             {
                 int pos = line.IndexOf(matchSetPrefix);
                 if (pos >= 0)
                 {
-                    pos += matchSetPrefix.Length + 1; // skip space
+                    pos += matchSetDirective.Length + 2; // skip 2 spaces to get to rule name
                     int start = pos;
                     while (++pos < line.Length && line[pos] != ' ');
                     string ruleName = line[start..pos].TrimEnd();
@@ -658,8 +657,7 @@ namespace DigitalRuby.IPBanCore
                     if (ruleRanges.TryGetValue(ruleName, out var ips))
                     {
                         var ports = GetPortsFromLine(line);
-
-                        if (line.StartsWith("DROP "))
+                        if (line.EndsWith(" DROP"))
                         {
                             // invert ports, they will get inverted back by the memory firewall
                             var invertedPorts = IPBanFirewallUtility.InvertPortRanges(ports);
@@ -667,11 +665,14 @@ namespace DigitalRuby.IPBanCore
                         }
                         else
                         {
-                            mem.BlockIPAddresses(ruleName, ips, ports);
+                            // allow, ports stay as is
+                            mem.AllowIPAddresses(ruleName, ips, ports);
                         }
                     }
                 }
             }
+
+            Logger.Warn("Mem: {0}", mem);
 
             return mem;
         }

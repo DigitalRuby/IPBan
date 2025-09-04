@@ -1,7 +1,7 @@
 ﻿/*
 MIT License
 
-Copyright (c) 2012-present Digital Ruby, LLC - https://www.digitalruby.com
+Copyright (c) 2012-present Digital Ruby, LLC - https://ipban.com
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -24,6 +24,7 @@ SOFTWARE.
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Threading;
@@ -364,6 +365,32 @@ namespace DigitalRuby.IPBanCore
         private readonly MemoryFirewallRule allowRule;
         private readonly Dictionary<string, MemoryFirewallRuleRanges> allowRuleRanges = [];
 
+        /// <inheritdoc />
+        public override string ToString()
+        {
+            StringWriter s = new();
+
+            foreach (var kv in blockRules)
+            {
+                s.WriteLine("Block rule: {0}, Count: {1}, IPs: {2}, Ports: {3}",
+                    kv.Key, kv.Value.GetCount(), string.Join(", ", kv.Value.IPV4.Concat(kv.Value.IPV6)), kv.Value.Ports);
+            }
+            foreach (var kv in blockRulesRanges)
+            {
+                s.WriteLine("Block rule ranges: {0}, Count: {1}, IPs: {2}, Ports: {3}",
+                    kv.Key, kv.Value.GetCount(), string.Join(", ", kv.Value.IPV4Strings.Concat(kv.Value.IPV6Strings)), kv.Value.Ports);
+            }
+            s.WriteLine("Allow rule: {0}, Count: {1}, IPs: {2}, Ports: {3}",
+                allowRule.Name, allowRule.GetCount(), string.Join(", ", allowRule.IPV4.Concat(allowRule.IPV6)), allowRule.Ports);
+            foreach (var kv in allowRuleRanges)
+            {
+                s.WriteLine("Allow rule ranges: {0}, Count: {1}, IPs: {2}, Ports: {3}",
+                    kv.Key, kv.Value.GetCount(), string.Join(", ", kv.Value.IPV4Strings.Concat(kv.Value.IPV6Strings)), kv.Value.Ports);
+            }
+
+            return s.ToString();
+        }
+
         /// <summary>
         /// Get all the rules with ranges
         /// </summary>
@@ -406,14 +433,23 @@ namespace DigitalRuby.IPBanCore
         {
             ruleNamePrefix ??= string.Empty;
 
-            // remove prefix if it exists
-            if (ruleNamePrefix.StartsWith(prefix))
+            if (!string.IsNullOrWhiteSpace(RulePrefix))
             {
-                ruleNamePrefix = ruleNamePrefix[prefix.Length..];
+                // remove prefix if it exists
+                if (ruleNamePrefix.StartsWith(RulePrefix))
+                {
+                    ruleNamePrefix = ruleNamePrefix[RulePrefix.Length..];
+                }
+                if (ruleNamePrefix.StartsWith(prefix))
+                {
+                    ruleNamePrefix = ruleNamePrefix[prefix.Length..];
+                }
+
+                // in memory firewall does not have a count limit per rule, so remove the trailing underscore if any
+                return (prefix + ruleNamePrefix).Trim('_');
             }
 
-            // in memory firewall does not have a count limit per rule, so remove the trailing underscore if any
-            return (prefix + ruleNamePrefix).Trim('_');
+            return ruleNamePrefix;
         }
 
         /// <inheritdoc />

@@ -1,7 +1,7 @@
 ﻿/*
 MIT License
 
-Copyright (c) 2012-present Digital Ruby, LLC - https://www.digitalruby.com
+Copyright (c) 2012-present Digital Ruby, LLC - https://ipban.com
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -169,10 +169,10 @@ namespace DigitalRuby.IPBanCore
         public virtual IReadOnlyList<(bool blocked, bool allowed, string ruleName)> Query(IReadOnlyCollection<System.Net.IPEndPoint> ipAddresses)
         {
             List<(bool, bool, string)> result = [];
-            var memoryFirewall = Compile();
+            var mem = Compile();
             foreach (var ipAddress in ipAddresses)
             {
-                var blocked = memoryFirewall.IsIPAddressBlocked(ipAddress.Address, out var ruleName, out var allowed, ipAddress.Port);
+                var blocked = mem.IsIPAddressBlocked(ipAddress.Address, out var ruleName, out var allowed, ipAddress.Port);
                 result.Add((blocked, allowed, ruleName));
             }
             return result;

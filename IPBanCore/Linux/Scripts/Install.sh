@@ -1,7 +1,7 @@
 #
 # One click install script for IPBan for Linux
 # (c) 2011-Present Digital Ruby, LLC
-# https://www.digitalruby.com
+# https://ipban.com
 #
 # Should you ever wish to update IPBan, just re-run this script and it will auto-update and preserve your ipban.sqlite and ipban.config files!
 #

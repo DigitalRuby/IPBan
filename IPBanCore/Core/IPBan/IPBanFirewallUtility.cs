@@ -1,7 +1,7 @@
 ﻿/*
 MIT License
 
-Copyright (c) 2012-present Digital Ruby, LLC - https://www.digitalruby.com
+Copyright (c) 2012-present Digital Ruby, LLC - https://ipban.com
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -532,10 +532,7 @@ namespace DigitalRuby.IPBanCore
             var frames = stackTrace.GetFrames();
             foreach (var frame in frames)
             {
-                if (methods.Length != 0)
-                {
-                    methods.Append(" > ");
-                }
+                if (methods.Length != 0) { methods.Append(" > "); }
                 methods.Append(frame.GetMethod()?.Name);
             }
             Logger.Info("Running firewall process: {0}; stack: {1}", cmdLine, methods);
@@ -548,6 +545,7 @@ namespace DigitalRuby.IPBanCore
 
             bool redirectStdIn = !string.IsNullOrWhiteSpace(inputFile);
             bool redirectStdOut = !string.IsNullOrWhiteSpace(outputFile);
+
             using Process p = new()
             {
                 StartInfo = new ProcessStartInfo
@@ -556,80 +554,46 @@ namespace DigitalRuby.IPBanCore
                     UseShellExecute = false,
                     CreateNoWindow = true,
                     RedirectStandardError = true,
-                    StandardErrorEncoding = ExtensionMethods.Utf8EncodingNoPrefix
-                },
-                EnableRaisingEvents = true
+                    StandardErrorEncoding = ExtensionMethods.Utf8EncodingNoPrefix,
+                    RedirectStandardInput = redirectStdIn,
+                    RedirectStandardOutput = redirectStdOut,
+                    StandardInputEncoding = redirectStdIn ? ExtensionMethods.Utf8EncodingNoPrefix : null,
+                    StandardOutputEncoding = redirectStdOut ? ExtensionMethods.Utf8EncodingNoPrefix : null
+                }
             };
 
             foreach (var arg in args)
             {
                 var s = arg?.ToString();
-                if (!string.IsNullOrEmpty(s))
-                {
-                    p.StartInfo.ArgumentList.Add(s);
-                }
-            }
-
-            StringWriter stdErr = new();
-            TextWriter stdOutRedirection = null;
-            if (redirectStdOut)
-            {
-                p.StartInfo.RedirectStandardOutput = true;
-                p.StartInfo.StandardOutputEncoding = ExtensionMethods.Utf8EncodingNoPrefix;
-                var fs = new FileStream(outputFile, FileMode.Create, FileAccess.Write, FileShare.Read, 64 * 1024, FileOptions.Asynchronous);
-                stdOutRedirection = TextWriter.Synchronized(new StreamWriter(fs, ExtensionMethods.Utf8EncodingNoPrefix));
-                p.OutputDataReceived += (s, e) =>
-                {
-                    if (e.Data != null)
-                    {
-                        stdOutRedirection.WriteLine(e.Data);
-                    }
-                };
-            }
-            p.ErrorDataReceived += (s, e) =>
-            {
-                if (!string.IsNullOrEmpty(e.Data))
-                {
-                    lock (stdErr)
-                    {
-                        if (stdErr.GetStringBuilder().Length > ushort.MaxValue)
-                        {
-                            // prevent run-away std err
-                            stdErr.GetStringBuilder().Remove(0, stdErr.GetStringBuilder().Length / 2);
-                        }
-                        stdErr.WriteLine(e.Data);
-                    }
-                }
-            };
-
-            if (redirectStdIn)
-            {
-                p.StartInfo.RedirectStandardInput = true;
-                p.StartInfo.StandardInputEncoding = ExtensionMethods.Utf8EncodingNoPrefix;
+                if (!string.IsNullOrEmpty(s)) { p.StartInfo.ArgumentList.Add(s); }
             }
 
             p.Start();
 
-            if (redirectStdIn)
-            {
-                System.Threading.Tasks.Task.Run(async () =>
-                {
-                    using var reader = new StreamReader(inputFile, ExtensionMethods.Utf8EncodingNoPrefix);
-                    string line;
-                    while ((line = await reader.ReadLineAsync()) != null)
-                    {
-                        await p.StandardInput.WriteLineAsync(line);
-                    }
-                    await p.StandardInput.FlushAsync();
-                    p.StandardInput.Close();
-                });
-            }
+            MemoryStream stdErr = new();
+            System.Threading.Tasks.Task errCopyTask = p.StandardError.BaseStream.CopyToAsync(stdErr);
 
+            FileStream stdOutRedirection = null;
+            System.Threading.Tasks.Task outCopyTask = null;
             if (redirectStdOut)
             {
-                p.BeginOutputReadLine();
+                stdOutRedirection = new FileStream(outputFile, FileMode.Create, FileAccess.Write, FileShare.Read, 64 * 1024, FileOptions.Asynchronous);
+                outCopyTask = p.StandardOutput.BaseStream.CopyToAsync(stdOutRedirection);
             }
-            p.BeginErrorReadLine();
+
+            if (redirectStdIn)
+            {
+                try
+                {
+                    using var inFs = new FileStream(inputFile, FileMode.Open, FileAccess.Read, FileShare.Read, 64 * 1024, FileOptions.SequentialScan);
+                    inFs.CopyTo(p.StandardInput.BaseStream);
+                    p.StandardInput.Flush();
+                }
+                finally
+                {
+                    try { p.StandardInput.Close(); } catch { /* ignore */ }
+                }
+            }
 
             if (!p.WaitForExit(60000))
             {
@@ -638,20 +602,12 @@ namespace DigitalRuby.IPBanCore
                 p.WaitForExit();
             }
 
-            if (redirectStdOut)
-            {
-                p.CancelOutputRead();
-            }
-            p.CancelErrorRead();
-            p.WaitForExit();
+            outCopyTask?.Wait(60000);
+            errCopyTask.Wait(60000);
 
-            // Dispose writers only after reads are cancelled
-            stdOutRedirection?.Flush();
-            stdOutRedirection?.Dispose();
-
-            if (stdErr.GetStringBuilder().Length != 0)
+            if (stdErr.Length != 0)
             {
-                Logger.Error("Process {0} had std err: {1}", cmdLine, stdErr.ToString());
+                Logger.Error("Process {0} had std err: {1}", cmdLine, Encoding.UTF8.GetString(stdErr.ToArray()));
             }
             if (p.ExitCode != 0)
             {
@@ -659,7 +615,18 @@ namespace DigitalRuby.IPBanCore
             }
 
             stdErr.Dispose();
+            stdOutRedirection?.Flush();
+            stdOutRedirection?.Dispose();
+
+#if DEBUG
+
+            //if (redirectStdIn) { Console.WriteLine("Process std in ({0}): {1}", cmdLine, File.ReadAllText(inputFile)); }
+            //if (redirectStdOut) { Console.WriteLine("Process std out ({0}): {1}", cmdLine, File.ReadAllText(outputFile)); }
+
+#endif
+
             return p.ExitCode;
         }
+
     }
 }
