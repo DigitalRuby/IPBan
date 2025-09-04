@@ -34,7 +34,7 @@ namespace DigitalRuby.IPBanCore
     /// Linux firewall implementation using iptables
     /// </summary>
     [RequiredOperatingSystem(OSUtility.Linux,
-        Priority = 22,
+        Priority = 2,
         PriorityEnvironmentVariable = "IPBanPro_LinuxFirewallIPTablesPriority")]
     [System.Diagnostics.CodeAnalysis.DynamicallyAccessedMembers(System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.All)]
     public class IPBanLinuxFirewallIPTables : IPBanLinuxBaseFirewallIPTables
