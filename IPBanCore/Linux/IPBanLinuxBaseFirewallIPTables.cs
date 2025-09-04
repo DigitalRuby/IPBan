@@ -703,7 +703,7 @@ namespace DigitalRuby.IPBanCore
         /// <summary>
         /// Whether to log packets affected by rules from this firewall
         /// </summary>
-        public bool LogPackets { get; set; }
+        public bool LogPackets { get; protected set; }
     }
 }
 
