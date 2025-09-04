@@ -26,6 +26,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionItems", "SolutionIt
 		testEnvironments.json = testEnvironments.json
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IPBanClient", "IPBanClient\IPBanClient.csproj", "{0810D0FB-8E69-4E85-9392-A7B5A2F13F5E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -44,6 +46,10 @@ Global
 		{9940E02E-7136-4357-BA2E-157839F60CED}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9940E02E-7136-4357-BA2E-157839F60CED}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9940E02E-7136-4357-BA2E-157839F60CED}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0810D0FB-8E69-4E85-9392-A7B5A2F13F5E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0810D0FB-8E69-4E85-9392-A7B5A2F13F5E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0810D0FB-8E69-4E85-9392-A7B5A2F13F5E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0810D0FB-8E69-4E85-9392-A7B5A2F13F5E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
