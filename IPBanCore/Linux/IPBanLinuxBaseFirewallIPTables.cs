@@ -49,6 +49,7 @@ namespace DigitalRuby.IPBanCore
         public const string LogPacketPrefix = "X";
 
         internal const string matchSetDirective = "--match-set";
+        internal const string matchSetDirectiveNoHyphens = "match-set";
 
         private const string acceptAction = "ACCEPT";
         private const string dropAction = "DROP";
@@ -427,7 +428,7 @@ namespace DigitalRuby.IPBanCore
         /// <inheritdoc />
         public override IEnumerable<string> GetRuleNames(string ruleNamePrefix = null)
         {
-            string prefix = " " + matchSetDirective + " " + RulePrefix + (ruleNamePrefix ?? string.Empty);
+            string prefix = " " + matchSetDirectiveNoHyphens + " " + RulePrefix + (ruleNamePrefix ?? string.Empty);
             using var tmp = new TempFile();
             IPBanFirewallUtility.RunProcess(IpTablesProcess, null, tmp, "-L", "-n");
             using var reader = new StreamReader(tmp);
@@ -437,7 +438,7 @@ namespace DigitalRuby.IPBanCore
                 int pos = line.IndexOf(prefix);
                 if (pos >= 0)
                 {
-                    pos += matchSetDirective.Length + 2; // skip 2 spaces to get to rule name
+                    pos += matchSetDirectiveNoHyphens.Length + 2; // skip 2 spaces to get to rule name
                     int start = pos;
                     while (++pos < line.Length && line[pos] != ' ') { }
                     yield return line[start..pos];

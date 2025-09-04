@@ -393,7 +393,6 @@ namespace DigitalRuby.IPBanTests
         }
 
         [Test]
-        [Category("Smoke")]
         public void TestExtraFirewallRules()
         {
             using IPBanConfig.TempConfigChanger configChanger = new(service, xml =>
