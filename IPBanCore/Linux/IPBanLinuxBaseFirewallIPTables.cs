@@ -227,9 +227,9 @@ namespace DigitalRuby.IPBanCore
             string ruleNameWithSpaces = " " + ruleName + " ";
             string logPrefix = LogPacketPrefix + ruleName + ": ";
             string[] logAction = ["LOG", "--log-prefix", logPrefix, "--log-level", "4"];
-            string[] rootCommand = ["-R", "INPUT", "0", "-m", "state", "--state", "NEW", "-m"];
-            rootCommand = rootCommand.Concat(portCommand).ToArray();
-            rootCommand = rootCommand.Concat(["--match-set", ruleName, "src", "-j"]).ToArray();
+            string[] rootCommand = ["-R", "INPUT", "0", "-m", "state", "--state", "NEW", "-m", "set"];
+            rootCommand = [.. rootCommand, .. portCommand];
+            rootCommand = [.. rootCommand, "--match-set", ruleName, "src", "-j"];
 
             // if we have an existing rule, replace it
             using var reader = new StreamReader(tmp);
