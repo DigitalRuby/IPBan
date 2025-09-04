@@ -176,7 +176,16 @@ namespace DigitalRuby.IPBanCore
                 string nlogConfigPath = Path.Combine(AppContext.BaseDirectory, "nlog.config");
                 if (!File.Exists(nlogConfigPath))
                 {
+
+#if DEBUG
+
+                    const string defaultLogLevel = "Debug";
+
+#else
+
                     const string defaultLogLevel = "Info";
+
+#endif
 
                     Console.WriteLine("Creating default nlog.config file");
 

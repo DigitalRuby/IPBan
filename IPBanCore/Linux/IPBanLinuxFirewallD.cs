@@ -108,7 +108,7 @@ namespace DigitalRuby.IPBanCore
         {
             if (dirty && OSUtility.IsLinux)
             {
-                IPBanFirewallUtility.RunLinuxProcess("firewall-cmd", true, "--reload");
+                IPBanFirewallUtility.RunProcess("firewall-cmd", true, null, "--reload");
             }
             dirty = false;
             return base.Update(cancelToken);
@@ -304,7 +304,9 @@ namespace DigitalRuby.IPBanCore
         /// <inheritdoc />
         public override IPBanMemoryFirewall Compile()
         {
-            IPBanMemoryFirewall firewall = new(RulePrefix);
+            IPBanMemoryFirewall mem = new();
+            mem.ClearPrefixes();
+
             var ruleTypes = GetRuleTypes();
             var ruleNames = GetRuleNames(RulePrefix).ToArray();
             foreach (var rule in ruleNames)
@@ -314,16 +316,16 @@ namespace DigitalRuby.IPBanCore
                 var allow = ruleTypes.TryGetValue(rule, out var accept) && accept;
                 if (allow)
                 {
-                    firewall.AllowIPAddresses(rule, ranges, ports);
+                    mem.AllowIPAddresses(rule, ranges, ports);
                 }
                 else
                 {
                     // invert block ports back to allow (they'll get inverted back)
                     var invertedPorts = IPBanFirewallUtility.InvertPortRanges(ports);
-                    firewall.BlockIPAddresses(rule, ranges, invertedPorts);
+                    mem.BlockIPAddresses(rule, ranges, invertedPorts);
                 }
             }
-            return firewall;
+            return mem;
         }
 
         /// <inheritdoc />

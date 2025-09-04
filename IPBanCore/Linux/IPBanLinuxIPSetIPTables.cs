@@ -78,7 +78,7 @@ namespace DigitalRuby.IPBanCore
         /// </summary>
         public static void Reset()
         {
-            IPBanFirewallUtility.RunLinuxProcess("ipset", true, "-F");
+            IPBanFirewallUtility.RunProcess("ipset", true, null, "-F");
         }
 
         /// <summary>
@@ -88,7 +88,7 @@ namespace DigitalRuby.IPBanCore
         /// <returns>True if set was reset, false otherwise</returns>
         public static bool Reset(string setName)
         {
-            int exitCode = IPBanFirewallUtility.RunLinuxProcess("ipset", true, $"-F {setName}");
+            int exitCode = IPBanFirewallUtility.RunProcess("ipset", true, null, "-F", setName);
             return exitCode == 0;
         }
 
@@ -98,7 +98,7 @@ namespace DigitalRuby.IPBanCore
         /// <param name="fileName">File name to write ipset to</param>
         public static void SaveToFile(string fileName)
         {
-            IPBanFirewallUtility.RunLinuxProcess("ipset", true, $"save > \"{fileName}\"");
+            IPBanFirewallUtility.RunProcess("ipset", true, fileName, "save");
         }
 
         /// <summary>
@@ -110,7 +110,7 @@ namespace DigitalRuby.IPBanCore
         {
             if (File.Exists(fileName))
             {
-                int exitCode = IPBanFirewallUtility.RunLinuxProcess("ipset", true, $"restore < \"{fileName}\"");
+                int exitCode = IPBanFirewallUtility.RunProcess("ipset", true, fileName, "restore");
                 return exitCode == 0;
             }
             return false;
@@ -122,8 +122,9 @@ namespace DigitalRuby.IPBanCore
         /// <returns>Set names</returns>
         public static IReadOnlyCollection<string> GetSetNames()
         {
-            IPBanFirewallUtility.RunLinuxProcess("ipset", true, out IReadOnlyList<string> sets, "-L -n");
-            return sets;
+            using var tmp = new TempFile();
+            IPBanFirewallUtility.RunProcess("ipset", true, tmp, "-L", "-n");
+            return File.ReadAllLines(tmp).Select(l => l.Trim()).Where(l => !string.IsNullOrWhiteSpace(l)).ToList();
         }
 
         /// <summary>
@@ -325,12 +326,14 @@ namespace DigitalRuby.IPBanCore
         /// <param name="setName">The set to delete</param>
         public static void DeleteSet(string setName)
         {
-            IPBanFirewallUtility.RunLinuxProcess("ipset", true, out IReadOnlyList<string> lines, "-L -n");
+            using var tmp = new TempFile();
+            IPBanFirewallUtility.RunProcess("ipset", true, tmp, "-L", "-n");
+            var lines = File.ReadAllLines(tmp).Where(l => !string.IsNullOrWhiteSpace(l)).ToList();
             foreach (string line in lines)
             {
                 if (line.Trim().Equals(setName, StringComparison.OrdinalIgnoreCase))
                 {
-                    IPBanFirewallUtility.RunLinuxProcess("ipset", true, $"destroy {setName}");
+                    IPBanFirewallUtility.RunProcess("ipset", true, null, "destroy", setName);
                     break;
                 }
             }

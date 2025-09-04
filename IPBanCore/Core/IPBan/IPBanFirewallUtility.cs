@@ -25,6 +25,7 @@ SOFTWARE.
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Reflection;
@@ -201,6 +202,11 @@ namespace DigitalRuby.IPBanCore
         /// <returns>Distinct port ranges</returns>
         public static IReadOnlyCollection<PortRange> MergePortRanges(IEnumerable<PortRange> portRanges)
         {
+            if (portRanges is null)
+            {
+                return null;
+            }
+
             var sortedRanges = portRanges
                 .Where(x => x.IsValid)
                 .OrderBy(x => x.MinPort)
@@ -466,39 +472,16 @@ namespace DigitalRuby.IPBanCore
         }
 
         /// <summary>
-        /// Execute a process
+        /// Execute a firewall process
         /// </summary>
         /// <param name="program">Program</param>
         /// <param name="requireExitCode">Required exit code</param>
-        /// <param name="commandLine">Command line</param>
+        /// <param name="outputFile">Dump std out (null to not do this)</param>
         /// <param name="args">Args</param>
         /// <returns>Exit code</returns>
-        public static int RunLinuxProcess(string program, bool requireExitCode, string commandLine, params object[] args)
+        public static int RunProcess(string program, bool requireExitCode, string outputFile, params object[] args)
         {
-            return RunLinuxProcess(program, requireExitCode, out _, commandLine, args);
-        }
-
-        /// <summary>
-        /// Execute a process
-        /// </summary>
-        /// <param name="program">Program</param>
-        /// <param name="requireExitCode">Required exit code</param>
-        /// <param name="lines">Lines of output</param>
-        /// <param name="commandLine">Command line</param>
-        /// <param name="args">Args</param>
-        /// <returns>Exit code</returns>
-        public static int RunLinuxProcess(string program, bool requireExitCode, out IReadOnlyList<string> lines, string commandLine, params object[] args)
-        {
-            if (!OSUtility.IsLinux)
-            {
-                throw new PlatformNotSupportedException($"{nameof(RunLinuxProcess)} can only be called on Linux");
-            }
-
-            if (args is not null && args.Length != 0)
-            {
-                commandLine = string.Format(commandLine, args);
-            }
-            string bash = "-c \"" + program + " " + commandLine.Replace("\"", "\\\"") + "\"";
+            string cmdLine = program + " " + string.Join(' ', args.Select(a => a?.ToString() ?? string.Empty));
 
 #if ENABLE_FIREWALL_PROFILING
 
@@ -511,44 +494,105 @@ namespace DigitalRuby.IPBanCore
                 {
                     methods.Append(" > ");
                 }
-                methods.Append(frame.GetMethod().Name);
+                methods.Append(frame.GetMethod()?.Name);
             }
-            Logger.Info("Running firewall process: {0} {1}; stack: {2}", program, commandLine, methods);
+            Logger.Info("Running firewall process: {0}; stack: {1}", cmdLine, methods);
 
 #else
 
-            Logger.Debug("Running firewall process: {0} {1}", program, commandLine);
+            Logger.Debug("Running firewall process: {0}", cmdLine);
 
 #endif
 
+            bool redirectStdOut = !string.IsNullOrWhiteSpace(outputFile);
             using Process p = new()
             {
                 StartInfo = new ProcessStartInfo
                 {
-                    FileName = "/bin/bash",
-                    Arguments = bash,
+                    FileName = program,
                     UseShellExecute = false,
                     CreateNoWindow = true,
-                    RedirectStandardOutput = true
+                    RedirectStandardOutput = redirectStdOut,
+                    RedirectStandardError = true
+                },
+                EnableRaisingEvents = true
+            };
+
+            foreach (var arg in args)
+            {
+                var s = arg?.ToString();
+                if (!string.IsNullOrEmpty(s))
+                {
+                    p.StartInfo.ArgumentList.Add(s);
+                }
+            }
+
+            StringWriter stdErr = new();
+            TextWriter stdOutRedirection = null;
+            if (redirectStdOut)
+            {
+                var fs = new FileStream(outputFile, FileMode.Create, FileAccess.Write, FileShare.Read, 64 * 1024, FileOptions.Asynchronous);
+                stdOutRedirection = TextWriter.Synchronized(new StreamWriter(fs));
+                p.OutputDataReceived += (s, e) =>
+                {
+                    if (e.Data != null)
+                    {
+                        stdOutRedirection.WriteLine(e.Data);
+                    }
+                };
+            }
+            p.ErrorDataReceived += (s, e) =>
+            {
+                if (!string.IsNullOrEmpty(e.Data))
+                {
+                    lock (stdErr)
+                    {
+                        if (stdErr.GetStringBuilder().Length > ushort.MaxValue)
+                        {
+                            // prevent run-away std err
+                            stdErr.GetStringBuilder().Remove(0, stdErr.GetStringBuilder().Length / 2);
+                        }
+                        stdErr.WriteLine(e.Data);
+                    }
                 }
             };
+
             p.Start();
-            List<string> lineList = [];
-            string line;
-            while ((line = p.StandardOutput.ReadLine()) != null)
+
+            if (redirectStdOut)
             {
-                lineList.Add(line);
+                p.BeginOutputReadLine();
             }
-            lines = lineList;
+            p.BeginErrorReadLine();
+
             if (!p.WaitForExit(60000))
             {
-                Logger.Error("Process {0} {1} timed out", program, commandLine);
-                p.Kill();
+                Logger.Error("Process time out: {0}", cmdLine);
+                try { p.Kill(entireProcessTree: true); } catch { /* ignore */ }
+                p.WaitForExit();
+            }
+
+            if (redirectStdOut)
+            {
+                p.CancelOutputRead();
+            }
+            p.CancelErrorRead();
+            p.WaitForExit();
+
+            // Dispose writers only after reads are cancelled
+            stdOutRedirection?.Flush();
+            stdOutRedirection?.Dispose();
+
+            if (stdErr.GetStringBuilder().Length != 0)
+            {
+                Logger.Error("Process {0} had std err: {1}", cmdLine, stdErr.ToString());
             }
             if (requireExitCode && p.ExitCode != 0)
             {
-                Logger.Error("Process {0} {1} had exit code {2}", program, commandLine, p.ExitCode);
+                Logger.Error("Process {0} had exit code {1}", cmdLine, p.ExitCode);
             }
+
+            stdErr.Dispose();
             return p.ExitCode;
         }
     }
