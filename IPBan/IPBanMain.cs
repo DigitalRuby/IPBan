@@ -27,6 +27,7 @@ using DigitalRuby.IPBanCore;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using DigitalRuby.IPBanCore.Core.Utility;
 
 namespace DigitalRuby.IPBan
 {
@@ -42,8 +43,9 @@ namespace DigitalRuby.IPBan
         /// <returns>Task</returns>
         public static async Task Main(string[] args)
         {
-            if (ProcessCommandLine(args))
+            if (args.Length != 0)
             {
+                await CommandLineProcessor.ProcessAsync(args);
                 return;
             }
 
@@ -62,31 +64,5 @@ namespace DigitalRuby.IPBan
             });
         }
 
-        private static bool ProcessCommandLine(string[] args)
-        {
-            if (args.Length != 0)
-            {
-                if (args[0].Contains("info", StringComparison.OrdinalIgnoreCase))
-                {
-                    Logger.Warn("System info: {0}", OSUtility.OSString());
-                    return true;
-                }
-                else if (args[0].Contains("logfiletest", StringComparison.OrdinalIgnoreCase))
-                {
-                    if (args.Length != 2)
-                    {
-                        Console.WriteLine("Usage: param file with lines of log-filename regex-failure regex-failure-timestamp-format regex-success regex-success-timestamp-format");
-                        Console.WriteLine("Can use a . to not specify the regex or timestamp format");
-                    }
-                    else
-                    {
-                        var lines = System.IO.File.ReadAllLines(args[1]);
-                        IPBanLogFileTester.RunLogFileTest(lines[0], lines[1], lines[2], lines[3], lines[4]);
-                    }
-                    return true;
-                }
-            }
-            return false;
-        }
     }
 }
