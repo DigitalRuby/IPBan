@@ -521,7 +521,7 @@ namespace DigitalRuby.IPBanCore
         /// <param name="outputFile">Dump std out to this file (null to not do this)</param>
         /// <param name="args">Args</param>
         /// <returns>Exit code</returns>
-        public static int RunProcess(string program, string inputFile, string outputFile, params object[] args)
+        public static int RunProcess(string program, string inputFile, string outputFile, params IEnumerable<string> args)
         {
             string cmdLine = program + " " + string.Join(' ', args.Select(a => a?.ToString() ?? string.Empty));
 
@@ -555,12 +555,8 @@ namespace DigitalRuby.IPBanCore
                     FileName = program,
                     UseShellExecute = false,
                     CreateNoWindow = true,
-                    StandardInputEncoding = ExtensionMethods.Utf8EncodingNoPrefix,
-                    StandardOutputEncoding = ExtensionMethods.Utf8EncodingNoPrefix,
-                    StandardErrorEncoding = ExtensionMethods.Utf8EncodingNoPrefix,
-                    RedirectStandardInput = redirectStdIn,
-                    RedirectStandardOutput = redirectStdOut,
-                    RedirectStandardError = true
+                    RedirectStandardError = true,
+                    StandardErrorEncoding = ExtensionMethods.Utf8EncodingNoPrefix
                 },
                 EnableRaisingEvents = true
             };
@@ -578,6 +574,8 @@ namespace DigitalRuby.IPBanCore
             TextWriter stdOutRedirection = null;
             if (redirectStdOut)
             {
+                p.StartInfo.RedirectStandardOutput = true;
+                p.StartInfo.StandardOutputEncoding = ExtensionMethods.Utf8EncodingNoPrefix;
                 var fs = new FileStream(outputFile, FileMode.Create, FileAccess.Write, FileShare.Read, 64 * 1024, FileOptions.Asynchronous);
                 stdOutRedirection = TextWriter.Synchronized(new StreamWriter(fs, ExtensionMethods.Utf8EncodingNoPrefix));
                 p.OutputDataReceived += (s, e) =>
@@ -604,17 +602,27 @@ namespace DigitalRuby.IPBanCore
                 }
             };
 
-            p.Start();
             if (redirectStdIn)
             {
-                using var reader = new StreamReader(inputFile, ExtensionMethods.Utf8EncodingNoPrefix);
-                string line;
-                while ((line = reader.ReadLine()) != null)
+                p.StartInfo.RedirectStandardInput = true;
+                p.StartInfo.StandardInputEncoding = ExtensionMethods.Utf8EncodingNoPrefix;
+            }
+
+            p.Start();
+
+            if (redirectStdIn)
+            {
+                System.Threading.Tasks.Task.Run(async () =>
                 {
-                    p.StandardInput.WriteLine(line);
-                }
-                p.StandardInput.Flush();
-                p.StandardInput.Close();
+                    using var reader = new StreamReader(inputFile, ExtensionMethods.Utf8EncodingNoPrefix);
+                    string line;
+                    while ((line = await reader.ReadLineAsync()) != null)
+                    {
+                        await p.StandardInput.WriteLineAsync(line);
+                    }
+                    await p.StandardInput.FlushAsync();
+                    p.StandardInput.Close();
+                });
             }
 
             if (redirectStdOut)

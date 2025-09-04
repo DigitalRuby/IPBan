@@ -211,7 +211,7 @@ namespace DigitalRuby.IPBanCore
             PortRange[] allowedPortsArray = allowedPorts?.ToArray();
             using var tmp = new TempFile();
             IPBanFirewallUtility.RunProcess(IpTablesProcess, null, tmp, "-L", "-n", "--line-numbers");
-            string portString = " ";
+            string[] portCommand = [];
             bool replaced = false;
             bool block = (action == dropAction);
 
@@ -219,13 +219,17 @@ namespace DigitalRuby.IPBanCore
             {
                 string portList = (block ? IPBanFirewallUtility.GetPortRangeStringBlock(allowedPorts) :
                      IPBanFirewallUtility.GetPortRangeStringAllow(allowedPorts));
-                portString = " -m multiport -p tcp --dports " + portList.Replace('-', ':') + " "; // iptables uses ':' instead of '-' for range
+
+                // iptables uses ':' instead of '-' for range
+                portCommand = ["-m", "multiport", "-p", "tcp", "--dports", portList.Replace('-', ':')];
             }
 
             string ruleNameWithSpaces = " " + ruleName + " ";
-            string rootCommand = $"INPUT ##RULENUM## -m state --state NEW -m set{portString}--match-set \"{ruleName}\" src -j";
             string logPrefix = LogPacketPrefix + ruleName + ": ";
-            string logAction = $"LOG --log-prefix \"{logPrefix}\" --log-level 4";
+            string[] logAction = ["LOG", "--log-prefix", logPrefix, "--log-level", "4"];
+            string[] rootCommand = ["-R", "INPUT", "0", "-m", "state", "--state", "NEW", "-m"];
+            rootCommand = rootCommand.Concat(portCommand).ToArray();
+            rootCommand = rootCommand.Concat(["--match-set", ruleName, "src", "-j"]).ToArray();
 
             // if we have an existing rule, replace it
             using var reader = new StreamReader(tmp);
@@ -239,16 +243,17 @@ namespace DigitalRuby.IPBanCore
                     int ruleNum = int.Parse(line[..index]);
 
                     // replace the rule with the new info
+                    rootCommand[2] = ruleNum.ToStringInvariant();
 
                     if (LogPackets)
                     {
                         // replace log
-                        IPBanFirewallUtility.RunProcess(IpTablesProcess, null, null, "-R", rootCommand.Replace("##RULENUM##", ruleNum.ToStringInvariant()), logAction);
+                        IPBanFirewallUtility.RunProcess(IpTablesProcess, null, null, rootCommand.Concat(logAction));
                         ruleNum++;
                     }
 
                     // replace drop
-                    IPBanFirewallUtility.RunProcess(IpTablesProcess, null, null, "-R", rootCommand.Replace("##RULENUM##", ruleNum.ToStringInvariant()), action);
+                    IPBanFirewallUtility.RunProcess(IpTablesProcess, null, null, rootCommand.Concat([action]));
                     replaced = true;
                     break;
                 }
@@ -256,17 +261,19 @@ namespace DigitalRuby.IPBanCore
             if (!replaced)
             {
                 // add a new rule, for block add to end of list (lower priority) for allow add to begin of list (higher priority)
-                string addCommand = (block ? "-A" : "-I");
-                string newRootCommand = rootCommand.Replace("##RULENUM## ", string.Empty); // new rule, not using rule number
+                rootCommand[0] = (block ? "-A" : "-I");
+
+                // remove the rule number from index 2 of the array since it's not part of an add command
+                rootCommand = [.. rootCommand.Where((v, i) => i != 2)];
 
                 if (LogPackets)
                 {
                     // new log
-                    IPBanFirewallUtility.RunProcess(IpTablesProcess, null, null, addCommand, newRootCommand, logAction);
+                    IPBanFirewallUtility.RunProcess(IpTablesProcess, null, null, rootCommand.Concat(logAction));
                 }
 
                 // new drop
-                IPBanFirewallUtility.RunProcess(IpTablesProcess, null, null, addCommand, newRootCommand, action);
+                IPBanFirewallUtility.RunProcess(IpTablesProcess, null, null, rootCommand.Concat([action]));
             }
 
             cancelToken.ThrowIfCancellationRequested();
@@ -465,7 +472,7 @@ namespace DigitalRuby.IPBanCore
                     int ruleNum = int.Parse(line[..index]);
 
                     // remove the rule from iptables
-                    IPBanFirewallUtility.RunProcess(IpTablesProcess, null, null, $"-D", "INPUT", ruleNum);
+                    IPBanFirewallUtility.RunProcess(IpTablesProcess, null, null, $"-D", "INPUT", ruleNum.ToStringInvariant());
                     SaveTableToDisk();
 
                     // remove the set
