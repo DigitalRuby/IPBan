@@ -20,6 +20,7 @@ namespace DigitalRuby.IPBanCore;
 /// NFTables firewall
 /// </summary>
 [RequiredOperatingSystem(OSUtility.Linux,
+    Priority = 3,
     PriorityEnvironmentVariable = "IPBanPro_LinuxFirewallNFTablesPriority",
     FallbackFirewallType = typeof(IPBanLinuxFirewallD))]
 [System.Diagnostics.CodeAnalysis.DynamicallyAccessedMembers(System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.All)]
@@ -50,6 +51,8 @@ public class IPBanLinuxFirewallNfTables : IPBanBaseFirewall
     /// <param name="rulePrefix">Rule prefix</param>
     public IPBanLinuxFirewallNfTables(string rulePrefix = null) : base(rulePrefix)
     {
+        // will throw if nft not installed and fallback to firewalld
+        OSUtility.StartProcessAndWait("sudo", "nft -v");
         Initialize();
     }
 

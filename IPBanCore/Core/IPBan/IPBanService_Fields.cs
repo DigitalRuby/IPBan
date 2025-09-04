@@ -230,13 +230,14 @@ namespace DigitalRuby.IPBanCore
 
         /// <summary>
         /// Firewall types, by default there are two:<br/>
-        /// - Windows Firewall (Windows only)<br/>
-        /// - FirewallD (Linux only)<br/>
+        /// - Windows: Windows Firewall<br/>
+        /// - Linux: FirewallD; NfTables; IPTables<br/>
         /// </summary>
         public HashSet<Type> FirewallTypes { get; } =
         [
             typeof(IPBanWindowsFirewall),
             typeof(IPBanLinuxFirewallD),
+            typeof(IPBanLinuxFirewallNfTables),
             typeof(IPBanLinuxFirewallIPTables)
         ];
 

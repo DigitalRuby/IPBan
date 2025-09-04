@@ -38,7 +38,10 @@ namespace DigitalRuby.IPBanCore
     /// Linux firewall using firewalld.
     /// This class also works on Windows but only modifies files, does not actually use the firewall.
     /// </summary>
-    [RequiredOperatingSystem(OSUtility.Linux, Priority = 5, FallbackFirewallType = typeof(IPBanLinuxFirewallIPTables))]
+    [RequiredOperatingSystem(OSUtility.Linux,
+        Priority = 5,
+        PriorityEnvironmentVariable = "IPBanPro_LinuxFirewallFirewallDPriority",
+        FallbackFirewallType = typeof(IPBanLinuxFirewallIPTables))]
     [System.Diagnostics.CodeAnalysis.DynamicallyAccessedMembers(System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.All)]
     public class IPBanLinuxFirewallD : IPBanBaseFirewall
     {
@@ -65,6 +68,8 @@ namespace DigitalRuby.IPBanCore
             {
                 zoneFileOrig = "/usr/lib/firewalld/zones/public.xml";
                 zoneFile = "/etc/firewalld/zones/public.xml";
+
+                // will throw if firewalld not installed and fallback to iptables
                 string version = OSUtility.StartProcessAndWait("sudo", "firewall-cmd --version");
                 version = (version?.Trim()) ?? string.Empty;
 

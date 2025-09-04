@@ -128,6 +128,7 @@ namespace DigitalRuby.IPBanCore
                     Logger.Error(ex, "Failed to create firewall of type {0}, falling back to firewall type {1}", firewallType, fallbackType);
                     try
                     {
+                        fallbackAttr = fallbackType?.GetCustomAttribute<RequiredOperatingSystemAttribute>();
                         return Activator.CreateInstance(fallbackType, [rulePrefix]) as IIPBanFirewall;
                     }
                     catch (Exception ex2)

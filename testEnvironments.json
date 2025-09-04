@@ -2,20 +2,16 @@
   "version": "1",
   "environments":
   [
-    // run from powershell: ubuntu config --default-user root
-	  // sudo update-alternatives --set iptables /usr/sbin/iptables-legacy && sudo update-alternatives --set ip6tables /usr/sbin/ip6tables-legacy
     {
-      "name": "UbuntuWSL",
+      "name": "Ubuntu",
       "type": "wsl",
-      "wslDistribution": "Ubuntu",
-      "runAsRoot": "true"
-    },
-    // https://learn.microsoft.com/en-us/visualstudio/test/remote-testing?view=vs-2022
-    {
-      "name": "UbuntuSSH",
-      "type": "ssh",
-      "remoteUri": "ssh://root@192.168.1.146:22",
-      "runAsRoot": "true"
+      "wslDistribution": "Ubuntu"
+      // Get-ChildItem "$env:LOCALAPPDATA\Microsoft\WindowsApps\*ubuntu*.exe" -> path/to/ubuntu/ubuntu config --default-user root
     }
+    //{
+    //  "name": "Docker dotnet/sdk",
+    //  "type": "docker",
+    //  "dockerImage": "mcr.microsoft.com/dotnet/sdk"
+    //}
   ]
 }

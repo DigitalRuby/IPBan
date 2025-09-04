@@ -419,8 +419,8 @@ namespace DigitalRuby.IPBanTests
             {
                 // on Linux, both rules are needed
                 ClassicAssert.AreEqual(2, service.Config.ExtraRules.Count);
-                ClassicAssert.IsTrue(rules.Exists((s) => s.StartsWith(reddisRule)));
-                ClassicAssert.IsTrue(rules.Exists((s) => s.StartsWith(webRule)));
+                ClassicAssert.IsTrue(rules.Exists((s) => s.StartsWith(reddisRule, StringComparison.OrdinalIgnoreCase)));
+                ClassicAssert.IsTrue(rules.Exists((s) => s.StartsWith(webRule, StringComparison.OrdinalIgnoreCase)));
                 IPBanFirewallRule rule1 = service.Config.ExtraRules[0];
                 IPBanFirewallRule rule2 = service.Config.ExtraRules[1];
                 string regexString1 = rule1.ToString();
