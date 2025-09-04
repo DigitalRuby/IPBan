@@ -30,6 +30,7 @@ using System.Linq;
 using System.Net;
 using System.Reflection;
 using System.Text;
+using System.Threading;
 
 namespace DigitalRuby.IPBanCore
 {
@@ -472,14 +473,55 @@ namespace DigitalRuby.IPBanCore
         }
 
         /// <summary>
+        /// Restart rsys log on Linux
+        /// </summary>
+        public static void LinuxRestartRsyslog()
+        {
+            if (!OSUtility.IsLinux)
+            {
+                throw new PlatformNotSupportedException($"{nameof(LinuxRestartRsyslog)} can only be called on Linux");
+            }
+
+            // Attempt several strategies to reload rsyslog without assuming passwordless sudo.
+            // 1. systemctl restart rsyslog
+            // 2. service rsyslog restart (SysV compatibility)
+            // 3. systemctl reload rsyslog
+            // 4. pkill -HUP rsyslogd (last resort)
+            string[][] commands =
+            [
+                ["systemctl", "restart", "rsyslog"],
+                ["service", "rsyslog", "restart"],
+                ["systemctl", "reload", "rsyslog"]
+            ];
+            bool success = false;
+            foreach (var cmd in commands)
+            {
+                if (IPBanFirewallUtility.RunProcess(cmd[0], null, null, cmd[1], cmd[2]) == 0)
+                {
+                    success = true;
+                    break;
+                }
+                Thread.Sleep(250);
+            }
+            if (!success)
+            {
+                // Try sending HUP directly
+                if (IPBanFirewallUtility.RunProcess("pkill", null, null, "-HUP", "rsyslogd") != 0)
+                {
+                    Logger.Warn("Failed to reload rsyslog using systemctl/service/HUP; new log rule may not activate until rsyslog restarts");
+                }
+            }
+        }
+
+        /// <summary>
         /// Execute a firewall process
         /// </summary>
         /// <param name="program">Program</param>
-        /// <param name="requireExitCode">Require success exit code?</param>
-        /// <param name="outputFile">Dump std out (null to not do this)</param>
+        /// <param name="inputFile">Input file to read and pipe to std in (null to not do this)</param>
+        /// <param name="outputFile">Dump std out to this file (null to not do this)</param>
         /// <param name="args">Args</param>
         /// <returns>Exit code</returns>
-        public static int RunProcess(string program, bool requireExitCode, string outputFile, params object[] args)
+        public static int RunProcess(string program, string inputFile, string outputFile, params object[] args)
         {
             string cmdLine = program + " " + string.Join(' ', args.Select(a => a?.ToString() ?? string.Empty));
 
@@ -504,6 +546,7 @@ namespace DigitalRuby.IPBanCore
 
 #endif
 
+            bool redirectStdIn = !string.IsNullOrWhiteSpace(inputFile);
             bool redirectStdOut = !string.IsNullOrWhiteSpace(outputFile);
             using Process p = new()
             {
@@ -512,6 +555,10 @@ namespace DigitalRuby.IPBanCore
                     FileName = program,
                     UseShellExecute = false,
                     CreateNoWindow = true,
+                    StandardInputEncoding = ExtensionMethods.Utf8EncodingNoPrefix,
+                    StandardOutputEncoding = ExtensionMethods.Utf8EncodingNoPrefix,
+                    StandardErrorEncoding = ExtensionMethods.Utf8EncodingNoPrefix,
+                    RedirectStandardInput = redirectStdIn,
                     RedirectStandardOutput = redirectStdOut,
                     RedirectStandardError = true
                 },
@@ -532,7 +579,7 @@ namespace DigitalRuby.IPBanCore
             if (redirectStdOut)
             {
                 var fs = new FileStream(outputFile, FileMode.Create, FileAccess.Write, FileShare.Read, 64 * 1024, FileOptions.Asynchronous);
-                stdOutRedirection = TextWriter.Synchronized(new StreamWriter(fs));
+                stdOutRedirection = TextWriter.Synchronized(new StreamWriter(fs, ExtensionMethods.Utf8EncodingNoPrefix));
                 p.OutputDataReceived += (s, e) =>
                 {
                     if (e.Data != null)
@@ -558,6 +605,17 @@ namespace DigitalRuby.IPBanCore
             };
 
             p.Start();
+            if (redirectStdIn)
+            {
+                using var reader = new StreamReader(inputFile, ExtensionMethods.Utf8EncodingNoPrefix);
+                string line;
+                while ((line = reader.ReadLine()) != null)
+                {
+                    p.StandardInput.WriteLine(line);
+                }
+                p.StandardInput.Flush();
+                p.StandardInput.Close();
+            }
 
             if (redirectStdOut)
             {
@@ -587,7 +645,7 @@ namespace DigitalRuby.IPBanCore
             {
                 Logger.Error("Process {0} had std err: {1}", cmdLine, stdErr.ToString());
             }
-            if (requireExitCode && p.ExitCode != 0)
+            if (p.ExitCode != 0)
             {
                 Logger.Error("Process {0} had exit code {1}", cmdLine, p.ExitCode);
             }

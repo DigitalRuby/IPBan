@@ -69,8 +69,8 @@ namespace DigitalRuby.IPBanCore
             firewall6 = new IPBanLinuxFirewallIPTables6(RulePrefix);
 
             // ensure legacy iptables are used
-            IPBanFirewallUtility.RunProcess("update-alternatives", true, null, "--set", "iptables", "/usr/sbin/iptables-legacy");
-            IPBanFirewallUtility.RunProcess("update-alternatives", true, null, "--set", "ip6tables", "/usr/sbin/ip6tables-legacy");
+            IPBanFirewallUtility.RunProcess("update-alternatives", null, null, "--set", "iptables", "/usr/sbin/iptables-legacy");
+            IPBanFirewallUtility.RunProcess("update-alternatives", null, null, "--set", "ip6tables", "/usr/sbin/ip6tables-legacy");
         }
 
         /// <inheritdoc />

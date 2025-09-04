@@ -78,7 +78,7 @@ namespace DigitalRuby.IPBanCore
         /// </summary>
         public static void Reset()
         {
-            IPBanFirewallUtility.RunProcess("ipset", true, null, "-F");
+            IPBanFirewallUtility.RunProcess("ipset", null, null, "-F");
         }
 
         /// <summary>
@@ -88,7 +88,7 @@ namespace DigitalRuby.IPBanCore
         /// <returns>True if set was reset, false otherwise</returns>
         public static bool Reset(string setName)
         {
-            int exitCode = IPBanFirewallUtility.RunProcess("ipset", true, null, "-F", setName);
+            int exitCode = IPBanFirewallUtility.RunProcess("ipset", null, null, "-F", setName);
             return exitCode == 0;
         }
 
@@ -98,7 +98,7 @@ namespace DigitalRuby.IPBanCore
         /// <param name="fileName">File name to write ipset to</param>
         public static void SaveToFile(string fileName)
         {
-            IPBanFirewallUtility.RunProcess("ipset", true, fileName, "save");
+            IPBanFirewallUtility.RunProcess("ipset", null, fileName, "save");
         }
 
         /// <summary>
@@ -110,7 +110,7 @@ namespace DigitalRuby.IPBanCore
         {
             if (File.Exists(fileName))
             {
-                int exitCode = IPBanFirewallUtility.RunProcess("ipset", true, fileName, "restore");
+                int exitCode = IPBanFirewallUtility.RunProcess("ipset", fileName, null, "restore");
                 return exitCode == 0;
             }
             return false;
@@ -123,7 +123,7 @@ namespace DigitalRuby.IPBanCore
         public static IReadOnlyCollection<string> GetSetNames()
         {
             using var tmp = new TempFile();
-            IPBanFirewallUtility.RunProcess("ipset", true, tmp, "-L", "-n");
+            IPBanFirewallUtility.RunProcess("ipset", null, tmp, "-L", "-n");
             return File.ReadAllLines(tmp).Select(l => l.Trim()).Where(l => !string.IsNullOrWhiteSpace(l)).ToList();
         }
 
@@ -327,13 +327,13 @@ namespace DigitalRuby.IPBanCore
         public static void DeleteSet(string setName)
         {
             using var tmp = new TempFile();
-            IPBanFirewallUtility.RunProcess("ipset", true, tmp, "-L", "-n");
+            IPBanFirewallUtility.RunProcess("ipset", null, tmp, "-L", "-n");
             var lines = File.ReadAllLines(tmp).Where(l => !string.IsNullOrWhiteSpace(l)).ToList();
             foreach (string line in lines)
             {
                 if (line.Trim().Equals(setName, StringComparison.OrdinalIgnoreCase))
                 {
-                    IPBanFirewallUtility.RunProcess("ipset", true, null, "destroy", setName);
+                    IPBanFirewallUtility.RunProcess("ipset", null, null, "destroy", setName);
                     break;
                 }
             }

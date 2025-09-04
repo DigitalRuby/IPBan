@@ -108,7 +108,7 @@ namespace DigitalRuby.IPBanCore
         {
             if (dirty && OSUtility.IsLinux)
             {
-                IPBanFirewallUtility.RunProcess("firewall-cmd", true, null, "--reload");
+                IPBanFirewallUtility.RunProcess("firewall-cmd", null, null, "--reload");
             }
             dirty = false;
             return base.Update(cancelToken);
