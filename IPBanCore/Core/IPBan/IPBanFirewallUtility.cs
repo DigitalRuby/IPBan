@@ -475,7 +475,7 @@ namespace DigitalRuby.IPBanCore
         /// Execute a firewall process
         /// </summary>
         /// <param name="program">Program</param>
-        /// <param name="requireExitCode">Required exit code</param>
+        /// <param name="requireExitCode">Require success exit code?</param>
         /// <param name="outputFile">Dump std out (null to not do this)</param>
         /// <param name="args">Args</param>
         /// <returns>Exit code</returns>

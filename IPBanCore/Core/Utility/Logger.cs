@@ -207,7 +207,7 @@ namespace DigitalRuby.IPBanCore
                 if (File.Exists(nlogConfigPath))
                 {
 #pragma warning disable CS0618 // Type or member is obsolete
-                    factory = LogManager.LoadConfiguration(nlogConfigPath);
+                    factory = LogManager.Setup().LoadConfigurationFromFile(nlogConfigPath).LogFactory;
 #pragma warning restore CS0618 // Type or member is obsolete
                 }
                 else
@@ -218,6 +218,21 @@ namespace DigitalRuby.IPBanCore
                 instance = new NLogWrapper(nlogInstance);
 
                 //NLog.Time.TimeSource.Current = timeSource;
+
+#if DEBUG
+
+                LogManager.GlobalThreshold = NLog.LogLevel.Debug;
+                var cfg = factory.Configuration ?? new NLog.Config.LoggingConfiguration();
+                foreach (var rule in cfg.LoggingRules)
+                {
+                    // Widen each rule to pass Debug and above
+                    rule.SetLoggingLevels(NLog.LogLevel.Debug, NLog.LogLevel.Fatal);
+                }
+                factory.Configuration = cfg;
+                factory.ReconfigExistingLoggers();
+
+#endif
+
             }
             catch (Exception ex)
             {
