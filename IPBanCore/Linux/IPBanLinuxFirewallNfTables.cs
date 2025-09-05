@@ -696,9 +696,11 @@ public class IPBanLinuxFirewallNFTables : IPBanBaseFirewall
 
     private static NetFilterRuleset GetRulesAndSets()
     {
-        MemoryStream ms = new();
-        RunNftStream(null, ms, "-j", "list", "table", "inet", tableName);
-        var nftRoot = JsonSerializationHelper.Deserialize<NetFilterRuleset>(ms);
+        using TempFile tmp = new();
+        using var fs = File.Open(tmp.FullName, FileMode.Create, FileAccess.ReadWrite, FileShare.None);
+        RunNftStream(null, fs, "-j", "list", "table", "inet", tableName);
+        fs.Position = 0;
+        var nftRoot = JsonSerializationHelper.Deserialize<NetFilterRuleset>(fs);
         return nftRoot;
     }
 

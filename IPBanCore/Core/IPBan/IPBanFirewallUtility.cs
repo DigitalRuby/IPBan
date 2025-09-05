@@ -593,6 +593,7 @@ namespace DigitalRuby.IPBanCore
                 else if (outputStream is not null)
                 {
                     outCopyTask = p.StandardOutput.BaseStream.CopyToAsync(outputStream);
+                    outputStream.Flush();
                 }
             }
 
