@@ -1,8 +1,4 @@
-﻿#define ENABLE_NFT_FIREWALL
-
-#if ENABLE_NFT_FIREWALL
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -24,7 +20,7 @@ namespace DigitalRuby.IPBanCore;
     PriorityEnvironmentVariable = "IPBanPro_LinuxFirewallNFTablesPriority",
     FallbackFirewallType = typeof(IPBanLinuxFirewallD))]
 [System.Diagnostics.CodeAnalysis.DynamicallyAccessedMembers(System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.All)]
-public class IPBanLinuxFirewallNfTables : IPBanBaseFirewall
+public class IPBanLinuxFirewallNFTables : IPBanBaseFirewall
 {
     private const int sixtyFourK = 64 * 1024;
 
@@ -49,7 +45,7 @@ public class IPBanLinuxFirewallNfTables : IPBanBaseFirewall
     /// Constructor
     /// </summary>
     /// <param name="rulePrefix">Rule prefix</param>
-    public IPBanLinuxFirewallNfTables(string rulePrefix = null) : base(rulePrefix)
+    public IPBanLinuxFirewallNFTables(string rulePrefix = null) : base(rulePrefix)
     {
         // will throw if nft not installed and fallback to firewalld
         OSUtility.StartProcessAndWait("sudo", "nft -v");
@@ -300,6 +296,7 @@ public class IPBanLinuxFirewallNfTables : IPBanBaseFirewall
     protected virtual void Initialize()
     {
         StringWriter sw = new();
+        sw.WriteLine($"destroy table inet {tableName}");
         sw.WriteLine($"add table inet {tableName}");
         sw.WriteLine($"add chain inet {tableName} {chainName} {{ type filter hook input priority -1; }}");
         if (sw.GetStringBuilder().Length != 0)
@@ -723,5 +720,3 @@ public class IPBanLinuxFirewallNfTables : IPBanBaseFirewall
 }
 
 #pragma warning restore SYSLIB1045 // Convert to 'GeneratedRegexAttribute'.
-
-#endif

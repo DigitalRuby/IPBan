@@ -237,7 +237,7 @@ namespace DigitalRuby.IPBanCore
         [
             typeof(IPBanWindowsFirewall),
             typeof(IPBanLinuxFirewallD),
-            typeof(IPBanLinuxFirewallNfTables),
+            typeof(IPBanLinuxFirewallNFTables),
             typeof(IPBanLinuxFirewallIPTables)
         ];
 
