@@ -26,6 +26,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Pipelines;
 using System.Linq;
 using System.Net;
 using System.Reflection;
@@ -518,12 +519,14 @@ namespace DigitalRuby.IPBanCore
         /// Execute a firewall process
         /// </summary>
         /// <param name="program">Program</param>
-        /// <param name="inputFile">Input file to read and pipe to std in (null to not do this)</param>
-        /// <param name="outputFile">Dump std out to this file (null to not do this)</param>
+        /// <param name="input">Input file or Stream to read and pipe to std in (null to not do this)</param>
+        /// <param name="output">Dump std out to this file or Stream (null to not do this)</param>
         /// <param name="args">Args</param>
         /// <returns>Exit code</returns>
-        public static int RunProcess(string program, string inputFile, string outputFile, params IEnumerable<string> args)
+        public static int RunProcess(string program, object input, object output, params IEnumerable<string> args)
         {
+            const int timeout = 60000; // 60 seconds in milliseconds
+
             string cmdLine = program + " " + string.Join(' ', args.Select(a => a?.ToString() ?? string.Empty));
 
 #if ENABLE_FIREWALL_PROFILING
@@ -544,8 +547,12 @@ namespace DigitalRuby.IPBanCore
 
 #endif
 
-            bool redirectStdIn = !string.IsNullOrWhiteSpace(inputFile);
-            bool redirectStdOut = !string.IsNullOrWhiteSpace(outputFile);
+            var inputStream = input as Stream;
+            var inputFile = input as string;
+            var outputStream = output as Stream;
+            var outputFile = output as string;
+            bool redirectStdIn = inputStream is not null || inputFile is not null;
+            bool redirectStdOut = outputStream is not null || outputFile is not null;
 
             using Process p = new()
             {
@@ -578,17 +585,31 @@ namespace DigitalRuby.IPBanCore
             System.Threading.Tasks.Task outCopyTask = null;
             if (redirectStdOut)
             {
-                stdOutRedirection = new FileStream(outputFile, FileMode.Create, FileAccess.Write, FileShare.Read, 64 * 1024, FileOptions.Asynchronous);
-                outCopyTask = p.StandardOutput.BaseStream.CopyToAsync(stdOutRedirection);
+                if (outputFile is not null)
+                {
+                    stdOutRedirection = new FileStream(outputFile, FileMode.Create, FileAccess.Write, FileShare.Read, 64 * 1024, FileOptions.Asynchronous);
+                    outCopyTask = p.StandardOutput.BaseStream.CopyToAsync(stdOutRedirection);
+                }
+                else if (outputStream is not null)
+                {
+                    outCopyTask = p.StandardOutput.BaseStream.CopyToAsync(outputStream);
+                }
             }
 
             if (redirectStdIn)
             {
                 try
                 {
-                    using var inFs = new FileStream(inputFile, FileMode.Open, FileAccess.Read, FileShare.Read, 64 * 1024, FileOptions.SequentialScan);
-                    inFs.CopyTo(p.StandardInput.BaseStream);
-                    p.StandardInput.Flush();
+                    if (inputFile is not null)
+                    {
+                        using var inFs = new FileStream(inputFile, FileMode.Open, FileAccess.Read, FileShare.Read, 64 * 1024, FileOptions.SequentialScan);
+                        inFs.CopyTo(p.StandardInput.BaseStream);
+                        p.StandardInput.Flush();
+                    }
+                    else if (inputStream is not null)
+                    {
+                        inputStream.CopyTo(p.StandardInput.BaseStream);
+                    }
                 }
                 finally
                 {
@@ -596,15 +617,15 @@ namespace DigitalRuby.IPBanCore
                 }
             }
 
-            if (!p.WaitForExit(60000))
+            if (!p.WaitForExit(timeout))
             {
                 Logger.Error("Process time out: {0}", cmdLine);
                 try { p.Kill(entireProcessTree: true); } catch { /* ignore */ }
                 p.WaitForExit();
             }
 
-            outCopyTask?.Wait(60000);
-            errCopyTask.Wait(60000);
+            outCopyTask?.Wait(timeout);
+            errCopyTask.Wait(timeout);
 
             if (stdErr.Length != 0)
             {
@@ -616,7 +637,6 @@ namespace DigitalRuby.IPBanCore
             }
 
             stdErr.Dispose();
-            stdOutRedirection?.Flush();
             stdOutRedirection?.Dispose();
 
 #if DEBUG

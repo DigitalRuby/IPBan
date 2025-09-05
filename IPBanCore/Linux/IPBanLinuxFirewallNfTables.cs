@@ -191,14 +191,12 @@ public class IPBanLinuxFirewallNFTables : IPBanBaseFirewall
     /// <inheritdoc />
     public override string GetPorts(string ruleName)
     {
-        using var tmpFile = RunNftCaptureFile("-j", "list", "chain", "inet", tableName, chainName);
-
         // Normalize to base rule name (unsuffixed)
         string baseName = GetFullRuleName(ruleName);
         string suffix4 = baseName + "4";
         string suffix6 = baseName + "6";
+        var nftRoot = GetRules();
 
-        var nftRoot = JsonSerializationHelper.DeserializeFromFile<NetFilterRuleset>(tmpFile);
         foreach (var entry in nftRoot.Entries)
         {
             // must have a rule and comment
@@ -229,8 +227,7 @@ public class IPBanLinuxFirewallNFTables : IPBanBaseFirewall
     /// <inheritdoc />
     public override IEnumerable<string> GetRuleNames(string ruleNamePrefix = null)
     {
-        using var tmpFile = RunNftCaptureFile("-j", "list", "chain", "inet", tableName, chainName);
-        var nftRoot = JsonSerializationHelper.DeserializeFromFile<NetFilterRuleset>(tmpFile);
+        var nftRoot = GetRules();
         SortedSet<string> names = new(StringComparer.OrdinalIgnoreCase);
         string baseFilter = string.IsNullOrWhiteSpace(ruleNamePrefix) ? null : GetFullRuleName(ruleNamePrefix);
 
@@ -295,16 +292,14 @@ public class IPBanLinuxFirewallNFTables : IPBanBaseFirewall
     /// </summary>
     protected virtual void Initialize()
     {
-        StringWriter sw = new();
-        sw.WriteLine($"destroy table inet {tableName}");
-        sw.WriteLine($"add table inet {tableName}");
-        sw.WriteLine($"add chain inet {tableName} {chainName} {{ type filter hook input priority -1; }}");
-        if (sw.GetStringBuilder().Length != 0)
+        MemoryStream ms = new();
+        using (var sw = new StreamWriter(ms, ExtensionMethods.Utf8EncodingNoPrefix, leaveOpen: true))
         {
-            using var tmp = new TempFile();
-            File.WriteAllText(tmp, sw.ToString(), ExtensionMethods.Utf8EncodingNoPrefix);
-            RunNft("-f", tmp);
+            sw.WriteLine($"destroy table inet {tableName}");
+            sw.WriteLine($"add table inet {tableName}");
+            sw.WriteLine($"add chain inet {tableName} {chainName} {{ type filter hook input priority -1; }}");
         }
+        RunNftStream(ms, null, "-f", "-");
     }
 
     #endregion
@@ -389,14 +384,11 @@ public class IPBanLinuxFirewallNFTables : IPBanBaseFirewall
             }
         }
         using var tmp = new TempFile();
-        bool wrote = false;
         using (var sw = new StreamWriter(tmp, false, ExtensionMethods.Utf8EncodingNoPrefix, sixtyFourK))
         {
             // Always flush sets first so contents exactly match the provided list
             sw.WriteLine($"flush set inet {tableName} {setV4}");
             sw.WriteLine($"flush set inet {tableName} {setV6}");
-            wrote = true;
-
             // Add new elements (if any)
             foreach (var line in BuildBatches("add", tableName, setV4, v4)
                 .Concat(BuildBatches("add", tableName, setV6, v6)))
@@ -404,10 +396,7 @@ public class IPBanLinuxFirewallNFTables : IPBanBaseFirewall
                 sw.WriteLine(line);
             }
         }
-        if (wrote)
-        {
-            RunNft("-f", tmp);
-        }
+        RunNftFile(tmp);
     }
 
     private static void BatchUpdateSetsDelta(string setV4, string setV6,
@@ -437,9 +426,9 @@ public class IPBanLinuxFirewallNFTables : IPBanBaseFirewall
         }
         if (wrote)
         {
-            RunNft("-f", tmp);
+            RunNftFile(tmp);
         }
-    }
+     }
 
     private static void EnsureRules(string ruleName, IEnumerable<PortRange> allowedPorts, bool allow)
     {
@@ -463,8 +452,7 @@ public class IPBanLinuxFirewallNFTables : IPBanBaseFirewall
         }
 
         // Read existing rules
-        using var tempFile = RunNftCaptureFile("-j", "list", "chain", "inet", tableName, chainName);
-        var nftRoot = JsonSerializationHelper.DeserializeFromFile<NetFilterRuleset>(tempFile);
+        var nftRoot = GetRules();
 
         // Normalize to base rule name (unsuffixed)
         string baseRuleName = SanitizeRuleName(ruleName);
@@ -532,9 +520,8 @@ public class IPBanLinuxFirewallNFTables : IPBanBaseFirewall
         CreateRuleIfNeeded(needV4Rule, ruleName4, allow, "ip", desiredPorts, rulesToCreate);
         CreateRuleIfNeeded(needV6Rule, ruleName6, allow, "ip6", desiredPorts, rulesToCreate);
 
-        using var batch = new TempFile();
-        var wrote = false;
-        using (var sw = new StreamWriter(batch, false, ExtensionMethods.Utf8EncodingNoPrefix))
+        MemoryStream ms = new();
+        using (var sw = new StreamWriter(ms, ExtensionMethods.Utf8EncodingNoPrefix, leaveOpen: true))
         {
             // if we have any delete handles, do those first
             if (deleteHandles.Count != 0)
@@ -543,32 +530,27 @@ public class IPBanLinuxFirewallNFTables : IPBanBaseFirewall
                 deleteHandles.Sort((a, b) => b.CompareTo(a));
                 foreach (var handle in deleteHandles)
                 {
-                    wrote = true;
                     sw.WriteLine($"delete rule inet {tableName} {chainName} handle {handle}");
                 }
             }
             foreach (var rule in rulesToCreate)
             {
-                wrote = true;
                 sw.WriteLine(rule);
             }
         }
-        if (wrote)
+        if (ms.Length != 0)
         {
-            RunNft("-f", batch);
+            RunNftStream(ms, null, "-f", "-");
         }
     }
 
     private static void RemoveRule(string fullRuleName)
     {
-        // fullRuleName here is base (unsuffixed). Delete any matching suffixed internal rules in a single batch.
-        using var tmpFile = RunNftCaptureFile("-j", "list", "chain", "inet", tableName, chainName);
-
+        var nftRoot = GetRules();
         string suffixed4 = fullRuleName + "4";
         string suffixed6 = fullRuleName + "6";
-
-        var nftRoot = JsonSerializationHelper.DeserializeFromFile<NetFilterRuleset>(tmpFile);
         List<uint> handles = [];
+
         foreach (var entry in nftRoot.Entries)
         {
             // must have a rule and comment
@@ -599,35 +581,33 @@ public class IPBanLinuxFirewallNFTables : IPBanBaseFirewall
 
         // Delete highest handles first just in case the kernel processes sequentially and renumbers (defensive)
         handles.Sort((a, b) => b.CompareTo(a));
-        using var tmp = new TempFile();
-        using (var sw = new StreamWriter(tmp, false, ExtensionMethods.Utf8EncodingNoPrefix))
+        MemoryStream ms = new();
+        using (var sw = new StreamWriter(ms, ExtensionMethods.Utf8EncodingNoPrefix, leaveOpen: true))
         {
             foreach (var h in handles)
             {
                 sw.WriteLine($"delete rule inet {tableName} {chainName} handle {h}");
             }
         }
-        RunNft("-f", tmp);
+        RunNftStream(ms, null, "-f", "-");
     }
 
     private static void RemoveSet(string fullRuleName)
     {
         var set4 = fullRuleName + "4";
         var set6 = fullRuleName + "6";
-        using var tmp = new TempFile();
-        using (var sw = new StreamWriter(tmp, false, ExtensionMethods.Utf8EncodingNoPrefix))
+        MemoryStream ms = new();
+        using (var sw = new StreamWriter(ms, ExtensionMethods.Utf8EncodingNoPrefix, leaveOpen: true))
         {
             sw.WriteLine($"delete set inet {tableName} {set4}");
             sw.WriteLine($"delete set inet {tableName} {set6}");
         }
-        RunNft("-f", tmp);
+        RunNftStream(ms, null, "-f", "-");
     }
 
     private IEnumerable<NftRuleInternal> EnumerateAllSetIPs(bool? allow, string ruleNamePrefix = null)
     {
-        using var tempFile = RunNftCaptureFile("-j", "list", "table", "inet", tableName);
-
-        var nftRoot = JsonSerializationHelper.DeserializeFromFile<NetFilterRuleset>(tempFile);
+        var nftRoot = GetRulesAndSets();
         string baseFilter = string.IsNullOrWhiteSpace(ruleNamePrefix) ? null : GetFullRuleName(ruleNamePrefix);
 
         foreach (var entry in nftRoot?.Entries)
@@ -665,55 +645,61 @@ public class IPBanLinuxFirewallNFTables : IPBanBaseFirewall
 
     private static void EnsureSets(params string[] typesAndNames)
     {
-        StringWriter sw = new();
-        for (var i = 0; i < typesAndNames.Length - 1; i += 2)
+        MemoryStream ms = new();
+        using (var sw = new StreamWriter(ms, ExtensionMethods.Utf8EncodingNoPrefix, sixtyFourK, leaveOpen: true))
         {
-            var name = typesAndNames[i];
-            var type = typesAndNames[i + 1];
-            sw.WriteLine($"add set inet {tableName} {name} {{ type {type}; flags interval; }}");
+            for (var i = 0; i < typesAndNames.Length - 1; i += 2)
+            {
+                var name = typesAndNames[i];
+                var type = typesAndNames[i + 1];
+                sw.WriteLine($"add set inet {tableName} {name} {{ type {type}; flags interval; }}");
+            }
         }
-        using var tmp = new TempFile();
-        File.WriteAllText(tmp, sw.ToString(), ExtensionMethods.Utf8EncodingNoPrefix);
-        RunNft("-f", tmp);
+        RunNftStream(ms, null, "-f", "-");
     }
 
     #endregion
 
     #region Nft helpers
 
-    private static int RunNft(params string[] args)
+    private static int RunNft(params IEnumerable<string> args)
     {
-
-#if DEBUG
-
-        if (args.Length > 1 && args[0] == "-f")
-        {
-            Logger.Debug("Running nft with temp file text: {0}", File.ReadAllText(args[1]));
-        }
-
-#endif
-
         return IPBanFirewallUtility.RunProcess("nft", null, null, args);
     }
 
-    private static TempFile RunNftCaptureFile(params string[] args)
+    private static int RunNftFile(string fileName)
     {
-        var tmp = new TempFile();
-        var exitCode = IPBanFirewallUtility.RunProcess("nft", null, tmp, args);
-        if (!File.Exists(tmp))
+        return IPBanFirewallUtility.RunProcess("nft", null, null, "-f", fileName);
+    }
+
+    private static int RunNftStream(Stream inputStream, Stream outputStream, params IEnumerable<string> args)
+    {
+        if (inputStream is MemoryStream ms)
         {
-            Logger.Warn("Nftables capture failed with exit code {0}", exitCode);
-            tmp.Dispose();
-            return null;
+            ms.Position = 0;
         }
+        var exitCode = IPBanFirewallUtility.RunProcess("nft", inputStream, outputStream, args);
+        if (outputStream is MemoryStream ms2)
+        {
+            ms2.Position = 0;
+        }
+        return exitCode;
+    }
 
-#if DEBUG
+    private static NetFilterRuleset GetRules()
+    {
+        MemoryStream ms = new();
+        RunNftStream(null, ms, "-j", "list", "chain", "inet", tableName, chainName);
+        var nftRoot = JsonSerializationHelper.Deserialize<NetFilterRuleset>(ms);
+        return nftRoot;
+    }
 
-        Logger.Debug("Nft capture file contents: {0}", File.ReadAllText(tmp));
-
-#endif
-
-        return tmp;
+    private static NetFilterRuleset GetRulesAndSets()
+    {
+        MemoryStream ms = new();
+        RunNftStream(null, ms, "-j", "list", "table", "inet", tableName);
+        var nftRoot = JsonSerializationHelper.Deserialize<NetFilterRuleset>(ms);
+        return nftRoot;
     }
 
     #endregion
