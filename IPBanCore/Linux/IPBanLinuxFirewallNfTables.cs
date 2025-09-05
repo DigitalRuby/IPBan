@@ -674,14 +674,14 @@ public class IPBanLinuxFirewallNFTables : IPBanBaseFirewall
 
     private static int RunNftStream(Stream inputStream, Stream outputStream, params IEnumerable<string> args)
     {
-        if (inputStream is MemoryStream ms)
+        if (inputStream.CanSeek)
         {
-            ms.Position = 0;
+            inputStream.Position = 0;
         }
         var exitCode = IPBanFirewallUtility.RunProcess("nft", inputStream, outputStream, args);
-        if (outputStream is MemoryStream ms2)
+        if (outputStream.CanSeek)
         {
-            ms2.Position = 0;
+            outputStream.Position = 0;
         }
         return exitCode;
     }
@@ -699,7 +699,6 @@ public class IPBanLinuxFirewallNFTables : IPBanBaseFirewall
         using TempFile tmp = new();
         using var fs = File.Open(tmp.FullName, FileMode.Create, FileAccess.ReadWrite, FileShare.None);
         RunNftStream(null, fs, "-j", "list", "table", "inet", tableName);
-        fs.Position = 0;
         var nftRoot = JsonSerializationHelper.Deserialize<NetFilterRuleset>(fs);
         return nftRoot;
     }
