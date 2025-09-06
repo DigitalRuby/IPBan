@@ -1,7 +1,7 @@
 ﻿/*
 MIT License
 
-Copyright (c) 2012-present Digital Ruby, LLC - https://www.digitalruby.com
+Copyright (c) 2012-present Digital Ruby, LLC - https://ipban.com
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -72,6 +72,12 @@ namespace DigitalRuby.IPBanCore
         /// <param name="cancelToken">Cancel token</param>
         /// <returns>Task</returns>
         Task RunCycleAsync(CancellationToken cancelToken = default);
+
+        /// <summary>
+        /// Reset machine guid
+        /// </summary>
+        /// <param name="guid">Guid, or null/empty to make a new one</param>
+        void ResetMachineGuid(string guid);
 
         /// <summary>
         /// Replace place-holders in url with values from this service
@@ -153,6 +159,11 @@ namespace DigitalRuby.IPBanCore
         /// A unique id for this service
         /// </summary>
         string MachineGuid { get; }
+
+        /// <summary>
+        /// Software version
+        /// </summary>
+        string Version { get; }
 
         /// <summary>
         /// Http request maker

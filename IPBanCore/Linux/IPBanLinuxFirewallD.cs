@@ -1,7 +1,7 @@
 ﻿/*
 MIT License
 
-Copyright (c) 2012-present Digital Ruby, LLC - https://www.digitalruby.com
+Copyright (c) 2012-present Digital Ruby, LLC - https://ipban.com
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -38,7 +38,10 @@ namespace DigitalRuby.IPBanCore
     /// Linux firewall using firewalld.
     /// This class also works on Windows but only modifies files, does not actually use the firewall.
     /// </summary>
-    [RequiredOperatingSystem(OSUtility.Linux, Priority = 5, FallbackFirewallType = typeof(IPBanLinuxFirewallIPTables))]
+    [RequiredOperatingSystem(OSUtility.Linux,
+        Priority = 5,
+        PriorityEnvironmentVariable = "IPBanPro_LinuxFirewallFirewallDPriority",
+        FallbackFirewallType = typeof(IPBanLinuxFirewallIPTables))]
     [System.Diagnostics.CodeAnalysis.DynamicallyAccessedMembers(System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.All)]
     public class IPBanLinuxFirewallD : IPBanBaseFirewall
     {
@@ -65,13 +68,24 @@ namespace DigitalRuby.IPBanCore
             {
                 zoneFileOrig = "/usr/lib/firewalld/zones/public.xml";
                 zoneFile = "/etc/firewalld/zones/public.xml";
+
+                // will throw if firewalld not installed and fallback to iptables
                 string version = OSUtility.StartProcessAndWait("sudo", "firewall-cmd --version");
                 version = (version?.Trim()) ?? string.Empty;
+
+                // strip hyphens so we can parse the version
+                int pos = version.IndexOf('-');
+                if (pos > 0)
+                {
+                    version = version[..pos];
+                }
+
                 Logger.Warn("FirewallD version: {0}", version);
                 if (!Version.TryParse(version, out var versionObj))
                 {
                     versionObj = new(1, 0, 0);
                 }
+
                 canUseForwardNode = versionObj.Major >= 1;
                 if (!canUseForwardNode)
                 {
@@ -99,7 +113,7 @@ namespace DigitalRuby.IPBanCore
         {
             if (dirty && OSUtility.IsLinux)
             {
-                IPBanLinuxBaseFirewallIPTables.RunProcess("firewall-cmd", true, "--reload");
+                IPBanFirewallUtility.RunProcess("firewall-cmd", null, null, "--reload");
             }
             dirty = false;
             return base.Update(cancelToken);
@@ -295,7 +309,8 @@ namespace DigitalRuby.IPBanCore
         /// <inheritdoc />
         public override IPBanMemoryFirewall Compile()
         {
-            IPBanMemoryFirewall firewall = new(RulePrefix);
+            IPBanMemoryFirewall mem = new(RulePrefix);
+
             var ruleTypes = GetRuleTypes();
             var ruleNames = GetRuleNames(RulePrefix).ToArray();
             foreach (var rule in ruleNames)
@@ -305,16 +320,16 @@ namespace DigitalRuby.IPBanCore
                 var allow = ruleTypes.TryGetValue(rule, out var accept) && accept;
                 if (allow)
                 {
-                    firewall.AllowIPAddresses(rule, ranges, ports);
+                    mem.AllowIPAddresses(rule, ranges, ports);
                 }
                 else
                 {
                     // invert block ports back to allow (they'll get inverted back)
                     var invertedPorts = IPBanFirewallUtility.InvertPortRanges(ports);
-                    firewall.BlockIPAddresses(rule, ranges, invertedPorts);
+                    mem.BlockIPAddresses(rule, ranges, invertedPorts);
                 }
             }
-            return firewall;
+            return mem;
         }
 
         /// <inheritdoc />

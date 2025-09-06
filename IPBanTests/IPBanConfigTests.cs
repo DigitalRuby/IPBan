@@ -1,7 +1,7 @@
 ﻿/*
 MIT License
 
-Copyright (c) 2012-present Digital Ruby, LLC - https://www.digitalruby.com
+Copyright (c) 2012-present Digital Ruby, LLC - https://ipban.com
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -71,7 +71,7 @@ namespace DigitalRuby.IPBanTests
             [
                 [
                     "/var/log/auth*.log\n/var/log/secure*\n/var/log/messages",
-                    @"(?<log>failed\s+password)\s+for\s+(?:invalid\s+user\s+)?(?<username>[^\s]+)\s+from\s+(?<ipaddress>[^\s]+)\s+port\s+[0-9]+\s+ssh|(?<log>did\s+not\s+receive\s+identification\s+string)\s+from\s+(?<ipaddress>[^\s]+)|(?<log>connection\s+(?:closed|reset))\s+by\s+(?:(?:(?:invalid|authenticating)\s+user\s+)?(?<username>[^\s]+)\s+)?(?<ipaddress>[^\s]+)\s+port\s+[0-9]+\s+\[preauth\]|(?<log>disconnected\s+from)\s+(?:invalid\s+user\s+)?(?<username>[^\s]+)\s+(?<ipaddress>[^\s]+)\s+port\s+[0-9]+\s+\[preauth\]|(?<log>disconnected\s+from)\s+(?<ipaddress>[^\s]+)\s+port\s+[0-9]+\s+\[preauth\]|(?<log>disconnected\s+from\s+authenticating\s+user)\s+(?<username>[^\s]+)\s+(?<ipaddress>[^\s]+)\s+port\s+[0-9]+\s+\[preauth\]",
+                    @"(?<log>failed\s+password)\s+for\s+(?:invalid\s+user\s+)?(?<username>[^\s]+)\s+from\s+(?<ipaddress>[^\s]+)\s+port\s+[0-9]+\s+ssh|(?<log>did\s+not\s+receive\s+identification\s+string)\s+from\s+(?<ipaddress>[^\s]+)|(?<log>connection\s+(?:closed|reset))\s+by\s+(?:(?:(?:invalid|authenticating)\s+user\s+)?(?<username>[^\s]+)\s+)?(?<ipaddress>[^\s]+)\s+port\s+[0-9]+\s+\[preauth\]|(?<log>disconnected\s+from)\s+(?:invalid\s+user\s+)?(?<username>[^\s]+)\s+(?<ipaddress>[^\s]+)\s+port\s+[0-9]+\s+\[preauth\]|(?<log>disconnected\s+from)\s+(?<ipaddress>[^\s]+)\s+port\s+[0-9]+\s+\[preauth\]|(?<log>disconnected\s+from\s+authenticating\s+user)\s+(?<username>[^\s]+)\s+(?<ipaddress>[^\s]+)\s+port\s+[0-9]+\s+\[preauth\]|^(?<timestamp>\w{3}\s+\d{1,2}\s+\d{2}:\d{2}:\d{2})\s+\S+\s+sshd\[\d+\]:.*?(?<log>invalid|illegal)\s+user\s+(?<username>\S+)\s+from\s+(?<ipaddress>[^\s]+)[^\n]+\n",
                     @"",
                     @"\s+Accepted\s+(?:password|publickey)\s+for\s+(?<username>[^\s]+)\s+from\s+(?<ipaddress>[^\s]+)\s+port\s+[0-9]+\s+ssh",
                     @"",
@@ -418,6 +418,19 @@ e.g.
             v = "365.00:00:00";
             ts = v.ParseTimeSpan();
             Assert.That(ts.Equals(TimeSpan.FromDays(365.0)));
+        }
+
+        [Test]
+        public void TestGetSetAppSettings()
+        {
+            string xml = "<?xml version=\"1.0\"?><configuration><appSettings><add key=\"Blacklist\" value=\"test.com\" /></appSettings></configuration>";
+            var doc = new XmlDocument();
+            doc.LoadXml(xml);
+            var value = IPBanConfig.GetConfigAppSetting(doc, "Blacklist");
+            ClassicAssert.AreEqual("test.com", value);
+            IPBanConfig.ChangeConfigAppSetting(doc, "Blacklist", "test2.com&co");
+            value = IPBanConfig.GetConfigAppSetting(doc, "Blacklist");
+            ClassicAssert.AreEqual("test2.com&co", value);
         }
 
         public Task<IPAddress[]> GetHostAddressesAsync(string hostNameOrAddress)

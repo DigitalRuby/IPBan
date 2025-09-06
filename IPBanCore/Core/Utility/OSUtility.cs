@@ -1,7 +1,7 @@
 ﻿/*
 MIT License
 
-Copyright (c) 2012-present Digital Ruby, LLC - https://www.digitalruby.com
+Copyright (c) 2012-present Digital Ruby, LLC - https://ipban.com
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -91,11 +91,9 @@ namespace DigitalRuby.IPBanCore
         public static string Description { get; private set; }
 
         /// <summary>
-        /// Whether the OS uses the yum package manager (Linux only).
-        /// True: Uses yum package manager (non Ubuntu/Debian)
-        /// False: Uses apt (Ubuntu/Degian).
+        /// Get the Linux package manager , either "apt" or "dnf". If not Linux, returns empty string.
         /// </summary>
-        public static bool UsesYumPackageManager { get; private set; }
+        public static string LinuxPackageManager { get; private set; } = string.Empty;
 
         private static class WindowsAccountPInvoke
         {
@@ -272,12 +270,11 @@ namespace DigitalRuby.IPBanCore
         {
             Name = FriendlyName = OSUtility.Linux;
             isLinux = true;
-            string tempFile = GetTempFileName();
-            using Process p = Process.Start("/bin/bash", "-c \"cat /etc/*release* > " + tempFile + "\"");
+            using var tmp = new TempFile();
+            using var p = Process.Start("/bin/bash", "-c \"cat /etc/*release* > " + tmp + "\"");
             p.WaitForExit();
             System.Threading.Tasks.Task.Delay(100); // wait a small bit for file to really be closed
-            string versionText = File.ReadAllText(tempFile).Trim();
-            ExtensionMethods.FileDeleteWithRetry(tempFile);
+            string versionText = File.ReadAllText(tmp).Trim();
             if (string.IsNullOrWhiteSpace(versionText))
             {
                 Logger.Error(new IOException("Unable to load os version from /etc/*release* ..."));
@@ -296,10 +293,14 @@ namespace DigitalRuby.IPBanCore
                 }
             }
 
-            UsesYumPackageManager = FriendlyName.Contains("centos", StringComparison.OrdinalIgnoreCase) ||
-                OSUtility.FriendlyName.Contains("fedora", StringComparison.OrdinalIgnoreCase) ||
-                OSUtility.FriendlyName.Contains("red hat", StringComparison.OrdinalIgnoreCase) ||
-                OSUtility.FriendlyName.Contains("redhat", StringComparison.OrdinalIgnoreCase);
+            // determine if we are using dnf or apt
+            var friendlyName = OSUtility.FriendlyName;
+            bool dnf = friendlyName.Contains("centos", StringComparison.OrdinalIgnoreCase) ||
+                friendlyName.Contains("fedora", StringComparison.OrdinalIgnoreCase) ||
+                friendlyName.Contains("red hat", StringComparison.OrdinalIgnoreCase) ||
+                friendlyName.Contains("redhat", StringComparison.OrdinalIgnoreCase) ||
+                friendlyName.Contains("alma", StringComparison.OrdinalIgnoreCase);
+            LinuxPackageManager = dnf ? "dnf" : "apt";
         }
 
         [DllImport("winbrand.dll", EntryPoint = "BrandingFormatString", CharSet = CharSet.Unicode)]

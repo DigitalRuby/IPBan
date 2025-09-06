@@ -1,7 +1,7 @@
 ﻿/*
 MIT License
 
-Copyright (c) 2012-present Digital Ruby, LLC - https://www.digitalruby.com
+Copyright (c) 2012-present Digital Ruby, LLC - https://ipban.com
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -48,6 +48,9 @@ namespace DigitalRuby.IPBanCore
         /// </summary>
         public const string LogPacketPrefix = "X";
 
+        internal const string matchSetDirective = "--match-set";
+        internal const string matchSetDirectiveNoHyphens = "match-set";
+
         private const string acceptAction = "ACCEPT";
         private const string dropAction = "DROP";
 
@@ -58,7 +61,7 @@ namespace DigitalRuby.IPBanCore
         /// <summary>
         /// Command for ip6tables
         /// </summary>
-        protected const string ip6TablesProcess = "ip6tables";
+        protected const string Ip6TablesProcess = "ip6tables";
 
         /// <summary>
         /// Is this ipv4 or ipv6 firewall?
@@ -104,8 +107,8 @@ namespace DigitalRuby.IPBanCore
                 {
                     ExtensionMethods.FileDeleteWithRetry(setFile);
                 }
-                RunProcess(IpTablesProcess, true, "-F");
-                RunProcess(ip6TablesProcess, true, "-F");
+                IPBanFirewallUtility.RunProcess(IpTablesProcess, null, null, "-F");
+                IPBanFirewallUtility.RunProcess(Ip6TablesProcess, null, null, "-F");
                 IPBanLinuxIPSetIPTables.Reset();
             }
             catch
@@ -137,7 +140,7 @@ namespace DigitalRuby.IPBanCore
         {
             // persist table rules, this file is tiny so no need for a temp file and then move
             string tableFileName = GetTableFileName();
-            RunProcess($"{IpTablesProcess}-save", true, $"> \"{tableFileName}\"");
+            IPBanFirewallUtility.RunProcess($"{IpTablesProcess}-save", null, tableFileName);
         }
 
         private void RestoreTablesFromDisk()
@@ -145,7 +148,7 @@ namespace DigitalRuby.IPBanCore
             string tableFileName = GetTableFileName();
             if (File.Exists(tableFileName))
             {
-                RunProcess($"{IpTablesProcess}-restore", true, $"< \"{tableFileName}\"");
+                IPBanFirewallUtility.RunProcess($"{IpTablesProcess}-restore", tableFileName, null);
             }
         }
 
@@ -189,85 +192,6 @@ namespace DigitalRuby.IPBanCore
         }
 
         /// <summary>
-        /// Execute a process
-        /// </summary>
-        /// <param name="program">Program</param>
-        /// <param name="requireExitCode">Required exit code</param>
-        /// <param name="commandLine">Command line</param>
-        /// <param name="args">Args</param>
-        /// <returns>Exit code</returns>
-        public static int RunProcess(string program, bool requireExitCode, string commandLine, params object[] args)
-        {
-            return RunProcess(program, requireExitCode, out _, commandLine, args);
-        }
-
-        /// <summary>
-        /// Execute a process
-        /// </summary>
-        /// <param name="program">Program</param>
-        /// <param name="requireExitCode">Required exit code</param>
-        /// <param name="lines">Lines of output</param>
-        /// <param name="commandLine">Command line</param>
-        /// <param name="args">Args</param>
-        /// <returns>Exit code</returns>
-        public static int RunProcess(string program, bool requireExitCode, out IReadOnlyList<string> lines, string commandLine, params object[] args)
-        {
-            commandLine = string.Format(commandLine, args);
-            string bash = "-c \"" + program + " " + commandLine.Replace("\"", "\\\"") + "\"";
-
-#if ENABLE_FIREWALL_PROFILING
-
-            StackTrace stackTrace = new();
-            StringBuilder methods = new();
-            var frames = stackTrace.GetFrames();
-            foreach (var frame in frames)
-            {
-                if (methods.Length != 0)
-                {
-                    methods.Append(" > ");
-                }
-                methods.Append(frame.GetMethod().Name);
-            }
-            Logger.Info("Running firewall process: {0} {1}; stack: {2}", program, commandLine, methods);
-
-#else
-
-            Logger.Debug("Running firewall process: {0} {1}", program, commandLine);
-
-#endif
-
-            using Process p = new()
-            {
-                StartInfo = new ProcessStartInfo
-                {
-                    FileName = "/bin/bash",
-                    Arguments = bash,
-                    UseShellExecute = false,
-                    CreateNoWindow = true,
-                    RedirectStandardOutput = true
-                }
-            };
-            p.Start();
-            List<string> lineList = [];
-            string line;
-            while ((line = p.StandardOutput.ReadLine()) != null)
-            {
-                lineList.Add(line);
-            }
-            lines = lineList;
-            if (!p.WaitForExit(60000))
-            {
-                Logger.Error("Process {0} {1} timed out", program, commandLine);
-                p.Kill();
-            }
-            if (requireExitCode && p.ExitCode != 0)
-            {
-                Logger.Error("Process {0} {1} had exit code {2}", program, commandLine, p.ExitCode);
-            }
-            return p.ExitCode;
-        }
-
-        /// <summary>
         /// Create (or update) a firewall rule
         /// </summary>
         /// <param name="ruleName">Rule name</param>
@@ -288,8 +212,9 @@ namespace DigitalRuby.IPBanCore
 
             // create or update the rule in iptables
             PortRange[] allowedPortsArray = allowedPorts?.ToArray();
-            RunProcess(IpTablesProcess, true, out IReadOnlyList<string> lines, "-L -n --line-numbers");
-            string portString = " ";
+            using var tmp = new TempFile();
+            IPBanFirewallUtility.RunProcess(IpTablesProcess, null, tmp, "-L", "-n", "--line-numbers");
+            string[] portCommand = [];
             bool replaced = false;
             bool block = (action == dropAction);
 
@@ -297,16 +222,22 @@ namespace DigitalRuby.IPBanCore
             {
                 string portList = (block ? IPBanFirewallUtility.GetPortRangeStringBlock(allowedPorts) :
                      IPBanFirewallUtility.GetPortRangeStringAllow(allowedPorts));
-                portString = " -m multiport -p tcp --dports " + portList.Replace('-', ':') + " "; // iptables uses ':' instead of '-' for range
+
+                // iptables uses ':' instead of '-' for range
+                portCommand = ["-m", "multiport", "-p", "tcp", "--dports", portList.Replace('-', ':')];
             }
 
             string ruleNameWithSpaces = " " + ruleName + " ";
-            string rootCommand = $"INPUT ##RULENUM## -m state --state NEW -m set{portString}--match-set \"{ruleName}\" src -j";
             string logPrefix = LogPacketPrefix + ruleName + ": ";
-            string logAction = $"LOG --log-prefix \"{logPrefix}\" --log-level 4";
+            string[] logAction = ["LOG", "--log-prefix", logPrefix, "--log-level", "4"];
+            string[] rootCommand = ["-R", "INPUT", "0", "-m", "state", "--state", "NEW", "-m", "set"];
+            rootCommand = [.. rootCommand, .. portCommand];
+            rootCommand = [.. rootCommand, matchSetDirective, ruleName, "src", "-j"];
 
             // if we have an existing rule, replace it
-            foreach (string line in lines)
+            using var reader = new StreamReader(tmp);
+            string line;
+            while ((line = reader.ReadLine()) != null)
             {
                 if (line.Contains(ruleNameWithSpaces, StringComparison.OrdinalIgnoreCase))
                 {
@@ -315,16 +246,17 @@ namespace DigitalRuby.IPBanCore
                     int ruleNum = int.Parse(line[..index]);
 
                     // replace the rule with the new info
+                    rootCommand[2] = ruleNum.ToStringInvariant();
 
                     if (LogPackets)
                     {
                         // replace log
-                        RunProcess(IpTablesProcess, true, $"-R {rootCommand.Replace("##RULENUM##", ruleNum.ToStringInvariant())} {logAction}");
+                        IPBanFirewallUtility.RunProcess(IpTablesProcess, null, null, rootCommand.Concat(logAction));
                         ruleNum++;
                     }
 
                     // replace drop
-                    RunProcess(IpTablesProcess, true, $"-R {rootCommand.Replace("##RULENUM##", ruleNum.ToStringInvariant())} {action}");
+                    IPBanFirewallUtility.RunProcess(IpTablesProcess, null, null, rootCommand.Concat([action]));
                     replaced = true;
                     break;
                 }
@@ -332,17 +264,19 @@ namespace DigitalRuby.IPBanCore
             if (!replaced)
             {
                 // add a new rule, for block add to end of list (lower priority) for allow add to begin of list (higher priority)
-                string addCommand = (block ? "-A" : "-I");
-                string newRootCommand = rootCommand.Replace("##RULENUM## ", string.Empty); // new rule, not using rule number
+                rootCommand[0] = (block ? "-A" : "-I");
+
+                // remove the rule number from index 2 of the array since it's not part of an add command
+                rootCommand = [.. rootCommand.Where((v, i) => i != 2)];
 
                 if (LogPackets)
                 {
                     // new log
-                    RunProcess(IpTablesProcess, true, $"{addCommand} {newRootCommand} {logAction}");
+                    IPBanFirewallUtility.RunProcess(IpTablesProcess, null, null, rootCommand.Concat(logAction));
                 }
 
                 // new drop
-                RunProcess(IpTablesProcess, true, $"{addCommand} {newRootCommand} {action}");
+                IPBanFirewallUtility.RunProcess(IpTablesProcess, null, null, rootCommand.Concat([action]));
             }
 
             cancelToken.ThrowIfCancellationRequested();
@@ -381,30 +315,24 @@ namespace DigitalRuby.IPBanCore
 
 #endif
 
-            string ipFileTemp = OSUtility.GetTempFileName();
-            try
-            {
-                // create set file with full set info from passed values
-                IPBanLinuxIPSetIPTables.UpsertSetFile(ipFileTemp, ruleName, hashType, INetFamily, ipAddresses, cancelToken);
+            using var tmp = new TempFile();
 
-                // restore the set fully
-                bool result = IPBanLinuxIPSetIPTables.RestoreFromFile(ipFileTemp);
-                CreateOrUpdateRule(ruleName, action, allowPorts, cancelToken);
-                return result;
-            }
-            finally
-            {
-                ExtensionMethods.FileDeleteWithRetry(ipFileTemp);
+            // create set file with full set info from passed values
+            IPBanLinuxIPSetIPTables.UpsertSetFile(tmp, ruleName, hashType, INetFamily, ipAddresses, cancelToken);
+
+            // restore the set fully
+            bool result = IPBanLinuxIPSetIPTables.RestoreFromFile(tmp);
+            CreateOrUpdateRule(ruleName, action, allowPorts, cancelToken);
 
 #if ENABLE_FIREWALL_PROFILING
 
-                timer.Stop();
-                Logger.Warn("UpdateRule rule '{0}' took {1:0.00}ms with {2} ips",
-                    ruleName, timer.Elapsed.TotalMilliseconds, ipAddresses.Count());
+            timer.Stop();
+            Logger.Warn("UpdateRule rule '{0}' took {1:0.00}ms with {2} ips",
+                ruleName, timer.Elapsed.TotalMilliseconds, ipAddresses.Count());
 
 #endif
 
-            }
+            return result;
         }
 
         /// <summary>
@@ -429,30 +357,24 @@ namespace DigitalRuby.IPBanCore
 
 #endif
 
-            string ipFileTemp = OSUtility.GetTempFileName();
-            try
-            {
-                // create set file with deltas
-                IPBanLinuxIPSetIPTables.UpsertSetFileDelta(ipFileTemp, ruleName, hashType, INetFamily, deltas, cancelToken);
+            using var tmp = new TempFile();
 
-                // restore the deltas into the existing set
-                bool result = IPBanLinuxIPSetIPTables.RestoreFromFile(ipFileTemp);
-                CreateOrUpdateRule(ruleName, action, allowPorts, cancelToken);
-                return result;
-            }
-            finally
-            {
-                ExtensionMethods.FileDeleteWithRetry(ipFileTemp);
+            // create set file with deltas
+            IPBanLinuxIPSetIPTables.UpsertSetFileDelta(tmp, ruleName, hashType, INetFamily, deltas, cancelToken);
+
+            // restore the deltas into the existing set
+            bool result = IPBanLinuxIPSetIPTables.RestoreFromFile(tmp);
+            CreateOrUpdateRule(ruleName, action, allowPorts, cancelToken);
 
 #if ENABLE_FIREWALL_PROFILING
 
-                timer.Stop();
-                Logger.Warn("UpdateRuleDelta rule '{0}' took {1:0.00}ms with {2} ips",
-                    ruleName, timer.Elapsed.TotalMilliseconds, deltas.Count());
+            timer.Stop();
+            Logger.Warn("UpdateRuleDelta rule '{0}' took {1:0.00}ms with {2} ips",
+                ruleName, timer.Elapsed.TotalMilliseconds, deltas.Count());
 
 #endif
 
-            }
+            return result;
         }
 
         /// <inheritdoc />
@@ -494,15 +416,17 @@ namespace DigitalRuby.IPBanCore
         /// <inheritdoc />
         public override IEnumerable<string> GetRuleNames(string ruleNamePrefix = null)
         {
-            const string setText = " match-set ";
-            string prefix = setText + RulePrefix + (ruleNamePrefix ?? string.Empty);
-            RunProcess(IpTablesProcess, true, out IReadOnlyList<string> lines, "-L -n");
-            foreach (string line in lines)
+            string prefix = " " + matchSetDirectiveNoHyphens + " " + RulePrefix + (ruleNamePrefix ?? string.Empty);
+            using var tmp = new TempFile();
+            IPBanFirewallUtility.RunProcess(IpTablesProcess, null, tmp, "-L", "-n");
+            using var reader = new StreamReader(tmp);
+            string line;
+            while ((line = reader.ReadLine()) != null)
             {
                 int pos = line.IndexOf(prefix);
                 if (pos >= 0)
                 {
-                    pos += setText.Length;
+                    pos += matchSetDirectiveNoHyphens.Length + 2; // skip 2 spaces to get to rule name
                     int start = pos;
                     while (++pos < line.Length && line[pos] != ' ') { }
                     yield return line[start..pos];
@@ -523,11 +447,13 @@ namespace DigitalRuby.IPBanCore
         /// <inheritdoc />
         public override bool DeleteRule(string ruleName)
         {
-            RunProcess(IpTablesProcess, true, out IReadOnlyList<string> lines, "-L -n --line-numbers");
+            using var tmp = new TempFile();
+            IPBanFirewallUtility.RunProcess(IpTablesProcess, null, tmp, "-L", "-n", "--line-numbers");
             string ruleNameWithSpaces = " " + ruleName + " ";
             allowRules.Remove(ruleName);
-
-            foreach (string line in lines)
+            using var reader = new StreamReader(tmp);
+            string line;
+            while ((line = reader.ReadLine()) != null)
             {
                 if (line.Contains(ruleNameWithSpaces, StringComparison.OrdinalIgnoreCase))
                 {
@@ -536,7 +462,7 @@ namespace DigitalRuby.IPBanCore
                     int ruleNum = int.Parse(line[..index]);
 
                     // remove the rule from iptables
-                    RunProcess(IpTablesProcess, true, $"-D INPUT {ruleNum}");
+                    IPBanFirewallUtility.RunProcess(IpTablesProcess, null, null, $"-D", "INPUT", ruleNum.ToStringInvariant());
                     SaveTableToDisk();
 
                     // remove the set
@@ -655,9 +581,12 @@ namespace DigitalRuby.IPBanCore
         /// <inheritdoc />
         public override string GetPorts(string ruleName)
         {
-            RunProcess(IpTablesProcess, true, out IReadOnlyList<string> lines, "-L -n --line-numbers");
-            var match = " match-set " + ruleName + " ";
-            foreach (var line in lines)
+            using var tmp = new TempFile();
+            IPBanFirewallUtility.RunProcess(IpTablesProcess, null, tmp, "-L", "-n", "--line-numbers");
+            var match = " " + matchSetDirective + " " + ruleName + " ";
+            using var reader = new StreamReader(tmp);
+            string line;
+            while ((line = reader.ReadLine()) != null)
             {
                 if (line.Contains(match, StringComparison.OrdinalIgnoreCase))
                 {
@@ -674,8 +603,7 @@ namespace DigitalRuby.IPBanCore
         /// <inheritdoc />
         public override IPBanMemoryFirewall Compile()
         {
-            const string matchSet = " match-set ";
-            IPBanMemoryFirewall firewall = new(RulePrefix);
+            IPBanMemoryFirewall mem = new(RulePrefix);
 
             // snapshot latest firewall
             SaveTableToDisk();
@@ -685,7 +613,7 @@ namespace DigitalRuby.IPBanCore
             var tableFileName = GetTableFileName();
             if (!File.Exists(tableFileName))
             {
-                return firewall;
+                throw new IOException("Table file does not exist: " + tableFileName);
             }
 
             // parse out all sets
@@ -702,15 +630,15 @@ namespace DigitalRuby.IPBanCore
             // read rules
             string[] lines = File.ReadAllLines(tableFileName);
 
-            // find all lines with match-set that start with RulePrefix and grab the set name along with the ports including
+            // find all lines with --match-set that start with RulePrefix and grab the set name along with the ports including
             //  whether it is an ACCEPT or DROP (allow or block) rule
-            var matchSetPrefix = matchSet + RulePrefix;
+            var matchSetPrefix = " " + matchSetDirective + " " + RulePrefix;
             foreach (var line in lines)
             {
                 int pos = line.IndexOf(matchSetPrefix);
                 if (pos >= 0)
                 {
-                    pos += matchSetPrefix.Length + 1; // skip space
+                    pos += matchSetDirective.Length + 2; // skip 2 spaces to get to rule name
                     int start = pos;
                     while (++pos < line.Length && line[pos] != ' ');
                     string ruleName = line[start..pos].TrimEnd();
@@ -718,22 +646,22 @@ namespace DigitalRuby.IPBanCore
                     if (ruleRanges.TryGetValue(ruleName, out var ips))
                     {
                         var ports = GetPortsFromLine(line);
-
-                        if (line.StartsWith("DROP "))
+                        if (line.EndsWith(" DROP"))
                         {
                             // invert ports, they will get inverted back by the memory firewall
                             var invertedPorts = IPBanFirewallUtility.InvertPortRanges(ports);
-                            firewall.BlockIPAddresses(ruleName, ips, invertedPorts);
+                            mem.BlockIPAddresses(ruleName, ips, invertedPorts);
                         }
                         else
                         {
-                            firewall.BlockIPAddresses(ruleName, ips, ports);
+                            // allow, ports stay as is
+                            mem.AllowIPAddresses(ruleName, ips, ports);
                         }
                     }
                 }
             }
 
-            return firewall;
+            return mem;
         }
 
         /// <inheritdoc />
@@ -763,7 +691,7 @@ namespace DigitalRuby.IPBanCore
         /// <summary>
         /// Whether to log packets affected by rules from this firewall
         /// </summary>
-        public bool LogPackets { get; set; }
+        public bool LogPackets { get; protected set; }
     }
 }
 

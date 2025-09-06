@@ -1,7 +1,7 @@
 #
 # One click install script for IPBan for Windows
 # (c) 2011-Present Digital Ruby, LLC
-# https://www.digitalruby.com
+# https://ipban.com
 #
 # PowerShell minimum version: 5.1
 # Update PowerShell: https://docs.microsoft.com/en-us/powershell/scripting/install/installing-powershell-core-on-windows?view=powershell-5.1

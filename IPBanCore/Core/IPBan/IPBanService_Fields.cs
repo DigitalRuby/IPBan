@@ -1,7 +1,7 @@
 ﻿/*
 MIT License
 
-Copyright (c) 2012-present Digital Ruby, LLC - https://www.digitalruby.com
+Copyright (c) 2012-present Digital Ruby, LLC - https://ipban.com
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -230,13 +230,14 @@ namespace DigitalRuby.IPBanCore
 
         /// <summary>
         /// Firewall types, by default there are two:<br/>
-        /// - Windows Firewall (Windows only)<br/>
-        /// - FirewallD (Linux only)<br/>
+        /// - Windows: Windows Firewall<br/>
+        /// - Linux: FirewallD; NfTables; IPTables<br/>
         /// </summary>
         public HashSet<Type> FirewallTypes { get; } =
         [
             typeof(IPBanWindowsFirewall),
             typeof(IPBanLinuxFirewallD),
+            typeof(IPBanLinuxFirewallNFTables),
             typeof(IPBanLinuxFirewallIPTables)
         ];
 

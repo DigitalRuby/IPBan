@@ -1,7 +1,7 @@
 ﻿/*
 MIT License
 
-Copyright (c) 2012-present Digital Ruby, LLC - https://www.digitalruby.com
+Copyright (c) 2012-present Digital Ruby, LLC - https://ipban.com
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -492,7 +492,8 @@ namespace DigitalRuby.IPBanCore
         /// <inheritdoc />
         public override IPBanMemoryFirewall Compile()
         {
-            IPBanMemoryFirewall firewall = new(RulePrefix);
+            IPBanMemoryFirewall mem = new(RulePrefix);
+
             try
             {
                 lock (policy)
@@ -510,14 +511,14 @@ namespace DigitalRuby.IPBanCore
                                 var ports = (rule.LocalPorts ?? string.Empty).Split(',').Select(p => PortRange.Parse(p));
                                 if (rule.Action == NetFwAction.Allow)
                                 {
-                                    firewall.AllowIPAddresses(rule.Name, ips, ports);
+                                    mem.AllowIPAddresses(rule.Name, ips, ports);
                                 }
                                 else
                                 {
                                     // firewall methods for now, always take allow ports, so we need to invert block ports to allow
                                     // the firewall block method will invert them back to block ports
                                     var invertedPorts = IPBanFirewallUtility.InvertPortRanges(ports);
-                                    firewall.BlockIPAddresses(rule.Name, ips, invertedPorts);
+                                    mem.BlockIPAddresses(rule.Name, ips, invertedPorts);
                                 }
                             }
                         }
@@ -539,7 +540,7 @@ namespace DigitalRuby.IPBanCore
                     Logger.Error(ex);
                 }
             }
-            return firewall;
+            return mem;
         }
 
         /// <inheritdoc />

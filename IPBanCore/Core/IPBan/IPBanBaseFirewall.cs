@@ -1,7 +1,7 @@
 ﻿/*
 MIT License
 
-Copyright (c) 2012-present Digital Ruby, LLC - https://www.digitalruby.com
+Copyright (c) 2012-present Digital Ruby, LLC - https://ipban.com
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -46,17 +46,17 @@ namespace DigitalRuby.IPBanCore
         /// <summary>
         /// Rule prefix - defaults to 'IPBan_'
         /// </summary>
-        public string RulePrefix { get; set; } = "IPBan_";
+        public string RulePrefix { get; private set; } = "IPBan_";
 
         /// <summary>
         /// Allow rule prefix
         /// </summary>
-        public string AllowRulePrefix { get; set; }
+        public string AllowRulePrefix { get; private set; }
 
         /// <summary>
         /// Block rule prefix
         /// </summary>
-        public string BlockRulePrefix { get; set; }
+        public string BlockRulePrefix { get; private set; }
 
         /// <summary>
         /// Packet event handler
@@ -137,6 +137,14 @@ namespace DigitalRuby.IPBanCore
         }
 
         /// <summary>
+        /// Clear prefixes - use with caution!
+        /// </summary>
+        public void ClearPrefixes()
+        {
+            RulePrefix = AllowRulePrefix = BlockRulePrefix = string.Empty;
+        }
+
+        /// <summary>
         /// Compile into an optimized in memory representation
         /// </summary>
         /// <returns>Optimized version</returns>
@@ -161,10 +169,10 @@ namespace DigitalRuby.IPBanCore
         public virtual IReadOnlyList<(bool blocked, bool allowed, string ruleName)> Query(IReadOnlyCollection<System.Net.IPEndPoint> ipAddresses)
         {
             List<(bool, bool, string)> result = [];
-            var memoryFirewall = Compile();
+            var mem = Compile();
             foreach (var ipAddress in ipAddresses)
             {
-                var blocked = memoryFirewall.IsIPAddressBlocked(ipAddress.Address, out var ruleName, out var allowed, ipAddress.Port);
+                var blocked = mem.IsIPAddressBlocked(ipAddress.Address, out var ruleName, out var allowed, ipAddress.Port);
                 result.Add((blocked, allowed, ruleName));
             }
             return result;

@@ -1,7 +1,7 @@
 ﻿/*
 MIT License
 
-Copyright (c) 2012-present Digital Ruby, LLC - https://www.digitalruby.com
+Copyright (c) 2012-present Digital Ruby, LLC - https://ipban.com
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -78,7 +78,7 @@ namespace DigitalRuby.IPBanCore
         /// </summary>
         public static void Reset()
         {
-            IPBanLinuxFirewallIPTables.RunProcess("ipset", true, "-F");
+            IPBanFirewallUtility.RunProcess("ipset", null, null, "-F");
         }
 
         /// <summary>
@@ -88,7 +88,7 @@ namespace DigitalRuby.IPBanCore
         /// <returns>True if set was reset, false otherwise</returns>
         public static bool Reset(string setName)
         {
-            int exitCode = IPBanLinuxFirewallIPTables.RunProcess("ipset", true, $"-F {setName}");
+            int exitCode = IPBanFirewallUtility.RunProcess("ipset", null, null, "-F", setName);
             return exitCode == 0;
         }
 
@@ -98,7 +98,7 @@ namespace DigitalRuby.IPBanCore
         /// <param name="fileName">File name to write ipset to</param>
         public static void SaveToFile(string fileName)
         {
-            IPBanLinuxFirewallIPTables.RunProcess("ipset", true, $"save > \"{fileName}\"");
+            IPBanFirewallUtility.RunProcess("ipset", null, fileName, "save");
         }
 
         /// <summary>
@@ -110,7 +110,7 @@ namespace DigitalRuby.IPBanCore
         {
             if (File.Exists(fileName))
             {
-                int exitCode = IPBanLinuxFirewallIPTables.RunProcess("ipset", true, $"restore < \"{fileName}\"");
+                int exitCode = IPBanFirewallUtility.RunProcess("ipset", fileName, null, "restore");
                 return exitCode == 0;
             }
             return false;
@@ -122,8 +122,9 @@ namespace DigitalRuby.IPBanCore
         /// <returns>Set names</returns>
         public static IReadOnlyCollection<string> GetSetNames()
         {
-            IPBanLinuxFirewallIPTables.RunProcess("ipset", true, out IReadOnlyList<string> sets, "-L -n");
-            return sets;
+            using var tmp = new TempFile();
+            IPBanFirewallUtility.RunProcess("ipset", null, tmp, "-L", "-n");
+            return File.ReadAllLines(tmp).Select(l => l.Trim()).Where(l => !string.IsNullOrWhiteSpace(l)).ToList();
         }
 
         /// <summary>
@@ -325,12 +326,14 @@ namespace DigitalRuby.IPBanCore
         /// <param name="setName">The set to delete</param>
         public static void DeleteSet(string setName)
         {
-            IPBanLinuxFirewallIPTables.RunProcess("ipset", true, out IReadOnlyList<string> lines, "-L -n");
+            using var tmp = new TempFile();
+            IPBanFirewallUtility.RunProcess("ipset", null, tmp, "-L", "-n");
+            var lines = File.ReadAllLines(tmp).Where(l => !string.IsNullOrWhiteSpace(l)).ToList();
             foreach (string line in lines)
             {
                 if (line.Trim().Equals(setName, StringComparison.OrdinalIgnoreCase))
                 {
-                    IPBanLinuxFirewallIPTables.RunProcess("ipset", true, $"destroy {setName}");
+                    IPBanFirewallUtility.RunProcess("ipset", null, null, "destroy", setName);
                     break;
                 }
             }

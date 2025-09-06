@@ -1,7 +1,7 @@
 ﻿/*
 MIT License
 
-Copyright (c) 2012-present Digital Ruby, LLC - https://www.digitalruby.com
+Copyright (c) 2012-present Digital Ruby, LLC - https://ipban.com
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -447,7 +447,7 @@ namespace DigitalRuby.IPBanCore
                         // ban for next timespan
                         banTime = banTimes[i];
                         banEndDate = startBanDate + banTime;
-                        Logger.Info("Moving to next ban duration {0} at index {1} for ip {1}", banTimes[i], i, ipAddress);
+                        Logger.Info("Moving to next ban duration {0} at index {1} for ip {2}", banTimes[i], i, ipAddress);
                         break;
                     }
                 }
@@ -924,7 +924,7 @@ namespace DigitalRuby.IPBanCore
                     .Where(i => !i.Added || !IsWhitelisted(i.IPAddress, out _))
                     .ToList();
                 Logger.Warn("Updating firewall with {0} entries...", deltas.Count);
-                Logger.Info("Firewall entries updated: {0}", string.Join(',', deltas.Select(d => d.IPAddress)));
+                Logger.Info("Firewall entries updated: {0}", string.Join(',', deltas.Select(d => d.IPAddress + ":" + (d.Added ? "add" : "remove"))));
                 await Firewall.BlockIPAddressesDelta(null, deltas, null, cancelToken);
             }
         }
