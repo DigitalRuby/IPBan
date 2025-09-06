@@ -674,12 +674,12 @@ public class IPBanLinuxFirewallNFTables : IPBanBaseFirewall
 
     private static int RunNftStream(Stream inputStream, Stream outputStream, params IEnumerable<string> args)
     {
-        if (inputStream.CanSeek)
+        if (inputStream is not null && inputStream.CanSeek)
         {
             inputStream.Position = 0;
         }
         var exitCode = IPBanFirewallUtility.RunProcess("nft", inputStream, outputStream, args);
-        if (outputStream.CanSeek)
+        if (outputStream is not null && outputStream.CanSeek)
         {
             outputStream.Position = 0;
         }
