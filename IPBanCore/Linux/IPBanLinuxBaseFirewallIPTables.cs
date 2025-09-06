@@ -315,30 +315,24 @@ namespace DigitalRuby.IPBanCore
 
 #endif
 
-            string ipFileTemp = OSUtility.GetTempFileName();
-            try
-            {
-                // create set file with full set info from passed values
-                IPBanLinuxIPSetIPTables.UpsertSetFile(ipFileTemp, ruleName, hashType, INetFamily, ipAddresses, cancelToken);
+            using var tmp = new TempFile();
 
-                // restore the set fully
-                bool result = IPBanLinuxIPSetIPTables.RestoreFromFile(ipFileTemp);
-                CreateOrUpdateRule(ruleName, action, allowPorts, cancelToken);
-                return result;
-            }
-            finally
-            {
-                ExtensionMethods.FileDeleteWithRetry(ipFileTemp);
+            // create set file with full set info from passed values
+            IPBanLinuxIPSetIPTables.UpsertSetFile(tmp, ruleName, hashType, INetFamily, ipAddresses, cancelToken);
+
+            // restore the set fully
+            bool result = IPBanLinuxIPSetIPTables.RestoreFromFile(tmp);
+            CreateOrUpdateRule(ruleName, action, allowPorts, cancelToken);
 
 #if ENABLE_FIREWALL_PROFILING
 
-                timer.Stop();
-                Logger.Warn("UpdateRule rule '{0}' took {1:0.00}ms with {2} ips",
-                    ruleName, timer.Elapsed.TotalMilliseconds, ipAddresses.Count());
+            timer.Stop();
+            Logger.Warn("UpdateRule rule '{0}' took {1:0.00}ms with {2} ips",
+                ruleName, timer.Elapsed.TotalMilliseconds, ipAddresses.Count());
 
 #endif
 
-            }
+            return result;
         }
 
         /// <summary>
@@ -363,30 +357,24 @@ namespace DigitalRuby.IPBanCore
 
 #endif
 
-            string ipFileTemp = OSUtility.GetTempFileName();
-            try
-            {
-                // create set file with deltas
-                IPBanLinuxIPSetIPTables.UpsertSetFileDelta(ipFileTemp, ruleName, hashType, INetFamily, deltas, cancelToken);
+            using var tmp = new TempFile();
 
-                // restore the deltas into the existing set
-                bool result = IPBanLinuxIPSetIPTables.RestoreFromFile(ipFileTemp);
-                CreateOrUpdateRule(ruleName, action, allowPorts, cancelToken);
-                return result;
-            }
-            finally
-            {
-                ExtensionMethods.FileDeleteWithRetry(ipFileTemp);
+            // create set file with deltas
+            IPBanLinuxIPSetIPTables.UpsertSetFileDelta(tmp, ruleName, hashType, INetFamily, deltas, cancelToken);
+
+            // restore the deltas into the existing set
+            bool result = IPBanLinuxIPSetIPTables.RestoreFromFile(tmp);
+            CreateOrUpdateRule(ruleName, action, allowPorts, cancelToken);
 
 #if ENABLE_FIREWALL_PROFILING
 
-                timer.Stop();
-                Logger.Warn("UpdateRuleDelta rule '{0}' took {1:0.00}ms with {2} ips",
-                    ruleName, timer.Elapsed.TotalMilliseconds, deltas.Count());
+            timer.Stop();
+            Logger.Warn("UpdateRuleDelta rule '{0}' took {1:0.00}ms with {2} ips",
+                ruleName, timer.Elapsed.TotalMilliseconds, deltas.Count());
 
 #endif
 
-            }
+            return result;
         }
 
         /// <inheritdoc />

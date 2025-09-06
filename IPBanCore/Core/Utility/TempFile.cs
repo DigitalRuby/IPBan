@@ -25,10 +25,7 @@ public sealed class TempFile : IDisposable
     {
         try
         {
-            if (File.Exists(FullName))
-            {
-                File.Delete(FullName);
-            }
+            ExtensionMethods.FileDeleteWithRetry(FullName);
         }
         catch
         {
