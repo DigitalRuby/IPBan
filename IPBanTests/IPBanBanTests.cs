@@ -398,34 +398,34 @@ namespace DigitalRuby.IPBanTests
             using IPBanConfig.TempConfigChanger configChanger = new(service, xml =>
             {
                 return IPBanConfig.ChangeConfigAppSettingAndGetXml(xml, "FirewallRules", @"
-                    ReddisAllowIP;allow;10.0.0.1,10.0.0.2,192.168.1.168/24;6379;.
+                    RedisAllowIP;allow;10.0.0.1,10.0.0.2,192.168.1.168/24;6379;.
                     WebOnly;block;0.0.0.0/1,128.0.0.0/1,::/1,8000::/1;22,80,443,3389;^(?:(?!Windows).)+$");
             }, out string newConfig);
 
             List<string> rules = service.Firewall.GetRuleNames().ToList();
-            string reddisRule = service.Firewall.RulePrefix + "EXTRA_ReddisAllowIP";
+            string redisRule = service.Firewall.RulePrefix + "EXTRA_RedisAllowIP";
             string webRule = service.Firewall.RulePrefix + "EXTRA_WebOnly";
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 // on Windows, block is the default, so only the allow rules should show up
-                ClassicAssert.IsTrue(rules.Exists((s) => s.StartsWith(reddisRule)));
+                ClassicAssert.IsTrue(rules.Exists((s) => s.StartsWith(redisRule)));
                 ClassicAssert.IsFalse(rules.Exists((s) => s.StartsWith(webRule)));
                 ClassicAssert.AreEqual(1, service.Config.ExtraRules.Count);
                 IPBanFirewallRule rule1 = service.Config.ExtraRules[0];
                 string regexString = rule1.ToString();
-                ClassicAssert.AreEqual("EXTRA_ReddisAllowIP;allow;10.0.0.1/32,10.0.0.2/32,192.168.1.0/24;6379;.", regexString);
+                ClassicAssert.AreEqual("EXTRA_RedisAllowIP;allow;10.0.0.1/32,10.0.0.2/32,192.168.1.0/24;6379;.", regexString);
             }
             else
             {
                 // on Linux, both rules are needed
                 ClassicAssert.AreEqual(2, service.Config.ExtraRules.Count);
-                ClassicAssert.IsTrue(rules.Exists((s) => s.StartsWith(reddisRule, StringComparison.OrdinalIgnoreCase)));
+                ClassicAssert.IsTrue(rules.Exists((s) => s.StartsWith(redisRule, StringComparison.OrdinalIgnoreCase)));
                 ClassicAssert.IsTrue(rules.Exists((s) => s.StartsWith(webRule, StringComparison.OrdinalIgnoreCase)));
                 IPBanFirewallRule rule1 = service.Config.ExtraRules[0];
                 IPBanFirewallRule rule2 = service.Config.ExtraRules[1];
                 string regexString1 = rule1.ToString();
                 string regexString2 = rule2.ToString();
-                ClassicAssert.AreEqual("EXTRA_ReddisAllowIP;allow;10.0.0.1/32,10.0.0.2/32,192.168.1.0/24;6379;.", regexString1);
+                ClassicAssert.AreEqual("EXTRA_RedisAllowIP;allow;10.0.0.1/32,10.0.0.2/32,192.168.1.0/24;6379;.", regexString1);
                 ClassicAssert.AreEqual("EXTRA_WebOnly;block;0.0.0.0/1,128.0.0.0/1,::/1,8000::/1;22,80,443,3389;^(?:(?!Windows).)+$", regexString2);
             }
         }
