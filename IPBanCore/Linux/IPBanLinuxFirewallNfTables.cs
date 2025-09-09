@@ -966,7 +966,7 @@ public class IPBanLinuxFirewallNFTables : IPBanBaseFirewall
         }
 
         inputStream.WriteByte(0); // null terminate
-        var rc = nftCtx.Run(inputStream.ToArray(), out var stdout, out var stderr);
+        var rc = nftCtx.Run(inputStream.GetBuffer(), out var stdout, out var stderr);
 
         if (outputStream is not null && outputStream.CanWrite && stdout is not null)
         {
