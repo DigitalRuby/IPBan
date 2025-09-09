@@ -1,7 +1,14 @@
 ﻿#define USE_NFT_NATIVE
 
+#if DEBUG
+
+#define ENABLE_PROFILING_NFT
+
+#endif
+
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -915,6 +922,13 @@ public class IPBanLinuxFirewallNFTables : IPBanBaseFirewall
 
     private int RunNft(params IEnumerable<string> args)
     {
+
+#if ENABLE_PROFILING_NFT
+
+        var sw = Stopwatch.StartNew();
+
+#endif
+
         var cmd = string.Join(' ', args);
         var cmdBytes = ExtensionMethods.Utf8EncodingNoPrefix.GetBytes(cmd);
         Array.Resize(ref cmdBytes, cmdBytes.Length + 1);
@@ -924,21 +938,51 @@ public class IPBanLinuxFirewallNFTables : IPBanBaseFirewall
         {
             Logger.Debug($"{nameof(RunNft)} stderr: {0}", ExtensionMethods.Utf8EncodingNoPrefix.GetString(se));
         }
+
+#if ENABLE_PROFILING_NFT
+
+        sw.Stop();
+        Logger.Warn($"{nameof(RunNft)} took {sw.ElapsedMilliseconds}ms: {cmd}");
+
+#endif
+
         return rc;
     }
 
     private int RunNftFile(string fileName)
     {
+
+#if ENABLE_PROFILING_NFT
+
+        var sw = Stopwatch.StartNew();
+
+#endif
+
         int rc = nftCtx.RunFile(fileName, out _, out var se);
         if (se.Length != 0)
         {
             Logger.Debug($"{nameof(RunNftFile)} stderr: {0}", ExtensionMethods.Utf8EncodingNoPrefix.GetString(se));
         }
+
+#if ENABLE_PROFILING_NFT
+
+        sw.Stop();
+        Logger.Warn($"{nameof(RunNftFile)} took {sw.ElapsedMilliseconds}ms: {fileName} len: {new FileInfo(fileName).Length}");
+
+#endif
+
         return rc;
     }
 
     private int RunNftStream(MemoryStream inputStream, Stream outputStream, params IEnumerable<string> args)
     {
+
+#if ENABLE_PROFILING_NFT
+
+        var sw = Stopwatch.StartNew();
+
+#endif
+
         // if no input and args, use args as input
         if ((inputStream is null || inputStream.Length == 0) && args.Any())
         {
@@ -981,6 +1025,13 @@ public class IPBanLinuxFirewallNFTables : IPBanBaseFirewall
         {
             Logger.Debug($"{nameof(RunNftStream)} stderr: {0}", ExtensionMethods.Utf8EncodingNoPrefix.GetString(stderr));
         }
+
+#if ENABLE_PROFILING_NFT
+
+        sw.Stop();
+        Logger.Warn($"{nameof(RunNftStream)} took {sw.ElapsedMilliseconds}ms, len: {outputStream?.Length}");
+
+#endif
 
         return rc;
     }
