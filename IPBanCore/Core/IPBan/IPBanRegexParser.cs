@@ -29,6 +29,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Net;
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -71,7 +72,8 @@ namespace DigitalRuby.IPBanCore
         /// <returns>Regex or null if text is null or whitespace</returns>
         public static Regex ParseRegex(string text, bool multiline = false)
         {
-            const int maxCacheSize = 200;
+            const int maxCacheSize = 1000;
+            const int maxCacheSizeNonCompiled = 5000;
 
             if (string.IsNullOrWhiteSpace(text))
             {
@@ -96,7 +98,9 @@ namespace DigitalRuby.IPBanCore
                 options |= RegexOptions.Multiline;
             }
             string sbText = sb.ToString();
-            string cacheKey = ((uint)options).ToString("X8") + ":" + sbText;
+            sbText = IPBanRegexMacros.Expand(sbText);
+            var md5 = MD5.HashData(Encoding.UTF8.GetBytes(sbText));
+            string cacheKey = ((uint)options).ToString("X8") + ":" + Convert.ToBase64String(md5);
 
             // allow up to maxCacheSize compiled dynamic regular expression, with minimal config changes/reload, this should last the lifetime of an app
             lock (regexCacheCompiled)
@@ -135,7 +139,7 @@ namespace DigitalRuby.IPBanCore
                 // clear non-compield regex cache if it exceeds max size
                 lock (regexCacheNotCompiled)
                 {
-                    if (regexCacheNotCompiled.Count > maxCacheSize)
+                    if (regexCacheNotCompiled.Count > maxCacheSizeNonCompiled)
                     {
                         regexCacheNotCompiled.Clear();
                     }
