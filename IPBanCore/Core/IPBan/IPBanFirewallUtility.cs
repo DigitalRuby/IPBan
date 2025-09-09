@@ -491,14 +491,14 @@ namespace DigitalRuby.IPBanCore
             // 4. pkill -HUP rsyslogd (last resort)
             string[][] commands =
             [
-                ["systemctl", "restart", "rsyslog"],
-                ["service", "rsyslog", "restart"],
-                ["systemctl", "reload", "rsyslog"]
+                ["sudo", "systemctl", "restart", "rsyslog"],
+                ["sudo", "service", "rsyslog", "restart"],
+                ["sudo", "systemctl", "reload", "rsyslog"]
             ];
             bool success = false;
             foreach (var cmd in commands)
             {
-                if (IPBanFirewallUtility.RunProcess(cmd[0], null, null, cmd[1], cmd[2]) == 0)
+                if (IPBanFirewallUtility.RunProcess(cmd[0], null, null, cmd[1], cmd[2], cmd[3]) == 0)
                 {
                     success = true;
                     break;
@@ -508,7 +508,7 @@ namespace DigitalRuby.IPBanCore
             if (!success)
             {
                 // Try sending HUP directly
-                if (IPBanFirewallUtility.RunProcess("pkill", null, null, "-HUP", "rsyslogd") != 0)
+                if (IPBanFirewallUtility.RunProcess("sudo", null, null, "pkill", "-HUP", "rsyslogd") != 0)
                 {
                     Logger.Warn("Failed to reload rsyslog using systemctl/service/HUP; new log rule may not activate until rsyslog restarts");
                 }
