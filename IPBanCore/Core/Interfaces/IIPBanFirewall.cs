@@ -1,7 +1,7 @@
 ﻿/*
 MIT License
 
-Copyright (c) 2012-present Digital Ruby, LLC - https://www.digitalruby.com
+Copyright (c) 2012-present Digital Ruby, LLC - https://ipban.com
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -24,6 +24,7 @@ SOFTWARE.
 
 using System;
 using System.Collections.Generic;
+using System.Net;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -176,17 +177,17 @@ namespace DigitalRuby.IPBanCore
     /// <summary>
     /// Represents an ip address delta operation
     /// </summary>
-    public struct IPBanFirewallIPAddressDelta
+    public struct IPBanFirewallIPAddressDelta(bool Added, string IPAddress)
     {
         /// <summary>
         /// True if added, false if removed
         /// </summary>
-        public bool Added { get; set; }
+        public bool Added { get; set; } = Added;
 
         /// <summary>
         /// IPAddress
         /// </summary>
-        public string IPAddress { get; set; }
+        public string IPAddress { get; set; } = IPAddress;
 
         /// <summary>
         /// Whether this is an ipv4 (true) or ipv6 (false)

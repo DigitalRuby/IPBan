@@ -1,7 +1,7 @@
 ﻿/*
 MIT License
 
-Copyright (c) 2012-present Digital Ruby, LLC - https://www.digitalruby.com
+Copyright (c) 2012-present Digital Ruby, LLC - https://ipban.com
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -176,7 +176,16 @@ namespace DigitalRuby.IPBanCore
                 string nlogConfigPath = Path.Combine(AppContext.BaseDirectory, "nlog.config");
                 if (!File.Exists(nlogConfigPath))
                 {
+
+#if DEBUG
+
+                    const string defaultLogLevel = "Debug";
+
+#else
+
                     const string defaultLogLevel = "Info";
+
+#endif
 
                     Console.WriteLine("Creating default nlog.config file");
 
@@ -198,7 +207,7 @@ namespace DigitalRuby.IPBanCore
                 if (File.Exists(nlogConfigPath))
                 {
 #pragma warning disable CS0618 // Type or member is obsolete
-                    factory = LogManager.LoadConfiguration(nlogConfigPath);
+                    factory = LogManager.Setup().LoadConfigurationFromFile(nlogConfigPath).LogFactory;
 #pragma warning restore CS0618 // Type or member is obsolete
                 }
                 else
@@ -209,6 +218,21 @@ namespace DigitalRuby.IPBanCore
                 instance = new NLogWrapper(nlogInstance);
 
                 //NLog.Time.TimeSource.Current = timeSource;
+
+#if DEBUG
+
+                LogManager.GlobalThreshold = NLog.LogLevel.Debug;
+                var cfg = factory.Configuration ?? new NLog.Config.LoggingConfiguration();
+                foreach (var rule in cfg.LoggingRules)
+                {
+                    // Widen each rule to pass Debug and above
+                    rule.SetLoggingLevels(NLog.LogLevel.Debug, NLog.LogLevel.Fatal);
+                }
+                factory.Configuration = cfg;
+                factory.ReconfigExistingLoggers();
+
+#endif
+
             }
             catch (Exception ex)
             {

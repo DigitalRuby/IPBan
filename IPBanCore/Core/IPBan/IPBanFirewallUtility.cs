@@ -1,7 +1,7 @@
 ﻿/*
 MIT License
 
-Copyright (c) 2012-present Digital Ruby, LLC - https://www.digitalruby.com
+Copyright (c) 2012-present Digital Ruby, LLC - https://ipban.com
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -24,10 +24,14 @@ SOFTWARE.
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.IO.Pipelines;
 using System.Linq;
 using System.Net;
 using System.Reflection;
 using System.Text;
+using System.Threading;
 
 namespace DigitalRuby.IPBanCore
 {
@@ -125,6 +129,7 @@ namespace DigitalRuby.IPBanCore
                     Logger.Error(ex, "Failed to create firewall of type {0}, falling back to firewall type {1}", firewallType, fallbackType);
                     try
                     {
+                        fallbackAttr = fallbackType?.GetCustomAttribute<RequiredOperatingSystemAttribute>();
                         return Activator.CreateInstance(fallbackType, [rulePrefix]) as IIPBanFirewall;
                     }
                     catch (Exception ex2)
@@ -200,6 +205,11 @@ namespace DigitalRuby.IPBanCore
         /// <returns>Distinct port ranges</returns>
         public static IReadOnlyCollection<PortRange> MergePortRanges(IEnumerable<PortRange> portRanges)
         {
+            if (portRanges is null)
+            {
+                return null;
+            }
+
             var sortedRanges = portRanges
                 .Where(x => x.IsValid)
                 .OrderBy(x => x.MinPort)
@@ -218,6 +228,7 @@ namespace DigitalRuby.IPBanCore
                 if (range.MinPort <= lastRange.MaxPort)
                 {
                     lastRange.MaxPort = range.MaxPort;
+                    result[^1] = lastRange; // struct, must assign back into list
                 }
                 else
                 {
@@ -272,6 +283,29 @@ namespace DigitalRuby.IPBanCore
         {
             var result = MergePortRanges(allowPortRanges);
             return result is null || result.Count == 0 ? null : string.Join(',', result.Select(x => x.ToString()));
+        }
+
+        /// <summary>
+        /// Get port range string without modifying the ranges
+        /// </summary>
+        /// <param name="portRanges">Port ranges</param>
+        /// <returns>String</returns>
+        public static string GetPortRangeString(IEnumerable<PortRange> portRanges)
+        {
+            StringBuilder portRangeStringBuilder = new();
+
+            foreach (PortRange portRange in portRanges)
+            {
+                AppendRange(portRangeStringBuilder, portRange);
+            }
+
+            // trim ending comma
+            if (portRangeStringBuilder.Length != 0)
+            {
+                portRangeStringBuilder.Length--;
+            }
+
+            return portRangeStringBuilder.ToString();
         }
 
         /// <summary>
@@ -440,6 +474,181 @@ namespace DigitalRuby.IPBanCore
             }
         }
 
+        /// <summary>
+        /// Restart rsys log on Linux
+        /// </summary>
+        public static void LinuxRestartRsyslog()
+        {
+            if (!OSUtility.IsLinux)
+            {
+                throw new PlatformNotSupportedException($"{nameof(LinuxRestartRsyslog)} can only be called on Linux");
+            }
+
+            // Attempt several strategies to reload rsyslog without assuming passwordless sudo.
+            // 1. systemctl restart rsyslog
+            // 2. service rsyslog restart (SysV compatibility)
+            // 3. systemctl reload rsyslog
+            // 4. pkill -HUP rsyslogd (last resort)
+            string[][] commands =
+            [
+                ["sudo", "systemctl", "restart", "rsyslog"],
+                ["sudo", "service", "rsyslog", "restart"],
+                ["sudo", "systemctl", "reload", "rsyslog"]
+            ];
+            bool success = false;
+            foreach (var cmd in commands)
+            {
+                if (IPBanFirewallUtility.RunProcess(cmd[0], null, null, cmd[1], cmd[2], cmd[3]) == 0)
+                {
+                    success = true;
+                    break;
+                }
+                Thread.Sleep(250);
+            }
+            if (!success)
+            {
+                // Try sending HUP directly
+                if (IPBanFirewallUtility.RunProcess("sudo", null, null, "pkill", "-HUP", "rsyslogd") != 0)
+                {
+                    Logger.Warn("Failed to reload rsyslog using systemctl/service/HUP; new log rule may not activate until rsyslog restarts");
+                }
+            }
+        }
+
+        /// <summary>
+        /// Execute a firewall process
+        /// </summary>
+        /// <param name="program">Program</param>
+        /// <param name="input">Input file or Stream to read and pipe to std in (null to not do this)</param>
+        /// <param name="output">Dump std out to this file or Stream (null to not do this)</param>
+        /// <param name="args">Args</param>
+        /// <returns>Exit code</returns>
+        public static int RunProcess(string program, object input, object output, params IEnumerable<string> args)
+        {
+            const int timeout = 60000; // 60 seconds in milliseconds
+
+            string cmdLine = program + " " + string.Join(' ', args.Select(a => a?.ToString() ?? string.Empty));
+
+#if ENABLE_FIREWALL_PROFILING
+
+            StackTrace stackTrace = new();
+            StringBuilder methods = new();
+            var frames = stackTrace.GetFrames();
+            foreach (var frame in frames)
+            {
+                if (methods.Length != 0) { methods.Append(" > "); }
+                methods.Append(frame.GetMethod()?.Name);
+            }
+            Logger.Info("Running firewall process: {0}; stack: {1}", cmdLine, methods);
+
+#else
+
+            Logger.Debug("Running firewall process: {0}", cmdLine);
+
+#endif
+
+            var inputStream = input as Stream;
+            var inputFile = input as string;
+            var outputStream = output as Stream;
+            var outputFile = output as string;
+            bool redirectStdIn = inputStream is not null || inputFile is not null;
+            bool redirectStdOut = outputStream is not null || outputFile is not null;
+
+            using Process p = new()
+            {
+                StartInfo = new ProcessStartInfo
+                {
+                    FileName = program,
+                    UseShellExecute = false,
+                    CreateNoWindow = true,
+                    RedirectStandardError = true,
+                    StandardErrorEncoding = ExtensionMethods.Utf8EncodingNoPrefix,
+                    RedirectStandardInput = redirectStdIn,
+                    RedirectStandardOutput = redirectStdOut,
+                    StandardInputEncoding = redirectStdIn ? ExtensionMethods.Utf8EncodingNoPrefix : null,
+                    StandardOutputEncoding = redirectStdOut ? ExtensionMethods.Utf8EncodingNoPrefix : null
+                }
+            };
+
+            foreach (var arg in args)
+            {
+                var s = arg?.ToString();
+                if (!string.IsNullOrEmpty(s)) { p.StartInfo.ArgumentList.Add(s); }
+            }
+
+            p.Start();
+
+            MemoryStream stdErr = new();
+            System.Threading.Tasks.Task errCopyTask = p.StandardError.BaseStream.CopyToAsync(stdErr);
+
+            FileStream stdOutRedirection = null;
+            System.Threading.Tasks.Task outCopyTask = null;
+            if (redirectStdOut)
+            {
+                if (outputFile is not null)
+                {
+                    stdOutRedirection = new FileStream(outputFile, FileMode.Create, FileAccess.Write, FileShare.Read, 64 * 1024, FileOptions.Asynchronous);
+                    outCopyTask = p.StandardOutput.BaseStream.CopyToAsync(stdOutRedirection);
+                }
+                else if (outputStream is not null)
+                {
+                    outCopyTask = p.StandardOutput.BaseStream.CopyToAsync(outputStream);
+                }
+            }
+
+            if (redirectStdIn)
+            {
+                try
+                {
+                    if (inputFile is not null)
+                    {
+                        using var inFs = new FileStream(inputFile, FileMode.Open, FileAccess.Read, FileShare.Read, 64 * 1024, FileOptions.SequentialScan);
+                        inFs.CopyTo(p.StandardInput.BaseStream);
+                        p.StandardInput.Flush();
+                    }
+                    else if (inputStream is not null)
+                    {
+                        inputStream.CopyTo(p.StandardInput.BaseStream);
+                    }
+                }
+                finally
+                {
+                    try { p.StandardInput.Close(); } catch { /* ignore */ }
+                }
+            }
+
+            if (!p.WaitForExit(timeout))
+            {
+                Logger.Error("Process time out: {0}", cmdLine);
+                try { p.Kill(entireProcessTree: true); } catch { /* ignore */ }
+                p.WaitForExit();
+            }
+
+            outCopyTask?.Wait(timeout);
+            errCopyTask.Wait(timeout);
+            outputStream?.Flush();
+
+            if (stdErr.Length != 0)
+            {
+                Logger.Error("Process {0} had std err: {1}", cmdLine, Encoding.UTF8.GetString(stdErr.ToArray()));
+            }
+            if (p.ExitCode != 0)
+            {
+                Logger.Error("Process {0} had exit code {1}", cmdLine, p.ExitCode);
+            }
+
+            stdErr.Dispose();
+            stdOutRedirection?.Dispose();
+
+#if DEBUG
+
+            //if (redirectStdIn) { Console.WriteLine("Process std in ({0}): {1}", cmdLine, File.ReadAllText(inputFile)); }
+            //if (redirectStdOut) { Console.WriteLine("Process std out ({0}): {1}", cmdLine, File.ReadAllText(outputFile)); }
+
+#endif
+
+            return p.ExitCode;
+        }
 
     }
 }

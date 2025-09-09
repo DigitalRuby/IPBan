@@ -1,7 +1,7 @@
 ﻿/*
 MIT License
 
-Copyright (c) 2012-present Digital Ruby, LLC - https://www.digitalruby.com
+Copyright (c) 2012-present Digital Ruby, LLC - https://ipban.com
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -24,6 +24,7 @@ SOFTWARE.
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Threading;
@@ -102,7 +103,7 @@ namespace DigitalRuby.IPBanCore
         {
             private readonly List<IPV4Range> ipv4 = [];
             private readonly List<IPV6Range> ipv6 = [];
-            private readonly PortRange[] portRanges = [];
+            internal readonly PortRange[] portRanges = [];
 
             public IEnumerable<string> IPV4Strings => ipv4.Select(r => r.ToIPAddressRange().ToString());
             public IEnumerable<string> IPV6Strings => ipv6.Select(r => r.ToIPAddressRange().ToString());
@@ -113,15 +114,15 @@ namespace DigitalRuby.IPBanCore
 
             public string Name { get; }
 
-            public MemoryFirewallRuleRanges(IEnumerable<IPAddressRange> ipRanges, List<PortRange> allowPorts, bool block, string name)
+            public MemoryFirewallRuleRanges(IEnumerable<IPAddressRange> ipRanges, IReadOnlyCollection<PortRange> allowPorts, bool block, string name)
             {
-                List<IPAddressRange> ipRangesSorted = new(ipRanges);
-                ipRangesSorted.Sort();
                 Block = block;
                 Name = name;
+
+                List<IPAddressRange> ipRangesSorted = [.. ipRanges];
+                ipRangesSorted.Sort();
                 foreach (IPAddressRange range in ipRangesSorted)
                 {
-                    // optimized storage, no pointers or other overhead
                     if (range.Begin.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
                     {
                         ipv4.Add(new IPV4Range(range));
@@ -147,6 +148,36 @@ namespace DigitalRuby.IPBanCore
                         portRanges = [.. allowPorts];
                     }
                 }
+            }
+
+            public void Add(IEnumerable<IPAddressRange> ipRanges)
+            {
+                List<IPAddressRange> ipRangesSorted = [.. ipRanges];
+                foreach (IPAddressRange range in ipRangesSorted)
+                {
+                    // binary search in the list and insert the ip where it belongs (or at the end if not found)
+                    // note: there could be duplicates, but that's ok, this method is really only called during testing iptables
+                    if (range.Begin.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
+                    {
+                        var newRange = new IPV4Range(range);
+                        int pos = ipv4.BinarySearch(newRange, this);
+                        if (pos < 0)
+                        {
+                            ipv4.Insert(~pos, newRange);
+                        }
+                    }
+                    else
+                    {
+                        var newRange = new IPV6Range(range);
+                        int pos = ipv6.BinarySearch(newRange, this);
+                        if (pos < 0)
+                        {
+                            ipv6.Insert(~pos, newRange);
+                        }
+                    }
+                }
+                ipv4.TrimExcess();
+                ipv6.TrimExcess();
             }
 
             public bool Contains(System.Net.IPAddress ipAddressObj, int port)
@@ -364,6 +395,32 @@ namespace DigitalRuby.IPBanCore
         private readonly MemoryFirewallRule allowRule;
         private readonly Dictionary<string, MemoryFirewallRuleRanges> allowRuleRanges = [];
 
+        /// <inheritdoc />
+        public override string ToString()
+        {
+            StringWriter s = new();
+
+            foreach (var kv in blockRules)
+            {
+                s.WriteLine("Block rule: {0}, Count: {1}, IPs: {2}, Ports: {3}",
+                    kv.Key, kv.Value.GetCount(), string.Join(", ", kv.Value.IPV4.Concat(kv.Value.IPV6)), kv.Value.Ports);
+            }
+            foreach (var kv in blockRulesRanges)
+            {
+                s.WriteLine("Block rule ranges: {0}, Count: {1}, IPs: {2}, Ports: {3}",
+                    kv.Key, kv.Value.GetCount(), string.Join(", ", kv.Value.IPV4Strings.Concat(kv.Value.IPV6Strings)), kv.Value.Ports);
+            }
+            s.WriteLine("Allow rule: {0}, Count: {1}, IPs: {2}, Ports: {3}",
+                allowRule.Name, allowRule.GetCount(), string.Join(", ", allowRule.IPV4.Concat(allowRule.IPV6)), allowRule.Ports);
+            foreach (var kv in allowRuleRanges)
+            {
+                s.WriteLine("Allow rule ranges: {0}, Count: {1}, IPs: {2}, Ports: {3}",
+                    kv.Key, kv.Value.GetCount(), string.Join(", ", kv.Value.IPV4Strings.Concat(kv.Value.IPV6Strings)), kv.Value.Ports);
+            }
+
+            return s.ToString();
+        }
+
         /// <summary>
         /// Get all the rules with ranges
         /// </summary>
@@ -406,14 +463,23 @@ namespace DigitalRuby.IPBanCore
         {
             ruleNamePrefix ??= string.Empty;
 
-            // remove prefix if it exists
-            if (ruleNamePrefix.StartsWith(prefix))
+            if (!string.IsNullOrWhiteSpace(RulePrefix))
             {
-                ruleNamePrefix = ruleNamePrefix[prefix.Length..];
+                // remove prefix if it exists
+                if (ruleNamePrefix.StartsWith(RulePrefix))
+                {
+                    ruleNamePrefix = ruleNamePrefix[RulePrefix.Length..];
+                }
+                if (ruleNamePrefix.StartsWith(prefix))
+                {
+                    ruleNamePrefix = ruleNamePrefix[prefix.Length..];
+                }
+
+                // in memory firewall does not have a count limit per rule, so remove the trailing underscore if any
+                return (prefix + ruleNamePrefix).Trim('_');
             }
 
-            // in memory firewall does not have a count limit per rule, so remove the trailing underscore if any
-            return (prefix + ruleNamePrefix).Trim('_');
+            return ruleNamePrefix;
         }
 
         /// <inheritdoc />
@@ -911,6 +977,42 @@ namespace DigitalRuby.IPBanCore
                 blockRules.Clear();
                 blockRulesRanges.Clear();
                 allowRule.SetIPAddresses([], null);
+            }
+        }
+
+        /// <summary>
+        /// Merge another memory firewall into this one
+        /// </summary>
+        /// <param name="mem">Memory firewall to merge</param>
+        public void Merge(IPBanMemoryFirewall mem)
+        {
+            lock (this)
+            {
+                foreach (var kv in mem.blockRules)
+                {
+                    if (!blockRules.TryGetValue(kv.Key, out var rule))
+                    {
+                        blockRules[kv.Key] = rule = new MemoryFirewallRule(true, kv.Key);
+                    }
+                    rule.AddIPAddressesDelta(kv.Value.EnumerateIPAddresses().Select(ip => new IPBanFirewallIPAddressDelta(true, ip)));
+                }
+                foreach (var kv in mem.blockRulesRanges)
+                {
+                    if (!blockRulesRanges.TryGetValue(kv.Key, out var rule))
+                    {
+                        blockRulesRanges[kv.Key] = rule = new MemoryFirewallRuleRanges([], kv.Value.portRanges, true, kv.Key);
+                    }
+                    rule.Add(kv.Value.EnumerateIPAddressesRanges());
+                }
+                allowRule.AddIPAddressesDelta(mem.allowRule.EnumerateIPAddresses().Select(ip => new IPBanFirewallIPAddressDelta(true, ip)));
+                foreach (var kv in mem.allowRuleRanges)
+                {
+                    if (!allowRuleRanges.TryGetValue(kv.Key, out var rule))
+                    {
+                        allowRuleRanges[kv.Key] = rule = new MemoryFirewallRuleRanges([], kv.Value.portRanges, false, kv.Key);
+                    }
+                    rule.Add(kv.Value.EnumerateIPAddressesRanges());
+                }
             }
         }
     }

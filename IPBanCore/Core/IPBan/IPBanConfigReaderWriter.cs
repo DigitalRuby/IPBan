@@ -1,7 +1,7 @@
 ﻿/*
 MIT License
 
-Copyright (c) 2012-present Digital Ruby, LLC - https://www.digitalruby.com
+Copyright (c) 2012-present Digital Ruby, LLC - https://ipban.com
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -83,11 +83,15 @@ namespace DigitalRuby.IPBanCore
         /// <returns>Task</returns>
         public async Task WriteConfigAsync(string config)
         {
-            if (!Enabled)
+            if (!Enabled ||
+                string.IsNullOrWhiteSpace(config))
             {
                 return;
             }
-            else if (UseFile)
+
+            config = config.Trim().Replace("\0", string.Empty).Normalize();
+
+            if (UseFile)
             {
                 await ConfigLocker.LockActionAsync(async () =>
                 {
@@ -95,8 +99,10 @@ namespace DigitalRuby.IPBanCore
                     string existingConfig = await File.ReadAllTextAsync(Path);
                     if (existingConfig != config)
                     {
+                        string tempConfig = System.IO.Path.Combine(Path + ".tmp");
+                        await ExtensionMethods.FileWriteAllTextWithRetryAsync(tempConfig, config);
+                        ExtensionMethods.Retry(() => File.Move(tempConfig, Path, true));
                         lastConfigValue = null;
-                        await ExtensionMethods.FileWriteAllTextWithRetryAsync(Path, config);
                     }
                 });
             }

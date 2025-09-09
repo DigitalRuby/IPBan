@@ -1,7 +1,7 @@
 ﻿/*
 MIT License
 
-Copyright (c) 2012-present Digital Ruby, LLC - https://www.digitalruby.com
+Copyright (c) 2012-present Digital Ruby, LLC - https://ipban.com
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -127,6 +127,14 @@ namespace DigitalRuby.IPBanCore
                     Logger.Error($"Error on {nameof(IPBanService)}.{nameof(RunCycleAsync)}", ex);
                 }
             }
+        }
+
+        /// <summary>
+        /// Reset machine guid
+        /// </summary>
+        /// <param name="guid">Guid</param>
+        public virtual void ResetMachineGuid(string guid)
+        {
         }
 
         /// <summary>

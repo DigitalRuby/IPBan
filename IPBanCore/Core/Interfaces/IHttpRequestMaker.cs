@@ -1,7 +1,7 @@
 ﻿/*
 MIT License
 
-Copyright (c) 2012-present Digital Ruby, LLC - https://www.digitalruby.com
+Copyright (c) 2012-present Digital Ruby, LLC - https://ipban.com
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -58,10 +58,8 @@ namespace DigitalRuby.IPBanCore
     /// <summary>
     /// Default implementation of IHttpRequestMaker
     /// </summary>
-    public class DefaultHttpRequestMaker : IHttpRequestMaker
+    public sealed class DefaultHttpRequestMaker : IHttpRequestMaker
     {
-        private static readonly HttpClient client = new();
-
         /// <summary>
         /// Singleton of DefaultHttpRequestMaker
         /// </summary>
@@ -137,6 +135,7 @@ namespace DigitalRuby.IPBanCore
                 msg.Method = new HttpMethod(method);
             }
 
+            var client = new HttpClient();
             var responseMsg = await client.SendAsync(msg, cancelToken);
             response = await responseMsg.Content.ReadAsByteArrayAsync(cancelToken);
             if (!responseMsg.IsSuccessStatusCode)

@@ -23,7 +23,7 @@ steps:
         includePreviewVersions: false
         installationPath: $(Agent.ToolsDirectory)/dotnet_latest
 
-    - script: sudo apt update -q -y && sudo apt install -q -y iptables ipset sysstat firewalld
+    - script: sudo apt update -q -y && sudo apt install -q -y iptables ipset sysstat firewalld nftables libnftables1
       displayName: 'Install dependencies on Linux'
       condition: contains( variables['Agent.OS'], 'Linux' )
 

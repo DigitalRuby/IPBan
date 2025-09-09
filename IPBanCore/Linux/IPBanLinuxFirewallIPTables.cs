@@ -1,7 +1,7 @@
 ﻿/*
 MIT License
 
-Copyright (c) 2012-present Digital Ruby, LLC - https://www.digitalruby.com
+Copyright (c) 2012-present Digital Ruby, LLC - https://ipban.com
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -33,7 +33,9 @@ namespace DigitalRuby.IPBanCore
     /// <summary>
     /// Linux firewall implementation using iptables
     /// </summary>
-    [RequiredOperatingSystem(OSUtility.Linux, PriorityEnvironmentVariable = "IPBanPro_LinuxFirewallIPTablesPriority")]
+    [RequiredOperatingSystem(OSUtility.Linux,
+        Priority = 1,
+        PriorityEnvironmentVariable = "IPBanPro_LinuxFirewallIPTablesPriority")]
     [System.Diagnostics.CodeAnalysis.DynamicallyAccessedMembers(System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.All)]
     public class IPBanLinuxFirewallIPTables : IPBanLinuxBaseFirewallIPTables
     {
@@ -46,7 +48,7 @@ namespace DigitalRuby.IPBanCore
             protected override string INetFamily => IPBanLinuxIPSetIPTables.INetFamilyIPV6;
             protected override string SetSuffix => ".set6";
             protected override string TableSuffix => ".tbl6";
-            protected override string IpTablesProcess => ip6TablesProcess;
+            protected override string IpTablesProcess => Ip6TablesProcess;
         }
 
         private readonly IPBanLinuxFirewallIPTables6 firewall6;
@@ -67,8 +69,8 @@ namespace DigitalRuby.IPBanCore
             firewall6 = new IPBanLinuxFirewallIPTables6(RulePrefix);
 
             // ensure legacy iptables are used
-            RunProcess("update-alternatives", true, "--set iptables /usr/sbin/iptables-legacy");
-            RunProcess("update-alternatives", true, "--set ip6tables /usr/sbin/ip6tables-legacy");
+            IPBanFirewallUtility.RunProcess("update-alternatives", null, null, "--set", "iptables", "/usr/sbin/iptables-legacy");
+            IPBanFirewallUtility.RunProcess("update-alternatives", null, null, "--set", "ip6tables", "/usr/sbin/ip6tables-legacy");
         }
 
         /// <inheritdoc />
@@ -147,6 +149,15 @@ namespace DigitalRuby.IPBanCore
         {
             base.Truncate();
             firewall6.Truncate();
+        }
+
+        /// <inheritdoc />
+        public override IPBanMemoryFirewall Compile()
+        {
+            var baseMem = base.Compile();
+            var mem6 = firewall6.Compile();
+            baseMem.Merge(mem6);
+            return baseMem;
         }
     }
 }

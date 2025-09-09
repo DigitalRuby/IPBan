@@ -1,7 +1,7 @@
 ﻿/*
 MIT License
 
-Copyright (c) 2012-present Digital Ruby, LLC - https://www.digitalruby.com
+Copyright (c) 2012-present Digital Ruby, LLC - https://ipban.com
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -96,8 +96,8 @@ namespace DigitalRuby.IPBanCore
         {
             try
             {
-                await locker.WaitAsync(timeout, cancellationToken);
-                if (queue.TryDequeue(out var result))
+                bool acquiredLock = await locker.WaitAsync(timeout, cancellationToken);
+                if (acquiredLock && queue.TryDequeue(out var result))
                 {
                     return new KeyValuePair<bool, T>(true, result);
                 }

@@ -1,7 +1,7 @@
 ﻿/*
 MIT License
 
-Copyright (c) 2012-present Digital Ruby, LLC - https://www.digitalruby.com
+Copyright (c) 2012-present Digital Ruby, LLC - https://ipban.com
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -49,13 +49,11 @@ namespace DigitalRuby.IPBanCore
         ];
 
         private static readonly TimeSpan fiveSeconds = TimeSpan.FromSeconds(5.0);
-        private static readonly TimeSpan thirtySeconds = TimeSpan.FromSeconds(30.0);
 
         private readonly IIPBanFirewall firewall;
         private readonly IFirewallTaskRunner firewallTaskRunner;
         private readonly IIsWhitelisted whitelistChecker;
         private readonly IHttpRequestMaker httpRequestMaker;
-        private readonly HttpClient httpClient;
 
         private DateTime lastRun;
 
@@ -105,11 +103,6 @@ namespace DigitalRuby.IPBanCore
             Uri = uri.ThrowIfNull();
             Interval = (interval.TotalSeconds < 5.0 ? fiveSeconds : interval);
             MaxCount = maxCount;
-
-            if (!uri.IsFile)
-            {
-                httpClient = new HttpClient { Timeout = thirtySeconds };
-            }
         }
 
         /// <summary>
@@ -118,7 +111,6 @@ namespace DigitalRuby.IPBanCore
         public void Dispose()
         {
             GC.SuppressFinalize(this);
-            httpClient?.Dispose();
         }
 
         /// <summary>

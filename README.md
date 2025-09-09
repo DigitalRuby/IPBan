@@ -96,7 +96,7 @@ If the free IPBan has helped you and you feel so inclined, please consider donat
 
 Jeff Johnson, CEO/CTO  
 Digital Ruby, LLC  
-https://www.digitalruby.com  
+https://ipban.com  
 support@digitalruby.com
 
 

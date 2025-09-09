@@ -1,7 +1,7 @@
 ﻿/*
 MIT License
 
-Copyright (c) 2012-present Digital Ruby, LLC - https://www.digitalruby.com
+Copyright (c) 2012-present Digital Ruby, LLC - https://ipban.com
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -22,21 +22,18 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-using DigitalRuby.IPBanCore;
-
-using Newtonsoft.Json.Linq;
-
-using NUnit.Framework;
-using NUnit.Framework.Legacy;
-
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+
+using DigitalRuby.IPBanCore;
+
+using NUnit.Framework;
+using NUnit.Framework.Legacy;
 
 namespace DigitalRuby.IPBanTests
 {
@@ -389,7 +386,7 @@ namespace DigitalRuby.IPBanTests
                 finally
                 {
                     ExtensionMethods.DirectoryDeleteWithRetry(Path.GetDirectoryName(file));
-                    using EventLog appLog = new("Application", System.Environment.MachineName);
+                    using System.Diagnostics.EventLog appLog = new("Application", System.Environment.MachineName);
                     appLog.Clear();
                 }
             }
@@ -400,35 +397,35 @@ namespace DigitalRuby.IPBanTests
         {
             using IPBanConfig.TempConfigChanger configChanger = new(service, xml =>
             {
-                return IPBanConfig.ChangeConfigAppSetting(xml, "FirewallRules", @"
-                    ReddisAllowIP;allow;10.0.0.1,10.0.0.2,192.168.1.168/24;6379;.
+                return IPBanConfig.ChangeConfigAppSettingAndGetXml(xml, "FirewallRules", @"
+                    RedisAllowIP;allow;10.0.0.1,10.0.0.2,192.168.1.168/24;6379;.
                     WebOnly;block;0.0.0.0/1,128.0.0.0/1,::/1,8000::/1;22,80,443,3389;^(?:(?!Windows).)+$");
             }, out string newConfig);
 
             List<string> rules = service.Firewall.GetRuleNames().ToList();
-            string reddisRule = service.Firewall.RulePrefix + "EXTRA_ReddisAllowIP";
+            string redisRule = service.Firewall.RulePrefix + "EXTRA_RedisAllowIP";
             string webRule = service.Firewall.RulePrefix + "EXTRA_WebOnly";
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 // on Windows, block is the default, so only the allow rules should show up
-                ClassicAssert.IsTrue(rules.Exists((s) => s.StartsWith(reddisRule)));
+                ClassicAssert.IsTrue(rules.Exists((s) => s.StartsWith(redisRule)));
                 ClassicAssert.IsFalse(rules.Exists((s) => s.StartsWith(webRule)));
                 ClassicAssert.AreEqual(1, service.Config.ExtraRules.Count);
                 IPBanFirewallRule rule1 = service.Config.ExtraRules[0];
                 string regexString = rule1.ToString();
-                ClassicAssert.AreEqual("EXTRA_ReddisAllowIP;allow;10.0.0.1/32,10.0.0.2/32,192.168.1.0/24;6379;.", regexString);
+                ClassicAssert.AreEqual("EXTRA_RedisAllowIP;allow;10.0.0.1/32,10.0.0.2/32,192.168.1.0/24;6379;.", regexString);
             }
             else
             {
                 // on Linux, both rules are needed
                 ClassicAssert.AreEqual(2, service.Config.ExtraRules.Count);
-                ClassicAssert.IsTrue(rules.Exists((s) => s.StartsWith(reddisRule)));
-                ClassicAssert.IsTrue(rules.Exists((s) => s.StartsWith(webRule)));
+                ClassicAssert.IsTrue(rules.Exists((s) => s.StartsWith(redisRule, StringComparison.OrdinalIgnoreCase)));
+                ClassicAssert.IsTrue(rules.Exists((s) => s.StartsWith(webRule, StringComparison.OrdinalIgnoreCase)));
                 IPBanFirewallRule rule1 = service.Config.ExtraRules[0];
                 IPBanFirewallRule rule2 = service.Config.ExtraRules[1];
                 string regexString1 = rule1.ToString();
                 string regexString2 = rule2.ToString();
-                ClassicAssert.AreEqual("EXTRA_ReddisAllowIP;allow;10.0.0.1/32,10.0.0.2/32,192.168.1.0/24;6379;.", regexString1);
+                ClassicAssert.AreEqual("EXTRA_RedisAllowIP;allow;10.0.0.1/32,10.0.0.2/32,192.168.1.0/24;6379;.", regexString1);
                 ClassicAssert.AreEqual("EXTRA_WebOnly;block;0.0.0.0/1,128.0.0.0/1,::/1,8000::/1;22,80,443,3389;^(?:(?!Windows).)+$", regexString2);
             }
         }
@@ -438,7 +435,7 @@ namespace DigitalRuby.IPBanTests
         {
             using IPBanConfig.TempConfigChanger configChanger = new(service, xml =>
             {
-                return IPBanConfig.ChangeConfigAppSetting(xml, "BlacklistRegex", "Naughty.*");
+                return IPBanConfig.ChangeConfigAppSettingAndGetXml(xml, "BlacklistRegex", "Naughty.*");
             }, out string newConfig);
 
             service.AddIPAddressLogEvents(
@@ -459,7 +456,7 @@ namespace DigitalRuby.IPBanTests
         {
             using IPBanConfig.TempConfigChanger configChanger = new(service, xml =>
             {
-                return IPBanConfig.ChangeConfigAppSetting(xml, "Blacklist", "NaughtyUserName");
+                return IPBanConfig.ChangeConfigAppSettingAndGetXml(xml, "Blacklist", "NaughtyUserName");
             }, out string newConfig);
 
             service.AddIPAddressLogEvents(
@@ -480,7 +477,7 @@ namespace DigitalRuby.IPBanTests
         {
             using IPBanConfig.TempConfigChanger configChanger = new(service, xml =>
             {
-                return IPBanConfig.ChangeConfigAppSetting(xml, "UserNameWhitelistRegex", "ftp_[0-9]+");
+                return IPBanConfig.ChangeConfigAppSettingAndGetXml(xml, "UserNameWhitelistRegex", "ftp_[0-9]+");
             }, out string newConfig);
 
             service.AddIPAddressLogEvents(
@@ -501,7 +498,7 @@ namespace DigitalRuby.IPBanTests
         {
             using IPBanConfig.TempConfigChanger configChanger = new(service, xml =>
             {
-                return IPBanConfig.ChangeConfigAppSetting(xml, "UserNameWhitelist", "OnlyMe");
+                return IPBanConfig.ChangeConfigAppSettingAndGetXml(xml, "UserNameWhitelist", "OnlyMe");
             }, out string newConfig);
 
             service.AddIPAddressLogEvents(
@@ -563,8 +560,8 @@ namespace DigitalRuby.IPBanTests
 
             using IPBanConfig.TempConfigChanger configChanger = new(service, xml =>
             {
-                xml = IPBanConfig.ChangeConfigAppSetting(xml, "BanTime", "00:00:01:00,00:01:00:00,01:00:00:00");
-                xml = IPBanConfig.ChangeConfigAppSetting(xml, "ResetFailedLoginCountForUnbannedIPAddresses", resetFailedLogin.ToString());
+                xml = IPBanConfig.ChangeConfigAppSettingAndGetXml(xml, "BanTime", "00:00:01:00,00:01:00:00,01:00:00:00");
+                xml = IPBanConfig.ChangeConfigAppSettingAndGetXml(xml, "ResetFailedLoginCountForUnbannedIPAddresses", resetFailedLogin.ToString());
                 return xml;
             }, out string newConfig);
 
@@ -704,8 +701,8 @@ namespace DigitalRuby.IPBanTests
 
             using IPBanConfig.TempConfigChanger configChanger = new(service, xml =>
             {
-                xml = IPBanConfig.ChangeConfigAppSetting(xml, "BanTime", "00:00:01:00,00:00:05:00,00:00:15:00,89:00:00:00");
-                xml = IPBanConfig.ChangeConfigAppSetting(xml, "ResetFailedLoginCountForUnbannedIPAddresses", resetFailedLogin.ToString());
+                xml = IPBanConfig.ChangeConfigAppSettingAndGetXml(xml, "BanTime", "00:00:01:00,00:00:05:00,00:00:15:00,89:00:00:00");
+                xml = IPBanConfig.ChangeConfigAppSettingAndGetXml(xml, "ResetFailedLoginCountForUnbannedIPAddresses", resetFailedLogin.ToString());
                 return xml;
             }, out string newConfig);
             ClassicAssert.AreEqual(4, service.Config.BanTimes.Length);
@@ -873,7 +870,7 @@ namespace DigitalRuby.IPBanTests
             {
                 using IPBanConfig.TempConfigChanger configChanger = new(service, xml =>
                 {
-                    return IPBanConfig.ChangeConfigAppSetting(xml, "Whitelist", whitelist);
+                    return IPBanConfig.ChangeConfigAppSettingAndGetXml(xml, "Whitelist", whitelist);
                 }, out string newConfig);
 
                 var evt = new IPAddressLogEvent(whitelistedIpToTry, "admin", "RDP", 30, IPAddressEventType.FailedLogin, IPBanService.UtcNow);
@@ -919,7 +916,7 @@ namespace DigitalRuby.IPBanTests
             // turn on clear failed logins upon success login
             using IPBanConfig.TempConfigChanger configChanger = new(service, xml =>
             {
-                return IPBanConfig.ChangeConfigAppSetting(xml, nameof(IPBanConfig.ClearFailedLoginsOnSuccessfulLogin), "true");
+                return IPBanConfig.ChangeConfigAppSettingAndGetXml(xml, nameof(IPBanConfig.ClearFailedLoginsOnSuccessfulLogin), "true");
             }, out string newConfig);
 
             string ip = "99.88.77.66";
@@ -1049,7 +1046,7 @@ namespace DigitalRuby.IPBanTests
                 // turn on clear failed logins upon success login
                 using IPBanConfig.TempConfigChanger configChanger = new(service, xml =>
                 {
-                    return IPBanConfig.ChangeConfigAppSetting(xml, key, value);
+                    return IPBanConfig.ChangeConfigAppSettingAndGetXml(xml, key, value);
                 }, out string newConfig);
 
                 List<IPAddressLogEvent> events =

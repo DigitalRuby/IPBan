@@ -214,6 +214,24 @@ namespace DigitalRuby.IPBanCore {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Whitelist.
+        /// </summary>
+        public static string AsnBlacklistWhitelist {
+            get {
+                return ResourceManager.GetString("AsnBlacklistWhitelist", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Whitelist instead of blacklist.
+        /// </summary>
+        public static string AsnBlacklistWhitelistTooltip {
+            get {
+                return ResourceManager.GetString("AsnBlacklistWhitelistTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Start typing and select ASN that appear from the dropdown, can use id or name.
         /// </summary>
         public static string AsnBlockHelpLabel {
@@ -259,7 +277,7 @@ namespace DigitalRuby.IPBanCore {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Number of days to whitelist remote ip addresses that have a successful login.
+        ///   Looks up a localized string similar to Number of days to whitelist remote ip addresses that have a successful login (set to negative number to also process blank user names, where the number will be converted to a positive number).
         /// </summary>
         public static string AutoWhitelistSuccessLoginsTooltip {
             get {
@@ -304,7 +322,7 @@ namespace DigitalRuby.IPBanCore {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Format: threshold,days,event_type. Threshold is number of failed logins or banned ips in a cidr mask before the entire cidr mask is banned for x days. For ipv4, /24 mask is used with 256 ips. For ipv6, /112 mask is used with 65536 ips. Days specifies duration to ban the range. Event type can be empty or b for banned ip adresses, or f for failed logins. Set to empty to disable this feature..
+        ///   Looks up a localized string similar to Format: threshold,days,event_type. Threshold is number of failed logins or banned ips in a cidr mask before the entire cidr mask is banned for x days. For ipv4, /24 mask is used with 256 ips. For ipv6, /112 mask is used with 65536 ips. Days specifies duration to ban the range. Event type can be empty or b for banned ip addresses, or f for failed logins. Set to empty to disable this feature..
         /// </summary>
         public static string BanRangeThresholdTooltip {
             get {
@@ -354,6 +372,15 @@ namespace DigitalRuby.IPBanCore {
         public static string Blacklister {
             get {
                 return ResourceManager.GetString("Blacklister", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to BlacklisterWhitelister.
+        /// </summary>
+        public static string BlacklisterWhitelister {
+            get {
+                return ResourceManager.GetString("BlacklisterWhitelister", resourceCulture);
             }
         }
         
@@ -732,6 +759,24 @@ namespace DigitalRuby.IPBanCore {
         public static string CycleTimeTooltip {
             get {
                 return ResourceManager.GetString("CycleTimeTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Default whitelist/blacklist days.
+        /// </summary>
+        public static string DefaultWhitelistBlacklistDurationDays {
+            get {
+                return ResourceManager.GetString("DefaultWhitelistBlacklistDurationDays", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Default days to show in whitelist/blacklist UI.
+        /// </summary>
+        public static string DefaultWhitelistBlacklistDurationDaysTooltip {
+            get {
+                return ResourceManager.GetString("DefaultWhitelistBlacklistDurationDaysTooltip", resourceCulture);
             }
         }
         
@@ -2266,6 +2311,15 @@ namespace DigitalRuby.IPBanCore {
         public static string RequestAPlugin {
             get {
                 return ResourceManager.GetString("RequestAPlugin", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Reset.
+        /// </summary>
+        public static string Reset {
+            get {
+                return ResourceManager.GetString("Reset", resourceCulture);
             }
         }
         
