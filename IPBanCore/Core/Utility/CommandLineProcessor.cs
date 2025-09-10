@@ -30,20 +30,33 @@ namespace DigitalRuby.IPBanCore.Core.Utility
             );
             directoryOption.AddAlias("-d");
 
+            // version =====================
+            var versionCommand = new Command("version", "Get ipban software version");
+            versionCommand.SetHandler(() =>
+            {
+                Console.WriteLine(OSUtility.SoftwareVersion);
+            });
+
             // info =====================
             var infoCommand = new Command("info", "Get information about hosting OS");
             infoCommand.SetHandler(() =>
             {
-                Logger.Warn("System info: {0}", OSUtility.OSString());
+                Console.WriteLine(OSUtility.OSInfo);
+            });
+
+            // migrate =====================
+            var migrateCommand = new Command("migrate", "Migrate other provide to ipban.override.config).");
+            migrateCommand.SetHandler(() =>
+            {
+                return MigrationHelper.Migrate(args);
             });
 
             // logfiletest =====================
             var logFileTestCommand = new Command(
                 "logfiletest",
-                "Test a log file with regexes for failures and successes. The file should contain 5 lines with log-filename regex-failure regex-failure-timestamp-format regex-success regex-success-timestamp-format");
-            var fileArgument = new Argument<string>(
-                "file", 
-                description: "File containing information about test. THe file should contain the following lines: log-filename regex-failure regex-failure-timestamp-format regex-success regex-success-timestamp-format"
+                "Test a log file with regexes for failures and successes. It should contain 5 lines with log-filename regex-failure regex-failure-timestamp-format regex-success regex-success-timestamp-format");
+            var fileArgument = new Argument<string>("file", 
+                description: "File containing information about test. It should contain the following lines: log-filename regex-failure regex-failure-timestamp-format regex-success regex-success-timestamp-format"
             );
             logFileTestCommand.AddArgument(fileArgument);
 

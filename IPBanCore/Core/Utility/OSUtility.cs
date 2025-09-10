@@ -262,8 +262,7 @@ namespace DigitalRuby.IPBanCore
                 FriendlyName = "Unknown";
             }
 
-            Logger.Warn("OS version detected: {0}, app version: {1}",
-                OSString(), Assembly.GetEntryAssembly()?.GetName().Version?.ToString(3));
+            Logger.Warn("OS info detected: {0}, app version: {1}", OSInfo, Version);
         }
 
         private static void LoadVersionFromLinux()
@@ -407,13 +406,15 @@ namespace DigitalRuby.IPBanCore
         }
 
         /// <summary>
+        /// Get ipban software version
+        /// </summary>
+        public static string SoftwareVersion => Assembly.GetEntryAssembly().GetName().Version.ToString(3);
+
+        /// <summary>
         /// Get a string representing the operating system
         /// </summary>
         /// <returns>String</returns>
-        public static string OSString()
-        {
-            return $"Name: {Name}, Version: {Version}, Friendly Name: {FriendlyName}, Description: {Description}";
-        }
+        public static string OSInfo => $"Name: {Name}, Version: {Version}, Friendly Name: {FriendlyName}, Description: {Description}";
 
         private static string fqdn;
         /// <summary>
