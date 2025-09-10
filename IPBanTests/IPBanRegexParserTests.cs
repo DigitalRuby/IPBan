@@ -135,7 +135,7 @@ namespace DigitalRuby.IPBanTests
 
         // ---------- Inline flags normalization ----------
         [TestCase(@"(?i)failed from <IP>", "FAILED from 1.2.3.4")]
-        [TestCase(@"(?imx)failed\s\nfrom\s<IP>", "FaIlEd \nfrom 1.2.3.4")]
+        [TestCase(@"(?imx)failed  \n  from\s<IP>", "FaIlEd\nfrom 1.2.3.4")]
         [TestCase(@"(?Liu)failed\sfrom\s<IP>", "failed from 1.2.3.4")] // L/u dropped; i kept
         public void InlineFlags_KeptOrDroppedAsExpected(string pattern, string text)
         {
