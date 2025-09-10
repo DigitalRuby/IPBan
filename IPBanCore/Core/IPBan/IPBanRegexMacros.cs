@@ -13,9 +13,9 @@ namespace DigitalRuby.IPBanCore;
 public static class IPBanRegexMacros
 {
     // RFC 791 IPv4 and RFC 4291 IPv6 regex (without zone id)
-    private const string IPv4 = @"(?:\d{1,3}\.){3}\d{1,3}";
+    private const string IPv4 = @"((25[0-5]|(2[0-4]|1\d|[1-9]|)\d)\.?\b){4}";// (?:\d{1,3}\.){3}\d{1,3}";
     private const string IPv6 = @"(?:[0-9a-fA-F]{1,4}::?|:){1,7}(?:[0-9a-fA-F]{1,4}|(?<=:):)";
-    private const string IPv4Orv6 = "(?:" + IPv4 + "|" + IPv6 + ")";
+    private const string IPv4Orv6 = $"(?:{IPv4}|{IPv6})";
     // DNS label: single char OR start with alphanumeric, middle can have hyphens, end with alphanumeric
     private const string DnsPart = @"(?:[A-Za-z0-9](?:[A-Za-z0-9\-]{0,61}[A-Za-z0-9])?)";
     private const string FQDN = $@"(?:{DnsPart}\.)+{DnsPart}";
@@ -49,7 +49,7 @@ public static class IPBanRegexMacros
         s = s.Replace("<IPV4>", $@"(?<ipaddress>{IPv4})", StringComparison.Ordinal);
         s = s.Replace("<IPV6>", $@"(?<ipaddress>{IPv6})", StringComparison.Ordinal);
         s = s.Replace("<FQDN>", $@"(?<fqdn>{FQDN})", StringComparison.Ordinal);
-        s = s.Replace("<USER>", @"(?<username>[^\s""']+)", StringComparison.Ordinal);
+        s = s.Replace("<USER>", @"[""']?(?<username>[^\s""']+)[""']?", StringComparison.Ordinal);
 
         // ---- Regex-based transforms (compiled) ----
         // Python named groups -> .NET

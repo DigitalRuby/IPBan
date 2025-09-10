@@ -82,7 +82,9 @@ namespace DigitalRuby.IPBanTests
         {
             var m = MatchSingle(pattern, text);
             StringAssert.Contains("ip=", text);
-            StringAssert.AreEqualIgnoringCase(text.Substring(3), "=" + m.Groups["ipaddress"].Value);
+            var pi = text.IndexOf('%');
+            if (pi < 0) pi = text.Length;
+            StringAssert.AreEqualIgnoringCase(text[3..pi], m.Groups["ipaddress"].Value);
         }
 
         // ---------- <FQDN> ----------
@@ -132,9 +134,9 @@ namespace DigitalRuby.IPBanTests
         }
 
         // ---------- Inline flags normalization ----------
-        [TestCase("(?i)failed from <IP>", "FAILED from 1.2.3.4")]
-        [TestCase("(?imx) failed \n  from <IP>", "FaIlEd from 1.2.3.4")]
-        [TestCase("(?Liu) failed from <IP>", "failed from 1.2.3.4")] // L/u dropped; i kept
+        [TestCase(@"(?i)failed from <IP>", "FAILED from 1.2.3.4")]
+        [TestCase(@"(?imx)failed\s\nfrom\s<IP>", "FaIlEd \nfrom 1.2.3.4")]
+        [TestCase(@"(?Liu)failed\sfrom\s<IP>", "failed from 1.2.3.4")] // L/u dropped; i kept
         public void InlineFlags_KeptOrDroppedAsExpected(string pattern, string text)
         {
             var re = IPBanRegexParser.ParseRegex(pattern, multiline: true);
