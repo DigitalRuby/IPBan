@@ -18,7 +18,9 @@ namespace DigitalRuby.IPBanCore.Core.Utility
         /// <summary>
         /// Processes the command line.
         /// </summary>
-        public static async Task ProcessAsync(string[] args)
+        /// <param name="args">Args</param>
+        /// <returns>Exit code task</returns>
+        public static Task<int> ProcessAsync(string[] args)
         {
             var rootCommand = new RootCommand("IPBan utility");
 
@@ -225,7 +227,7 @@ namespace DigitalRuby.IPBanCore.Core.Utility
             rootCommand.Add(unbanCommand);
             rootCommand.Add(banCommand);
 
-            await rootCommand.InvokeAsync(args);
+            return rootCommand.InvokeAsync(args);
         }
 
 

@@ -24,7 +24,6 @@ SOFTWARE.
 
 using DigitalRuby.IPBanCore;
 
-using System;
 using System.Threading;
 using System.Threading.Tasks;
 using DigitalRuby.IPBanCore.Core.Utility;
@@ -41,16 +40,15 @@ namespace DigitalRuby.IPBan
         /// </summary>
         /// <param name="args">Args</param>
         /// <returns>Task</returns>
-        public static async Task Main(string[] args)
+        public static async Task<int> Main(string[] args)
         {
             if (args.Length != 0)
             {
-                await CommandLineProcessor.ProcessAsync(args);
-                return;
+                return await CommandLineProcessor.ProcessAsync(args);
             }
 
             IPBanService service = null;
-            await IPBanServiceRunner.MainService(args, (CancellationToken cancelToken) =>
+            return await IPBanServiceRunner.MainService(args, (CancellationToken cancelToken) =>
             {
                 service = IPBanService.CreateService<IPBanService>();
                 Logger.Warn("IPBan is free software created and refined over many years.");
@@ -63,6 +61,5 @@ namespace DigitalRuby.IPBan
                 return Task.CompletedTask;
             });
         }
-
     }
 }

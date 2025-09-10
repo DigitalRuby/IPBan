@@ -18,6 +18,8 @@ public static class MigrationHelper
     /// <returns>Exit code</returns>
     public static Task<int> Migrate(string[] args)
     {
-        return Task.FromResult(-1);
+        args = [.. args.Skip(1)]; // skip "migrate" arg
+        var code = MigrateFail2Ban.RunFromArgs(args);
+        return Task.FromResult(code);
     }
 }
