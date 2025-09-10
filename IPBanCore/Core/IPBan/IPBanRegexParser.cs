@@ -55,6 +55,18 @@ namespace DigitalRuby.IPBanCore
         /// </summary>
         private static char[] truncateUserNameCharsArray = [];
 
+        static IPBanRegexParser()
+        {
+            try
+            {
+                var domain = AppDomain.CurrentDomain;
+                domain.SetData("REGEX_DEFAULT_MATCH_TIMEOUT", TimeSpan.FromSeconds(5.0));
+            }
+            catch
+            {
+            }
+        }
+
         /// <summary>
         /// Truncate user name chars value
         /// </summary>
@@ -92,15 +104,13 @@ namespace DigitalRuby.IPBanCore
             {
                 sb.Append(line);
             }
-            RegexOptions options = RegexOptions.IgnoreCase | RegexOptions.CultureInvariant | RegexOptions.Compiled;
-            if (multiline)
-            {
-                options |= RegexOptions.Multiline;
-            }
+            RegexOptions options = RegexOptions.IgnoreCase | RegexOptions.CultureInvariant | RegexOptions.Compiled |
+                (multiline ? RegexOptions.Multiline : RegexOptions.None);
             string sbText = sb.ToString();
             sbText = IPBanRegexMacros.Expand(sbText);
-            var md5 = MD5.HashData(Encoding.UTF8.GetBytes(sbText));
-            string cacheKey = ((uint)options).ToString("X8") + ":" + Convert.ToBase64String(md5);
+            var bytes = Encoding.UTF8.GetBytes(sbText);
+            var hash = System.IO.Hashing.XxHash128.HashToUInt128(bytes);
+            string cacheKey = ((uint)options).ToString("X8") + ":" + hash.ToString("X32");
 
             // allow up to maxCacheSize compiled dynamic regular expression, with minimal config changes/reload, this should last the lifetime of an app
             lock (regexCacheCompiled)
