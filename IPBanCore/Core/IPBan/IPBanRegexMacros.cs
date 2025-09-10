@@ -13,7 +13,7 @@ namespace DigitalRuby.IPBanCore;
 public static class IPBanRegexMacros
 {
     // RFC 791 IPv4 and RFC 4291 IPv6 regex (without zone id)
-    private const string IPv4 = @"((25[0-5]|(2[0-4]|1\d|[1-9]|)\d)\.?\b){4}";// (?:\d{1,3}\.){3}\d{1,3}";
+    private const string IPv4 = @"((25[0-5]|(2[0-4]|1\d|[1-9]|)\d)\.?\b){4}"; // (?:\d{1,3}\.){3}\d{1,3}
     private const string IPv6 = @"(?:[0-9a-fA-F]{1,4}::?|:){1,7}(?:[0-9a-fA-F]{1,4}|(?<=:):)";
     private const string IPv4Orv6 = $"(?:{IPv4}|{IPv6})";
     // DNS label: single char OR start with alphanumeric, middle can have hyphens, end with alphanumeric
@@ -29,9 +29,9 @@ public static class IPBanRegexMacros
     private static readonly Regex PyNamedBackref =
         new(@"\(\?P=(?<n>[A-Za-z_]\w*)\)", RegexOptions.CultureInvariant | RegexOptions.Compiled);
 
-    // Inline flags: keep i,m,s,x; drop others
+    // Inline flags
     private static readonly Regex InlineFlags =
-        new(@"\(\?(?<f>[a-zA-Z]+)\)", RegexOptions.CultureInvariant | RegexOptions.Compiled);
+        new(@"\(\?(?<f>[a-zA-Z\-]+)\)", RegexOptions.CultureInvariant | RegexOptions.Compiled);
 
     /// <summary>
     /// Expand macros: &lt;HOST&gt;, &lt;IP&gt;, &lt;IPV4&gt;, &lt;IPV6&gt;, &lt;FQDN&gt;, &lt;USER&gt;, %(__prefix_line)s
@@ -39,7 +39,10 @@ public static class IPBanRegexMacros
     /// </summary>
     public static string Expand(string pattern)
     {
-        if (string.IsNullOrWhiteSpace(pattern)) return pattern ?? string.Empty;
+        if (string.IsNullOrWhiteSpace(pattern))
+        {
+            return pattern ?? string.Empty;
+        }
         string s = pattern;
 
         // ---- Raw string (literal) replacements (fast) ----
@@ -53,16 +56,19 @@ public static class IPBanRegexMacros
 
         // ---- Regex-based transforms (compiled) ----
         // Python named groups -> .NET
-        s = PyNamedGroup.Replace(s, m => $"(?<{m.Groups[1].Value}>)");
+        // Replace the Python-style opening '(?P<name>' with .NET '(?<name>' and leave the rest of the group intact
+        s = PyNamedGroup.Replace(s, m => $"(?<{m.Groups[1].Value}>");
         // Python named backrefs -> .NET
         s = PyNamedBackref.Replace(s, m => $@"\k<{m.Groups["n"].Value}>");
-        // Inline flags: keep i,m,s,x; drop others
+        // Inline flags
         s = InlineFlags.Replace(s, m =>
         {
-            var keep = new string([.. m.Groups["f"].Value.Where(c => "imsx".Contains(char.ToLowerInvariant(c)))]);
+            // keep imsnx; drop others since .NET doesn't support them
+            // docs: https://learn.microsoft.com/en-us/dotnet/standard/base-types/regular-expression-options
+            var keepChars = m.Groups["f"].Value.Where(c => "imnsx".Contains(char.ToLowerInvariant(c))); 
+            var keep = new string(keepChars.ToArray());
             return string.IsNullOrEmpty(keep) ? string.Empty : $"(?{keep})";
         });
-
         return s;
     }
 }
