@@ -12,17 +12,14 @@ namespace DigitalRuby.IPBanCore;
 /// </summary>
 public static class IPBanRegexMacros
 {
-    /// <summary>When true, &lt;HOST&gt; includes FQDN in addition to IP.</summary>
-    public const bool UseDnsHostnamesInHost = false;
-
     // RFC 791 IPv4 and RFC 4291 IPv6 regex (without zone id)
     private const string IPv4 = @"(?:\d{1,3}\.){3}\d{1,3}";
     private const string IPv6 = @"(?:[0-9a-fA-F]{1,4}::?|:){1,7}(?:[0-9a-fA-F]{1,4}|(?<=:):)";
     private const string IPv4Orv6 = "(?:" + IPv4 + "|" + IPv6 + ")";
     // DNS label: single char OR start with alphanumeric, middle can have hyphens, end with alphanumeric
-    private const string DnsLabel = @"[A-Za-z0-9](?:[A-Za-z0-9\-]{0,61}[A-Za-z0-9])?";
-    private const string FQDN = $@"(?:{DnsLabel}\.)+{DnsLabel}";
-    private const string HostCore = UseDnsHostnamesInHost ? $@"(?:{IPv4Orv6}|{FQDN})" : IPv4Orv6;
+    private const string DnsPart = @"(?:[A-Za-z0-9](?:[A-Za-z0-9\-]{0,61}[A-Za-z0-9])?)";
+    private const string FQDN = $@"(?:{DnsPart}\.)+{DnsPart}";
+    private const string HostCore = $"(?:{IPv4Orv6}|{FQDN})";
 
     // ===== Compiled regexes for constructs that require real regex =====
     // Python -> .NET named groups/backrefs
