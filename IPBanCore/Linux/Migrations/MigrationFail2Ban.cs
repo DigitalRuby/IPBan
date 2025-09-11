@@ -321,327 +321,327 @@ Options:
     }
 }
 
-    internal sealed class F2BJail
+internal sealed class F2BJail
+{
+    public string Name { get; set; } = "";
+    public bool Enabled { get; set; }
+    public string? Filter { get; set; }
+    public List<string> LogPaths { get; } = [];
+    public int? MaxRetry { get; set; }
+    public int? FindTimeSecs { get; set; }
+    public int? BanTimeSecs { get; set; }
+}
+
+internal sealed class F2BFilter
+{
+    public string Name { get; set; } = "";
+    public List<string> FailRegex { get; } = [];
+}
+
+internal sealed class MigratedJail
+{
+    public string Name { get; set; } = "";
+    public string Source { get; set; } = "";
+    public int? FailedLoginThreshold { get; set; }
+    public List<string> LogPaths { get; set; } = [];
+    public string FailedLoginRegex { get; set; } = "";
+}
+
+#endregion
+
+#region Reader & Parser
+
+internal sealed class F2BReader
+{
+    public string Root { get; }
+
+    public F2BReader(string root)
     {
-        public string Name { get; set; } = "";
-        public bool Enabled { get; set; }
-        public string? Filter { get; set; }
-        public List<string> LogPaths { get; } = new();
-        public int? MaxRetry { get; set; }
-        public int? FindTimeSecs { get; set; }
-        public int? BanTimeSecs { get; set; }
+        Root = root;
     }
 
-    internal sealed class F2BFilter
+    public List<F2BJail> ReadJails(bool includeDisabled)
     {
-        public string Name { get; set; } = "";
-        public List<string> FailRegex { get; } = new();
-    }
+        var files = GatherJailFiles();
+        var merged = new Dictionary<string, Dictionary<string, string>>(StringComparer.OrdinalIgnoreCase);
 
-    internal sealed class MigratedJail
-    {
-        public string Name { get; set; } = "";
-        public string Source { get; set; } = "";
-        public int? FailedLoginThreshold { get; set; }
-        public List<string> LogPaths { get; set; } = new();
-        public string FailedLoginRegex { get; set; } = "";
-    }
-
-    #endregion
-
-    #region Reader & Parser
-
-    internal sealed class F2BReader
-    {
-        public string Root { get; }
-
-        public F2BReader(string root)
+        foreach (var file in files)
         {
-            Root = root;
-        }
-
-        public List<F2BJail> ReadJails(bool includeDisabled)
-        {
-            var files = GatherJailFiles();
-            var merged = new Dictionary<string, Dictionary<string, string>>(StringComparer.OrdinalIgnoreCase);
-
-            foreach (var file in files)
+            foreach (var (section, key, value) in EmitKeyValues(file))
             {
-                foreach (var (section, key, value) in EmitKeyValues(file))
+                if (section.Equals("DEFAULT", StringComparison.OrdinalIgnoreCase))
                 {
-                    if (section.Equals("DEFAULT", StringComparison.OrdinalIgnoreCase))
-                    {
-                        // Ignore DEFAULT for jail entries (F2B uses it for global defaults)
-                        continue;
-                    }
-                    if (!merged.TryGetValue(section, out var dict))
-                    {
-                        dict = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-                        merged[section] = dict;
-                    }
-
-                    if (key.EndsWith("+=", StringComparison.Ordinal))
-                    {
-                        var baseKey = key.Substring(0, key.Length - 2).Trim();
-                        dict.TryGetValue(baseKey, out var prev);
-                        dict[baseKey] = (prev is null || prev.Length == 0) ? value : (prev + " " + value);
-                    }
-                    else
-                    {
-                        dict[key.Trim()] = value;
-                    }
+                    // Ignore DEFAULT for jail entries (F2B uses it for global defaults)
+                    continue;
                 }
-            }
-
-            var jails = new List<F2BJail>();
-            foreach (var kvp in merged)
-            {
-                var jailName = kvp.Key;
-                var dict = kvp.Value;
-
-                var jail = new F2BJail { Name = jailName };
-
-                if (dict.TryGetValue("enabled", out var enabledStr))
+                if (!merged.TryGetValue(section, out var dict))
                 {
-                    jail.Enabled = ParseBool(enabledStr);
+                    dict = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+                    merged[section] = dict;
+                }
+
+                if (key.EndsWith("+=", StringComparison.Ordinal))
+                {
+                    var baseKey = key.Substring(0, key.Length - 2).Trim();
+                    dict.TryGetValue(baseKey, out var prev);
+                    dict[baseKey] = (prev is null || prev.Length == 0) ? value : (prev + " " + value);
                 }
                 else
                 {
-                    // Fail2ban default is often false unless specified; keep conservative
-                    jail.Enabled = false;
-                }
-
-                if (dict.TryGetValue("filter", out var filter)) jail.Filter = filter;
-
-                if (dict.TryGetValue("logpath", out var logpath))
-                {
-                    foreach (var p in SplitPaths(logpath))
-                    {
-                        if (!string.IsNullOrWhiteSpace(p) && !jail.LogPaths.Contains(p))
-                        {
-                            jail.LogPaths.Add(p);
-                        }
-                    }
-                }
-
-                if (dict.TryGetValue("maxretry", out var maxRetryStr) && int.TryParse(maxRetryStr, out var mr))
-                {
-                    jail.MaxRetry = mr;
-                }
-
-                if (dict.TryGetValue("findtime", out var findStr))
-                {
-                    jail.FindTimeSecs = ParseDurationToSeconds(findStr);
-                }
-
-                if (dict.TryGetValue("bantime", out var banStr))
-                {
-                    jail.BanTimeSecs = ParseDurationToSeconds(banStr);
-                }
-
-                if (jail.Enabled || includeDisabled)
-                {
-                    jails.Add(jail);
+                    dict[key.Trim()] = value;
                 }
             }
-
-            return jails;
         }
 
-        public F2BFilter ReadFilter(string path)
+        var jails = new List<F2BJail>();
+        foreach (var kvp in merged)
         {
-            var filter = new F2BFilter { Name = Path.GetFileNameWithoutExtension(path) };
+            var jailName = kvp.Key;
+            var dict = kvp.Value;
 
-            string? currentSection = null;
-            foreach (var line in ReadAllLinesMerged(path))
+            var jail = new F2BJail { Name = jailName };
+
+            if (dict.TryGetValue("enabled", out var enabledStr))
             {
-                if (IsCommentOrBlank(line)) continue;
-                if (IsSection(line, out var sec))
-                {
-                    currentSection = sec.ToUpperInvariant();
-                    continue;
-                }
-                if (!"DEFINITION".Equals(currentSection, StringComparison.Ordinal))
-                {
-                    continue;
-                }
+                jail.Enabled = ParseBool(enabledStr);
+            }
+            else
+            {
+                // Fail2ban default is often false unless specified; keep conservative
+                jail.Enabled = false;
+            }
 
-                if (TrySplitKeyValue(line, out var key, out var value))
+            if (dict.TryGetValue("filter", out var filter)) jail.Filter = filter;
+
+            if (dict.TryGetValue("logpath", out var logpath))
+            {
+                foreach (var p in SplitPaths(logpath))
                 {
-                    var keyLower = key.ToLowerInvariant();
-                    if (keyLower == "failregex" || keyLower == "failregex +=" || keyLower == "failregex+=")
+                    if (!string.IsNullOrWhiteSpace(p) && !jail.LogPaths.Contains(p))
                     {
-                        var v = value.Trim();
-                        if (v.StartsWith("|")) v = v.TrimStart('|').Trim();
-                        if (!string.IsNullOrWhiteSpace(v))
-                        {
-                            filter.FailRegex.Add(v);
-                        }
+                        jail.LogPaths.Add(p);
                     }
                 }
             }
 
-            return filter;
-        }
-
-        private IEnumerable<string> GatherJailFiles()
-        {
-            var list = new List<string>(8);
-            var jailConf = Path.Combine(Root, "jail.conf");
-            if (File.Exists(jailConf)) list.Add(jailConf);
-
-            var jailD = Path.Combine(Root, "jail.d");
-            if (Directory.Exists(jailD))
+            if (dict.TryGetValue("maxretry", out var maxRetryStr) && int.TryParse(maxRetryStr, out var mr))
             {
-                list.AddRange(Directory.GetFiles(jailD, "*.conf", SearchOption.TopDirectoryOnly).OrderBy(s => s));
+                jail.MaxRetry = mr;
             }
 
-            var jailLocal = Path.Combine(Root, "jail.local");
-            if (File.Exists(jailLocal)) list.Add(jailLocal);
-
-            if (Directory.Exists(jailD))
+            if (dict.TryGetValue("findtime", out var findStr))
             {
-                list.AddRange(Directory.GetFiles(jailD, "*.local", SearchOption.TopDirectoryOnly).OrderBy(s => s));
+                jail.FindTimeSecs = ParseDurationToSeconds(findStr);
             }
 
-            return list;
-        }
-
-        private IEnumerable<(string section, string key, string value)> EmitKeyValues(string path)
-        {
-            string? currentSection = null;
-
-            foreach (var rawLine in ReadAllLinesMerged(path))
+            if (dict.TryGetValue("bantime", out var banStr))
             {
-                var line = rawLine.Trim();
-                if (IsCommentOrBlank(line)) continue;
+                jail.BanTimeSecs = ParseDurationToSeconds(banStr);
+            }
 
-                if (IsSection(line, out var sec))
-                {
-                    currentSection = sec;
-                    continue;
-                }
-
-                if (currentSection is null) continue;
-                if (!TrySplitKeyValue(line, out var key, out var value)) continue;
-
-                yield return (currentSection, key, value);
+            if (jail.Enabled || includeDisabled)
+            {
+                jails.Add(jail);
             }
         }
 
-        // Joins lines that end with a backslash to the next line
-        private IEnumerable<string> ReadAllLinesMerged(string path)
+        return jails;
+    }
+
+    public F2BFilter ReadFilter(string path)
+    {
+        var filter = new F2BFilter { Name = Path.GetFileNameWithoutExtension(path) };
+
+        string? currentSection = null;
+        foreach (var line in ReadAllLinesMerged(path))
         {
-            string? pending = null;
-
-            foreach (var lineRaw in File.ReadLines(path))
+            if (IsCommentOrBlank(line)) continue;
+            if (IsSection(line, out var sec))
             {
-                var line = lineRaw.TrimEnd();
-
-                if (pending is null)
-                {
-                    pending = line;
-                }
-                else
-                {
-                    pending += line;
-                }
-
-                if (pending.EndsWith("\\", StringComparison.Ordinal))
-                {
-                    pending = pending.Substring(0, pending.Length - 1);
-                    continue;
-                }
-
-                yield return pending;
-                pending = null;
+                currentSection = sec.ToUpperInvariant();
+                continue;
+            }
+            if (!"DEFINITION".Equals(currentSection, StringComparison.Ordinal))
+            {
+                continue;
             }
 
-            if (!string.IsNullOrEmpty(pending))
+            if (TrySplitKeyValue(line, out var key, out var value))
             {
-                yield return pending!;
-            }
-        }
-
-        private static bool IsCommentOrBlank(string line)
-        {
-            if (string.IsNullOrWhiteSpace(line)) return true;
-            var t = line.TrimStart();
-            return t.StartsWith('#') || t.StartsWith(';');
-        }
-
-        private static bool IsSection(string line, out string sectionName)
-        {
-            sectionName = "";
-            if (line.StartsWith("[") && line.EndsWith("]") && line.Length >= 3)
-            {
-                var s = line.Substring(1, line.Length - 2).Trim();
-                if (s.Length > 0)
+                var keyLower = key.ToLowerInvariant();
+                if (keyLower == "failregex" || keyLower == "failregex +=" || keyLower == "failregex+=")
                 {
-                    sectionName = s;
-                    return true;
+                    var v = value.Trim();
+                    if (v.StartsWith("|")) v = v.TrimStart('|').Trim();
+                    if (!string.IsNullOrWhiteSpace(v))
+                    {
+                        filter.FailRegex.Add(v);
+                    }
                 }
             }
-            return false;
         }
 
-        private static bool TrySplitKeyValue(string line, out string key, out string value)
-        {
-            // Handle "key += value" and "key = value"
-            key = ""; value = "";
-            var idx = line.IndexOf('=');
-            if (idx <= 0) return false;
+        return filter;
+    }
 
-            key = line.Substring(0, idx).Trim();
-            value = line.Substring(idx + 1).Trim();
-            return key.Length > 0;
+    private IEnumerable<string> GatherJailFiles()
+    {
+        var list = new List<string>(8);
+        var jailConf = Path.Combine(Root, "jail.conf");
+        if (File.Exists(jailConf)) list.Add(jailConf);
+
+        var jailD = Path.Combine(Root, "jail.d");
+        if (Directory.Exists(jailD))
+        {
+            list.AddRange(Directory.GetFiles(jailD, "*.conf", SearchOption.TopDirectoryOnly).OrderBy(s => s));
         }
 
-        private static bool ParseBool(string s)
+        var jailLocal = Path.Combine(Root, "jail.local");
+        if (File.Exists(jailLocal)) list.Add(jailLocal);
+
+        if (Directory.Exists(jailD))
         {
-            var t = s.Trim().ToLowerInvariant();
-            return t is "1" or "true" or "yes" or "enabled";
+            list.AddRange(Directory.GetFiles(jailD, "*.local", SearchOption.TopDirectoryOnly).OrderBy(s => s));
         }
 
-        private static IEnumerable<string> SplitPaths(string value)
+        return list;
+    }
+
+    private IEnumerable<(string section, string key, string value)> EmitKeyValues(string path)
+    {
+        string? currentSection = null;
+
+        foreach (var rawLine in ReadAllLinesMerged(path))
         {
-            // split on comma and whitespace, preserving globs
-            foreach (var tok in value.Split(new[] { ',', ' ' }, StringSplitOptions.RemoveEmptyEntries))
+            var line = rawLine.Trim();
+            if (IsCommentOrBlank(line)) continue;
+
+            if (IsSection(line, out var sec))
             {
-                var t = tok.Trim();
-                if (t.Length > 0) yield return t;
+                currentSection = sec;
+                continue;
             }
-        }
 
-        public static int ParseDurationToSeconds(string s)
-        {
-            // Accept: "600", "10m", "1h", "2d", "HH:MM:SS"
-            s = s.Trim();
-            if (int.TryParse(s, NumberStyles.Integer, CultureInfo.InvariantCulture, out var v))
-                return Math.Max(0, v);
+            if (currentSection is null) continue;
+            if (!TrySplitKeyValue(line, out var key, out var value)) continue;
 
-            if (TryMatchSimple(s, @"^([0-9]+)m$", out var m)) return int.Parse(m[1].Value, CultureInfo.InvariantCulture) * 60;
-            if (TryMatchSimple(s, @"^([0-9]+)h$", out var h)) return int.Parse(h[1].Value, CultureInfo.InvariantCulture) * 3600;
-            if (TryMatchSimple(s, @"^([0-9]+)d$", out var d)) return int.Parse(d[1].Value, CultureInfo.InvariantCulture) * 86400;
-
-            if (TryMatchSimple(s, @"^([0-9]{1,2}):([0-9]{1,2}):([0-9]{1,2})$", out var t))
-            {
-                var days = int.Parse(t[1].Value, CultureInfo.InvariantCulture);
-                var hours = int.Parse(t[2].Value, CultureInfo.InvariantCulture);
-                var mins = int.Parse(t[3].Value, CultureInfo.InvariantCulture);
-                return Math.Max(0, (days * 86400) + (hours * 3600) + (mins * 60));
-            }
-            return 0;
-        }
-
-        private static bool TryMatchSimple(string input, string pattern, out GroupCollection groups)
-        {
-            var m = Regex.Match(input, pattern, RegexOptions.CultureInvariant);
-            if (m.Success) { groups = m.Groups; return true; }
-            groups = Match.Empty.Groups;
-            return false;
+            yield return (currentSection, key, value);
         }
     }
+
+    // Joins lines that end with a backslash to the next line
+    private IEnumerable<string> ReadAllLinesMerged(string path)
+    {
+        string? pending = null;
+
+        foreach (var lineRaw in File.ReadLines(path))
+        {
+            var line = lineRaw.TrimEnd();
+
+            if (pending is null)
+            {
+                pending = line;
+            }
+            else
+            {
+                pending += line;
+            }
+
+            if (pending.EndsWith("\\", StringComparison.Ordinal))
+            {
+                pending = pending.Substring(0, pending.Length - 1);
+                continue;
+            }
+
+            yield return pending;
+            pending = null;
+        }
+
+        if (!string.IsNullOrEmpty(pending))
+        {
+            yield return pending!;
+        }
+    }
+
+    private static bool IsCommentOrBlank(string line)
+    {
+        if (string.IsNullOrWhiteSpace(line)) return true;
+        var t = line.TrimStart();
+        return t.StartsWith('#') || t.StartsWith(';');
+    }
+
+    private static bool IsSection(string line, out string sectionName)
+    {
+        sectionName = "";
+        if (line.StartsWith("[") && line.EndsWith("]") && line.Length >= 3)
+        {
+            var s = line.Substring(1, line.Length - 2).Trim();
+            if (s.Length > 0)
+            {
+                sectionName = s;
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static bool TrySplitKeyValue(string line, out string key, out string value)
+    {
+        // Handle "key += value" and "key = value"
+        key = ""; value = "";
+        var idx = line.IndexOf('=');
+        if (idx <= 0) return false;
+
+        key = line.Substring(0, idx).Trim();
+        value = line.Substring(idx + 1).Trim();
+        return key.Length > 0;
+    }
+
+    private static bool ParseBool(string s)
+    {
+        var t = s.Trim().ToLowerInvariant();
+        return t is "1" or "true" or "yes" or "enabled";
+    }
+
+    private static IEnumerable<string> SplitPaths(string value)
+    {
+        // split on comma and whitespace, preserving globs
+        foreach (var tok in value.Split(new[] { ',', ' ' }, StringSplitOptions.RemoveEmptyEntries))
+        {
+            var t = tok.Trim();
+            if (t.Length > 0) yield return t;
+        }
+    }
+
+    public static int ParseDurationToSeconds(string s)
+    {
+        // Accept: "600", "10m", "1h", "2d", "HH:MM:SS"
+        s = s.Trim();
+        if (int.TryParse(s, NumberStyles.Integer, CultureInfo.InvariantCulture, out var v))
+            return Math.Max(0, v);
+
+        if (TryMatchSimple(s, @"^([0-9]+)m$", out var m)) return int.Parse(m[1].Value, CultureInfo.InvariantCulture) * 60;
+        if (TryMatchSimple(s, @"^([0-9]+)h$", out var h)) return int.Parse(h[1].Value, CultureInfo.InvariantCulture) * 3600;
+        if (TryMatchSimple(s, @"^([0-9]+)d$", out var d)) return int.Parse(d[1].Value, CultureInfo.InvariantCulture) * 86400;
+
+        if (TryMatchSimple(s, @"^([0-9]{1,2}):([0-9]{1,2}):([0-9]{1,2})$", out var t))
+        {
+            var days = int.Parse(t[1].Value, CultureInfo.InvariantCulture);
+            var hours = int.Parse(t[2].Value, CultureInfo.InvariantCulture);
+            var mins = int.Parse(t[3].Value, CultureInfo.InvariantCulture);
+            return Math.Max(0, (days * 86400) + (hours * 3600) + (mins * 60));
+        }
+        return 0;
+    }
+
+    private static bool TryMatchSimple(string input, string pattern, out GroupCollection groups)
+    {
+        var m = Regex.Match(input, pattern, RegexOptions.CultureInvariant);
+        if (m.Success) { groups = m.Groups; return true; }
+        groups = Match.Empty.Groups;
+        return false;
+    }
+}
 
 #endregion
 
