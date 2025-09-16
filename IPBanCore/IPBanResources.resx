@@ -244,7 +244,7 @@
     <value>Expire Time</value>
   </data>
   <data name="ExpireTimeTooltip" xml:space="preserve">
-    <value>The duration after the last failed login attempt that the ip is forgotten(count reset back to 0). Set to 00:00:00:00 to use max duration (90 days). Format is DD:HH:MM:SS.</value>
+    <value>The duration after the last failed login attempt that the ip is forgotten (count reset back to 0). Set to 00:00:00:00 to use max duration (90 days). Format is DD:HH:MM:SS.</value>
   </data>
   <data name="FailedLoginAttempts" xml:space="preserve">
     <value>Failed login attempts</value>

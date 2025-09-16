@@ -1024,7 +1024,7 @@ namespace DigitalRuby.IPBanCore {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The duration after the last failed login attempt that the ip is forgotten(count reset back to 0). Set to 00:00:00:00 to use max duration (90 days). Format is DD:HH:MM:SS..
+        ///   Looks up a localized string similar to The duration after the last failed login attempt that the ip is forgotten (count reset back to 0). Set to 00:00:00:00 to use max duration (90 days). Format is DD:HH:MM:SS..
         /// </summary>
         public static string ExpireTimeTooltip {
             get {
