@@ -168,5 +168,68 @@ namespace DigitalRuby.IPBanTests
             AssertGroup(matches[1], "username", "alice");
             AssertGroup(matches[1], "ipaddress", "2001:db8::1");
         }
+
+        // ---------- $$file(fileOrUrl) syntax ----------
+        [Test]
+        public void FileReplacement_LocalFile_LiteralsEscaped_AndMatched()
+        {
+            // create a temporary file with a variety of literal lines
+            var path = System.IO.Path.GetTempFileName();
+            try
+            {
+                var lines = new[] { "abc", "def", "g.h", "x+y*z", " [brackets] " };
+                System.IO.File.WriteAllLines(path, lines);
+
+                // anchor so the entire input must match a line from the file
+                var pattern = $"^$$file({path})$";
+                var re = IPBanRegexParser.ParseRegex(pattern);
+                ClassicAssert.NotNull(re);
+
+                // positives
+                ClassicAssert.IsTrue(re.IsMatch("abc"));
+                ClassicAssert.IsTrue(re.IsMatch("def"));
+                ClassicAssert.IsTrue(re.IsMatch("g.h"));
+                ClassicAssert.IsTrue(re.IsMatch("x+y*z"));
+                ClassicAssert.IsTrue(re.IsMatch("[brackets]")); // trimmed in replacement
+
+                // negatives
+                ClassicAssert.IsFalse(re.IsMatch("abcd"));
+                ClassicAssert.IsFalse(re.IsMatch("gxh"));
+                ClassicAssert.IsFalse(re.IsMatch("there"));
+            }
+            finally
+            {
+                try { System.IO.File.Delete(path); } catch { }
+            }
+        }
+
+        [Test]
+        public void FileReplacement_Url_ExpandsAndMatchesKnownWords()
+        {
+            // external test file contains four lines: testline, testline2, hello, there
+            var url = "https://api.ipban.com/test.txt";
+            var pattern = $"^$$file({url})$";
+            var re = IPBanRegexParser.ParseRegex(pattern);
+            ClassicAssert.NotNull(re);
+
+            // if the remote file is not reachable, make the test inconclusive instead of failing the suite
+            var anyMatch = re.IsMatch("testline") || re.IsMatch("testline2") || re.IsMatch("hello") || re.IsMatch("there");
+            if (!anyMatch)
+            {
+                Assert.Inconclusive("Remote test list not reachable or contents changed.");
+            }
+
+            // when reachable, verify all expected tokens match and some negatives do not
+            if (anyMatch)
+            {
+                ClassicAssert.IsTrue(re.IsMatch("testline"));
+                ClassicAssert.IsTrue(re.IsMatch("testline2"));
+                ClassicAssert.IsTrue(re.IsMatch("hello"));
+                ClassicAssert.IsTrue(re.IsMatch("there"));
+
+                ClassicAssert.IsFalse(re.IsMatch("unknown"));
+                ClassicAssert.IsFalse(re.IsMatch("hello there")); // whole string must equal one list entry
+            }
+        }
     }
 }

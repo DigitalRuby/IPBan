@@ -98,6 +98,7 @@ namespace DigitalRuby.IPBanCore
                 return null;
             }
 
+            text = ReplaceFileDeclarationsWithOrExpressions(text);
             string[] lines = text.Split('\n', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
             StringBuilder sb = new();
             foreach (string line in lines)
@@ -449,6 +450,46 @@ namespace DigitalRuby.IPBanCore
                 return int.Parse(repeater.Groups["count"].Value, CultureInfo.InvariantCulture);
             }
             return 1;
+        }
+
+        private static string ReplaceFileDeclarationsWithOrExpressions(string text)
+        {
+            // replace $$file(...) with ( ...|...|... ) expressions
+            const string groupPrefix = "(?:";
+           
+            return Regex.Replace(text, @"\$\$file\((?<file>[^\)]+)\)", match =>
+            {
+                string fileName = match.Groups["file"].Value;
+                string replacement = string.Empty;
+                try
+                {
+                    string[] lines = [];
+                    ExtensionMethods.Retry(() => lines = IOUtility.GetLines(fileName, ushort.MaxValue));
+                    if (lines.Length != 0)
+                    {
+                        StringBuilder sb = new(groupPrefix);
+                        foreach (var line in lines)
+                        {
+                            string trimmedLine = line.Trim();
+                            if (trimmedLine.Length != 0)
+                            {
+                                if (sb.Length > groupPrefix.Length)
+                                {
+                                    sb.Append('|');
+                                }
+                                sb.Append(Regex.Escape(trimmedLine));
+                            }
+                        }
+                        sb.Append(')');
+                        replacement = sb.ToString();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Logger.Error(ex, "Error replacing regex file '{0}'", fileName);
+                }
+                return replacement;
+            });
         }
     }
 }
