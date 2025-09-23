@@ -154,7 +154,7 @@ namespace DigitalRuby.IPBanTests
         public void TestCombineList(string path, int inputCount, int outputCount)
         {
             var lines = System.IO.File.ReadAllText(path);
-            var ranges = lines.Split(['\n'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            var ranges = lines.Split(new char[] { '\n' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
                 .Select(l => IPAddressRange.Parse(l))
                 .OrderBy(l => l)
                 .ToArray();

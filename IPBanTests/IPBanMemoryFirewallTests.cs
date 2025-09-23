@@ -50,7 +50,7 @@ namespace DigitalRuby.IPBanTests
             f.AllowIPAddresses("TestRuleAllow", [IPAddressRange.Parse(allowIP2)]).Sync();
             f.BlockIPAddresses(null, blockIP.Concat([allowIP, allowIP2, ipv6_1, ipv6_2])).Sync();
             IPAddressRange range = new(IPAddress.Parse(ipv6_2), IPAddress.Parse(ipv6_1));
-            f.BlockIPAddresses("TestRuleBlock", [range], []);
+            f.BlockIPAddresses("TestRuleBlock", new IPAddressRange[] { range }, new PortRange[0]);
             string[] banned = f.EnumerateBannedIPAddresses().ToArray();
             IPAddressRange[] banned2 = f.EnumerateIPAddresses("TestRuleBlock").ToArray();
             ClassicAssert.AreEqual(0, f.GetRuleNames("CB").Count());

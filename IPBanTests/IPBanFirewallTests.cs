@@ -64,7 +64,7 @@ namespace DigitalRuby.IPBanTests
         [Test]
         public void TestBlock()
         {
-            firewall.BlockIPAddresses(null, ["99.99.99.99"]).Sync();
+            firewall.BlockIPAddresses(null, new string[] { "99.99.99.99" }).Sync();
             ClassicAssert.IsTrue(firewall.IsIPAddressBlocked("99.99.99.99", out _));
         }
 

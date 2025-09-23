@@ -1,0 +1,508 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TestRun id="cccbb513-adba-413b-b414-d70cb1338767" name="@runnervmf4ws1 2025-09-23 19:45:34" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2025-09-23T19:45:34.1496415+00:00" queuing="2025-09-23T19:45:34.1496416+00:00" start="2025-09-23T19:45:32.0828481+00:00" finish="2025-09-23T19:45:36.7582587+00:00" />
+  <TestSettings name="default" id="4c35b52f-5dc0-4806-8129-57c9f04a3e24">
+    <Deployment runDeploymentRoot="_runnervmf4ws1_2025-09-23_19_45_34" />
+  </TestSettings>
+  <Results>
+    <UnitTestResult executionId="8567e4a1-a930-4237-bc55-b732a37084c2" testId="b1005d1c-71cf-c538-5c47-901e32ce5ba5" testName="TestWriterLock" computerName="runnervmf4ws1" duration="00:00:00.0036600" startTime="2025-09-23T19:45:33.9246568+00:00" endTime="2025-09-23T19:45:33.9283170+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="8567e4a1-a930-4237-bc55-b732a37084c2" />
+    <UnitTestResult executionId="30b7705a-3b93-44be-a713-a2cbe95f3829" testId="35022aa7-bb2c-1c64-8f14-97af2392291a" testName="TestEnqueueDequeue" computerName="runnervmf4ws1" duration="00:00:00.0233500" startTime="2025-09-23T19:45:32.8809149+00:00" endTime="2025-09-23T19:45:32.9041784+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="30b7705a-3b93-44be-a713-a2cbe95f3829" />
+    <UnitTestResult executionId="e42908ba-65f5-4280-bf2e-a80449819382" testId="2b7a10bd-f166-bfd5-7b78-89622e932f9f" testName="TestMultipleThreads" computerName="runnervmf4ws1" duration="00:00:01.0064410" startTime="2025-09-23T19:45:32.9056389+00:00" endTime="2025-09-23T19:45:33.9120792+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="e42908ba-65f5-4280-bf2e-a80449819382" />
+    <UnitTestResult executionId="00001f3c-e1bf-490d-871b-06c236722f67" testId="2028ed74-4a84-ca5f-549d-84a7cc8777ba" testName="TestReaderLock" computerName="runnervmf4ws1" duration="00:00:00.0095450" startTime="2025-09-23T19:45:33.9150826+00:00" endTime="2025-09-23T19:45:33.9246279+00:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="00001f3c-e1bf-490d-871b-06c236722f67" />
+  </Results>
+  <TestDefinitions>
+    <UnitTest name="TestReaderLock" storage="/home/runner/work/ipban/ipban/ipbantests/bin/debug/net8.0/digitalruby.ipbantests.dll" id="2028ed74-4a84-ca5f-549d-84a7cc8777ba">
+      <Execution id="00001f3c-e1bf-490d-871b-06c236722f67" />
+      <TestMethod codeBase="/home/runner/work/IPBan/IPBan/IPBanTests/bin/Debug/net8.0/DigitalRuby.IPBanTests.dll" adapterTypeName="executor://nunit3testexecutor/" className="DigitalRuby.IPBanTests.IPBanAsyncReaderWriterLockTests" name="TestReaderLock" />
+    </UnitTest>
+    <UnitTest name="TestMultipleThreads" storage="/home/runner/work/ipban/ipban/ipbantests/bin/debug/net8.0/digitalruby.ipbantests.dll" id="2b7a10bd-f166-bfd5-7b78-89622e932f9f">
+      <Execution id="e42908ba-65f5-4280-bf2e-a80449819382" />
+      <TestMethod codeBase="/home/runner/work/IPBan/IPBan/IPBanTests/bin/Debug/net8.0/DigitalRuby.IPBanTests.dll" adapterTypeName="executor://nunit3testexecutor/" className="DigitalRuby.IPBanTests.IPBanAsyncQueueTests" name="TestMultipleThreads" />
+    </UnitTest>
+    <UnitTest name="TestWriterLock" storage="/home/runner/work/ipban/ipban/ipbantests/bin/debug/net8.0/digitalruby.ipbantests.dll" id="b1005d1c-71cf-c538-5c47-901e32ce5ba5">
+      <Execution id="8567e4a1-a930-4237-bc55-b732a37084c2" />
+      <TestMethod codeBase="/home/runner/work/IPBan/IPBan/IPBanTests/bin/Debug/net8.0/DigitalRuby.IPBanTests.dll" adapterTypeName="executor://nunit3testexecutor/" className="DigitalRuby.IPBanTests.IPBanAsyncReaderWriterLockTests" name="TestWriterLock" />
+    </UnitTest>
+    <UnitTest name="TestEnqueueDequeue" storage="/home/runner/work/ipban/ipban/ipbantests/bin/debug/net8.0/digitalruby.ipbantests.dll" id="35022aa7-bb2c-1c64-8f14-97af2392291a">
+      <Execution id="30b7705a-3b93-44be-a713-a2cbe95f3829" />
+      <TestMethod codeBase="/home/runner/work/IPBan/IPBan/IPBanTests/bin/Debug/net8.0/DigitalRuby.IPBanTests.dll" adapterTypeName="executor://nunit3testexecutor/" className="DigitalRuby.IPBanTests.IPBanAsyncQueueTests" name="TestEnqueueDequeue" />
+    </UnitTest>
+  </TestDefinitions>
+  <TestEntries>
+    <TestEntry testId="b1005d1c-71cf-c538-5c47-901e32ce5ba5" executionId="8567e4a1-a930-4237-bc55-b732a37084c2" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="35022aa7-bb2c-1c64-8f14-97af2392291a" executionId="30b7705a-3b93-44be-a713-a2cbe95f3829" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="2b7a10bd-f166-bfd5-7b78-89622e932f9f" executionId="e42908ba-65f5-4280-bf2e-a80449819382" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="2028ed74-4a84-ca5f-549d-84a7cc8777ba" executionId="00001f3c-e1bf-490d-871b-06c236722f67" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+  </TestEntries>
+  <TestLists>
+    <TestList name="Results Not in a List" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestList name="All Loaded Results" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+  <ResultSummary outcome="Failed">
+    <Counters total="4" executed="4" passed="4" failed="0" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+    <Output>
+      <StdOut>NUnit Adapter 5.1.0.0: Test execution started
+Running all tests in /home/runner/work/IPBan/IPBan/IPBanTests/bin/Debug/net8.0/DigitalRuby.IPBanTests.dll
+   NUnit3TestExecutor discovered 319 of 319 NUnit test cases using Current Discovery mode, Non-Explicit run
+2025-09-23 19:45:33.9301|WARN|IPBan|Detecting os version...
+2025-09-23 19:45:33.9301|WARN|IPBan|OS info detected: Name: Linux, Version: 24.04, Friendly Name: Ubuntu - noble, Description: Ubuntu 24.04.3 LTS, app version: 24.04
+2025-09-23 19:45:33.9301|INFO|IPBan|Initializing IPBan database at Data Source=/home/runner/work/IPBan/IPBan/IPBanTests/bin/Debug/net8.0/ipban.sqlite;Cache=Shared;
+2025-09-23 19:45:33.9301|WARN|IPBan|IPBan service started and initialized
+2025-09-23 19:45:33.9301|WARN|IPBan|Log levels: True,True,True,True,True,False
+2025-09-23 19:45:33.9301|INFO|IPBan|Config file changed
+2025-09-23 19:45:33.9301|INFO|IPBan|Adding log file to parse: /var/log/auth*.log
+2025-09-23 19:45:33.9301|INFO|IPBan|Adding log file to parse: /var/log/secure*
+2025-09-23 19:45:33.9301|INFO|IPBan|Adding log file to parse: /var/log/messages
+2025-09-23 19:45:33.9301|INFO|IPBan|Adding log file to parse: /var/log/ipbancustom*.log
+2025-09-23 19:45:33.9301|INFO|IPBan|Adding log file to parse: C:/Program Files/Tomcat/logs/**/*access_log*.txt
+2025-09-23 19:45:33.9301|INFO|IPBan|Adding log file to parse: /var/log/httpd/access_log
+2025-09-23 19:45:33.9301|INFO|IPBan|Executing process sudo firewall-cmd --version...
+2025-09-23 19:45:33.9301|WARN|IPBan|FirewallD version: sudo: firewall
+2025-09-23 19:45:33.9301|ERROR|IPBan|Failed to create firewall of type DigitalRuby.IPBanCore.IPBanLinuxFirewallD, falling back to firewall type DigitalRuby.IPBanCore.IPBanLinuxFirewallIPTables: System.Reflection.TargetInvocationException: Exception has been thrown by the target of an invocation.
+ ---&gt; System.IO.DirectoryNotFoundException: Could not find a part of the path '/etc/firewalld/zones/public.xml'.
+   at Interop.ThrowExceptionForIoErrno(ErrorInfo errorInfo, String path, Boolean isDirError)
+   at Microsoft.Win32.SafeHandles.SafeFileHandle.Open(String path, OpenFlags flags, Int32 mode, Boolean failForSymlink, Boolean&amp; wasSymlink, Func`4 createOpenException)
+   at Microsoft.Win32.SafeHandles.SafeFileHandle.Open(String fullPath, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize, UnixFileMode openPermissions, Int64&amp; fileLength, UnixFileMode&amp; filePermissions, Boolean failForSymlink, Boolean&amp; wasSymlink, Func`4 createOpenException)
+   at System.IO.File.OpenHandle(String path, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize)
+   at System.IO.File.WriteToFile(String path, FileMode mode, String contents, Encoding encoding)
+   at DigitalRuby.IPBanCore.IPBanLinuxFirewallD.EnsureZoneFile(String zoneFile, String zoneFileOrig, String fallbackZoneFileContents) in /home/runner/work/IPBan/IPBan/IPBanCore/Linux/IPBanLinuxFirewallD.cs:line 609
+   at DigitalRuby.IPBanCore.IPBanLinuxFirewallD..ctor(String rulePrefix) in /home/runner/work/IPBan/IPBan/IPBanCore/Linux/IPBanLinuxFirewallD.cs:line 108
+   at System.RuntimeMethodHandle.InvokeMethod(Object target, Void** arguments, Signature sig, Boolean isConstructor)
+   at System.Reflection.MethodBaseInvoker.InvokeDirectByRefWithFewArgs(Object obj, Span`1 copyOfArgs, BindingFlags invokeAttr)
+   --- End of inner exception stack trace ---
+   at System.Reflection.MethodBaseInvoker.InvokeDirectByRefWithFewArgs(Object obj, Span`1 copyOfArgs, BindingFlags invokeAttr)
+   at System.Reflection.MethodBaseInvoker.InvokeWithOneArg(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+   at System.RuntimeType.CreateInstanceImpl(BindingFlags bindingAttr, Binder binder, Object[] args, CultureInfo culture)
+   at DigitalRuby.IPBanCore.IPBanFirewallUtility.CreateFirewall(IReadOnlyCollection`1 allTypes, String rulePrefix, IIPBanFirewall previousFirewall) in /home/runner/work/IPBan/IPBan/IPBanCore/Core/IPBan/IPBanFirewallUtility.cs:line 120---
+System.IO.DirectoryNotFoundException: Could not find a part of the path '/etc/firewalld/zones/public.xml'.
+   at Interop.ThrowExceptionForIoErrno(ErrorInfo errorInfo, String path, Boolean isDirError)
+   at Microsoft.Win32.SafeHandles.SafeFileHandle.Open(String path, OpenFlags flags, Int32 mode, Boolean failForSymlink, Boolean&amp; wasSymlink, Func`4 createOpenException)
+   at Microsoft.Win32.SafeHandles.SafeFileHandle.Open(String fullPath, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize, UnixFileMode openPermissions, Int64&amp; fileLength, UnixFileMode&amp; filePermissions, Boolean failForSymlink, Boolean&amp; wasSymlink, Func`4 createOpenException)
+   at System.IO.File.OpenHandle(String path, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize)
+   at System.IO.File.WriteToFile(String path, FileMode mode, String contents, Encoding encoding)
+   at DigitalRuby.IPBanCore.IPBanLinuxFirewallD.EnsureZoneFile(String zoneFile, String zoneFileOrig, String fallbackZoneFileContents) in /home/runner/work/IPBan/IPBan/IPBanCore/Linux/IPBanLinuxFirewallD.cs:line 609
+   at DigitalRuby.IPBanCore.IPBanLinuxFirewallD..ctor(String rulePrefix) in /home/runner/work/IPBan/IPBan/IPBanCore/Linux/IPBanLinuxFirewallD.cs:line 108
+   at System.RuntimeMethodHandle.InvokeMethod(Object target, Void** arguments, Signature sig, Boolean isConstructor)
+   at System.Reflection.MethodBaseInvoker.InvokeDirectByRefWithFewArgs(Object obj, Span`1 copyOfArgs, BindingFlags invokeAttr)
+2025-09-23 19:45:33.9301|DEBUG|IPBan|Running firewall process: update-alternatives --set iptables /usr/sbin/iptables-legacy
+2025-09-23 19:45:33.9301|ERROR|IPBan|Process update-alternatives --set iptables /usr/sbin/iptables-legacy had std err: update-alternatives: error: error creating symbolic link '/etc/alternatives/iptables.dpkg-tmp': Permission denied
+
+2025-09-23 19:45:33.9301|ERROR|IPBan|Process update-alternatives --set iptables /usr/sbin/iptables-legacy had exit code 2
+2025-09-23 19:45:33.9301|DEBUG|IPBan|Running firewall process: update-alternatives --set ip6tables /usr/sbin/ip6tables-legacy
+2025-09-23 19:45:33.9301|ERROR|IPBan|Process update-alternatives --set ip6tables /usr/sbin/ip6tables-legacy had std err: update-alternatives: error: error creating symbolic link '/etc/alternatives/ip6tables.dpkg-tmp': Permission denied
+
+2025-09-23 19:45:33.9301|ERROR|IPBan|Process update-alternatives --set ip6tables /usr/sbin/ip6tables-legacy had exit code 2
+2025-09-23 19:45:33.9301|WARN|IPBan|Loaded firewall type DigitalRuby.IPBanCore.IPBanLinuxFirewallIPTables
+2025-09-23 19:45:33.9301|DEBUG|IPBan|Running firewall process: iptables -L -n
+2025-09-23 19:45:33.9301|ERROR|IPBan|Process iptables -L -n had std err: iptables v1.8.10 (nf_tables): Could not fetch rule set generation id: Permission denied (you must be root)
+
+2025-09-23 19:45:33.9301|ERROR|IPBan|Process iptables -L -n had exit code 4
+2025-09-23 19:45:33.9301|ERROR|IPBan|Error Exception: System.IO.FileNotFoundException: Could not find file '/tmp/ed5c866b30ec49c0950168e5d0e73f1a.tmp'.
+File name: '/tmp/ed5c866b30ec49c0950168e5d0e73f1a.tmp'
+   at Interop.ThrowExceptionForIoErrno(ErrorInfo errorInfo, String path, Boolean isDirError)
+   at Microsoft.Win32.SafeHandles.SafeFileHandle.Open(String path, OpenFlags flags, Int32 mode, Boolean failForSymlink, Boolean&amp; wasSymlink, Func`4 createOpenException)
+   at Microsoft.Win32.SafeHandles.SafeFileHandle.Open(String fullPath, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize, UnixFileMode openPermissions, Int64&amp; fileLength, UnixFileMode&amp; filePermissions, Boolean failForSymlink, Boolean&amp; wasSymlink, Func`4 createOpenException)
+   at System.IO.Strategies.OSFileStreamStrategy..ctor(String path, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize, Nullable`1 unixCreateMode)
+   at System.IO.FileStream..ctor(String path, FileMode mode, FileAccess access, FileShare share, Int32 bufferSize, FileOptions options, Int64 preallocationSize)
+   at System.IO.StreamReader.ValidateArgsAndOpenPath(String path, Encoding encoding, Int32 bufferSize)
+   at System.IO.StreamReader..ctor(String path)
+   at DigitalRuby.IPBanCore.IPBanLinuxBaseFirewallIPTables.GetRuleNames(String ruleNamePrefix)+MoveNext() in /home/runner/work/IPBan/IPBan/IPBanCore/Linux/IPBanLinuxBaseFirewallIPTables.cs:line 422
+   at System.Collections.Generic.LargeArrayBuilder`1.AddRange(IEnumerable`1 items)
+   at System.Collections.Generic.EnumerableHelpers.ToArray[T](IEnumerable`1 source)
+   at DigitalRuby.IPBanCore.IPBanService.LoadFirewall(IPBanConfig oldConfig) in /home/runner/work/IPBan/IPBan/IPBanCore/Core/IPBan/IPBanService_Private.cs:line 585
+   at DigitalRuby.IPBanCore.IPBanService.UpdateConfiguration(CancellationToken cancelToken) in /home/runner/work/IPBan/IPBan/IPBanCore/Core/IPBan/IPBanService_Private.cs:line 105
+2025-09-23 19:45:33.9301|INFO|IPBan|Local ip address: 10.1.0.252
+2025-09-23 19:45:33.9301|INFO|IPBan|FQDN: runnervmf4ws1
+2025-09-23 19:45:33.9301|DEBUG|IPBan|No delegate to update
+2025-09-23 19:45:33.9301|DEBUG|IPBan|No firewall tasks to run
+2025-09-23 19:45:33.9301|WARN|IPBan|IPBan is running correctly. You can perform a failed ssh or rdp login and watch this log to verify functionality.
+2025-09-23 19:45:33.9301|DEBUG|IPBan|Running firewall process: iptables -F
+2025-09-23 19:45:33.9301|ERROR|IPBan|Process iptables -F had std err: iptables v1.8.10 (nf_tables): Could not fetch rule set generation id: Permission denied (you must be root)
+
+2025-09-23 19:45:33.9301|ERROR|IPBan|Process iptables -F had exit code 4
+2025-09-23 19:45:33.9301|DEBUG|IPBan|Running firewall process: ip6tables -F
+2025-09-23 19:45:33.9301|ERROR|IPBan|Process ip6tables -F had std err: ip6tables v1.8.10 (nf_tables): Could not fetch rule set generation id: Permission denied (you must be root)
+
+2025-09-23 19:45:33.9301|ERROR|IPBan|Process ip6tables -F had exit code 4
+2025-09-23 19:45:33.9301|DEBUG|IPBan|Running firewall process: ipset -F
+2025-09-23 19:45:33.9301|DEBUG|IPBan|No delegate to update
+2025-09-23 19:45:33.9301|DEBUG|IPBan|0 pending failed logins
+2025-09-23 19:45:33.9301|WARN|IPBan|Login failure: 99.99.99.97, test_user, RDP, 98, , reason: 
+2025-09-23 19:45:33.9301|INFO|IPBan|IP blacklisted: False, user name blacklisted: False, user name edit distance blacklisted: False, user name whitelisted: False
+2025-09-23 19:45:33.9301|DEBUG|IPBan|Failed login count 98 &gt;= ban count 5
+2025-09-23 19:45:33.9301|WARN|IPBan|Banning ip address: 99.99.99.97, user name: test_user, config blacklisted: False, count: 98, extra info: , duration: 1.00:00:00
+2025-09-23 19:45:33.9301|WARN|IPBan|Login failure: 99.99.99.98, test_user2, SSH, 99, , reason: 
+2025-09-23 19:45:33.9301|INFO|IPBan|IP blacklisted: False, user name blacklisted: False, user name edit distance blacklisted: False, user name whitelisted: False
+2025-09-23 19:45:33.9301|DEBUG|IPBan|Failed login count 99 &gt;= ban count 5
+2025-09-23 19:45:33.9301|WARN|IPBan|Banning ip address: 99.99.99.98, user name: test_user2, config blacklisted: False, count: 99, extra info: , duration: 1.00:00:00
+2025-09-23 19:45:33.9301|WARN|IPBan|Updating firewall with 2 entries...
+2025-09-23 19:45:33.9301|INFO|IPBan|Firewall entries updated: 99.99.99.97:add,99.99.99.98:add
+2025-09-23 19:45:33.9301|DEBUG|IPBan|Running firewall process: ipset restore
+2025-09-23 19:45:33.9301|ERROR|IPBan|Error Exception: System.ComponentModel.Win32Exception (2): An error occurred trying to start process 'ipset' with working directory '/home/runner/work/IPBan/IPBan/IPBanTests/bin/Debug/net8.0'. No such file or directory
+   at System.Diagnostics.Process.ForkAndExecProcess(ProcessStartInfo startInfo, String resolvedFilename, String[] argv, String[] envp, String cwd, Boolean setCredentials, UInt32 userId, UInt32 groupId, UInt32[] groups, Int32&amp; stdinFd, Int32&amp; stdoutFd, Int32&amp; stderrFd, Boolean usesTerminal, Boolean throwOnNoExec)
+   at System.Diagnostics.Process.StartCore(ProcessStartInfo startInfo)
+   at DigitalRuby.IPBanCore.IPBanFirewallUtility.RunProcess(String program, Object input, Object output, String[] args) in /home/runner/work/IPBan/IPBan/IPBanCore/Core/IPBan/IPBanFirewallUtility.cs:line 579
+   at DigitalRuby.IPBanCore.IPBanLinuxIPSetIPTables.RestoreFromFile(String fileName) in /home/runner/work/IPBan/IPBan/IPBanCore/Linux/IPBanLinuxIPSetIPTables.cs:line 113
+   at DigitalRuby.IPBanCore.IPBanLinuxBaseFirewallIPTables.UpdateRuleDelta(String ruleName, String action, IEnumerable`1 deltas, String hashType, IEnumerable`1 allowPorts, CancellationToken cancelToken) in /home/runner/work/IPBan/IPBan/IPBanCore/Linux/IPBanLinuxBaseFirewallIPTables.cs:line 366
+   at DigitalRuby.IPBanCore.IPBanLinuxBaseFirewallIPTables.BlockIPAddressesDelta(String ruleNamePrefix, IEnumerable`1 deltas, IEnumerable`1 allowedPorts, CancellationToken cancelToken) in /home/runner/work/IPBan/IPBan/IPBanCore/Linux/IPBanLinuxBaseFirewallIPTables.cs:line 501
+2025-09-23 19:45:33.9301|DEBUG|IPBan|No firewall tasks to run
+2025-09-23 19:45:33.9301|DEBUG|IPBan|Running firewall process: iptables-save 
+2025-09-23 19:45:33.9301|ERROR|IPBan|Process iptables-save  had std err: iptables-save v1.8.10 (nf_tables): Could not fetch rule set generation id: Permission denied (you must be root)
+
+2025-09-23 19:45:33.9301|ERROR|IPBan|Process iptables-save  had exit code 4
+2025-09-23 19:45:33.9301|DEBUG|IPBan|Running firewall process: ipset save
+2025-09-23 19:45:33.9301|DEBUG|IPBan|Running firewall process: iptables -F
+2025-09-23 19:45:33.9301|ERROR|IPBan|Process iptables -F had std err: iptables v1.8.10 (nf_tables): Could not fetch rule set generation id: Permission denied (you must be root)
+
+2025-09-23 19:45:33.9301|ERROR|IPBan|Process iptables -F had exit code 4
+2025-09-23 19:45:33.9301|DEBUG|IPBan|Running firewall process: ip6tables -F
+2025-09-23 19:45:33.9301|ERROR|IPBan|Process ip6tables -F had std err: ip6tables v1.8.10 (nf_tables): Could not fetch rule set generation id: Permission denied (you must be root)
+
+2025-09-23 19:45:33.9301|ERROR|IPBan|Process ip6tables -F had exit code 4
+2025-09-23 19:45:33.9301|DEBUG|IPBan|Running firewall process: ipset -F
+2025-09-23 19:45:33.9301|DEBUG|IPBan|No delegate to update
+2025-09-23 19:45:33.9301|DEBUG|IPBan|No firewall tasks to run
+2025-09-23 19:45:33.9301|WARN|IPBan|Stopped IPBan service
+
+2025-09-23 19:45:35.0658|INFO|IPBan|Initializing IPBan database at Data Source=/home/runner/work/IPBan/IPBan/IPBanTests/bin/Debug/net8.0/ipban.sqlite;Cache=Shared;
+2025-09-23 19:45:35.0658|WARN|IPBan|IPBan service started and initialized
+2025-09-23 19:45:35.0658|WARN|IPBan|Log levels: True,True,True,True,True,False
+2025-09-23 19:45:35.0658|INFO|IPBan|Config file changed
+2025-09-23 19:45:35.0658|INFO|IPBan|Adding log file to parse: /var/log/auth*.log
+2025-09-23 19:45:35.0658|INFO|IPBan|Adding log file to parse: /var/log/secure*
+2025-09-23 19:45:35.0658|INFO|IPBan|Adding log file to parse: /var/log/messages
+2025-09-23 19:45:35.0658|INFO|IPBan|Adding log file to parse: /var/log/ipbancustom*.log
+2025-09-23 19:45:35.0658|INFO|IPBan|Adding log file to parse: C:/Program Files/Tomcat/logs/**/*access_log*.txt
+2025-09-23 19:45:35.0658|INFO|IPBan|Adding log file to parse: /var/log/httpd/access_log
+2025-09-23 19:45:35.0658|INFO|IPBan|Executing process sudo firewall-cmd --version...
+2025-09-23 19:45:35.0658|WARN|IPBan|FirewallD version: sudo: firewall
+2025-09-23 19:45:35.0658|ERROR|IPBan|Failed to create firewall of type DigitalRuby.IPBanCore.IPBanLinuxFirewallD, falling back to firewall type DigitalRuby.IPBanCore.IPBanLinuxFirewallIPTables: System.Reflection.TargetInvocationException: Exception has been thrown by the target of an invocation.
+ ---&gt; System.IO.DirectoryNotFoundException: Could not find a part of the path '/etc/firewalld/zones/public.xml'.
+   at Interop.ThrowExceptionForIoErrno(ErrorInfo errorInfo, String path, Boolean isDirError)
+   at Microsoft.Win32.SafeHandles.SafeFileHandle.Open(String path, OpenFlags flags, Int32 mode, Boolean failForSymlink, Boolean&amp; wasSymlink, Func`4 createOpenException)
+   at Microsoft.Win32.SafeHandles.SafeFileHandle.Open(String fullPath, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize, UnixFileMode openPermissions, Int64&amp; fileLength, UnixFileMode&amp; filePermissions, Boolean failForSymlink, Boolean&amp; wasSymlink, Func`4 createOpenException)
+   at System.IO.File.OpenHandle(String path, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize)
+   at System.IO.File.WriteToFile(String path, FileMode mode, String contents, Encoding encoding)
+   at DigitalRuby.IPBanCore.IPBanLinuxFirewallD.EnsureZoneFile(String zoneFile, String zoneFileOrig, String fallbackZoneFileContents) in /home/runner/work/IPBan/IPBan/IPBanCore/Linux/IPBanLinuxFirewallD.cs:line 609
+   at DigitalRuby.IPBanCore.IPBanLinuxFirewallD..ctor(String rulePrefix) in /home/runner/work/IPBan/IPBan/IPBanCore/Linux/IPBanLinuxFirewallD.cs:line 108
+   at System.RuntimeMethodHandle.InvokeMethod(Object target, Void** arguments, Signature sig, Boolean isConstructor)
+   at System.Reflection.MethodBaseInvoker.InvokeDirectByRefWithFewArgs(Object obj, Span`1 copyOfArgs, BindingFlags invokeAttr)
+   --- End of inner exception stack trace ---
+   at System.Reflection.MethodBaseInvoker.InvokeDirectByRefWithFewArgs(Object obj, Span`1 copyOfArgs, BindingFlags invokeAttr)
+   at System.Reflection.MethodBaseInvoker.InvokeWithOneArg(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+   at System.RuntimeType.CreateInstanceImpl(BindingFlags bindingAttr, Binder binder, Object[] args, CultureInfo culture)
+   at DigitalRuby.IPBanCore.IPBanFirewallUtility.CreateFirewall(IReadOnlyCollection`1 allTypes, String rulePrefix, IIPBanFirewall previousFirewall) in /home/runner/work/IPBan/IPBan/IPBanCore/Core/IPBan/IPBanFirewallUtility.cs:line 120---
+System.IO.DirectoryNotFoundException: Could not find a part of the path '/etc/firewalld/zones/public.xml'.
+   at Interop.ThrowExceptionForIoErrno(ErrorInfo errorInfo, String path, Boolean isDirError)
+   at Microsoft.Win32.SafeHandles.SafeFileHandle.Open(String path, OpenFlags flags, Int32 mode, Boolean failForSymlink, Boolean&amp; wasSymlink, Func`4 createOpenException)
+   at Microsoft.Win32.SafeHandles.SafeFileHandle.Open(String fullPath, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize, UnixFileMode openPermissions, Int64&amp; fileLength, UnixFileMode&amp; filePermissions, Boolean failForSymlink, Boolean&amp; wasSymlink, Func`4 createOpenException)
+   at System.IO.File.OpenHandle(String path, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize)
+   at System.IO.File.WriteToFile(String path, FileMode mode, String contents, Encoding encoding)
+   at DigitalRuby.IPBanCore.IPBanLinuxFirewallD.EnsureZoneFile(String zoneFile, String zoneFileOrig, String fallbackZoneFileContents) in /home/runner/work/IPBan/IPBan/IPBanCore/Linux/IPBanLinuxFirewallD.cs:line 609
+   at DigitalRuby.IPBanCore.IPBanLinuxFirewallD..ctor(String rulePrefix) in /home/runner/work/IPBan/IPBan/IPBanCore/Linux/IPBanLinuxFirewallD.cs:line 108
+   at System.RuntimeMethodHandle.InvokeMethod(Object target, Void** arguments, Signature sig, Boolean isConstructor)
+   at System.Reflection.MethodBaseInvoker.InvokeDirectByRefWithFewArgs(Object obj, Span`1 copyOfArgs, BindingFlags invokeAttr)
+2025-09-23 19:45:35.0658|DEBUG|IPBan|Running firewall process: update-alternatives --set iptables /usr/sbin/iptables-legacy
+2025-09-23 19:45:35.0658|ERROR|IPBan|Process update-alternatives --set iptables /usr/sbin/iptables-legacy had std err: update-alternatives: error: error creating symbolic link '/etc/alternatives/iptables.dpkg-tmp': Permission denied
+
+2025-09-23 19:45:35.0658|ERROR|IPBan|Process update-alternatives --set iptables /usr/sbin/iptables-legacy had exit code 2
+2025-09-23 19:45:35.0658|DEBUG|IPBan|Running firewall process: update-alternatives --set ip6tables /usr/sbin/ip6tables-legacy
+2025-09-23 19:45:35.0658|ERROR|IPBan|Process update-alternatives --set ip6tables /usr/sbin/ip6tables-legacy had std err: update-alternatives: error: error creating symbolic link '/etc/alternatives/ip6tables.dpkg-tmp': Permission denied
+
+2025-09-23 19:45:35.0658|ERROR|IPBan|Process update-alternatives --set ip6tables /usr/sbin/ip6tables-legacy had exit code 2
+2025-09-23 19:45:35.0658|WARN|IPBan|Loaded firewall type DigitalRuby.IPBanCore.IPBanLinuxFirewallIPTables
+2025-09-23 19:45:35.0658|DEBUG|IPBan|Running firewall process: iptables -L -n
+2025-09-23 19:45:35.0658|ERROR|IPBan|Process iptables -L -n had std err: iptables v1.8.10 (nf_tables): Could not fetch rule set generation id: Permission denied (you must be root)
+
+2025-09-23 19:45:35.0658|ERROR|IPBan|Process iptables -L -n had exit code 4
+2025-09-23 19:45:35.0658|ERROR|IPBan|Error Exception: System.IO.FileNotFoundException: Could not find file '/tmp/35aa5535e922490fac376e90319f9415.tmp'.
+File name: '/tmp/35aa5535e922490fac376e90319f9415.tmp'
+   at Interop.ThrowExceptionForIoErrno(ErrorInfo errorInfo, String path, Boolean isDirError)
+   at Microsoft.Win32.SafeHandles.SafeFileHandle.Open(String path, OpenFlags flags, Int32 mode, Boolean failForSymlink, Boolean&amp; wasSymlink, Func`4 createOpenException)
+   at Microsoft.Win32.SafeHandles.SafeFileHandle.Open(String fullPath, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize, UnixFileMode openPermissions, Int64&amp; fileLength, UnixFileMode&amp; filePermissions, Boolean failForSymlink, Boolean&amp; wasSymlink, Func`4 createOpenException)
+   at System.IO.Strategies.OSFileStreamStrategy..ctor(String path, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize, Nullable`1 unixCreateMode)
+   at System.IO.FileStream..ctor(String path, FileMode mode, FileAccess access, FileShare share, Int32 bufferSize, FileOptions options, Int64 preallocationSize)
+   at System.IO.StreamReader.ValidateArgsAndOpenPath(String path, Encoding encoding, Int32 bufferSize)
+   at System.IO.StreamReader..ctor(String path)
+   at DigitalRuby.IPBanCore.IPBanLinuxBaseFirewallIPTables.GetRuleNames(String ruleNamePrefix)+MoveNext() in /home/runner/work/IPBan/IPBan/IPBanCore/Linux/IPBanLinuxBaseFirewallIPTables.cs:line 422
+   at System.Collections.Generic.LargeArrayBuilder`1.AddRange(IEnumerable`1 items)
+   at System.Collections.Generic.EnumerableHelpers.ToArray[T](IEnumerable`1 source)
+   at DigitalRuby.IPBanCore.IPBanService.LoadFirewall(IPBanConfig oldConfig) in /home/runner/work/IPBan/IPBan/IPBanCore/Core/IPBan/IPBanService_Private.cs:line 585
+   at DigitalRuby.IPBanCore.IPBanService.UpdateConfiguration(CancellationToken cancelToken) in /home/runner/work/IPBan/IPBan/IPBanCore/Core/IPBan/IPBanService_Private.cs:line 105
+2025-09-23 19:45:35.0658|INFO|IPBan|Local ip address: 10.1.0.252
+2025-09-23 19:45:35.0658|DEBUG|IPBan|No delegate to update
+2025-09-23 19:45:35.0658|DEBUG|IPBan|No firewall tasks to run
+2025-09-23 19:45:35.0658|WARN|IPBan|IPBan is running correctly. You can perform a failed ssh or rdp login and watch this log to verify functionality.
+2025-09-23 19:45:35.0658|DEBUG|IPBan|Running firewall process: iptables -F
+2025-09-23 19:45:35.0658|ERROR|IPBan|Process iptables -F had std err: iptables v1.8.10 (nf_tables): Could not fetch rule set generation id: Permission denied (you must be root)
+
+2025-09-23 19:45:35.0658|ERROR|IPBan|Process iptables -F had exit code 4
+2025-09-23 19:45:35.0658|DEBUG|IPBan|Running firewall process: ip6tables -F
+2025-09-23 19:45:35.0658|ERROR|IPBan|Process ip6tables -F had std err: ip6tables v1.8.10 (nf_tables): Could not fetch rule set generation id: Permission denied (you must be root)
+
+2025-09-23 19:45:35.0658|ERROR|IPBan|Process ip6tables -F had exit code 4
+2025-09-23 19:45:35.0658|DEBUG|IPBan|Running firewall process: ipset -F
+2025-09-23 19:45:35.0658|DEBUG|IPBan|No delegate to update
+2025-09-23 19:45:35.0658|WARN|IPBan|Banning ip address: 11.11.12.13, user name: TestUser, config blacklisted: False, count: 0, extra info: , duration: 1.00:00:00
+2025-09-23 19:45:35.0658|WARN|IPBan|Updating firewall with 1 entries...
+2025-09-23 19:45:35.0658|INFO|IPBan|Firewall entries updated: 11.11.12.13:add
+2025-09-23 19:45:35.0658|DEBUG|IPBan|Running firewall process: ipset restore
+2025-09-23 19:45:35.0658|ERROR|IPBan|Error Exception: System.ComponentModel.Win32Exception (2): An error occurred trying to start process 'ipset' with working directory '/home/runner/work/IPBan/IPBan/IPBanTests/bin/Debug/net8.0'. No such file or directory
+   at System.Diagnostics.Process.ForkAndExecProcess(ProcessStartInfo startInfo, String resolvedFilename, String[] argv, String[] envp, String cwd, Boolean setCredentials, UInt32 userId, UInt32 groupId, UInt32[] groups, Int32&amp; stdinFd, Int32&amp; stdoutFd, Int32&amp; stderrFd, Boolean usesTerminal, Boolean throwOnNoExec)
+   at System.Diagnostics.Process.StartCore(ProcessStartInfo startInfo)
+   at DigitalRuby.IPBanCore.IPBanFirewallUtility.RunProcess(String program, Object input, Object output, String[] args) in /home/runner/work/IPBan/IPBan/IPBanCore/Core/IPBan/IPBanFirewallUtility.cs:line 579
+   at DigitalRuby.IPBanCore.IPBanLinuxIPSetIPTables.RestoreFromFile(String fileName) in /home/runner/work/IPBan/IPBan/IPBanCore/Linux/IPBanLinuxIPSetIPTables.cs:line 113
+   at DigitalRuby.IPBanCore.IPBanLinuxBaseFirewallIPTables.UpdateRuleDelta(String ruleName, String action, IEnumerable`1 deltas, String hashType, IEnumerable`1 allowPorts, CancellationToken cancelToken) in /home/runner/work/IPBan/IPBan/IPBanCore/Linux/IPBanLinuxBaseFirewallIPTables.cs:line 366
+   at DigitalRuby.IPBanCore.IPBanLinuxBaseFirewallIPTables.BlockIPAddressesDelta(String ruleNamePrefix, IEnumerable`1 deltas, IEnumerable`1 allowedPorts, CancellationToken cancelToken) in /home/runner/work/IPBan/IPBan/IPBanCore/Linux/IPBanLinuxBaseFirewallIPTables.cs:line 501
+2025-09-23 19:45:35.0658|DEBUG|IPBan|No firewall tasks to run
+2025-09-23 19:45:35.0658|DEBUG|IPBan|Running firewall process: iptables-save 
+2025-09-23 19:45:35.0658|ERROR|IPBan|Process iptables-save  had std err: iptables-save v1.8.10 (nf_tables): Could not fetch rule set generation id: Permission denied (you must be root)
+
+2025-09-23 19:45:35.0658|ERROR|IPBan|Process iptables-save  had exit code 4
+2025-09-23 19:45:35.0658|DEBUG|IPBan|Running firewall process: ipset save
+2025-09-23 19:45:35.0658|DEBUG|IPBan|Running firewall process: iptables -F
+2025-09-23 19:45:35.0658|ERROR|IPBan|Process iptables -F had std err: iptables v1.8.10 (nf_tables): Could not fetch rule set generation id: Permission denied (you must be root)
+
+2025-09-23 19:45:35.0658|ERROR|IPBan|Process iptables -F had exit code 4
+2025-09-23 19:45:35.0658|DEBUG|IPBan|Running firewall process: ip6tables -F
+2025-09-23 19:45:35.0658|ERROR|IPBan|Process ip6tables -F had std err: ip6tables v1.8.10 (nf_tables): Could not fetch rule set generation id: Permission denied (you must be root)
+
+2025-09-23 19:45:35.0658|ERROR|IPBan|Process ip6tables -F had exit code 4
+2025-09-23 19:45:35.0658|DEBUG|IPBan|Running firewall process: ipset -F
+2025-09-23 19:45:35.0658|DEBUG|IPBan|No delegate to update
+2025-09-23 19:45:35.0658|WARN|IPBan|Un-banning ip address 11.11.12.13, ban expired
+2025-09-23 19:45:35.0658|WARN|IPBan|Updating firewall with 1 entries...
+2025-09-23 19:45:35.0658|INFO|IPBan|Firewall entries updated: 11.11.12.13:remove
+2025-09-23 19:45:35.0658|DEBUG|IPBan|Running firewall process: ipset restore
+2025-09-23 19:45:35.0658|ERROR|IPBan|Error Exception: System.ComponentModel.Win32Exception (2): An error occurred trying to start process 'ipset' with working directory '/home/runner/work/IPBan/IPBan/IPBanTests/bin/Debug/net8.0'. No such file or directory
+   at System.Diagnostics.Process.ForkAndExecProcess(ProcessStartInfo startInfo, String resolvedFilename, String[] argv, String[] envp, String cwd, Boolean setCredentials, UInt32 userId, UInt32 groupId, UInt32[] groups, Int32&amp; stdinFd, Int32&amp; stdoutFd, Int32&amp; stderrFd, Boolean usesTerminal, Boolean throwOnNoExec)
+   at System.Diagnostics.Process.StartCore(ProcessStartInfo startInfo)
+   at DigitalRuby.IPBanCore.IPBanFirewallUtility.RunProcess(String program, Object input, Object output, String[] args) in /home/runner/work/IPBan/IPBan/IPBanCore/Core/IPBan/IPBanFirewallUtility.cs:line 579
+   at DigitalRuby.IPBanCore.IPBanLinuxIPSetIPTables.RestoreFromFile(String fileName) in /home/runner/work/IPBan/IPBan/IPBanCore/Linux/IPBanLinuxIPSetIPTables.cs:line 113
+   at DigitalRuby.IPBanCore.IPBanLinuxBaseFirewallIPTables.UpdateRuleDelta(String ruleName, String action, IEnumerable`1 deltas, String hashType, IEnumerable`1 allowPorts, CancellationToken cancelToken) in /home/runner/work/IPBan/IPBan/IPBanCore/Linux/IPBanLinuxBaseFirewallIPTables.cs:line 366
+   at DigitalRuby.IPBanCore.IPBanLinuxBaseFirewallIPTables.BlockIPAddressesDelta(String ruleNamePrefix, IEnumerable`1 deltas, IEnumerable`1 allowedPorts, CancellationToken cancelToken) in /home/runner/work/IPBan/IPBan/IPBanCore/Linux/IPBanLinuxBaseFirewallIPTables.cs:line 501
+2025-09-23 19:45:35.0658|DEBUG|IPBan|No firewall tasks to run
+2025-09-23 19:45:35.0658|WARN|IPBan|Stopped IPBan service
+
+2025-09-23 19:45:35.1138|INFO|IPBan|Initializing IPBan database at Data Source=/home/runner/work/IPBan/IPBan/IPBanTests/bin/Debug/net8.0/ipban.sqlite;Cache=Shared;
+2025-09-23 19:45:35.1138|WARN|IPBan|IPBan service started and initialized
+2025-09-23 19:45:35.1138|WARN|IPBan|Log levels: True,True,True,True,True,False
+2025-09-23 19:45:35.1138|INFO|IPBan|Config file changed
+2025-09-23 19:45:35.1138|INFO|IPBan|Adding log file to parse: /var/log/auth*.log
+2025-09-23 19:45:35.1138|INFO|IPBan|Adding log file to parse: /var/log/secure*
+2025-09-23 19:45:35.1138|INFO|IPBan|Adding log file to parse: /var/log/messages
+2025-09-23 19:45:35.1138|INFO|IPBan|Adding log file to parse: /var/log/ipbancustom*.log
+2025-09-23 19:45:35.1138|INFO|IPBan|Adding log file to parse: C:/Program Files/Tomcat/logs/**/*access_log*.txt
+2025-09-23 19:45:35.1138|INFO|IPBan|Adding log file to parse: /var/log/httpd/access_log
+2025-09-23 19:45:35.1138|INFO|IPBan|Executing process sudo firewall-cmd --version...
+2025-09-23 19:45:35.1138|WARN|IPBan|FirewallD version: sudo: firewall
+2025-09-23 19:45:35.1138|ERROR|IPBan|Failed to create firewall of type DigitalRuby.IPBanCore.IPBanLinuxFirewallD, falling back to firewall type DigitalRuby.IPBanCore.IPBanLinuxFirewallIPTables: System.Reflection.TargetInvocationException: Exception has been thrown by the target of an invocation.
+ ---&gt; System.IO.DirectoryNotFoundException: Could not find a part of the path '/etc/firewalld/zones/public.xml'.
+   at Interop.ThrowExceptionForIoErrno(ErrorInfo errorInfo, String path, Boolean isDirError)
+   at Microsoft.Win32.SafeHandles.SafeFileHandle.Open(String path, OpenFlags flags, Int32 mode, Boolean failForSymlink, Boolean&amp; wasSymlink, Func`4 createOpenException)
+   at Microsoft.Win32.SafeHandles.SafeFileHandle.Open(String fullPath, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize, UnixFileMode openPermissions, Int64&amp; fileLength, UnixFileMode&amp; filePermissions, Boolean failForSymlink, Boolean&amp; wasSymlink, Func`4 createOpenException)
+   at System.IO.File.OpenHandle(String path, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize)
+   at System.IO.File.WriteToFile(String path, FileMode mode, String contents, Encoding encoding)
+   at DigitalRuby.IPBanCore.IPBanLinuxFirewallD.EnsureZoneFile(String zoneFile, String zoneFileOrig, String fallbackZoneFileContents) in /home/runner/work/IPBan/IPBan/IPBanCore/Linux/IPBanLinuxFirewallD.cs:line 609
+   at DigitalRuby.IPBanCore.IPBanLinuxFirewallD..ctor(String rulePrefix) in /home/runner/work/IPBan/IPBan/IPBanCore/Linux/IPBanLinuxFirewallD.cs:line 108
+   at InvokeStub_IPBanLinuxFirewallD..ctor(Object, Span`1)
+   at System.Reflection.MethodBaseInvoker.InvokeWithOneArg(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+   --- End of inner exception stack trace ---
+   at System.Reflection.MethodBaseInvoker.InvokeWithOneArg(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+   at System.RuntimeType.CreateInstanceImpl(BindingFlags bindingAttr, Binder binder, Object[] args, CultureInfo culture)
+   at DigitalRuby.IPBanCore.IPBanFirewallUtility.CreateFirewall(IReadOnlyCollection`1 allTypes, String rulePrefix, IIPBanFirewall previousFirewall) in /home/runner/work/IPBan/IPBan/IPBanCore/Core/IPBan/IPBanFirewallUtility.cs:line 120---
+System.IO.DirectoryNotFoundException: Could not find a part of the path '/etc/firewalld/zones/public.xml'.
+   at Interop.ThrowExceptionForIoErrno(ErrorInfo errorInfo, String path, Boolean isDirError)
+   at Microsoft.Win32.SafeHandles.SafeFileHandle.Open(String path, OpenFlags flags, Int32 mode, Boolean failForSymlink, Boolean&amp; wasSymlink, Func`4 createOpenException)
+   at Microsoft.Win32.SafeHandles.SafeFileHandle.Open(String fullPath, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize, UnixFileMode openPermissions, Int64&amp; fileLength, UnixFileMode&amp; filePermissions, Boolean failForSymlink, Boolean&amp; wasSymlink, Func`4 createOpenException)
+   at System.IO.File.OpenHandle(String path, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize)
+   at System.IO.File.WriteToFile(String path, FileMode mode, String contents, Encoding encoding)
+   at DigitalRuby.IPBanCore.IPBanLinuxFirewallD.EnsureZoneFile(String zoneFile, String zoneFileOrig, String fallbackZoneFileContents) in /home/runner/work/IPBan/IPBan/IPBanCore/Linux/IPBanLinuxFirewallD.cs:line 609
+   at DigitalRuby.IPBanCore.IPBanLinuxFirewallD..ctor(String rulePrefix) in /home/runner/work/IPBan/IPBan/IPBanCore/Linux/IPBanLinuxFirewallD.cs:line 108
+   at InvokeStub_IPBanLinuxFirewallD..ctor(Object, Span`1)
+   at System.Reflection.MethodBaseInvoker.InvokeWithOneArg(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+2025-09-23 19:45:35.1138|DEBUG|IPBan|Running firewall process: update-alternatives --set iptables /usr/sbin/iptables-legacy
+2025-09-23 19:45:35.1138|ERROR|IPBan|Process update-alternatives --set iptables /usr/sbin/iptables-legacy had std err: update-alternatives: error: error creating symbolic link '/etc/alternatives/iptables.dpkg-tmp': Permission denied
+
+2025-09-23 19:45:35.1138|ERROR|IPBan|Process update-alternatives --set iptables /usr/sbin/iptables-legacy had exit code 2
+2025-09-23 19:45:35.1138|DEBUG|IPBan|Running firewall process: update-alternatives --set ip6tables /usr/sbin/ip6tables-legacy
+2025-09-23 19:45:35.1138|ERROR|IPBan|Process update-alternatives --set ip6tables /usr/sbin/ip6tables-legacy had std err: update-alternatives: error: error creating symbolic link '/etc/alternatives/ip6tables.dpkg-tmp': Permission denied
+
+2025-09-23 19:45:35.1138|ERROR|IPBan|Process update-alternatives --set ip6tables /usr/sbin/ip6tables-legacy had exit code 2
+2025-09-23 19:45:35.1138|WARN|IPBan|Loaded firewall type DigitalRuby.IPBanCore.IPBanLinuxFirewallIPTables
+2025-09-23 19:45:35.1138|DEBUG|IPBan|Running firewall process: iptables -L -n
+2025-09-23 19:45:35.1138|ERROR|IPBan|Process iptables -L -n had std err: iptables v1.8.10 (nf_tables): Could not fetch rule set generation id: Permission denied (you must be root)
+
+2025-09-23 19:45:35.1138|ERROR|IPBan|Process iptables -L -n had exit code 4
+2025-09-23 19:45:35.1138|ERROR|IPBan|Error Exception: System.IO.FileNotFoundException: Could not find file '/tmp/dab08c63161a41bcbabbc01e18c6da60.tmp'.
+File name: '/tmp/dab08c63161a41bcbabbc01e18c6da60.tmp'
+   at Interop.ThrowExceptionForIoErrno(ErrorInfo errorInfo, String path, Boolean isDirError)
+   at Microsoft.Win32.SafeHandles.SafeFileHandle.Open(String path, OpenFlags flags, Int32 mode, Boolean failForSymlink, Boolean&amp; wasSymlink, Func`4 createOpenException)
+   at Microsoft.Win32.SafeHandles.SafeFileHandle.Open(String fullPath, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize, UnixFileMode openPermissions, Int64&amp; fileLength, UnixFileMode&amp; filePermissions, Boolean failForSymlink, Boolean&amp; wasSymlink, Func`4 createOpenException)
+   at System.IO.Strategies.OSFileStreamStrategy..ctor(String path, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize, Nullable`1 unixCreateMode)
+   at System.IO.FileStream..ctor(String path, FileMode mode, FileAccess access, FileShare share, Int32 bufferSize, FileOptions options, Int64 preallocationSize)
+   at System.IO.StreamReader.ValidateArgsAndOpenPath(String path, Encoding encoding, Int32 bufferSize)
+   at System.IO.StreamReader..ctor(String path)
+   at DigitalRuby.IPBanCore.IPBanLinuxBaseFirewallIPTables.GetRuleNames(String ruleNamePrefix)+MoveNext() in /home/runner/work/IPBan/IPBan/IPBanCore/Linux/IPBanLinuxBaseFirewallIPTables.cs:line 422
+   at System.Collections.Generic.LargeArrayBuilder`1.AddRange(IEnumerable`1 items)
+   at System.Collections.Generic.EnumerableHelpers.ToArray[T](IEnumerable`1 source)
+   at DigitalRuby.IPBanCore.IPBanService.LoadFirewall(IPBanConfig oldConfig) in /home/runner/work/IPBan/IPBan/IPBanCore/Core/IPBan/IPBanService_Private.cs:line 585
+   at DigitalRuby.IPBanCore.IPBanService.UpdateConfiguration(CancellationToken cancelToken) in /home/runner/work/IPBan/IPBan/IPBanCore/Core/IPBan/IPBanService_Private.cs:line 105
+2025-09-23 19:45:35.1138|INFO|IPBan|Local ip address: 10.1.0.252
+2025-09-23 19:45:35.1138|DEBUG|IPBan|No delegate to update
+2025-09-23 19:45:35.1138|DEBUG|IPBan|No firewall tasks to run
+2025-09-23 19:45:35.1138|WARN|IPBan|IPBan is running correctly. You can perform a failed ssh or rdp login and watch this log to verify functionality.
+2025-09-23 19:45:35.1138|DEBUG|IPBan|Running firewall process: iptables -F
+2025-09-23 19:45:35.1138|ERROR|IPBan|Process iptables -F had std err: iptables v1.8.10 (nf_tables): Could not fetch rule set generation id: Permission denied (you must be root)
+
+2025-09-23 19:45:35.1138|ERROR|IPBan|Process iptables -F had exit code 4
+2025-09-23 19:45:35.1138|DEBUG|IPBan|Running firewall process: ip6tables -F
+2025-09-23 19:45:35.1138|ERROR|IPBan|Process ip6tables -F had std err: ip6tables v1.8.10 (nf_tables): Could not fetch rule set generation id: Permission denied (you must be root)
+
+2025-09-23 19:45:35.1138|ERROR|IPBan|Process ip6tables -F had exit code 4
+2025-09-23 19:45:35.1138|DEBUG|IPBan|Running firewall process: ipset -F
+2025-09-23 19:45:35.1138|DEBUG|IPBan|No delegate to update
+2025-09-23 19:45:35.1138|DEBUG|IPBan|0 pending failed logins
+2025-09-23 19:45:35.1138|WARN|IPBan|Login failure: 11.11.12.13, TestUser, RDP, 9, , reason: 
+2025-09-23 19:45:35.1138|DEBUG|IPBan|Failed login count 9 &lt;= ban count 10
+2025-09-23 19:45:35.1138|ERROR|IPBan|Error determining if user is active: System.UnauthorizedAccessException: Access to the path '/etc/shadow' is denied.
+ ---&gt; System.IO.IOException: Permission denied
+   --- End of inner exception stack trace ---
+   at Interop.ThrowExceptionForIoErrno(ErrorInfo errorInfo, String path, Boolean isDirError)
+   at Microsoft.Win32.SafeHandles.SafeFileHandle.Open(String path, OpenFlags flags, Int32 mode, Boolean failForSymlink, Boolean&amp; wasSymlink, Func`4 createOpenException)
+   at Microsoft.Win32.SafeHandles.SafeFileHandle.Open(String fullPath, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize, UnixFileMode openPermissions, Int64&amp; fileLength, UnixFileMode&amp; filePermissions, Boolean failForSymlink, Boolean&amp; wasSymlink, Func`4 createOpenException)
+   at System.IO.Strategies.OSFileStreamStrategy..ctor(String path, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize, Nullable`1 unixCreateMode)
+   at System.IO.FileStream..ctor(String path, FileMode mode, FileAccess access, FileShare share, Int32 bufferSize, FileOptions options, Int64 preallocationSize)
+   at System.IO.StreamReader.ValidateArgsAndOpenPath(String path, Encoding encoding, Int32 bufferSize)
+   at System.IO.File.ReadAllLines(String path, Encoding encoding)
+   at DigitalRuby.IPBanCore.OSUtility.PopulateUsersLinux(Dictionary`2 newUsers) in /home/runner/work/IPBan/IPBan/IPBanCore/Core/Utility/OSUtility.cs:line 376
+   at DigitalRuby.IPBanCore.OSUtility.UserIsActive(String userName) in /home/runner/work/IPBan/IPBan/IPBanCore/Core/Utility/OSUtility.cs:line 919---
+System.IO.IOException: Permission denied
+2025-09-23 19:45:35.1138|DEBUG|IPBan|No firewall tasks to run
+2025-09-23 19:45:35.1138|DEBUG|IPBan|Running firewall process: iptables-save 
+2025-09-23 19:45:35.1138|ERROR|IPBan|Process iptables-save  had std err: iptables-save v1.8.10 (nf_tables): Could not fetch rule set generation id: Permission denied (you must be root)
+
+2025-09-23 19:45:35.1138|ERROR|IPBan|Process iptables-save  had exit code 4
+2025-09-23 19:45:35.1138|DEBUG|IPBan|Running firewall process: ipset save
+2025-09-23 19:45:35.1138|DEBUG|IPBan|Running firewall process: iptables -F
+2025-09-23 19:45:35.1138|ERROR|IPBan|Process iptables -F had std err: iptables v1.8.10 (nf_tables): Could not fetch rule set generation id: Permission denied (you must be root)
+
+2025-09-23 19:45:35.1138|ERROR|IPBan|Process iptables -F had exit code 4
+2025-09-23 19:45:35.1138|DEBUG|IPBan|Running firewall process: ip6tables -F
+2025-09-23 19:45:35.1138|ERROR|IPBan|Process ip6tables -F had std err: ip6tables v1.8.10 (nf_tables): Could not fetch rule set generation id: Permission denied (you must be root)
+
+2025-09-23 19:45:35.1138|ERROR|IPBan|Process ip6tables -F had exit code 4
+2025-09-23 19:45:35.1138|DEBUG|IPBan|Running firewall process: ipset -F
+2025-09-23 19:45:35.1138|DEBUG|IPBan|No delegate to update
+2025-09-23 19:45:35.1138|DEBUG|IPBan|No firewall tasks to run
+2025-09-23 19:45:35.1138|WARN|IPBan|Stopped IPBan service
+
+2025-09-23 19:45:35.1588|INFO|IPBan|Initializing IPBan database at Data Source=/home/runner/work/IPBan/IPBan/IPBanTests/bin/Debug/net8.0/ipban.sqlite;Cache=Shared;
+2025-09-23 19:45:35.1588|WARN|IPBan|IPBan service started and initialized
+2025-09-23 19:45:35.1588|WARN|IPBan|Log levels: True,True,True,True,True,False
+2025-09-23 19:45:35.1588|INFO|IPBan|Config file changed
+2025-09-23 19:45:35.1588|INFO|IPBan|Adding log file to parse: /var/log/auth*.log
+2025-09-23 19:45:35.1588|INFO|IPBan|Adding log file to parse: /var/log/secure*
+2025-09-23 19:45:35.1588|INFO|IPBan|Adding log file to parse: /var/log/messages
+2025-09-23 19:45:35.1588|INFO|IPBan|Adding log file to parse: /var/log/ipbancustom*.log
+2025-09-23 19:45:35.1588|INFO|IPBan|Adding log file to parse: C:/Program Files/Tomcat/logs/**/*access_log*.txt
+2025-09-23 19:45:35.1588|INFO|IPBan|Adding log file to parse: /var/log/httpd/access_log
+2025-09-23 19:45:35.1588|INFO|IPBan|Executing process sudo firewall-cmd --version...
+2025-09-23 19:45:35.1588|WARN|IPBan|FirewallD version: sudo: firewall
+2025-09-23 19:45:35.1588|ERROR|IPBan|Failed to create firewall of type DigitalRuby.IPBanCore.IPBanLinuxFirewallD, falling back to firewall type DigitalRuby.IPBanCore.IPBanLinuxFirewallIPTables: System.Reflection.TargetInvocationException: Exception has been thrown by the target of an invocation.
+ ---&gt; System.IO.DirectoryNotFoundException: Could not find a part of the path '/etc/firewalld/zones/public.xml'.
+   at Interop.ThrowExceptionForIoErrno(ErrorInfo errorInfo, String path, Boolean isDirError)
+   at Microsoft.Win32.SafeHandles.SafeFileHandle.Open(String path, OpenFlags flags, Int32 mode, Boolean failForSymlink, Boolean&amp; wasSymlink, Func`4 createOpenException)
+   at Microsoft.Win32.SafeHandles.SafeFileHandle.Open(String fullPath, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize, UnixFileMode openPermissions, Int64&amp; fileLength, UnixFileMode&amp; filePermissions, Boolean failForSymlink, Boolean&amp; wasSymlink, Func`4 createOpenException)
+   at System.IO.File.OpenHandle(String path, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize)
+   at System.IO.File.WriteToFile(String path, FileMode mode, String contents, Encoding encoding)
+   at DigitalRuby.IPBanCore.IPBanLinuxFirewallD.EnsureZoneFile(String zoneFile, String zoneFileOrig, String fallbackZoneFileContents) in /home/runner/work/IPBan/IPBan/IPBanCore/Linux/IPBanLinuxFirewallD.cs:line 609
+   at DigitalRuby.IPBanCore.IPBanLinuxFirewallD..ctor(String rulePrefix) in /home/runner/work/IPBan/IPBan/IPBanCore/Linux/IPBanLinuxFirewallD.cs:line 108
+   at InvokeStub_IPBanLinuxFirewallD..ctor(Object, Span`1)
+   at System.Reflection.MethodBaseInvoker.InvokeWithOneArg(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+   --- End of inner exception stack trace ---
+   at System.Reflection.MethodBaseInvoker.InvokeWithOneArg(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+   at System.RuntimeType.CreateInstanceImpl(BindingFlags bindingAttr, Binder binder, Object[] args, CultureInfo culture)
+   at DigitalRuby.IPBanCore.IPBanFirewallUtility.CreateFirewall(IReadOnlyCollection`1 allTypes, String rulePrefix, IIPBanFirewall previousFirewall) in /home/runner/work/IPBan/IPBan/IPBanCore/Core/IPBan/IPBanFirewallUtility.cs:line 120---
+System.IO.DirectoryNotFoundException: Could not find a part of the path '/etc/firewalld/zones/public.xml'.
+   at Interop.ThrowExceptionForIoErrno(ErrorInfo errorInfo, String path, Boolean isDirError)
+   at Microsoft.Win32.SafeHandles.SafeFileHandle.Open(String path, OpenFlags flags, Int32 mode, Boolean failForSymlink, Boolean&amp; wasSymlink, Func`4 createOpenException)
+   at Microsoft.Win32.SafeHandles.SafeFileHandle.Open(String fullPath, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize, UnixFileMode openPermissions, Int64&amp; fileLength, UnixFileMode&amp; filePermissions, Boolean failForSymlink, Boolean&amp; wasSymlink, Func`4 createOpenException)
+   at System.IO.File.OpenHandle(String path, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize)
+   at System.IO.File.WriteToFile(String path, FileMode mode, String contents, Encoding encoding)
+   at DigitalRuby.IPBanCore.IPBanLinuxFirewallD.EnsureZoneFile(String zoneFile, String zoneFileOrig, String fallbackZoneFileContents) in /home/runner/work/IPBan/IPBan/IPBanCore/Linux/IPBanLinuxFirewallD.cs:line 609
+   at DigitalRuby.IPBanCore.IPBanLinuxFirewallD..ctor(String rulePrefix) in /home/runner/work/IPBan/IPBan/IPBanCore/Linux/IPBanLinuxFirewallD.cs:line 108
+   at InvokeStub_IPBanLinuxFirewallD..ctor(Object, Span`1)
+   at System.Reflection.MethodBaseInvoker.InvokeWithOneArg(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+2025-09-23 19:45:35.1588|DEBUG|IPBan|Running firewall process: update-alternatives --set iptables /usr/sbin/iptables-legacy
+2025-09-23 19:45:35.1588|ERROR|IPBan|Process update-alternatives --set iptables /usr/sbin/iptables-legacy had std err: update-alternatives: error: error creating symbolic link '/etc/alternatives/iptables.dpkg-tmp': Permission denied
+
+2025-09-23 19:45:35.1588|ERROR|IPBan|Process update-alternatives --set iptables /usr/sbin/iptables-legacy had exit code 2
+2025-09-23 19:45:35.1588|DEBUG|IPBan|Running firewall process: update-alternatives --set ip6tables /usr/sbin/ip6tables-legacy
+2025-09-23 19:45:35.1588|ERROR|IPBan|Process update-alternatives --set ip6tables /usr/sbin/ip6tables-legacy had std err: update-alternatives: error: error creating symbolic link '/etc/alternatives/ip6tables.dpkg-tmp': Permission denied
+
+2025-09-23 19:45:35.1588|ERROR|IPBan|Process update-alternatives --set ip6tables /usr/sbin/ip6tables-legacy had exit code 2
+2025-09-23 19:45:35.1588|WARN|IPBan|Loaded firewall type DigitalRuby.IPBanCore.IPBanLinuxFirewallIPTables
+2025-09-23 19:45:35.1588|DEBUG|IPBan|Running firewall process: iptables -L -n
+2025-09-23 19:45:35.1588|ERROR|IPBan|Process iptables -L -n had std err: iptables v1.8.10 (nf_tables): Could not fetch rule set generation id: Permission denied (you must be root)
+
+2025-09-23 19:45:35.1588|ERROR|IPBan|Process iptables -L -n had exit code 4
+2025-09-23 19:45:35.1588|ERROR|IPBan|Error Exception: System.IO.FileNotFoundException: Could not find file '/tmp/fe9ed473d5a04abb9e740ec700b4fd3b.tmp'.
+File name: '/tmp/fe9ed473d5a04abb9e740ec700b4fd3b.tmp'
+   at Interop.ThrowExceptionForIoErrno(ErrorInfo errorInfo, String path, Boolean isDirError)
+   at Microsoft.Win32.SafeHandles.SafeFileHandle.Open(String path, OpenFlags flags, Int32 mode, Boolean failForSymlink, Boolean&amp; wasSymlink, Func`4 createOpenException)
+   at Microsoft.Win32.SafeHandles.SafeFileHandle.Open(String fullPath, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize, UnixFileMode openPermissions, Int64&amp; fileLength, UnixFileMode&amp; filePermissions, Boolean failForSymlink, Boolean&amp; wasSymlink, Func`4 createOpenException)
+   at System.IO.Strategies.OSFileStreamStrategy..ctor(String path, FileMode mode, FileAccess access, FileShare share, FileOptions options, Int64 preallocationSize, Nullable`1 unixCreateMode)
+   at System.IO.FileStream..ctor(String path, FileMode mode, FileAccess access, FileShare share, Int32 bufferSize, FileOptions options, Int64 preallocationSize)
+   at System.IO.StreamReader.ValidateArgsAndOpenPath(String path, Encoding encoding, Int32 bufferSize)
+   at System.IO.StreamReader..ctor(String path)
+   at DigitalRuby.IPBanCore.IPBanLinuxBaseFirewallIPTables.GetRuleNames(String ruleNamePrefix)+MoveNext() in /home/runner/work/IPBan/IPBan/IPBanCore/Linux/IPBanLinuxBaseFirewallIPTables.cs:line 422
+   at System.Collections.Generic.LargeArrayBuilder`1.AddRange(IEnumerable`1 items)
+   at System.Collections.Generic.EnumerableHelpers.ToArray[T](IEnumerable`1 source)
+   at DigitalRuby.IPBanCore.IPBanService.LoadFirewall(IPBanConfig oldConfig) in /home/runner/work/IPBan/IPBan/IPBanCore/Core/IPBan/IPBanService_Private.cs:line 585
+   at DigitalRuby.IPBanCore.IPBanService.UpdateConfiguration(CancellationToken cancelToken) in /home/runner/work/IPBan/IPBan/IPBanCore/Core/IPBan/IPBanService_Private.cs:line 105
+2025-09-23 19:45:35.1588|INFO|IPBan|Local ip address: 10.1.0.252
+2025-09-23 19:45:35.1588|DEBUG|IPBan|No delegate to update
+2025-09-23 19:45:35.1588|DEBUG|IPBan|No firewall tasks to run
+2025-09-23 19:45:35.1588|WARN|IPBan|IPBan is running correctly. You can perform a failed ssh or rdp login and watch this log to verify functionality.
+2025-09-23 19:45:35.1588|DEBUG|IPBan|Running firewall process: iptables -F
+2025-09-23 19:45:35.1588|ERROR|IPBan|Process iptables -F had std err: iptables v1.8.10 (nf_tables): Could not fetch rule set generation id: Permission denied (you must be root)
+
+2025-09-23 19:45:35.1588|ERROR|IPBan|Process iptables -F had exit code 4
+2025-09-23 19:45:35.1588|DEBUG|IPBan|Running firewall process: ip6tables -F
+2025-09-23 19:45:35.1588|ERROR|IPBan|Process ip6tables -F had std err: ip6tables v1.8.10 (nf_tables): Could not fetch rule set generation id: Permission denied (you must be root)
+
+2025-09-23 19:45:35.1588|ERROR|IPBan|Process ip6tables -F had exit code 4
+2025-09-23 19:45:35.1588|DEBUG|IPBan|Running firewall process: ipset -F
+2025-09-23 19:45:35.1588|DEBUG|IPBan|Running firewall process: iptables -F
+2025-09-23 19:45:35.1588|ERROR|IPBan|Process iptables -F had std err: iptables v1.8.10 (nf_tables): Could not fetch rule set generation id: Permission denied (you must be root)
+
+2025-09-23 19:45:35.1588|ERROR|IPBan|Process iptables -F had exit code 4
+2025-09-23 19:45:35.1588|DEBUG|IPBan|Running firewall process: ip6tables -F
+2025-09-23 19:45:35.1588|ERROR|IPBan|Process ip6tables -F had std err: ip6tables v1.8.10 (nf_tables): Could not fetch rule set generation id: Permission denied (you must be root)
+
+2025-09-23 19:45:35.1588|ERROR|IPBan|Process ip6tables -F had exit code 4
+2025-09-23 19:45:35.1588|DEBUG|IPBan|Running firewall process: ipset -F
+2025-09-23 19:45:35.1588|DEBUG|IPBan|No delegate to update
+2025-09-23 19:45:35.1588|DEBUG|IPBan|No firewall tasks to run
+2025-09-23 19:45:35.1588|WARN|IPBan|Stopped IPBan service
+
+</StdOut>
+    </Output>
+    <RunInfos>
+      <RunInfo computerName="runnervmf4ws1" outcome="Error" timestamp="2025-09-23T19:45:36.7248257+00:00">
+        <Text>The active test run was aborted. Reason: Test host process crashed : Unhandled exception. System.ComponentModel.Win32Exception (2): An error occurred trying to start process 'ipset' with working directory '/home/runner/work/IPBan/IPBan/IPBanTests/bin/Debug/net8.0'. No such file or directory
+   at System.Diagnostics.Process.ForkAndExecProcess(ProcessStartInfo startInfo, String resolvedFilename, String[] argv, String[] envp, String cwd, Boolean setCredentials, UInt32 userId, UInt32 groupId, UInt32[] groups, Int32&amp; stdinFd, Int32&amp; stdoutFd, Int32&amp; stderrFd, Boolean usesTerminal, Boolean throwOnNoExec)
+   at System.Diagnostics.Process.StartCore(ProcessStartInfo startInfo)
+   at DigitalRuby.IPBanCore.IPBanFirewallUtility.RunProcess(String program, Object input, Object output, String[] args) in /home/runner/work/IPBan/IPBan/IPBanCore/Core/IPBan/IPBanFirewallUtility.cs:line 579
+   at DigitalRuby.IPBanCore.IPBanLinuxIPSetIPTables.SaveToFile(String fileName) in /home/runner/work/IPBan/IPBan/IPBanCore/Linux/IPBanLinuxIPSetIPTables.cs:line 101
+   at DigitalRuby.IPBanCore.IPBanLinuxBaseFirewallIPTables.SaveSetsToDisk() in /home/runner/work/IPBan/IPBan/IPBanCore/Linux/IPBanLinuxBaseFirewallIPTables.cs:line 125
+   at DigitalRuby.IPBanCore.IPBanLinuxBaseFirewallIPTables.OnDispose() in /home/runner/work/IPBan/IPBan/IPBanCore/Linux/IPBanLinuxBaseFirewallIPTables.cs:line 385
+   at DigitalRuby.IPBanCore.IPBanLinuxFirewallIPTables.OnDispose() in /home/runner/work/IPBan/IPBan/IPBanCore/Linux/IPBanLinuxFirewallIPTables.cs:line 59
+   at DigitalRuby.IPBanCore.IPBanBaseFirewall.Dispose() in /home/runner/work/IPBan/IPBan/IPBanCore/Core/IPBan/IPBanBaseFirewall.cs:line 125
+   at DigitalRuby.IPBanCore.IPBanBaseFirewall.Finalize() in /home/runner/work/IPBan/IPBan/IPBanCore/Core/IPBan/IPBanBaseFirewall.cs:line 113
+</Text>
+      </RunInfo>
+    </RunInfos>
+  </ResultSummary>
+</TestRun>
