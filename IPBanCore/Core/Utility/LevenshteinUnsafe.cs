@@ -50,6 +50,13 @@ namespace DigitalRuby.IPBanCore
                 return value2.Length;
             }
 
+            // Prevent stack overflow for very large strings - limit to 8KB stack allocation
+            const int maxStackAllocSize = 2048; // 2048 ints = 8KB on 32-bit, 16KB on 64-bit
+            if (value2.Length > maxStackAllocSize)
+            {
+                return -2;
+            }
+
             int* costs = stackalloc int[value2.Length];
             int* costsEnd = costs + value2.Length, ptr;
             int i = 0, j, insertionCost, cost, additionCost;

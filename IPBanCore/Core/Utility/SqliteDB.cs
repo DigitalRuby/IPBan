@@ -140,13 +140,29 @@ namespace DigitalRuby.IPBanCore
             /// </summary>
             public void Rollback()
             {
-                if (DBTransaction != null)
+                try
                 {
-                    DBTransaction.Rollback();
-                    DBTransaction.Dispose();
-                    DBTransaction = null;
+                    if (DBTransaction != null)
+                    {
+                        DBTransaction.Rollback();
+                        DBTransaction.Dispose();
+                        DBTransaction = null;
+                    }
                 }
-                Dispose();
+                catch
+                {
+                    // ignore rollback errors
+                }
+                finally
+                {
+                    // Clean up connection without trying to commit again
+                    GC.SuppressFinalize(this);
+                    if (disposeConnection && DBConnection != null)
+                    {
+                        db.CloseConnection(DBConnection);
+                    }
+                    DBConnection = null;
+                }
             }
 
             /// <summary>

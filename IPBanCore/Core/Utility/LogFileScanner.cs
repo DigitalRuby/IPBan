@@ -154,7 +154,7 @@ namespace DigitalRuby.IPBanCore
             var timer = fileProcessingTimer;
             if (timer != null)
             {
-                while (!timer.Enabled)
+                while (timer.Enabled)  // Fixed: Wait while timer is ENABLED, not disabled
                 {
                     Thread.Sleep(20);
                 }
@@ -481,14 +481,9 @@ namespace DigitalRuby.IPBanCore
                 }
 
                 // make a copy of everything so we can enumerate outside a lock
-                watchedFilesCopy.Clear();
-                foreach (WatchedFile file in watchedFiles)
-                {
-                    watchedFilesCopy.Add(file);
-                }
+                // Optimized: Use constructor instead of Clear/Add loop
+                return new HashSet<WatchedFile>(watchedFiles);
             }
-
-            return watchedFilesCopy;
         }
 
         private void ProcessFile(WatchedFile file, FileStream fs)
