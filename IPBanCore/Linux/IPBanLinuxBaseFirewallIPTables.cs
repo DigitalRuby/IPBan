@@ -251,12 +251,12 @@ namespace DigitalRuby.IPBanCore
                     if (LogPackets)
                     {
                         // replace log
-                        IPBanFirewallUtility.RunProcess(IpTablesProcess, null, null, rootCommand.Concat(logAction));
+                        IPBanFirewallUtility.RunProcess(IpTablesProcess, null, null, rootCommand.Concat(logAction).ToArray());
                         ruleNum++;
                     }
 
                     // replace drop
-                    IPBanFirewallUtility.RunProcess(IpTablesProcess, null, null, rootCommand.Concat([action]));
+                    IPBanFirewallUtility.RunProcess(IpTablesProcess, null, null, rootCommand.Concat([action]).ToArray());
                     replaced = true;
                     break;
                 }
@@ -272,11 +272,11 @@ namespace DigitalRuby.IPBanCore
                 if (LogPackets)
                 {
                     // new log
-                    IPBanFirewallUtility.RunProcess(IpTablesProcess, null, null, rootCommand.Concat(logAction));
+                    IPBanFirewallUtility.RunProcess(IpTablesProcess, null, null, rootCommand.Concat(logAction).ToArray());
                 }
 
                 // new drop
-                IPBanFirewallUtility.RunProcess(IpTablesProcess, null, null, rootCommand.Concat([action]));
+                IPBanFirewallUtility.RunProcess(IpTablesProcess, null, null, rootCommand.Concat([action]).ToArray());
             }
 
             cancelToken.ThrowIfCancellationRequested();

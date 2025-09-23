@@ -523,7 +523,7 @@ namespace DigitalRuby.IPBanCore
         /// <param name="output">Dump std out to this file or Stream (null to not do this)</param>
         /// <param name="args">Args</param>
         /// <returns>Exit code</returns>
-        public static int RunProcess(string program, object input, object output, params IEnumerable<string> args)
+        public static int RunProcess(string program, object input, object output, params string[] args)
         {
             const int timeout = 60000; // 60 seconds in milliseconds
 

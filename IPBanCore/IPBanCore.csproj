@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFramework>net9.0</TargetFramework>
+		<TargetFramework>net8.0</TargetFramework>
 		<RootNamespace>DigitalRuby.IPBanCore</RootNamespace>
 		<PreserveCompilationContext>true</PreserveCompilationContext>
 		<PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
@@ -36,18 +36,19 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Microsoft.Data.Sqlite" Version="9.0.9" />
-		<PackageReference Include="Microsoft.Extensions.FileSystemGlobbing" Version="9.0.9" />
-		<PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.9" />
-		<PackageReference Include="Microsoft.Extensions.Hosting.Systemd" Version="9.0.9" />
-		<PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" Version="9.0.9" />
-		<PackageReference Include="Microsoft.Extensions.Logging" Version="9.0.9" />
+		<PackageReference Include="Microsoft.Data.Sqlite" Version="8.0.11" />
+		<PackageReference Include="Microsoft.Extensions.FileSystemGlobbing" Version="8.0.1" />
+		<PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.1" />
+		<PackageReference Include="Microsoft.Extensions.Hosting.Systemd" Version="8.0.1" />
+		<PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" Version="8.0.1" />
+		<PackageReference Include="Microsoft.Extensions.Logging" Version="8.0.1" />
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
 		<PackageReference Include="NLog" Version="6.0.3" />
-		<PackageReference Include="System.Diagnostics.PerformanceCounter" Version="9.0.9" />
-		<PackageReference Include="System.IO.Hashing" Version="9.0.9" />
+		<PackageReference Include="System.Diagnostics.PerformanceCounter" Version="8.0.1" />
+		<PackageReference Include="System.IO.Hashing" Version="8.0.1" />
+		<PackageReference Include="System.IO.Pipelines" Version="8.0.0" />
 		<PackageReference Include="System.Linq.Async" Version="6.0.3" />
-		<PackageReference Include="System.Threading.Tasks.Dataflow" Version="9.0.9" />
+		<PackageReference Include="System.Threading.Tasks.Dataflow" Version="8.0.1" />
 		<PackageReference Include="TaskScheduler" Version="2.12.2" />
     <PackageReference Include="System.CommandLine" Version="2.0.0-beta4.22272.1" />
 	</ItemGroup>

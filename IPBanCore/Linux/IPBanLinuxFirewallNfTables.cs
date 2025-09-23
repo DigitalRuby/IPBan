@@ -142,7 +142,7 @@ public class IPBanLinuxFirewallNFTables : IPBanBaseFirewall
 
     internal sealed class NftContext : IDisposable
     {
-        private readonly Lock locker = new();
+        private readonly object locker = new();
         private IntPtr ctx;
 
         public NftOutputFlags OutputFlags
@@ -920,7 +920,7 @@ public class IPBanLinuxFirewallNFTables : IPBanBaseFirewall
 
 #if USE_NFT_NATIVE
 
-    private int RunNft(params IEnumerable<string> args)
+    private int RunNft(params string[] args)
     {
 
 #if ENABLE_PROFILING_NFT
@@ -974,7 +974,7 @@ public class IPBanLinuxFirewallNFTables : IPBanBaseFirewall
         return rc;
     }
 
-    private int RunNftStream(MemoryStream inputStream, Stream outputStream, params IEnumerable<string> args)
+    private int RunNftStream(MemoryStream inputStream, Stream outputStream, params string[] args)
     {
 
 #if ENABLE_PROFILING_NFT
@@ -989,7 +989,7 @@ public class IPBanLinuxFirewallNFTables : IPBanBaseFirewall
             // if user is asking for json, we can skip since native doesn't need this switch
             if (args.First() == "-j")
             {
-                args = args.Skip(1);
+            args = args.Skip(1).ToArray();
             }
 
             // use args as the command
