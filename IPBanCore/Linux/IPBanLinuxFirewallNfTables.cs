@@ -1,4 +1,5 @@
-﻿#define USE_NFT_NATIVE
+﻿// Native has mem leak, unsure why, so disabled for now. TODO: Investigate
+//#define USE_NFT_NATIVE
 
 #if DEBUG
 
@@ -312,7 +313,13 @@ public class IPBanLinuxFirewallNFTables : IPBanBaseFirewall
     public override void Dispose()
     {
         base.Dispose();
+
+#if USE_NFT_NATIVE
+
         nftCtx.Dispose();
+
+#endif
+
         GC.SuppressFinalize(this);
     }
 
