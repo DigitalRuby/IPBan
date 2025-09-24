@@ -158,10 +158,6 @@ public class IPBanLinuxFirewallNFTables : IPBanBaseFirewall
             {
                 throw new InvalidOperationException("nft_ctx_new returned NULL");
             }
-
-            // default to buffered capture
-            _ = NftNative.nft_ctx_buffer_output(ctx);
-            _ = NftNative.nft_ctx_buffer_error(ctx);
         }
 
         public void Dispose()
@@ -217,21 +213,25 @@ public class IPBanLinuxFirewallNFTables : IPBanBaseFirewall
 
         private int RunInternal(Func<int> invoker, out byte[] stdout, out byte[] stderr)
         {
+            int rc = 0;
             lock (locker)
             {
                 _ = NftNative.nft_ctx_buffer_output(ctx);
                 _ = NftNative.nft_ctx_buffer_error(ctx);
 
-                var rc = invoker();
-
-                stdout = PtrToBytes(NftNative.nft_ctx_get_output_buffer(ctx));
-                stderr = PtrToBytes(NftNative.nft_ctx_get_error_buffer(ctx));
-
-                _ = NftNative.nft_ctx_unbuffer_output(ctx);
-                _ = NftNative.nft_ctx_unbuffer_error(ctx);
-
-                return rc;
+                try
+                {
+                    rc = invoker();
+                    stdout = PtrToBytes(NftNative.nft_ctx_get_output_buffer(ctx));
+                    stderr = PtrToBytes(NftNative.nft_ctx_get_error_buffer(ctx));
+                }
+                finally
+                {
+                    _ = NftNative.nft_ctx_unbuffer_output(ctx);
+                    _ = NftNative.nft_ctx_unbuffer_error(ctx);
+                }
             }
+            return rc;
         }
 
         private static byte[] PtrToBytes(IntPtr p)
@@ -312,6 +312,7 @@ public class IPBanLinuxFirewallNFTables : IPBanBaseFirewall
     public override void Dispose()
     {
         base.Dispose();
+        nftCtx.Dispose();
         GC.SuppressFinalize(this);
     }
 
@@ -864,6 +865,11 @@ public class IPBanLinuxFirewallNFTables : IPBanBaseFirewall
     private IEnumerable<NftRuleInternal> EnumerateAllSetIPs(bool? allow, string ruleNamePrefix = null)
     {
         var nftRoot = GetRulesAndSets();
+        if (nftRoot is null)
+        {
+            yield break;
+        }
+
         string baseFilter = string.IsNullOrWhiteSpace(ruleNamePrefix) ? null : GetFullRuleName(ruleNamePrefix);
 
         foreach (var entry in nftRoot?.Entries)
@@ -1075,7 +1081,10 @@ public class IPBanLinuxFirewallNFTables : IPBanBaseFirewall
     {
         using TempFile tmp = new();
         using var fs = File.Open(tmp.FullName, FileMode.Create, FileAccess.ReadWrite, FileShare.None);
-        RunNftStream(null, fs, "-j", "list", "table", "inet", tableName);
+        if (RunNftStream(null, fs, "-j", "list", "table", "inet", tableName) != 0 || fs.Length == 0)
+        {
+            return null;
+        }
         var nftRoot = JsonSerializationHelper.Deserialize<NetFilterRuleset>(fs);
         return nftRoot;
     }
