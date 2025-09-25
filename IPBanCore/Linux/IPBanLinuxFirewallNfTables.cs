@@ -9,7 +9,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -57,8 +56,7 @@ public class IPBanLinuxFirewallNFTables : IPBanBaseFirewall
                 // not ours
                 return IntPtr.Zero;
             }
-
-            if (_handle != IntPtr.Zero)
+            else if (_handle != IntPtr.Zero)
             {
                 // already loaded
                 return _handle;
