@@ -328,6 +328,15 @@ namespace DigitalRuby.IPBanCore
         [LocalizedDisplayName(nameof(IPBanResources.DisableNotificationFlags))]
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public IPAddressNotificationFlags NotificationFlags { get; set; } = IPAddressNotificationFlags.None;
+
+        /// <summary>
+        /// Description
+        /// </summary>
+        [DisplayFormat(ConvertEmptyStringToNull = false)]
+        [Required(AllowEmptyStrings = true)]
+        [LocalizedDisplayName(nameof(IPBanResources.Description))]
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        public string Description { get; set; } = string.Empty;
     }
 
     /// <summary>
