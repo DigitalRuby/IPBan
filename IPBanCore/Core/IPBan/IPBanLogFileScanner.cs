@@ -24,6 +24,7 @@ SOFTWARE.
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Text.RegularExpressions;
 
 namespace DigitalRuby.IPBanCore
@@ -73,6 +74,11 @@ namespace DigitalRuby.IPBanCore
         public IPAddressNotificationFlags NotificationFlags { get; }
 
         /// <summary>
+        /// Description
+        /// </summary>
+        public string Description { get; }
+
+        /// <summary>
         /// Create a log file scanner
         /// </summary>
         /// <param name="options">Options</param>
@@ -87,6 +93,7 @@ namespace DigitalRuby.IPBanCore
             FailedLoginMinimumTimespan = options.MinimumTimeBetweenFailedLoginAttempts;
             SuccessfulLogLevel = options.SuccessfulLogLevel;
             NotificationFlags = options.NotificationFlags;
+            Description = options.Description;
 
             this.eventHandler = options.EventHandler;
             this.dns = options.Dns;
@@ -113,6 +120,7 @@ namespace DigitalRuby.IPBanCore
                 FailedLoginMinimumTimespan == options.MinimumTimeBetweenFailedLoginAttempts &&
                 NotificationFlags == options.NotificationFlags &&
                 SuccessfulLogLevel == options.SuccessfulLogLevel &&
+                Description == options.Description &&
                 this.eventHandler == options.EventHandler &&
                 this.dns == options.Dns &&
                 this.regexFailureString == options.RegexFailure &&
@@ -150,6 +158,7 @@ namespace DigitalRuby.IPBanCore
                     info.LogLevel = FailedLogLevel;
                 }
                 info.NotificationFlags = NotificationFlags;
+                info.IsTest = Description is not null && Description.Trim().Equals("test", StringComparison.OrdinalIgnoreCase);
                 events.Add(info);
 
                 Logger.Debug("Log file found match, ip: {0}, user: {1}, source: {2}, count: {3}, type: {4}",

@@ -1164,6 +1164,8 @@ namespace DigitalRuby.IPBanCore
             List<IPAddressLogEvent> bannedIPs = [];
             List<IPAddressLogEvent> unbannedIPs = [];
             object transaction = BeginTransaction();
+            string normalizedIPAddress;
+
             try
             {
                 // loop through events, for failed and successful logins, we want to group / aggregate the same event from the
@@ -1172,7 +1174,12 @@ namespace DigitalRuby.IPBanCore
                 {
                     Logger.Trace("Processing log event {0}...", evt);
 
-                    if (!evt.IPAddress.TryNormalizeIPAddress(out string normalizedIPAddress))
+                    if (evt.IsTest)
+                    {
+                        Logger.Warn("Ignoring test event {0}", evt);
+                        continue;
+                    }
+                    else if (!evt.IPAddress.TryNormalizeIPAddress(out normalizedIPAddress))
                     {
                         continue;
                     }

@@ -641,11 +641,12 @@ namespace DigitalRuby.IPBanCore
         /// <param name="logData">Log data, if any</param>
         /// <param name="notificationFlags">Notification flags</param>
         /// <param name="minimumTimeBetweenLogins">Minimum time between logins</param>
+        /// <param name="isTest">True for a test event, false for a live event</param>
         public IPAddressLogEvent(string ipAddress, string userName, string source,
             int count, IPAddressEventType type, DateTime timestamp = default, bool external = false,
             string extraInfo = null, int failedLoginThreshold = 0, LogLevel logLevel = LogLevel.Warning,
             string logData = null, IPAddressNotificationFlags notificationFlags = IPAddressNotificationFlags.None,
-            TimeSpan? minimumTimeBetweenLogins = null)
+            TimeSpan? minimumTimeBetweenLogins = null, bool isTest = false)
         {
             // normalize ip address if possible
             if (System.Net.IPAddress.TryParse(ipAddress, out System.Net.IPAddress parsedIPAddress))
@@ -668,6 +669,7 @@ namespace DigitalRuby.IPBanCore
             LogData = logData;
             NotificationFlags = notificationFlags;
             MinimumTimeBetweenLogins = minimumTimeBetweenLogins;
+            IsTest = isTest;
         }
 
         /// <summary>
@@ -743,5 +745,10 @@ namespace DigitalRuby.IPBanCore
         /// Notification flags
         /// </summary>
         public IPAddressNotificationFlags NotificationFlags { get; set; }
+
+        /// <summary>
+        /// Whether this is a test event
+        /// </summary>
+        public bool IsTest { get; set; }
     }
 }

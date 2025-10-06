@@ -287,9 +287,11 @@ namespace DigitalRuby.IPBanCore
                     failedLoginMinimumTimespan = group.MinimumTimeBetweenLoginAttemptsTimeSpan;
 
                     IPAddressEventType eventType = (successfulLogin ? IPAddressEventType.SuccessfulLogin : IPAddressEventType.FailedLogin);
-                    events.Add(new IPAddressLogEvent(ipAddress, userName, source, count, eventType,
+                    var isTest = group.Description is not null && group.Description.Trim().Equals("test", StringComparison.OrdinalIgnoreCase);
+                    var newEvent = new IPAddressLogEvent(ipAddress, userName, source, count, eventType,
                         timestamp is null ? default : timestamp.Value, false, string.Empty,
-                        failedLoginThreshold, logLevel, logData, notificationFlags, failedLoginMinimumTimespan));
+                        failedLoginThreshold, logLevel, logData, notificationFlags, failedLoginMinimumTimespan, isTest);
+                    events.Add(newEvent);
                 }
             }
 

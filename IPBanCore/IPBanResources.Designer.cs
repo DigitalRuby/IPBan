@@ -2225,6 +2225,15 @@ namespace DigitalRuby.IPBanCore {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Description. Set to TEST to put the recipe in analyze but not execute mode..
+        /// </summary>
+        public static string RecipeDescriptionTooltip {
+            get {
+                return ResourceManager.GetString("RecipeDescriptionTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Recursive.
         /// </summary>
         public static string Recursive {
