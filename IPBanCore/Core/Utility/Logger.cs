@@ -24,13 +24,13 @@ SOFTWARE.
 
 #region Imports
 
-using Microsoft.Extensions.Logging;
-
-using NLog;
-
 using System;
 using System.IO;
 using System.Text;
+
+using Microsoft.Extensions.Logging;
+
+using NLog;
 
 #endregion Imports
 
@@ -141,6 +141,11 @@ namespace DigitalRuby.IPBanCore
             }
         }
 
+        /// <summary>
+        /// Config file path
+        /// </summary>
+        public static string ConfigPath => Path.Combine(AppContext.BaseDirectory, "nlog.config");
+
         private static readonly Microsoft.Extensions.Logging.ILogger instance;
         private static readonly NLog.Logger nlogInstance;
 
@@ -173,47 +178,20 @@ namespace DigitalRuby.IPBanCore
         {
             try
             {
-                string nlogConfigPath = Path.Combine(AppContext.BaseDirectory, "nlog.config");
-                if (!File.Exists(nlogConfigPath))
-                {
+                ResetConfigFile();
 
-#if DEBUG
-
-                    const string defaultLogLevel = "Debug";
-
-#else
-
-                    const string defaultLogLevel = "Info";
-
-#endif
-
-                    Console.WriteLine("Creating default nlog.config file");
-
-                    // storing this as a resource fails to use correct string in precompiled .exe with .net core, bug with Microsoft I think
-                    string defaultNLogConfig = $@"<?xml version=""1.0""?>
-<nlog xmlns=""http://www.nlog-project.org/schemas/NLog.xsd"" xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" throwExceptions=""false"" internalLogToConsole=""false"" internalLogToConsoleError=""false"" internalLogLevel=""Trace"">
-  <targets>
-    <target name=""logfile"" xsi:type=""File"" fileName=""${{basedir}}/logfile.txt"" archiveNumbering=""Sequence"" archiveEvery=""Day"" maxArchiveFiles=""28"" encoding=""UTF-8""/>
-    <!-- <target name=""console"" xsi:type=""Console""/> -->
-  </targets>
-  <rules>
-    <logger name=""*"" minlevel=""{defaultLogLevel}"" writeTo=""logfile""/>
-    <!-- <logger name=""*"" minlevel=""{defaultLogLevel}"" writeTo=""console""/> -->
-  </rules>
-</nlog>";
-                    ExtensionMethods.FileWriteAllTextWithRetry(nlogConfigPath, defaultNLogConfig);
-                }
                 LogFactory factory;
-                if (File.Exists(nlogConfigPath))
+                if (File.Exists(ConfigPath))
                 {
 #pragma warning disable CS0618 // Type or member is obsolete
-                    factory = LogManager.Setup().LoadConfigurationFromFile(nlogConfigPath).LogFactory;
+                    factory = LogManager.Setup().LoadConfigurationFromFile(ConfigPath).LogFactory;
 #pragma warning restore CS0618 // Type or member is obsolete
                 }
                 else
                 {
                     throw new IOException("Unable to create nlog configuration file, nlog.config file failed to write default config.");
                 }
+
                 nlogInstance = factory.GetLogger("IPBan");
                 instance = new NLogWrapper(nlogInstance);
 
@@ -254,6 +232,43 @@ namespace DigitalRuby.IPBanCore
                 ex = ex.InnerException;
             }
             return b.ToString();
+        }
+
+        /// <summary>
+        /// Reset config file
+        /// </summary>
+        public static void ResetConfigFile()
+        {
+            if (File.Exists(ConfigPath))
+            {
+                return;
+            }
+
+#if DEBUG
+
+            const string defaultLogLevel = "Debug";
+
+#else
+
+            const string defaultLogLevel = "Info";
+
+#endif
+
+            Console.WriteLine("Creating default nlog.config file");
+
+            // storing this as a resource fails to use correct string in precompiled .exe with .net core, bug with Microsoft I think
+            string defaultNLogConfig = $@"<?xml version=""1.0""?>
+<nlog xmlns=""http://www.nlog-project.org/schemas/NLog.xsd"" xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"" throwExceptions=""false"" internalLogToConsole=""false"" internalLogToConsoleError=""false"" internalLogLevel=""Trace"">
+  <targets>
+    <target name=""logfile"" xsi:type=""File"" fileName=""${{basedir}}/logfile.txt"" archiveFileName=""${{basedir}}/logfile.txt"" archiveNumbering=""Sequence"" archiveEvery=""Day"" maxArchiveFiles=""30"" archiveDateFormat="""" archiveSuffixFormat=""{{0}}"" encoding=""UTF-8""/>
+    <!-- <target name=""console"" xsi:type=""Console""/> -->
+  </targets>
+  <rules>
+    <logger name=""*"" minlevel=""{defaultLogLevel}"" writeTo=""logfile""/>
+    <!-- <logger name=""*"" minlevel=""{defaultLogLevel}"" writeTo=""console""/> -->
+  </rules>
+</nlog>";
+            ExtensionMethods.FileWriteAllTextWithRetry(ConfigPath, defaultNLogConfig);
         }
 
         /// <summary>

@@ -42,8 +42,8 @@
 		<PackageReference Include="Microsoft.Extensions.Hosting.Systemd" Version="9.0.9" />
 		<PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" Version="9.0.9" />
 		<PackageReference Include="Microsoft.Extensions.Logging" Version="9.0.9" />
-		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-		<PackageReference Include="NLog" Version="6.0.3" />
+		<PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
+		<PackageReference Include="NLog" Version="6.0.5" />
 		<PackageReference Include="System.Diagnostics.PerformanceCounter" Version="9.0.9" />
 		<PackageReference Include="System.IO.Hashing" Version="9.0.9" />
 		<PackageReference Include="System.Linq.Async" Version="6.0.3" />
