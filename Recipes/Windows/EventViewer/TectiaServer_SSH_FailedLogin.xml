@@ -20,25 +20,6 @@ Failure:
   </EventData>
   </Event>
 
-Success:
-- <Event xmlns="http://schemas.microsoft.com/win/2004/08/events/event">
-- <System>
-  <Provider Name="SSH Tectia Server" />
-  <EventID Qualifiers="0">0</EventID>
-  <Level>0</Level>
-  <Task>0</Task>
-  <Keywords>0xa0000000000000</Keywords>
-  <TimeCreated SystemTime="2023-10-10T14:56:40.287058100Z" />
-  <EventRecordID>131470</EventRecordID>
-  <Channel>Application</Channel>
-  <Computer>CPU2</Computer>
-  <Security />
-  </System>
-- <EventData>
-  <Data>410 Login_success, Username: user1, Src: cpu2.domain, Src IP: 1.2.3.4, Dst IFace: listener, Dst IP: 5.6.7.8, Src Port: 17756, Dst Port: 22, Ver: SSH-2.0-WinSCP_release_5.15.9, Session-Id: 6167</Data>
-  </EventData>
-  </Event>
-
 -->
 
 <!-- Tectia Server SSH failed login -->
@@ -57,28 +38,6 @@ Success:
 			<Regex>
 				<![CDATA[
 					^411\sLogin_failure,\sUsername:\s(?<username>[^,]+),.*Dst\sIP:\s(?<ip_address>[^\,]+)
-				]]>
-			</Regex>
-		</Expression>
-	</Expressions>
-</Group>
-
-<!-- Tectia Server SSH successful login -->
-<Group>
-	<Source>SSH</Source>
-	<Keywords>0xa0000000000000</Keywords>
-	<Path>SSH Tectia Server</Path>
-	<FailedLoginThreshold>0</FailedLoginThreshold>
-	<Expressions>
-		<Expression>
-			<XPath>//EventID</XPath>
-			<Regex>^0$</Regex>
-		</Expression>
-		<Expression>
-			<XPath>(//EventData/Data)[1]</XPath>
-			<Regex>
-				<![CDATA[
-					^410\sLogin_success,\sUsername:\s(?<username>[^,]+),.*Dst\sIP:\s(?<ip_address>[^\,]+)
 				]]>
 			</Regex>
 		</Expression>
