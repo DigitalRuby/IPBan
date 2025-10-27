@@ -1195,4 +1195,7 @@ For block rules, port list is ignored ports, so if you wanted to block port 3389
   <data name="RecipeDescriptionTooltip" xml:space="preserve">
     <value>Description. Set to TEST to put the recipe in analyze but not execute mode.</value>
   </data>
+  <data name="EventReader" xml:space="preserve">
+    <value>Event reader (and banned ip checking)</value>
+  </data>
 </root>
