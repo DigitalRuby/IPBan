@@ -943,7 +943,7 @@ namespace DigitalRuby.IPBanCore {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Event reader (and banned ip checking).
+        ///   Looks up a localized string similar to EventReader.
         /// </summary>
         public static string EventReader {
             get {
