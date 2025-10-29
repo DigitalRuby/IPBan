@@ -1,0 +1,34 @@
+<Event xmlns="http://schemas.microsoft.com/win/2004/08/events/event">
+	<System>
+	  <Provider Name="Microsoft-Windows-Security-Auditing" Guid="{54849625-5478-4994-A5BA-3E3B0328C30D}" />
+	  <EventID>4768</EventID>
+	  <Version>0</Version>
+	  <Level>0</Level>
+	  <Task>14339</Task>
+	  <Opcode>0</Opcode>
+	  <Keywords>0x8010000000000000</Keywords>
+	  <TimeCreated SystemTime="2025-10-29T20:48:38.001732500Z" />
+	  <EventRecordID>152222173</EventRecordID>
+	  <Correlation />
+	  <Execution ProcessID="668" ThreadID="1740" />
+	  <Channel>Security</Channel>
+	  <Computer>CPU.local</Computer>
+	  <Security />
+	</System>
+	<EventData>
+	  <Data Name="TargetUserName">user1</Data>
+	  <Data Name="TargetDomainName">abcd</Data>
+	  <Data Name="TargetSid">S-1-0-0</Data>
+	  <Data Name="ServiceName">serv/cpu1</Data>
+	  <Data Name="ServiceSid">S-1-0-0</Data>
+	  <Data Name="TicketOptions">0x40810010</Data>
+	  <Data Name="Status">0x6</Data>
+	  <Data Name="TicketEncryptionType">0xffffffff</Data>
+	  <Data Name="PreAuthType">-</Data>
+	  <Data Name="IpAddress">::ffff:110.125.1.22</Data>
+	  <Data Name="IpPort">12345</Data>
+	  <Data Name="CertIssuerName" />
+	  <Data Name="CertSerialNumber" />
+	  <Data Name="CertThumbprint" />
+	</EventData>
+</Event>

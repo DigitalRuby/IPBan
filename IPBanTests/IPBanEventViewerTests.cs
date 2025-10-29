@@ -80,6 +80,11 @@ namespace DigitalRuby.IPBanTests
                     throw new System.IO.InvalidDataException("Expected 5 lines of event viewer test data");
                 }
                 Xml = CleanLine(lines[0]);
+                if (Xml.StartsWith("$file:"))
+                {
+                    string fileName = Xml.Substring(6).Trim();
+                    Xml = File.ReadAllText(fileName);
+                }
                 IPAddress = CleanLine(lines[1]);
                 UserName = CleanLine(lines[2]);
                 if (UserName == "[nouser]")

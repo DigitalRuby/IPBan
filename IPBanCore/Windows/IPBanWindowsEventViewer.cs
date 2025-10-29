@@ -43,8 +43,6 @@ namespace DigitalRuby.IPBanCore
     /// </summary>
     public class IPBanWindowsEventViewer : IUpdater
     {
-        private static readonly Regex invalidXmlRegex = new(@"(?<![\uD800-\uDBFF])[\uDC00-\uDFFF]|[\uD800-\uDBFF](?![\uDC00-\uDFFF])|[\x00-\x08\x0B\x0C\x0E-\x1F\x7F-\x9F\uFEFF\uFFFE\uFFFF]", RegexOptions.Compiled);
-
         private readonly IIPBanService service;
         private EventLogQuery query;
         private EventLogWatcher watcher;
@@ -133,6 +131,24 @@ namespace DigitalRuby.IPBanCore
             service.AddIPAddressLogEvents(extractedEvents);
 
             return extractedEvents;
+        }
+
+        private static string StripInvalidXmlChars(string s)
+        {
+            if (s is null)
+            {
+                return s;
+            }
+            s = s.Trim();
+            var sb = new StringBuilder(s.Length);
+            foreach (var ch in s)
+            {
+                if (XmlConvert.IsXmlChar(ch))
+                {
+                    sb.Append(ch);
+                }
+            }
+            return sb.ToString();
         }
 
         private static bool FindSourceAndUserNameForInfo(IPAddressLogEvent info, XmlDocument doc)
@@ -300,21 +316,21 @@ namespace DigitalRuby.IPBanCore
 
         private static XmlDocument ParseXml(string xml)
         {
-            xml = invalidXmlRegex.Replace(xml, string.Empty);
+            xml = StripInvalidXmlChars(xml);
             XmlTextReader reader = new(new StringReader(xml))
             {
                 Namespaces = false
             };
             XmlReader outerReader = XmlReader.Create(reader, new XmlReaderSettings
             {
-                CheckCharacters = false,
+                CheckCharacters = true,
                 IgnoreComments = true,
                 IgnoreProcessingInstructions = true,
-                IgnoreWhitespace = true
+                IgnoreWhitespace = true,
+                DtdProcessing = DtdProcessing.Prohibit
             });
             XmlDocument doc = new();
             doc.Load(outerReader);
-
             return doc;
         }
 

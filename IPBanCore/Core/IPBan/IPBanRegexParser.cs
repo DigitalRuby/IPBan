@@ -320,6 +320,10 @@ namespace DigitalRuby.IPBanCore
                         //  the different ip regex.
                         int lastColon = tempIPAddress.LastIndexOf(':');
                         bool isValidIPAddress = IPAddress.TryParse(tempIPAddress, out IPAddress tmp);
+                        if (isValidIPAddress && tmp.IsIPv4MappedToIPv6)
+                        {
+                            tmp = tmp.MapToIPv4();
+                        }
                         if (isValidIPAddress || (lastColon >= 0 && IPAddress.TryParse(tempIPAddress[..lastColon], out tmp)))
                         {
                             ipAddress = tmp.ToString();
