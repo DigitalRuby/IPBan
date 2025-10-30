@@ -452,4 +452,35 @@ e.g.
             throw new NotImplementedException();
         }
     }
+    [TestFixture]
+    public class IPBanConfigFirewallRuleTests
+    {
+        [Test]
+        public void TestFirewallRules_EmptyIpSection_NoCrash()
+        {
+            // name;allow/block;ips;ports;platform_regex
+            string configXml = "<?xml version='1.0'?><configuration><appSettings>" +
+                "<add key='FirewallRules' value='MyRule;block;;22-80;Windows\nMyRule2;allow;1.2.3.4;;Windows' />" +
+                "</appSettings></configuration>";
+            var cfg = IPBanConfig.LoadFromXml(configXml);
+
+            // Should parse two extra rules
+            ClassicAssert.AreEqual(2, cfg.ExtraRules.Count);
+
+            // First rule has no ips and some ports, should be accepted but contain zero ip ranges
+            var r1 = cfg.ExtraRules[0];
+            ClassicAssert.IsTrue(r1.Block);
+            ClassicAssert.AreEqual("EXTRA_MyRule", r1.Name);
+            ClassicAssert.AreEqual(0, r1.IPAddressRanges.Count);
+            ClassicAssert.IsTrue(r1.AllowPortRanges.Count >=1);
+
+            // Second rule has one ip and empty ports
+            var r2 = cfg.ExtraRules[1];
+            ClassicAssert.IsFalse(r2.Block);
+            ClassicAssert.AreEqual("EXTRA_MyRule2", r2.Name);
+            ClassicAssert.AreEqual(1, r2.IPAddressRanges.Count);
+            ClassicAssert.AreEqual("1.2.3.4", r2.IPAddressRanges.First().ToString());
+            ClassicAssert.AreEqual(0, r2.AllowPortRanges.Count);
+        }
+    }
 }

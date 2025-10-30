@@ -387,12 +387,50 @@ namespace DigitalRuby.IPBanCore
                 string[] pieces = firewallRuleString.Split(';');
                 if (pieces.Length == 5)
                 {
+                    // Safely parse IP ranges, allowing empty IP section
+                    List<IPAddressRange> ipRanges = [];
+                    if (!string.IsNullOrWhiteSpace(pieces[2]))
+                    {
+                        foreach (var token in pieces[2].Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries))
+                        {
+                            try
+                            {
+                                ipRanges.Add(IPAddressRange.Parse(token));
+                            }
+                            catch (Exception ex)
+                            {
+                                Logger.Warn("Ignoring invalid ip range '{0}' in FirewallRules entry '{1}': {2}", token, firewallRuleString, ex.Message);
+                            }
+                        }
+                    }
+
+                    // Safely parse port ranges, allowing empty ports section
+                    List<PortRange> allowPorts = [];
+                    if (!string.IsNullOrWhiteSpace(pieces[3]))
+                    {
+                        foreach (var token in pieces[3].Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries))
+                        {
+                            try
+                            {
+                                var pr = PortRange.Parse(token);
+                                if (pr.MinPort >= 0)
+                                {
+                                    allowPorts.Add(pr);
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                Logger.Warn("Ignoring invalid port range '{0}' in FirewallRules entry '{1}': {2}", token, firewallRuleString, ex.Message);
+                            }
+                        }
+                    }
+
                     IPBanFirewallRule firewallRuleObj = new()
                     {
                         Block = (pieces[1].Equals("block", StringComparison.OrdinalIgnoreCase)),
-                        IPAddressRanges = pieces[2].Split(',').Select(p => IPAddressRange.Parse(p)).ToList(),
+                        IPAddressRanges = ipRanges,
                         Name = "EXTRA_" + pieces[0].Trim(),
-                        AllowPortRanges = pieces[3].Split(',').Select(p => PortRange.Parse(p)).Where(p => p.MinPort >= 0).ToList(),
+                        AllowPortRanges = allowPorts,
                         PlatformRegex = new Regex(pieces[4].Replace('*', '.'), RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)
                     };
                     if (firewallRuleObj.PlatformRegex.IsMatch(OSUtility.Name))
@@ -402,7 +440,7 @@ namespace DigitalRuby.IPBanCore
                 }
                 else
                 {
-                    Logger.Warn("Firewall block rule entry should have 5 comma separated pieces: name;block/allow;ips;ports;platform_regex. Invalid entry: {0}", firewallRuleString);
+                    Logger.Warn("Firewall block rule entry should have5 comma separated pieces: name;block/allow;ips;ports;platform_regex. Invalid entry: {0}", firewallRuleString);
                 }
             }
         }
