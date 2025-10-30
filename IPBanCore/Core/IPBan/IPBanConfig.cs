@@ -440,7 +440,7 @@ namespace DigitalRuby.IPBanCore
                 }
                 else
                 {
-                    Logger.Warn("Firewall block rule entry should have5 comma separated pieces: name;block/allow;ips;ports;platform_regex. Invalid entry: {0}", firewallRuleString);
+                    Logger.Warn("Firewall block rule entry should have comma separated pieces: name;block/allow;ips;ports;platform_regex. Invalid entry: {0}", firewallRuleString);
                 }
             }
         }
