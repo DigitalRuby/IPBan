@@ -430,10 +430,14 @@ namespace DigitalRuby.IPBanCore
                         Block = (pieces[1].Equals("block", StringComparison.OrdinalIgnoreCase)),
                         IPAddressRanges = ipRanges,
                         Name = "EXTRA_" + pieces[0].Trim(),
-                        AllowPortRanges = allowPorts,
-                        PlatformRegex = new Regex(pieces[4].Replace('*', '.'), RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)
+                        AllowPortRanges = allowPorts
                     };
-                    if (firewallRuleObj.PlatformRegex.IsMatch(OSUtility.Name))
+                    if (!string.IsNullOrWhiteSpace(pieces[4]))
+                    {
+                        firewallRuleObj.PlatformRegex = new Regex(pieces[4].Replace('*', '.'), RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+                    }
+                    if (firewallRuleObj.PlatformRegex is null ||
+                        firewallRuleObj.PlatformRegex.IsMatch(OSUtility.Name))
                     {
                         extraRules.Add(firewallRuleObj);
                     }
