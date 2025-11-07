@@ -214,11 +214,12 @@ namespace DigitalRuby.IPBanCore
         /// Delete all data from the database but keep the database file
         /// </summary>
         /// <param name="confirm">Pass true to actually truncate</param>
-        public void Truncate(bool confirm)
+        /// <param name="onlyBans">Delete only bans (true) or everything (false)</param>
+        public void Truncate(bool confirm, bool onlyBans = false)
         {
             if (confirm)
             {
-                ExecuteNonQuery("DELETE FROM IPAddresses");
+                ExecuteNonQuery("DELETE FROM IPAddresses" + (onlyBans ? " WHERE State IN (0, 1)" : string.Empty));
             }
         }
 

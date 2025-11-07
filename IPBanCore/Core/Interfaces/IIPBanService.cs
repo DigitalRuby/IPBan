@@ -136,6 +136,11 @@ namespace DigitalRuby.IPBanCore
         event Action<IPBanConfig> ConfigChanged;
 
         /// <summary>
+        /// Direct access to db
+        /// </summary>
+        IPBanDB DB { get; }
+
+        /// <summary>
         /// Whitelist
         /// </summary>
         IIPBanFilter Whitelist { get; }

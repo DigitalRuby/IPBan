@@ -262,11 +262,6 @@ namespace DigitalRuby.IPBanCore
         public bool IsRunning { get; set; }
 
         /// <summary>
-        /// IPBan database
-        /// </summary>
-        public IPBanDB DB { get { return ipDB; } }
-
-        /// <summary>
         /// Authorization header for requests
         /// </summary>
         public SecureString Authorization { get; set; }

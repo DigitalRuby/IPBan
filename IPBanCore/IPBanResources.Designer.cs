@@ -2351,6 +2351,15 @@ namespace DigitalRuby.IPBanCore {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Reset Banned IPs.
+        /// </summary>
+        public static string ResetBannedIPs {
+            get {
+                return ResourceManager.GetString("ResetBannedIPs", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Reset Failed Login Count on Unban.
         /// </summary>
         public static string ResetFailedLoginCountForUnbannedIPAddresses {

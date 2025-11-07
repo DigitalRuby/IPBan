@@ -318,6 +318,11 @@ namespace DigitalRuby.IPBanCore
         }
 
         /// <summary>
+        /// Direct access to the database
+        /// </summary>
+        public IPBanDB DB => ipDB;
+
+        /// <summary>
         /// Get a list of ip address and failed login attempts
         /// </summary>
         public IEnumerable<IPBanDB.IPAddressEntry> FailedLoginAttempts

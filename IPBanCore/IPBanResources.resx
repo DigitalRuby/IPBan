@@ -1198,4 +1198,7 @@ For block rules, port list is ignored ports, so if you wanted to block port 3389
   <data name="EventReader" xml:space="preserve">
     <value>EventReader</value>
   </data>
+  <data name="ResetBannedIPs" xml:space="preserve">
+    <value>Reset Banned IPs</value>
+  </data>
 </root>
