@@ -538,7 +538,7 @@ namespace DigitalRuby.IPBanCore {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Count,seconds for banning connected remote ips that meet a concurrent count for a specified number of seconds. Set to empty to disable this feature..
+        ///   Looks up a localized string similar to Count,seconds,optional port ranges. For banning connected remote ips that meet a concurrent count for a specified number of seconds (optionally filtered to the specified local ports). Set to empty to disable this feature..
         /// </summary>
         public static string ConcurrentRemoteIPBanTooltip {
             get {
