@@ -631,8 +631,8 @@ public sealed class NetFilterRule
                     expr.TryGetProperty("match", out var match) &&
                     match.TryGetProperty("left", out var left) &&
                     left.TryGetProperty("payload", out var payload) &&
-                    payload.TryGetProperty("field", out var field) &&
-                    field.GetString() == "dport" &&
+                    payload.TryGetProperty("field", out var _field) &&
+                    _field.GetString() == "dport" &&
                     match.TryGetProperty("right", out var right) &&
                     right.ValueKind == JsonValueKind.Object &&
                     right.TryGetProperty("set", out var set) &&
@@ -665,8 +665,8 @@ public sealed class NetFilterRule
                 e.TryGetProperty("match", out var match) &&
                 match.TryGetProperty("left", out var left) &&
                 left.TryGetProperty("payload", out var payload) &&
-                payload.TryGetProperty("field", out var field) &&
-                field.GetString() == "dport");
+                payload.TryGetProperty("field", out var _field) &&
+                _field.GetString() == "dport");
             if (value != null && value.Count > 0)
             {
                 var ranges = IPBanFirewallUtility.MergePortRanges(value).Select(r =>

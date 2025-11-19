@@ -22,33 +22,36 @@ namespace DigitalRuby.IPBanCore.Core.Utility
         /// <returns>Exit code task</returns>
         public static Task<int> ProcessAsync(string[] args)
         {
+            // Root
             var rootCommand = new RootCommand("IPBan utility");
 
             // Common options
-            var directoryOption = new Option<string>(
-                name: "--directory",
-                description: "IPBan installation folder (where various files lives).",
-                getDefaultValue: () => @"C:\Program Files\IPBan"
-            );
-            directoryOption.AddAlias("-d");
+            var directoryOption = new Option<string>("--directory")
+            {
+                Description = "IPBan installation folder (where various files lives).",
+                DefaultValueFactory = _ => @"C:\\Program Files\\IPBan"
+            };
+            directoryOption.Aliases.Add("-d");
 
             // version =====================
             var versionCommand = new Command("version", "Get ipban software version");
-            versionCommand.SetHandler(() =>
+            versionCommand.SetAction((context) =>
             {
                 Console.WriteLine(OSUtility.SoftwareVersion);
+                return 0;
             });
 
             // info =====================
             var infoCommand = new Command("info", "Get information about hosting OS");
-            infoCommand.SetHandler(() =>
+            infoCommand.SetAction((context) =>
             {
                 Console.WriteLine(OSUtility.OSInfo);
+                return 0;
             });
 
             // migrate =====================
             var migrateCommand = new Command("migrate", "Migrate other provide to ipban.override.config).");
-            migrateCommand.SetHandler(() =>
+            migrateCommand.SetAction(context =>
             {
                 return MigrationHelper.Migrate(args);
             });
@@ -57,40 +60,48 @@ namespace DigitalRuby.IPBanCore.Core.Utility
             var logFileTestCommand = new Command(
                 "logfiletest",
                 "Test a log file with regexes for failures and successes. It should contain 5 lines with log-filename regex-failure regex-failure-timestamp-format regex-success regex-success-timestamp-format");
-            var fileArgument = new Argument<string>("file", 
-                description: "File containing information about test. It should contain the following lines: log-filename regex-failure regex-failure-timestamp-format regex-success regex-success-timestamp-format"
-            );
-            logFileTestCommand.AddArgument(fileArgument);
-
-            logFileTestCommand.SetHandler(async file =>
+            var fileArgument = new Argument<string>("file")
             {
+                Description = "File containing information about test. It should contain the following lines: log-filename regex-failure regex-failure-timestamp-format regex-success regex-success-timestamp-format",
+                Arity = ArgumentArity.ExactlyOne
+            };
+            logFileTestCommand.Arguments.Add(fileArgument);
+
+            logFileTestCommand.SetAction(async context =>
+            {
+                var file = context.GetValue(fileArgument);
                 var lines = await System.IO.File.ReadAllLinesAsync(file);
                 if (lines.Length != 5)
                 {
                     Console.WriteLine("File must contain exactly 5 lines.");
-                    return;
+                    return 2;
                 }
                 IPBanLogFileTester.RunLogFileTest(lines[0], lines[1], lines[2], lines[3], lines[4]);
-            }, fileArgument);
+                return 0;
+            });
 
             // list
             var listCommand = new Command("list", "List currently banned IPs (State=Active/in firewall).");
-            listCommand.AddOption(directoryOption);
+            listCommand.Options.Add(directoryOption);
 
-            listCommand.SetHandler(async directory =>
+            listCommand.SetAction(async context =>
             {
                 try
                 {
+                    var directory = context.GetValue(directoryOption);
                     var dbPath = Path.Combine(directory, IPBanDB.FileName);
-                    if (!CheckDb(dbPath))
-                        return;
+                    var exit = CheckDb(dbPath);
+                    if (exit != 0)
+                    {
+                        return exit;
+                    }
 
                     List<IPBanDB.IPAddressEntry> bans = await GetIPBanBannedIPsAsync(dbPath);
 
                     if (bans.Count == 0)
                     {
                         Console.WriteLine("No currently banned IPs (State=0).");
-                        return;
+                        return 0;
                     }
 
                     Console.WriteLine($"Banned IPs found: {bans.Count}");
@@ -101,46 +112,61 @@ namespace DigitalRuby.IPBanCore.Core.Utility
                         string banEndDate = ban.BanEndDate?.ToString("yyyy-MM-dd HH:mm:ss");
                         Console.WriteLine($"{ban.IPAddress}\t{ban.FailedLoginCount}\t{banStartDate}\t{banEndDate}");
                     }
+                    return 0;
                 }
                 catch (Exception ex)
                 {
                     await Console.Error.WriteLineAsync("[ERROR] " + ex.Message);
-                    Environment.ExitCode = 1;
+                    return 1;
                 }
-            }, directoryOption);
+            });
 
             // unban <ip>  =====================
             var unbanCommand = new Command("unban", "Request UNBAN for an IP or for all currently banned IPs (writes to unban.txt).");
-            var ipArgument = new Argument<string>("ip", () => null, "IP address (IPv4/IPv6) to unban. Omit and use --all to unban all.");
-            var allOption = new Option<bool>(name: "--all", description: "Unban all currently banned IPs.") { Arity = ArgumentArity.ZeroOrOne };
-            allOption.AddAlias("-a");
-            var yesOption = new Option<bool>(name: "--yes", description: "Auto-confirm destructive actions without prompting.") { Arity = ArgumentArity.ZeroOrOne };
-            yesOption.AddAlias("-y");
+            var ipArgument = new Argument<string>("ip")
+            {
+                Description = "IP address (IPv4/IPv6) to unban. Omit and use --all to unban all.",
+                Arity = ArgumentArity.ZeroOrOne
+            };
+            var allOption = new Option<bool>("--all") { Description = "Unban all currently banned IPs." };
+            allOption.Aliases.Add("-a");
+            var yesOption = new Option<bool>("--yes") { Description = "Auto-confirm destructive actions without prompting." };
+            yesOption.Aliases.Add("-y");
 
-            unbanCommand.AddArgument(ipArgument);
-            unbanCommand.AddOption(allOption);
-            unbanCommand.AddOption(yesOption);
-            unbanCommand.AddOption(directoryOption);
+            unbanCommand.Arguments.Add(ipArgument);
+            unbanCommand.Options.Add(allOption);
+            unbanCommand.Options.Add(yesOption);
+            unbanCommand.Options.Add(directoryOption);
 
-            unbanCommand.SetHandler(async (ip, all, yes, directory) =>
+            unbanCommand.SetAction(async context =>
             {
                 try
                 {
-                    if (!CheckDirectory(directory))
-                        return;
+                    var ip = context.GetValue(ipArgument);
+                    var all = context.GetValue(allOption);
+                    var yes = context.GetValue(yesOption);
+                    var directory = context.GetValue(directoryOption);
+                    var exit = CheckDirectory(directory);
+                    if (exit != 0)
+                    {
+                        return exit;
+                    }
 
                     if (all)
                     {
                         var dbPath = Path.Combine(directory, IPBanDB.FileName);
-                        if (!CheckDb(dbPath))
-                            return;
+                        exit = CheckDb(dbPath);
+                        if (exit != 0)
+                        {
+                            return exit;
+                        }
 
                         List<IPBanDB.IPAddressEntry> bans = await GetIPBanBannedIPsAsync(dbPath);
 
                         if (bans.Count == 0)
                         {
                             Console.WriteLine("No currently banned IPs to unban.");
-                            return;
+                            return 0;
                         }
 
                         if (!yes)
@@ -151,7 +177,7 @@ namespace DigitalRuby.IPBanCore.Core.Utility
                                 !string.Equals(resp, "yes", StringComparison.OrdinalIgnoreCase))
                             {
                                 Console.WriteLine("Aborted.");
-                                return;
+                                return 0;
                             }
                         }
 
@@ -159,100 +185,104 @@ namespace DigitalRuby.IPBanCore.Core.Utility
                         int appended = await AppendIpsUnique(unbanFile, bans);
                         Console.WriteLine($"UNBAN requests appended: {appended} (file: {unbanFile})");
                         Console.WriteLine("IPBan will process the file on the next cycle.");
-                        return;
+                        return 0;
                     }
 
                     // Single-IP unban path
                     if (string.IsNullOrWhiteSpace(ip))
                     {
                         await Console.Error.WriteLineAsync("[ERROR] You must provide an IP or use --all.");
-                        Environment.ExitCode = 2;
-                        return;
+                        return 2;
                     }
 
                     if (!IPAddress.TryParse(ip, out _))
                     {
                         await Console.Error.WriteLineAsync($"[ERROR] Invalid IP address: {ip}");
-                        Environment.ExitCode = 2;
-                        return;
+                        return 2;
                     }
 
                     var singleUnbanFile = Path.Combine(directory, "unban.txt");
                     await AppendLinesUnique(singleUnbanFile, new[] { ip });
                     Console.WriteLine($"UNBAN request added for {ip} (file: {singleUnbanFile})");
                     Console.WriteLine("IPBan will process the file on the next cycle.");
+                    return 0;
                 }
                 catch (Exception ex)
                 {
                     await Console.Error.WriteLineAsync("[ERROR] " + ex.Message);
-                    Environment.ExitCode = 1;
+                    return 1;
                 }
-            }, ipArgument, allOption, yesOption, directoryOption);
+            });
 
             // ban <ip> =====================
             var banCommand = new Command("ban", "Request BAN for an IP (writes to ban.txt).");
-            var ipRequiredArgument = new Argument<string>("ip", "IP address (IPv4/IPv6) to ban.");
-            banCommand.AddArgument(ipRequiredArgument);
-            banCommand.AddOption(directoryOption);
+            var ipRequiredArgument = new Argument<string>("ip") { Description = "IP address (IPv4/IPv6) to ban.", Arity = ArgumentArity.ExactlyOne };
+            banCommand.Arguments.Add(ipRequiredArgument);
+            banCommand.Options.Add(directoryOption);
 
-            banCommand.SetHandler(async (ip, directory) =>
+            banCommand.SetAction(async context =>
             {
                 try
                 {
-                    if (!CheckDirectory(directory))
-                        return;
-
-                    if (!IPAddress.TryParse(ip, out _))
+                    var ip = context.GetValue(ipRequiredArgument);
+                    var directory = context.GetValue(directoryOption);
+                    var exit = CheckDirectory(directory);
+                    if (exit != 0)
+                    {
+                        return exit;
+                    }
+                    else if (!IPAddress.TryParse(ip, out _))
                     {
                         Console.Error.WriteLine($"[ERROR] Invalid IP address: {ip}");
-                        Environment.ExitCode = 2;
-                        return;
+                        return 2;
                     }
 
                     var banFile = Path.Combine(directory, "ban.txt");
-                    await AppendLinesUnique(banFile, new[] { ip });
+                    await AppendLinesUnique(banFile, [ip]);
                     Console.WriteLine($"BAN request added for {ip} (file: {banFile})");
                     Console.WriteLine("IPBan will process the file on the next cycle.");
+                    return 0;
                 }
                 catch (Exception ex)
                 {
                     Console.Error.WriteLine("[ERROR] " + ex.Message);
-                    Environment.ExitCode = 1;
+                    return 1;
                 }
-            }, ipRequiredArgument, directoryOption);
+            });
 
-            rootCommand.Add(infoCommand);
-            rootCommand.Add(logFileTestCommand);
-            rootCommand.Add(listCommand);
-            rootCommand.Add(unbanCommand);
-            rootCommand.Add(banCommand);
+            // wire-up
+            rootCommand.Subcommands.Add(versionCommand);
+            rootCommand.Subcommands.Add(infoCommand);
+            rootCommand.Subcommands.Add(migrateCommand);
+            rootCommand.Subcommands.Add(logFileTestCommand);
+            rootCommand.Subcommands.Add(listCommand);
+            rootCommand.Subcommands.Add(unbanCommand);
+            rootCommand.Subcommands.Add(banCommand);
 
-            return rootCommand.InvokeAsync(args);
+            return rootCommand.Parse(args).InvokeAsync();
         }
 
 
-        private static bool CheckDirectory(string directory)
+        private static int CheckDirectory(string directory)
         {
             if (!Directory.Exists(directory))
             {
                 Console.Error.WriteLine($"[ERROR] Service folder not found: {directory}");
-                Environment.ExitCode = 2;
-                return false;
+                return 2;
             }
 
-            return true;
+            return 0;
         }
 
-        private static bool CheckDb(string dbPath)
+        private static int CheckDb(string dbPath)
         {
             if (!File.Exists(dbPath))
             {
                 Console.Error.WriteLine($"[ERROR] Database not found: {dbPath}");
-                Environment.ExitCode = 2;
-                return false;
+                return 2;
             }
 
-            return true;
+            return 0;
         }
 
         private static async Task<List<IPBanDB.IPAddressEntry>> GetIPBanBannedIPsAsync(string dbPath)
@@ -323,7 +353,5 @@ namespace DigitalRuby.IPBanCore.Core.Utility
             }
             return linesToAppend.Count;
         }
-
-
     }
 }

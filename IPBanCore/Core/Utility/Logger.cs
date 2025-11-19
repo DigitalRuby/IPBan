@@ -201,6 +201,8 @@ namespace DigitalRuby.IPBanCore
 
                 LogManager.GlobalThreshold = NLog.LogLevel.Debug;
                 var cfg = factory.Configuration ?? new NLog.Config.LoggingConfiguration();
+                cfg.AddTarget("console", new NLog.Targets.ConsoleTarget("console"));
+                cfg.AddRule(NLog.LogLevel.Debug, NLog.LogLevel.Fatal, "console");
                 foreach (var rule in cfg.LoggingRules)
                 {
                     // Widen each rule to pass Debug and above
