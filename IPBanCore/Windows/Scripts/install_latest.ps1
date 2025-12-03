@@ -131,7 +131,7 @@ if (Test-Path -Path "$tempPath\nlog.config")
 & auditpol.exe /set /category:"{69979850-797A-11D9-BED3-505054503030}" /success:enable /failure:enable
 
 # create service
-& sc.exe create IPBAN type= own start= auto binPath= $INSTALL_EXE DisplayName= $SERVICE_NAME
+& sc.exe create IPBAN type= own start= delayed-auto binPath= $INSTALL_EXE DisplayName= $SERVICE_NAME
 & sc.exe description IPBAN "Automatically builds firewall rules for abusive login attempts: https://github.com/DigitalRuby/IPBan"
 & sc.exe failure IPBAN reset= 9999 actions= "restart/60000/restart/60000/restart/60000"
 if ($autostart -eq $True)
