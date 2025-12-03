@@ -21,7 +21,10 @@ param
 	[Parameter(Mandatory=$False, Position = 1)]
 	[Boolean] $silent = $False,
 	[Parameter(Mandatory=$False, Position = 2)]
-	[Boolean] $autostart = $True
+	[Boolean] $autostart = $True,
+	[Parameter(Mandatory=$False, Position = 3)]
+	[ValidateSet("delayed-auto", "auto")]
+	[String] $startupType = $null
 )
 
 if ($PSVersionTable.PSVersion.Major -lt 5 -or ($PSVersionTable.PSVersion.Major -eq 5 -and $PSVersionTable.PSVersion.Minor -lt 1))
@@ -130,8 +133,38 @@ if (Test-Path -Path "$tempPath\nlog.config")
 & auditpol.exe /set /category:"{69979849-797A-11D9-BED3-505054503030}" /success:enable /failure:enable
 & auditpol.exe /set /category:"{69979850-797A-11D9-BED3-505054503030}" /success:enable /failure:enable
 
+# prompt for startup type if not already specified
+if ($silent -eq $True)
+{
+    if ([string]::IsNullOrEmpty($startupType))
+    {
+        $startupType = "delayed-auto"
+    }
+}
+elseif ([string]::IsNullOrEmpty($startupType))
+{
+    Write-Host "`n"
+    Write-Host "Select the services startup type:"
+    Write-Host '- The default is "delayed-auto" which waits for the higher priority services to start leaving the system briefly unprotected after boot while the recommended is "auto" however when using the latter you may encounter compatibility issues if you choose to do so please verify the service starts correctly after reboot.'
+    Write-Host "1. delayed-auto"
+    Write-Host "2. auto"
+
+    do
+    {
+        $choice = Read-Host "Enter selection"
+
+        switch ($choice)
+        {
+            "1" { $startupType = "delayed-auto"; Write-Host "You selected: $startupType`n" }
+            "2" { $startupType = "auto"; Write-Host "You selected: $startupType`n" }
+            default { Write-Host "Invalid selection, please enter 1-2!" }
+        }
+    }
+    while ([string]::IsNullOrEmpty($startupType))
+}
+
 # create service
-& sc.exe create IPBAN type= own start= delayed-auto binPath= $INSTALL_EXE DisplayName= $SERVICE_NAME
+& sc.exe create IPBAN type= own start= $startupType binPath= $INSTALL_EXE DisplayName= $SERVICE_NAME
 & sc.exe description IPBAN "Automatically builds firewall rules for abusive login attempts: https://github.com/DigitalRuby/IPBan"
 & sc.exe failure IPBAN reset= 9999 actions= "restart/60000/restart/60000/restart/60000"
 if ($autostart -eq $True)
