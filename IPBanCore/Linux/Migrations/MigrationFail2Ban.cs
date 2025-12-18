@@ -17,12 +17,16 @@ namespace DigitalRuby.IPBanCore;
 /// Usage example once wired into your CLI:
 /// DigitalRuby.IPBan migrate f2b --root /etc/fail2ban --out ./ipban.migrated.config
 /// Notes:
-/// - Macro-only (expects your macro-enabled regex pipeline).
+/// - Translates fail2ban macros (&lt;HOST&gt;, &lt;IP&gt;, etc.) to IPBan format.
 /// - No GPL regex embedding beyond copying configuration text users already possess.
 /// - Generates bash hook framework into the chosen hook directory (default current dir).
 /// </summary>
 public static class MigrateFail2Ban
 {
+    private static bool _strictMode;
+    private static int _warningCount;
+    private static int _errorCount;
+
     /// <summary>
     /// Check if this is a fail2ban migration, and if so, run it
     /// </summary>
@@ -32,7 +36,7 @@ public static class MigrateFail2Ban
     {
         // Basic subcommand router pattern:
         // ipban migrate f2b [options]
-        if (args[0] != "f2b")
+        if (args.Length == 0 || args[0] != "f2b")
         {
             // Not our command; indicate not handled
             return -1;
@@ -57,15 +61,30 @@ public static class MigrateFail2Ban
 
     private static int Run(Options o)
     {
+        _strictMode = o.Strict;
+        _warningCount = 0;
+        _errorCount = 0;
+
+        // Validate root directory exists
+        if (!Directory.Exists(o.Root))
+        {
+            Error($"Fail2ban root directory does not exist: {o.Root}");
+            return 1;
+        }
+
         // 1) Read fail2ban jails (merged)
         var reader = new F2BReader(o.Root);
         var jails = reader.ReadJails(includeDisabled: o.IncludeDisabled);
         if (jails.Count == 0)
         {
-            Logger.Error("No enabled jails found (use --include-disabled to see all).");
+            Error("No enabled jails found (use --include-disabled to see all).");
+            if (_strictMode)
+            {
+                return 1;
+            }
         }
 
-        // 2) For each jail, read filter failregex and translate (macro-only)
+        // 2) For each jail, read filter failregex and translate
         var compiled = new List<MigratedJail>();
         foreach (var jail in jails)
         {
@@ -84,21 +103,71 @@ public static class MigrateFail2Ban
                 continue;
             }
 
-            var filterPath = Path.Combine(o.Root, "filter.d", $"{jail.Filter}.conf");
-            if (!File.Exists(filterPath))
+            // Look for filter file (.conf and .local)
+            var filterConfPath = Path.Combine(o.Root, "filter.d", $"{jail.Filter}.conf");
+            var filterLocalPath = Path.Combine(o.Root, "filter.d", $"{jail.Filter}.local");
+
+            F2BFilter? filter = null;
+
+            if (File.Exists(filterConfPath))
             {
-                Warn($"Filter file missing for jail '{jail.Name}': {filterPath}, skipping.");
+                filter = reader.ReadFilter(filterConfPath);
+            }
+
+            // Merge .local file on top if it exists
+            if (File.Exists(filterLocalPath))
+            {
+                var localFilter = reader.ReadFilter(filterLocalPath);
+                if (filter is null)
+                {
+                    filter = localFilter;
+                }
+                else
+                {
+                    // Merge: .local overrides/extends .conf
+                    foreach (var regex in localFilter.FailRegex)
+                    {
+                        if (!filter.FailRegex.Contains(regex))
+                        {
+                            filter.FailRegex.Add(regex);
+                        }
+                    }
+                    // Merge definitions
+                    foreach (var kvp in localFilter.Definitions)
+                    {
+                        filter.Definitions[kvp.Key] = kvp.Value;
+                    }
+                }
+            }
+
+            if (filter is null)
+            {
+                Warn($"Filter file missing for jail '{jail.Name}': {filterConfPath}, skipping.");
                 continue;
             }
 
-            var filter = reader.ReadFilter(filterPath);
             if (filter.FailRegex.Count == 0)
             {
                 Warn($"Filter '{filter.Name}' has no failregex lines, skipping jail '{jail.Name}'.");
                 continue;
             }
 
-            var alternation = CombineAlternation(filter.FailRegex);
+            // Expand fail2ban macros to IPBan format
+            var expandedRegexes = new List<string>();
+            foreach (var regex in filter.FailRegex)
+            {
+                var expanded = ExpandFail2BanMacros(regex, filter.Definitions);
+                expanded = IPBanRegexMacros.Expand(expanded);
+                expandedRegexes.Add(expanded);
+            }
+
+            var alternation = CombineAlternation(expandedRegexes);
+
+            // Validate that the regex contains ipaddress capture group
+            if (!ContainsIpAddressGroup(alternation))
+            {
+                Warn($"Jail '{jail.Name}' regex does not contain an 'ipaddress' capture group. The regex may not work correctly.");
+            }
 
             compiled.Add(new MigratedJail
             {
@@ -108,6 +177,19 @@ public static class MigrateFail2Ban
                 LogPaths = [.. jail.LogPaths],
                 FailedLoginRegex = alternation
             });
+        }
+
+        // Check for strict mode failures
+        if (_strictMode && (_warningCount > 0 || _errorCount > 0))
+        {
+            Logger.Error($"Strict mode: {_errorCount} error(s), {_warningCount} warning(s). Aborting.");
+            return 1;
+        }
+
+        if (compiled.Count == 0)
+        {
+            Error("No jails were successfully migrated.");
+            return 1;
         }
 
         // 3) Choose global BanTime/FindTime (minimum across jails; defaults if none)
@@ -121,13 +203,18 @@ public static class MigrateFail2Ban
             Logger.Info($"Jails migrated: {compiled.Count}");
             foreach (var j in compiled.OrderBy(j => j.Source))
             {
-                Logger.Info($"  - {j.Source}: paths={j.LogPaths.Count}, threshold={(j.FailedLoginThreshold?.ToString() ?? "(default)")}");
+                Logger.Info($"  - {j.Source}: paths={j.LogPaths.Count}, threshold={(j.FailedLoginThreshold?.ToString() ?? "(default)")}
+");
             }
             Logger.Info($"Global BanTime: {banTime}, MinBetweenFailures: {findTime}");
             return 0;
         }
 
-        Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(o.Out))!);
+        var outDir = Path.GetDirectoryName(Path.GetFullPath(o.Out));
+        if (!string.IsNullOrEmpty(outDir))
+        {
+            Directory.CreateDirectory(outDir);
+        }
 
         // 4) Write ipban.migrated.config
         WriteIpBanConfig(o.Out, compiled, banTime, findTime, o.BanHookPath, o.UnbanHookPath);
@@ -138,6 +225,11 @@ public static class MigrateFail2Ban
 
         Logger.Info($"Wrote IPBan config: {o.Out}");
         Logger.Info($"Hook dir: {o.HookDir}");
+        Logger.Info($"Successfully migrated {compiled.Count} jail(s).");
+        if (_warningCount > 0)
+        {
+            Logger.Warn($"{_warningCount} warning(s) occurred during migration.");
+        }
         Logger.Info("Done.");
         return 0;
     }
@@ -146,7 +238,66 @@ public static class MigrateFail2Ban
 
     private static void Warn(string msg)
     {
+        _warningCount++;
         Logger.Warn(msg);
+    }
+
+    private static void Error(string msg)
+    {
+        _errorCount++;
+        Logger.Error(msg);
+    }
+
+    /// <summary>
+    /// Check if regex contains an ipaddress capture group
+    /// </summary>
+    private static bool ContainsIpAddressGroup(string regex)
+    {
+        // Look for (?<ipaddress> or (?P<ipaddress> patterns
+        return Regex.IsMatch(regex, @"\(\?(?:P)?<ipaddress>", RegexOptions.IgnoreCase);
+    }
+
+    /// <summary>
+    /// Expand fail2ban-specific macros that aren't handled by IPBanRegexMacros
+    /// </summary>
+    private static string ExpandFail2BanMacros(string pattern, Dictionary<string, string> definitions)
+    {
+        if (string.IsNullOrWhiteSpace(pattern))
+        {
+            return pattern ?? string.Empty;
+        }
+
+        var result = pattern;
+
+        // Expand definition references like %(name)s
+        var maxIterations = 10; // Prevent infinite loops
+        for (int i = 0; i < maxIterations; i++)
+        {
+            var before = result;
+            foreach (var kvp in definitions)
+            {
+                result = result.Replace($"%({kvp.Key})s", kvp.Value, StringComparison.OrdinalIgnoreCase);
+            }
+            if (result == before)
+            {
+                break;
+            }
+        }
+
+        // Common fail2ban macros
+        result = result.Replace("<F-ID>", "(?<id>", StringComparison.OrdinalIgnoreCase);
+        result = result.Replace("</F-ID>", ")", StringComparison.OrdinalIgnoreCase);
+        result = result.Replace("<F-MLFID>", "(?:", StringComparison.OrdinalIgnoreCase);
+        result = result.Replace("</F-MLFID>", ")", StringComparison.OrdinalIgnoreCase);
+        result = result.Replace("<F-NOFAIL>", "(?:", StringComparison.OrdinalIgnoreCase);
+        result = result.Replace("</F-NOFAIL>", ")?", StringComparison.OrdinalIgnoreCase);
+        result = result.Replace("<F-CONTENT>", "(?<content>", StringComparison.OrdinalIgnoreCase);
+        result = result.Replace("</F-CONTENT>", ")", StringComparison.OrdinalIgnoreCase);
+
+        // Remove fail2ban-specific tags that don't translate
+        result = Regex.Replace(result, @"<F-[A-Z_]+/>", "", RegexOptions.IgnoreCase);
+
+        return result;
     }
 
     private static (int banSecs, int findSecs) ComputeGlobalTimes(
@@ -177,7 +328,7 @@ public static class MigrateFail2Ban
         {
             if (string.IsNullOrWhiteSpace(p)) continue;
             if (!first) sb.Append('|');
-            sb.Append("(?:").Append(p).Append(')');
+            sb.Append("(?:").Append(p.Trim()).Append(')');
             first = false;
         }
         return sb.ToString();
@@ -220,34 +371,41 @@ public static class MigrateFail2Ban
     {
         var doc = new XDocument(
             new XDeclaration("1.0", "utf-8", null),
+            new XComment(" Migrated from fail2ban - review and adjust as needed "),
             new XElement("configuration",
                 new XElement("LogFilesToParse",
                     new XElement("LogFiles",
                         jails.Select(j =>
                             new XElement("LogFile",
-                                new XAttribute("Source", j.Source),
-                                new XAttribute("PlatformRegex", "Linux"),
-                                j.FailedLoginThreshold.HasValue
-                                    ? new XAttribute("FailedLoginThreshold", j.FailedLoginThreshold.Value)
-                                    : null,
-                                new XElement("PathAndMask",
-                                    j.LogPaths.Select(p => new XElement("string", p))),
-                                new XElement("FailedLoginRegex", new XCData(j.FailedLoginRegex))
+                                new XElement("Source", j.Source),
+                                new XElement("PathAndMask", string.Join("\n", j.LogPaths)),
+                                new XElement("FailedLoginRegex", new XCData("\n" + j.FailedLoginRegex + "\n")),
+                                new XElement("SuccessfulLoginRegex"),
+                                new XElement("PlatformRegex", "Linux"),
+                                new XElement("PingInterval", "10000"),
+                                new XElement("MaxFileSize", "16777216"),
+                                new XElement("FailedLoginThreshold", j.FailedLoginThreshold?.ToString() ?? "0")
                             )
                         )
                     )
                 ),
                 new XElement("appSettings",
                     new XElement("add", new XAttribute("key", "FailedLoginAttemptsBeforeBan"),
-                                           new XAttribute("value", "5")),
+                                        new XAttribute("value", "5")),
                     new XElement("add", new XAttribute("key", "BanTime"),
-                                           new XAttribute("value", banTime)),
+                                        new XAttribute("value", banTime)),
                     new XElement("add", new XAttribute("key", "MinimumTimeBetweenFailedLoginAttempts"),
-                                           new XAttribute("value", minBetweenFailures)),
-                    new XElement("add", new XAttribute("key", "ProcessToRunOnBan"),
-                                           new XAttribute("value", $"{processOnBan}|###IPADDRESS### ###SOURCE### ###USERNAME### ###COUNT###")),
-                    new XElement("add", new XAttribute("key", "ProcessToRunOnUnban"),
-                                           new XAttribute("value", $"{processOnUnban}|###IPADDRESS### ###SOURCE###"))
+                                        new XAttribute("value", minBetweenFailures)),
+                    new XElement("add", new XAttribute("key", "ExpireTime"),
+                                        new XAttribute("value", banTime)),
+                    !string.IsNullOrWhiteSpace(processOnBan)
+                        ? new XElement("add", new XAttribute("key", "ProcessToRunOnBan"),
+                                              new XAttribute("value", $"{processOnBan}|###IPADDRESS### ###SOURCE### ###USERNAME### ###COUNT###"))
+                        : null,
+                    !string.IsNullOrWhiteSpace(processOnUnban)
+                        ? new XElement("add", new XAttribute("key", "ProcessToRunOnUnban"),
+                                              new XAttribute("value", $"{processOnUnban}|###IPADDRESS### ###SOURCE###"))
+                        : null
                 )
             )
         );
@@ -336,6 +494,7 @@ internal sealed class F2BFilter
 {
     public string Name { get; set; } = "";
     public List<string> FailRegex { get; } = [];
+    public Dictionary<string, string> Definitions { get; } = new(StringComparer.OrdinalIgnoreCase);
 }
 
 internal sealed class MigratedJail
@@ -364,31 +523,47 @@ internal sealed class F2BReader
     {
         var files = GatherJailFiles();
         var merged = new Dictionary<string, Dictionary<string, string>>(StringComparer.OrdinalIgnoreCase);
+        var globalDefaults = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
         foreach (var file in files)
         {
             foreach (var (section, key, value) in EmitKeyValues(file))
             {
+                // Handle DEFAULT section for global defaults
                 if (section.Equals("DEFAULT", StringComparison.OrdinalIgnoreCase))
                 {
-                    // Ignore DEFAULT for jail entries (F2B uses it for global defaults)
+                    var cleanKey = key.TrimEnd('+').Trim();
+                    if (key.EndsWith("+", StringComparison.Ordinal) || key.Contains("+=", StringComparison.Ordinal))
+                    {
+                        globalDefaults.TryGetValue(cleanKey, out var prev);
+                        globalDefaults[cleanKey] = string.IsNullOrEmpty(prev) ? value : (prev + " " + value);
+                    }
+                    else
+                    {
+                        globalDefaults[cleanKey] = value;
+                    }
                     continue;
                 }
+
                 if (!merged.TryGetValue(section, out var dict))
                 {
                     dict = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
                     merged[section] = dict;
                 }
 
-                if (key.EndsWith("+=", StringComparison.Ordinal))
+                // Handle append syntax (key += value or key+= value)
+                var keyTrimmed = key.Trim();
+                bool isAppend = keyTrimmed.EndsWith("+", StringComparison.Ordinal);
+                var baseKey = isAppend ? keyTrimmed.TrimEnd('+').Trim() : keyTrimmed;
+
+                if (isAppend)
                 {
-                    var baseKey = key.Substring(0, key.Length - 2).Trim();
                     dict.TryGetValue(baseKey, out var prev);
-                    dict[baseKey] = (prev is null || prev.Length == 0) ? value : (prev + " " + value);
+                    dict[baseKey] = string.IsNullOrEmpty(prev) ? value : (prev + " " + value);
                 }
                 else
                 {
-                    dict[key.Trim()] = value;
+                    dict[baseKey] = value;
                 }
             }
         }
@@ -401,6 +576,24 @@ internal sealed class F2BReader
 
             var jail = new F2BJail { Name = jailName };
 
+            // Apply global defaults first, then override with jail-specific values
+            if (globalDefaults.TryGetValue("enabled", out var defaultEnabled) && !dict.ContainsKey("enabled"))
+            {
+                dict["enabled"] = defaultEnabled;
+            }
+            if (globalDefaults.TryGetValue("maxretry", out var defaultMaxRetry) && !dict.ContainsKey("maxretry"))
+            {
+                dict["maxretry"] = defaultMaxRetry;
+            }
+            if (globalDefaults.TryGetValue("findtime", out var defaultFindTime) && !dict.ContainsKey("findtime"))
+            {
+                dict["findtime"] = defaultFindTime;
+            }
+            if (globalDefaults.TryGetValue("bantime", out var defaultBanTime) && !dict.ContainsKey("bantime"))
+            {
+                dict["bantime"] = defaultBanTime;
+            }
+
             if (dict.TryGetValue("enabled", out var enabledStr))
             {
                 jail.Enabled = ParseBool(enabledStr);
@@ -411,11 +604,21 @@ internal sealed class F2BReader
                 jail.Enabled = false;
             }
 
-            if (dict.TryGetValue("filter", out var filter)) jail.Filter = filter;
+            if (dict.TryGetValue("filter", out var filter))
+            {
+                // Filter can have parameters like "filter = myfilter[mode=aggressive]"
+                var filterParts = filter.Split('[');
+                jail.Filter = filterParts[0].Trim();
+            }
+            else
+            {
+                // Default filter name is same as jail name
+                jail.Filter = jailName;
+            }
 
             if (dict.TryGetValue("logpath", out var logpath))
             {
-                foreach (var p in SplitPaths(logpath))
+                foreach (var p in SplitLogPaths(logpath))
                 {
                     if (!string.IsNullOrWhiteSpace(p) && !jail.LogPaths.Contains(p))
                     {
@@ -424,7 +627,7 @@ internal sealed class F2BReader
                 }
             }
 
-            if (dict.TryGetValue("maxretry", out var maxRetryStr) && int.TryParse(maxRetryStr, out var mr))
+            if (dict.TryGetValue("maxretry", out var maxRetryStr) && int.TryParse(maxRetryStr.Trim(), out var mr))
             {
                 jail.MaxRetry = mr;
             }
@@ -461,22 +664,72 @@ internal sealed class F2BReader
                 currentSection = sec.ToUpperInvariant();
                 continue;
             }
-            if (!"DEFINITION".Equals(currentSection, StringComparison.Ordinal))
+
+            if (!TrySplitKeyValue(line, out var key, out var value))
             {
                 continue;
             }
 
-            if (TrySplitKeyValue(line, out var key, out var value))
+            var keyTrimmed = key.Trim();
+            var keyLower = keyTrimmed.ToLowerInvariant();
+            var valueTrimmed = value.Trim();
+
+            // Handle DEFINITION section
+            if ("DEFINITION".Equals(currentSection, StringComparison.Ordinal))
             {
-                var keyLower = key.ToLowerInvariant();
-                if (keyLower == "failregex" || keyLower == "failregex +=" || keyLower == "failregex+=")
+                // Check for failregex (with possible append)
+                if (keyLower == "failregex" || keyLower.StartsWith("failregex", StringComparison.Ordinal))
                 {
-                    var v = value.Trim();
-                    if (v.StartsWith("|")) v = v.TrimStart('|').Trim();
-                    if (!string.IsNullOrWhiteSpace(v))
+                    // Handle multi-line failregex that starts with | or is just value
+                    var v = valueTrimmed;
+                    if (v.StartsWith("|", StringComparison.Ordinal))
                     {
-                        filter.FailRegex.Add(v);
+                        v = v.TrimStart('|').Trim();
                     }
+
+                    // Split on newlines or | for multiple patterns
+                    var patterns = v.Split(new[] { '\n', '|' }, StringSplitOptions.RemoveEmptyEntries);
+                    foreach (var pattern in patterns)
+                    {
+                        var trimmedPattern = pattern.Trim();
+                        if (!string.IsNullOrWhiteSpace(trimmedPattern))
+                        {
+                            filter.FailRegex.Add(trimmedPattern);
+                        }
+                    }
+                }
+                else if (!keyLower.StartsWith("ignoreregex", StringComparison.Ordinal))
+                {
+                    // Store other definitions for macro expansion
+                    bool isAppend = keyTrimmed.EndsWith("+", StringComparison.Ordinal);
+                    var baseKey = isAppend ? keyTrimmed.TrimEnd('+').Trim() : keyTrimmed;
+
+                    if (isAppend)
+                    {
+                        filter.Definitions.TryGetValue(baseKey, out var prev);
+                        filter.Definitions[baseKey] = string.IsNullOrEmpty(prev) ? valueTrimmed : (prev + valueTrimmed);
+                    }
+                    else
+                    {
+                        filter.Definitions[baseKey] = valueTrimmed;
+                    }
+                }
+            }
+            // Handle Init section for default definitions
+            else if ("INIT".Equals(currentSection, StringComparison.Ordinal) ||
+                     "DEFAULT".Equals(currentSection, StringComparison.Ordinal))
+            {
+                bool isAppend = keyTrimmed.EndsWith("+", StringComparison.Ordinal);
+                var baseKey = isAppend ? keyTrimmed.TrimEnd('+').Trim() : keyTrimmed;
+
+                if (isAppend)
+                {
+                    filter.Definitions.TryGetValue(baseKey, out var prev);
+                    filter.Definitions[baseKey] = string.IsNullOrEmpty(prev) ? valueTrimmed : (prev + valueTrimmed);
+                }
+                else if (!filter.Definitions.ContainsKey(baseKey))
+                {
+                    filter.Definitions[baseKey] = valueTrimmed;
                 }
             }
         }
@@ -530,7 +783,7 @@ internal sealed class F2BReader
     }
 
     // Joins lines that end with a backslash to the next line
-    private IEnumerable<string> ReadAllLinesMerged(string path)
+    private static IEnumerable<string> ReadAllLinesMerged(string path)
     {
         string? pending = null;
 
@@ -544,12 +797,13 @@ internal sealed class F2BReader
             }
             else
             {
-                pending += line;
+                // When continuing from previous line, preserve leading whitespace as it may be intentional
+                pending += line.TrimStart();
             }
 
-            if (pending.EndsWith("\\", StringComparison.Ordinal))
+            if (pending.EndsWith('\\'))
             {
-                pending = pending.Substring(0, pending.Length - 1);
+                pending = pending[..^1];
                 continue;
             }
 
@@ -573,9 +827,10 @@ internal sealed class F2BReader
     private static bool IsSection(string line, out string sectionName)
     {
         sectionName = "";
-        if (line.StartsWith("[") && line.EndsWith("]") && line.Length >= 3)
+        var trimmed = line.Trim();
+        if (trimmed.StartsWith('[') && trimmed.EndsWith(']') && trimmed.Length >= 3)
         {
-            var s = line.Substring(1, line.Length - 2).Trim();
+            var s = trimmed[1..^1].Trim();
             if (s.Length > 0)
             {
                 sectionName = s;
@@ -587,13 +842,20 @@ internal sealed class F2BReader
 
     private static bool TrySplitKeyValue(string line, out string key, out string value)
     {
-        // Handle "key += value" and "key = value"
+        // Handle "key += value", "key+ = value", and "key = value"
         key = ""; value = "";
         var idx = line.IndexOf('=');
         if (idx <= 0) return false;
 
-        key = line.Substring(0, idx).Trim();
-        value = line.Substring(idx + 1).Trim();
+        key = line[..idx].Trim();
+        value = line[(idx + 1)..].Trim();
+
+        // Handle key+ = value (append syntax where + is before =)
+        if (key.EndsWith('+'))
+        {
+            // Keep the + to indicate append
+        }
+
         return key.Length > 0;
     }
 
@@ -603,34 +865,79 @@ internal sealed class F2BReader
         return t is "1" or "true" or "yes" or "enabled";
     }
 
-    private static IEnumerable<string> SplitPaths(string value)
+    private static IEnumerable<string> SplitLogPaths(string value)
     {
-        // split on comma and whitespace, preserving globs
-        foreach (var tok in value.Split(new[] { ',', ' ' }, StringSplitOptions.RemoveEmptyEntries))
+        // Log paths can be separated by newlines (in multi-line values) or be on single line
+        // Fail2ban typically uses newlines for multiple paths
+        // Be careful not to split on spaces within a path
+
+        // First try splitting on newlines
+        var lines = value.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
+
+        foreach (var line in lines)
         {
-            var t = tok.Trim();
-            if (t.Length > 0) yield return t;
+            var trimmed = line.Trim();
+            if (string.IsNullOrEmpty(trimmed)) continue;
+
+            // If line contains multiple paths separated by spaces (no spaces in path), split them
+            // But be conservative - only split if it looks like multiple absolute paths
+            if (trimmed.Contains(' ') && !trimmed.Contains("\\ "))
+            {
+                var parts = trimmed.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                // Check if all parts look like paths (start with /)
+                if (parts.All(p => p.StartsWith('/')))
+                {
+                    foreach (var part in parts)
+                    {
+                        yield return part.Trim();
+                    }
+                    continue;
+                }
+            }
+
+            yield return trimmed;
         }
     }
 
     public static int ParseDurationToSeconds(string s)
     {
-        // Accept: "600", "10m", "1h", "2d", "HH:MM:SS"
-        s = s.Trim();
+        // Accept: "600", "30s", "10m", "1h", "2d", "1w", "HH:MM:SS", "DD:HH:MM:SS"
+        s = s.Trim().ToLowerInvariant();
+
         if (int.TryParse(s, NumberStyles.Integer, CultureInfo.InvariantCulture, out var v))
             return Math.Max(0, v);
 
-        if (TryMatchSimple(s, @"^([0-9]+)m$", out var m)) return int.Parse(m[1].Value, CultureInfo.InvariantCulture) * 60;
-        if (TryMatchSimple(s, @"^([0-9]+)h$", out var h)) return int.Parse(h[1].Value, CultureInfo.InvariantCulture) * 3600;
-        if (TryMatchSimple(s, @"^([0-9]+)d$", out var d)) return int.Parse(d[1].Value, CultureInfo.InvariantCulture) * 86400;
+        // Handle suffixed values
+        if (TryMatchSimple(s, @"^([0-9]+)\s*s$", out var sMatch))
+            return int.Parse(sMatch[1].Value, CultureInfo.InvariantCulture);
+        if (TryMatchSimple(s, @"^([0-9]+)\s*m$", out var mMatch))
+            return int.Parse(mMatch[1].Value, CultureInfo.InvariantCulture) * 60;
+        if (TryMatchSimple(s, @"^([0-9]+)\s*h$", out var hMatch))
+            return int.Parse(hMatch[1].Value, CultureInfo.InvariantCulture) * 3600;
+        if (TryMatchSimple(s, @"^([0-9]+)\s*d$", out var dMatch))
+            return int.Parse(dMatch[1].Value, CultureInfo.InvariantCulture) * 86400;
+        if (TryMatchSimple(s, @"^([0-9]+)\s*w$", out var wMatch))
+            return int.Parse(wMatch[1].Value, CultureInfo.InvariantCulture) * 604800;
 
-        if (TryMatchSimple(s, @"^([0-9]{1,2}):([0-9]{1,2}):([0-9]{1,2})$", out var t))
+        // Handle HH:MM:SS format
+        if (TryMatchSimple(s, @"^([0-9]{1,2}):([0-9]{1,2}):([0-9]{1,2})$", out var hmsMatch))
         {
-            var days = int.Parse(t[1].Value, CultureInfo.InvariantCulture);
-            var hours = int.Parse(t[2].Value, CultureInfo.InvariantCulture);
-            var mins = int.Parse(t[3].Value, CultureInfo.InvariantCulture);
-            return Math.Max(0, (days * 86400) + (hours * 3600) + (mins * 60));
+            var hours = int.Parse(hmsMatch[1].Value, CultureInfo.InvariantCulture);
+            var mins = int.Parse(hmsMatch[2].Value, CultureInfo.InvariantCulture);
+            var secs = int.Parse(hmsMatch[3].Value, CultureInfo.InvariantCulture);
+            return Math.Max(0, (hours * 3600) + (mins * 60) + secs);
         }
+
+        // Handle DD:HH:MM:SS format (IPBan format)
+        if (TryMatchSimple(s, @"^([0-9]+):([0-9]{1,2}):([0-9]{1,2}):([0-9]{1,2})$", out var dhmsMatch))
+        {
+            var days = int.Parse(dhmsMatch[1].Value, CultureInfo.InvariantCulture);
+            var hours = int.Parse(dhmsMatch[2].Value, CultureInfo.InvariantCulture);
+            var mins = int.Parse(dhmsMatch[3].Value, CultureInfo.InvariantCulture);
+            var secs = int.Parse(dhmsMatch[4].Value, CultureInfo.InvariantCulture);
+            return Math.Max(0, (days * 86400) + (hours * 3600) + (mins * 60) + secs);
+        }
+
         return 0;
     }
 
@@ -732,7 +1039,7 @@ exec ""$(dirname ""$0"")/ipban-common.sh"" ""$IP"" ""$SOURCE"" ""$USER"" ""$COUN
 set -euo pipefail
 IP=""${1:-}""; SOURCE=""${2:-}""
 export IPBAN_EVENT=""unban""
-exec ""$(dirname ""$0"")/ipban-common.sh"" ""$IP"" ""$SOURCE"" "" "" "" """"
+exec ""$(dirname ""$0"")/ipban-common.sh"" ""$IP"" ""$SOURCE"" """" """" """"
 ";
 
     private const string CommonContent =
