@@ -203,8 +203,7 @@ public static class MigrateFail2Ban
             Logger.Info($"Jails migrated: {compiled.Count}");
             foreach (var j in compiled.OrderBy(j => j.Source))
             {
-                Logger.Info($"  - {j.Source}: paths={j.LogPaths.Count}, threshold={(j.FailedLoginThreshold?.ToString() ?? "(default)")}
-");
+                Logger.Info($"- {j.Source}: paths={j.LogPaths.Count}, threshold={(j.FailedLoginThreshold?.ToString() ?? "(default)")}");
             }
             Logger.Info($"Global BanTime: {banTime}, MinBetweenFailures: {findTime}");
             return 0;
