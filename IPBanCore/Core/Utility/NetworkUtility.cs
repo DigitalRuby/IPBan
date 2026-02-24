@@ -108,7 +108,6 @@ namespace DigitalRuby.IPBanCore
         /// </summary>
         public static readonly IReadOnlyCollection<IPAddressRange> InternalRangesIPV6 =
         [
-            IPAddressRange.Parse("::1"), // localhost
             IPAddressRange.Parse("::-1FFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF"), // loopbacks and locals
             //IPAddressRange.Parse("::FFFF:0:0-::FFFF:FFFF:FFFF"), // ipv4 mapped
             //IPAddressRange.Parse("100::-100:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF"), // discard prefix
