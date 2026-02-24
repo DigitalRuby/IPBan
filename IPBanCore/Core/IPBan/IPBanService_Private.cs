@@ -971,7 +971,7 @@ namespace DigitalRuby.IPBanCore
                             tempFile.Dispose();
                         }
                     }
-                    var result = firewallTask.TaskToRun.DynamicInvoke(state, firewallTask.CancelToken);
+                    var result = firewallTask.TaskToRun.DynamicInvoke(state, Firewall, firewallTask.CancelToken);
                     if (result is Task task)
                     {
                         await task;

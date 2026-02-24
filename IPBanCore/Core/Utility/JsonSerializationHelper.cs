@@ -10,13 +10,14 @@ using System.Threading.Tasks;
 namespace DigitalRuby.IPBanCore;
 
 /// <summary>
-/// Json serialization helper
+/// Json serialization helper -- will serialize public fields.
 /// </summary>
 public static class JsonSerializationHelper
 {
     private static readonly JsonSerializerOptions Options = new()
     {
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+        IncludeFields = true,
         WriteIndented = false
     };
 
