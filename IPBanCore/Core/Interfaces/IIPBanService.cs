@@ -64,7 +64,7 @@ namespace DigitalRuby.IPBanCore
     /// <summary>
     /// IPBan service interface
     /// </summary>
-    public interface IIPBanService : IFirewallTaskRunner, IIPAddressEventHandler, IConfigReaderWriter, IDisposable
+    public interface IIPBanService : IFirewallTaskRunner, IIPAddressEventHandler, IConfigReaderWriter, IIPBanConfig, IDisposable
     {
         /// <summary>
         /// Manually run regular processing - useful if testing
@@ -124,11 +124,6 @@ namespace DigitalRuby.IPBanCore
         /// Whether the cycle runs automatically
         /// </summary>
         bool ManualCycle { get; }
-
-        /// <summary>
-        /// Current configuration
-        /// </summary>
-        IPBanConfig Config { get; }
 
         /// <summary>
         /// Config changed event
@@ -219,6 +214,17 @@ namespace DigitalRuby.IPBanCore
         /// Firewall types
         /// </summary>
         HashSet<Type> FirewallTypes { get; }
+    }
+
+    /// <summary>
+    /// Config store
+    /// </summary>
+    public interface IIPBanConfig
+    {
+        /// <summary>
+        /// Config
+        /// </summary>
+        public IPBanConfig Config { get; }
     }
 
     /// <summary>

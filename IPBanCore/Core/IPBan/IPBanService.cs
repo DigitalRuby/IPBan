@@ -44,7 +44,7 @@ namespace DigitalRuby.IPBanCore
     /// not be initialized until the first RunCycle is called.
     /// </summary>
     [System.Diagnostics.CodeAnalysis.DynamicallyAccessedMembers(System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.All)]
-    public partial class IPBanService : IIPBanService, IIsWhitelisted
+    public partial class IPBanService : IIPBanService, IIsWhitelisted, IIPBanConfig
     {
         /// <summary>
         /// Constructor

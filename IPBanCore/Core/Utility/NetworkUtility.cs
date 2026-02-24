@@ -81,8 +81,7 @@ namespace DigitalRuby.IPBanCore
         [
             IPAddressRange.Parse("1.0.0.0-9.255.255.255"),
             IPAddressRange.Parse("11.0.0.0-100.63.255.255"),
-            IPAddressRange.Parse("100.128.0.0-126.255.255.255"),
-            IPAddressRange.Parse("128.0.0.0-169.253.255.255"),
+            IPAddressRange.Parse("100.128.0.0-169.253.255.255"), // includes 127.* localhost addresses
             IPAddressRange.Parse("169.255.0.0-172.15.255.255"),
             IPAddressRange.Parse("172.32.0.0-191.255.255.255"),
             IPAddressRange.Parse("192.0.1.0-192.0.1.255"),
@@ -109,6 +108,7 @@ namespace DigitalRuby.IPBanCore
         /// </summary>
         public static readonly IReadOnlyCollection<IPAddressRange> InternalRangesIPV6 =
         [
+            IPAddressRange.Parse("::1"), // localhost
             IPAddressRange.Parse("::-1FFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF"), // loopbacks and locals
             //IPAddressRange.Parse("::FFFF:0:0-::FFFF:FFFF:FFFF"), // ipv4 mapped
             //IPAddressRange.Parse("100::-100:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF"), // discard prefix
