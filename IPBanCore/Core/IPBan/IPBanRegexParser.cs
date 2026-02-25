@@ -305,6 +305,27 @@ namespace DigitalRuby.IPBanCore
                     }
                 }
 
+                // try timestamp_date and timestamp_time groups, if any
+                if (timestamp == default)
+                {
+                    timestampGroup = match.Groups["timestamp_date"];
+                    if (timestampGroup is not null)
+                    {
+                        var timestampTime = match.Groups["timestamp_time"];
+                        if (timestampTime is not null)
+                        {
+                            string toParse = (timestampGroup.Value + " " + timestampTime.Value).Trim(regexTrimChars);
+                            if (string.IsNullOrWhiteSpace(timestampFormat) ||
+                                !DateTime.TryParseExact(toParse, timestampFormat.Trim(), CultureInfo.InvariantCulture,
+                                    DateTimeStyles.AssumeUniversal, out timestamp))
+                            {
+                                DateTime.TryParse(toParse, CultureInfo.InvariantCulture,
+                                    DateTimeStyles.AssumeUniversal, out timestamp);
+                            }
+                        }
+                    }
+                }
+
                 // check if the regex had an ipadddress group
                 var ipAddressGroup = match.Groups["ipaddress"];
                 if (ipAddressGroup is null || !ipAddressGroup.Success)
