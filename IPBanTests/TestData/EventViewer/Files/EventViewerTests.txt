@@ -7,12 +7,18 @@
 # FailedLogin, SuccessfulLogin or None [newline]
 # --- [newline]
 #
-#<Event xmlns="http://schemas.microsoft.com/win/2004/08/events/event"><System><Provider Name="Microsoft-Windows-Security-Auditing" Guid="{54849625-5478-4994-a5ba-3e3b0328c30d}" /><EventID>5157</EventID><Version>3</Version><Level>0</Level><Task>12810</Task><Opcode>0</Opcode><Keywords>0x8010000000000000</Keywords><TimeCreated SystemTime="2023-09-28T20:55:33.9573341Z" /><EventRecordID>549291</EventRecordID><Correlation /><Execution ProcessID="4" ThreadID="1800" /><Channel>Security</Channel><Computer>cpubob</Computer><Security /></System><EventData><Data Name="ProcessID">4</Data><Data Name="Application">System</Data><Data Name="Direction">%%14592</Data><Data Name="SourceAddress">9.11.13.15</Data><Data Name="SourcePort">50983</Data><Data Name="DestAddress">1.3.6.9</Data><Data Name="DestPort">445</Data><Data Name="Protocol">6</Data><Data Name="InterfaceIndex">3</Data><Data Name="FilterOrigin">Unknown</Data><Data Name="FilterRTID">88274</Data><Data Name="LayerName">%%14610</Data><Data Name="LayerRTID">44</Data><Data Name="RemoteUserID">S-1-0-0</Data><Data Name="RemoteMachineID">S-1-0-0</Data><Data Name="OriginalProfile">%%14644</Data><Data Name="CurrentProfile">%%14644</Data><Data Name="IsLoopback">%%1826</Data><Data Name="HasRemoteDynamicKeywordAddress">%%1826</Data></EventData></Event> 
-#9.11.13.15
-#[nouser]
-#RDP
-#FailedLogin
-#---
+$file:./TestData/EventViewer/Files/EventViewerInput3.txt
+5.15.55.111
+Admin
+RDP
+FailedLogin
+---
+$file:./TestData/EventViewer/Files/EventViewerInput2.txt
+18.19.90.91
+
+RDP
+FailedLogin
+---
 $file:./TestData/EventViewer/Files/EventViewerInput1.txt
 110.125.1.22
 user1

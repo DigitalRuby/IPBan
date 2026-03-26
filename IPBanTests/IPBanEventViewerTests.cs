@@ -129,7 +129,7 @@ namespace DigitalRuby.IPBanTests
         {
             get
             {
-                string[] lines = File.ReadAllLines("TestData/EventViewer/EventViewerTests.txt")
+                string[] lines = File.ReadAllLines("TestData/EventViewer/Files/EventViewerTests.txt")
                     .Select(l => l.Trim())
                     .Where(l => !l.StartsWith('#'))
                     .ToArray();
@@ -168,7 +168,7 @@ namespace DigitalRuby.IPBanTests
                         await service.ConfigReaderWriter.WriteConfigAsync(newConfig);
                         await service.RunCycleAsync();
                     }
-                    var results = service.EventViewer.ProcessEventViewerXml(test.Xml).ToArray();
+                    var results = service.EventViewer.ProcessEventViewerXml(test.Xml).ToList();
                     var resultIndex = 0;
                     foreach (var result in results)
                     {
