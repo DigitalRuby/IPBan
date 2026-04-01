@@ -1,0 +1,74 @@
+name: Update Scoop Manifest
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  update-scoop-manifest:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: master
+          # Requires Settings → Actions → General → Workflow permissions → Read and write permissions
+
+      - name: Find release assets and compute hashes
+        id: assets
+        run: |
+          TAG="${{ github.event.release.tag_name }}"
+          REPO="${{ github.repository }}"
+
+          RELEASE=$(curl -sf \
+            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            "https://api.github.com/repos/$REPO/releases/tags/$TAG")
+
+          X64_URL=$(echo "$RELEASE" | jq -r '.assets[] | select(.name | test("Windows[_-]x64")) | .browser_download_url' | head -1)
+          X86_URL=$(echo "$RELEASE" | jq -r '.assets[] | select(.name | test("Windows[_-]x86")) | .browser_download_url' | head -1)
+
+          if [ -z "$X64_URL" ] || [ "$X64_URL" = "null" ]; then
+            echo "No Windows x64 asset found in release $TAG — skipping manifest update."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "x64_url=$X64_URL" >> "$GITHUB_OUTPUT"
+          echo "x86_url=$X86_URL" >> "$GITHUB_OUTPUT"
+
+          curl -sLo x64.zip "$X64_URL"
+          curl -sLo x86.zip "$X86_URL"
+
+          echo "x64_hash=$(sha256sum x64.zip | cut -d' ' -f1)" >> "$GITHUB_OUTPUT"
+          echo "x86_hash=$(sha256sum x86.zip | cut -d' ' -f1)" >> "$GITHUB_OUTPUT"
+
+      - name: Update manifest
+        if: steps.assets.outputs.skip != 'true'
+        run: |
+          VERSION="${{ github.event.release.tag_name }}"
+          VERSION="${VERSION#v}"
+
+          jq \
+            --arg v   "$VERSION" \
+            --arg u64 "${{ steps.assets.outputs.x64_url }}" \
+            --arg h64 "${{ steps.assets.outputs.x64_hash }}" \
+            --arg u86 "${{ steps.assets.outputs.x86_url }}" \
+            --arg h86 "${{ steps.assets.outputs.x86_hash }}" \
+            '.version=$v
+             | .architecture["64bit"].url=$u64
+             | .architecture["64bit"].hash=$h64
+             | .architecture["32bit"].url=$u86
+             | .architecture["32bit"].hash=$h86' \
+            bucket/ipban.json > bucket/ipban.json.tmp
+          mv bucket/ipban.json.tmp bucket/ipban.json
+
+      - name: Commit and push
+        if: steps.assets.outputs.skip != 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add bucket/ipban.json
+          git diff --staged --quiet || git commit -m "chore: update Scoop manifest to ${{ github.event.release.tag_name }}"
+          git push

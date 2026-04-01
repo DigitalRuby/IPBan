@@ -1,0 +1,55 @@
+{
+    "version": "3.0.0",
+    "description": "Automatically ban IP addresses based on failed login attempts. Monitors Windows Event Viewer and log files. Free and open-source.",
+    "homepage": "https://github.com/DigitalRuby/IPBan",
+    "license": "MIT",
+    "notes": [
+        "IPBan runs as a Windows service and requires administrator privileges.",
+        "Install globally:  scoop install -g ipban",
+        "Start the service: Start-Service IPBan",
+        "Edit config first: notepad $persist_dir\\ipban.config"
+    ],
+    "architecture": {
+        "64bit": {
+            "url": "https://github.com/DigitalRuby/IPBan/releases/download/3.0.0/IPBan-Windows-x64_3.0.0.zip",
+            "hash": "0000000000000000000000000000000000000000000000000000000000000000"
+        },
+        "32bit": {
+            "url": "https://github.com/DigitalRuby/IPBan/releases/download/3.0.0/IPBan-Windows-x86_3.0.0.zip",
+            "hash": "0000000000000000000000000000000000000000000000000000000000000000"
+        }
+    },
+    "post_install": [
+        "if (-not ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) { Write-Warning 'IPBan requires administrator privileges. Reinstall with: scoop install -g ipban'; return }",
+        "$svc = Get-Service -Name 'IPBan' -ErrorAction SilentlyContinue",
+        "if ($svc) { if ($svc.Status -ne 'Stopped') { Stop-Service -Name 'IPBan' -Force -ErrorAction SilentlyContinue; Start-Sleep -Seconds 2 }; sc.exe delete 'IPBan' | Out-Null; Start-Sleep -Seconds 2 }",
+        "$binPath = '\"' + \"$dir\\DigitalRuby.IPBan.exe\" + '\"'",
+        "sc.exe create 'IPBan' binPath= $binPath start= delayed-auto",
+        "auditpol.exe /set /category:'{69979849-797A-11D9-BED3-505054503030}' /success:enable /failure:enable",
+        "auditpol.exe /set /category:'{69979850-797A-11D9-BED3-505054503030}' /success:enable /failure:enable",
+        "Write-Host 'IPBan service registered. Run Start-Service IPBan to start it.' -ForegroundColor Green"
+    ],
+    "pre_uninstall": [
+        "$svc = Get-Service -Name 'IPBan' -ErrorAction SilentlyContinue",
+        "if ($svc) { if ($svc.Status -ne 'Stopped') { Stop-Service -Name 'IPBan' -Force -ErrorAction SilentlyContinue; Start-Sleep -Seconds 2 }; sc.exe delete 'IPBan' | Out-Null }"
+    ],
+    "persist": [
+        "ipban.config",
+        "ipban.override.config",
+        "ipban.sqlite",
+        "nlog.config"
+    ],
+    "checkver": {
+        "github": "https://github.com/DigitalRuby/IPBan"
+    },
+    "autoupdate": {
+        "architecture": {
+            "64bit": {
+                "url": "https://github.com/DigitalRuby/IPBan/releases/download/$version/IPBan-Windows-x64_$version.zip"
+            },
+            "32bit": {
+                "url": "https://github.com/DigitalRuby/IPBan/releases/download/$version/IPBan-Windows-x86_$version.zip"
+            }
+        }
+    }
+}
