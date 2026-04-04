@@ -12,6 +12,7 @@
 # Should you ever wish to update IPBan, just re-run this script and it will auto-update and preserve your ipban.sqlite and ipban.config files!
 #
 # To uninstall, run this same script with an argument of uninstall
+# To install a specific version, pass it as the fifth argument or use -version (ex. 4.0.0)
 #
 
 param
@@ -27,7 +28,10 @@ param
 
     [Parameter(Mandatory=$False, Position = 3)]
     [ValidateSet("delayed-auto", "auto")]
-    [String] $startupType = "delayed-auto"
+    [String] $startupType = "delayed-auto",
+
+    [Parameter(Mandatory=$False, Position = 4)]
+    [String] $version
 )
 
 if ($PSVersionTable.PSVersion.Major -lt 5)
@@ -80,8 +84,16 @@ if (Test-Path -Path $INSTALL_PATH)
 # Create install dir
 New-Item -Type Directory -Path $INSTALL_PATH -ErrorAction SilentlyContinue
 
-# Get latest release
-$ReleaseAssets = Invoke-RestMethod "https://api.github.com/repos/DigitalRuby/IPBan/releases/latest"
+# Get release
+if ([string]::IsNullOrWhiteSpace($version))
+{
+    $ReleaseAssets = Invoke-RestMethod "https://api.github.com/repos/DigitalRuby/IPBan/releases/latest"
+}
+else
+{
+    $versionTag = $version.Replace('.', '_')
+    $ReleaseAssets = Invoke-RestMethod "https://api.github.com/repos/DigitalRuby/IPBan/releases/tags/$versionTag"
+}
 
 if ([System.Environment]::Is64BitOperatingSystem)
 {
@@ -92,7 +104,14 @@ else
     $url = ($ReleaseAssets.assets | Where-Object { $_.name -match "\-Windows\-x86" }).browser_download_url
 }
 
-Write-Output "Downloading ipban from $url"
+if ([string]::IsNullOrWhiteSpace($version))
+{
+    Write-Output "Downloading latest ipban from $url"
+}
+else
+{
+    Write-Output "Downloading ipban version $version from $url"
+}
 
 $ZipFile = "$INSTALL_PATH\IPBan.zip"
 
