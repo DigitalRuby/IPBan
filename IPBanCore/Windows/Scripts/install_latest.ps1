@@ -91,8 +91,17 @@ if ([string]::IsNullOrWhiteSpace($version))
 }
 else
 {
-    $versionTag = $version.Replace('.', '_')
-    $ReleaseAssets = Invoke-RestMethod "https://api.github.com/repos/DigitalRuby/IPBan/releases/tags/$versionTag"
+    $versionTag = $version.Trim()
+
+    try
+    {
+        $ReleaseAssets = Invoke-RestMethod "https://api.github.com/repos/DigitalRuby/IPBan/releases/tags/$versionTag"
+    }
+    catch
+    {
+        $versionTag = $versionTag.Replace('.', '_')
+        $ReleaseAssets = Invoke-RestMethod "https://api.github.com/repos/DigitalRuby/IPBan/releases/tags/$versionTag"
+    }
 }
 
 if ([System.Environment]::Is64BitOperatingSystem)
