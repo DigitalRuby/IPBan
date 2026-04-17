@@ -23,6 +23,7 @@
 	  <None Remove="TestData\EventViewer\EventViewerTests.txt" />
 	  <None Remove="TestData\EventViewer\Files\EventViewerInput1.txt" />
 	  <None Remove="TestData\EventViewer\Files\EventViewerInput2.txt" />
+	  <None Remove="TestData\EventViewer\Files\EventViewerInput4.txt" />
 	  <None Remove="TestData\IPSets\EmergingThreats.txt" />
 	  <None Remove="TestData\IPSets\SpamHaus.txt" />
 	</ItemGroup>
@@ -32,6 +33,9 @@
 	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 	  </Content>
 	  <Content Include="TestData\EventViewer\Files\EventViewerInput2.txt">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </Content>
+	  <Content Include="TestData\EventViewer\Files\EventViewerInput4.txt">
 	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 	  </Content>
 	  <Content Include="TestData\EventViewer\Files\EventViewerTests.txt">
