@@ -55,6 +55,30 @@ $ProgressPreference = 'SilentlyContinue'; [Net.ServicePointManager]::SecurityPro
 ```
 Note: Powershell 5.1 or greater is required.
 
+***Advanced Installation Options***
+
+The installer script supports additional parameters for customization. Due to PowerShell parameter validation introduced in recent updates, you must explicitly specify the `startupType` parameter when using the one-liner installation command.
+
+**Installation with custom startup type:**
+```powershell
+$ProgressPreference = 'SilentlyContinue'; [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; iex "& { $((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/DigitalRuby/IPBan/master/IPBanCore/Windows/Scripts/install_latest.ps1')) } -startupType 'delayed-auto'"
+```
+
+Replace `'delayed-auto'` with `'auto'` if you want the service to start immediately on boot (provides immediate protection but may have compatibility issues).
+
+**Available parameters:**
+- `-startupType`: Service startup type - `'delayed-auto'` (default, safer) or `'auto'` (immediate boot protection)
+- `-silent`: `$True` for non-interactive installation, `$False` (default) for interactive mode
+- `-autostart`: `$True` (default) to start service immediately after installation, `$False` to leave stopped
+- `-uninstall`: `'uninstall'` or `'u'` to uninstall IPBan
+
+**Example with multiple parameters:**
+```powershell
+$ProgressPreference = 'SilentlyContinue'; [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; iex "& { $((New-Object System.Net.WebClient).DownloadString('https://raw.githubusercontent.com/DigitalRuby/IPBan/master/IPBanCore/Windows/Scripts/install_latest.ps1')) } -startupType 'auto' -silent `$True -autostart `$True"
+```
+
+**Note:** The `'delayed-auto'` startup type waits for higher priority services to start first, leaving the system briefly unprotected after boot. The `'auto'` option provides immediate protection on boot but may encounter compatibility issues with some system configurations. If you choose `'auto'`, verify the service starts correctly after reboot.
+
 ***Additional Windows Notes***
 - Windows Server 2012 is no longer supported as of October 2023. Please upgrade to a different operating system that is actually supported by Microsoft.
 - Please ensure your server and clients are patched before making the above change: https://support.microsoft.com/en-us/help/4093492/credssp-updates-for-cve-2018-0886-march-13-2018. You need to manually edit group policy as specified in the link.
