@@ -61,7 +61,9 @@ public sealed class IPAddressProcessExecutor : IIPAddressProcessExecutor
                         .Replace("###USERNAME###", ipAddress.UserName ?? string.Empty)
                         .Replace("###APP###", appName)
                         .Replace("###COUNT###", ipAddress.Count.ToStringInvariant())
-                        .Replace("###LOG###", logData);
+                        .Replace("###LOG###", logData)
+                        .Replace("###OSNAME###", OSUtility.Name)
+                        .Replace("###OSVERSION###", OSUtility.Version);
 
                     try
                     {
