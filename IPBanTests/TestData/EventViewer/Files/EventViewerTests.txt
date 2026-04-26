@@ -7,7 +7,6 @@
 # FailedLogin, SuccessfulLogin or None [newline]
 # --- [newline]
 #
----
 $file:./TestData/EventViewer/Files/EventViewerInput3.txt
 5.15.55.111
 Admin
