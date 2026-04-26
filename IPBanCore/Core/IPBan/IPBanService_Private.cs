@@ -857,7 +857,7 @@ namespace DigitalRuby.IPBanCore
                         // if the update url sends bytes, we assume a software update, and run the result as an .exe
                         if (bytes.Length != 0)
                         {
-                            string tempFile = Path.Combine(OSUtility.TempFolder, "IPBanServiceUpdate.exe");
+                            var tempFile = Path.Combine(TempFile.TempDirectory, "IPBanServiceUpdate.exe");
                             File.WriteAllBytes(tempFile, bytes);
 
                             // however you are doing the update, you must allow -c and -d parameters
@@ -959,7 +959,19 @@ namespace DigitalRuby.IPBanCore
                 try
                 {
                     Logger.Debug("Running firewall task {0}", firewallTask.Name);
-                    var result = firewallTask.TaskToRun.DynamicInvoke(firewallTask.State, firewallTask.CancelToken);
+                    var state = firewallTask.State;
+                    if (state is TempFile tempFile)
+                    {
+                        try
+                        {
+                            state = JsonSerializationHelper.DeserializeFromFile(tempFile.FullName, firewallTask.StateType);
+                        }
+                        finally
+                        {
+                            tempFile.Dispose();
+                        }
+                    }
+                    var result = firewallTask.TaskToRun.DynamicInvoke(state, Firewall, firewallTask.CancelToken);
                     if (result is Task task)
                     {
                         await task;
@@ -1164,6 +1176,8 @@ namespace DigitalRuby.IPBanCore
             List<IPAddressLogEvent> bannedIPs = [];
             List<IPAddressLogEvent> unbannedIPs = [];
             object transaction = BeginTransaction();
+            string normalizedIPAddress;
+
             try
             {
                 // loop through events, for failed and successful logins, we want to group / aggregate the same event from the
@@ -1172,7 +1186,12 @@ namespace DigitalRuby.IPBanCore
                 {
                     Logger.Trace("Processing log event {0}...", evt);
 
-                    if (!evt.IPAddress.TryNormalizeIPAddress(out string normalizedIPAddress))
+                    if (evt.IsTest)
+                    {
+                        Logger.Warn("Ignoring test event {0}", evt);
+                        continue;
+                    }
+                    else if (!evt.IPAddress.TryNormalizeIPAddress(out normalizedIPAddress))
                     {
                         continue;
                     }

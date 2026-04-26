@@ -266,7 +266,7 @@ namespace DigitalRuby.IPBanCore
             b.Append(';');
 
             // platform regex
-            b.Append(PlatformRegex.ToString());
+            b.Append(PlatformRegex);
 
             return b.ToString();
         }

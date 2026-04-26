@@ -151,6 +151,11 @@ namespace DigitalRuby.IPBanCore
         /// </summary>
         public IPAddressNotificationFlags NotificationFlags { get; set; }
 
+        /// <summary>
+        /// Description
+        /// </summary>
+        public string Description { get; set; }
+
         /// <inheritdoc />
         public override bool Equals(object obj)
         {
@@ -173,7 +178,8 @@ namespace DigitalRuby.IPBanCore
                     (FailedLogLevel == other.FailedLogLevel) &&
                     (MinimumTimeBetweenFailedLoginAttempts == other.MinimumTimeBetweenFailedLoginAttempts) &&
                     (SuccessfulLogLevel == other.SuccessfulLogLevel) &&
-                    (NotificationFlags == other.NotificationFlags);
+                    (NotificationFlags == other.NotificationFlags) &&
+                    (Description == other.Description);
             }
             return false;
         }

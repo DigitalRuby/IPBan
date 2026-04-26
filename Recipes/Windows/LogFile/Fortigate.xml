@@ -1,0 +1,29 @@
+<!--
+Fortigate bad connection attempts, Windows
+
+Failure example:
+date=2026-02-09 time=09:42:11 devname=mydevname devid=123 eventtime=1770655331747687093 tz="-0700" logid="0100032002" type="event" subtype="system" level="alert" vd="root" logdesc="Admin login failed" sn="0" user="theuser" ui="https(1.1.7.6)" method="https" srcip=1.1.7.6 dstip=1.1.7.7 action="login" status="failed" reason="name_invalid" msg="Administrator theuser login failed from https(1.1.7.6) because of invalid user name"
+
+Success example:
+date=2026-02-10 time=12:12:39 devname="mydevname" devid="123" eventtime=1770750759692524597 tz="-0700" logid="0100032001" type="event" subtype="system" level="information" vd="root" logdesc="Admin login successful" sn="1770750759" user="theuser" ui="https(1.1.7.6)" method="https" srcip=1.1.7.6 dstip=1.1.7.7 action="login" status="success" reason="none" profile="super_admin" msg="Administrator theuser logged in successfully from https(1.1.7.6)"
+-->
+<LogFile>
+	<Source>Fortigate</Source>
+	<PathAndMask>D:/Server/Logs/**/*.log</PathAndMask> <!-- change to your path/mask -->
+	<FailedLoginRegex>
+		<![CDATA[
+			^date=(?<timestamp_date>[0-9\-]+)\stime=(?<timestamp_time>[0-9\:]+).*login\sfailed.*user="(?<username>[^"]+)\".*srcip=(?<ipaddress>[^\s]+).*reason="(?<log>[^"]+)"
+		]]>
+	</FailedLoginRegex>
+	<FailedLoginRegexTimestampFormat></FailedLoginRegexTimestampFormat>
+	<SuccessfulLoginRegex>
+		<![CDATA[
+			^date=(?<timestamp_date>[0-9\-]+)\stime=(?<timestamp_time>[0-9\:]+).*login\ssuccessful.*user="(?<username>[^"]+)".*srcip=(?<ipaddress>[^\s]+)
+		]]>
+	</SuccessfulLoginRegex>
+	<SuccessfulLoginRegexTimestampFormat></SuccessfulLoginRegexTimestampFormat>
+	<PlatformRegex>Windows</PlatformRegex>
+	<PingInterval>10000</PingInterval>
+	<MaxFileSize>0</MaxFileSize>
+	<FailedLoginThreshold>0</FailedLoginThreshold>
+</LogFile>

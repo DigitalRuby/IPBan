@@ -39,7 +39,7 @@ namespace DigitalRuby.IPBanCore
 {
     public partial class IPBanService
     {
-        private record FirewallTask(Delegate TaskToRun, object State, Type StateType, string Name, CancellationToken CancelToken);
+        private record FirewallTask(Delegate TaskToRun, IIPBanFirewall Firewall, object State, Type StateType, string Name, CancellationToken CancelToken);
 
         private static readonly char[] userNamePrefixChars = [',', '\\'];
         private static readonly TimeSpan successMinTimeOverride = TimeSpan.FromSeconds(15.0);
@@ -260,11 +260,6 @@ namespace DigitalRuby.IPBanCore
         /// Whether the service is currently running
         /// </summary>
         public bool IsRunning { get; set; }
-
-        /// <summary>
-        /// IPBan database
-        /// </summary>
-        public IPBanDB DB { get { return ipDB; } }
 
         /// <summary>
         /// Authorization header for requests

@@ -19,10 +19,10 @@
 	- Windows 10 or newer (x86, x64)
 	- Windows Server 2016 or newer (x86, x64)
    	- Windows Server 2025 or newer requires IPBan 2.0.1 or newer.
-	- Linux Ubuntu x64 (requires firewalld)
-	- Linux Debian x64 (requires firewalld)
-	- Linux CentOS x64 (requires firewalld)
-	- Linux RedHat x64 (requires firewalld)
+	- Linux Ubuntu x64, arm, arm64 (requires firewalld, nftables, or iptables)
+	- Linux Debian x64, arm, arm64 (requires firewalld, nftables, or iptables)
+	- Linux CentOS x64, arm, arm64 (requires firewalld, nftables, or iptables)
+	- Linux RedHat x64, arm, arm64 (requires firewalld, nftables, or iptables)
 	- Mac OS X not supported at this time
 
 ## Features

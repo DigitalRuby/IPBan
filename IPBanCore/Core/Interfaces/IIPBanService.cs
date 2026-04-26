@@ -64,7 +64,7 @@ namespace DigitalRuby.IPBanCore
     /// <summary>
     /// IPBan service interface
     /// </summary>
-    public interface IIPBanService : IFirewallTaskRunner, IIPAddressEventHandler, IConfigReaderWriter, IDisposable
+    public interface IIPBanService : IFirewallTaskRunner, IIPAddressEventHandler, IConfigReaderWriter, IIPBanConfig, IDisposable
     {
         /// <summary>
         /// Manually run regular processing - useful if testing
@@ -126,14 +126,14 @@ namespace DigitalRuby.IPBanCore
         bool ManualCycle { get; }
 
         /// <summary>
-        /// Current configuration
-        /// </summary>
-        IPBanConfig Config { get; }
-
-        /// <summary>
         /// Config changed event
         /// </summary>
         event Action<IPBanConfig> ConfigChanged;
+
+        /// <summary>
+        /// Direct access to db
+        /// </summary>
+        IPBanDB DB { get; }
 
         /// <summary>
         /// Whitelist
@@ -214,6 +214,17 @@ namespace DigitalRuby.IPBanCore
         /// Firewall types
         /// </summary>
         HashSet<Type> FirewallTypes { get; }
+    }
+
+    /// <summary>
+    /// Config store
+    /// </summary>
+    public interface IIPBanConfig
+    {
+        /// <summary>
+        /// Config
+        /// </summary>
+        public IPBanConfig Config { get; }
     }
 
     /// <summary>
@@ -303,6 +314,6 @@ namespace DigitalRuby.IPBanCore
         /// <param name="state">State</param>
         /// <param name="name">Task name</param>
         /// <returns>Task</returns>
-        public Task RunFirewallTask<T>(Func<T, CancellationToken, Task> action, T state, string name);
+        public Task RunFirewallTask<T>(Func<T, IIPBanFirewall, CancellationToken, Task> action, T state, string name);
     }
 }

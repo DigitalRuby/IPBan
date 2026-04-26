@@ -177,7 +177,6 @@ namespace DigitalRuby.IPBanCore
             }
         }
 
-        private static readonly string tempFolder;
         private static readonly Lock locker = new();
 
         private static PerformanceCounter windowsCpuCounter;
@@ -198,20 +197,10 @@ namespace DigitalRuby.IPBanCore
         {
             try
             {
-                tempFolder = Path.GetTempPath();
-                if (string.IsNullOrWhiteSpace(tempFolder))
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 {
-                    if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                    {
-                        tempFolder = "c://temp";
-                        processVerb = "runas";
-                    }
-                    else
-                    {
-                        tempFolder = "/tmp";
-                    }
+                    processVerb = "runas";
                 }
-                Directory.CreateDirectory(tempFolder);
                 LoadOSInfo();
             }
             catch (Exception ex)
@@ -262,8 +251,7 @@ namespace DigitalRuby.IPBanCore
                 FriendlyName = "Unknown";
             }
 
-            Logger.Warn("OS version detected: {0}, app version: {1}",
-                OSString(), Assembly.GetEntryAssembly()?.GetName().Version?.ToString(3));
+            Logger.Warn("OS info detected: {0}, app version: {1}", OSInfo, Version);
         }
 
         private static void LoadVersionFromLinux()
@@ -407,13 +395,15 @@ namespace DigitalRuby.IPBanCore
         }
 
         /// <summary>
+        /// Get ipban software version
+        /// </summary>
+        public static string SoftwareVersion => Assembly.GetEntryAssembly().GetName().Version.ToString(3);
+
+        /// <summary>
         /// Get a string representing the operating system
         /// </summary>
         /// <returns>String</returns>
-        public static string OSString()
-        {
-            return $"Name: {Name}, Version: {Version}, Friendly Name: {FriendlyName}, Description: {Description}";
-        }
+        public static string OSInfo => $"Name: {Name}, Version: {Version}, Friendly Name: {FriendlyName}, Description: {Description}";
 
         private static string fqdn;
         /// <summary>
@@ -935,14 +925,6 @@ namespace DigitalRuby.IPBanCore
         }
 
         /// <summary>
-        /// Generate a new temporary file name using TempFolder, but do not create the file
-        /// </summary>
-        public static string GetTempFileName()
-        {
-            return Path.Combine(tempFolder, Guid.NewGuid().ToString("N") + ".tmp");
-        }
-
-        /// <summary>
         /// Attempt to determine if a file exists. Unlike System.IO.File.Exists, this method will throw an
         /// exception if there is a fatal error attempting to determine if the file exists.
         /// </summary>
@@ -993,11 +975,6 @@ namespace DigitalRuby.IPBanCore
                 //Logger.Error(ex.Exception);
             };
         }
-
-        /// <summary>
-        /// Get the current temp folder
-        /// </summary>
-        public static string TempFolder { get { return tempFolder; } }
 
         /// <summary>
         /// Are we on Windows?

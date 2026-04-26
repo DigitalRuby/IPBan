@@ -1,4 +1,5 @@
-﻿#define USE_NFT_NATIVE
+﻿// Native has mem leak, unsure why, so disabled for now. Probably something deep in the guts of libnftables, which is a shame.
+//#define USE_NFT_NATIVE
 
 #if DEBUG
 
@@ -8,7 +9,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -56,8 +56,7 @@ public class IPBanLinuxFirewallNFTables : IPBanBaseFirewall
                 // not ours
                 return IntPtr.Zero;
             }
-
-            if (_handle != IntPtr.Zero)
+            else if (_handle != IntPtr.Zero)
             {
                 // already loaded
                 return _handle;
@@ -140,6 +139,37 @@ public class IPBanLinuxFirewallNFTables : IPBanBaseFirewall
         internal static extern void nft_ctx_output_set_flags(IntPtr ctx, uint flags);
     }
 
+    // libc interop for memory FILE* capture
+    internal static class LibC
+    {
+        private const string Lib = "libc";
+
+        [DllImport(Lib, CallingConvention = CallingConvention.Cdecl)]
+        internal unsafe static extern IntPtr open_memstream(out IntPtr bufp, nuint* sizep);
+
+        [DllImport(Lib, CallingConvention = CallingConvention.Cdecl)]
+        internal static extern int fflush(IntPtr file);
+
+        [DllImport(Lib, CallingConvention = CallingConvention.Cdecl)]
+        internal static extern int fclose(IntPtr file);
+
+        [DllImport(Lib, CallingConvention = CallingConvention.Cdecl)]
+        internal static extern void free(IntPtr ptr);
+
+        internal static byte[] CopyAndFree(IntPtr buf, nuint size)
+        {
+            if (buf == IntPtr.Zero || size == 0)
+            {
+                return [];
+            }
+            int len = checked((int)size);
+            byte[] managed = new byte[len];
+            Marshal.Copy(buf, managed, 0, len);
+            free(buf);
+            return managed;
+        }
+    }
+
     internal sealed class NftContext : IDisposable
     {
         private readonly Lock locker = new();
@@ -158,10 +188,6 @@ public class IPBanLinuxFirewallNFTables : IPBanBaseFirewall
             {
                 throw new InvalidOperationException("nft_ctx_new returned NULL");
             }
-
-            // default to buffered capture
-            _ = NftNative.nft_ctx_buffer_output(ctx);
-            _ = NftNative.nft_ctx_buffer_error(ctx);
         }
 
         public void Dispose()
@@ -215,39 +241,55 @@ public class IPBanLinuxFirewallNFTables : IPBanBaseFirewall
             }, out stdout, out stderr);
         }
 
-        private int RunInternal(Func<int> invoker, out byte[] stdout, out byte[] stderr)
+        private unsafe int RunInternal(Func<int> invoker, out byte[] stdout, out byte[] stderr)
         {
+            int rc;
             lock (locker)
             {
-                _ = NftNative.nft_ctx_buffer_output(ctx);
-                _ = NftNative.nft_ctx_buffer_error(ctx);
+                // Create memory FILE* for stdout and stderr
+                IntPtr outBufPtr = IntPtr.Zero; 
+                IntPtr errBufPtr = IntPtr.Zero;
+                nuint outSize = 0;
+                nuint errSize = 0;
+                IntPtr outFile = LibC.open_memstream(out outBufPtr, &outSize);
+                if (outFile == IntPtr.Zero)
+                {
+                    throw new InvalidOperationException("open_memstream failed for output");
+                }
+                IntPtr errFile = LibC.open_memstream(out errBufPtr, &errSize);
+                if (errFile == IntPtr.Zero)
+                {
+                    _ = LibC.fclose(outFile);
+                    throw new InvalidOperationException("open_memstream failed for error");
+                }
 
-                var rc = invoker();
+                // set buffers before running command
+                NftNative.nft_ctx_set_output(ctx, outFile);
+                NftNative.nft_ctx_set_error(ctx, errFile);
 
-                stdout = PtrToBytes(NftNative.nft_ctx_get_output_buffer(ctx));
-                stderr = PtrToBytes(NftNative.nft_ctx_get_error_buffer(ctx));
+                try
+                {
+                    rc = invoker();
 
-                _ = NftNative.nft_ctx_unbuffer_output(ctx);
-                _ = NftNative.nft_ctx_unbuffer_error(ctx);
+                    // flush to update size pointers
+                    _ = LibC.fflush(outFile);
+                    _ = LibC.fflush(errFile);
+                }
+                finally
+                {
+                    // closing finalizes buffer
+                    _ = LibC.fclose(outFile);
+                    _ = LibC.fclose(errFile);
 
-                return rc;
+                    // reset output/error to defaults (NULL)
+                    NftNative.nft_ctx_set_output(ctx, IntPtr.Zero);
+                    NftNative.nft_ctx_set_error(ctx, IntPtr.Zero);
+                }
+
+                stdout = LibC.CopyAndFree(outBufPtr, outSize);
+                stderr = LibC.CopyAndFree(errBufPtr, errSize);
             }
-        }
-
-        private static byte[] PtrToBytes(IntPtr p)
-        {
-            if (p == IntPtr.Zero)
-            {
-                return [];
-            }
-            int len = 0;
-            while (Marshal.ReadByte(p, len) != 0)
-            {
-                len++;
-            }
-            var result = new byte[len];
-            Marshal.Copy(p, result, 0, len);
-            return result;
+            return rc;
         }
     }
 
@@ -312,6 +354,13 @@ public class IPBanLinuxFirewallNFTables : IPBanBaseFirewall
     public override void Dispose()
     {
         base.Dispose();
+
+#if USE_NFT_NATIVE
+
+        nftCtx.Dispose();
+
+#endif
+
         GC.SuppressFinalize(this);
     }
 
@@ -864,6 +913,11 @@ public class IPBanLinuxFirewallNFTables : IPBanBaseFirewall
     private IEnumerable<NftRuleInternal> EnumerateAllSetIPs(bool? allow, string ruleNamePrefix = null)
     {
         var nftRoot = GetRulesAndSets();
+        if (nftRoot is null)
+        {
+            yield break;
+        }
+
         string baseFilter = string.IsNullOrWhiteSpace(ruleNamePrefix) ? null : GetFullRuleName(ruleNamePrefix);
 
         foreach (var entry in nftRoot?.Entries)
@@ -1075,7 +1129,10 @@ public class IPBanLinuxFirewallNFTables : IPBanBaseFirewall
     {
         using TempFile tmp = new();
         using var fs = File.Open(tmp.FullName, FileMode.Create, FileAccess.ReadWrite, FileShare.None);
-        RunNftStream(null, fs, "-j", "list", "table", "inet", tableName);
+        if (RunNftStream(null, fs, "-j", "list", "table", "inet", tableName) != 0 || fs.Length == 0)
+        {
+            return null;
+        }
         var nftRoot = JsonSerializationHelper.Deserialize<NetFilterRuleset>(fs);
         return nftRoot;
     }

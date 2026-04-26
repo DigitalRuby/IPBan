@@ -190,14 +190,15 @@ namespace DigitalRuby.IPBanCore
         /// </summary>
         public void DeleteRule()
         {
-            firewallTaskRunner.RunFirewallTask((state, cancelToken) =>
+            // firewall can be null so rely on this firewall
+            firewallTaskRunner.RunFirewallTask((state, firewall, cancelToken) =>
             {
-                foreach (string ruleName in firewall.GetRuleNames(RulePrefix).ToArray())
+                foreach (string ruleName in this.firewall.GetRuleNames(state).ToArray())
                 {
-                    firewall.DeleteRule(ruleName);
+                    this.firewall.DeleteRule(ruleName);
                 }
                 return Task.CompletedTask;
-            }, string.Empty, nameof(IPBanFirewallRule) + "." + nameof(DeleteRule));
+            }, RulePrefix, nameof(IPBanFirewallRule) + "." + nameof(DeleteRule));
         }
 
         private void ProcessResult(string text, CancellationToken cancelToken)
@@ -240,10 +241,11 @@ namespace DigitalRuby.IPBanCore
 
             Logger.Warn("Updating firewall uri rule {0} with {1} ips", RulePrefix, sortedDistinct.Length);
 
-            firewallTaskRunner.RunFirewallTask((state, cancelToken) =>
+            // firewall can be null so rely on this firewall
+            firewallTaskRunner.RunFirewallTask((state, firewall, cancelToken) =>
             {
-                return firewall.BlockIPAddresses(RulePrefix, sortedDistinct, null, cancelToken);
-            }, string.Empty, nameof(IPBanUriFirewallRule) + "." + nameof(ProcessResult));
+                return this.firewall.BlockIPAddresses(state.RulePrefix, state.sortedDistinct, null, cancelToken);
+            }, (RulePrefix, sortedDistinct), nameof(IPBanUriFirewallRule) + "." + nameof(ProcessResult));
         }
 
         private static byte[] DecompressBytes(Stream input)

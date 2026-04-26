@@ -137,7 +137,7 @@ namespace DigitalRuby.IPBanCore
             bool temp = !File.Exists(setFile);
             if (temp)
             {
-                setFile = OSUtility.GetTempFileName();
+                setFile = TempFile.GetTempFileName();
             }
             try
             {

@@ -29,6 +29,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Net;
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -54,6 +55,18 @@ namespace DigitalRuby.IPBanCore
         /// </summary>
         private static char[] truncateUserNameCharsArray = [];
 
+        static IPBanRegexParser()
+        {
+            try
+            {
+                var domain = AppDomain.CurrentDomain;
+                domain.SetData("REGEX_DEFAULT_MATCH_TIMEOUT", TimeSpan.FromSeconds(5.0));
+            }
+            catch
+            {
+            }
+        }
+
         /// <summary>
         /// Truncate user name chars value
         /// </summary>
@@ -71,7 +84,8 @@ namespace DigitalRuby.IPBanCore
         /// <returns>Regex or null if text is null or whitespace</returns>
         public static Regex ParseRegex(string text, bool multiline = false)
         {
-            const int maxCacheSize = 200;
+            const int maxCacheSize = 1000;
+            const int maxCacheSizeNonCompiled = 5000;
 
             if (string.IsNullOrWhiteSpace(text))
             {
@@ -84,19 +98,20 @@ namespace DigitalRuby.IPBanCore
                 return null;
             }
 
+            text = ReplaceFileDeclarationsWithOrExpressions(text);
             string[] lines = text.Split('\n', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
             StringBuilder sb = new();
             foreach (string line in lines)
             {
                 sb.Append(line);
             }
-            RegexOptions options = RegexOptions.IgnoreCase | RegexOptions.CultureInvariant | RegexOptions.Compiled;
-            if (multiline)
-            {
-                options |= RegexOptions.Multiline;
-            }
+            RegexOptions options = RegexOptions.IgnoreCase | RegexOptions.CultureInvariant | RegexOptions.Compiled |
+                (multiline ? RegexOptions.Multiline : RegexOptions.None);
             string sbText = sb.ToString();
-            string cacheKey = ((uint)options).ToString("X8") + ":" + sbText;
+            sbText = IPBanRegexMacros.Expand(sbText);
+            var bytes = Encoding.UTF8.GetBytes(sbText);
+            var hash = System.IO.Hashing.XxHash128.HashToUInt128(bytes);
+            string cacheKey = ((uint)options).ToString("X8") + ":" + hash.ToString("X32");
 
             // allow up to maxCacheSize compiled dynamic regular expression, with minimal config changes/reload, this should last the lifetime of an app
             lock (regexCacheCompiled)
@@ -135,7 +150,7 @@ namespace DigitalRuby.IPBanCore
                 // clear non-compield regex cache if it exceeds max size
                 lock (regexCacheNotCompiled)
                 {
-                    if (regexCacheNotCompiled.Count > maxCacheSize)
+                    if (regexCacheNotCompiled.Count > maxCacheSizeNonCompiled)
                     {
                         regexCacheNotCompiled.Clear();
                     }
@@ -290,6 +305,27 @@ namespace DigitalRuby.IPBanCore
                     }
                 }
 
+                // try timestamp_date and timestamp_time groups, if any
+                if (timestamp == default)
+                {
+                    timestampGroup = match.Groups["timestamp_date"];
+                    if (timestampGroup is not null)
+                    {
+                        var timestampTime = match.Groups["timestamp_time"];
+                        if (timestampTime is not null)
+                        {
+                            string toParse = (timestampGroup.Value + " " + timestampTime.Value).Trim(regexTrimChars);
+                            if (string.IsNullOrWhiteSpace(timestampFormat) ||
+                                !DateTime.TryParseExact(toParse, timestampFormat.Trim(), CultureInfo.InvariantCulture,
+                                    DateTimeStyles.AssumeUniversal, out timestamp))
+                            {
+                                DateTime.TryParse(toParse, CultureInfo.InvariantCulture,
+                                    DateTimeStyles.AssumeUniversal, out timestamp);
+                            }
+                        }
+                    }
+                }
+
                 // check if the regex had an ipadddress group
                 var ipAddressGroup = match.Groups["ipaddress"];
                 if (ipAddressGroup is null || !ipAddressGroup.Success)
@@ -305,6 +341,10 @@ namespace DigitalRuby.IPBanCore
                         //  the different ip regex.
                         int lastColon = tempIPAddress.LastIndexOf(':');
                         bool isValidIPAddress = IPAddress.TryParse(tempIPAddress, out IPAddress tmp);
+                        if (isValidIPAddress && tmp.IsIPv4MappedToIPv6)
+                        {
+                            tmp = tmp.MapToIPv4();
+                        }
                         if (isValidIPAddress || (lastColon >= 0 && IPAddress.TryParse(tempIPAddress[..lastColon], out tmp)))
                         {
                             ipAddress = tmp.ToString();
@@ -435,6 +475,46 @@ namespace DigitalRuby.IPBanCore
                 return int.Parse(repeater.Groups["count"].Value, CultureInfo.InvariantCulture);
             }
             return 1;
+        }
+
+        private static string ReplaceFileDeclarationsWithOrExpressions(string text)
+        {
+            // replace $$file(...) with ( ...|...|... ) expressions
+            const string groupPrefix = "(?:";
+           
+            return Regex.Replace(text, @"\$\$file\((?<file>[^\)]+)\)", match =>
+            {
+                string fileName = match.Groups["file"].Value;
+                string replacement = string.Empty;
+                try
+                {
+                    string[] lines = [];
+                    ExtensionMethods.Retry(() => lines = IOUtility.GetLines(fileName, ushort.MaxValue));
+                    if (lines.Length != 0)
+                    {
+                        StringBuilder sb = new(groupPrefix);
+                        foreach (var line in lines)
+                        {
+                            string trimmedLine = line.Trim();
+                            if (trimmedLine.Length != 0)
+                            {
+                                if (sb.Length > groupPrefix.Length)
+                                {
+                                    sb.Append('|');
+                                }
+                                sb.Append(Regex.Escape(trimmedLine));
+                            }
+                        }
+                        sb.Append(')');
+                        replacement = sb.ToString();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Logger.Error(ex, "Error replacing regex file '{0}'", fileName);
+                }
+                return replacement;
+            });
         }
     }
 }

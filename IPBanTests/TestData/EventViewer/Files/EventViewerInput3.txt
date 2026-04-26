@@ -1,0 +1,41 @@
+<Event xmlns="http://schemas.microsoft.com/win/2004/08/events/event">
+  <System>
+    <Provider Name="Microsoft-Windows-Security-Auditing" Guid="{54849625-5478-4994-a5ba-3e3b0328c30d}" />
+    <EventID>4625</EventID>
+    <Version>0</Version>
+    <Level>0</Level>
+    <Task>12544</Task>
+    <Opcode>0</Opcode>
+    <Keywords>0x8010000000000000</Keywords>
+    <TimeCreated SystemTime="2026-03-25T23:54:39.7713662Z" />
+    <EventRecordID>9455497</EventRecordID>
+    <Correlation ActivityID="{58424401-a3d1-0001-3a44-4258d1a3dc01}" />
+    <Execution ProcessID="1040" ThreadID="4132" />
+    <Channel>Security</Channel>
+    <Computer>mysubdomain.mydomain.local</Computer>
+    <Security />
+  </System>
+  <EventData>
+    <Data Name="SubjectUserSid">S-1-0-0</Data>
+    <Data Name="SubjectUserName">-</Data>
+    <Data Name="SubjectDomainName">-</Data>
+    <Data Name="SubjectLogonId">0x0</Data>
+    <Data Name="TargetUserSid">S-1-0-0</Data>
+    <Data Name="TargetUserName">Admin</Data>
+    <Data Name="TargetDomainName">-</Data>
+    <Data Name="Status">0xc000006d</Data>
+    <Data Name="FailureReason">%%2313</Data>
+    <Data Name="SubStatus">0xc0000064</Data>
+    <Data Name="LogonType">3</Data>
+    <Data Name="LogonProcessName">NtLmSsp </Data>
+    <Data Name="AuthenticationPackageName">NTLM</Data>
+    <Data Name="WorkstationName">workstation</Data>
+    <Data Name="TransmittedServices">-</Data>
+    <Data Name="LmPackageName">-</Data>
+    <Data Name="KeyLength">0</Data>
+    <Data Name="ProcessId">0x0</Data>
+    <Data Name="ProcessName">-</Data>
+    <Data Name="IpAddress">5.15.55.111</Data>
+    <Data Name="IpPort">0</Data>
+  </EventData>
+</Event>

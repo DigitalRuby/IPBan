@@ -25,14 +25,47 @@ SOFTWARE.
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace DigitalRuby.IPBanCore
 {
     /// <summary>
     /// Represents a range of ports
     /// </summary>
+    [JsonConverter(typeof(PortRangeJsonConverter))]
     public struct PortRange : IComparable<PortRange>
     {
+        /// <summary>
+        /// Converter for System.Text.Json to serialize PortRange as a string
+        /// </summary>
+        public sealed class PortRangeJsonConverter : JsonConverter<PortRange>
+        {
+            /// <inheritdoc />
+            public override PortRange Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+            {
+                if (reader.TokenType == JsonTokenType.String)
+                {
+                    string s = reader.GetString();
+                    return Parse(s);
+                }
+
+                // If we get here, the JSON token wasn't a string (e.g. it was an object or array)
+                // Returning null or throwing is the standard behavior.
+                throw new JsonException($"Expected string token for PortRange, got {reader.TokenType}");
+            }
+
+            /// <inheritdoc />
+            public override void Write(Utf8JsonWriter writer, PortRange value, JsonSerializerOptions options)
+            {
+                if (value.IsValid)
+                {
+                    // ToString() automatically handles port formatting
+                    writer.WriteStringValue(value.ToString());
+                }
+            }
+        }
+
         /// <summary>
         /// Min port, inclusive
         /// </summary>

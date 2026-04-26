@@ -244,7 +244,7 @@
     <value>Expire Time</value>
   </data>
   <data name="ExpireTimeTooltip" xml:space="preserve">
-    <value>The duration after the last failed login attempt that the ip is forgotten(count reset back to 0). Set to 00:00:00:00 to use max duration (90 days). Format is DD:HH:MM:SS.</value>
+    <value>The duration after the last failed login attempt that the ip is forgotten (count reset back to 0). Set to 00:00:00:00 to use max duration (90 days). Format is DD:HH:MM:SS.</value>
   </data>
   <data name="FailedLoginAttempts" xml:space="preserve">
     <value>Failed login attempts</value>
@@ -1112,7 +1112,7 @@ For block rules, port list is ignored ports, so if you wanted to block port 3389
     <value>Concurrent Remote IP Ban</value>
   </data>
   <data name="ConcurrentRemoteIPBanTooltip" xml:space="preserve">
-    <value>Count,seconds for banning connected remote ips that meet a concurrent count for a specified number of seconds. Set to empty to disable this feature.</value>
+    <value>Count,seconds,optional port ranges. For banning connected remote ips that meet a concurrent count for a specified number of seconds (optionally filtered to the specified local ports). Set to empty to disable this feature.</value>
   </data>
   <data name="ResetLicenseKeys" xml:space="preserve">
     <value>Reset License Keys</value>
@@ -1188,5 +1188,17 @@ For block rules, port list is ignored ports, so if you wanted to block port 3389
   </data>
   <data name="DefaultWhitelistBlacklistDurationDays" xml:space="preserve">
     <value>Default whitelist/blacklist days</value>
+  </data>
+  <data name="Description" xml:space="preserve">
+    <value>Description</value>
+  </data>
+  <data name="RecipeDescriptionTooltip" xml:space="preserve">
+    <value>Description. Set to TEST to put the recipe in analyze but not execute mode.</value>
+  </data>
+  <data name="EventReader" xml:space="preserve">
+    <value>EventReader</value>
+  </data>
+  <data name="ResetBannedIPs" xml:space="preserve">
+    <value>Reset Banned IPs</value>
   </data>
 </root>

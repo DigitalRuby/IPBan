@@ -12,22 +12,29 @@
 # Should you ever wish to update IPBan, just re-run this script and it will auto-update and preserve your ipban.sqlite and ipban.config files!
 #
 # To uninstall, run this same script with an argument of uninstall
+# To install a specific version, pass it as the fifth argument or use -version (ex. 4.0.0)
 #
 
 param
 (
-	[Parameter(Mandatory=$False, Position = 0)]
-	[String] $uninstall,
-	[Parameter(Mandatory=$False, Position = 1)]
-	[Boolean] $silent = $False,
-	[Parameter(Mandatory=$False, Position = 2)]
-	[Boolean] $autostart = $True,
-	[Parameter(Mandatory=$False, Position = 3)]
-	[ValidateSet("delayed-auto", "auto")]
-	[String] $startupType = $null
+    [Parameter(Mandatory=$False, Position = 0)]
+    [String] $uninstall,
+
+    [Parameter(Mandatory=$False, Position = 1)]
+    [Boolean] $silent = $False,
+
+    [Parameter(Mandatory=$False, Position = 2)]
+    [Boolean] $autostart = $True,
+
+    [Parameter(Mandatory=$False, Position = 3)]
+    [ValidateSet("delayed-auto", "auto")]
+    [String] $startupType = "delayed-auto",
+
+    [Parameter(Mandatory=$False, Position = 4)]
+    [String] $version
 )
 
-if ($PSVersionTable.PSVersion.Major -lt 5 -or ($PSVersionTable.PSVersion.Major -eq 5 -and $PSVersionTable.PSVersion.Minor -lt 1))
+if ($PSVersionTable.PSVersion.Major -lt 5)
 {
     Write-Output "This script requires powershell 5.1 or greater"
     exit -1
@@ -43,97 +50,104 @@ $tempPath = [System.IO.Path]::GetTempPath()
 $CONFIG_FILE = "$INSTALL_PATH\ipban.config"
 $INSTALL_EXE = "$INSTALL_PATH\DigitalRuby.IPBan.exe"
 
+# Remove existing service
 if (Get-Service $SERVICE_NAME -ErrorAction SilentlyContinue)
 {
-    # create install path, ensure clean slate
     Write-Output "Removing existing service"
-    try
-    {
-        Stop-Service -Name $SERVICE_NAME -Force
-    }
-    catch
-    {
-    }
+    try { Stop-Service -Name $SERVICE_NAME -Force } catch {}
     & sc.exe delete $SERVICE_NAME
 }
 
+# Remove or backup existing install
 if (Test-Path -Path $INSTALL_PATH)
 {
     Write-Output "Removing existing directory at $INSTALL_PATH"
+
     if ($isUninstall -eq $False)
     {
-        if (Test-Path "$INSTALL_PATH\ipban.config")
+        foreach ($file in @("ipban.config","ipban.override.config","ipban.sqlite","nlog.config"))
         {
-            copy-item "$INSTALL_PATH\ipban.config" $tempPath
-        }
-        if (Test-Path "$INSTALL_PATH\ipban.override.config")
-        {
-            copy-item "$INSTALL_PATH\ipban.override.config" $tempPath
-        }
-        if (Test-Path "$INSTALL_PATH\ipban.sqlite")
-        {
-            copy-item "$INSTALL_PATH\ipban.sqlite" $tempPath
-        }
-		if (Test-Path "$INSTALL_PATH\nlog.config")
-        {
-            copy-item "$INSTALL_PATH\nlog.config" $tempPath
+            if (Test-Path "$INSTALL_PATH\$file")
+            {
+                Copy-Item "$INSTALL_PATH\$file" $tempPath
+            }
         }
     }
-	else
-	{
-		Remove-Item "$INSTALL_PATH" -Force -Recurse 
-		Write-Output "IPBan is fully uninstalled from this system"
-		exit 0
-	}
+    else
+    {
+        Remove-Item "$INSTALL_PATH" -Force -Recurse
+        Write-Output "IPBan is fully uninstalled from this system"
+        exit 0
+    }
 }
 
-# download zip file
-New-Item -Type Directory -path $INSTALL_PATH -ErrorAction SilentlyContinue
-$ReleaseAssets = Invoke-RestMethod "https://api.github.com/repos/DigitalRuby/IPBan/releases/latest"
+# Create install dir
+New-Item -Type Directory -Path $INSTALL_PATH -ErrorAction SilentlyContinue
+
+# Get release
+if ([string]::IsNullOrWhiteSpace($version))
+{
+    $ReleaseAssets = Invoke-RestMethod "https://api.github.com/repos/DigitalRuby/IPBan/releases/latest"
+}
+else
+{
+    $versionTag = $version.Trim()
+
+    try
+    {
+        $ReleaseAssets = Invoke-RestMethod "https://api.github.com/repos/DigitalRuby/IPBan/releases/tags/$versionTag"
+    }
+    catch
+    {
+        $versionTag = $versionTag.Replace('.', '_')
+        $ReleaseAssets = Invoke-RestMethod "https://api.github.com/repos/DigitalRuby/IPBan/releases/tags/$versionTag"
+    }
+}
+
 if ([System.Environment]::Is64BitOperatingSystem)
 {
-    $url        = ($ReleaseAssets.assets | ? name -Match "\-Windows\-x64").browser_download_url
-} else {
-    $url        = ($ReleaseAssets.assets | ? name -Match "\-Windows\-x86").browser_download_url
+    $url = ($ReleaseAssets.assets | Where-Object { $_.name -match "\-Windows\-x64" }).browser_download_url
 }
-Write-Output "Downloading ipban from $Url"
+else
+{
+    $url = ($ReleaseAssets.assets | Where-Object { $_.name -match "\-Windows\-x86" }).browser_download_url
+}
+
+if ([string]::IsNullOrWhiteSpace($version))
+{
+    Write-Output "Downloading latest ipban from $url"
+}
+else
+{
+    Write-Output "Downloading ipban version $version from $url"
+}
+
 $ZipFile = "$INSTALL_PATH\IPBan.zip"
 
-# Forcing the Invoke-RestMethod PowerShell cmdlet to use TLS 1.2 to avoid error "The request was aborted: Could not create SSL/TLS secure channel."
+# Force TLS 1.2
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-Invoke-WebRequest -Uri $Url -OutFile $ZipFile 
 
-# extract zip file, cleanup zip file
+Invoke-WebRequest -Uri $url -OutFile $ZipFile
+
+# Extract
 Expand-Archive -LiteralPath $ZipFile -DestinationPath $INSTALL_PATH -Force
 Remove-Item -Force $ZipFile
 
-# copy back over the config and db file
-if (Test-Path -Path "$tempPath\ipban.config")
+# Restore configs
+foreach ($file in @("ipban.config","ipban.override.config","ipban.sqlite","nlog.config"))
 {
-    copy-Item "$tempPath\ipban.config" "$INSTALL_PATH"
-    remove-Item "$tempPath\ipban.config"
-}
-if (Test-Path -Path "$tempPath\ipban.override.config")
-{
-    copy-Item "$tempPath\ipban.override.config" "$INSTALL_PATH"
-    remove-Item "$tempPath\ipban.override.config"
-}
-if (Test-Path -Path "$tempPath\ipban.sqlite")
-{
-    copy-Item "$tempPath\ipban.sqlite" "$INSTALL_PATH"
-    remove-Item "$tempPath\ipban.sqlite"
-}
-if (Test-Path -Path "$tempPath\nlog.config")
-{
-    copy-Item "$tempPath\nlog.config" "$INSTALL_PATH"
-    remove-Item "$tempPath\nlog.config"
+    if (Test-Path "$tempPath\$file")
+    {
+        Copy-Item "$tempPath\$file" "$INSTALL_PATH"
+        Remove-Item "$tempPath\$file"
+    }
 }
 
-# ensure audit policy is logging
+# Enable audit policy
 & auditpol.exe /set /category:"{69979849-797A-11D9-BED3-505054503030}" /success:enable /failure:enable
 & auditpol.exe /set /category:"{69979850-797A-11D9-BED3-505054503030}" /success:enable /failure:enable
 
-# prompt for startup type if not already specified
+# Handle startupType logic
 if ($silent -eq $True)
 {
     if ([string]::IsNullOrEmpty($startupType))
@@ -145,40 +159,30 @@ elseif ([string]::IsNullOrEmpty($startupType))
 {
     Write-Host "`n"
     Write-Host "Select the services startup type:"
-    Write-Host '- The default is "delayed-auto" which waits for the higher priority services to start leaving the system briefly unprotected after boot while the recommended is "auto" however when using the latter you may encounter compatibility issues if you choose to do so please verify the service starts correctly after reboot.'
-    Write-Host "1. delayed-auto"
-    Write-Host "2. auto"
+    Write-Host '1. delayed-auto'
+    Write-Host '2. auto'
 
     do
     {
         $choice = Read-Host "Enter selection"
-
         switch ($choice)
         {
-            "1" { $startupType = "delayed-auto"; Write-Host "You selected: $startupType`n" }
-            "2" { $startupType = "auto"; Write-Host "You selected: $startupType`n" }
-            default { Write-Host "Invalid selection, please enter 1-2!" }
+            "1" { $startupType = "delayed-auto" }
+            "2" { $startupType = "auto" }
         }
-    }
-    while ([string]::IsNullOrEmpty($startupType))
+    } while ($startupType -notin @("delayed-auto","auto"))
 }
 
-# create service
-& sc.exe create IPBAN type= own start= $startupType binPath= $INSTALL_EXE DisplayName= $SERVICE_NAME
-& sc.exe description IPBAN "Automatically builds firewall rules for abusive login attempts: https://github.com/DigitalRuby/IPBan"
-& sc.exe failure IPBAN reset= 9999 actions= "restart/60000/restart/60000/restart/60000"
-if ($autostart -eq $True)
+# Create service
+$binPath = "`"$INSTALL_EXE`""
+
+Write-Output "Creating service..."
+& sc.exe create $SERVICE_NAME binPath= $binPath start= $startupType
+
+if ($autostart)
 {
-	Start-Service IPBAN
-}
-else
-{
-	Write-Output "IPBAN Service is in stopped state, you must start it manually."
+    Write-Output "Starting service..."
+    Start-Service $SERVICE_NAME
 }
 
-if ($silent -eq $False)
-{
-    # open config
-    Write-Output "Opening config file, make sure to whitelist your trusted ip addresses!"
-    & notepad $CONFIG_FILE
-}
+Write-Output "IPBan installation complete."

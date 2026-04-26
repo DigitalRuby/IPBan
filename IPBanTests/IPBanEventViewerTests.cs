@@ -80,6 +80,11 @@ namespace DigitalRuby.IPBanTests
                     throw new System.IO.InvalidDataException("Expected 5 lines of event viewer test data");
                 }
                 Xml = CleanLine(lines[0]);
+                if (Xml.StartsWith("$file:"))
+                {
+                    string fileName = Xml.Substring(6).Trim();
+                    Xml = File.ReadAllText(fileName);
+                }
                 IPAddress = CleanLine(lines[1]);
                 UserName = CleanLine(lines[2]);
                 if (UserName == "[nouser]")
@@ -124,7 +129,7 @@ namespace DigitalRuby.IPBanTests
         {
             get
             {
-                string[] lines = File.ReadAllLines("TestData/EventViewer/EventViewerTests.txt")
+                string[] lines = File.ReadAllLines("TestData/EventViewer/Files/EventViewerTests.txt")
                     .Select(l => l.Trim())
                     .Where(l => !l.StartsWith('#'))
                     .ToArray();
@@ -163,7 +168,7 @@ namespace DigitalRuby.IPBanTests
                         await service.ConfigReaderWriter.WriteConfigAsync(newConfig);
                         await service.RunCycleAsync();
                     }
-                    var results = service.EventViewer.ProcessEventViewerXml(test.Xml).ToArray();
+                    var results = service.EventViewer.ProcessEventViewerXml(test.Xml).ToList();
                     var resultIndex = 0;
                     foreach (var result in results)
                     {

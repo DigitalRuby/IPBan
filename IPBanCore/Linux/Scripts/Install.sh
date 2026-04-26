@@ -11,18 +11,23 @@
 # env var arg options
 : ${AUTOSTART=true}
 
-VERSION_DOTS="2.0.0"
+# get latest release tag from github api
+LATEST_VERSION=$(curl -s https://api.github.com/repos/DigitalRuby/IPBan/releases/latest | grep -Po '"tag_name": ?"\K.*?(?=")')
+
+# convert dots to underscores for filename
+VERSION_DOTS=$LATEST_VERSION
 VERSION_UNDERSCORES=${VERSION_DOTS//./_}
 FILE_NAME="IPBan-Linux-x64_$VERSION_UNDERSCORES.zip"
-
 
 # run entire script from url, do sudo -i first
 # sudo -i;
 # bash <(wget -qO- https://raw.githubusercontent.com/DigitalRuby/IPBan/master/IPBanCore/Linux/Scripts/Install.sh)
 
-# install unzipper, install iptables and ipset
-sudo apt -q -y update || true; sudo apt -q -y install unzip iptables ipset firewalld || true; 
-sudo yum -q -y update || true; sudo yum -q -y install unzip iptables ipset firewalld || true;
+# install packages using three package managers since we don't know which one the user has
+sudo apt -q -y install unzip iptables ipset nftables libnftables1 firewalld || true;
+sudo yum -q -y install unzip iptables ipset nftables firewalld || true;
+sudo dnf -q -y install unzip iptables ipset nftables firewalld || true;
+
 #sudo update-alternatives --set iptables /usr/sbin/iptables-legacy || true;
 #sudo update-alternatives --set ip6tables /usr/sbin/ip6tables-legacy || true;
 
@@ -30,7 +35,7 @@ sudo yum -q -y update || true; sudo yum -q -y install unzip iptables ipset firew
 sudo mkdir /opt/ipban -p; cd /opt/ipban;
 
 # stop service
-sudo systemctl stop ipban
+sudo systemctl stop ipban || true
 
 # save off ipban.sqlite and ipban.config files
 mkdir /tmp>/dev/null || :
@@ -39,13 +44,15 @@ cp /opt/ipban/ipban.config /tmp>/dev/null || :
 cp /opt/ipban/ipban.override.config /tmp>/dev/null || :
 
 # download latest release and extract to /opt/ipban
-sudo wget https://github.com/DigitalRuby/IPBan/releases/download/$VERSION_DOTS/$FILE_NAME; sudo unzip -qq $FILE_NAME; sudo rm $FILE_NAME;
+sudo wget "https://github.com/DigitalRuby/IPBan/releases/download/$VERSION_DOTS/$FILE_NAME"
+sudo unzip -qq "$FILE_NAME"
+sudo rm "$FILE_NAME"
 
 # allow execute permissions for /opt/ipban/DigitalRuby.IPBan
 sudo chmod +x /opt/ipban/DigitalRuby.IPBan
 
 # install service to run the executable
-sudo cat > /lib/systemd/system/ipban.service <<"END.OF.TEMPLATE"
+sudo cat > /etc/systemd/system/ipban.service <<"END.OF.TEMPLATE"
 
 [Unit]
 Description=IPBan Service
@@ -72,13 +79,15 @@ cp /tmp/ipban.override.config /opt/ipban>/dev/null || :
 rm /tmp/ipban.override.config>/dev/null || :
 
 # enable and start service, ensure that it is running on reboots as well
-sudo systemctl daemon-reload; sudo systemctl enable ipban;
+sudo systemctl daemon-reload
+sudo systemctl enable ipban
 
 # auto start if asked for
 if [ "$AUTOSTART" == "true" ]; then
-	sudo systemctl start ipban; sudo systemctl restart ipban; 
+    sudo systemctl start ipban
+    sudo systemctl restart ipban
 else
-	echo "Autostart disabled. To start, run: systemctl start ipban; sudo systemctl restart ipban;"
+    echo "Autostart disabled. To start, run: sudo systemctl start ipban; sudo systemctl restart ipban;"
 fi
 
 # open up config editor to make any additional changes like whitelist or min failed attempt to ban, etc.

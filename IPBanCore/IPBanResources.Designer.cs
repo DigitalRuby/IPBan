@@ -538,7 +538,7 @@ namespace DigitalRuby.IPBanCore {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Count,seconds for banning connected remote ips that meet a concurrent count for a specified number of seconds. Set to empty to disable this feature..
+        ///   Looks up a localized string similar to Count,seconds,optional port ranges. For banning connected remote ips that meet a concurrent count for a specified number of seconds (optionally filtered to the specified local ports). Set to empty to disable this feature..
         /// </summary>
         public static string ConcurrentRemoteIPBanTooltip {
             get {
@@ -790,6 +790,15 @@ namespace DigitalRuby.IPBanCore {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Description.
+        /// </summary>
+        public static string Description {
+            get {
+                return ResourceManager.GetString("Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Details.
         /// </summary>
         public static string Details {
@@ -934,6 +943,15 @@ namespace DigitalRuby.IPBanCore {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to EventReader.
+        /// </summary>
+        public static string EventReader {
+            get {
+                return ResourceManager.GetString("EventReader", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Expressions.
         /// </summary>
         public static string EventViewerExpressions {
@@ -1024,7 +1042,7 @@ namespace DigitalRuby.IPBanCore {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The duration after the last failed login attempt that the ip is forgotten(count reset back to 0). Set to 00:00:00:00 to use max duration (90 days). Format is DD:HH:MM:SS..
+        ///   Looks up a localized string similar to The duration after the last failed login attempt that the ip is forgotten (count reset back to 0). Set to 00:00:00:00 to use max duration (90 days). Format is DD:HH:MM:SS..
         /// </summary>
         public static string ExpireTimeTooltip {
             get {
@@ -2216,6 +2234,15 @@ namespace DigitalRuby.IPBanCore {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Description. Set to TEST to put the recipe in analyze but not execute mode..
+        /// </summary>
+        public static string RecipeDescriptionTooltip {
+            get {
+                return ResourceManager.GetString("RecipeDescriptionTooltip", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Recursive.
         /// </summary>
         public static string Recursive {
@@ -2320,6 +2347,15 @@ namespace DigitalRuby.IPBanCore {
         public static string Reset {
             get {
                 return ResourceManager.GetString("Reset", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Reset Banned IPs.
+        /// </summary>
+        public static string ResetBannedIPs {
+            get {
+                return ResourceManager.GetString("ResetBannedIPs", resourceCulture);
             }
         }
         

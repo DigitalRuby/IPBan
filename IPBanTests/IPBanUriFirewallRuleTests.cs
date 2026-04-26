@@ -128,9 +128,9 @@ namespace DigitalRuby.IPBanTests
             return memoryFirewall.IsIPAddressAllowed(range.ToString(), out reason);
         }
 
-        public Task RunFirewallTask<T>(Func<T, CancellationToken, Task> action, T state, string name)
+        public Task RunFirewallTask<T>(Func<T, IIPBanFirewall, CancellationToken, Task> action, T state, string name)
         {
-            return action(state, default);
+            return action(state, memoryFirewall, default);
         }
     }
 }
