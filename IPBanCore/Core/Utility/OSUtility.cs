@@ -251,7 +251,7 @@ namespace DigitalRuby.IPBanCore
                 FriendlyName = "Unknown";
             }
 
-            Logger.Warn("OS info detected: {0}, app version: {1}", OSInfo, Version);
+            Logger.Warn("OS info detected: {0}, app version: {1}", OSInfo, SoftwareVersion);
         }
 
         private static void LoadVersionFromLinux()
