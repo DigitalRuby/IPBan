@@ -115,6 +115,10 @@ namespace DigitalRuby.IPBanCore
         private readonly TimeSpan minimumTimeBetweenSuccessfulLoginAttempts = TimeSpan.FromSeconds(5.0);
 
         private readonly string ipThreatApiKey = string.Empty;
+        private readonly string proxyAddress = string.Empty;
+        private readonly string proxyUserName = string.Empty;
+        private readonly string proxyPassword = string.Empty;
+        private readonly bool proxyServiceUrls;
         private readonly int failedLoginAttemptsBeforeBan = 5;
         private readonly bool resetFailedLoginCountForUnbannedIPAddresses;
         private readonly string firewallRulePrefix = "IPBan_";
@@ -185,6 +189,10 @@ namespace DigitalRuby.IPBanCore
             }
 
             TryGetConfig<string>("IPThreatApiKey", ref ipThreatApiKey, false);
+            TryGetConfig<string>("ProxyAddress", ref proxyAddress, false);
+            TryGetConfig<string>("ProxyUserName", ref proxyUserName, false);
+            TryGetConfig<string>("ProxyPassword", ref proxyPassword, false);
+            TryGetConfig<bool>("ProxyServiceUrls", ref proxyServiceUrls);
             GetConfig<int>("FailedLoginAttemptsBeforeBan", ref failedLoginAttemptsBeforeBan, 1, 50);
             TryGetConfig<bool>("ResetFailedLoginCountForUnbannedIPAddresses", ref resetFailedLoginCountForUnbannedIPAddresses);
             GetConfigArray<TimeSpan>("BanTime", ref banTimes, emptyTimeSpanArray);
@@ -1013,6 +1021,27 @@ namespace DigitalRuby.IPBanCore
         /// Api key from https://ipthreat.net, if any
         /// </summary>
         public string IPThreatApiKey { get { return ipThreatApiKey; } }
+
+        /// <summary>
+        /// Proxy address for http requests (e.g. http://proxy:8080)
+        /// </summary>
+        public string ProxyAddress { get { return proxyAddress; } }
+
+        /// <summary>
+        /// Proxy user name, if required
+        /// </summary>
+        public string ProxyUserName { get { return proxyUserName; } }
+
+        /// <summary>
+        /// Proxy password, if required
+        /// </summary>
+        public string ProxyPassword { get { return proxyPassword; } }
+
+        /// <summary>
+        /// Whether to use proxy for service URLs (GetUrlUpdate, GetUrlStart, GetUrlStop, GetUrlConfig).
+        /// Default is false - service URLs will not use proxy.
+        /// </summary>
+        public bool ProxyServiceUrls { get { return proxyServiceUrls; } }
 
         /// <summary>
         /// Number of failed login attempts before a ban is initiated

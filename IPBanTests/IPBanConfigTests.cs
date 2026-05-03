@@ -483,4 +483,36 @@ e.g.
             ClassicAssert.AreEqual(0, r2.AllowPortRanges.Count);
         }
     }
+
+    [TestFixture]
+    public class IPBanConfigProxyTests
+    {
+        [Test]
+        public void TestProxySettings_ParseFromXml()
+        {
+            string configXml = "<?xml version='1.0'?><configuration><appSettings>" +
+                "<add key='ProxyAddress' value='http://proxy:8080' />" +
+                "<add key='ProxyUserName' value='user' />" +
+                "<add key='ProxyPassword' value='pass' />" +
+                "<add key='ProxyServiceUrls' value='true' />" +
+                "</appSettings></configuration>";
+            var cfg = IPBanConfig.LoadFromXml(configXml);
+
+            ClassicAssert.AreEqual("http://proxy:8080", cfg.ProxyAddress);
+            ClassicAssert.AreEqual("user", cfg.ProxyUserName);
+            ClassicAssert.AreEqual("pass", cfg.ProxyPassword);
+            ClassicAssert.IsTrue(cfg.ProxyServiceUrls);
+        }
+
+        [Test]
+        public void TestProxyServiceUrls_DefaultFalse()
+        {
+            string configXml = "<?xml version='1.0'?><configuration><appSettings>" +
+                "<add key='ProxyAddress' value='http://proxy:8080' />" +
+                "</appSettings></configuration>";
+            var cfg = IPBanConfig.LoadFromXml(configXml);
+
+            ClassicAssert.IsFalse(cfg.ProxyServiceUrls);
+        }
+    }
 }

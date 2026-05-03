@@ -101,6 +101,11 @@ namespace DigitalRuby.IPBanCore
                     // set new config and re-load everything
                     Config = newConfig;
 
+                    // update proxy settings for http requests
+                    DefaultHttpRequestMaker.ProxyAddress = newConfig.ProxyAddress;
+                    DefaultHttpRequestMaker.ProxyUserName = newConfig.ProxyUserName;
+                    DefaultHttpRequestMaker.ProxyPassword = newConfig.ProxyPassword;
+
                     // load the firewall, detecting a change by referencing the old config
                     await LoadFirewall(oldConfig);
 
@@ -847,7 +852,8 @@ namespace DigitalRuby.IPBanCore
                 try
                 {
                     KeyValuePair<string, object>[] headers = (Authorization is null ? null : new KeyValuePair<string, object>[] { new("Authorization", Authorization) });
-                    byte[] bytes = await RequestMaker.MakeRequestAsync(new Uri(url), headers: headers, cancelToken: cancelToken);
+                    IHttpRequestMaker requestMaker = (Config.ProxyServiceUrls ? RequestMaker : DirectHttpRequestMaker.Instance);
+                    byte[] bytes = await requestMaker.MakeRequestAsync(new Uri(url), headers: headers, cancelToken: cancelToken);
                     if (urlType == UrlType.Start)
                     {
                         GotStartUrl = true;
