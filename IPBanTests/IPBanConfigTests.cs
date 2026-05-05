@@ -459,8 +459,13 @@ e.g.
         public void TestFirewallRules_EmptyIpSection_NoCrash()
         {
             // name;allow/block;ips;ports;platform_regex
+            // Use ".*" for the platform regex so the test passes on every OS — the previous
+            // value "Windows" caused IPBanConfig.ParseExtraFirewallRules to filter both rules
+            // out on Linux/macOS test runs (production code does this on purpose; the rule
+            // entry's platform field is honored). The point of this test is to verify the
+            // parser tolerates an empty IP section, not to test platform filtering.
             string configXml = "<?xml version='1.0'?><configuration><appSettings>" +
-                "<add key='FirewallRules' value='MyRule;block;;22-80;Windows\nMyRule2;allow;1.2.3.4;;Windows' />" +
+                "<add key='FirewallRules' value='MyRule;block;;22-80;.*\nMyRule2;allow;1.2.3.4;;.*' />" +
                 "</appSettings></configuration>";
             var cfg = IPBanConfig.LoadFromXml(configXml);
 

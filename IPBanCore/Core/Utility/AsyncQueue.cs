@@ -1,4 +1,4 @@
-﻿/*
+/*
 MIT License
 
 Copyright (c) 2012-present Digital Ruby, LLC - https://ipban.com

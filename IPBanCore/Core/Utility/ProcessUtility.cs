@@ -220,19 +220,8 @@ namespace DigitalRuby.IPBanCore
 
                 // Pipe the launch command into `at` via stdin. Without `-f`, at reads its job
                 // body from stdin and copies it into the at spool — no temp file is written and
-                // nothing needs cleanup. fileName is wrapped in single quotes via BashEscape so
-                // any spaces, semicolons, backticks, or `$()` in the path are inert literals
-                // when /bin/sh later runs the spooled job.
-                var command = new StringBuilder();
-                command.Append("sudo ").Append(BashEscape(fileName));
-                if (!string.IsNullOrEmpty(arguments))
-                {
-                    // arguments is operator-supplied (a shell-formed argument string by contract).
-                    // If callers ever start passing user-influenced data, switch to tokenized
-                    // arguments and BashEscape each one.
-                    command.Append(' ').Append(arguments);
-                }
-                command.Append('\n');
+                // nothing needs cleanup.
+                string commandBody = BuildAtJobBody(fileName, arguments);
 
                 ProcessStartInfo atInfo = new()
                 {
@@ -247,10 +236,32 @@ namespace DigitalRuby.IPBanCore
                 using var detachedProcess = Process.Start(atInfo);
                 if (detachedProcess is not null)
                 {
-                    detachedProcess.StandardInput.Write(command.ToString());
+                    detachedProcess.StandardInput.Write(commandBody);
                     detachedProcess.StandardInput.Close();
                 }
             }
+        }
+
+        /// <summary>
+        /// Build the shell command body that gets piped into `at` (or any compatible scheduler)
+        /// to launch <paramref name="fileName"/> via sudo. fileName is wrapped in single quotes
+        /// so any spaces, semicolons, backticks, or `$()` in the path are inert literals when
+        /// /bin/sh later runs the spooled job. Public for testability — pure function with no
+        /// side effects, safe to call cross-platform.
+        /// </summary>
+        public static string BuildAtJobBody(string fileName, string arguments)
+        {
+            var command = new StringBuilder();
+            command.Append("sudo ").Append(BashEscape(fileName));
+            if (!string.IsNullOrEmpty(arguments))
+            {
+                // arguments is operator-supplied (a shell-formed argument string by contract).
+                // If callers ever start passing user-influenced data, switch to tokenized
+                // arguments and BashEscape each one.
+                command.Append(' ').Append(arguments);
+            }
+            command.Append('\n');
+            return command.ToString();
         }
 
         /// <summary>

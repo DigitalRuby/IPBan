@@ -3,11 +3,12 @@ MIT License
 
 Copyright (c) 2012-present Digital Ruby, LLC - https://ipban.com
 
-Linux-only integration test for ProcessUtility.CreateDetachedProcess. Verifies
-that the call ends up with a job in the `at` queue containing the expected
-shell-escaped command body. We don't wait for atd to actually run the job —
-that's a 60s timing dependency we can't control. Instead we read back the
-queued job via `at -c <id>` and check its contents, then `atrm` for cleanup.
+Linux-only integration test for ProcessUtility.CreateDetachedProcess. The
+content of the queued at-job is verified by the cross-platform unit tests
+on ProcessUtility.BuildAtJobBody (in IPBanProcessUtilityTests). This file
+exists to verify that the *integration* — chmod, pipe to at, atd dispatch
+— actually runs the requested binary on a real Linux host. We schedule a
+side-effect (touch a marker file) and observe it.
 */
 
 using System;
@@ -25,124 +26,9 @@ using NUnit.Framework.Legacy;
 namespace DigitalRuby.IPBanTests
 {
     [TestFixture]
-    [Category("LinuxIntegration")]
+    [Category("LinuxIntegrationSlow")]
     public sealed class IPBanProcessUtilityLinuxTests
     {
-        [Test]
-        public void CreateDetachedProcess_QueuesAtJobWithEscapedCommand()
-        {
-            // Gate the test on platform and tooling availability. If anything's missing this
-            // becomes a clean Ignore rather than a noisy failure on systems that can't run it.
-            if (!OSUtility.IsLinux)
-            {
-                Assert.Ignore("Linux-only test");
-            }
-            if (!CommandExists("at") || !CommandExists("atq") || !CommandExists("atrm"))
-            {
-                Assert.Ignore("'at' tooling is not installed on this host");
-            }
-            if (!CanSudoNonInteractive())
-            {
-                Assert.Ignore("sudo is not configured for passwordless execution by the test user");
-            }
-
-            // A unique marker so we can identify our specific job in atq and verify it didn't get
-            // confused with an unrelated one already in the queue.
-            string uniqueMarker = "ipban-proctest-" + Guid.NewGuid().ToString("N");
-            HashSet<string> jobsBefore = ListAtJobs();
-
-            try
-            {
-                // /bin/true is on every Linux, takes any args, and is harmless if atd does fire
-                // the job before our cleanup runs.
-                ProcessUtility.CreateDetachedProcess("/bin/true", "--marker=" + uniqueMarker);
-
-                // Give `at` a moment to write its spool entry. atq reads from disk and the write
-                // is essentially instantaneous, but we leave a small buffer for slow filesystems.
-                Thread.Sleep(500);
-
-                HashSet<string> jobsAfter = ListAtJobs();
-                string[] newJobs = jobsAfter.Except(jobsBefore).ToArray();
-
-                ClassicAssert.AreEqual(1, newJobs.Length,
-                    $"expected exactly one new at job (got {newJobs.Length}: {string.Join(',', newJobs)})");
-
-                string body = ReadAtJob(newJobs[0]);
-                ClassicAssert.IsNotNull(body, "at -c returned no output for the queued job");
-
-                // The command pumped through stdin should be present verbatim, including the
-                // single-quote escaping around fileName that BashEscape applied.
-                StringAssert.Contains("sudo '/bin/true'", body,
-                    "fileName should be wrapped in single quotes inside the queued job body");
-                StringAssert.Contains(uniqueMarker, body,
-                    "the marker we passed in arguments should appear in the queued job body");
-            }
-            finally
-            {
-                // Always clean up jobs we created — including any leftover from the assertion
-                // path so this test doesn't pollute the queue if it asserts mid-way.
-                foreach (string jobId in ListAtJobs().Except(jobsBefore))
-                {
-                    try { RunCapturing("atrm", jobId); } catch { /* best effort */ }
-                }
-            }
-        }
-
-        [Test]
-        public void CreateDetachedProcess_HandlesPathWithShellMetacharacters()
-        {
-            // The point of BashEscape is that paths containing spaces, semicolons, backticks,
-            // or `$()` are inert. We can't actually create a file at "/tmp/foo;rm -rf /;" without
-            // it being interpreted, but we CAN check that a path with spaces survives the round
-            // trip through `at` and is single-quoted as expected.
-            if (!OSUtility.IsLinux)
-            {
-                Assert.Ignore("Linux-only test");
-            }
-            if (!CommandExists("at") || !CommandExists("atq") || !CommandExists("atrm"))
-            {
-                Assert.Ignore("'at' tooling is not installed on this host");
-            }
-            if (!CanSudoNonInteractive())
-            {
-                Assert.Ignore("sudo is not configured for passwordless execution by the test user");
-            }
-
-            // Create a real script at a path containing a space so chmod actually has something
-            // to act on. Path is operator-controlled in production, so spaces are realistic.
-            string scriptPath = Path.Combine(Path.GetTempPath(), "ipban proctest " + Guid.NewGuid().ToString("N") + ".sh");
-            File.WriteAllText(scriptPath, "#!/bin/sh\nexit 0\n");
-
-            HashSet<string> jobsBefore = ListAtJobs();
-
-            try
-            {
-                ProcessUtility.CreateDetachedProcess(scriptPath, string.Empty);
-                Thread.Sleep(500);
-
-                HashSet<string> jobsAfter = ListAtJobs();
-                string[] newJobs = jobsAfter.Except(jobsBefore).ToArray();
-                ClassicAssert.AreEqual(1, newJobs.Length);
-
-                string body = ReadAtJob(newJobs[0]);
-
-                // The path contains a space — it must appear in the queued body wrapped in
-                // single quotes. The naked path WITHOUT quotes would be interpreted as two
-                // separate tokens by /bin/sh when atd later runs the job.
-                string expectedQuoted = "'" + scriptPath + "'";
-                StringAssert.Contains(expectedQuoted, body,
-                    "queued job body should contain the path inside single quotes");
-            }
-            finally
-            {
-                foreach (string jobId in ListAtJobs().Except(jobsBefore))
-                {
-                    try { RunCapturing("atrm", jobId); } catch { /* best effort */ }
-                }
-                try { File.Delete(scriptPath); } catch { /* best effort */ }
-            }
-        }
-
         /// <summary>
         /// End-to-end check that atd actually fires the queued job and the resulting command
         /// runs. We schedule `/bin/touch /tmp/&lt;marker&gt;` and poll until the marker appears.
@@ -150,7 +36,6 @@ namespace DigitalRuby.IPBanTests
         /// ~75s worst case. Tagged separately so it can be excluded from fast CI runs.
         /// </summary>
         [Test]
-        [Category("LinuxIntegrationSlow")]
         [CancelAfter(120_000)]
         public void CreateDetachedProcess_AtdActuallyRunsTheJob()
         {
@@ -159,7 +44,7 @@ namespace DigitalRuby.IPBanTests
                 Assert.Ignore("Linux-only test");
                 return;
             }
-            if (!CommandExists("at") || !CommandExists("atq") || !CommandExists("atrm"))
+            if (!CommandExists("at") || !CommandExists("atrm"))
             {
                 Assert.Ignore("'at' tooling is not installed on this host");
             }
@@ -171,14 +56,17 @@ namespace DigitalRuby.IPBanTests
             {
                 Assert.Ignore("atd is not running — scheduled jobs would never fire");
             }
+            if (!TryProbeAtIsUsable(out string atProbeError))
+            {
+                Assert.Ignore("at command did not accept a probe job — " + atProbeError);
+            }
 
-            // Marker file in /tmp. Job will run as root via sudo so the file is created with
-            // root ownership; cleanup uses sudo rm to handle the sticky-bit case where the
-            // test user can't otherwise unlink it.
+            // Marker file in /tmp. The at job runs as root via sudo so the file is created
+            // with root ownership; cleanup uses sudo rm to handle the sticky-bit case where
+            // the test user can't otherwise unlink a root-owned file in /tmp.
             string markerPath = "/tmp/ipban_proctest_marker_" + Guid.NewGuid().ToString("N");
             try { File.Delete(markerPath); } catch { /* not there yet, fine */ }
 
-            HashSet<string> jobsBefore = ListAtJobs();
             var sw = Stopwatch.StartNew();
             try
             {
@@ -209,10 +97,6 @@ namespace DigitalRuby.IPBanTests
             {
                 // Marker is root-owned in /tmp (sticky bit). sudo rm handles that cleanly.
                 try { RunCapturing("sudo", "-n", "rm", "-f", markerPath); } catch { /* best effort */ }
-                foreach (string jobId in ListAtJobs().Except(jobsBefore))
-                {
-                    try { RunCapturing("atrm", jobId); } catch { /* best effort */ }
-                }
             }
         }
 
@@ -241,34 +125,84 @@ namespace DigitalRuby.IPBanTests
             return exit == 0;
         }
 
-        /// <summary>Parse atq output into a set of job ids. atq lines look like "5\tFri Jan ...".</summary>
-        private static HashSet<string> ListAtJobs()
+        /// <summary>
+        /// Verify that the test user can submit jobs to at. Schedules a no-op job for one
+        /// minute in the future (so atd hasn't dequeued it yet by the time we check),
+        /// confirms the job exists in atq, then atrm's it. Returns false with a diagnostic
+        /// if the at toolchain is installed but rejecting the job (Ubuntu's at.deny, missing
+        /// spool dir, etc.).
+        /// </summary>
+        private static bool TryProbeAtIsUsable(out string error)
         {
-            var (exit, output) = RunCapturing("atq");
-            var ids = new HashSet<string>();
-            if (exit != 0 || string.IsNullOrEmpty(output))
+            // Schedule for "now + 1 minute" — using "now" was racy because atd polls every
+            // minute boundary and immediately dispatches past-due jobs, so a job submitted at
+            // 14:47:50 with "now" runs at 14:48:00 and disappears from the queue before we
+            // can inspect it. "now + 1 minute" guarantees the job sits in the queue.
+            var psi = new ProcessStartInfo
             {
-                return ids;
-            }
-            foreach (var line in output.Split('\n', StringSplitOptions.RemoveEmptyEntries))
+                FileName = "at",
+                UseShellExecute = false,
+                RedirectStandardInput = true,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                CreateNoWindow = true,
+            };
+            psi.ArgumentList.Add("now");
+            psi.ArgumentList.Add("+");
+            psi.ArgumentList.Add("1");
+            psi.ArgumentList.Add("minute");
+
+            string stderr;
+            int exitCode;
+            string probeJobId = null;
+            try
             {
-                int tab = line.IndexOfAny(new[] { '\t', ' ' });
-                if (tab > 0)
+                using var p = Process.Start(psi);
+                p.StandardInput.Write("/bin/true\n");
+                p.StandardInput.Close();
+                stderr = p.StandardError.ReadToEnd();
+                p.WaitForExit(5_000);
+                exitCode = p.ExitCode;
+
+                // at writes "job N at <time>" to stderr. Parse N for atrm cleanup.
+                var match = System.Text.RegularExpressions.Regex.Match(stderr, @"job\s+(\d+)\s+at");
+                if (match.Success)
                 {
-                    ids.Add(line[..tab].Trim());
+                    probeJobId = match.Groups[1].Value;
                 }
             }
-            return ids;
+            catch (Exception ex)
+            {
+                error = "Process.Start(at) threw: " + ex.Message;
+                return false;
+            }
+            finally
+            {
+                // Always remove our probe job so we don't pollute the queue
+                if (probeJobId is not null)
+                {
+                    try { RunCapturing("atrm", probeJobId); } catch { /* best effort */ }
+                }
+            }
+
+            if (exitCode != 0)
+            {
+                error = $"at probe exit={exitCode}, stderr=" +
+                    (string.IsNullOrWhiteSpace(stderr) ? "(empty)" : stderr.Trim());
+                return false;
+            }
+            if (probeJobId is null)
+            {
+                error = "at probe exit=0 but stderr did not contain a 'job N at...' line; got: " +
+                    (string.IsNullOrWhiteSpace(stderr) ? "(empty)" : stderr.Trim());
+                return false;
+            }
+
+            error = string.Empty;
+            return true;
         }
 
-        /// <summary>Read the body of an at job. `at -c <id>` prints the job's commands plus envrionment.</summary>
-        private static string ReadAtJob(string jobId)
-        {
-            var (_, output) = RunCapturing("at", "-c", jobId);
-            return output ?? string.Empty;
-        }
-
-        /// <summary>Run a command, capture stdout, return exit code and combined output.</summary>
+        /// <summary>Run a command, capture stdout+stderr, return exit code and combined output.</summary>
         private static (int exitCode, string output) RunCapturing(string program, params string[] args)
         {
             var psi = new ProcessStartInfo
