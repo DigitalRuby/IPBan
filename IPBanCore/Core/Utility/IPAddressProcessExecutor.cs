@@ -118,8 +118,9 @@ public sealed class IPAddressProcessExecutor : IIPAddressProcessExecutor
     public void Execute(string programToRun, IReadOnlyCollection<IPAddressLogEvent> ipAddresses,
         string appName, Action<Action> taskRunner)
     {
-        // defensive snapshot — caller may mutate the collection after this returns,
-        // and the closure below reads it on the task thread (M19).
+        // Defensive snapshot. The taskRunner may execute the closure asynchronously, and the
+        // caller is allowed to mutate the original collection after Execute returns. Without
+        // a snapshot the task thread could enumerate a list while it's being modified.
         var ipAddressSnapshot = ipAddresses.ToArray();
 
         foreach (string process in programToRun.Split('\n'))

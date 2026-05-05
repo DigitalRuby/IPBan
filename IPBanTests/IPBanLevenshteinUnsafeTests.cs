@@ -3,8 +3,9 @@ MIT License
 
 Copyright (c) 2012-present Digital Ruby, LLC - https://ipban.com
 
-Tests for LevenshteinUnsafe (C4 — bounded stackalloc to prevent uncatchable
-StackOverflowException on attacker-controlled input).
+Tests for LevenshteinUnsafe — covers correctness of the distance calculation
+and the bounded-input guard that prevents an unbounded stackalloc on
+attacker-controlled values.
 */
 
 using DigitalRuby.IPBanCore;
@@ -49,7 +50,8 @@ namespace DigitalRuby.IPBanTests
         [Test]
         public void OverMaxLengthReturnsMinusTwo()
         {
-            // C4 regression — hostile input must be rejected, not crash via StackOverflowException.
+            // Hostile input must be rejected with the documented sentinel, not crash the process
+            // via an uncatchable StackOverflowException.
             string huge1 = new string('x', LevenshteinUnsafe.MaxInputLength + 1);
             string huge2 = new string('y', LevenshteinUnsafe.MaxInputLength + 1);
             ClassicAssert.AreEqual(-2, LevenshteinUnsafe.Distance(huge1, "ok"));

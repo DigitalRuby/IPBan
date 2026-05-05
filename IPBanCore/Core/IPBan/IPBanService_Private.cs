@@ -869,11 +869,13 @@ namespace DigitalRuby.IPBanCore
                         // if the update url sends bytes, we assume a software update, and run the result as an .exe
                         if (bytes.Length != 0)
                         {
-                            // SECURITY: verify the downloaded binary against an operator-configured
-                            // SHA-256 hash before executing it. Without this gate, anyone who could
-                            // MITM the update URL — or rewrite GetUrlUpdate via the config channel —
-                            // would get RCE as the IPBan service (root/SYSTEM). If no hash is
-                            // configured the binary is dropped to disk for inspection but never run.
+                            // Verify the downloaded binary against an operator-configured SHA-256
+                            // hash before executing it. The auto-update channel runs the result as
+                            // a privileged process (service account on Windows, root on Linux), so
+                            // any attacker who can MITM this URL or influence the config-supplied
+                            // GetUrlUpdate value would otherwise get arbitrary code execution. If
+                            // no hash is configured the bytes are skipped — execution requires an
+                            // explicit operator opt-in.
                             string expectedHash = (Config.GetUrlUpdateSha256 ?? string.Empty).Trim();
                             if (string.IsNullOrWhiteSpace(expectedHash))
                             {

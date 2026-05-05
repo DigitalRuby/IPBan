@@ -104,7 +104,8 @@ public sealed class IPBanIPThreatUploader(IPBanService service) : IUpdater, IIPA
     /// <inheritdoc />
     public void AddIPAddressLogEvents(IEnumerable<IPAddressLogEvent> events)
     {
-        // materialize filter outside the lock so we don't enumerate user code while holding it
+        // Run the filter outside the lock — the predicate calls into service.Config which we
+        // don't want to hold the events lock across. Only the AddRange happens inside.
         var filtered = events.Where(e => e.Type == IPAddressEventType.Blocked &&
             e.Count > 0 &&
             !e.External &&
@@ -113,8 +114,9 @@ public sealed class IPBanIPThreatUploader(IPBanService service) : IUpdater, IIPA
         {
             return;
         }
-        // lock the field, not the parameter — previously `lock (events)` shadowed `this.events`
-        // and locked an unrelated object, leaving `this.events` mutation racy with Update().
+        // Qualify with `this.` so the lock targets the field — the parameter is also named
+        // `events` and would otherwise shadow it, locking an unrelated caller-supplied object
+        // while the field itself stayed unprotected.
         lock (this.events)
         {
             this.events.AddRange(filtered);

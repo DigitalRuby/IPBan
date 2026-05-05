@@ -159,8 +159,9 @@ namespace DigitalRuby.IPBanCore
         private int disposed; // 0 = live, 1 = disposed (Interlocked-managed)
 
         /// <summary>
-        /// Dispose of all resources. Idempotent and exception-safe.
-        /// H3: pre-fix a second Dispose call would NRE on an already-disposed semaphore.
+        /// Dispose of all resources. Idempotent — safe to call multiple times. The Interlocked
+        /// gate prevents a second call from re-disposing already-disposed semaphores, and the
+        /// per-semaphore try/catch tolerates races with in-flight Wait/Release operations.
         /// </summary>
         public void Dispose()
         {

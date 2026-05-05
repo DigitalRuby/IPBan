@@ -89,8 +89,8 @@ namespace DigitalRuby.IPBanTests
         }
 
         /// <summary>
-        /// H3: Dispose must be idempotent — pre-fix the second call would NRE on
-        /// already-disposed semaphores.
+        /// Dispose must be idempotent — calling it twice should not NRE on already-disposed
+        /// semaphores.
         /// </summary>
         [Test]
         public void DoubleDisposeDoesNotThrow()

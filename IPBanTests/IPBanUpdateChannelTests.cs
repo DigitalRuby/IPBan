@@ -3,8 +3,9 @@ MIT License
 
 Copyright (c) 2012-present Digital Ruby, LLC - https://ipban.com
 
-Tests for the auto-update channel (C1 — verify a SHA-256 hash of the downloaded
-binary against the operator-configured `GetUrlUpdateSha256` before executing it).
+Tests for the auto-update channel — verify the SHA-256 gate on the downloaded
+update binary. Each branch (no hash configured, hash mismatch, hash match) must
+produce the documented behavior before the binary is executed.
 */
 
 using System;

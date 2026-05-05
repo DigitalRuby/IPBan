@@ -51,8 +51,8 @@ namespace DigitalRuby.IPBanCore
         /// </summary>
         public void Dispose()
         {
-            // H4: dispose must be idempotent. Pre-fix, a second Dispose would NRE on the
-            // already-disposed semaphore, and concurrent EnqueueAsync would crash.
+            // Use Interlocked.Exchange so concurrent Dispose calls don't double-dispose the
+            // SemaphoreSlim (which would throw on the second call).
             if (Interlocked.Exchange(ref disposed, 1) == 0)
             {
                 GC.SuppressFinalize(this);
@@ -78,8 +78,6 @@ namespace DigitalRuby.IPBanCore
 
         /// <summary>
         /// Add many items to the queue, causing TryDequeueAsync to return for each item.
-        /// H5: enumerator exceptions no longer leave count and Release out of sync —
-        /// we release exactly the count we actually enqueued, in a finally.
         /// </summary>
         public ValueTask EnqueueRangeAsync(IEnumerable<T> source)
         {
@@ -87,6 +85,10 @@ namespace DigitalRuby.IPBanCore
             {
                 return new();
             }
+            // Track how many items we actually enqueued and release that many in a finally — if
+            // the source enumerator throws partway through, we still need the semaphore count to
+            // match the queue contents, otherwise dequeuers would either block forever or wake
+            // for items that aren't there.
             int count = 0;
             try
             {

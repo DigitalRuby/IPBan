@@ -410,9 +410,9 @@ namespace DigitalRuby.IPBanCore
             }
             else if (cmpLeft > 0 && cmpRight < 0)
             {
-                // middle chomp, left and right will be set.
-                // H7: at IP min/max boundaries TryDecrement/TryIncrement legitimately fail.
-                // Treat that as "no remainder on that side" rather than throwing.
+                // Middle chomp — both sides have remainder, except at the IP space boundaries
+                // (0.0.0.0 / ::, 255.255.255.255 / ffff:…) where decrement/increment legitimately
+                // has no representable result. In those cases the corresponding side stays null.
                 if (range.Begin.TryDecrement(out IPAddress end))
                 {
                     left = new IPAddressRange(Begin, end);

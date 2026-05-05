@@ -3,8 +3,9 @@ MIT License
 
 Copyright (c) 2012-present Digital Ruby, LLC - https://ipban.com
 
-Tests for ProcessUtility (C5 — eliminate bash -c string concatenation in
-CreateDetachedProcess by writing a temp script with shell-escaped values).
+Tests for ProcessUtility.BashEscape — covers the shell-escaping primitive used by
+CreateDetachedProcess to keep operator-supplied path/argument strings inert when
+they end up inside a bash script.
 */
 
 using DigitalRuby.IPBanCore;
@@ -15,10 +16,10 @@ using NUnit.Framework.Legacy;
 namespace DigitalRuby.IPBanTests
 {
     /// <summary>
-    /// ProcessUtility.BashEscape — the security-critical primitive for the C5 fix.
-    /// CreateDetachedProcess itself touches the OS scheduler (at / schtasks) so end-to-end
-    /// integration is left to manual run on a real host; the escape function is covered here
-    /// because it's where the injection-prevention guarantee actually lives.
+    /// ProcessUtility.BashEscape — the security-critical primitive for safely embedding
+    /// strings inside the temp shell script that CreateDetachedProcess writes. Full end-to-end
+    /// CreateDetachedProcess coverage requires `at` / `schtasks`, so it is left to manual
+    /// runs on a real host; this fixture covers the escape function in isolation.
     /// </summary>
     [TestFixture]
     public sealed class IPBanProcessUtilityTests

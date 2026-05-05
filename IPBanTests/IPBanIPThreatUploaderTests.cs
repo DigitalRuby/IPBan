@@ -3,8 +3,8 @@ MIT License
 
 Copyright (c) 2012-present Digital Ruby, LLC - https://ipban.com
 
-Tests for IPBanIPThreatUploader (C3 — `lock(events)` was locking the parameter
-not the field, leaving `this.events` mutation racy with Update()).
+Tests for IPBanIPThreatUploader.AddIPAddressLogEvents — covers the filter
+behavior and the lock semantics around the internal events list.
 */
 
 using System;
@@ -84,11 +84,11 @@ namespace DigitalRuby.IPBanTests
         [Test]
         public void ConcurrentAddDoesNotCorruptInternalList()
         {
-            // C3 regression test: pre-fix `lock(events)` locked the *parameter* (the
-            // IEnumerable passed in), so concurrent callers each held a different lock and
-            // mutated `this.events` in parallel. With the fix locking `this.events`, this
-            // runs cleanly. Pre-fix this would intermittently throw InvalidOperationException
-            // ("Collection was modified") from List<T> growth races, or duplicate/lose events.
+            // The lock must serialize concurrent producers writing to the internal events
+            // list. If the lock target were the parameter instead of the field, each caller
+            // would hold a different lock and the list would race during AddRange / List<T>
+            // resize, surfacing as InvalidOperationException ("Collection was modified") or
+            // lost/duplicated events.
             const int producers = 8;
             const int eventsPerProducer = 200;
             var tasks = new List<Task>();

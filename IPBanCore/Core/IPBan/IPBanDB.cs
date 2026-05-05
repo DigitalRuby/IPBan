@@ -139,7 +139,9 @@ namespace DigitalRuby.IPBanCore
         /// </summary>
         public static IPAddressEntry ParseIPAddressEntry(SqliteDataReader reader)
         {
-            // defensive against NULL or missing-default columns from older schemas — see H6
+            // Older DB schemas (created before BanEndDate / UserName / Source columns were added)
+            // can return NULL even though the column declarations now have defaults — read with
+            // IsDBNull guards so a stale schema doesn't crash every query that hits a legacy row.
             string ipAddress = reader.IsDBNull(0) ? string.Empty : reader.GetString(0);
             long lastFailedLogin = reader.IsDBNull(1) ? 0L : reader.GetInt64(1);
             long failedLoginCount = reader.IsDBNull(2) ? 0L : reader.GetInt64(2);
@@ -151,8 +153,9 @@ namespace DigitalRuby.IPBanCore
             long banDateLong = GetInt64(banDateObj);
             long banEndDateLong = GetInt64(banEndDateObj);
             DateTime? banDate = (banDateLong == 0 ? (DateTime?)null : banDateLong.ToDateTimeUnixMilliseconds());
-            // C1-round2 fix: this guarded on banDateLong (typo) — meaning a row with BanDate set
-            // but BanEndDate null returned 1970-01-01 instead of null. Now uses the correct field.
+            // Each ban-date column is independent: BanDate may be set while BanEndDate is NULL
+            // (legacy rows from before BanEndDate existed, or in-flight transitions). Each guard
+            // must check its own column.
             DateTime? banEndDate = (banEndDateLong == 0 ? (DateTime?)null : banEndDateLong.ToDateTimeUnixMilliseconds());
             DateTime lastFailedLoginDt = lastFailedLogin.ToDateTimeUnixMilliseconds();
             return new IPAddressEntry

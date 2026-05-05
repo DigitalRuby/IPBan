@@ -3,8 +3,9 @@ MIT License
 
 Copyright (c) 2012-present Digital Ruby, LLC - https://ipban.com
 
-Tests for IPAddressProcessExecutor (C2 — argv injection prevention by switching
-from ProcessStartInfo.Arguments to ArgumentList, plus M19 defensive snapshot).
+Tests for IPAddressProcessExecutor — covers argument tokenization, log-data
+sanitization, and ProcessStartInfo construction, ensuring attacker-supplied
+fields land in their own argv slots.
 */
 
 using System;
@@ -95,9 +96,10 @@ namespace DigitalRuby.IPBanTests
         [Test]
         public void BuildStartInfo_PlaceholdersStayInsideTheirToken()
         {
-            // The whole point of C2: a hostile username with quotes/spaces lands in a SINGLE
-            // argv slot. Pre-fix this would have escaped into multiple argv entries via the
-            // OS argument parser.
+            // A hostile username with quotes/spaces must land in a SINGLE argv slot. If the
+            // template were tokenized AFTER replacement (or the whole concatenated string were
+            // passed as ProcessStartInfo.Arguments), the OS argument parser would split the
+            // hostile value into multiple separate argv entries.
             const string hostileUser = "foo\" \"& calc &\"";
             var template = IPAddressProcessExecutor.TokenizeArguments(
                 "--user ###USERNAME### --ip ###IPADDRESS###");
@@ -215,8 +217,8 @@ namespace DigitalRuby.IPBanTests
         [Test]
         public void Execute_TakesDefensiveCopyOfIpAddresses()
         {
-            // M19: the closure must read a snapshot — caller-side mutation after Execute returns
-            // must not affect the work the closure does later.
+            // The closure must work from a snapshot — caller-side mutation after Execute
+            // returns must not affect the work the closure does later.
             var executor = new IPAddressProcessExecutor();
             var addresses = new System.Collections.Generic.List<IPAddressLogEvent>
             {
@@ -235,9 +237,10 @@ namespace DigitalRuby.IPBanTests
             addresses.Clear();
             addresses.Add(new IPAddressLogEvent("9.9.9.9", "u2", "s2", 1, IPAddressEventType.Blocked));
 
-            // running the captured action must not throw — it iterates the snapshot, not the
-            // source list. Process.Start will fail (path doesn't exist), but the closure catches
-            // and logs that. Pre-M19-fix the closure would have read mutated state.
+            // Running the captured action must not throw — it iterates the snapshot, not the
+            // source list. Process.Start will fail (path doesn't exist) but the closure catches
+            // and logs that internally; the test assertion is purely "the snapshot semantics
+            // hold under post-call mutation".
             Assert.DoesNotThrow(() => capturedAction());
         }
     }

@@ -48,8 +48,9 @@ namespace DigitalRuby.IPBanCore
             locker.Wait();
             try
             {
-                // M3: if GetEnumerator throws after we've already taken the lock, release it
-                // before propagating — pre-fix this could permanently strand the semaphore.
+                // We've already taken the semaphore — if GetEnumerator throws we must release
+                // it on the way out, otherwise the LockedEnumerable becomes GC-eligible while
+                // still holding the lock and any future caller deadlocks waiting on it.
                 e = obj.GetEnumerator();
             }
             catch
@@ -69,9 +70,9 @@ namespace DigitalRuby.IPBanCore
         /// <inheritdoc />
         public void Dispose()
         {
-            // M4: idempotent dispose. Release the semaphore and dispose it (the previous
-            // implementation released but never disposed, leaking SemaphoreSlim instances
-            // across thousands of enumerations).
+            // Idempotent — Release+Dispose each underlying resource exactly once. The
+            // SemaphoreSlim must be both released (to allow re-entry on the same instance,
+            // though we don't use it that way) and disposed (we own it and need to free it).
             if (Interlocked.Exchange(ref disposed, 1) != 0)
             {
                 return;

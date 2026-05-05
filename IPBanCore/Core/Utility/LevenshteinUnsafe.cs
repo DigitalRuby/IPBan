@@ -55,7 +55,9 @@ namespace DigitalRuby.IPBanCore
             }
             else if (value1.Length > MaxInputLength || value2.Length > MaxInputLength)
             {
-                // bound input to prevent uncatchable StackOverflowException from a hostile string
+                // Bound the input length. The inner loop allocates `int[value2.Length]` either
+                // on the stack or the heap; an attacker-supplied string longer than this cap
+                // would either blow the stack (uncatchable in .NET) or chew memory.
                 return -2;
             }
             else if (value2.Length == 0)

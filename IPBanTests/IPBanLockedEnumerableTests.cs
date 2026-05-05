@@ -3,8 +3,8 @@ MIT License
 
 Copyright (c) 2012-present Digital Ruby, LLC - https://ipban.com
 
-Tests for LockedEnumerable<T> — covers the M3 (release lock if GetEnumerator throws)
-and M4 (idempotent dispose, dispose the inner semaphore) hardening.
+Tests for LockedEnumerable<T> — covers the lock-release-on-throw path in the
+constructor and the idempotent dispose pattern.
 */
 
 using System;
@@ -39,8 +39,9 @@ namespace DigitalRuby.IPBanTests
         [Test]
         public void DoubleDispose_IsIdempotent()
         {
-            // M4: previously each Dispose call called Release() unconditionally — second call
-            // would either over-release (raising SemaphoreFullException) or NRE on disposed.
+            // Dispose must be idempotent — without the gate, the second call would either
+            // over-release the SemaphoreSlim (SemaphoreFullException) or NRE if the semaphore
+            // had already been disposed.
             var le = new LockedEnumerable<int>(new[] { 1, 2 });
             le.Dispose();
             Assert.DoesNotThrow(() => le.Dispose());
@@ -50,9 +51,9 @@ namespace DigitalRuby.IPBanTests
         [Test]
         public void GetEnumeratorThrows_ReleasesTheLock()
         {
-            // M3: pre-fix, when GetEnumerator throws after we already took the semaphore,
-            // the semaphore stayed acquired forever — any future caller would deadlock.
-            // Post-fix the constructor releases on failure and propagates the exception.
+            // The constructor takes the semaphore before calling GetEnumerator. If
+            // GetEnumerator throws, the constructor must release the semaphore before
+            // propagating, otherwise any future caller would deadlock waiting for it.
 
             // Build an enumerable whose GetEnumerator throws
             var bomb = new ThrowingEnumerable();

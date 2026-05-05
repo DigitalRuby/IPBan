@@ -203,7 +203,8 @@ namespace DigitalRuby.IPBanCore
             }
             else
             {
-                // ensure process is executable using ArgumentList (no shell interpolation)
+                // chmod via ArgumentList — no shell, so fileName goes through as a single argv
+                // slot regardless of what characters it contains.
                 var chmod = new ProcessStartInfo
                 {
                     FileName = "sudo",
@@ -217,55 +218,37 @@ namespace DigitalRuby.IPBanCore
                     p?.WaitForExit();
                 }
 
-                // Write a small shell script to a temp file (with restrictive perms) and schedule
-                // via `at -f`. Writing the command to disk lets us shell-escape values precisely;
-                // the previous `bash -c "echo sudo \"" + fileName + "\" ..."` path concatenated
-                // fileName into a shell command and accepted arbitrary command injection from any
-                // future caller. Now fileName is single-quote escaped so even paths containing
-                // ";rm -rf /;" or backticks become inert literal arguments.
-                string scriptPath = Path.Combine(Path.GetTempPath(),
-                    "ipban_detach_" + Guid.NewGuid().ToString("N") + ".sh");
-                try
+                // Pipe the launch command into `at` via stdin. Without `-f`, at reads its job
+                // body from stdin and copies it into the at spool — no temp file is written and
+                // nothing needs cleanup. fileName is wrapped in single quotes via BashEscape so
+                // any spaces, semicolons, backticks, or `$()` in the path are inert literals
+                // when /bin/sh later runs the spooled job.
+                var command = new StringBuilder();
+                command.Append("sudo ").Append(BashEscape(fileName));
+                if (!string.IsNullOrEmpty(arguments))
                 {
-                    var script = new StringBuilder();
-                    script.Append("#!/bin/bash\n");
-                    script.Append("exec sudo ").Append(BashEscape(fileName));
-                    if (!string.IsNullOrEmpty(arguments))
-                    {
-                        // arguments is operator-supplied (a shell-formed argument string by contract).
-                        // If callers ever start passing user-influenced data, switch to tokenized
-                        // arguments and BashEscape each one.
-                        script.Append(' ').Append(arguments);
-                    }
-                    script.Append('\n');
-                    File.WriteAllText(scriptPath, script.ToString());
-                    try
-                    {
-                        File.SetUnixFileMode(scriptPath,
-                            UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute);
-                    }
-                    catch
-                    {
-                        // older runtimes / non-POSIX FS — script will still run via `at -f`
-                    }
-
-                    ProcessStartInfo atInfo = new()
-                    {
-                        FileName = "at",
-                        CreateNoWindow = true,
-                        UseShellExecute = false,
-                        WindowStyle = ProcessWindowStyle.Hidden,
-                        WorkingDirectory = Path.GetDirectoryName(fileName)
-                    };
-                    atInfo.ArgumentList.Add("-f");
-                    atInfo.ArgumentList.Add(scriptPath);
-                    atInfo.ArgumentList.Add("now");
-                    using var detachedProcess = Process.Start(atInfo);
+                    // arguments is operator-supplied (a shell-formed argument string by contract).
+                    // If callers ever start passing user-influenced data, switch to tokenized
+                    // arguments and BashEscape each one.
+                    command.Append(' ').Append(arguments);
                 }
-                catch (Exception ex)
+                command.Append('\n');
+
+                ProcessStartInfo atInfo = new()
                 {
-                    Logger.Error(ex, "Failed to create detached process for {0}", fileName);
-                    try { File.Delete(scriptPath); } catch { /* best effort */ }
+                    FileName = "at",
+                    CreateNoWindow = true,
+                    UseShellExecute = false,
+                    RedirectStandardInput = true,
+                    WindowStyle = ProcessWindowStyle.Hidden,
+                    WorkingDirectory = Path.GetDirectoryName(fileName)
+                };
+                atInfo.ArgumentList.Add("now");
+                using var detachedProcess = Process.Start(atInfo);
+                if (detachedProcess is not null)
+                {
+                    detachedProcess.StandardInput.Write(command.ToString());
+                    detachedProcess.StandardInput.Close();
                 }
             }
         }

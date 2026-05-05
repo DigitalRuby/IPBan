@@ -91,12 +91,13 @@ namespace DigitalRuby.IPBanTests
             ClassicAssert.AreEqual(500500, count); // sum of 1 to 1000
         }
 
-        // -------------------- H4: idempotent dispose --------------------
+        // -------------------- idempotent dispose --------------------
 
         [Test]
         public void DoubleDisposeDoesNotThrow()
         {
-            // pre-fix the second Dispose would NRE on an already-disposed SemaphoreSlim
+            // Without the idempotency gate, the second Dispose would NRE on the already-disposed
+            // inner SemaphoreSlim.
             AsyncQueue<int> queue = new();
             queue.Dispose();
             Assert.DoesNotThrow(() => queue.Dispose());
@@ -106,7 +107,8 @@ namespace DigitalRuby.IPBanTests
         [Test]
         public async Task EnqueueAfterDisposeIsNoOpNotThrow()
         {
-            // pre-fix EnqueueAsync would crash with ObjectDisposedException
+            // After Dispose, Enqueue paths must short-circuit cleanly instead of crashing
+            // with ObjectDisposedException from the underlying semaphore.
             AsyncQueue<int> queue = new();
             queue.Dispose();
             Assert.DoesNotThrowAsync(async () => await queue.EnqueueAsync(42));
@@ -116,13 +118,14 @@ namespace DigitalRuby.IPBanTests
             ClassicAssert.IsFalse(result.Key);
         }
 
-        // -------------------- H5: range enqueue exception safety --------------------
+        // -------------------- range enqueue exception safety --------------------
 
         [Test]
         public async Task EnqueueRangeAsync_PartiallyFailedEnumerator_ReleasesOnlyEnqueuedCount()
         {
-            // pre-fix: if the source threw mid-enumeration, the matching Release was never called,
-            // leaving the semaphore count out of sync with the queue forever.
+            // If the source enumerator throws partway through, items already enqueued must be
+            // matched by Release calls — otherwise the semaphore count drifts out of sync with
+            // the actual queue contents and consumers either block forever or wake spuriously.
             AsyncQueue<int> queue = new();
             IEnumerable<int> Throwing()
             {
