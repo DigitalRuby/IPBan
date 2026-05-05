@@ -203,21 +203,86 @@ namespace DigitalRuby.IPBanCore
             }
             else
             {
-                // ensure process is executable
-                OSUtility.StartProcessAndWait("sudo", "chmod +x \"" + fileName + "\"");
-
-                // use Linux at, should have been installed earlier
-                ProcessStartInfo info = new()
+                // ensure process is executable using ArgumentList (no shell interpolation)
+                var chmod = new ProcessStartInfo
                 {
-                    Arguments = "-c \"echo sudo \\\"" + fileName + "\\\" " + arguments.Replace("\"", "\\\"") + " | at now\"",
-                    CreateNoWindow = true,
-                    FileName = "/bin/bash",
+                    FileName = "sudo",
                     UseShellExecute = false,
-                    WindowStyle = ProcessWindowStyle.Hidden,
-                    WorkingDirectory = Path.GetDirectoryName(fileName)
                 };
-                using var detachedProcess = Process.Start(info);
+                chmod.ArgumentList.Add("chmod");
+                chmod.ArgumentList.Add("+x");
+                chmod.ArgumentList.Add(fileName);
+                using (var p = Process.Start(chmod))
+                {
+                    p?.WaitForExit();
+                }
+
+                // Write a small shell script to a temp file (with restrictive perms) and schedule
+                // via `at -f`. Writing the command to disk lets us shell-escape values precisely;
+                // the previous `bash -c "echo sudo \"" + fileName + "\" ..."` path concatenated
+                // fileName into a shell command and accepted arbitrary command injection from any
+                // future caller. Now fileName is single-quote escaped so even paths containing
+                // ";rm -rf /;" or backticks become inert literal arguments.
+                string scriptPath = Path.Combine(Path.GetTempPath(),
+                    "ipban_detach_" + Guid.NewGuid().ToString("N") + ".sh");
+                try
+                {
+                    var script = new StringBuilder();
+                    script.Append("#!/bin/bash\n");
+                    script.Append("exec sudo ").Append(BashEscape(fileName));
+                    if (!string.IsNullOrEmpty(arguments))
+                    {
+                        // arguments is operator-supplied (a shell-formed argument string by contract).
+                        // If callers ever start passing user-influenced data, switch to tokenized
+                        // arguments and BashEscape each one.
+                        script.Append(' ').Append(arguments);
+                    }
+                    script.Append('\n');
+                    File.WriteAllText(scriptPath, script.ToString());
+                    try
+                    {
+                        File.SetUnixFileMode(scriptPath,
+                            UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute);
+                    }
+                    catch
+                    {
+                        // older runtimes / non-POSIX FS — script will still run via `at -f`
+                    }
+
+                    ProcessStartInfo atInfo = new()
+                    {
+                        FileName = "at",
+                        CreateNoWindow = true,
+                        UseShellExecute = false,
+                        WindowStyle = ProcessWindowStyle.Hidden,
+                        WorkingDirectory = Path.GetDirectoryName(fileName)
+                    };
+                    atInfo.ArgumentList.Add("-f");
+                    atInfo.ArgumentList.Add(scriptPath);
+                    atInfo.ArgumentList.Add("now");
+                    using var detachedProcess = Process.Start(atInfo);
+                }
+                catch (Exception ex)
+                {
+                    Logger.Error(ex, "Failed to create detached process for {0}", fileName);
+                    try { File.Delete(scriptPath); } catch { /* best effort */ }
+                }
             }
+        }
+
+        /// <summary>
+        /// Shell-escape a value for safe inclusion inside a single-quoted bash string.
+        /// Wraps the value in single quotes and replaces any embedded single quote with '\''
+        /// (close-quote, escaped quote, reopen-quote) — the canonical bash idiom.
+        /// Public for testability; this is a pure function.
+        /// </summary>
+        public static string BashEscape(string value)
+        {
+            if (value is null)
+            {
+                return "''";
+            }
+            return "'" + value.Replace("'", "'\\''") + "'";
         }
     }
 }

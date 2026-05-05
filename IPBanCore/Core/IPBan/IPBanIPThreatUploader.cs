@@ -104,12 +104,20 @@ public sealed class IPBanIPThreatUploader(IPBanService service) : IUpdater, IIPA
     /// <inheritdoc />
     public void AddIPAddressLogEvents(IEnumerable<IPAddressLogEvent> events)
     {
-        lock (events)
+        // materialize filter outside the lock so we don't enumerate user code while holding it
+        var filtered = events.Where(e => e.Type == IPAddressEventType.Blocked &&
+            e.Count > 0 &&
+            !e.External &&
+            !service.Config.IsWhitelisted(e.IPAddress, out _)).ToArray();
+        if (filtered.Length == 0)
         {
-            this.events.AddRange(events.Where(e => e.Type == IPAddressEventType.Blocked &&
-                e.Count > 0 &&
-                !e.External &&
-                !service.Config.IsWhitelisted(e.IPAddress, out _)));
+            return;
+        }
+        // lock the field, not the parameter — previously `lock (events)` shadowed `this.events`
+        // and locked an unrelated object, leaving `this.events` mutation racy with Update().
+        lock (this.events)
+        {
+            this.events.AddRange(filtered);
         }
     }
 }

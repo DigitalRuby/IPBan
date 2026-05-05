@@ -31,15 +31,32 @@ namespace DigitalRuby.IPBanCore
     public static class LevenshteinUnsafe
     {
         /// <summary>
-        /// Compares the two values to find the minimum Levenshtein distance. 
+        /// Maximum input length accepted for either string. Inputs longer than this are rejected
+        /// to prevent unbounded stackalloc / CPU consumption on attacker-controlled values.
+        /// </summary>
+        public const int MaxInputLength = 1024;
+
+        /// <summary>
+        /// Threshold (in elements) below which we use stackalloc; at or above this we fall back
+        /// to a heap-allocated buffer so we never blow the stack.
+        /// </summary>
+        private const int StackAllocThreshold = 256;
+
+        /// <summary>
+        /// Compares the two values to find the minimum Levenshtein distance.
         /// Thread safe.
         /// </summary>
-        /// <returns>Difference. 0 complete match. -1 if either value1 or value2 is null, -2 if value2 is too large.</returns>
+        /// <returns>Difference. 0 complete match. -1 if either value1 or value2 is null, -2 if either value is too large.</returns>
         public static unsafe int Distance(string value1, string value2)
         {
             if (value1 is null || value2 is null)
             {
                 return -1;
+            }
+            else if (value1.Length > MaxInputLength || value2.Length > MaxInputLength)
+            {
+                // bound input to prevent uncatchable StackOverflowException from a hostile string
+                return -2;
             }
             else if (value2.Length == 0)
             {
@@ -50,7 +67,25 @@ namespace DigitalRuby.IPBanCore
                 return value2.Length;
             }
 
-            int* costs = stackalloc int[value2.Length];
+            // small inputs go on the stack (fast path); larger inputs use a heap buffer pinned
+            // for the duration of the call so the unsafe pointer math stays valid.
+            if (value2.Length < StackAllocThreshold)
+            {
+                int* costs = stackalloc int[value2.Length];
+                return DistanceCore(value1, value2, costs);
+            }
+            else
+            {
+                int[] heapCosts = new int[value2.Length];
+                fixed (int* costs = heapCosts)
+                {
+                    return DistanceCore(value1, value2, costs);
+                }
+            }
+        }
+
+        private static unsafe int DistanceCore(string value1, string value2, int* costs)
+        {
             int* costsEnd = costs + value2.Length, ptr;
             int i = 0, j, insertionCost, cost, additionCost;
             char value1Char;

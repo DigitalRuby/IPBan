@@ -134,6 +134,7 @@ namespace DigitalRuby.IPBanCore
         private readonly string processToRunOnUnban = string.Empty;
         private readonly bool useDefaultBannedIPAddressHandler;
         private readonly string getUrlUpdate = string.Empty;
+        private readonly string getUrlUpdateSha256 = string.Empty;
         private readonly string getUrlStart = string.Empty;
         private readonly string getUrlStop = string.Empty;
         private readonly string getUrlConfig = string.Empty;
@@ -238,6 +239,7 @@ namespace DigitalRuby.IPBanCore
             TryGetConfig<int>("UserNameWhitelistMinimumEditDistance", ref userNameWhitelistMaximumEditDistance);
             TryGetConfig<int>("FailedLoginAttemptsBeforeBanUserNameWhitelist", ref failedLoginAttemptsBeforeBanUserNameWhitelist);
             TryGetConfig<string>("GetUrlUpdate", ref getUrlUpdate);
+            TryGetConfig<string>("GetUrlUpdateSha256", ref getUrlUpdateSha256);
             TryGetConfig<string>("GetUrlStart", ref getUrlStart);
             TryGetConfig<string>("GetUrlStop", ref getUrlStop);
             TryGetConfig<string>("GetUrlConfig", ref getUrlConfig);
@@ -1151,6 +1153,14 @@ namespace DigitalRuby.IPBanCore
         /// A url to get when the service updates, empty for none. See ReplaceUrl of IPBanService for place-holders.
         /// </summary>
         public string GetUrlUpdate { get { return getUrlUpdate; } }
+
+        /// <summary>
+        /// Expected SHA-256 hash (hex, case-insensitive) of the binary returned by GetUrlUpdate.
+        /// If empty, the auto-update download is fetched but NOT executed — this is the safe default
+        /// and protects against a malicious/MITMed update server. Operators must explicitly set this
+        /// hash to opt in to automated update execution.
+        /// </summary>
+        public string GetUrlUpdateSha256 { get { return getUrlUpdateSha256; } }
 
         /// <summary>
         /// A url to get when the service starts, empty for none. See ReplaceUrl of IPBanService for place-holders.

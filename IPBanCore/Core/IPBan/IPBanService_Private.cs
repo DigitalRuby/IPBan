@@ -31,6 +31,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Runtime.InteropServices;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -814,6 +815,17 @@ namespace DigitalRuby.IPBanCore
         protected virtual Task OnUpdate(CancellationToken cancelToken) => Task.CompletedTask;
 
         /// <summary>
+        /// Launch the verified update binary. Virtual so tests can intercept the actual
+        /// process launch without having to spawn a real subprocess on the host.
+        /// </summary>
+        /// <param name="tempFile">Path to the (already-written, hash-verified) update binary.</param>
+        /// <param name="args">Command-line arguments to pass to the binary.</param>
+        protected virtual void LaunchUpdateBinary(string tempFile, string args)
+        {
+            ProcessUtility.CreateDetachedProcess(tempFile, args);
+        }
+
+        /// <summary>
         /// Get url from config
         /// </summary>
         /// <param name="urlType">Type of url</param>
@@ -857,14 +869,43 @@ namespace DigitalRuby.IPBanCore
                         // if the update url sends bytes, we assume a software update, and run the result as an .exe
                         if (bytes.Length != 0)
                         {
-                            var tempFile = Path.Combine(TempFile.TempDirectory, "IPBanServiceUpdate.exe");
-                            File.WriteAllBytes(tempFile, bytes);
+                            // SECURITY: verify the downloaded binary against an operator-configured
+                            // SHA-256 hash before executing it. Without this gate, anyone who could
+                            // MITM the update URL — or rewrite GetUrlUpdate via the config channel —
+                            // would get RCE as the IPBan service (root/SYSTEM). If no hash is
+                            // configured the binary is dropped to disk for inspection but never run.
+                            string expectedHash = (Config.GetUrlUpdateSha256 ?? string.Empty).Trim();
+                            if (string.IsNullOrWhiteSpace(expectedHash))
+                            {
+                                Logger.Warn("Auto-update download from {0} skipped — no GetUrlUpdateSha256 " +
+                                    "is configured. Set GetUrlUpdateSha256 to the SHA-256 hex of the expected " +
+                                    "update binary to opt in to automatic execution.", url);
+                            }
+                            else
+                            {
+                                byte[] actualHashBytes = SHA256.HashData(bytes);
+                                string actualHash = Convert.ToHexString(actualHashBytes);
+                                if (!string.Equals(actualHash, expectedHash.Replace(" ", string.Empty),
+                                    StringComparison.OrdinalIgnoreCase))
+                                {
+                                    Logger.Error("Auto-update download from {0} REJECTED — hash mismatch. " +
+                                        "Expected {1}, got {2}. The binary will not be executed.",
+                                        url, expectedHash, actualHash);
+                                }
+                                else
+                                {
+                                    var tempFile = Path.Combine(TempFile.TempDirectory, "IPBanServiceUpdate.exe");
+                                    File.WriteAllBytes(tempFile, bytes);
 
-                            // however you are doing the update, you must allow -c and -d parameters
-                            // pass -c to tell the update executable to delete itself when done
-                            // pass -d for a directory which tells the .exe where this service lives
-                            string args = "-c \"-d=" + AppContext.BaseDirectory + "\"";
-                            ProcessUtility.CreateDetachedProcess(tempFile, args);
+                                    // however you are doing the update, you must allow -c and -d parameters
+                                    // pass -c to tell the update executable to delete itself when done
+                                    // pass -d for a directory which tells the .exe where this service lives
+                                    string args = "-c \"-d=" + AppContext.BaseDirectory + "\"";
+                                    Logger.Warn("Auto-update download from {0} verified (sha256 {1}); executing.",
+                                        url, actualHash);
+                                    LaunchUpdateBinary(tempFile, args);
+                                }
+                            }
                         }
                     }
                     else if (urlType == UrlType.Config && bytes.Length != 0)
