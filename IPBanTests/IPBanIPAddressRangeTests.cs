@@ -838,6 +838,14 @@ namespace DigitalRuby.IPBanTests
         [TestCase("10.10.10.10-10.10.10.20", null, false, null, null, typeof(ArgumentNullException))]
         [TestCase("125.0.0.1-128.0.0.0", "127.0.0.0-127.255.255.255", true, "125.0.0.1-126.255.255.255", "128.0.0.0")]
         [TestCase("5.5.5.5-6.6.6.6", "5.5.5.5-6.6.6.6", true, null, null)]
+        // H7 boundary tests — at IP min/max, TryDecrement/TryIncrement legitimately fail.
+        // Pre-fix Chomp threw ApplicationException; post-fix it returns true with the missing
+        // remainder side as null (no representable range below 0.0.0.0 or above 255.255.255.255).
+        [TestCase("0.0.0.0-10.10.10.20", "0.0.0.0-10.10.10.15", true, null, "10.10.10.16-10.10.10.20")]
+        [TestCase("10.10.10.10-255.255.255.255", "10.10.10.20-255.255.255.255", true, "10.10.10.10-10.10.10.19", null)]
+        [TestCase("0.0.0.0-255.255.255.255", "10.10.10.10-10.10.10.20", true, "0.0.0.0-10.10.10.9", "10.10.10.21-255.255.255.255")]
+        [TestCase("0.0.0.0-255.255.255.255", "0.0.0.0-10.10.10.20", true, null, "10.10.10.21-255.255.255.255")]
+        [TestCase("0.0.0.0-255.255.255.255", "10.10.10.10-255.255.255.255", true, "0.0.0.0-10.10.10.9", null)]
 
         public void TestChomp(string baseRange, string range, bool expectedResult, string expectedLeft, string expectedRight,
             Type expectedException = null)

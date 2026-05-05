@@ -156,13 +156,20 @@ namespace DigitalRuby.IPBanCore
             }
         }
 
+        private int disposed; // 0 = live, 1 = disposed (Interlocked-managed)
+
         /// <summary>
-        /// Dispose of all resources
+        /// Dispose of all resources. Idempotent and exception-safe.
+        /// H3: pre-fix a second Dispose call would NRE on an already-disposed semaphore.
         /// </summary>
         public void Dispose()
         {
-            _writeSemaphore.Dispose();
-            _readSemaphore.Dispose();
+            if (Interlocked.Exchange(ref disposed, 1) != 0)
+            {
+                return;
+            }
+            try { _writeSemaphore.Dispose(); } catch { /* best effort */ }
+            try { _readSemaphore.Dispose(); } catch { /* best effort */ }
         }
     }
 }

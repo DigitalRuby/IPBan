@@ -38,41 +38,72 @@ namespace DigitalRuby.IPBanCore
     {
         private readonly SemaphoreSlim locker = new(0);
         private readonly ConcurrentQueue<T> queue = new();
+        private int disposed; // 0 = live, 1 = disposed (Interlocked-managed)
 
         /// <summary>
-        /// Dispose
+        /// Whether <see cref="Dispose"/> has been called. Public for testability.
+        /// </summary>
+        public bool IsDisposed => Volatile.Read(ref disposed) != 0;
+
+        /// <summary>
+        /// Dispose. Idempotent and safe to call concurrently with Enqueue/Dequeue —
+        /// post-dispose Enqueue calls become no-ops, post-dispose Dequeue returns (false, default).
         /// </summary>
         public void Dispose()
         {
-            GC.SuppressFinalize(this);
-            locker.Dispose();
+            // H4: dispose must be idempotent. Pre-fix, a second Dispose would NRE on the
+            // already-disposed semaphore, and concurrent EnqueueAsync would crash.
+            if (Interlocked.Exchange(ref disposed, 1) == 0)
+            {
+                GC.SuppressFinalize(this);
+                try { locker.Dispose(); } catch { /* tolerate races with concurrent dequeue */ }
+            }
         }
 
         /// <summary>
-        /// Add an item to the queue, causing TryDequeueAsync to return an item
+        /// Add an item to the queue, causing TryDequeueAsync to return an item.
+        /// No-op after Dispose.
         /// </summary>
-        /// <param name="item"></param>
-        /// <returns>Task</returns>
         public ValueTask EnqueueAsync(T item)
         {
+            if (IsDisposed)
+            {
+                return new();
+            }
             queue.Enqueue(item);
-            locker.Release(1);
+            try { locker.Release(1); }
+            catch (ObjectDisposedException) { /* raced with Dispose; the item is on the queue but no consumer can wake */ }
             return new();
         }
 
         /// <summary>
-        /// Add many items to the queue, causing TryDequeueAsync to return for each item
+        /// Add many items to the queue, causing TryDequeueAsync to return for each item.
+        /// H5: enumerator exceptions no longer leave count and Release out of sync —
+        /// we release exactly the count we actually enqueued, in a finally.
         /// </summary>
-        /// <param name="source">Source</param>
         public ValueTask EnqueueRangeAsync(IEnumerable<T> source)
         {
-            int count = 0;
-            foreach (var item in source)
+            if (IsDisposed || source is null)
             {
-                queue.Enqueue(item);
-                count++;
+                return new();
             }
-            locker.Release(count);
+            int count = 0;
+            try
+            {
+                foreach (var item in source)
+                {
+                    queue.Enqueue(item);
+                    count++;
+                }
+            }
+            finally
+            {
+                if (count > 0)
+                {
+                    try { locker.Release(count); }
+                    catch (ObjectDisposedException) { /* raced with Dispose */ }
+                }
+            }
             return new();
         }
 

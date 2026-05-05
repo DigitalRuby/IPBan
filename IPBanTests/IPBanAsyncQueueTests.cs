@@ -90,5 +90,66 @@ namespace DigitalRuby.IPBanTests
             ClassicAssert.IsTrue(Task.WhenAll([.. tasks]).Wait(1000));
             ClassicAssert.AreEqual(500500, count); // sum of 1 to 1000
         }
+
+        // -------------------- H4: idempotent dispose --------------------
+
+        [Test]
+        public void DoubleDisposeDoesNotThrow()
+        {
+            // pre-fix the second Dispose would NRE on an already-disposed SemaphoreSlim
+            AsyncQueue<int> queue = new();
+            queue.Dispose();
+            Assert.DoesNotThrow(() => queue.Dispose());
+            ClassicAssert.IsTrue(queue.IsDisposed);
+        }
+
+        [Test]
+        public async Task EnqueueAfterDisposeIsNoOpNotThrow()
+        {
+            // pre-fix EnqueueAsync would crash with ObjectDisposedException
+            AsyncQueue<int> queue = new();
+            queue.Dispose();
+            Assert.DoesNotThrowAsync(async () => await queue.EnqueueAsync(42));
+            Assert.DoesNotThrowAsync(async () => await queue.EnqueueRangeAsync([1, 2, 3]));
+            // dequeue from a disposed queue returns the negative result, no throw
+            var result = await queue.TryDequeueAsync(TimeSpan.FromMilliseconds(10));
+            ClassicAssert.IsFalse(result.Key);
+        }
+
+        // -------------------- H5: range enqueue exception safety --------------------
+
+        [Test]
+        public async Task EnqueueRangeAsync_PartiallyFailedEnumerator_ReleasesOnlyEnqueuedCount()
+        {
+            // pre-fix: if the source threw mid-enumeration, the matching Release was never called,
+            // leaving the semaphore count out of sync with the queue forever.
+            AsyncQueue<int> queue = new();
+            IEnumerable<int> Throwing()
+            {
+                yield return 1;
+                yield return 2;
+                throw new InvalidOperationException("simulated source failure");
+            }
+
+            // The enumerator throws; the exception propagates, but two items are already enqueued.
+            Assert.ThrowsAsync<InvalidOperationException>(async () => await queue.EnqueueRangeAsync(Throwing()));
+
+            // Both items must still be dequeueable — proving the Release(2) fired in the finally.
+            var first = await queue.TryDequeueAsync(TimeSpan.FromMilliseconds(50));
+            var second = await queue.TryDequeueAsync(TimeSpan.FromMilliseconds(50));
+            ClassicAssert.IsTrue(first.Key, "first item should be dequeueable");
+            ClassicAssert.AreEqual(1, first.Value);
+            ClassicAssert.IsTrue(second.Key, "second item should be dequeueable");
+            ClassicAssert.AreEqual(2, second.Value);
+        }
+
+        [Test]
+        public async Task EnqueueRangeAsync_NullSourceIsNoOp()
+        {
+            AsyncQueue<int> queue = new();
+            Assert.DoesNotThrowAsync(async () => await queue.EnqueueRangeAsync(null));
+            var result = await queue.TryDequeueAsync(TimeSpan.FromMilliseconds(10));
+            ClassicAssert.IsFalse(result.Key);
+        }
     }
 }
