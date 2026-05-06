@@ -11,6 +11,7 @@
 		<GenerateSerializationAssemblies>Off</GenerateSerializationAssemblies>
 		<TrimMode>partial</TrimMode>
 		<JsonSerializerIsReflectionEnabledByDefault>true</JsonSerializerIsReflectionEnabledByDefault>
+		<AllowUnsafeBlocks>True</AllowUnsafeBlocks>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -56,6 +57,13 @@
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
 		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.5.1" />
+		<!-- Coverlet collector hooks the XPlat Code Coverage data collector so we can
+		     measure line / branch coverage of IPBanCore via the test run. See coverage/run.sh
+		     and coverage/coverlet.runsettings for the runner config. -->
+		<PackageReference Include="coverlet.collector" Version="6.0.2">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
 	</ItemGroup>
 
 	<ItemGroup>

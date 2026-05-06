@@ -153,11 +153,12 @@ namespace DigitalRuby.IPBanCore
         }
 
         /// <summary>
-        /// Write a new config file
+        /// Write a new config file. Virtual so tests can intercept the call without touching
+        /// the on-disk config.
         /// </summary>
         /// <param name="xml">Xml of the new config file</param>
         /// <returns>Task</returns>
-        public async Task WriteConfigAsync(string xml)
+        public virtual async Task WriteConfigAsync(string xml)
         {
             // Ensure valid xml before writing the file
             XmlDocument doc = new();

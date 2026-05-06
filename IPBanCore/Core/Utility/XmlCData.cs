@@ -91,7 +91,7 @@ namespace DigitalRuby.IPBanCore
         /// <param name="reader">Reader</param>
         public void ReadXml(System.Xml.XmlReader reader)
         {
-            value = reader.ReadElementString();
+            value = (reader.ReadElementString() ?? string.Empty).Trim();
         }
 
         /// <summary>
@@ -106,7 +106,7 @@ namespace DigitalRuby.IPBanCore
             }
             else
             {
-                writer.WriteCData("\n" + value + "\n");
+                writer.WriteCData(value);
             }
         }
     }

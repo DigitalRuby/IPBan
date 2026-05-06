@@ -901,7 +901,7 @@ namespace DigitalRuby.IPBanCore
         bool IReadOnlyDictionary<string, string>.TryGetValue(string key, out string value) => TryGetValue(key, out value);
 
         /// <inheritdoc />
-        IEnumerator<KeyValuePair<string, string>> IEnumerable<KeyValuePair<string, string>>.GetEnumerator() => (IEnumerator<KeyValuePair<string, string>>)GetDictionaryItems().GetEnumerator();
+        IEnumerator<KeyValuePair<string, string>> IEnumerable<KeyValuePair<string, string>>.GetEnumerator() => ((IEnumerable<KeyValuePair<string, string>>)GetDictionaryItems()).GetEnumerator();
 
         /// <summary>
         /// Compare to another ip address range

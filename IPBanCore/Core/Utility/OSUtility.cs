@@ -853,14 +853,14 @@ namespace DigitalRuby.IPBanCore
             }));
             thread.Start();
             int timeout = (timeoutMilliseconds < 1 ? Timeout.Infinite : timeoutMilliseconds + 5000);
+            if (!thread.Join(timeout))
+            {
+                throw new ApplicationException("Timed out waiting for process result");
+            }
             exitCode = _exitCode;
             if (_ex is not null)
             {
                 throw _ex;
-            }
-            else if (!thread.Join(timeout))
-            {
-                throw new ApplicationException("Timed out waiting for process result");
             }
             return output.ToString();
         }

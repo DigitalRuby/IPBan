@@ -695,7 +695,7 @@ namespace DigitalRuby.IPBanCore
             {
                 return ruleRanges.Ports;
             }
-            else if (!allowRuleRanges.TryGetValue(ruleName, out ruleRanges))
+            else if (allowRuleRanges.TryGetValue(ruleName, out ruleRanges))
             {
                 return ruleRanges.Ports;
             }

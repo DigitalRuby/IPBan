@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!--
+  Coverlet runsettings for the XPlat Code Coverage data collector.
+  Only IPBanCore is measured; the test assembly and COM interop declarations are excluded.
+  Run from the repo root via coverage/run.sh.
+-->
+<RunSettings>
+  <DataCollectionRunSettings>
+    <DataCollectors>
+      <DataCollector friendlyName="XPlat code coverage">
+        <Configuration>
+          <Format>cobertura,opencover,lcov,json</Format>
+
+          <!-- Only measure the production assembly -->
+          <Include>[DigitalRuby.IPBanCore]*</Include>
+
+          <!-- Exclusions for things we don't want to count against coverage -->
+          <Exclude>
+            [DigitalRuby.IPBanTests]*,
+            [*.Tests]*,
+            [DigitalRuby.IPBanCore]DigitalRuby.IPBanCore.Windows.COM.*,
+            [DigitalRuby.IPBanCore]*.IPBanResources,
+            [DigitalRuby.IPBanCore]*.AssemblyInfo,
+            [*]*.Designer
+          </Exclude>
+
+          <!-- Skip auto-generated and obj/bin paths.
+               Linux/MAC/COM files are platform-specific and untestable from a Windows
+               test run; they're measured by a separate Linux coverage job. -->
+          <ExcludeByFile>**/obj/**,**/bin/**,**/*.Designer.cs,**/IPBanResources.Designer.cs,**/Windows/COM/*.cs,**/Linux/**/*.cs,**/MAC/**/*.cs</ExcludeByFile>
+
+          <!-- Skip compiler-generated members -->
+          <ExcludeByAttribute>
+            Obsolete,GeneratedCodeAttribute,CompilerGeneratedAttribute,ExcludeFromCodeCoverageAttribute
+          </ExcludeByAttribute>
+
+          <!-- Track branch coverage in addition to line coverage -->
+          <SingleHit>false</SingleHit>
+          <UseSourceLink>false</UseSourceLink>
+          <DeterministicReport>false</DeterministicReport>
+        </Configuration>
+      </DataCollector>
+    </DataCollectors>
+  </DataCollectionRunSettings>
+</RunSettings>
