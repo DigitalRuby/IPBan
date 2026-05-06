@@ -26,8 +26,7 @@ using UInt128 = DigitalRuby.IPBanCore.UInt128;
 
 namespace DigitalRuby.IPBanTests
 {
-    [TestFixture]
-    public sealed class IPBanExtensionMethodsTests2
+    public sealed partial class IPBanExtensionMethodsHelpersTests
     {
         // -------- ToBytesUTF8 / ToStringUTF8 --------
 
@@ -718,6 +717,76 @@ namespace DigitalRuby.IPBanTests
             int count = 0;
             while (enumerator.MoveNext()) count++;
             ClassicAssert.AreEqual(3, count);
+        }
+
+        // -------- Raw conversion / no-swap variants --------
+
+        [Test]
+        public void ToUInt128Raw_AndToIPAddressRaw_RoundTrip()
+        {
+            var ip = IPAddress.Parse("2001:db8::1");
+            UInt128 raw = ip.ToUInt128Raw();
+            // Raw form is implementation-defined byte order; just ensure round-trip.
+            IPAddress back = raw.ToIPAddressRaw();
+            ClassicAssert.AreEqual(ip.ToString(), back.ToString());
+        }
+
+        [Test]
+        public void ToIPAddressRaw_FromZero_GivesAllZeros()
+        {
+            UInt128 zero = new(0, 0);
+            var ip = zero.ToIPAddressRaw();
+            ClassicAssert.AreEqual("::", ip.ToString());
+        }
+
+        [Test]
+        public void ToUInt32_NoSwap_NetworkByteOrder()
+        {
+            var ip = IPAddress.Parse("1.2.3.4");
+            uint val = ip.ToUInt32(swap: false);
+            ClassicAssert.AreNotEqual(0u, val);
+        }
+
+        [Test]
+        public void ToUInt128_NoSwap_NetworkByteOrder()
+        {
+            var ip = IPAddress.Parse("2001:db8::1");
+            UInt128 val = ip.ToUInt128(swap: false);
+            ClassicAssert.AreNotEqual(new UInt128(0, 0), val);
+        }
+
+        [Test]
+        public void ToIPAddress_FromUInt32_NoSwap()
+        {
+            uint val = 0x01020304u;
+            var ip = val.ToIPAddress(swap: false);
+            ClassicAssert.IsNotNull(ip);
+        }
+
+        [Test]
+        public void TryDecrement_AcrossIPv4MappedBoundary_ReturnsFalse()
+        {
+            // The IPv4-mapped-IPv6 region starts at ::ffff:0.0.0.0; decrementing into the lower
+            // region should fail because IsIPv4MappedToIPv6 changes.
+            var ip = IPAddress.Parse("::ffff:0.0.0.0");
+            ClassicAssert.IsFalse(ip.TryDecrement(out var _));
+        }
+
+        [Test]
+        public void TryIncrement_AcrossIPv4MappedBoundary_ReturnsFalse()
+        {
+            // The IPv4-mapped-IPv6 region ends at ::ffff:255.255.255.255; incrementing past
+            // should change the IsIPv4MappedToIPv6 flag.
+            var ip = IPAddress.Parse("::ffff:255.255.255.255");
+            ClassicAssert.IsFalse(ip.TryIncrement(out var _));
+        }
+
+        [Test]
+        public void EqualsWithMapToIPv6_NullCompare_CatchPath()
+        {
+            // Implementation calls MapToIPv6 which throws on null, then catches -> returns false.
+            var ip = IPAddress.Parse("1.2.3.4");
+            ClassicAssert.IsFalse(ip.EqualsWithMapToIPv6(null));
         }
     }
 }

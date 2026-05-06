@@ -63,7 +63,7 @@ namespace DigitalRuby.IPBanTests
     }
 
     [TestFixture]
-    public class IPBanIPAddressRangeTest
+    public partial class IPBanIPAddressRangeTest
     {
         public TestContext TestContext { get; set; }
 

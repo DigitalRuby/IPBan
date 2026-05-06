@@ -32,7 +32,7 @@ using System.Linq;
 namespace DigitalRuby.IPBanTests
 {
     [TestFixture]
-    public class IPBanPortRangeTests
+    public partial class IPBanPortRangeTests
     {
         private static void TestPortRangeAllow(string expected, string message, params PortRange[] ranges)
         {

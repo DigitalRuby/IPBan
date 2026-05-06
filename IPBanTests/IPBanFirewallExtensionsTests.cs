@@ -19,7 +19,7 @@ using NUnit.Framework.Legacy;
 namespace DigitalRuby.IPBanTests
 {
     [TestFixture]
-    public sealed class IPBanFirewallExtensionsTests
+    public sealed partial class IPBanFirewallExtensionsTests
     {
         // -------------------- IsIPAddressAllowed --------------------
 

@@ -24,10 +24,8 @@
             [*]*.Designer
           </Exclude>
 
-          <!-- Skip auto-generated and obj/bin paths.
-               Linux/MAC/COM files are platform-specific and untestable from a Windows
-               test run; they're measured by a separate Linux coverage job. -->
-          <ExcludeByFile>**/obj/**,**/bin/**,**/*.Designer.cs,**/IPBanResources.Designer.cs,**/Windows/COM/*.cs,**/Linux/**/*.cs,**/MAC/**/*.cs</ExcludeByFile>
+          <!-- Skip auto-generated and obj/bin paths -->
+          <ExcludeByFile>**/obj/**,**/bin/**,**/*.Designer.cs,**/IPBanResources.Designer.cs,**/Windows/COM/*.cs</ExcludeByFile>
 
           <!-- Skip compiler-generated members -->
           <ExcludeByAttribute>

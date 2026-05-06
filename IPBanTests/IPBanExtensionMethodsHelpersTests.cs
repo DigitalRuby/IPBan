@@ -23,7 +23,7 @@ using NUnit.Framework.Legacy;
 namespace DigitalRuby.IPBanTests
 {
     [TestFixture]
-    public sealed class IPBanExtensionMethodsHelpersTests
+    public sealed partial class IPBanExtensionMethodsHelpersTests
     {
         // -------------------- Retry / RetryAsync --------------------
 

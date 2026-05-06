@@ -24,8 +24,7 @@ using UInt128 = DigitalRuby.IPBanCore.UInt128;
 
 namespace DigitalRuby.IPBanTests
 {
-    [TestFixture]
-    public sealed class IPBanIPAddressRangeTests2
+    public partial class IPBanIPAddressRangeTest
     {
         // -------- Implicit operators --------
 
@@ -442,6 +441,43 @@ namespace DigitalRuby.IPBanTests
             var r = new IPAddressRange(IPAddress.Parse("10.0.0.0"), 24);
             ClassicAssert.AreEqual("10.0.0.0", r.Begin.ToString());
             ClassicAssert.AreEqual("10.0.0.255", r.End.ToString());
+        }
+
+        // -------- Subnet mask + Parse edge cases (cover Bits.* helpers) --------
+
+        [Test]
+        public void Parse_BackedByLinearSubnetMask()
+        {
+            var r = IPAddressRange.Parse("192.168.1.0/255.255.255.0");
+            ClassicAssert.AreEqual("192.168.1.0", r.Begin.ToString());
+            ClassicAssert.AreEqual("192.168.1.255", r.End.ToString());
+        }
+
+        [Test]
+        public void Parse_NonLinearSubnetMask_ThrowsFormat()
+        {
+            // 255.0.255.0 isn't a linear mask.
+            Assert.Throws<FormatException>(() => IPAddressRange.Parse("192.168.1.0/255.0.255.0"));
+        }
+
+        [Test]
+        public void Parse_AsteriskWildcards()
+        {
+            var r1 = IPAddressRange.Parse("192.168.1.*");
+            ClassicAssert.AreEqual("192.168.1.0", r1.Begin.ToString());
+            ClassicAssert.AreEqual("192.168.1.255", r1.End.ToString());
+
+            var r2 = IPAddressRange.Parse("192.168.*.*");
+            ClassicAssert.AreEqual("192.168.0.0", r2.Begin.ToString());
+            ClassicAssert.AreEqual("192.168.255.255", r2.End.ToString());
+        }
+
+        [Test]
+        public void Parse_WithComment()
+        {
+            // Trailing comment after a `#` character is stripped.
+            var r = IPAddressRange.Parse("1.2.3.4 # comment");
+            ClassicAssert.AreEqual("1.2.3.4", r.Begin.ToString());
         }
     }
 }

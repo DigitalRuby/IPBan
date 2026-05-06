@@ -19,7 +19,7 @@ using NUnit.Framework.Legacy;
 namespace DigitalRuby.IPBanTests
 {
     [TestFixture]
-    public sealed class IPBanFirewallUtilityTests
+    public sealed partial class IPBanFirewallUtilityTests
     {
         // -------- MergePortRanges --------
 
@@ -257,6 +257,16 @@ namespace DigitalRuby.IPBanTests
             // Try to construct with explicit memory firewall type — passing only it.
             // Since IsMatch returns false for priority < 0, this should throw.
             Assert.Throws<ArgumentException>(() => IPBanFirewallUtility.CreateFirewall(new[] { typeof(IPBanMemoryFirewall) }));
+        }
+
+        [Test]
+        public void LinuxRestartRsyslog_OnNonLinux_ThrowsPlatformNotSupported()
+        {
+            if (OSUtility.IsLinux)
+            {
+                Assert.Ignore("Only relevant on non-Linux platforms");
+            }
+            Assert.Throws<PlatformNotSupportedException>(() => IPBanFirewallUtility.LinuxRestartRsyslog());
         }
     }
 }

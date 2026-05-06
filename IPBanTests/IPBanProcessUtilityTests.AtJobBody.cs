@@ -3,9 +3,8 @@ MIT License
 
 Copyright (c) 2012-present Digital Ruby, LLC - https://ipban.com
 
-Coverage tests for ProcessUtility - tests the public testable surface
-(BashEscape, BuildAtJobBody) and exercises CreateDetachedProcess on the
-current OS through a guarded code path.
+Tests for ProcessUtility.BuildAtJobBody — the helper that assembles the shell
+script body piped into the Linux `at` daemon by CreateDetachedProcess.
 */
 
 using DigitalRuby.IPBanCore;
@@ -15,50 +14,8 @@ using NUnit.Framework.Legacy;
 
 namespace DigitalRuby.IPBanTests
 {
-    [TestFixture]
-    public sealed class IPBanProcessUtilityTests2
+    public partial class IPBanProcessUtilityTests
     {
-        // ----------------- BashEscape -----------------
-
-        [Test]
-        public void BashEscape_NullValue_ReturnsEmptySingleQuotedString()
-        {
-            ClassicAssert.AreEqual("''", ProcessUtility.BashEscape(null));
-        }
-
-        [Test]
-        public void BashEscape_NoSpecialChars_WrapsInSingleQuotes()
-        {
-            ClassicAssert.AreEqual("'simple'", ProcessUtility.BashEscape("simple"));
-        }
-
-        [Test]
-        public void BashEscape_WithSingleQuote_EscapesIdiomatically()
-        {
-            // ' -> '\''  i.e. close-quote, escaped-quote, reopen-quote
-            ClassicAssert.AreEqual("'it'\\''s'", ProcessUtility.BashEscape("it's"));
-        }
-
-        [Test]
-        public void BashEscape_WithSpacesAndShellMetachars_AreInert()
-        {
-            string input = "hello world; rm -rf / `evil` $(other)";
-            string escaped = ProcessUtility.BashEscape(input);
-            // Whole string wrapped in single quotes -> shell treats as literal.
-            ClassicAssert.IsTrue(escaped.StartsWith("'"));
-            ClassicAssert.IsTrue(escaped.EndsWith("'"));
-            // No embedded single quote in this example, so no '\'' replacement
-            ClassicAssert.IsFalse(escaped.Contains(@"'\'"));
-        }
-
-        [Test]
-        public void BashEscape_EmptyString_ReturnsTwoSingleQuotes()
-        {
-            ClassicAssert.AreEqual("''", ProcessUtility.BashEscape(""));
-        }
-
-        // ----------------- BuildAtJobBody -----------------
-
         [Test]
         public void BuildAtJobBody_BareCommand_NoArgs_EndsWithNewline()
         {

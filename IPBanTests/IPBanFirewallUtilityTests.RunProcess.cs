@@ -16,8 +16,7 @@ using NUnit.Framework.Legacy;
 
 namespace DigitalRuby.IPBanTests
 {
-    [TestFixture]
-    public sealed class IPBanFirewallUtilityRunProcessTests
+    public sealed partial class IPBanFirewallUtilityTests
     {
         // Pick a tiny program that exists on both platforms.
         private static string Program => OSUtility.IsWindows ? "cmd.exe" : "echo";

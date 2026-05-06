@@ -19,8 +19,7 @@ using NUnit.Framework.Legacy;
 
 namespace DigitalRuby.IPBanTests
 {
-    [TestFixture]
-    public sealed class IPBanMemoryFirewallTests2
+    public partial class IPBanMemoryFirewallTests
     {
         // -------- BlockIPAddressesDelta --------
 
@@ -319,6 +318,64 @@ namespace DigitalRuby.IPBanTests
             // GetRuleNames should reflect the prefixed naming
             var names = fw.GetRuleNames().ToArray();
             ClassicAssert.IsTrue(names.Length > 0);
+        }
+
+        // -------- IsIPAddressBlockedInternal coverage via EnumerateBannedIPAddresses --------
+
+        [Test]
+        public async Task EnumerateBannedIPAddresses_ExcludesAllowedIPs()
+        {
+            using var fw = new IPBanMemoryFirewall();
+            await fw.AllowIPAddresses(new[] { "1.2.3.4" });
+            await fw.BlockIPAddresses(null, new[] { "1.2.3.4", "2.3.4.5" });
+            var banned = fw.EnumerateBannedIPAddresses().ToArray();
+            // Allowed IP should NOT appear in banned
+            ClassicAssert.IsFalse(banned.Contains("1.2.3.4"));
+            ClassicAssert.IsTrue(banned.Contains("2.3.4.5"));
+        }
+
+        [Test]
+        public async Task EnumerateBannedIPAddresses_IPv6_ExcludesAllowed()
+        {
+            using var fw = new IPBanMemoryFirewall();
+            await fw.AllowIPAddresses(new[] { "::1234" });
+            await fw.BlockIPAddresses(null, new[] { "::1234", "::5678" });
+            var banned = fw.EnumerateBannedIPAddresses().ToArray();
+            ClassicAssert.IsFalse(banned.Contains("::1234"));
+            ClassicAssert.IsTrue(banned.Contains("::5678"));
+        }
+
+        [Test]
+        public async Task EnumerateBannedIPAddresses_RangeBlocks_AlsoFiltered()
+        {
+            using var fw = new IPBanMemoryFirewall();
+            await fw.AllowIPAddresses("Allow", new[] { IPAddressRange.Parse("10.0.0.0/24") });
+            await fw.BlockIPAddresses("Block", new[] { IPAddressRange.Parse("10.0.0.0/24") });
+            var banned = fw.EnumerateBannedIPAddresses().ToArray();
+            // The rule should still be enumerated as a CIDR string (not single)
+            ClassicAssert.IsTrue(banned.Any(b => b.Contains("/")));
+        }
+
+        [Test]
+        public async Task IsIPAddressBlocked_PortFiltering()
+        {
+            using var fw = new IPBanMemoryFirewall();
+            await fw.BlockIPAddresses("Ports", new[] { IPAddressRange.Parse("1.2.3.4") },
+                new[] { new PortRange(80) });
+            ClassicAssert.IsTrue(fw.IsIPAddressBlocked("1.2.3.4", out _, port: 0));
+        }
+
+        [Test]
+        public async Task BlockDelta_AllowsRulePrefixUpdate_v4AndV6()
+        {
+            using var fw = new IPBanMemoryFirewall();
+            await fw.BlockIPAddressesDelta("Delta1", new[]
+            {
+                new IPBanFirewallIPAddressDelta { Added = true, IPAddress = "1.1.1.1" },
+                new IPBanFirewallIPAddressDelta { Added = true, IPAddress = "::1234" },
+            }, new[] { new PortRange(80, 90) });
+            ClassicAssert.IsTrue(fw.IsIPAddressBlocked("1.1.1.1"));
+            ClassicAssert.IsTrue(fw.IsIPAddressBlocked("::1234"));
         }
     }
 }

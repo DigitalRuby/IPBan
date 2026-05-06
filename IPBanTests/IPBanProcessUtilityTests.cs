@@ -22,7 +22,7 @@ namespace DigitalRuby.IPBanTests
     /// runs on a real host; this fixture covers the escape function in isolation.
     /// </summary>
     [TestFixture]
-    public sealed class IPBanProcessUtilityTests
+    public sealed partial class IPBanProcessUtilityTests
     {
         [Test]
         public void NullBecomesEmptyQuotedString()

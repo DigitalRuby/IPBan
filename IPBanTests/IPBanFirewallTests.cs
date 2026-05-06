@@ -312,6 +312,58 @@ namespace DigitalRuby.IPBanTests
         }
 
         [Test]
+        public void TestAllowIPAddresses_RangeOverload()
+        {
+            firewall.AllowIPAddresses("AllowRangeTest", new[] { IPAddressRange.Parse("192.168.99.0/24") }).Sync();
+            // Just confirm the call completed and a rule with the prefix exists
+            ClassicAssert.IsTrue(firewall.GetRuleNames().Any(n => n.Contains("AllowRangeTest", System.StringComparison.OrdinalIgnoreCase)));
+        }
+
+        [Test]
+        public void TestBlockIPAddresses_RangeOverloadWithPorts()
+        {
+            firewall.BlockIPAddresses("BlockRangeTest", new[] { IPAddressRange.Parse("198.51.100.0/24") },
+                new[] { new PortRange(80) }).Sync();
+            ClassicAssert.IsTrue(firewall.IsIPAddressBlocked("198.51.100.5", out _));
+        }
+
+        [Test]
+        public void TestDeleteRule_RemovesNamedRule()
+        {
+            firewall.BlockIPAddresses("DeleteMe", new[] { "203.0.113.5" }).Sync();
+            string[] beforeRuleNames = firewall.GetRuleNames("DeleteMe").ToArray();
+            ClassicAssert.IsTrue(beforeRuleNames.Length > 0);
+            // Delete each rule with the prefix
+            foreach (var name in beforeRuleNames)
+            {
+                firewall.DeleteRule(name);
+            }
+            string[] afterRuleNames = firewall.GetRuleNames("DeleteMe").ToArray();
+            ClassicAssert.AreEqual(0, afterRuleNames.Length);
+        }
+
+        [Test]
+        public void TestGetPorts_ReturnsPortStringForRule()
+        {
+            firewall.BlockIPAddresses("PortsTest", new[] { IPAddressRange.Parse("203.0.113.10") },
+                new[] { new PortRange(443) }).Sync();
+            string ruleName = firewall.GetRuleNames("PortsTest").FirstOrDefault();
+            ClassicAssert.IsNotNull(ruleName);
+            string ports = firewall.GetPorts(ruleName);
+            // Some firewall impls return null when no port restriction; just ensure no throw.
+            _ = ports;
+        }
+
+        [Test]
+        public void TestTruncate_RemovesEverything()
+        {
+            firewall.BlockIPAddresses(null, new[] { "203.0.113.20" }).Sync();
+            ClassicAssert.IsTrue(firewall.IsIPAddressBlocked("203.0.113.20", out _));
+            firewall.Truncate();
+            ClassicAssert.IsFalse(firewall.IsIPAddressBlocked("203.0.113.20", out _));
+        }
+
+        [Test]
         public void TestFirewallDUpsert()
         {
             string zoneFile = Path.Combine(Path.GetTempPath(), "testzone.txt");

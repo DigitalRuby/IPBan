@@ -34,7 +34,7 @@ using System.Linq;
 namespace DigitalRuby.IPBanTests
 {
     [TestFixture]
-    public class IPBanDBTests
+    public partial class IPBanDBTests
     {
         [TearDown]
         public void Teardown()
