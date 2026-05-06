@@ -640,7 +640,7 @@ namespace DigitalRuby.IPBanCore
             foreach (string userNameToCheckAgainst in userNameWhitelist)
             {
                 int distance = LevenshteinUnsafe.Distance(userName, userNameToCheckAgainst);
-                if (distance <= userNameWhitelistMaximumEditDistance)
+                if (distance >= 0 && distance <= userNameWhitelistMaximumEditDistance)
                 {
                     return true;
                 }

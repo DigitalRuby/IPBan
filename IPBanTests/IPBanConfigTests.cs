@@ -247,6 +247,7 @@ namespace DigitalRuby.IPBanTests
                 ClassicAssert.IsEmpty(cfg.ProcessToRunOnBan);
                 ClassicAssert.IsEmpty(cfg.ProcessToRunOnSuccessfulLogin);
                 ClassicAssert.IsEmpty(cfg.ProcessToRunOnUnban);
+                ClassicAssert.IsEmpty(cfg.GetUrlUpdateSha256);
                 ClassicAssert.IsFalse(cfg.ResetFailedLoginCountForUnbannedIPAddresses);
                 ClassicAssert.IsTrue(cfg.UseDefaultBannedIPAddressHandler);
                 ClassicAssert.AreEqual(cfg.TruncateUserNameChars, "@");
@@ -268,6 +269,20 @@ namespace DigitalRuby.IPBanTests
             {
                 IPBanService.DisposeIPBanTestService(service);
             }
+        }
+
+        [Test]
+        public void UserNameWhitelist_OverlongUserNameDoesNotMatchDistanceSentinel()
+        {
+            IPBanConfig cfg = IPBanConfig.LoadFromXml(
+                "<?xml version='1.0'?><configuration><appSettings>" +
+                "<add key='UserNameWhitelist' value='admin' />" +
+                "<add key='UserNameWhitelistMinimumEditDistance' value='2' />" +
+                "</appSettings></configuration>");
+            string tooLong = new string('a', LevenshteinUnsafe.MaxInputLength + 1);
+
+            ClassicAssert.IsFalse(cfg.IsUserNameWithinMaximumEditDistanceOfUserNameWhitelist(tooLong, out bool hasUserNameWhitelist));
+            ClassicAssert.IsTrue(hasUserNameWhitelist);
         }
 
         /// <summary>

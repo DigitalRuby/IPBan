@@ -79,16 +79,13 @@ namespace DigitalRuby.IPBanTests
 
         private static CapturingIPBanService CreateService(string updateUrl, string sha256Hash)
         {
-            // ipban.config has `<add key="GetUrlUpdate" value=""/>` — no spaces before /> .
             string updateLine = "<add key=\"GetUrlUpdate\" value=\"" + updateUrl + "\"/>";
-            string hashLine = string.IsNullOrEmpty(sha256Hash)
-                ? string.Empty
-                : "\n\t\t<add key=\"GetUrlUpdateSha256\" value=\"" + sha256Hash + "\"/>";
+            string hashLine = "<add key=\"GetUrlUpdateSha256\" value=\"" + sha256Hash + "\"/>";
 
             var svc = IPBanService.CreateAndStartIPBanTestService<CapturingIPBanService>(
-                configFileModifier: cfg => cfg.Replace(
-                    "<add key=\"GetUrlUpdate\" value=\"\"/>",
-                    updateLine + hashLine));
+                configFileModifier: cfg => cfg
+                    .Replace("<add key=\"GetUrlUpdate\" value=\"\"/>", updateLine)
+                    .Replace("<add key=\"GetUrlUpdateSha256\" value=\"\"/>", hashLine));
 
             // GetUrl short-circuits if LocalIPAddressString or FQDN is missing — make sure they're set
             // so the test reaches the hash-verification logic regardless of the host environment.
@@ -230,7 +227,7 @@ namespace DigitalRuby.IPBanTests
         [Test]
         public void DefaultIsEmptyString()
         {
-            // default config has no auto-update hash → safe-by-default (binary not executed)
+            // default config has an empty auto-update hash -> safe-by-default (binary not executed)
             var service = IPBanService.CreateAndStartIPBanTestService<IPBanService>();
             try
             {
@@ -250,8 +247,8 @@ namespace DigitalRuby.IPBanTests
             const string expectedHash = "ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789";
             var service = IPBanService.CreateAndStartIPBanTestService<IPBanService>(
                 configFileModifier: cfg => cfg.Replace(
-                    "<add key=\"GetUrlUpdate\" value=\"\"/>",
-                    "<add key=\"GetUrlUpdate\" value=\"\"/>\n\t\t<add key=\"GetUrlUpdateSha256\" value=\"" + expectedHash + "\"/>"));
+                    "<add key=\"GetUrlUpdateSha256\" value=\"\"/>",
+                    "<add key=\"GetUrlUpdateSha256\" value=\"" + expectedHash + "\"/>"));
             try
             {
                 ClassicAssert.AreEqual(expectedHash, service.Config.GetUrlUpdateSha256);

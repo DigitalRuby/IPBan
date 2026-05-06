@@ -394,8 +394,9 @@ namespace DigitalRuby.IPBanCore
                         {
                             e.Next(results.Length, results, bufferLengthPointer);
                             count = Marshal.ReadInt32(bufferLengthPointer);
-                            foreach (object o in results)
+                            for (int i = 0; i < count; i++)
                             {
+                                object o = results[i];
                                 if (o is INetFwRule rule)
                                 {
                                     if (matchAll || rule.Name.StartsWith(ruleNamePrefix, StringComparison.OrdinalIgnoreCase))
@@ -409,6 +410,7 @@ namespace DigitalRuby.IPBanCore
                                     }
                                 }
                                 // null entries are returned at the end of the buffer; nothing to release
+                                results[i] = null;
                             }
                         }
                         while (count == results.Length);
