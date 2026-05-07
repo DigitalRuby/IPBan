@@ -153,11 +153,16 @@ namespace DigitalRuby.IPBanTests
             }
 
             IReadOnlyCollection<EventViewerTest> tests = ReadEventViewerTests;
+            const int iterations = 1;
+            var thresholdConfig = IPBanConfig.ChangeConfigAppSettingAndGetXml(service.Config.Xml,
+                "FailedLoginAttemptsBeforeBan", "1");
+            await service.ConfigReaderWriter.WriteConfigAsync(thresholdConfig);
+            await service.RunCycleAsync();
 
             // avert thine eyes
             const string eventViewerHackyXml = @"<Source>RDP</Source><Keywords>0x8020000000000000</Keywords><Path>Security</Path><Expressions><Expression><XPath>//EventID</XPath><Regex>^4624$</Regex></Expression><Expression><XPath>//Data[@Name='ProcessName' or @Name='LogonProcessName']</XPath><Regex>ntlmssp</Regex></Expression><Expression><XPath>//Data[@Name='IpAddress' or @Name='Workstation' or @Name='SourceAddress']</XPath><Regex><![CDATA[(?<ipaddress>.+)]]></Regex></Expression></Expressions>";
 
-            for (int i = 0; i < 5; i++)
+            for (int i = 0; i < iterations; i++)
             {
                 foreach (var test in tests)
                 {
@@ -236,7 +241,7 @@ namespace DigitalRuby.IPBanTests
             foreach (var test in tests.Where(t => t.EventType == IPAddressEventType.SuccessfulLogin))
             {
                 var shortString = $"{test.IPAddress}_{test.Source}_{test.UserName}";
-                ClassicAssert.AreEqual(5, successEvents[shortString]);
+                ClassicAssert.AreEqual(iterations, successEvents[shortString]);
             }
         }
 

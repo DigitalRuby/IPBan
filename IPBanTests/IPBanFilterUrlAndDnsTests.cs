@@ -79,7 +79,7 @@ namespace DigitalRuby.IPBanTests
         {
             // If the HTTP request throws, the constructor must catch and continue. A flaky
             // remote IP list shouldn't tear down the filter (and by extension the cycle).
-            var http = new ThrowingHttpRequestMaker(new TimeoutException("simulated network failure"));
+            var http = new ThrowingHttpRequestMaker(new OperationCanceledException("simulated request cancellation"));
 
             Assert.DoesNotThrow(() =>
             {

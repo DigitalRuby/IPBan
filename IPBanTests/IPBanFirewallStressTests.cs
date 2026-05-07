@@ -37,13 +37,22 @@ namespace DigitalRuby.IPBanTests
 
         // Type as IPBanBaseFirewall (not IIPBanFirewall) so we can call Compile() — the
         // interface doesn't expose it, but the base class does.
+        private static readonly string[] StressIPs10000 = GenerateIPs(10_000);
+        private static readonly string[] StressIPs11000 = GenerateIPs(11_000);
+        private static readonly string[] StressIPs20000 = GenerateIPs(20_000);
+
         private IPBanBaseFirewall firewall;
+
+        [OneTimeSetUp]
+        public void OneTimeSetUp()
+        {
+            firewall = (IPBanBaseFirewall)IPBanFirewallUtility.CreateFirewall(IPBanFirewallTests.firewallTypes);
+            ClassicAssert.AreNotEqual(typeof(IPBanMemoryFirewall), firewall.GetType());
+        }
 
         [SetUp]
         public void SetUp()
         {
-            firewall = (IPBanBaseFirewall)IPBanFirewallUtility.CreateFirewall(IPBanFirewallTests.firewallTypes);
-            ClassicAssert.AreNotEqual(typeof(IPBanMemoryFirewall), firewall.GetType());
             firewall.Truncate();
         }
 
@@ -51,7 +60,13 @@ namespace DigitalRuby.IPBanTests
         public void TearDown()
         {
             firewall.Truncate();
+        }
+
+        [OneTimeTearDown]
+        public void OneTimeTearDown()
+        {
             firewall.Dispose();
+            firewall = null;
         }
 
         // ----- helpers -----
@@ -81,7 +96,7 @@ namespace DigitalRuby.IPBanTests
         [Test]
         public void Block10000IPs_AllReachable()
         {
-            string[] ips = GenerateIPs(10_000);
+            string[] ips = StressIPs10000;
             var sw = Stopwatch.StartNew();
 
             ClassicAssert.IsTrue(firewall.BlockIPAddresses(null, ips).Sync(),
@@ -117,7 +132,7 @@ namespace DigitalRuby.IPBanTests
         [Test]
         public void Block20000IPs_AllReachable()
         {
-            string[] ips = GenerateIPs(20_000);
+            string[] ips = StressIPs20000;
             var sw = Stopwatch.StartNew();
 
             ClassicAssert.IsTrue(firewall.BlockIPAddresses(null, ips).Sync(),
@@ -144,7 +159,7 @@ namespace DigitalRuby.IPBanTests
         [Test]
         public void Block10000_TruncateCycles_NoExhaustion()
         {
-            string[] ips = GenerateIPs(10_000);
+            string[] ips = StressIPs10000;
             const int cycles = 5;
             for (int cycle = 1; cycle <= cycles; cycle++)
             {
@@ -168,7 +183,7 @@ namespace DigitalRuby.IPBanTests
         [Test]
         public void EnumerateBannedAtScale_Materializes()
         {
-            string[] ips = GenerateIPs(10_000);
+            string[] ips = StressIPs10000;
             firewall.BlockIPAddresses(null, ips).Sync();
 
             // Materialize twice — same result, no exception, no resource exhaustion the second time.
@@ -189,7 +204,7 @@ namespace DigitalRuby.IPBanTests
         [Test]
         public void Compile10000_ProducesMatchingMemoryFirewall()
         {
-            string[] ips = GenerateIPs(10_000);
+            string[] ips = StressIPs10000;
             firewall.BlockIPAddresses(null, ips).Sync();
 
             using var compiled = firewall.Compile();
@@ -210,11 +225,11 @@ namespace DigitalRuby.IPBanTests
         [Test]
         public void Delta10000_AddAndRemove_ProducesCorrectSet()
         {
-            string[] initial = GenerateIPs(10_000);
+            string[] initial = StressIPs10000;
             firewall.BlockIPAddresses(null, initial).Sync();
 
             // Build the delta: 1 000 net-new (offsets 10 000..10 999), and removal of the first 500.
-            string[] toAdd = GenerateIPs(11_000).Skip(10_000).ToArray();
+            string[] toAdd = StressIPs11000.Skip(10_000).ToArray();
             string[] toRemove = initial.Take(500).ToArray();
 
             var delta = new List<IPBanFirewallIPAddressDelta>();
@@ -250,7 +265,7 @@ namespace DigitalRuby.IPBanTests
         [Test]
         public void Truncate10000_LeavesZeroRules()
         {
-            string[] ips = GenerateIPs(10_000);
+            string[] ips = StressIPs10000;
             firewall.BlockIPAddresses(null, ips).Sync();
             ClassicAssert.AreEqual(ips.Length, firewall.EnumerateBannedIPAddresses().Count());
 
@@ -275,7 +290,7 @@ namespace DigitalRuby.IPBanTests
         [Test]
         public void GetRuleNames_AtScale_IsMaterialized()
         {
-            string[] ips = GenerateIPs(10_000);
+            string[] ips = StressIPs10000;
             firewall.BlockIPAddresses(null, ips).Sync();
 
             // Two enumerations must produce the same sequence — not a transient/lazy view.

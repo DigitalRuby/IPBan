@@ -24,16 +24,24 @@ namespace DigitalRuby.IPBanTests
     {
         private IPBanService service;
 
-        [SetUp]
-        public void Setup()
+        [OneTimeSetUp]
+        public void OneTimeSetup()
         {
             service = IPBanService.CreateAndStartIPBanTestService<IPBanService>();
         }
 
-        [TearDown]
-        public void TearDown()
+        [SetUp]
+        public void Setup()
+        {
+            service.DB.Truncate(true);
+            service.Firewall.Truncate();
+        }
+
+        [OneTimeTearDown]
+        public void OneTimeTearDown()
         {
             IPBanService.DisposeIPBanTestService(service);
+            service = null;
         }
 
         [Test]
@@ -69,10 +77,16 @@ namespace DigitalRuby.IPBanTests
         public void AddUpdater_ReturnsTrueForNew_FalseForDuplicateOrNull()
         {
             var updater = new StubUpdater();
-            ClassicAssert.IsTrue(service.AddUpdater(updater));
-            ClassicAssert.IsFalse(service.AddUpdater(updater), "duplicate should not be added");
-            ClassicAssert.IsFalse(service.AddUpdater(null));
-            service.RemoveUpdater(updater);
+            try
+            {
+                ClassicAssert.IsTrue(service.AddUpdater(updater));
+                ClassicAssert.IsFalse(service.AddUpdater(updater), "duplicate should not be added");
+                ClassicAssert.IsFalse(service.AddUpdater(null));
+            }
+            finally
+            {
+                service.RemoveUpdater(updater);
+            }
         }
 
         [Test]
