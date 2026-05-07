@@ -163,11 +163,13 @@ namespace DigitalRuby.IPBanTests
         }
 
         [Test]
-        public void GetLines_UnreachableUrl_ReturnsEmptyDoesNotThrow()
+        public void GetLines_TransportFailure_ReturnsEmptyDoesNotThrow()
         {
-            // No server listening; the HttpClient call should fail and GetLines should
-            // swallow the exception and return [] — the function is a "best effort" read.
-            string[] lines = IOUtility.GetLines("http://127.0.0.1:1/never-listening");
+            // Abrupt transport failure must be swallowed and return [] — the function is
+            // a "best effort" read used from log-scanning hot paths.
+            using var server = LocalHttpServer.Start(ctx => ctx.Response.Abort());
+
+            string[] lines = IOUtility.GetLines(server.Url);
             CollectionAssert.IsEmpty(lines);
         }
 

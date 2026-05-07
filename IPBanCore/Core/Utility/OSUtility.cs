@@ -179,13 +179,12 @@ namespace DigitalRuby.IPBanCore
 
         private static readonly Lock locker = new();
 
-        private static PerformanceCounter windowsCpuCounter;
         private static PerformanceCounter windowsDiskIopsCounter;
-        //private static Process linuxCpuCounter;
-        //private static Process linuxDiskIopsCounter;
-        private static float windowsCpuPercent;
         private static float windowsDiskIopsPercent;
         private static float networkUsage = -1.0f;
+        private static long cpuIdleTime;
+        private static long cpuTotalTime;
+        private static int windowsDiskIopsCounterStarted;
 
         private static bool isWindows;
         private static bool isLinux;
@@ -472,6 +471,22 @@ namespace DigitalRuby.IPBanCore
         [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
         private static extern bool GlobalMemoryStatusEx([In, Out] ref MEMORYSTATUSEX lpBuffer);
 
+        [StructLayout(LayoutKind.Sequential)]
+        private readonly struct SystemFileTime
+        {
+            private readonly uint lowDateTime;
+            private readonly uint highDateTime;
+
+            public long ToInt64()
+            {
+                return ((long)highDateTime << 32) | lowDateTime;
+            }
+        }
+
+        [return: MarshalAs(UnmanagedType.Bool)]
+        [DllImport("kernel32.dll", SetLastError = true)]
+        private static extern bool GetSystemTimes(out SystemFileTime idleTime, out SystemFileTime kernelTime, out SystemFileTime userTime);
+
         /// <summary>
         /// Get memory usage
         /// </summary>
@@ -550,9 +565,7 @@ namespace DigitalRuby.IPBanCore
         }
 
         /// <summary>
-        /// Attempt to determine current cpu usage. For Linux, mpstat must be installed first.
-        /// Ubuntu/Debian: apt install -y sysstat
-        /// Rest: yum install -y sysstat
+        /// Attempt to determine current cpu usage.
         /// </summary>
         /// <param name="percentUsed">Percent of all cpu resources currently in use, 0.0-1.0</param>
         /// <returns>True if cpu usage could be determined, false otherwise</returns>
@@ -561,62 +574,85 @@ namespace DigitalRuby.IPBanCore
             percentUsed = 0.0f;
             if (isWindows)
             {
-                if (windowsCpuCounter is null)
+                if (GetSystemTimes(out SystemFileTime idleTime, out SystemFileTime kernelTime, out SystemFileTime userTime))
                 {
-                    lock (locker)
-                    {
-                        if (windowsCpuCounter is null)
-                        {
-                            windowsCpuCounter = new PerformanceCounter("Processor Information", "% Processor Utility", "_Total");
-
-                            // capture windows cpu in background
-                            System.Threading.Tasks.Task.Run(async () =>
-                            {
-                                windowsCpuPercent = Math.Clamp(windowsCpuCounter.NextValue() * 0.01f, 0.0f, 1.0f);
-                                while (!Environment.HasShutdownStarted)
-                                {
-                                    await System.Threading.Tasks.Task.Delay(1000);
-                                    windowsCpuPercent = Math.Clamp(windowsCpuCounter.NextValue() * 0.01f, 0.0f, 1.0f);
-                                }
-                            });
-                        }
-                    }
+                    long idle = idleTime.ToInt64();
+                    long total = kernelTime.ToInt64() + userTime.ToInt64();
+                    return TryCalculateCpuUsage(idle, total, out percentUsed);
                 }
-
-                percentUsed = windowsCpuPercent;
-                //string output = StartProcessAndWait(60000, "wmic", "cpu get loadpercentage", out _, LogLevel.Trace);
-                //string[] lines = output.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-                //if (lines.Length > 1 && float.TryParse(lines[^1], NumberStyles.None, CultureInfo.InvariantCulture, out percentUsed))
-                //{
-                //percentUsed *= 0.01f;
-                //return true;
-                //}
-                return true;
             }
             else if (isLinux)
             {
-                // Linux 5.10.102.1-microsoft-standard-WSL2 (MACHINE_NAME)     04/24/22        _x86_64_        (24 CPU)
-                //
-                // 14:19:43     CPU    %usr   %nice    %sys %iowait    %irq   %soft  %steal  %guest  %gnice   %idle
-                // 14:19:43     all    0.00    0.00    0.02    0.00    0.00    0.00    0.00    0.00    0.00   99.97
-                string output = StartProcessAndWait(60000, "mpstat", "1 1", out _, LogLevel.Trace);
-                string[] lines = output.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-                if (lines.Length > 1)
-                {
-                    string lastLine = lines[^1];
-                    int pos = lastLine.LastIndexOf(' ');
-                    if (pos > 0)
-                    {
-                        string piece = lastLine[pos..].Trim();
-                        if (pos > 0 && float.TryParse(piece, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out percentUsed))
-                        {
-                            percentUsed = Math.Clamp(1.0f - (0.01f * percentUsed), 0.0f, 1.0f);
-                            return true;
-                        }
-                    }
-                }
+                return TryGetLinuxCpuUsage(out percentUsed);
             }
             return false;
+        }
+
+        private static bool TryGetLinuxCpuUsage(out float percentUsed)
+        {
+            percentUsed = 0.0f;
+            try
+            {
+                // /proc/stat cpu fields:
+                // cpu  user nice system idle iowait irq softirq steal guest guest_nice
+                // Example:
+                // cpu  7705 0 6085 8068477 2224 0 444 0 0 0
+                string line = File.ReadLines("/proc/stat").FirstOrDefault(x => x.StartsWith("cpu ", StringComparison.Ordinal));
+                if (string.IsNullOrWhiteSpace(line))
+                {
+                    return false;
+                }
+
+                string[] pieces = line.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                if (pieces.Length < 5)
+                {
+                    return false;
+                }
+
+                long idle = 0L;
+                long total = 0L;
+                for (int i = 1; i < pieces.Length; i++)
+                {
+                    if (!long.TryParse(pieces[i], NumberStyles.Integer, CultureInfo.InvariantCulture, out long value))
+                    {
+                        return false;
+                    }
+
+                    total += value;
+                    if (i == 4 || i == 5)
+                    {
+                        idle += value;
+                    }
+                }
+
+                return TryCalculateCpuUsage(idle, total, out percentUsed);
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        private static bool TryCalculateCpuUsage(long idle, long total, out float percentUsed)
+        {
+            percentUsed = 0.0f;
+            if (total <= 0L || idle < 0L)
+            {
+                return false;
+            }
+
+            lock (locker)
+            {
+                long idleDelta = (cpuIdleTime == 0L ? idle : idle - cpuIdleTime);
+                long totalDelta = (cpuTotalTime == 0L ? total : total - cpuTotalTime);
+                cpuIdleTime = idle;
+                cpuTotalTime = total;
+                if (totalDelta > 0L)
+                {
+                    percentUsed = Math.Clamp(1.0f - ((float)idleDelta / totalDelta), 0.0f, 1.0f);
+                }
+            }
+            return true;
         }
 
         /// <summary>
@@ -698,26 +734,27 @@ namespace DigitalRuby.IPBanCore
             percentUsed = 0.0f;
             if (isWindows)
             {
-                if (windowsDiskIopsCounter is null)
+                if (Interlocked.CompareExchange(ref windowsDiskIopsCounterStarted, 1, 0) == 0)
                 {
-                    lock (locker)
+                    // PerformanceCounter construction can block for seconds on some hosts.
+                    // Keep the first call non-blocking and let the sampler populate the cache.
+                    System.Threading.Tasks.Task.Run(async () =>
                     {
-                        if (windowsDiskIopsCounter is null)
+                        try
                         {
                             windowsDiskIopsCounter = new PerformanceCounter("PhysicalDisk", "% Disk Time", "_Total");
-
-                            // capture disk io in background
-                            System.Threading.Tasks.Task.Run(async () =>
+                            windowsDiskIopsPercent = Math.Clamp(windowsDiskIopsCounter.NextValue() * 0.01f, 0.0f, 1.0f);
+                            while (!Environment.HasShutdownStarted)
                             {
+                                await System.Threading.Tasks.Task.Delay(1000);
                                 windowsDiskIopsPercent = Math.Clamp(windowsDiskIopsCounter.NextValue() * 0.01f, 0.0f, 1.0f);
-                                while (!Environment.HasShutdownStarted)
-                                {
-                                    await System.Threading.Tasks.Task.Delay(1000);
-                                    windowsDiskIopsPercent = Math.Clamp(windowsDiskIopsCounter.NextValue() * 0.01f, 0.0f, 1.0f);
-                                }
-                            });
+                            }
                         }
-                    }
+                        catch
+                        {
+                            Interlocked.Exchange(ref windowsDiskIopsCounterStarted, 0);
+                        }
+                    });
                 }
 
                 percentUsed = windowsDiskIopsPercent;
@@ -866,7 +903,7 @@ namespace DigitalRuby.IPBanCore
         }
 
         private static Dictionary<string, bool> users = new(StringComparer.OrdinalIgnoreCase); // user name, enabled
-        private static DateTime usersExpire = IPBanService.UtcNow;
+        private static DateTime usersExpire = DateTime.MinValue;
 
         /// <summary>
         /// The amount of time to cache the users found in the <see cref="UserIsActive(string)"/> method.

@@ -47,22 +47,62 @@ namespace DigitalRuby.IPBanTests
         private static readonly IPAddressLogEvent info2 = new(ip2, "test_user2", "SSH", 99, IPAddressEventType.FailedLogin);
         private static readonly IPAddressLogEvent info3 = new(ip1, "test_user", "RDP", 1, IPAddressEventType.FailedLogin);
         private static readonly IPAddressLogEvent info4 = new(ip3, "test_user", "RDP", 25, IPAddressEventType.FailedLogin);
+        private static readonly HashSet<string> testsWithoutService = new(StringComparer.Ordinal)
+        {
+            nameof(TestBase64EncodedUserName),
+            nameof(TestUserNameTruncation)
+        };
 
         private IPBanService service;
+        private string defaultConfigXml;
+
+        private sealed record ConfigBanCase(string BanIP, string NoBanIP, int NoBanIPCount = 999);
 
         [SetUp]
         public void Setup()
         {
             // ensure a clean start
             IPBanService.UtcNow = DateTime.UtcNow;
-            service = IPBanService.CreateAndStartIPBanTestService<IPBanService>();
-            ClassicAssert.AreNotEqual(typeof(IPBanMemoryFirewall), service.Firewall.GetType());
+            if (!testsWithoutService.Contains(TestContext.CurrentContext.Test.MethodName))
+            {
+                EnsureService();
+            }
         }
 
-        [TearDown]
-        public void Teardown()
+        [OneTimeTearDown]
+        public void OneTimeTeardown()
         {
             IPBanService.DisposeIPBanTestService(service);
+            service = null;
+        }
+
+        private void EnsureService()
+        {
+            if (service is null)
+            {
+                service = IPBanService.CreateAndStartIPBanTestService<IPBanService>();
+                defaultConfigXml = service.Config.Xml;
+                ClassicAssert.AreNotEqual(typeof(IPBanMemoryFirewall), service.Firewall.GetType());
+            }
+            else
+            {
+                ResetService();
+            }
+        }
+
+        private void ResetService()
+        {
+            service.IPBanDelegate = null;
+            service.ProcessExecutor = new IPAddressProcessExecutor();
+            if (!string.Equals(service.Config.Xml, defaultConfigXml, StringComparison.Ordinal))
+            {
+                service.WriteConfigAsync(defaultConfigXml).Sync();
+                service.RunCycleAsync().Sync();
+            }
+            service.Firewall.Truncate();
+            service.DB.Truncate(true);
+            ExtensionMethods.FileDeleteWithRetry(service.BlockIPAddressesFileName);
+            ExtensionMethods.FileDeleteWithRetry(service.UnblockIPAddressesFileName);
         }
 
         private void AddFailedLogins(int count = -1, bool ipv6 = false)
@@ -827,11 +867,15 @@ namespace DigitalRuby.IPBanTests
         [Test]
         public void TestIPWhitelist()
         {
-            RunConfigBanTest("Whitelist", "190.168.0.0", "99.99.99.99", "190.168.0.0", -1);
-            RunConfigBanTest("Whitelist", "190.168.0.0/16", "99.99.99.99", "190.168.99.99", -1);
-            RunConfigBanTest("Whitelist", "216.245.221.80/28", "99.99.99.99", "216.245.221.86", -1);
-            RunConfigBanTest("Whitelist", "2409:8010:3000::", "2409:8010:3001::", "2409:8010:3000::", -1);
-            RunConfigBanTest("Whitelist", "1.200.80.32/27", "1.200.80.64", "1.200.80.43", -1); // 1.200.80.32-1.200.80.63
+            RunConfigBanTests("Whitelist",
+                "190.168.0.0,190.168.0.0/16,216.245.221.80/28,2409:8010:3000::,1.200.80.32/27",
+                [
+                    new("99.99.99.99", "190.168.0.0", -1),
+                    new("99.99.99.99", "190.168.99.99", -1),
+                    new("99.99.99.99", "216.245.221.86", -1),
+                    new("2409:8010:3001::", "2409:8010:3000::", -1),
+                    new("1.200.80.64", "1.200.80.43", -1) // 1.200.80.32-1.200.80.63
+                ]);
         }
 
         [Test]
@@ -845,9 +889,13 @@ namespace DigitalRuby.IPBanTests
         [Test]
         public void TestIPBlacklist()
         {
-            RunConfigBanTest("Blacklist", "190.168.0.0", "190.168.0.0", "99.99.99.99", 1);
-            RunConfigBanTest("Blacklist", "190.168.0.0/16", "190.168.99.99", "99.99.99.98", 1);
-            RunConfigBanTest("Blacklist", "216.245.221.80/28", "216.245.221.86", "99.99.99.97", 1);
+            RunConfigBanTests("Blacklist",
+                "190.168.0.0,190.168.0.0/16,216.245.221.80/28",
+                [
+                    new("190.168.0.0", "99.99.99.99", 1),
+                    new("190.168.99.99", "99.99.99.98", 1),
+                    new("216.245.221.86", "99.99.99.97", 1)
+                ]);
         }
 
         [Test]
@@ -1041,6 +1089,11 @@ namespace DigitalRuby.IPBanTests
 
         private void RunConfigBanTest(string key, string value, string banIP, string noBanIP, int noBanIPCount = 999)
         {
+            RunConfigBanTests(key, value, [new(banIP, noBanIP, noBanIPCount)]);
+        }
+
+        private void RunConfigBanTests(string key, string value, IReadOnlyCollection<ConfigBanCase> cases)
+        {
             try
             {
                 // turn on clear failed logins upon success login
@@ -1049,30 +1102,37 @@ namespace DigitalRuby.IPBanTests
                     return IPBanConfig.ChangeConfigAppSettingAndGetXml(xml, key, value);
                 }, out string newConfig);
 
-                List<IPAddressLogEvent> events =
-                [
-                    new IPAddressLogEvent(banIP, "user1", "RDP", 999, IPAddressEventType.FailedLogin),
-                    !string.IsNullOrWhiteSpace(noBanIP) ? new IPAddressLogEvent(noBanIP, "user2", "RDP", noBanIPCount, IPAddressEventType.FailedLogin) : null
-                ];
+                List<IPAddressLogEvent> events = [];
+                foreach (string banIP in cases.Select(c => c.BanIP).Where(ip => !string.IsNullOrWhiteSpace(ip)).Distinct(StringComparer.OrdinalIgnoreCase))
+                {
+                    events.Add(new IPAddressLogEvent(banIP, "user1", "RDP", 999, IPAddressEventType.FailedLogin));
+                }
+                foreach (ConfigBanCase testCase in cases.Where(c => !string.IsNullOrWhiteSpace(c.NoBanIP)))
+                {
+                    events.Add(new IPAddressLogEvent(testCase.NoBanIP, "user2", "RDP", testCase.NoBanIPCount, IPAddressEventType.FailedLogin));
+                }
                 service.AddIPAddressLogEvents(events);
 
                 // process failed logins
                 service.RunCycleAsync().Sync();
 
-                ClassicAssert.IsTrue(service.Firewall.IsIPAddressBlocked(banIP, out _));
-                ClassicAssert.IsTrue(service.DB.TryGetIPAddress(banIP, out IPBanDB.IPAddressEntry e1));
-                ClassicAssert.AreEqual(e1.FailedLoginCount, 999);
-                if (!string.IsNullOrWhiteSpace(noBanIP))
+                foreach (ConfigBanCase testCase in cases)
                 {
-                    ClassicAssert.IsFalse(service.Firewall.IsIPAddressBlocked(noBanIP, out _));
-                    if (noBanIPCount > 0)
+                    ClassicAssert.IsTrue(service.Firewall.IsIPAddressBlocked(testCase.BanIP, out _));
+                    ClassicAssert.IsTrue(service.DB.TryGetIPAddress(testCase.BanIP, out IPBanDB.IPAddressEntry e1));
+                    ClassicAssert.AreEqual(e1.FailedLoginCount, 999);
+                    if (!string.IsNullOrWhiteSpace(testCase.NoBanIP))
                     {
-                        ClassicAssert.IsTrue(service.DB.TryGetIPAddress(noBanIP, out IPBanDB.IPAddressEntry e2));
-                        ClassicAssert.AreEqual(e2.FailedLoginCount, noBanIPCount);
-                    }
-                    else
-                    {
-                        ClassicAssert.IsFalse(service.DB.TryGetIPAddress(noBanIP, out _));
+                        ClassicAssert.IsFalse(service.Firewall.IsIPAddressBlocked(testCase.NoBanIP, out _));
+                        if (testCase.NoBanIPCount > 0)
+                        {
+                            ClassicAssert.IsTrue(service.DB.TryGetIPAddress(testCase.NoBanIP, out IPBanDB.IPAddressEntry e2));
+                            ClassicAssert.AreEqual(e2.FailedLoginCount, testCase.NoBanIPCount);
+                        }
+                        else
+                        {
+                            ClassicAssert.IsFalse(service.DB.TryGetIPAddress(testCase.NoBanIP, out _));
+                        }
                     }
                 }
             }

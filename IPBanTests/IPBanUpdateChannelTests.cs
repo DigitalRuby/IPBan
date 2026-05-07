@@ -82,18 +82,10 @@ namespace DigitalRuby.IPBanTests
             string updateLine = "<add key=\"GetUrlUpdate\" value=\"" + updateUrl + "\"/>";
             string hashLine = "<add key=\"GetUrlUpdateSha256\" value=\"" + sha256Hash + "\"/>";
 
-            var svc = IPBanService.CreateAndStartIPBanTestService<CapturingIPBanService>(
-                configFileModifier: cfg => cfg
+            return IPBanServiceTestConfigHelper.CreateServiceWithConfig<CapturingIPBanService>(
+                cfg => cfg
                     .Replace("<add key=\"GetUrlUpdate\" value=\"\"/>", updateLine)
                     .Replace("<add key=\"GetUrlUpdateSha256\" value=\"\"/>", hashLine));
-
-            // GetUrl short-circuits if LocalIPAddressString or FQDN is missing — make sure they're set
-            // so the test reaches the hash-verification logic regardless of the host environment.
-            if (string.IsNullOrWhiteSpace(svc.LocalIPAddressString))
-            {
-                svc.LocalIPAddressString = "127.0.0.1";
-            }
-            return svc;
         }
 
         // -------- the actual tests --------
@@ -118,7 +110,7 @@ namespace DigitalRuby.IPBanTests
             }
             finally
             {
-                IPBanService.DisposeIPBanTestService(service);
+                service.Dispose();
             }
         }
 
@@ -142,7 +134,7 @@ namespace DigitalRuby.IPBanTests
             }
             finally
             {
-                IPBanService.DisposeIPBanTestService(service);
+                service.Dispose();
             }
         }
 
@@ -168,7 +160,7 @@ namespace DigitalRuby.IPBanTests
             }
             finally
             {
-                IPBanService.DisposeIPBanTestService(service);
+                service.Dispose();
             }
         }
 
@@ -191,7 +183,7 @@ namespace DigitalRuby.IPBanTests
             }
             finally
             {
-                IPBanService.DisposeIPBanTestService(service);
+                service.Dispose();
             }
         }
 
@@ -213,7 +205,7 @@ namespace DigitalRuby.IPBanTests
             }
             finally
             {
-                IPBanService.DisposeIPBanTestService(service);
+                service.Dispose();
             }
         }
     }
@@ -228,7 +220,7 @@ namespace DigitalRuby.IPBanTests
         public void DefaultIsEmptyString()
         {
             // default config has an empty auto-update hash -> safe-by-default (binary not executed)
-            var service = IPBanService.CreateAndStartIPBanTestService<IPBanService>();
+            var service = IPBanServiceTestConfigHelper.CreateServiceWithConfig<IPBanService>();
             try
             {
                 ClassicAssert.IsNotNull(service.Config.GetUrlUpdateSha256);
@@ -236,7 +228,7 @@ namespace DigitalRuby.IPBanTests
             }
             finally
             {
-                IPBanService.DisposeIPBanTestService(service);
+                service.Dispose();
             }
         }
 
@@ -245,8 +237,8 @@ namespace DigitalRuby.IPBanTests
         {
             // when the operator sets GetUrlUpdateSha256 in config, the property exposes that exact value
             const string expectedHash = "ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789";
-            var service = IPBanService.CreateAndStartIPBanTestService<IPBanService>(
-                configFileModifier: cfg => cfg.Replace(
+            var service = IPBanServiceTestConfigHelper.CreateServiceWithConfig<IPBanService>(
+                cfg => cfg.Replace(
                     "<add key=\"GetUrlUpdateSha256\" value=\"\"/>",
                     "<add key=\"GetUrlUpdateSha256\" value=\"" + expectedHash + "\"/>"));
             try
@@ -255,7 +247,7 @@ namespace DigitalRuby.IPBanTests
             }
             finally
             {
-                IPBanService.DisposeIPBanTestService(service);
+                service.Dispose();
             }
         }
     }

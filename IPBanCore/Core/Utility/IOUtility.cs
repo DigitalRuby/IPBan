@@ -22,7 +22,7 @@ public static class IOUtility
                 Uri.TryCreate(fileNameOrUrl, UriKind.Absolute, out var url))
             {
                 using var client = new System.Net.Http.HttpClient() { Timeout = TimeSpan.FromSeconds(10) };
-                var response = client.GetAsync(url).Sync();
+                using var response = client.GetAsync(url, System.Net.Http.HttpCompletionOption.ResponseHeadersRead).Sync();
                 if (response.IsSuccessStatusCode)
                 {
                     if (maxBytes > 0 && response.Content.Headers.ContentLength > maxBytes)

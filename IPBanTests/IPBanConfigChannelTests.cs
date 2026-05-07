@@ -98,17 +98,8 @@ namespace DigitalRuby.IPBanTests
         private static CapturingIPBanService CreateService(string configUrl)
         {
             string line = $"<add key=\"GetUrlConfig\" value=\"{configUrl}\"/>";
-            var svc = IPBanService.CreateAndStartIPBanTestService<CapturingIPBanService>(
-                configFileModifier: cfg => cfg.Replace(
-                    "<add key=\"GetUrlConfig\" value=\"\"/>", line));
-
-            // GetUrl short-circuits if LocalIPAddressString or FQDN is empty. Set explicitly
-            // so the URL-fetch branch is reached on every host.
-            if (string.IsNullOrWhiteSpace(svc.LocalIPAddressString))
-            {
-                svc.LocalIPAddressString = "127.0.0.1";
-            }
-            return svc;
+            return IPBanServiceTestConfigHelper.CreateServiceWithConfig<CapturingIPBanService>(
+                cfg => cfg.Replace("<add key=\"GetUrlConfig\" value=\"\"/>", line));
         }
 
         // -------- tests --------
@@ -134,7 +125,7 @@ namespace DigitalRuby.IPBanTests
             }
             finally
             {
-                IPBanService.DisposeIPBanTestService(service);
+                service.Dispose();
             }
         }
 
@@ -164,7 +155,7 @@ namespace DigitalRuby.IPBanTests
             }
             finally
             {
-                IPBanService.DisposeIPBanTestService(service);
+                service.Dispose();
             }
         }
 
@@ -193,7 +184,7 @@ namespace DigitalRuby.IPBanTests
             }
             finally
             {
-                IPBanService.DisposeIPBanTestService(service);
+                service.Dispose();
             }
         }
 
@@ -216,7 +207,7 @@ namespace DigitalRuby.IPBanTests
             }
             finally
             {
-                IPBanService.DisposeIPBanTestService(service);
+                service.Dispose();
             }
         }
 
@@ -226,15 +217,11 @@ namespace DigitalRuby.IPBanTests
             // If GetUrlConfig is empty (the default), GetUrl returns true without making
             // any HTTP request. This protects deployments that haven't opted in to remote
             // config from accidentally fetching a configurable-but-unintended URL.
-            var service = IPBanService.CreateAndStartIPBanTestService<CapturingIPBanService>();
+            var service = CreateService(string.Empty);
             try
             {
                 var http = new FakeHttpRequestMaker(Array.Empty<byte>());
                 service.RequestMaker = http;
-                if (string.IsNullOrWhiteSpace(service.LocalIPAddressString))
-                {
-                    service.LocalIPAddressString = "127.0.0.1";
-                }
 
                 await service.CallGetUrl(IPBanService.UrlType.Config, CancellationToken.None);
 
@@ -244,7 +231,7 @@ namespace DigitalRuby.IPBanTests
             }
             finally
             {
-                IPBanService.DisposeIPBanTestService(service);
+                service.Dispose();
             }
         }
     }
