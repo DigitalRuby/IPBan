@@ -206,7 +206,10 @@ namespace DigitalRuby.IPBanCore
             }
 
             // request new config file
-            await GetUrl(UrlType.Config, cancelToken);
+            if (!string.IsNullOrWhiteSpace(Config.GetUrlConfig))
+            {
+                await GetUrl(UrlType.Config, cancelToken);
+            }
         }
 
         private async Task ProcessPendingFailedLogins(IReadOnlyList<IPAddressLogEvent> ipAddresses, CancellationToken cancelToken)
@@ -926,7 +929,8 @@ namespace DigitalRuby.IPBanCore
         private async Task UpdateUpdaters(CancellationToken cancelToken)
         {
             // hit start url if first time, if not first time will be ignored
-            if (!(await GetUrl(UrlType.Start, cancelToken)))
+            if ((!string.IsNullOrWhiteSpace(Config.GetUrlStart) || !string.IsNullOrWhiteSpace(Config.GetUrlUpdate)) &&
+                !(await GetUrl(UrlType.Start, cancelToken)))
             {
                 // send update
                 await GetUrl(UrlType.Update, cancelToken);

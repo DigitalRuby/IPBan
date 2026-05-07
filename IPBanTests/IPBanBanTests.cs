@@ -372,7 +372,7 @@ namespace DigitalRuby.IPBanTests
                 // attempt to read failed logins, if they do not match, sleep a bit and try again
                 for (int j = 0; j < 10 && (!service.DB.TryGetIPAddress("88.88.88.88", out IPBanDB.IPAddressEntry e) || e.FailedLoginCount != i + 1); j++)
                 {
-                    System.Threading.Thread.Sleep(100);
+                    System.Threading.Thread.Sleep(10);
                     service.RunCycleAsync().Sync();
                 }
 
@@ -402,7 +402,7 @@ namespace DigitalRuby.IPBanTests
                 Directory.CreateDirectory(Path.GetDirectoryName(file));
                 ExtensionMethods.FileWriteAllTextWithRetry(file, "awerfoajwerp jaeowr paojwer " + Environment.NewLine);
                 service.RunCycleAsync().Sync();
-                System.Threading.Thread.Sleep(100);
+                System.Threading.Thread.Sleep(10);
                 service.RunCycleAsync().Sync();
                 string data = "ipban failed login, ip address: 99.99.99.99, source: SSH, user: User2" + Environment.NewLine;
                 for (int i = 0; i < 5; i++)
@@ -414,7 +414,7 @@ namespace DigitalRuby.IPBanTests
                     // attempt to read failed logins, if they do not match, sleep a bit and try again
                     for (int j = 0; j < 10 && (!service.DB.TryGetIPAddress("99.99.99.99", out IPBanDB.IPAddressEntry e) || e.FailedLoginCount != i + 1); j++)
                     {
-                        System.Threading.Thread.Sleep(100);
+                        System.Threading.Thread.Sleep(10);
                         service.RunCycleAsync().Sync();
                     }
                     service.RunCycleAsync().Sync();

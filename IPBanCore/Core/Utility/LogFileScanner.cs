@@ -189,6 +189,10 @@ namespace DigitalRuby.IPBanCore
             // pull out the directory portion of the path/mask, accounting for * syntax in the folder name
             string replacedPathAndMask = ReplacePathVars(pathAndMask);
             NormalizeGlob(replacedPathAndMask, out string dirPortion, out string globPortion);
+            if (!string.IsNullOrWhiteSpace(dirPortion) && !Directory.Exists(dirPortion))
+            {
+                return files;
+            }
 
             // create a matcher to match glob or regular file syntax
             Matcher fileMatcher = new Matcher(StringComparison.OrdinalIgnoreCase).AddInclude(globPortion);

@@ -57,7 +57,6 @@ namespace DigitalRuby.IPBanCore
         /// <inheritdoc />
         public Task Update(CancellationToken cancelToken)
         {
-            UpdateLogFiles(service.Config);
             if (service.ManualCycle)
             {
                 foreach (var scanner in logsToParse)

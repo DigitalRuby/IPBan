@@ -81,14 +81,12 @@ namespace DigitalRuby.IPBanTests
                 await queue.EnqueueAsync(i);
             }
 
-            for (int i = 0; i < 10 && count != 1000; i++)
-            {
-                Thread.Sleep(100);
-            }
+            const int expectedSum = 500500;
+            SpinWait.SpinUntil(() => Volatile.Read(ref count) == expectedSum, TimeSpan.FromSeconds(1));
 
             cancelToken.Cancel();
             ClassicAssert.IsTrue(Task.WhenAll([.. tasks]).Wait(1000));
-            ClassicAssert.AreEqual(500500, count); // sum of 1 to 1000
+            ClassicAssert.AreEqual(expectedSum, count); // sum of 1 to 1000
         }
 
         // -------------------- idempotent dispose --------------------

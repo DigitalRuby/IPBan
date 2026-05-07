@@ -489,6 +489,13 @@ namespace DigitalRuby.IPBanCore
             ExtensionMethods.FileWriteAllTextWithRetry(configFileOverridePath, configFileOverrideText);
             T service = IPBanService.CreateService<T>();
             service.ConfigFilePath = configFilePath;
+            service.ConfigReaderWriter.UseFile = false;
+            service.ConfigReaderWriter.GlobalConfigString = configFileText;
+            service.ConfigOverrideReaderWriter.UseFile = false;
+            service.ConfigOverrideReaderWriter.GlobalConfigString = configFileOverrideText;
+            service.LocalIPAddressString = "127.0.0.1";
+            service.RemoteIPAddressString = "127.0.0.1";
+            service.OtherIPAddressesString = "127.0.0.1";
             service.MultiThreaded = false;
             service.ManualCycle = true;
             service.DnsList = null; // too slow for tests, turn off
@@ -553,7 +560,6 @@ namespace DigitalRuby.IPBanCore
                     Directory.Delete(appDataCache, true);
                 }
                 service.Firewall.Truncate();
-                service.RunCycleAsync().Sync();
                 service.IPBanDelegate = null;
                 service.Dispose();
                 IPBanService.CleanupIPBanTestFiles();

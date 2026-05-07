@@ -127,10 +127,8 @@ namespace DigitalRuby.IPBanTests
             try
             {
                 await rw.WriteConfigAsync("<root/>");
-                DateTime mtime1 = File.GetLastWriteTimeUtc(path);
-
-                // wait long enough that any rewrite would change mtime visibly
-                await Task.Delay(100);
+                DateTime mtime1 = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+                File.SetLastWriteTimeUtc(path, mtime1);
 
                 await rw.WriteConfigAsync("<root/>");
                 DateTime mtime2 = File.GetLastWriteTimeUtc(path);

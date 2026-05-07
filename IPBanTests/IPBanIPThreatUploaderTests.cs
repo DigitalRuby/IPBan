@@ -27,11 +27,16 @@ namespace DigitalRuby.IPBanTests
         private IPBanService service;
         private IPBanIPThreatUploader uploader;
 
+        [OneTimeSetUp]
+        public void OneTimeSetup()
+        {
+            service = IPBanService.CreateAndStartIPBanTestService<IPBanService>();
+        }
+
         [SetUp]
         public void Setup()
         {
             IPBanService.UtcNow = DateTime.UtcNow;
-            service = IPBanService.CreateAndStartIPBanTestService<IPBanService>();
             uploader = new IPBanIPThreatUploader(service);
         }
 
@@ -39,7 +44,14 @@ namespace DigitalRuby.IPBanTests
         public void Teardown()
         {
             uploader?.Dispose();
+            uploader = null;
+        }
+
+        [OneTimeTearDown]
+        public void OneTimeTeardown()
+        {
             IPBanService.DisposeIPBanTestService(service);
+            service = null;
         }
 
         [Test]
