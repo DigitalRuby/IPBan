@@ -30,7 +30,11 @@ public sealed class TempFile : IDisposable
             }
         }
 
-        var exeLoc = System.Reflection.Assembly.GetEntryAssembly()?.Location ?? Guid.NewGuid().ToString("N");
+        var exeLoc = AppContext.BaseDirectory;
+        if (string.IsNullOrWhiteSpace(exeLoc))
+        {
+            exeLoc = Guid.NewGuid().ToString("N");
+        }
         
         // generate sub dir name from exeLoc using hash
         var hashBytes = MD5.HashData(System.Text.Encoding.UTF8.GetBytes(exeLoc));

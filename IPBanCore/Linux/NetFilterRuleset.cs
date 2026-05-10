@@ -341,6 +341,7 @@ public sealed class NetFilterRuleset : IJsonOnDeserialized
     }
 
     /// <inheritdoc />
+    [System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "NetFilter model graph is explicitly defined in this assembly.")]
     public override string ToString()
     {
         return System.Text.Json.JsonSerializer.Serialize(this, options: serializeOptions);
@@ -402,6 +403,7 @@ public sealed class NetFilterRuleset : IJsonOnDeserialized
 public sealed class NetFilterEntry
 {
     /// <inheritdoc />
+    [System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "NetFilter model graph is explicitly defined in this assembly.")]
     public override string ToString()
     {
         return System.Text.Json.JsonSerializer.Serialize(this, options: NetFilterRuleset.serializeOptions);
@@ -439,6 +441,7 @@ public sealed class NetFilterEntry
 public sealed class NetFilterMeta
 {
     /// <inheritdoc />
+    [System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "NetFilter model graph is explicitly defined in this assembly.")]
     public override string ToString()
     {
         return System.Text.Json.JsonSerializer.Serialize(this, options: NetFilterRuleset.serializeOptions);
@@ -466,6 +469,7 @@ public sealed class NetFilterMeta
 public sealed class NetFilterTable
 {
     /// <inheritdoc />
+    [System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "NetFilter model graph is explicitly defined in this assembly.")]
     public override string ToString()
     {
         return System.Text.Json.JsonSerializer.Serialize(this, options: NetFilterRuleset.serializeOptions);
@@ -493,6 +497,7 @@ public sealed class NetFilterTable
 public sealed class NetFilterChain
 {
     /// <inheritdoc />
+    [System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "NetFilter model graph is explicitly defined in this assembly.")]
     public override string ToString()
     {
         return System.Text.Json.JsonSerializer.Serialize(this, options: NetFilterRuleset.serializeOptions);
@@ -545,6 +550,7 @@ public sealed class NetFilterChain
 public sealed class NetFilterRule
 {
     /// <inheritdoc />
+    [System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "NetFilter model graph is explicitly defined in this assembly.")]
     public override string ToString()
     {
         return System.Text.Json.JsonSerializer.Serialize(this, options: NetFilterRuleset.serializeOptions);
@@ -711,6 +717,7 @@ public sealed class NetFilterRule
 public sealed class NetFilterSet
 {
     /// <inheritdoc />
+    [System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "NetFilter model graph is explicitly defined in this assembly.")]
     public override string ToString()
     {
         return System.Text.Json.JsonSerializer.Serialize(this, options: NetFilterRuleset.serializeOptions);

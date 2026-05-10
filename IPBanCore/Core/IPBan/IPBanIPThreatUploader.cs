@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -31,6 +32,7 @@ public sealed class IPBanIPThreatUploader(IPBanService service) : IUpdater, IIPA
     }
 
     /// <inheritdoc />
+    [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "Anonymous payload shape is fixed and used only for IPThreat API upload.")]
     public async Task Update(CancellationToken cancelToken = default)
     {
         // ready to run?

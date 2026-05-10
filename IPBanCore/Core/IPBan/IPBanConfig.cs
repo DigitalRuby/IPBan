@@ -42,6 +42,7 @@ namespace DigitalRuby.IPBanCore
     /// <summary>
     /// Configuration for ip ban app
     /// </summary>
+    [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "Configuration XML models are runtime-deserialized and preserved by IPBanCore usage patterns.")]
     public sealed class IPBanConfig : IIsWhitelisted
     {
         /// <summary>

@@ -61,11 +61,13 @@ namespace DigitalRuby.IPBanCore
         private const string clsidFwPolicy2 = "{E2B3C97F-6AE1-41AC-817A-F6F92166D7DD}";
         private const string clsidFwRule = "{2C5BC43E-3369-4C33-AB0C-BE9469677AF4}";
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Interoperability", "CA1416:Validate platform compatibility", Justification = "jjxtra")]
+        [UnconditionalSuppressMessage("Trimming", "IL2072", Justification = "Windows COM firewall policy activation is runtime COM-based.")]
         private static readonly INetFwPolicy2 policy = Activator.CreateInstance(Type.GetTypeFromCLSID(new Guid(clsidFwPolicy2))) as INetFwPolicy2;
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Interoperability", "CA1416:Validate platform compatibility", Justification = "jjxtra")]
+        [UnconditionalSuppressMessage("Trimming", "IL2072", Justification = "Windows COM firewall manager activation is runtime COM-based.")]
         private static readonly INetFwMgr manager = (INetFwMgr)Activator.CreateInstance(Type.GetTypeFromProgID("HNetCfg.FwMgr"));
-        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)]
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Interoperability", "CA1416:Validate platform compatibility", Justification = "jjxtra")]
+        [UnconditionalSuppressMessage("Trimming", "IL2074", Justification = "COM type is resolved dynamically by CLSID at runtime.")]
         private static readonly Type ruleType = Type.GetTypeFromCLSID(new Guid(clsidFwRule));
         private static readonly char[] firewallEntryDelimiters = ['/', '-'];
 
@@ -86,6 +88,7 @@ namespace DigitalRuby.IPBanCore
         /// the process must be restarted.
         /// Public for testability — handles null and non-COM objects safely.
         /// </summary>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Interoperability", "CA1416:Validate platform compatibility", Justification = "Windows firewall COM object release is only used in Windows firewall implementation.")]
         public static void ReleaseRule(INetFwRule rule)
         {
             if (rule is null)
@@ -159,6 +162,7 @@ namespace DigitalRuby.IPBanCore
             return b.ToString();
         }
 
+        [UnconditionalSuppressMessage("Trimming", "IL2072", Justification = "COM rule object activation is runtime COM-based.")]
         private static bool GetOrCreateRule(string ruleName, string remoteIPAddresses, NetFwAction action,
             IEnumerable<PortRange> allowedPorts = null, string description = null)
         {
@@ -373,6 +377,7 @@ namespace DigitalRuby.IPBanCore
         // The policy lock is held for the entire enumeration because the underlying COM
         // enumerator is not thread-safe; a concurrent Add/Remove from another thread can
         // crash the iterator mid-loop.
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Interoperability", "CA1416:Validate platform compatibility", Justification = "Windows firewall COM enumerator release is only used in Windows firewall implementation.")]
         private static RuleList EnumerateRulesMatchingPrefix(string ruleNamePrefix)
         {
             // powershell example

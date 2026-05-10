@@ -25,6 +25,7 @@ SOFTWARE.
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.IO.Pipelines;
 using System.Linq;
@@ -57,6 +58,7 @@ namespace DigitalRuby.IPBanCore
         /// <param name="rulePrefix">Rule prefix or null for default</param>
         /// <param name="previousFirewall">Current firewall</param>
         /// <returns>Firewall</returns>
+        [UnconditionalSuppressMessage("Trimming", "IL2072", Justification = "Firewall implementations are selected and activated dynamically at runtime by design.")]
         public static IIPBanFirewall CreateFirewall(IReadOnlyCollection<Type> allTypes,
             string rulePrefix = null,
             IIPBanFirewall previousFirewall = null)
