@@ -262,8 +262,11 @@ namespace DigitalRuby.IPBanCore
         {
             if (string.IsNullOrWhiteSpace(key))
             {
-                // bad key
-                Logger.Warn("Ignoring null/empty key");
+                if (logMissing)
+                {
+                    // bad key
+                    Logger.Debug("Ignoring null/empty key");
+                }
                 return null;
             }
 
@@ -271,7 +274,7 @@ namespace DigitalRuby.IPBanCore
             {
                 if (logMissing)
                 {
-                    Logger.Warn("Ignoring key {0}, not found in appSettings", key);
+                    Logger.Debug("Ignoring key {0}, not found in appSettings", key);
                 }
                 return null; // skip trying to convert
             }

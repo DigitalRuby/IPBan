@@ -51,7 +51,7 @@
 
 	<ItemGroup>
 		<PackageReference Include="Microsoft.TestPlatform.TestHost" Version="18.5.1" />
-		<PackageReference Include="nunit" Version="4.5.1" />
+		<PackageReference Include="nunit" Version="4.6.0" />
 		<PackageReference Include="NUnit3TestAdapter" Version="6.2.0">
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -60,7 +60,7 @@
 		<!-- Coverlet collector hooks the XPlat Code Coverage data collector so we can
 		     measure line / branch coverage of IPBanCore via the test run. See coverage/run.sh
 		     and coverage/coverlet.runsettings for the runner config. -->
-		<PackageReference Include="coverlet.collector" Version="6.0.2">
+		<PackageReference Include="coverlet.collector" Version="10.0.0">
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
