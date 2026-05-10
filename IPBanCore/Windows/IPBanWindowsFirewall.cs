@@ -66,6 +66,7 @@ namespace DigitalRuby.IPBanCore
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Interoperability", "CA1416:Validate platform compatibility", Justification = "jjxtra")]
         [UnconditionalSuppressMessage("Trimming", "IL2072", Justification = "Windows COM firewall manager activation is runtime COM-based.")]
         private static readonly INetFwMgr manager = (INetFwMgr)Activator.CreateInstance(Type.GetTypeFromProgID("HNetCfg.FwMgr"));
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)]
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Interoperability", "CA1416:Validate platform compatibility", Justification = "jjxtra")]
         [UnconditionalSuppressMessage("Trimming", "IL2074", Justification = "COM type is resolved dynamically by CLSID at runtime.")]
         private static readonly Type ruleType = Type.GetTypeFromCLSID(new Guid(clsidFwRule));
