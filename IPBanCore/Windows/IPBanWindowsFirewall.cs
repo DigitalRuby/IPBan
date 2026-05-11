@@ -60,16 +60,23 @@ namespace DigitalRuby.IPBanCore
         // DO NOT CHANGE THESE CONST AND READONLY FIELDS! ***********************************************************************************
         private const string clsidFwPolicy2 = "{E2B3C97F-6AE1-41AC-817A-F6F92166D7DD}";
         private const string clsidFwRule = "{2C5BC43E-3369-4C33-AB0C-BE9469677AF4}";
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Interoperability", "CA1416:Validate platform compatibility", Justification = "jjxtra")]
+        private static readonly INetFwPolicy2 policy = CreateComPolicy();
+        private static readonly INetFwMgr manager = CreateComManager();
+
         [UnconditionalSuppressMessage("Trimming", "IL2072", Justification = "Windows COM firewall policy activation is runtime COM-based.")]
-        private static readonly INetFwPolicy2 policy = Activator.CreateInstance(Type.GetTypeFromCLSID(new Guid(clsidFwPolicy2))) as INetFwPolicy2;
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Interoperability", "CA1416:Validate platform compatibility", Justification = "jjxtra")]
+        private static INetFwPolicy2 CreateComPolicy() =>
+            Activator.CreateInstance(Type.GetTypeFromCLSID(new Guid(clsidFwPolicy2))) as INetFwPolicy2;
+
         [UnconditionalSuppressMessage("Trimming", "IL2072", Justification = "Windows COM firewall manager activation is runtime COM-based.")]
-        private static readonly INetFwMgr manager = (INetFwMgr)Activator.CreateInstance(Type.GetTypeFromProgID("HNetCfg.FwMgr"));
-        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)]
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Interoperability", "CA1416:Validate platform compatibility", Justification = "jjxtra")]
-        [UnconditionalSuppressMessage("Trimming", "IL2074", Justification = "COM type is resolved dynamically by CLSID at runtime.")]
-        private static readonly Type ruleType = Type.GetTypeFromCLSID(new Guid(clsidFwRule));
+        private static INetFwMgr CreateComManager() =>
+            (INetFwMgr)Activator.CreateInstance(Type.GetTypeFromProgID("HNetCfg.FwMgr"));
+
+        [UnconditionalSuppressMessage("Trimming", "IL2072", Justification = "COM type resolved by CLSID at runtime; parameterless constructor is guaranteed by COM registration.")]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Interoperability", "CA1416:Validate platform compatibility", Justification = "jjxtra")]
+        private static INetFwRule CreateComFwRule() =>
+            Activator.CreateInstance(Type.GetTypeFromCLSID(new Guid(clsidFwRule))) as INetFwRule;
         private static readonly char[] firewallEntryDelimiters = ['/', '-'];
 
         // Dedicated lock object for serializing access to the COM policy and its Rules
@@ -188,7 +195,7 @@ namespace DigitalRuby.IPBanCore
                     var disabled = description is not null && description.Contains("###DISABLED###");
                     description = description?.Replace("###DISABLED###", string.Empty);
                     var ruleDescription = description ?? "Automatically created by IPBan";
-                    rule = Activator.CreateInstance(ruleType) as INetFwRule;
+                    rule = CreateComFwRule();
                     rule.Name = ruleName;
                     rule.Description = ruleDescription;
                     rule.Enabled = !disabled;

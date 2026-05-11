@@ -26,6 +26,9 @@
 		<ServerGarbageCollection>false</ServerGarbageCollection>
 		<TrimMode>partial</TrimMode>
 		<JsonSerializerIsReflectionEnabledByDefault>true</JsonSerializerIsReflectionEnabledByDefault>
+		<!-- IL2104: third-party assemblies produce trim warnings internally; suppressed as unfixable -->
+		<!-- IL2026: runtime-internal COM activation (BuiltInComInteropSupport) is not trim-compatible; unfixable from user code -->
+		<NoWarn>$(NoWarn);IL2104;IL2026</NoWarn>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -45,6 +48,6 @@
 		<TrimmerRootAssembly Include="System.Runtime" />
 		<TrimmerRootAssembly Include="mscorlib" />
 		<TrimmerRootAssembly Include="netstandard" />
-	</ItemGroup>
+		</ItemGroup>
 
 </Project>
