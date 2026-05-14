@@ -1201,4 +1201,7 @@ For block rules, port list is ignored ports, so if you wanted to block port 3389
   <data name="ResetBannedIPs" xml:space="preserve">
     <value>Reset Banned IPs</value>
   </data>
+  <data name="Activity" xml:space="preserve">
+    <value>Activity</value>
+  </data>
 </root>
