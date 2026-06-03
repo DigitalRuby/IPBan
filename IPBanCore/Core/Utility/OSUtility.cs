@@ -404,6 +404,19 @@ namespace DigitalRuby.IPBanCore
         /// <returns>String</returns>
         public static string OSInfo => $"Name: {Name}, Version: {Version}, Friendly Name: {FriendlyName}, Description: {Description}";
 
+        internal static string CreateFullyQualifiedDomainName(string hostName, string domainName, string fallbackServerName)
+        {
+            string fqdn = (string.IsNullOrWhiteSpace(hostName) ? fallbackServerName : hostName)?.Trim().TrimEnd('.') ?? string.Empty;
+            domainName = domainName?.Trim().Trim('.');
+            if (!string.IsNullOrWhiteSpace(domainName) &&
+                !fqdn.Equals(domainName, StringComparison.OrdinalIgnoreCase) &&
+                !fqdn.EndsWith("." + domainName, StringComparison.OrdinalIgnoreCase))
+            {
+                fqdn += "." + domainName;
+            }
+            return string.IsNullOrWhiteSpace(fqdn) ? fallbackServerName : fqdn;
+        }
+
         private static string fqdn;
         /// <summary>
         /// Fully qualified domain name
@@ -430,12 +443,7 @@ namespace DigitalRuby.IPBanCore
                         }
                         try
                         {
-                            fqdn = System.Net.Dns.GetHostName();
-                            if (!string.IsNullOrWhiteSpace(domainName) &&
-                                !fqdn.StartsWith(domainName + ".", StringComparison.OrdinalIgnoreCase))
-                            {
-                                fqdn = domainName + "." + fqdn;
-                            }
+                            fqdn = CreateFullyQualifiedDomainName(System.Net.Dns.GetHostName(), domainName, serverName);
                         }
                         catch
                         {

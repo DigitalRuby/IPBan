@@ -8,6 +8,7 @@ process helpers, and the RequiredOperatingSystemAttribute matcher.
 */
 
 using System;
+using System.Reflection;
 using System.Threading.Tasks;
 
 using DigitalRuby.IPBanCore;
@@ -74,6 +75,28 @@ namespace DigitalRuby.IPBanTests
         {
             ClassicAssert.IsNotNull(OSUtility.FQDN);
             ClassicAssert.IsNotEmpty(OSUtility.FQDN);
+        }
+
+        [Test]
+        public void CreateFullyQualifiedDomainName_AppendsDomainToHost()
+        {
+            ClassicAssert.AreEqual("host.example.com",
+                InvokeCreateFullyQualifiedDomainName("host", "example.com", "fallback"));
+        }
+
+        [Test]
+        public void CreateFullyQualifiedDomainName_LeavesExistingFqdn()
+        {
+            ClassicAssert.AreEqual("host.example.com",
+                InvokeCreateFullyQualifiedDomainName("host.example.com", "example.com", "fallback"));
+        }
+
+        private static string InvokeCreateFullyQualifiedDomainName(string hostName, string domainName, string fallbackServerName)
+        {
+            var method = typeof(OSUtility).GetMethod("CreateFullyQualifiedDomainName",
+                BindingFlags.NonPublic | BindingFlags.Static);
+            ClassicAssert.IsNotNull(method);
+            return (string)method.Invoke(null, [hostName, domainName, fallbackServerName]);
         }
 
         [Test]
