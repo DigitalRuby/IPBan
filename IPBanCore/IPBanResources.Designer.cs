@@ -230,6 +230,24 @@ namespace DigitalRuby.IPBanCore {
                 return ResourceManager.GetString("AsnBlacklistWhitelist", resourceCulture);
             }
         }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Restrict firewall monitor to IPBan Pro rules.
+        /// </summary>
+        public static string RestrictToIPBanProEvents {
+            get {
+                return ResourceManager.GetString("RestrictToIPBanProEvents", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to When checked, only IPBan Pro rules are reported. When off, all firewall rule events are reported, which can greatly increase network traffic and events to the web admin.
+        /// </summary>
+        public static string RestrictToIPBanProEventsTooltip {
+            get {
+                return ResourceManager.GetString("RestrictToIPBanProEventsTooltip", resourceCulture);
+            }
+        }
         
         /// <summary>
         ///   Looks up a localized string similar to Whitelist instead of blacklist.

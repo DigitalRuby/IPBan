@@ -7,6 +7,12 @@
 # FailedLogin, SuccessfulLogin or None [newline]
 # --- [newline]
 #
+$file:./TestData/EventViewer/Files/EventViewerInput6.txt
+100.1.2.3
+MyUser
+RDP
+SuccessfulLogin
+---
 $file:./TestData/EventViewer/Files/EventViewerInput5.txt
 27.1.2.3
 administrator

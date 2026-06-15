@@ -1,0 +1,47 @@
+<Event xmlns="http://schemas.microsoft.com/win/2004/08/events/event">
+ <System>
+  <Provider Name="Microsoft-Windows-Security-Auditing" Guid="{54849625-5478-4994-a5ba-3e3b0328c30d}" /> 
+  <EventID>4624</EventID> 
+  <Version>2</Version> 
+  <Level>0</Level> 
+  <Task>12544</Task> 
+  <Opcode>0</Opcode> 
+  <Keywords>0x8020000000000000</Keywords> 
+  <TimeCreated SystemTime="2026-06-10T02:53:55.6568385Z" /> 
+  <EventRecordID>19428992</EventRecordID> 
+  <Correlation ActivityID="{b2d49a1a-f32a-0001-9b9a-d4b22af3dc01}" /> 
+  <Execution ProcessID="872" ThreadID="2452" /> 
+  <Channel>Security</Channel> 
+  <Computer>vmi2134045</Computer> 
+  <Security /> 
+ </System>
+ <EventData>
+  <Data Name="SubjectUserSid">S-1-5-18</Data> 
+  <Data Name="SubjectUserName">VMI2134045$</Data> 
+  <Data Name="SubjectDomainName">WORKGROUP</Data> 
+  <Data Name="SubjectLogonId">0x3e7</Data> 
+  <Data Name="TargetUserSid">S-1-5-21-3713639508-3051920844-4088787598-1000</Data> 
+  <Data Name="TargetUserName">MyUser</Data> 
+  <Data Name="TargetDomainName">VMI2134045</Data> 
+  <Data Name="TargetLogonId">0x3d3309b4</Data> 
+  <Data Name="LogonType">7</Data> 
+  <Data Name="LogonProcessName">User32</Data> 
+  <Data Name="AuthenticationPackageName">Negotiate</Data> 
+  <Data Name="WorkstationName">VMI2134045</Data> 
+  <Data Name="LogonGuid">{00000000-0000-0000-0000-000000000000}</Data> 
+  <Data Name="TransmittedServices">-</Data> 
+  <Data Name="LmPackageName">-</Data> 
+  <Data Name="KeyLength">0</Data> 
+  <Data Name="ProcessId">0x788</Data> 
+  <Data Name="ProcessName">C:\Windows\System32\svchost.exe</Data> 
+  <Data Name="IpAddress">100.1.2.3</Data> 
+  <Data Name="IpPort">0</Data> 
+  <Data Name="ImpersonationLevel">%%1833</Data> 
+  <Data Name="RestrictedAdminMode">-</Data> 
+  <Data Name="TargetOutboundUserName">-</Data> 
+  <Data Name="TargetOutboundDomainName">-</Data> 
+  <Data Name="VirtualAccount">%%1843</Data> 
+  <Data Name="TargetLinkedLogonId">0x3d33096b</Data> 
+  <Data Name="ElevatedToken">%%1843</Data> 
+ </EventData>
+</Event>

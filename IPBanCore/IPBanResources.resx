@@ -1180,6 +1180,12 @@ For block rules, port list is ignored ports, so if you wanted to block port 3389
   <data name="AsnBlacklistWhitelistTooltip" xml:space="preserve">
     <value>Whitelist instead of blacklist</value>
   </data>
+  <data name="RestrictToIPBanProEvents" xml:space="preserve">
+    <value>Restrict firewall monitor to IPBan Pro rules</value>
+  </data>
+  <data name="RestrictToIPBanProEventsTooltip" xml:space="preserve">
+    <value>When checked, only IPBan Pro rules are reported. When off, all firewall rule events are reported, which can greatly increase network traffic and events to the web admin.</value>
+  </data>
   <data name="BlacklisterWhitelister" xml:space="preserve">
     <value>BlacklisterWhitelister</value>
   </data>
