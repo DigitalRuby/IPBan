@@ -613,6 +613,11 @@ namespace DigitalRuby.IPBanCore
                         inputStream.CopyTo(p.StandardInput.BaseStream);
                     }
                 }
+                catch (IOException)
+                {
+                    // the process may have already exited and closed stdin (broken pipe);
+                    // feeding stdin is best-effort, so ignore the write failure
+                }
                 finally
                 {
                     try { p.StandardInput.Close(); } catch { /* ignore */ }

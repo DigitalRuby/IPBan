@@ -302,6 +302,12 @@ namespace DigitalRuby.IPBanCore
         /// <inheritdoc />
         public override IEnumerable<string> GetRuleNames(string ruleNamePrefix = null)
         {
+            // a caller passing a bare prefix (e.g. "MyRule") means the rule named RulePrefix + "MyRule";
+            // prepend RulePrefix to match the Windows firewall behavior, but leave already-qualified prefixes alone
+            if (!string.IsNullOrWhiteSpace(ruleNamePrefix) && !ruleNamePrefix.StartsWith(RulePrefix))
+            {
+                ruleNamePrefix = RulePrefix + ruleNamePrefix;
+            }
             var rules = IPBanLinuxIPSetFirewallD.GetSetNames(ruleNamePrefix ?? RulePrefix);
             return rules;
         }
