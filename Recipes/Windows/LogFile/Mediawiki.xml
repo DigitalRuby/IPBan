@@ -1,0 +1,32 @@
+<!--
+MediaWiki authentication log - IPBan recipe
+Log path: E:\MediaWikiLogs\auth.txt
+Sample lines:
+  2026-06-16 11:48:28 MachineName db: FAIL user=Bob ip=0.0.0.0
+  2026-06-16 11:48:28 MachineName db: SUCCESS user=Bob ip=0.0.0.0
+  2026-06-16 11:49:17 MachineName db: ATTEMPT user= ip=0.0.0.0
+
+Failed login  = lines containing FAIL or ATTEMPT  (counts toward a ban)
+Successful login = lines containing SUCCESS
+Captured groups: ipaddress, username, timestamp
+-->
+<LogFile>
+	<Source>MediaWiki</Source>
+	<PathAndMask>E:/MediaWikiLogs/auth.txt</PathAndMask>
+	<FailedLoginRegex>
+		<![CDATA[
+			^(?<timestamp>\d{4}-\d{2}-\d{2}\s\d{2}:\d{2}:\d{2})\s.*?:\s+(?:FAIL|ATTEMPT)\s+user=(?<username>\S*)\s+ip=(?<ipaddress>\S+)
+		]]>
+	</FailedLoginRegex>
+	<FailedLoginRegexTimestampFormat>yyyy-MM-dd HH:mm:ss</FailedLoginRegexTimestampFormat>
+	<SuccessfulLoginRegex>
+		<![CDATA[
+			^(?<timestamp>\d{4}-\d{2}-\d{2}\s\d{2}:\d{2}:\d{2})\s.*?:\s+SUCCESS\s+user=(?<username>\S*)\s+ip=(?<ipaddress>\S+)
+		]]>
+	</SuccessfulLoginRegex>
+	<SuccessfulLoginRegexTimestampFormat>yyyy-MM-dd HH:mm:ss</SuccessfulLoginRegexTimestampFormat>
+	<PlatformRegex>Windows</PlatformRegex>
+	<PingInterval>10000</PingInterval>
+	<MaxFileSize>0</MaxFileSize>
+	<FailedLoginThreshold>0</FailedLoginThreshold>
+</LogFile>

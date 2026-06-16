@@ -24,7 +24,7 @@
 	  <None Remove="TestData\EventViewer\EventViewerTests.txt" />
 	  <None Remove="TestData\EventViewer\Files\EventViewerInput1.txt" />
 	  <None Remove="TestData\EventViewer\Files\EventViewerInput2.txt" />
-	  <None Remove="TestData\EventViewer\Files\EVentViewerInput4.txt" />
+	  <None Remove="TestData\EventViewer\Files\EventViewerInput4.txt" />
 	  <None Remove="TestData\EventViewer\Files\EventViewerInput5.txt" />
 	  <None Remove="TestData\EventViewer\Files\EventViewerInput6.txt" />
 	  <None Remove="TestData\IPSets\EmergingThreats.txt" />
