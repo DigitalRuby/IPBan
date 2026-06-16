@@ -416,7 +416,13 @@ namespace DigitalRuby.IPBanCore
         /// <inheritdoc />
         public override IEnumerable<string> GetRuleNames(string ruleNamePrefix = null)
         {
-            string prefix = " " + matchSetDirectiveNoHyphens + " " + RulePrefix + (ruleNamePrefix ?? string.Empty);
+            // prepend RulePrefix for a bare prefix (e.g. "MyRule"), but leave an already-qualified
+            // prefix (e.g. RulePrefix + "EXTRA_") alone so it is not doubled up
+            if (!string.IsNullOrWhiteSpace(ruleNamePrefix) && !ruleNamePrefix.StartsWith(RulePrefix, StringComparison.OrdinalIgnoreCase))
+            {
+                ruleNamePrefix = RulePrefix + ruleNamePrefix;
+            }
+            string prefix = " " + matchSetDirectiveNoHyphens + " " + (ruleNamePrefix ?? RulePrefix);
             using var tmp = new TempFile();
             IPBanFirewallUtility.RunProcess(IpTablesProcess, null, tmp, "-L", "-n");
             using var reader = new StreamReader(tmp);
