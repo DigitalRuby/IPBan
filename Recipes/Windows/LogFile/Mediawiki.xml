@@ -12,7 +12,7 @@ Captured groups: ipaddress, username, timestamp
 -->
 <LogFile>
 	<Source>MediaWiki</Source>
-	<PathAndMask>E:/MediaWikiLogs/auth.txt</PathAndMask>
+	<PathAndMask>E:/MediaWikiLogs/auth.log</PathAndMask>
 	<FailedLoginRegex>
 		<![CDATA[
 			^(?<timestamp>\d{4}-\d{2}-\d{2}\s\d{2}:\d{2}:\d{2})\s.*?:\s+(?:FAIL|ATTEMPT)\s+user=(?<username>\S*)\s+ip=(?<ipaddress>\S+)
