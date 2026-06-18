@@ -998,7 +998,7 @@ namespace DigitalRuby.IPBanCore
                 return;
             }
 
-            Logger.Info("Processing {0} firewall tasks", taskCount);
+            Logger.Debug("Processing {0} firewall tasks", taskCount);
 
             while (firewallTasks.TryDequeue(out var firewallTask))
             {
