@@ -37,6 +37,13 @@
 
 	<ItemGroup>
 		<PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.9" />
+		<!--
+		  Override the native SQLite binary pulled in transitively by Microsoft.Data.Sqlite (bundle_e_sqlite3
+		  2.1.11). lib.e_sqlite3 <= 2.1.11 ships a SQLite with a known high severity vulnerability
+		  (GHSA-2m69-gcr7-jv3q). 3.50.3 is the patched native lib; core/provider stay at 2.1.11 and the native
+		  C ABI is stable, so only the vulnerable binary is swapped.
+		-->
+		<PackageReference Include="SQLitePCLRaw.lib.e_sqlite3" Version="3.50.3" />
 		<PackageReference Include="Microsoft.Extensions.FileSystemGlobbing" Version="10.0.9" />
 		<PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.9" />
 		<PackageReference Include="Microsoft.Extensions.Hosting.Systemd" Version="10.0.9" />
