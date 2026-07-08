@@ -56,6 +56,65 @@ namespace DigitalRuby.IPBanCore
     }
 
     /// <summary>
+    /// Direct http request maker that does not use proxy
+    /// </summary>
+    public sealed class DirectHttpRequestMaker : IHttpRequestMaker
+    {
+        /// <summary>
+        /// Singleton of DirectHttpRequestMaker
+        /// </summary>
+        public static DirectHttpRequestMaker Instance { get; } = new DirectHttpRequestMaker();
+
+        /// <inheritdoc />
+        public async Task<byte[]> MakeRequestAsync(Uri uri,
+            byte[] postJson = null,
+            IEnumerable<KeyValuePair<string, object>> headers = null,
+            string method = null,
+            CancellationToken cancelToken = default)
+        {
+            Assembly versionAssembly = Assembly.GetEntryAssembly() ?? Assembly.GetAssembly(typeof(IPBanService)) ?? GetType().Assembly;
+            HttpRequestMessage msg = new()
+            {
+                RequestUri = uri
+            };
+            msg.Headers.Add("User-Agent", versionAssembly.GetName().Name);
+            if (headers != null)
+            {
+                foreach (KeyValuePair<string, object> header in headers)
+                {
+                    msg.Headers.Add(header.Key, header.Value.ToHttpHeaderString());
+                }
+            }
+            byte[] response;
+            if (postJson is null || postJson.Length == 0)
+            {
+                msg.Method = HttpMethod.Get;
+            }
+            else
+            {
+                msg.Method = HttpMethod.Post;
+                msg.Headers.Add("Cache-Control", "no-cache");
+                msg.Content = new ByteArrayContent(postJson);
+                msg.Content.Headers.Add("Content-Type", "application/json; charset=utf-8");
+            }
+
+            if (!string.IsNullOrWhiteSpace(method))
+            {
+                msg.Method = new HttpMethod(method);
+            }
+
+            var client = new HttpClient();
+            var responseMsg = await client.SendAsync(msg, cancelToken);
+            response = await responseMsg.Content.ReadAsByteArrayAsync(cancelToken);
+            if (!responseMsg.IsSuccessStatusCode)
+            {
+                throw new HttpRequestException("Request to url " + uri + " failed, status: " + responseMsg.StatusCode);
+            }
+            return response;
+        }
+    }
+
+    /// <summary>
     /// Default implementation of IHttpRequestMaker
     /// </summary>
     public sealed class DefaultHttpRequestMaker : IHttpRequestMaker
@@ -69,6 +128,21 @@ namespace DigitalRuby.IPBanCore
         /// Whether live requests should be disabled (unit tests)
         /// </summary>
         public static bool DisableLiveRequests { get; set; }
+
+        /// <summary>
+        /// Proxy address for http requests (e.g. http://proxy:8080)
+        /// </summary>
+        public static string ProxyAddress { get; set; }
+
+        /// <summary>
+        /// Proxy user name, if required
+        /// </summary>
+        public static string ProxyUserName { get; set; }
+
+        /// <summary>
+        /// Proxy password, if required
+        /// </summary>
+        public static string ProxyPassword { get; set; }
 
         private static long liveRequestCount;
         /// <summary>
@@ -135,7 +209,21 @@ namespace DigitalRuby.IPBanCore
                 msg.Method = new HttpMethod(method);
             }
 
-            var client = new HttpClient();
+            HttpClient client;
+            if (!string.IsNullOrWhiteSpace(ProxyAddress))
+            {
+                var handler = new HttpClientHandler();
+                handler.Proxy = new System.Net.WebProxy(ProxyAddress);
+                if (!string.IsNullOrWhiteSpace(ProxyUserName) && !string.IsNullOrWhiteSpace(ProxyPassword))
+                {
+                    handler.Proxy.Credentials = new System.Net.NetworkCredential(ProxyUserName, ProxyPassword);
+                }
+                client = new HttpClient(handler);
+            }
+            else
+            {
+                client = new HttpClient();
+            }
             var responseMsg = await client.SendAsync(msg, cancelToken);
             response = await responseMsg.Content.ReadAsByteArrayAsync(cancelToken);
             if (!responseMsg.IsSuccessStatusCode)
