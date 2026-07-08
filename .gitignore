@@ -7,6 +7,9 @@ bin/
 obj/
 package/
 packages/
+results/
+report/
+.nuget-packages/
 *.suo
 *.cachefile
 *.user

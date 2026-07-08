@@ -256,7 +256,7 @@ namespace DigitalRuby.IPBanCore
 
 #endif
 
-            Console.WriteLine("Creating default nlog.config file");
+            Console.WriteLine("Creating default nlog.config file. Check logfile.txt for output.");
 
             // storing this as a resource fails to use correct string in precompiled .exe with .net core, bug with Microsoft I think
             string defaultNLogConfig = $@"<?xml version=""1.0""?>

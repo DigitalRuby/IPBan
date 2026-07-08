@@ -34,7 +34,7 @@ using System.Linq;
 namespace DigitalRuby.IPBanTests
 {
     [TestFixture]
-    public class IPBanDBTests
+    public partial class IPBanDBTests
     {
         [TearDown]
         public void Teardown()
@@ -177,6 +177,47 @@ namespace DigitalRuby.IPBanTests
 
             // make sure performance is good
             ClassicAssert.Less(span, TimeSpan.FromSeconds(10.0));
+        }
+
+        // -------------------- ParseIPAddressEntry: legacy / null-column rows --------------------
+
+        /// <summary>
+        /// Subclass that exposes ExecuteNonQuery so the test can craft legacy-shape rows
+        /// (e.g. BanDate set with BanEndDate NULL — the layout of rows from before the
+        /// BanEndDate column existed).
+        /// </summary>
+        private sealed class TestableIPBanDB : IPBanDB
+        {
+            public int Sql(string cmd, params object[] parameters) => ExecuteNonQuery(cmd, parameters);
+        }
+
+        [Test]
+        public void LegacyRow_BanDateSet_BanEndDateNull_ReadsAsNull()
+        {
+            // BanDate and BanEndDate are independent nullable columns. A row that has BanDate
+            // populated but BanEndDate NULL must read back with banEndDate == null, not as the
+            // Unix epoch (which is what happens if the null guard is wired to the wrong field).
+            using var db = new TestableIPBanDB();
+            db.Truncate(true);
+
+            const string ip = "10.20.30.40";
+            DateTime banStart = new(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+            DateTime banEnd = new(2024, 1, 2, 0, 0, 0, DateTimeKind.Utc);
+            DateTime now = banStart;
+
+            // Sanity: when both columns are set, both round-trip.
+            db.SetBanDates(ip, banStart, banEnd, now);
+            ClassicAssert.IsTrue(db.TryGetIPAddress(ip, out var entry));
+            ClassicAssert.AreEqual(banStart, entry.BanStartDate);
+            ClassicAssert.AreEqual(banEnd, entry.BanEndDate);
+
+            // Simulate the legacy row shape: BanDate populated, BanEndDate NULL.
+            db.Sql("UPDATE IPAddresses SET BanEndDate = NULL WHERE IPAddressText = @Param0", ip);
+
+            ClassicAssert.IsTrue(db.TryGetIPAddress(ip, out var legacyEntry));
+            ClassicAssert.AreEqual(banStart, legacyEntry.BanStartDate, "BanStartDate must round-trip");
+            ClassicAssert.IsNull(legacyEntry.BanEndDate,
+                "BanEndDate must read as null when the column value is NULL");
         }
     }
 }

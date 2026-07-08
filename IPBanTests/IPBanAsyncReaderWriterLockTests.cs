@@ -87,5 +87,18 @@ namespace DigitalRuby.IPBanTests
             // now can acquire another writer
             using var lock2 = locker.AcquireWriterLockAsync(timeout);
         }
+
+        /// <summary>
+        /// Dispose must be idempotent — calling it twice should not NRE on already-disposed
+        /// semaphores.
+        /// </summary>
+        [Test]
+        public void DoubleDisposeDoesNotThrow()
+        {
+            var locker = new AsyncReaderWriterLock();
+            locker.Dispose();
+            Assert.DoesNotThrow(() => locker.Dispose());
+            Assert.DoesNotThrow(() => locker.Dispose()); // third call too — fully idempotent
+        }
     }
 }

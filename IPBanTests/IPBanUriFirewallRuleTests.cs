@@ -30,6 +30,7 @@ using NUnit.Framework.Legacy;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -131,6 +132,71 @@ namespace DigitalRuby.IPBanTests
         public Task RunFirewallTask<T>(Func<T, IIPBanFirewall, CancellationToken, Task> action, T state, string name)
         {
             return action(state, memoryFirewall, default);
+        }
+
+        [Test]
+        public void ToString_ContainsPrefixIntervalAndUri()
+        {
+            using IPBanUriFirewallRule rule = new(memoryFirewall, this, this, this, "TestPrefix",
+                TimeSpan.FromMinutes(5.0), new Uri("http://example.com/list.txt"));
+            string s = rule.ToString();
+            StringAssert.Contains("TestPrefix", s);
+            StringAssert.Contains("00:05:00", s);
+            StringAssert.Contains("example.com", s);
+        }
+
+        [Test]
+        public void Equals_AndHashCode_BasedOnPrefixIntervalUri()
+        {
+            using IPBanUriFirewallRule a = new(memoryFirewall, this, this, this, "P",
+                TimeSpan.FromMinutes(5.0), new Uri("http://example.com/list.txt"));
+            using IPBanUriFirewallRule b = new(memoryFirewall, this, this, this, "P",
+                TimeSpan.FromMinutes(5.0), new Uri("http://example.com/list.txt"));
+            using IPBanUriFirewallRule c = new(memoryFirewall, this, this, this, "Other",
+                TimeSpan.FromMinutes(5.0), new Uri("http://example.com/list.txt"));
+            ClassicAssert.IsTrue(a.Equals(b));
+            ClassicAssert.IsFalse(a.Equals(c));
+            ClassicAssert.IsFalse(a.Equals("not a rule"));
+            ClassicAssert.AreEqual(a.GetHashCode(), b.GetHashCode());
+        }
+
+        [Test]
+        public async Task TestGzipFile()
+        {
+            string tempFile = Path.GetTempFileName();
+            string gzPath = tempFile + ".gz";
+            try
+            {
+                File.Delete(tempFile);
+                // Write a gzipped version of the test file content.
+                using (var fs = File.Create(gzPath))
+                using (var gz = new GZipStream(fs, CompressionMode.Compress))
+                using (var sw = new StreamWriter(gz))
+                {
+                    sw.Write(GetTestFile());
+                }
+                Uri uriObj = new("file://" + gzPath.Replace("\\", "/"));
+                using IPBanUriFirewallRule rule = new(memoryFirewall, this, this, this,
+                    "GzPrefix", TimeSpan.FromMinutes(1.0), uriObj);
+                await rule.Update();
+                ClassicAssert.AreEqual(1, memoryFirewall.GetRuleNames("GzPrefix").ToArray().Length);
+            }
+            finally
+            {
+                try { File.Delete(gzPath); } catch { /* best effort */ }
+            }
+        }
+
+        [Test]
+        public async Task DeleteRule_RemovesAllRulesUnderPrefix()
+        {
+            using IPBanUriFirewallRule rule = new(memoryFirewall, this, this, this, "ToDelete",
+                TimeSpan.FromMinutes(5.0), new Uri("http://example.com/list.txt"));
+            await rule.Update();
+            // Some rule(s) should now exist for this prefix
+            ClassicAssert.IsTrue(memoryFirewall.GetRuleNames("ToDelete").Any());
+            rule.DeleteRule();
+            ClassicAssert.IsFalse(memoryFirewall.GetRuleNames("ToDelete").Any());
         }
     }
 }

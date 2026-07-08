@@ -1,6 +1,7 @@
 ﻿using DigitalRuby.IPBanCore;
 
 using NUnit.Framework;
+using NUnit.Framework.Legacy;
 
 namespace DigitalRuby.IPBanTests
 {
@@ -10,6 +11,29 @@ namespace DigitalRuby.IPBanTests
     [TestFixture]
     public sealed class IPBanFilterTests
     {
+        [Test]
+        public void IsFiltered_NullStringEntry_ReturnsFalse()
+        {
+            var f = new IPBanFilter("1.2.3.4", null, null, null, null, null);
+            ClassicAssert.IsFalse(f.IsFiltered((string)null, out _));
+        }
+
+        [Test]
+        public void IsFiltered_DirectIPMatch()
+        {
+            var f = new IPBanFilter("1.2.3.4", null, null, null, null, null);
+            ClassicAssert.IsTrue(f.IsFiltered("1.2.3.4", out _));
+            ClassicAssert.IsFalse(f.IsFiltered("9.9.9.9", out _));
+        }
+
+        [Test]
+        public void IsFiltered_Range_ContainsIp()
+        {
+            var f = new IPBanFilter("10.0.0.0/24", null, null, null, null, null);
+            ClassicAssert.IsTrue(f.IsFiltered("10.0.0.5", out _));
+            ClassicAssert.IsFalse(f.IsFiltered("11.0.0.5", out _));
+        }
+
         /// <summary>
         /// Ensure we can get entry without comment using old and new delimiter properly
         /// </summary>

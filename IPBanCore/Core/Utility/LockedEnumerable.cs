@@ -36,6 +36,7 @@ namespace DigitalRuby.IPBanCore
     {
         private readonly SemaphoreSlim locker = new(1, 1);
         private readonly IEnumerator<T> e;
+        private int disposed; // Interlocked-managed; 0 = live, 1 = disposed
 
         /// <summary>
         /// Constructor
@@ -45,7 +46,19 @@ namespace DigitalRuby.IPBanCore
         {
             obj.ThrowIfNull();
             locker.Wait();
-            e = obj.GetEnumerator();
+            try
+            {
+                // We've already taken the semaphore — if GetEnumerator throws we must release
+                // it on the way out, otherwise the LockedEnumerable becomes GC-eligible while
+                // still holding the lock and any future caller deadlocks waiting on it.
+                e = obj.GetEnumerator();
+            }
+            catch
+            {
+                locker.Release();
+                locker.Dispose();
+                throw;
+            }
         }
 
         /// <inheritdoc />
@@ -57,8 +70,17 @@ namespace DigitalRuby.IPBanCore
         /// <inheritdoc />
         public void Dispose()
         {
+            // Idempotent — Release+Dispose each underlying resource exactly once. The
+            // SemaphoreSlim must be both released (to allow re-entry on the same instance,
+            // though we don't use it that way) and disposed (we own it and need to free it).
+            if (Interlocked.Exchange(ref disposed, 1) != 0)
+            {
+                return;
+            }
             GC.SuppressFinalize(this);
-            locker.Release();
+            try { e?.Dispose(); } catch { /* best effort */ }
+            try { locker.Release(); } catch { /* tolerate already-released semaphore */ }
+            try { locker.Dispose(); } catch { /* tolerate already-disposed */ }
         }
 
         /// <inheritdoc />

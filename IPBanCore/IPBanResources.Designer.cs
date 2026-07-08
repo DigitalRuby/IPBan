@@ -19,7 +19,7 @@ namespace DigitalRuby.IPBanCore {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "18.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     public class IPBanResources {
@@ -75,6 +75,15 @@ namespace DigitalRuby.IPBanCore {
         public static string AccessDuration {
             get {
                 return ResourceManager.GetString("AccessDuration", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Activity.
+        /// </summary>
+        public static string Activity {
+            get {
+                return ResourceManager.GetString("Activity", resourceCulture);
             }
         }
         
@@ -219,6 +228,24 @@ namespace DigitalRuby.IPBanCore {
         public static string AsnBlacklistWhitelist {
             get {
                 return ResourceManager.GetString("AsnBlacklistWhitelist", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Restrict firewall monitor to IPBan Pro rules.
+        /// </summary>
+        public static string RestrictToIPBanProEvents {
+            get {
+                return ResourceManager.GetString("RestrictToIPBanProEvents", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to When checked, only IPBan Pro rules are reported. When off, all firewall rule events are reported, which can greatly increase network traffic and events to the web admin.
+        /// </summary>
+        public static string RestrictToIPBanProEventsTooltip {
+            get {
+                return ResourceManager.GetString("RestrictToIPBanProEventsTooltip", resourceCulture);
             }
         }
         

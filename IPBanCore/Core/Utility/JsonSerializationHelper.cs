@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -27,6 +28,7 @@ public static class JsonSerializationHelper
     /// <typeparam name="T">Type</typeparam>
     /// <param name="json">Json text</param>
     /// <returns>Object</returns>
+    [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "IPBanCore controls serialized models for these paths.")]
     public static T Deserialize<T>(string json) => JsonSerializer.Deserialize<T>(json, Options)!;
 
     /// <summary>
@@ -35,6 +37,7 @@ public static class JsonSerializationHelper
     /// <typeparam name="T">Type</typeparam>
     /// <param name="obj">Object</param>
     /// <returns>Json text</returns>
+    [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "IPBanCore controls serialized models for these paths.")]
     public static string Serialize<T>(T obj) => JsonSerializer.Serialize(obj, Options);
 
     /// <summary>
@@ -44,6 +47,7 @@ public static class JsonSerializationHelper
     /// <param name="stream">Stream</param>
     /// <returns>Object</returns>
     /// <exception cref="ArgumentNullException">Stream is null</exception>
+    [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "IPBanCore controls serialized models for these paths.")]
     public static T Deserialize<T>(Stream stream)
     {
         ArgumentNullException.ThrowIfNull(stream);
@@ -57,6 +61,7 @@ public static class JsonSerializationHelper
     /// <param name="type">Type</param>
     /// <returns>Object</returns>
     /// <exception cref="ArgumentNullException">Stream is null</exception>
+    [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "Type is explicitly provided by caller and controlled by IPBanCore.")]
     public static object Deserialize(Stream stream, Type type)
     {
         ArgumentNullException.ThrowIfNull(stream);
@@ -70,6 +75,7 @@ public static class JsonSerializationHelper
     /// <param name="obj">Object</param>
     /// <param name="stream">Stream</param>
     /// <exception cref="ArgumentNullException">Stream is null</exception>
+    [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "IPBanCore controls serialized models for these paths.")]
     public static void Serialize<T>(T obj, Stream stream)
     {
         ArgumentNullException.ThrowIfNull(stream);
@@ -84,6 +90,7 @@ public static class JsonSerializationHelper
     /// <param name="cancel">Cancel token</param>
     /// <returns></returns>
     /// <exception cref="ArgumentNullException">Stream is null</exception>
+    [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "IPBanCore controls serialized models for these paths.")]
     public static async Task<T> DeserializeAsync<T>(Stream stream, CancellationToken cancel = default)
     {
         ArgumentNullException.ThrowIfNull(stream);
@@ -100,6 +107,7 @@ public static class JsonSerializationHelper
     /// <param name="cancel">Cancel token</param>
     /// <returns>Task</returns>
     /// <exception cref="ArgumentNullException">Stream is null</exception>
+    [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "IPBanCore controls serialized models for these paths.")]
     public static Task SerializeAsync<T>(T obj, Stream stream, CancellationToken cancel = default)
     {
         ArgumentNullException.ThrowIfNull(stream);

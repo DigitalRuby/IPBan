@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 
 #pragma warning disable IL2072
@@ -9,6 +10,7 @@ namespace DigitalRuby.IPBanCore.Windows.COM
     internal static class ComHelper
     {
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Interoperability", "CA1416:Validate platform compatibility", Justification = "jjxtra")]
+        [UnconditionalSuppressMessage("Trimming", "IL2072", Justification = "COM activation is dynamic by design and resolved via COM registration at runtime.")]
         public static T CreateInstance<T>()
         {
             if (!IsSupported<T>())

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -31,6 +32,7 @@ public sealed class IPBanIPThreatUploader(IPBanService service) : IUpdater, IIPA
     }
 
     /// <inheritdoc />
+    [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "Anonymous payload shape is fixed and used only for IPThreat API upload.")]
     public async Task Update(CancellationToken cancelToken = default)
     {
         // ready to run?
@@ -104,12 +106,22 @@ public sealed class IPBanIPThreatUploader(IPBanService service) : IUpdater, IIPA
     /// <inheritdoc />
     public void AddIPAddressLogEvents(IEnumerable<IPAddressLogEvent> events)
     {
-        lock (events)
+        // Run the filter outside the lock — the predicate calls into service.Config which we
+        // don't want to hold the events lock across. Only the AddRange happens inside.
+        var filtered = events.Where(e => e.Type == IPAddressEventType.Blocked &&
+            e.Count > 0 &&
+            !e.External &&
+            !service.Config.IsWhitelisted(e.IPAddress, out _)).ToArray();
+        if (filtered.Length == 0)
         {
-            this.events.AddRange(events.Where(e => e.Type == IPAddressEventType.Blocked &&
-                e.Count > 0 &&
-                !e.External &&
-                !service.Config.IsWhitelisted(e.IPAddress, out _)));
+            return;
+        }
+        // Qualify with `this.` so the lock targets the field — the parameter is also named
+        // `events` and would otherwise shadow it, locking an unrelated caller-supplied object
+        // while the field itself stayed unprotected.
+        lock (this.events)
+        {
+            this.events.AddRange(filtered);
         }
     }
 }

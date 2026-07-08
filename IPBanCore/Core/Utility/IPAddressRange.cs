@@ -410,37 +410,37 @@ namespace DigitalRuby.IPBanCore
             }
             else if (cmpLeft > 0 && cmpRight < 0)
             {
-                // middle chomp, left and right will be set
-                if (!range.Begin.TryDecrement(out IPAddress end))
+                // Middle chomp — both sides have remainder, except at the IP space boundaries
+                // (0.0.0.0 / ::, 255.255.255.255 / ffff:…) where decrement/increment legitimately
+                // has no representable result. In those cases the corresponding side stays null.
+                if (range.Begin.TryDecrement(out IPAddress end))
                 {
-                    throw new ApplicationException("Unexpected failed decrement of " + range.Begin);
+                    left = new IPAddressRange(Begin, end);
                 }
-                left = new IPAddressRange(Begin, end);
-                if (!range.End.TryIncrement(out IPAddress start))
+                if (range.End.TryIncrement(out IPAddress start))
                 {
-                    throw new ApplicationException("Unexpected failed increment of " + range.End);
+                    right = new IPAddressRange(start, End);
                 }
-                right = new IPAddressRange(start, End);
                 return true;
             }
             else if (cmpRight < 0 && range.End.CompareTo(Begin) >= 0)
             {
                 // chomp with only right piece remaining
-                if (!range.End.TryIncrement(out IPAddress start))
+                if (range.End.TryIncrement(out IPAddress start))
                 {
-                    throw new ApplicationException("Unexpected failed increment of " + range.End);
+                    right = new IPAddressRange(start, End);
                 }
-                right = new IPAddressRange(start, End);
+                // if increment fails (range.End == max IP), there is no right piece — still a valid chomp
                 return true;
             }
             else if (cmpLeft > 0 && range.Begin.CompareTo(End) <= 0)
             {
                 // chomp with only left piece remaining
-                if (!range.Begin.TryDecrement(out IPAddress end))
+                if (range.Begin.TryDecrement(out IPAddress end))
                 {
-                    throw new ApplicationException("Unexpected failed decrement of " + range.Begin);
+                    left = new IPAddressRange(Begin, end);
                 }
-                left = new IPAddressRange(Begin, end);
+                // if decrement fails (range.Begin == 0.0.0.0 / ::), there is no left piece
                 return true;
             }
 
@@ -901,7 +901,7 @@ namespace DigitalRuby.IPBanCore
         bool IReadOnlyDictionary<string, string>.TryGetValue(string key, out string value) => TryGetValue(key, out value);
 
         /// <inheritdoc />
-        IEnumerator<KeyValuePair<string, string>> IEnumerable<KeyValuePair<string, string>>.GetEnumerator() => (IEnumerator<KeyValuePair<string, string>>)GetDictionaryItems().GetEnumerator();
+        IEnumerator<KeyValuePair<string, string>> IEnumerable<KeyValuePair<string, string>>.GetEnumerator() => ((IEnumerable<KeyValuePair<string, string>>)GetDictionaryItems()).GetEnumerator();
 
         /// <summary>
         /// Compare to another ip address range

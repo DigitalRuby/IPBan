@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -16,6 +17,7 @@ internal sealed class JsonStringEnumLowercaseConverter : JsonConverterFactory
     public override bool CanConvert(Type typeToConvert) => typeToConvert.IsEnum;
 
     /// <inheritdoc />
+    [UnconditionalSuppressMessage("Trimming", "IL2071", Justification = "Enum converter type is constructed dynamically from the runtime enum type.")]
     public override JsonConverter CreateConverter(Type typeToConvert, JsonSerializerOptions options)
     {
         var convType = typeof(LowercaseEnumConverter<>).MakeGenericType(typeToConvert);
@@ -123,6 +125,7 @@ internal sealed class JsonStringEnumFlagsLowercaseConverter : JsonConverterFacto
     public override bool CanConvert(Type typeToConvert) => typeToConvert.IsEnum;
 
     /// <inheritdoc />
+    [UnconditionalSuppressMessage("Trimming", "IL2071", Justification = "Flags enum converter type is constructed dynamically from the runtime enum type.")]
     public override JsonConverter CreateConverter(Type typeToConvert, JsonSerializerOptions options)
     {
         var convType = typeof(FlagsLowercaseEnumConverter<>).MakeGenericType(typeToConvert);

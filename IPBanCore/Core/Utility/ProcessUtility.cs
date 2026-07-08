@@ -203,21 +203,80 @@ namespace DigitalRuby.IPBanCore
             }
             else
             {
-                // ensure process is executable
-                OSUtility.StartProcessAndWait("sudo", "chmod +x \"" + fileName + "\"");
-
-                // use Linux at, should have been installed earlier
-                ProcessStartInfo info = new()
+                // chmod via ArgumentList — no shell, so fileName goes through as a single argv
+                // slot regardless of what characters it contains.
+                var chmod = new ProcessStartInfo
                 {
-                    Arguments = "-c \"echo sudo \\\"" + fileName + "\\\" " + arguments.Replace("\"", "\\\"") + " | at now\"",
-                    CreateNoWindow = true,
-                    FileName = "/bin/bash",
+                    FileName = "sudo",
                     UseShellExecute = false,
+                };
+                chmod.ArgumentList.Add("chmod");
+                chmod.ArgumentList.Add("+x");
+                chmod.ArgumentList.Add(fileName);
+                using (var p = Process.Start(chmod))
+                {
+                    p?.WaitForExit();
+                }
+
+                // Pipe the launch command into `at` via stdin. Without `-f`, at reads its job
+                // body from stdin and copies it into the at spool — no temp file is written and
+                // nothing needs cleanup.
+                string commandBody = BuildAtJobBody(fileName, arguments);
+
+                ProcessStartInfo atInfo = new()
+                {
+                    FileName = "at",
+                    CreateNoWindow = true,
+                    UseShellExecute = false,
+                    RedirectStandardInput = true,
                     WindowStyle = ProcessWindowStyle.Hidden,
                     WorkingDirectory = Path.GetDirectoryName(fileName)
                 };
-                using var detachedProcess = Process.Start(info);
+                atInfo.ArgumentList.Add("now");
+                using var detachedProcess = Process.Start(atInfo);
+                if (detachedProcess is not null)
+                {
+                    detachedProcess.StandardInput.Write(commandBody);
+                    detachedProcess.StandardInput.Close();
+                }
             }
+        }
+
+        /// <summary>
+        /// Build the shell command body that gets piped into `at` (or any compatible scheduler)
+        /// to launch <paramref name="fileName"/> via sudo. fileName is wrapped in single quotes
+        /// so any spaces, semicolons, backticks, or `$()` in the path are inert literals when
+        /// /bin/sh later runs the spooled job. Public for testability — pure function with no
+        /// side effects, safe to call cross-platform.
+        /// </summary>
+        public static string BuildAtJobBody(string fileName, string arguments)
+        {
+            var command = new StringBuilder();
+            command.Append("sudo ").Append(BashEscape(fileName));
+            if (!string.IsNullOrEmpty(arguments))
+            {
+                // arguments is operator-supplied (a shell-formed argument string by contract).
+                // If callers ever start passing user-influenced data, switch to tokenized
+                // arguments and BashEscape each one.
+                command.Append(' ').Append(arguments);
+            }
+            command.Append('\n');
+            return command.ToString();
+        }
+
+        /// <summary>
+        /// Shell-escape a value for safe inclusion inside a single-quoted bash string.
+        /// Wraps the value in single quotes and replaces any embedded single quote with '\''
+        /// (close-quote, escaped quote, reopen-quote) — the canonical bash idiom.
+        /// Public for testability; this is a pure function.
+        /// </summary>
+        public static string BashEscape(string value)
+        {
+            if (value is null)
+            {
+                return "''";
+            }
+            return "'" + value.Replace("'", "'\\''") + "'";
         }
     }
 }

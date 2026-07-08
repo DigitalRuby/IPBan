@@ -34,7 +34,7 @@ using System.Net;
 namespace DigitalRuby.IPBanTests
 {
     [TestFixture]
-    public class IPBanMemoryFirewallTests
+    public partial class IPBanMemoryFirewallTests
     {
         [Test]
         public void BasicTest()

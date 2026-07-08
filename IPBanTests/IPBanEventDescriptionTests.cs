@@ -14,18 +14,31 @@ namespace DigitalRuby.IPBanTests
     {
         private IPBanService service;
         private string tempLogPath;
+        private string defaultConfigXml;
+
+        [OneTimeSetUp]
+        public void OneTimeSetUp()
+        {
+            service = IPBanService.CreateAndStartIPBanTestService<IPBanService>();
+            defaultConfigXml = service.Config.Xml;
+            tempLogPath = Path.Combine(AppContext.BaseDirectory, "testevents.log").Replace('\\', '/');
+        }
 
         [SetUp]
         public void SetUp()
         {
-            service = IPBanService.CreateAndStartIPBanTestService<IPBanService>();
+            if (!string.Equals(service.Config.Xml, defaultConfigXml, StringComparison.Ordinal))
+            {
+                service.WriteConfigAsync(defaultConfigXml).Sync();
+                service.RunCycleAsync().Sync();
+            }
             service.Firewall.Truncate();
-            tempLogPath = Path.Combine(AppContext.BaseDirectory, "testevents.log").Replace('\\', '/');
+            service.DB.Truncate(true);
             File.WriteAllText(tempLogPath, string.Empty);
         }
 
-        [TearDown]
-        public void TearDown()
+        [OneTimeTearDown]
+        public void OneTimeTearDown()
         {
             IPBanService.DisposeIPBanTestService(service);
             service = null;
@@ -49,7 +62,6 @@ namespace DigitalRuby.IPBanTests
 
             // Run cycles to allow scanner + processing
             await service.RunCycleAsync();
-            await service.RunCycleAsync();
 
             // Expect no banned ip (event ignored because IsTest set)
             ClassicAssert.AreEqual(0, service.Firewall.EnumerateBannedIPAddresses().Count(), "No IPs should be banned when Description=test");
@@ -62,7 +74,6 @@ namespace DigitalRuby.IPBanTests
             File.AppendAllText(tempLogPath, "failed login from 5.6.7.8 user testuser\n");
 
             // Two cycles: parse + process + firewall apply
-            await service.RunCycleAsync();
             await service.RunCycleAsync();
 
             var banned = service.Firewall.EnumerateBannedIPAddresses().ToArray();
@@ -87,7 +98,6 @@ namespace DigitalRuby.IPBanTests
 
             service.EventViewer.ProcessEventViewerXml(xml);
             await service.RunCycleAsync(); // process pending log events (ignored)
-            await service.RunCycleAsync(); // ensure firewall update cycle passes
 
             ClassicAssert.AreEqual(0, service.Firewall.EnumerateBannedIPAddresses().Count(), "Event viewer event should be ignored when Description=test");
 
@@ -95,7 +105,6 @@ namespace DigitalRuby.IPBanTests
             await ApplyEventViewerGroupDescription("");
             await service.RunCycleAsync();
             service.EventViewer.ProcessEventViewerXml(xml);
-            await service.RunCycleAsync();
             await service.RunCycleAsync();
 
             var banned = service.Firewall.EnumerateBannedIPAddresses().ToArray();

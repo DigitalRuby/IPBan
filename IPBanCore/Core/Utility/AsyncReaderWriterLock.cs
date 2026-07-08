@@ -156,13 +156,21 @@ namespace DigitalRuby.IPBanCore
             }
         }
 
+        private int disposed; // 0 = live, 1 = disposed (Interlocked-managed)
+
         /// <summary>
-        /// Dispose of all resources
+        /// Dispose of all resources. Idempotent — safe to call multiple times. The Interlocked
+        /// gate prevents a second call from re-disposing already-disposed semaphores, and the
+        /// per-semaphore try/catch tolerates races with in-flight Wait/Release operations.
         /// </summary>
         public void Dispose()
         {
-            _writeSemaphore.Dispose();
-            _readSemaphore.Dispose();
+            if (Interlocked.Exchange(ref disposed, 1) != 0)
+            {
+                return;
+            }
+            try { _writeSemaphore.Dispose(); } catch { /* best effort */ }
+            try { _readSemaphore.Dispose(); } catch { /* best effort */ }
         }
     }
 }

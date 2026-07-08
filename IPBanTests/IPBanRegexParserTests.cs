@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 namespace DigitalRuby.IPBanTests
 {
     [TestFixture]
-    public sealed class IPBanRegexParserTests
+    public sealed partial class IPBanRegexParserTests
     {
         // ---------- Helpers ----------
         private static Match MatchSingle(string pattern, string text, bool multiline = false)

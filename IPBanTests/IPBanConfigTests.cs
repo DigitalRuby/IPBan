@@ -103,7 +103,7 @@ namespace DigitalRuby.IPBanTests
                 ],
                 [
                     "C:/Program Files (x86)/Mail Enable/Logging/SMTP/SMTP-Activity-*.log\nC:/Program Files/Mail Enable/Logging/SMTP/SMTP-Activity-*.log\nC:/Program Files (x86)/Mail Enable/Logging/IMAP\nC:/Program Files/Mail Enable/Logging/IMAP",
-                    @"^(?<timestamp>[0-9\/:\s]+)SMTP\-IN\s+[^\s]+\s+[^\s]+\s(?<ipaddress>[^\s]+)\s+[^\s]+\s+[^\s]+\s+[^\s]+\s+(?<log>Invalid\sUsername\sor\sPassword)\s+[^\s]+\s+[^\s]+\s+(?<username>[^\n]+)$|^(?<timestamp>[0-9\/:\s]+)IMAP\-IN\s+[^\s]+\s+(?<ipaddress>[^\s]+)\s+LOGIN\s+LOGIN\s+""(?<username>[^""]+)""\s+""[^""]+""\s+[^\s]+\s+NO\s+LOGIN\s+Failed\s+[^\s]+\s+(?<log>Invalid\s+username\s+or\s+password)[^\n]*$|^(?<timestamp>[0-9\/]+\s[0-9\:]+)\sSMTP\-IN\s[^\s]+\s[^\s]+\s(?<ipaddress>[^\s]+)\s[^\s]+\s[^\s]+\sTO\:(?<username>[^\s]+)\s[^\s]+\sthis\smail\sserver\srequires\sauthentication\swhen\sattempting\sto\ssend\sto\sa\snon-local\se-mail\saddress[^\n]+\n$",
+                    @"^(?<timestamp>[0-9\/:\s]+)SMTP\-IN\s+[^\s]+\s+[^\s]+\s(?<ipaddress>[^\s]+)\s+[^\s]+\s+[^\s]+\s+[^\s]+\s+(?<log>Invalid\sUsername\sor\sPassword)\s+[^\s]+\s+[^\s]+\s+(?<username>[^\n]+)$|^(?<timestamp>[0-9\/:\s]+)IMAP\-IN\s+[^\s]+\s+(?<ipaddress>[^\s]+)\s+LOGIN\s+LOGIN\s+""(?<username>[^""]+)""\s+""[^""]+""\s+[^\s]+\s+NO\s+LOGIN\s+Failed\s+[^\s]+\s+(?<log>Invalid\s+username\s+or\s+password)[^\n]*$|^(?<timestamp>[0-9\/:\s]+)\sSMTP\-IN\s[^\s]+\s[^\s]+\s(?<ipaddress>[^\s]+)\s[^\s]+\s[^\s]+\sTO\:(?<username>[^\s]+)\s[^\s]+\sthis\smail\sserver\srequires\sauthentication\swhen\sattempting\sto\ssend\sto\sa\snon-local\se-mail\saddress[^\n]+$|^(?<timestamp>[0-9\/:\s]+)\s+[^\s]+\s+[^\s]+\s+[^\s]+\s+(?<ipaddress>[^\s]+)\s+.*\sdenied\saccess\s+[^\n]+$",
                     @"MM/dd/yy HH:mm:ss",
                     @"",
                     @"",
@@ -247,6 +247,7 @@ namespace DigitalRuby.IPBanTests
                 ClassicAssert.IsEmpty(cfg.ProcessToRunOnBan);
                 ClassicAssert.IsEmpty(cfg.ProcessToRunOnSuccessfulLogin);
                 ClassicAssert.IsEmpty(cfg.ProcessToRunOnUnban);
+                ClassicAssert.IsEmpty(cfg.GetUrlUpdateSha256);
                 ClassicAssert.IsFalse(cfg.ResetFailedLoginCountForUnbannedIPAddresses);
                 ClassicAssert.IsTrue(cfg.UseDefaultBannedIPAddressHandler);
                 ClassicAssert.AreEqual(cfg.TruncateUserNameChars, "@");
@@ -268,6 +269,20 @@ namespace DigitalRuby.IPBanTests
             {
                 IPBanService.DisposeIPBanTestService(service);
             }
+        }
+
+        [Test]
+        public void UserNameWhitelist_OverlongUserNameDoesNotMatchDistanceSentinel()
+        {
+            IPBanConfig cfg = IPBanConfig.LoadFromXml(
+                "<?xml version='1.0'?><configuration><appSettings>" +
+                "<add key='UserNameWhitelist' value='admin' />" +
+                "<add key='UserNameWhitelistMinimumEditDistance' value='2' />" +
+                "</appSettings></configuration>");
+            string tooLong = new string('a', LevenshteinUnsafe.MaxInputLength + 1);
+
+            ClassicAssert.IsFalse(cfg.IsUserNameWithinMaximumEditDistanceOfUserNameWhitelist(tooLong, out bool hasUserNameWhitelist));
+            ClassicAssert.IsTrue(hasUserNameWhitelist);
         }
 
         /// <summary>
@@ -459,8 +474,13 @@ e.g.
         public void TestFirewallRules_EmptyIpSection_NoCrash()
         {
             // name;allow/block;ips;ports;platform_regex
+            // Use ".*" for the platform regex so the test passes on every OS — the previous
+            // value "Windows" caused IPBanConfig.ParseExtraFirewallRules to filter both rules
+            // out on Linux/macOS test runs (production code does this on purpose; the rule
+            // entry's platform field is honored). The point of this test is to verify the
+            // parser tolerates an empty IP section, not to test platform filtering.
             string configXml = "<?xml version='1.0'?><configuration><appSettings>" +
-                "<add key='FirewallRules' value='MyRule;block;;22-80;Windows\nMyRule2;allow;1.2.3.4;;Windows' />" +
+                "<add key='FirewallRules' value='MyRule;block;;22-80;.*\nMyRule2;allow;1.2.3.4;;.*' />" +
                 "</appSettings></configuration>";
             var cfg = IPBanConfig.LoadFromXml(configXml);
 

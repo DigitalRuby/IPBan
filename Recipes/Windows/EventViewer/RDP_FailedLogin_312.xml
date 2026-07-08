@@ -1,0 +1,29 @@
+<!-- RDP failed login event id 312, not logged apparently for successful logins, only failures -->
+<Group>
+	<Source>RDP</Source>
+	<Keywords>0x4000000000000000</Keywords>
+	<Path>Microsoft-Windows-TerminalServices-Gateway/Operational</Path>
+	<FailedLoginThreshold>0</FailedLoginThreshold>
+	<Expressions>
+		<Expression>
+			<XPath>//EventID</XPath>
+			<Regex>^312$</Regex>
+		</Expression>
+		<Expression>
+			<XPath>//Username</XPath>
+			<Regex>
+				<![CDATA[
+					(?<username>.+)
+				]]>
+			</Regex>
+		</Expression>
+		<Expression>
+			<XPath>//IpAddress</XPath>
+			<Regex>
+				<![CDATA[
+					(?<ipaddress>.+)
+				]]>
+			</Regex>
+		</Expression>
+	</Expressions>
+</Group>

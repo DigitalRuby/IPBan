@@ -60,14 +60,86 @@ namespace DigitalRuby.IPBanCore
         // DO NOT CHANGE THESE CONST AND READONLY FIELDS! ***********************************************************************************
         private const string clsidFwPolicy2 = "{E2B3C97F-6AE1-41AC-817A-F6F92166D7DD}";
         private const string clsidFwRule = "{2C5BC43E-3369-4C33-AB0C-BE9469677AF4}";
+        private static readonly INetFwPolicy2 policy = CreateComPolicy();
+        private static readonly INetFwMgr manager = CreateComManager();
+
+        [UnconditionalSuppressMessage("Trimming", "IL2072", Justification = "Windows COM firewall policy activation is runtime COM-based.")]
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Interoperability", "CA1416:Validate platform compatibility", Justification = "jjxtra")]
-        private static readonly INetFwPolicy2 policy = Activator.CreateInstance(Type.GetTypeFromCLSID(new Guid(clsidFwPolicy2))) as INetFwPolicy2;
+        private static INetFwPolicy2 CreateComPolicy() =>
+            Activator.CreateInstance(Type.GetTypeFromCLSID(new Guid(clsidFwPolicy2))) as INetFwPolicy2;
+
+        [UnconditionalSuppressMessage("Trimming", "IL2072", Justification = "Windows COM firewall manager activation is runtime COM-based.")]
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Interoperability", "CA1416:Validate platform compatibility", Justification = "jjxtra")]
-        private static readonly INetFwMgr manager = (INetFwMgr)Activator.CreateInstance(Type.GetTypeFromProgID("HNetCfg.FwMgr"));
-        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)]
+        private static INetFwMgr CreateComManager() =>
+            (INetFwMgr)Activator.CreateInstance(Type.GetTypeFromProgID("HNetCfg.FwMgr"));
+
+        [UnconditionalSuppressMessage("Trimming", "IL2072", Justification = "COM type resolved by CLSID at runtime; parameterless constructor is guaranteed by COM registration.")]
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Interoperability", "CA1416:Validate platform compatibility", Justification = "jjxtra")]
-        private static readonly Type ruleType = Type.GetTypeFromCLSID(new Guid(clsidFwRule));
+        private static INetFwRule CreateComFwRule() =>
+            Activator.CreateInstance(Type.GetTypeFromCLSID(new Guid(clsidFwRule))) as INetFwRule;
         private static readonly char[] firewallEntryDelimiters = ['/', '-'];
+
+        // Dedicated lock object for serializing access to the COM policy and its Rules
+        // collection. We don't lock on `policy` directly because (a) it's a COM RCW so locking
+        // on it is fragile if the COM init ever fails and the field is null, and (b) using a
+        // plain object makes the synchronization boundary explicit. Every policy.Rules access
+        // in this class must happen inside lock(policyLock).
+        private static readonly object policyLock = new();
+        // **********************************************************************************************************************************
+
+        /// <summary>
+        /// Release a COM RCW reference for a fetched INetFwRule. Any rule obtained via
+        /// policy.Rules.Item(name) or by iterating policy.Rules carries a managed wrapper
+        /// over a COM object — failing to release it leaves the underlying RPC handle in
+        /// the COM apartment until GC. At firewall scales (thousands of rules iterated each
+        /// cycle) those handles accumulate until the firewall service refuses new calls and
+        /// the process must be restarted.
+        /// Public for testability — handles null and non-COM objects safely.
+        /// </summary>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Interoperability", "CA1416:Validate platform compatibility", Justification = "Windows firewall COM object release is only used in Windows firewall implementation.")]
+        public static void ReleaseRule(INetFwRule rule)
+        {
+            if (rule is null)
+            {
+                return;
+            }
+            try
+            {
+                if (Marshal.IsComObject(rule))
+                {
+                    Marshal.FinalReleaseComObject(rule);
+                }
+            }
+            catch
+            {
+                // best effort — RCW may have already been released by another path
+            }
+        }
+
+        /// <summary>
+        /// A list of INetFwRule COM objects that releases each RCW on Dispose.
+        /// Callers MUST dispose (via using or explicit Dispose) to avoid leaking.
+        /// Public for testability.
+        /// </summary>
+        public sealed class RuleList : List<INetFwRule>, IDisposable
+        {
+            private bool disposed;
+
+            /// <inheritdoc />
+            public void Dispose()
+            {
+                if (disposed)
+                {
+                    return;
+                }
+                disposed = true;
+                for (int i = 0; i < Count; i++)
+                {
+                    ReleaseRule(this[i]);
+                }
+                Clear();
+            }
+        }
         // **********************************************************************************************************************************
 
         private static string CreateRuleStringForIPAddresses(IReadOnlyList<string> ipAddresses, int index, int count)
@@ -98,6 +170,7 @@ namespace DigitalRuby.IPBanCore
             return b.ToString();
         }
 
+        [UnconditionalSuppressMessage("Trimming", "IL2072", Justification = "COM rule object activation is runtime COM-based.")]
         private static bool GetOrCreateRule(string ruleName, string remoteIPAddresses, NetFwAction action,
             IEnumerable<PortRange> allowedPorts = null, string description = null)
         {
@@ -105,10 +178,10 @@ namespace DigitalRuby.IPBanCore
             bool emptyIPAddressString = string.IsNullOrWhiteSpace(remoteIPAddresses) || remoteIPAddresses == "*";
             bool ruleNeedsToBeAdded = false;
 
-            lock (policy)
+            lock (policyLock)
             {
-            recreateRule:
                 INetFwRule rule = null;
+            try_again:
                 try
                 {
                     rule = policy.Rules.Item(ruleName);
@@ -122,7 +195,7 @@ namespace DigitalRuby.IPBanCore
                     var disabled = description is not null && description.Contains("###DISABLED###");
                     description = description?.Replace("###DISABLED###", string.Empty);
                     var ruleDescription = description ?? "Automatically created by IPBan";
-                    rule = Activator.CreateInstance(ruleType) as INetFwRule;
+                    rule = CreateComFwRule();
                     rule.Name = ruleName;
                     rule.Description = ruleDescription;
                     rule.Enabled = !disabled;
@@ -168,7 +241,11 @@ namespace DigitalRuby.IPBanCore
                                 if (!ruleNeedsToBeAdded)
                                 {
                                     policy.Rules.Remove(ruleName);
-                                    goto recreateRule;
+                                    // release the stale rule before re-fetching to avoid leaking its COM RCW
+                                    ReleaseRule(rule);
+                                    rule = null;
+                                    ruleNeedsToBeAdded = false;
+                                    goto try_again;
                                 }
                             }
                         }
@@ -198,7 +275,10 @@ namespace DigitalRuby.IPBanCore
                 {
                     policy.Rules.Add(rule);
                 }
-                return (rule != null);
+                bool created = (rule != null);
+                // release our local COM reference; if we Added, the policy holds its own reference
+                ReleaseRule(rule);
+                return created;
             }
         }
 
@@ -218,15 +298,17 @@ namespace DigitalRuby.IPBanCore
 
         private void MigrateOldDefaultRuleNames()
         {
-            // migrate old default rule names to new names
+            // migrate old default rule names to new names — release each fetched rule's RCW
+            // after we're done renaming it, otherwise a rolling migration leaks one COM handle
+            // per rule per service start.
             INetFwRule rule;
             for (int i = 0; ; i += MaxIpAddressesPerRule)
             {
-                lock (policy)
+                rule = null;
+                lock (policyLock)
                 {
                     try
                     {
-                        rule = null;
                         try
                         {
                             // migrate really old style
@@ -243,11 +325,14 @@ namespace DigitalRuby.IPBanCore
                     catch
                     {
                         // ignore exception, assume does not exist
+                        ReleaseRule(rule);
                         break;
                     }
                 }
+                ReleaseRule(rule);
             }
-            lock (policy)
+            rule = null;
+            lock (policyLock)
             {
                 try
                 {
@@ -259,15 +344,17 @@ namespace DigitalRuby.IPBanCore
                     // ignore exception, assume does not exist
                 }
             }
+            ReleaseRule(rule);
         }
 
         private static bool DeleteRules(string ruleNamePrefix, int startIndex = 0)
         {
             try
             {
-                lock (policy)
+                using var matchingRules = EnumerateRulesMatchingPrefix(ruleNamePrefix);
+                lock (policyLock)
                 {
-                    foreach (INetFwRule rule in EnumerateRulesMatchingPrefix(ruleNamePrefix).ToArray())
+                    foreach (INetFwRule rule in matchingRules)
                     {
                         try
                         {
@@ -282,6 +369,7 @@ namespace DigitalRuby.IPBanCore
                         }
                     }
                 }
+                // matchingRules.Dispose() releases all enumerated INetFwRule COM RCWs
                 return true;
             }
             catch (Exception ex)
@@ -291,32 +379,63 @@ namespace DigitalRuby.IPBanCore
             }
         }
 
-        private static List<INetFwRule> EnumerateRulesMatchingPrefix(string ruleNamePrefix)
+        // Returns a snapshot of rules whose name starts with the prefix. The caller MUST
+        // dispose the returned RuleList (use `using var rules = ...`) so each INetFwRule's
+        // COM RCW is released — otherwise every call leaks one handle per matching rule.
+        // The policy lock is held for the entire enumeration because the underlying COM
+        // enumerator is not thread-safe; a concurrent Add/Remove from another thread can
+        // crash the iterator mid-loop.
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Interoperability", "CA1416:Validate platform compatibility", Justification = "Windows firewall COM enumerator release is only used in Windows firewall implementation.")]
+        private static RuleList EnumerateRulesMatchingPrefix(string ruleNamePrefix)
         {
             // powershell example
             // (New-Object -ComObject HNetCfg.FwPolicy2).rules | Where-Object { $_.Name -match '^prefix' } | ForEach-Object { Write-Output "$($_.Name)" }
             // TODO: Revisit COM interface in .NET core 3.0
-            List<INetFwRule> rules = [];
-            var e = policy.Rules.GetEnumeratorVariant();
-            object[] results = new object[64];
-            int count;
+            RuleList rules = new();
             bool matchAll = (string.IsNullOrWhiteSpace(ruleNamePrefix) || ruleNamePrefix == "*");
             IntPtr bufferLengthPointer = Marshal.AllocCoTaskMem(Marshal.SizeOf<int>());
+            object[] results = new object[64];
+            int count;
             try
             {
-                do
+                lock (policyLock)
                 {
-                    e.Next(results.Length, results, bufferLengthPointer);
-                    count = Marshal.ReadInt32(bufferLengthPointer);
-                    foreach (object o in results)
+                    var e = policy.Rules.GetEnumeratorVariant();
+                    try
                     {
-                        if ((o is INetFwRule rule) && (matchAll || rule.Name.StartsWith(ruleNamePrefix, StringComparison.OrdinalIgnoreCase)))
+                        do
                         {
-                            rules.Add(rule);
+                            e.Next(results.Length, results, bufferLengthPointer);
+                            count = Marshal.ReadInt32(bufferLengthPointer);
+                            for (int i = 0; i < count; i++)
+                            {
+                                object o = results[i];
+                                if (o is INetFwRule rule)
+                                {
+                                    if (matchAll || rule.Name.StartsWith(ruleNamePrefix, StringComparison.OrdinalIgnoreCase))
+                                    {
+                                        rules.Add(rule);
+                                    }
+                                    else
+                                    {
+                                        // we own this RCW since enumeration handed it to us — release the ones we filter out
+                                        ReleaseRule(rule);
+                                    }
+                                }
+                                // null entries are returned at the end of the buffer; nothing to release
+                                results[i] = null;
+                            }
+                        }
+                        while (count == results.Length);
+                    }
+                    finally
+                    {
+                        if (e is not null && Marshal.IsComObject(e))
+                        {
+                            try { Marshal.FinalReleaseComObject(e); } catch { /* best effort */ }
                         }
                     }
                 }
-                while (count == results.Length);
             }
             finally
             {
@@ -496,7 +615,7 @@ namespace DigitalRuby.IPBanCore
 
             try
             {
-                lock (policy)
+                lock (policyLock)
                 {
                     foreach (INetFwRule rule in policy.Rules)
                     {
@@ -529,6 +648,13 @@ namespace DigitalRuby.IPBanCore
                             {
                                 Logger.Error(inner);
                             }
+                        }
+                        finally
+                        {
+                            // Each rule from this foreach is a fresh COM RCW that we own; release
+                            // it before the next iteration so a Compile over a large firewall
+                            // doesn't accumulate handles until exhaustion.
+                            ReleaseRule(rule);
                         }
                     }
                 }
@@ -577,29 +703,32 @@ namespace DigitalRuby.IPBanCore
 
             string prefix = (string.IsNullOrWhiteSpace(ruleNamePrefix) ? BlockRulePrefix : RulePrefix + ruleNamePrefix).TrimEnd('_') + "_";
             int ruleIndex;
-            INetFwRule[] rules = [.. EnumerateRulesMatchingPrefix(prefix)];
+            // Snapshot just the rule names and remote-address strings into managed memory, then
+            // dispose the RuleList immediately. The rest of the algorithm only needs the strings;
+            // holding live COM references across it would pin one RCW per rule for the whole
+            // delta computation.
+            string[] ruleNames;
             List<HashSet<string>> remoteIPAddresses = [];
             List<bool> ruleChanges = [];
-            for (int i = 0; i < rules.Length; i++)
+            using (var matchedRules = EnumerateRulesMatchingPrefix(prefix))
             {
-                string[] ipList = rules[i].RemoteAddresses.Split(',');
-                HashSet<string> ipSet = [];
-                foreach (string ip in ipList)
+                ruleNames = new string[matchedRules.Count];
+                for (int i = 0; i < matchedRules.Count; i++)
                 {
-                    // trim out submask
-                    int pos = ip.IndexOfAny(firewallEntryDelimiters);
-                    if (pos >= 0)
+                    ruleNames[i] = matchedRules[i].Name;
+                    string[] ipList = (matchedRules[i].RemoteAddresses ?? string.Empty).Split(',');
+                    HashSet<string> ipSet = [];
+                    foreach (string ip in ipList)
                     {
-                        ipSet.Add(ip[..pos]);
+                        // trim out submask
+                        int pos = ip.IndexOfAny(firewallEntryDelimiters);
+                        ipSet.Add(pos >= 0 ? ip[..pos] : ip);
                     }
-                    else
-                    {
-                        ipSet.Add(ip);
-                    }
+                    remoteIPAddresses.Add(ipSet);
+                    ruleChanges.Add(false);
                 }
-                remoteIPAddresses.Add(ipSet);
-                ruleChanges.Add(false);
             }
+            // matchedRules disposed here — all INetFwRule RCWs released
             List<IPBanFirewallIPAddressDelta> deltas = ipAddresses.ToList();
             int deltasCount = deltas.Count;
             for (int deltaIndex = deltas.Count - 1; deltaIndex >= 0; deltaIndex--)
@@ -657,7 +786,7 @@ namespace DigitalRuby.IPBanCore
             {
                 if (ruleChanges[i])
                 {
-                    string name = (i < rules.Length ? rules[i].Name : prefix + ruleIndex.ToStringInvariant());
+                    string name = (i < ruleNames.Length ? ruleNames[i] : prefix + ruleIndex.ToStringInvariant());
                     GetOrCreateRule(name, string.Join(',', remoteIPAddresses[i]), NetFwAction.Block, allowedPorts);
                 }
                 ruleIndex += MaxIpAddressesPerRule;
@@ -700,94 +829,103 @@ namespace DigitalRuby.IPBanCore
         public override IEnumerable<string> GetRuleNames(string ruleNamePrefix = null)
         {
             string prefix = (string.IsNullOrWhiteSpace(ruleNamePrefix) ? RulePrefix : RulePrefix + ruleNamePrefix);
-            return EnumerateRulesMatchingPrefix(prefix).OrderBy(r => r.Name).Select(r => r.Name);
+            // Materialize the names with ToList() before the using block disposes the RuleList.
+            // A lazy LINQ chain would be evaluated only when the consumer iterated it — by then
+            // the COM rules would already be released and Name reads would crash.
+            using var matchedRules = EnumerateRulesMatchingPrefix(prefix);
+            return matchedRules.OrderBy(r => r.Name).Select(r => r.Name).ToList();
         }
 
         /// <inheritdoc />
         public override bool DeleteRule(string ruleName)
         {
+            INetFwRule rule = null;
             try
             {
-                INetFwRule rule = policy.Rules.Item(ruleName);
-                policy.Rules.Remove(rule.Name);
+                lock (policyLock)
+                {
+                    rule = policy.Rules.Item(ruleName);
+                    policy.Rules.Remove(rule.Name);
+                }
                 return true;
             }
             catch
             {
+                return false;
             }
-            return false;
+            finally
+            {
+                ReleaseRule(rule);
+            }
+        }
+
+        // Read RemoteAddresses for one rule under the policy lock, releasing the COM RCW
+        // before returning. Yields a null string when the rule does not exist.
+        private static string ReadRemoteAddressesForRule(string ruleName)
+        {
+            INetFwRule rule = null;
+            try
+            {
+                lock (policyLock)
+                {
+                    try
+                    {
+                        rule = policy.Rules.Item(ruleName);
+                    }
+                    catch
+                    {
+                        return null; // does not exist
+                    }
+                    if (rule is null)
+                    {
+                        return null;
+                    }
+                    return rule.RemoteAddresses ?? string.Empty;
+                }
+            }
+            finally
+            {
+                ReleaseRule(rule);
+            }
         }
 
         /// <inheritdoc />
         public override IEnumerable<string> EnumerateBannedIPAddresses(string ruleNamePrefix = null)
         {
-            int i = 0;
-            INetFwRule rule;
             string prefix = (ruleNamePrefix is null ? BlockRulePrefix : ruleNamePrefix);
-            while (true)
+            for (int i = 0; ; i += MaxIpAddressesPerRule)
             {
                 string ruleName = prefix + i.ToString(CultureInfo.InvariantCulture);
-                try
+                string remoteAddresses = ReadRemoteAddressesForRule(ruleName);
+                if (remoteAddresses is null)
                 {
-                    rule = policy.Rules.Item(ruleName);
-                    if (rule is null)
-                    {
-                        break;
-                    }
+                    yield break;
                 }
-                catch
-                {
-                    // does not exist
-                    break;
-                }
-                foreach (string ip in rule.RemoteAddresses.Split(','))
+                foreach (string ip in remoteAddresses.Split(','))
                 {
                     int pos = ip.IndexOfAny(firewallEntryDelimiters);
-                    if (pos < 0)
-                    {
-                        yield return ip;
-                    }
-                    else
-                    {
-                        yield return ip[..pos];
-                    }
+                    yield return pos < 0 ? ip : ip[..pos];
                 }
-                i += MaxIpAddressesPerRule;
             }
         }
 
         /// <inheritdoc />
         public override IEnumerable<string> EnumerateAllowedIPAddresses(string ruleNamePrefix = null)
         {
-            INetFwRule rule;
             string prefix = (ruleNamePrefix is null ? AllowRulePrefix : ruleNamePrefix);
 
             for (int i = 0; ; i += MaxIpAddressesPerRule)
             {
-                try
+                string ruleName = prefix + i.ToString(CultureInfo.InvariantCulture);
+                string remoteAddresses = ReadRemoteAddressesForRule(ruleName);
+                if (remoteAddresses is null)
                 {
-                    rule = policy.Rules.Item(prefix + i.ToString(CultureInfo.InvariantCulture));
-                    if (rule is null)
-                    {
-                        break;
-                    }
-                }
-                catch
-                {
-                    // OK, rule does not exist
                     yield break;
                 }
-                foreach (string ip in rule.RemoteAddresses.Split(','))
+                foreach (string ip in remoteAddresses.Split(','))
                 {
                     int pos = ip.IndexOfAny(firewallEntryDelimiters);
-                    if (pos < 0)
-                    {
-                        yield return ip;
-                    }
-                    else
-                    {
-                        yield return ip[..pos];
-                    }
+                    yield return pos < 0 ? ip : ip[..pos];
                 }
             }
         }
@@ -796,20 +934,33 @@ namespace DigitalRuby.IPBanCore
         public override IEnumerable<IPAddressRange> EnumerateIPAddresses(string ruleNamePrefix = null)
         {
             string prefix = (string.IsNullOrWhiteSpace(ruleNamePrefix) ? RulePrefix : RulePrefix + ruleNamePrefix);
-            foreach (INetFwRule rule in EnumerateRulesMatchingPrefix(prefix))
+
+            // Snapshot the RemoteAddresses strings while the RuleList is still live, then dispose
+            // the rules and yield from managed memory. Yielding from inside the using block would
+            // either keep COM RCWs alive across the consumer's iteration (which may be slow or
+            // unbounded) or, worse, dispose them while the consumer is still reading.
+            List<string> ipLists = [];
+            using (var matchedRules = EnumerateRulesMatchingPrefix(prefix))
             {
-                string ipList = rule.RemoteAddresses;
-                if (!string.IsNullOrWhiteSpace(ipList) && ipList != "*")
+                foreach (INetFwRule rule in matchedRules)
                 {
-                    string[] ips = ipList.Split(',');
-                    foreach (string ip in ips)
+                    string ipList = rule.RemoteAddresses;
+                    if (!string.IsNullOrWhiteSpace(ipList) && ipList != "*")
                     {
-                        if (IPAddressRange.TryParse(ip, out IPAddressRange range))
-                        {
-                            yield return range;
-                        }
-                        // else // should never happen
+                        ipLists.Add(ipList);
                     }
+                }
+            }
+
+            foreach (string ipList in ipLists)
+            {
+                foreach (string ip in ipList.Split(','))
+                {
+                    if (IPAddressRange.TryParse(ip, out IPAddressRange range))
+                    {
+                        yield return range;
+                    }
+                    // else // should never happen
                 }
             }
         }
@@ -817,11 +968,12 @@ namespace DigitalRuby.IPBanCore
         /// <inheritdoc />
         public override string GetPorts(string ruleName)
         {
+            INetFwRule rule = null;
             try
             {
-                lock (policy)
+                lock (policyLock)
                 {
-                    INetFwRule rule = policy.Rules.Item(ruleName);
+                    rule = policy.Rules.Item(ruleName);
                     return rule.LocalPorts ?? string.Empty;
                 }
             }
@@ -829,16 +981,20 @@ namespace DigitalRuby.IPBanCore
             {
                 // not exist, no way to determine this without throwing
             }
+            finally
+            {
+                ReleaseRule(rule);
+            }
             return null;
-
         }
 
         /// <inheritdoc />
         public override void Truncate()
         {
-            foreach (INetFwRule rule in EnumerateRulesMatchingPrefix(RulePrefix).ToArray())
+            using var matchedRules = EnumerateRulesMatchingPrefix(RulePrefix);
+            foreach (INetFwRule rule in matchedRules)
             {
-                lock (policy)
+                lock (policyLock)
                 {
                     try
                     {

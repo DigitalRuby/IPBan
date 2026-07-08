@@ -11,6 +11,7 @@
 		<GenerateSerializationAssemblies>Off</GenerateSerializationAssemblies>
 		<TrimMode>partial</TrimMode>
 		<JsonSerializerIsReflectionEnabledByDefault>true</JsonSerializerIsReflectionEnabledByDefault>
+		<AllowUnsafeBlocks>True</AllowUnsafeBlocks>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -23,6 +24,9 @@
 	  <None Remove="TestData\EventViewer\EventViewerTests.txt" />
 	  <None Remove="TestData\EventViewer\Files\EventViewerInput1.txt" />
 	  <None Remove="TestData\EventViewer\Files\EventViewerInput2.txt" />
+	  <None Remove="TestData\EventViewer\Files\EventViewerInput4.txt" />
+	  <None Remove="TestData\EventViewer\Files\EventViewerInput5.txt" />
+	  <None Remove="TestData\EventViewer\Files\EventViewerInput6.txt" />
 	  <None Remove="TestData\IPSets\EmergingThreats.txt" />
 	  <None Remove="TestData\IPSets\SpamHaus.txt" />
 	</ItemGroup>
@@ -32,6 +36,15 @@
 	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 	  </Content>
 	  <Content Include="TestData\EventViewer\Files\EventViewerInput2.txt">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </Content>
+	  <Content Include="TestData\EventViewer\Files\EventViewerInput4.txt">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </Content>
+	  <Content Include="TestData\EventViewer\Files\EventViewerInput5.txt">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </Content>
+	  <Content Include="TestData\EventViewer\Files\EventViewerInput6.txt">
 	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 	  </Content>
 	  <Content Include="TestData\EventViewer\Files\EventViewerTests.txt">
@@ -49,13 +62,20 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Microsoft.TestPlatform.TestHost" Version="18.4.0" />
-		<PackageReference Include="nunit" Version="4.5.1" />
+		<PackageReference Include="Microsoft.TestPlatform.TestHost" Version="18.6.0" />
+		<PackageReference Include="nunit" Version="4.6.1" />
 		<PackageReference Include="NUnit3TestAdapter" Version="6.2.0">
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
-		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.4.0" />
+		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.6.0" />
+		<!-- Coverlet collector hooks the XPlat Code Coverage data collector so we can
+		     measure line / branch coverage of IPBanCore via the test run. See coverage/run.sh
+		     and coverage/coverlet.runsettings for the runner config. -->
+		<PackageReference Include="coverlet.collector" Version="10.0.1">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
 	</ItemGroup>
 
 	<ItemGroup>

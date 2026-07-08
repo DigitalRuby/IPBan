@@ -81,14 +81,76 @@ namespace DigitalRuby.IPBanTests
                 await queue.EnqueueAsync(i);
             }
 
-            for (int i = 0; i < 10 && count != 1000; i++)
-            {
-                Thread.Sleep(100);
-            }
+            const int expectedSum = 500500;
+            SpinWait.SpinUntil(() => Volatile.Read(ref count) == expectedSum, TimeSpan.FromSeconds(1));
 
             cancelToken.Cancel();
             ClassicAssert.IsTrue(Task.WhenAll([.. tasks]).Wait(1000));
-            ClassicAssert.AreEqual(500500, count); // sum of 1 to 1000
+            ClassicAssert.AreEqual(expectedSum, count); // sum of 1 to 1000
+        }
+
+        // -------------------- idempotent dispose --------------------
+
+        [Test]
+        public void DoubleDisposeDoesNotThrow()
+        {
+            // Without the idempotency gate, the second Dispose would NRE on the already-disposed
+            // inner SemaphoreSlim.
+            AsyncQueue<int> queue = new();
+            queue.Dispose();
+            Assert.DoesNotThrow(() => queue.Dispose());
+            ClassicAssert.IsTrue(queue.IsDisposed);
+        }
+
+        [Test]
+        public async Task EnqueueAfterDisposeIsNoOpNotThrow()
+        {
+            // After Dispose, Enqueue paths must short-circuit cleanly instead of crashing
+            // with ObjectDisposedException from the underlying semaphore.
+            AsyncQueue<int> queue = new();
+            queue.Dispose();
+            Assert.DoesNotThrowAsync(async () => await queue.EnqueueAsync(42));
+            Assert.DoesNotThrowAsync(async () => await queue.EnqueueRangeAsync([1, 2, 3]));
+            // dequeue from a disposed queue returns the negative result, no throw
+            var result = await queue.TryDequeueAsync(TimeSpan.FromMilliseconds(10));
+            ClassicAssert.IsFalse(result.Key);
+        }
+
+        // -------------------- range enqueue exception safety --------------------
+
+        [Test]
+        public async Task EnqueueRangeAsync_PartiallyFailedEnumerator_ReleasesOnlyEnqueuedCount()
+        {
+            // If the source enumerator throws partway through, items already enqueued must be
+            // matched by Release calls — otherwise the semaphore count drifts out of sync with
+            // the actual queue contents and consumers either block forever or wake spuriously.
+            AsyncQueue<int> queue = new();
+            IEnumerable<int> Throwing()
+            {
+                yield return 1;
+                yield return 2;
+                throw new InvalidOperationException("simulated source failure");
+            }
+
+            // The enumerator throws; the exception propagates, but two items are already enqueued.
+            Assert.ThrowsAsync<InvalidOperationException>(async () => await queue.EnqueueRangeAsync(Throwing()));
+
+            // Both items must still be dequeueable — proving the Release(2) fired in the finally.
+            var first = await queue.TryDequeueAsync(TimeSpan.FromMilliseconds(50));
+            var second = await queue.TryDequeueAsync(TimeSpan.FromMilliseconds(50));
+            ClassicAssert.IsTrue(first.Key, "first item should be dequeueable");
+            ClassicAssert.AreEqual(1, first.Value);
+            ClassicAssert.IsTrue(second.Key, "second item should be dequeueable");
+            ClassicAssert.AreEqual(2, second.Value);
+        }
+
+        [Test]
+        public async Task EnqueueRangeAsync_NullSourceIsNoOp()
+        {
+            AsyncQueue<int> queue = new();
+            Assert.DoesNotThrowAsync(async () => await queue.EnqueueRangeAsync(null));
+            var result = await queue.TryDequeueAsync(TimeSpan.FromMilliseconds(10));
+            ClassicAssert.IsFalse(result.Key);
         }
     }
 }
