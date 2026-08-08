@@ -7,6 +7,7 @@ Dec  9 00:54:01 webmail postfix/smtps/smtpd[971784]: warning: c-198-20-197-128.d
 
 -->
 <LogFile>
+	<Id>ZimbraPostfix</Id>
  <Source>Postfix</Source>
  <PathAndMask>/var/log/mail.log</PathAndMask>
  <FailedLoginRegex>

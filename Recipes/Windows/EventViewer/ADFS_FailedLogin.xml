@@ -1,5 +1,6 @@
 <!-- ADFS failed login token failed 1201 or fresh credential failure 1203 -->
 <Group>
+	<Id>ADFS_FailedLogin</Id>
 	<Source>ADFS</Source>
 	<Keywords>0x8090000000000000</Keywords>
 	<Path>Security</Path>

@@ -1,5 +1,6 @@
 <!-- Core FTP server, Windows -->
 <LogFile>
+	<Id>CoreFTP</Id>
 	<Source>CoreFTP</Source>
 	<PathAndMask>C:\Program Files\CoreFTPServer\logs\{year-local}{month-local}*.log</PathAndMask>
 	<FailedLoginRegex>

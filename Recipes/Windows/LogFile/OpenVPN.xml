@@ -1,5 +1,6 @@
     <!-- for use with auth-user-pass-verify -->
     <LogFile>
+    	<Id>OpenVPN</Id>
 
         <Source>OpenVPN</Source>
         <PathAndMask>C:/Program Files/OpenVPN/log/server.log</PathAndMask>

@@ -124,7 +124,8 @@ namespace DigitalRuby.IPBanCore
                         extractedEvent.Type = IPAddressEventType.None;
                     }
 
-                    Logger.Debug("Event viewer found: {0}, {1}, {2}, {3}", extractedEvent.IPAddress, extractedEvent.Source, extractedEvent.UserName, extractedEvent.Type);
+                    Logger.Debug("Event viewer found: {0}, {1}, {2}, {3}{4}", extractedEvent.IPAddress, extractedEvent.Source,
+                        extractedEvent.UserName, extractedEvent.Type, extractedEvent.IdLogSuffix);
                 }
             }
 
@@ -306,7 +307,8 @@ namespace DigitalRuby.IPBanCore
                     var isTest = group.Description is not null && group.Description.Trim().Equals("test", StringComparison.OrdinalIgnoreCase);
                     var newEvent = new IPAddressLogEvent(ipAddress, userName, source, count, eventType,
                         timestamp is null ? default : timestamp.Value, false, string.Empty,
-                        failedLoginThreshold, logLevel, logData, notificationFlags, failedLoginMinimumTimespan, isTest);
+                        failedLoginThreshold, logLevel, logData, notificationFlags, failedLoginMinimumTimespan, isTest,
+                        group.Id);
                     events.Add(newEvent);
                 }
             }

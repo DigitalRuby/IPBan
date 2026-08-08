@@ -24,6 +24,7 @@ Failure:
 
 <!-- Tectia Server SSH failed login -->
 <Group>
+	<Id>TectiaServer_SSH_FailedLogin</Id>
 	<Source>SSH</Source>
 	<Keywords>0x90000000000000</Keywords>
 	<Path>SSH Tectia Server</Path>

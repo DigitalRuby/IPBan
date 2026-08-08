@@ -44,6 +44,11 @@ namespace DigitalRuby.IPBanCore
         private readonly string regexSuccessTimestampFormat;
 
         /// <summary>
+        /// Optional id of the config entry, logged along with any event this scanner triggers, null or empty for none
+        /// </summary>
+        public string Id { get; }
+
+        /// <summary>
         /// The source of the failed login
         /// </summary>
         public string Source { get; }
@@ -87,6 +92,7 @@ namespace DigitalRuby.IPBanCore
             options.ThrowIfNull(nameof(options));
             options.EventHandler.ThrowIfNull(nameof(options.EventHandler));
             options.Dns.ThrowIfNull(nameof(options.Dns));
+            Id = options.Id;
             Source = options.Source;
             FailedLoginThreshold = options.FailedLoginThreshold;
             FailedLogLevel = options.FailedLogLevel;
@@ -114,7 +120,8 @@ namespace DigitalRuby.IPBanCore
                 return false;
             }
 
-            return Source == options.Source &&
+            return Id == options.Id &&
+                Source == options.Source &&
                 FailedLoginThreshold == options.FailedLoginThreshold &&
                 FailedLogLevel == options.FailedLogLevel &&
                 FailedLoginMinimumTimespan == options.MinimumTimeBetweenFailedLoginAttempts &&
@@ -159,10 +166,11 @@ namespace DigitalRuby.IPBanCore
                 }
                 info.NotificationFlags = NotificationFlags;
                 info.IsTest = Description is not null && Description.Trim().Equals("test", StringComparison.OrdinalIgnoreCase);
+                info.Id = Id;
                 events.Add(info);
 
-                Logger.Debug("Log file found match, ip: {0}, user: {1}, source: {2}, count: {3}, type: {4}",
-                    info.IPAddress, info.UserName, info.Source, info.Count, info.Type);
+                Logger.Debug("Log file found match, ip: {0}, user: {1}, source: {2}, count: {3}, type: {4}{5}",
+                    info.IPAddress, info.UserName, info.Source, info.Count, info.Type, info.IdLogSuffix);
             }
             eventHandler.AddIPAddressLogEvents(events);
         }

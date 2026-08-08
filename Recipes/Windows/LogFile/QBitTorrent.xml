@@ -1,4 +1,5 @@
    <LogFile>
+   	<Id>QBitTorrent</Id>
 
         <Source>qBittorrent</Source>
         <PathAndMask>C:/Users/Administrator/AppData/Local/qBittorrent/logs/qbittorrent.log</PathAndMask>

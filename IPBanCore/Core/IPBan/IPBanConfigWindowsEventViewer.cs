@@ -113,6 +113,14 @@ namespace DigitalRuby.IPBanCore
     public class EventViewerExpressionGroup
     {
         /// <summary>
+        /// Optional id, logged along with any event this group triggers. Nothing is logged if null or empty.
+        /// Empty input converts to null so that a blank id is left out of the config xml entirely.
+        /// </summary>
+        [LocalizedDisplayName(nameof(IPBanResources.RecipeId))]
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        public string Id { get; set; }
+
+        /// <summary>
         /// The event viewer source
         /// </summary>
         [DisplayFormat(ConvertEmptyStringToNull = false)]
@@ -180,6 +188,7 @@ namespace DigitalRuby.IPBanCore
         public override bool Equals(object obj)
         {
             return obj is EventViewerExpressionGroup group &&
+                Id == group.Id &&
                 Source == group.Source &&
                 Keywords == group.Keywords &&
                 MinimumWindowsMajorVersion == group.MinimumWindowsMajorVersion &&
@@ -191,7 +200,7 @@ namespace DigitalRuby.IPBanCore
         /// <inheritdoc />
         public override int GetHashCode()
         {
-            return HashCode.Combine(Source, Keywords, MinimumWindowsMajorVersion, MinimumWindowsMinorVersion, NotifyOnly);
+            return HashCode.Combine(Id, Source, Keywords, MinimumWindowsMajorVersion, MinimumWindowsMinorVersion, NotifyOnly);
         }
 
         /// <summary>

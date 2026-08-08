@@ -1,4 +1,4 @@
-﻿<!-- Bad IIS requests on Windows
+<!-- Bad IIS requests on Windows
 https://learn.microsoft.com/en-us/iis/extensions/advanced-logging-module/advanced-logging-for-iis-real-time-logging
 
 *NOTE* If you've setup iis to log in local time, change the timestamp_utc group in the regex to just timestamp.
@@ -13,6 +13,7 @@ Success...
 
 -->
 <LogFile>
+	<Id>IIS</Id>
 	<Source>IIS</Source>
 	<PathAndMask>C:/logs/LogFiles/**/*.log</PathAndMask>
 	<FailedLoginRegex>

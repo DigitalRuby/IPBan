@@ -1,4 +1,4 @@
-﻿<!-- Filezilla logins, Windows
+<!-- Filezilla logins, Windows
 
 Example failed logins:
 2024-04-17T20:50:00.069Z DI [Throttled Authenticator, FTP Session: 3636] Authenticating user root from IP 1.2.3.4.
@@ -20,6 +20,7 @@ Example success logins:
 (000487) 12/21/2021 14:07:08 PM - username (1.2.3.4)> 230 Logged on
 -->
 <LogFile>
+	<Id>Filezilla</Id>
 	<Source>Filezilla</Source>
 	<PathAndMask>
 		C:\Program Files (x86)\FileZilla Server\Logs

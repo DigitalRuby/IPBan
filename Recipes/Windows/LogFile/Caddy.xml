@@ -15,6 +15,7 @@ Example failure:
 -->
 
 <LogFile>
+	<Id>Caddy</Id>
         <Source>Caddy</Source>
         <PathAndMask>
           C:/Caddy/caddy_files/access.log

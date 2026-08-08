@@ -1,5 +1,6 @@
 <!-- MSSQL failed logins, Linux -->
 <LogFile>
+	<Id>MSSQL</Id>
 	<Source>MSSQL</Source>
 	<PathAndMask>/var/log/syslog</PathAndMask>
 	<FailedLoginRegex>

@@ -1,5 +1,6 @@
 <!-- ADFS successful token issued 1200 or fresh credentials success 1202 -->
 <Group>
+	<Id>ADFS_SuccessLogin</Id>
 	<Source>ADFS</Source>
 	<Keywords>0x80a0000000000000</Keywords>
 	<Path>Security</Path>

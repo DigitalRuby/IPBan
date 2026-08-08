@@ -1,4 +1,4 @@
-﻿<!-- Bad IIS requests on Windows
+<!-- Bad IIS requests on Windows
 Examples:
 2022/04/15 14:29:08 [error] 9808#9932: *122064 user "user" was not found in "C:\NGINX\conf\basicAuth\.htpasswd", client: 81.81.81.81, server: localhost:80, request: "GET / HTTP/1.1", host: "193.117.XX.XXX", referrer: "http://193.187.XX.XXX/"
 2022/04/15 14:29:08 [error] 9808#9932: *122065 user "user" was not found in "C:\NGINX\conf\basicAuth\.htpasswd", client: 82.81.81.81, server: localhost:80, request: "GET / HTTP/1.1", host: "113.117.XX.XXX", referrer: "http://193.187.XX.XXX/"
@@ -6,6 +6,7 @@ Examples:
 
 -->
 <LogFile>
+	<Id>Nginx</Id>
 	<Source>Nginx</Source>
 	<PathAndMask>c:/NGINX/logs/error.log</PathAndMask>
 	<FailedLoginRegex>

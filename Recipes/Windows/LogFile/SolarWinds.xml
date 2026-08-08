@@ -3,6 +3,7 @@ Example:
 2022-02-15 13:25:32,941 [7] INFO  SolarWinds.Sftp.Service.Listener - LogonFail Unknown Authentication failed for user username from IP 5.6.7.8; bad username or password.
 -->
 <LogFile>
+	<Id>SolarWinds</Id>
    <Source>SolarWinds</Source>
    <PathAndMask>C:\ProgramData\SolarWinds\*.log</PathAndMask>
    <FailedLoginRegex>

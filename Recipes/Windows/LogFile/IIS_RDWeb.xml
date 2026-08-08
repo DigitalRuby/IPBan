@@ -15,6 +15,7 @@ Two Example successful logins:
 2024-11-06 17:43:23 10.1.11.1 GET /RDWeb/FeedLogin/WebFeedLogin.aspx - 443 domain\user 1.2.3.4 TSWorkspace/2.0 - 200 0 0 103
 -->
 <LogFile>
+	<Id>IIS_RDWeb</Id>
 	<Source>RDWeb</Source>
 	<PathAndMask>C:/inetpub/logs/LogFiles/W3SVC1/**/*.log</PathAndMask>
 	<FailedLoginRegex>

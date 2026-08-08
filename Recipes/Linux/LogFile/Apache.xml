@@ -6,6 +6,7 @@ Apache 4xx errors on Linux
 In the failed login regex, the period can be changed to the desired paths if desired.
 -->
 <LogFile>
+	<Id>Apache</Id>
 	<Source>Apache</Source>
 	<PathAndMask>/var/log/apache/*access*.log</PathAndMask>
 	<FailedLoginRegex>

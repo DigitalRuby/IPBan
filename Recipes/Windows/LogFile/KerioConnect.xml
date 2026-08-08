@@ -5,6 +5,7 @@ Example failed login:
 [19/Jul/2023 06:46:21] SMTP: User april@jwhicks.com doesn't exist. Attempt from IP address 77.90.185.18.
 -->
 <LogFile>
+	<Id>KerioConnect</Id>
 	<Source>Kerio</Source>
 	<PathAndMask>C:\Program Files\Kerio\MailServer\store\logs\security.log</PathAndMask>
 	<FailedLoginRegex>

@@ -1,6 +1,7 @@
 <!-- openvpn Windows Server - 2 different interfaces/servers running/tcp443/udp1401 - Line 1 is detecting unwanted Browser-Access if server runs on tcp 443, Line 2 is for UDP-Server tls-auth ta.key not matching  -->
 
 <LogFile>
+	<Id>Openvpn_tls_auth</Id>
 
         <Source>OpenVPN</Source>
         <PathAndMask>C:/Program Files/OpenVPN/log/*.log</PathAndMask>

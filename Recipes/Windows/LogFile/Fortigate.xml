@@ -8,6 +8,7 @@ Success example:
 date=2026-02-10 time=12:12:39 devname="mydevname" devid="123" eventtime=1770750759692524597 tz="-0700" logid="0100032001" type="event" subtype="system" level="information" vd="root" logdesc="Admin login successful" sn="1770750759" user="theuser" ui="https(1.1.7.6)" method="https" srcip=1.1.7.6 dstip=1.1.7.7 action="login" status="success" reason="none" profile="super_admin" msg="Administrator theuser logged in successfully from https(1.1.7.6)"
 -->
 <LogFile>
+	<Id>Fortigate</Id>
 	<Source>Fortigate</Source>
 	<PathAndMask>D:/Server/Logs/**/*.log</PathAndMask> <!-- change to your path/mask -->
 	<FailedLoginRegex>

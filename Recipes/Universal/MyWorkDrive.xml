@@ -8,6 +8,7 @@ Example success:
 
 -->
 <LogFile>
+	<Id>MyWorkDrive</Id>
 	<Source>MyWorkDrive</Source>
 	<PathAndMask>
 		C:/Program Files (x86)/Wanpath/MyWorkDrive/Logs/**/*.xml

@@ -1,5 +1,6 @@
 <!-- RDP failed login event id 312, not logged apparently for successful logins, only failures -->
 <Group>
+	<Id>RDP_FailedLogin_312</Id>
 	<Source>RDP</Source>
 	<Keywords>0x4000000000000000</Keywords>
 	<Path>Microsoft-Windows-TerminalServices-Gateway/Operational</Path>

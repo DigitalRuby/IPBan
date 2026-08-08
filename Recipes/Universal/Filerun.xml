@@ -23,6 +23,7 @@ ____________________________________
     -->
 	  
       <LogFile>
+      	<Id>Filerun</Id>
 
         <Source>Filerun</Source>
         <PathAndMask>path/to/Filerun/customizables/events/log.txt</PathAndMask>

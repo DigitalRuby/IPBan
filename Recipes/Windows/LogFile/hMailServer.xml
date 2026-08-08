@@ -1,5 +1,6 @@
 <!-- hMailServer, Windows -->
 <LogFile>
+	<Id>hMailServer</Id>
 	<Source>hMailServer</Source>
 	<PathAndMask>C:/Program Files (x86)/hMailServer/Logs/hmailserver_{year-local}-{month-local}-{day-local}.log</PathAndMask>
 	<FailedLoginRegex>

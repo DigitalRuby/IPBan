@@ -66,6 +66,11 @@ namespace DigitalRuby.IPBanCore
         public IDnsLookup Dns { get; set; }
 
         /// <summary>
+        /// Optional id of the config entry, logged along with any event this scanner triggers. Nothing extra is logged if null or empty.
+        /// </summary>
+        public string Id { get; set; }
+
+        /// <summary>
         /// Default source
         /// </summary>
         public string Source { get; set; }
@@ -164,6 +169,7 @@ namespace DigitalRuby.IPBanCore
                 return
                     (EventHandler == other.EventHandler) &&
                     (Dns == other.Dns) &&
+                    (Id == other.Id) &&
                     (Source == other.Source) &&
                     (PathAndMask == other.PathAndMask) &&
                     (RegexFailure == other.RegexFailure) &&

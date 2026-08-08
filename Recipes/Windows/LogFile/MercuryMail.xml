@@ -1,5 +1,6 @@
 <!-- Mercury mail server failed logins, Windows -->
 <LogFile>
+	<Id>MercuryMail</Id>
 
   <Source>MercuryMail</Source>
 

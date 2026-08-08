@@ -1,4 +1,5 @@
  <LogFile>
+ 	<Id>SimpleDNS</Id>
 
         <Source>SimpleDNS</Source>
         <PathAndMask>C:/SimpleDNSLog/**/*.log</PathAndMask>

@@ -1,4 +1,4 @@
-﻿<!-- IIS FTP requests on Windows
+<!-- IIS FTP requests on Windows
 https://learn.microsoft.com/en-us/iis/extensions/advanced-logging-module/advanced-logging-for-iis-real-time-logging
 
 *NOTE* If you've setup iis to log in local time, change the timestamp_utc group in the regex to just timestamp.
@@ -16,6 +16,7 @@ Success example:
 -->
 
 <LogFile>
+	<Id>IIS_FTP</Id>
 	<Source>IIS_FTP</Source>
 	<PathAndMask>C:/inetpub/logs/LogFiles/FTPSVC3/*.log</PathAndMask>
 	<FailedLoginRegex>

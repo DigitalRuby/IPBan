@@ -1201,6 +1201,12 @@ For block rules, port list is ignored ports, so if you wanted to block port 3389
   <data name="RecipeDescriptionTooltip" xml:space="preserve">
     <value>Description. Set to TEST to put the recipe in analyze but not execute mode.</value>
   </data>
+  <data name="RecipeId" xml:space="preserve">
+    <value>Id</value>
+  </data>
+  <data name="RecipeIdTooltip" xml:space="preserve">
+    <value>Optional id. When set, this id is included in the log message for every failed or successful login this entry triggers, making it easy to tell which entry fired. Leave empty to log nothing extra.</value>
+  </data>
   <data name="EventReader" xml:space="preserve">
     <value>EventReader</value>
   </data>

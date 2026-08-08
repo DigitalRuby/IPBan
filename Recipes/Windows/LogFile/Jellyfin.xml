@@ -1,5 +1,6 @@
 <!-- Jellyfin failed logins, Windows -->
 <LogFile>
+	<Id>Jellyfin</Id>
 
 	<Source>Jellyfin</Source>
 

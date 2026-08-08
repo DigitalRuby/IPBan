@@ -306,16 +306,51 @@ namespace DigitalRuby.IPBanTests
             }
         }
 
+        [Test]
+        public void TestLogFileEntryIdIsAssignedToEvents()
+        {
+            using LogFileScanner scanner = SetupLogFileScanner(failureRegex: "fail, ip: (?<ipaddress>.+)",
+                successRegex: "success, ip: (?<ipaddress>.+)",
+                id: "SSH_Linux");
+
+            File.AppendAllText(fullPath, "fail, ip: 99.99.99.99\n");
+            File.AppendAllText(fullPath, "success, ip: 98.99.99.99\n");
+            scanner.Update();
+
+            ClassicAssert.AreEqual(1, failedIPAddresses.Count);
+            ClassicAssert.AreEqual("SSH_Linux", failedIPAddresses[0].Id);
+            ClassicAssert.AreEqual(", id: SSH_Linux", failedIPAddresses[0].IdLogSuffix);
+
+            ClassicAssert.AreEqual(1, successIPAddresses.Count);
+            ClassicAssert.AreEqual("SSH_Linux", successIPAddresses[0].Id);
+            ClassicAssert.AreEqual(", id: SSH_Linux", successIPAddresses[0].IdLogSuffix);
+        }
+
+        [Test]
+        public void TestLogFileWithoutIdLogsNothingExtra()
+        {
+            using LogFileScanner scanner = SetupLogFileScanner(failureRegex: "fail, ip: (?<ipaddress>.+)");
+
+            File.AppendAllText(fullPath, "fail, ip: 99.99.99.99\n");
+            scanner.Update();
+
+            ClassicAssert.AreEqual(1, failedIPAddresses.Count);
+            ClassicAssert.IsNull(failedIPAddresses[0].Id);
+            ClassicAssert.AreEqual(string.Empty, failedIPAddresses[0].IdLogSuffix);
+        }
+
         private LogFileScanner SetupLogFileScanner(string failureRegex = "",
             string failureRegexTimestampFormat = null,
             string successRegex = null,
             string successRegexTimestampFormat = null,
-            string source = "SSH")
+            string source = "SSH",
+            string id = null)
         {
             LogScannerOptions options = new()
             {
                 Dns = TestDnsLookup.Instance,
                 EventHandler = this,
+                Id = id,
                 Source = source,
                 PathAndMask = pathAndMask,
                 RegexFailure = failureRegex,

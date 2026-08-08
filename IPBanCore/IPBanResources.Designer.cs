@@ -2268,7 +2268,25 @@ namespace DigitalRuby.IPBanCore {
                 return ResourceManager.GetString("RecipeDescriptionTooltip", resourceCulture);
             }
         }
-        
+
+        /// <summary>
+        ///   Looks up a localized string similar to Id.
+        /// </summary>
+        public static string RecipeId {
+            get {
+                return ResourceManager.GetString("RecipeId", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Optional id. When set, this id is included in the log message for every failed or successful login this entry triggers, making it easy to tell which entry fired. Leave empty to log nothing extra..
+        /// </summary>
+        public static string RecipeIdTooltip {
+            get {
+                return ResourceManager.GetString("RecipeIdTooltip", resourceCulture);
+            }
+        }
+
         /// <summary>
         ///   Looks up a localized string similar to Recursive.
         /// </summary>

@@ -1,4 +1,5 @@
  <LogFile>
+ 	<Id>Sonarr</Id>
 
         <Source>Sonarr</Source>
         <PathAndMask>C:/ProgramData/Sonarr/logs/sonarr.txt</PathAndMask>

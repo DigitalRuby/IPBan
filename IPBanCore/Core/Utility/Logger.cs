@@ -659,11 +659,12 @@ namespace DigitalRuby.IPBanCore
         /// <param name="notificationFlags">Notification flags</param>
         /// <param name="minimumTimeBetweenLogins">Minimum time between logins</param>
         /// <param name="isTest">True for a test event, false for a live event</param>
+        /// <param name="id">Id of the config entry (log file or event viewer group) that triggered the event, null for none</param>
         public IPAddressLogEvent(string ipAddress, string userName, string source,
             int count, IPAddressEventType type, DateTime timestamp = default, bool external = false,
             string extraInfo = null, int failedLoginThreshold = 0, LogLevel logLevel = LogLevel.Warning,
             string logData = null, IPAddressNotificationFlags notificationFlags = IPAddressNotificationFlags.None,
-            TimeSpan? minimumTimeBetweenLogins = null, bool isTest = false)
+            TimeSpan? minimumTimeBetweenLogins = null, bool isTest = false, string id = null)
         {
             // normalize ip address if possible
             if (System.Net.IPAddress.TryParse(ipAddress, out System.Net.IPAddress parsedIPAddress))
@@ -687,6 +688,7 @@ namespace DigitalRuby.IPBanCore
             NotificationFlags = notificationFlags;
             MinimumTimeBetweenLogins = minimumTimeBetweenLogins;
             IsTest = isTest;
+            Id = id;
         }
 
         /// <summary>
@@ -695,7 +697,7 @@ namespace DigitalRuby.IPBanCore
         /// <returns>String</returns>
         public override string ToString()
         {
-            return $"IP: {IPAddress}, UserName: {UserName}, Source: {Source}, Count: {Count}, Type: {Type}, Timestamp: {Timestamp}";
+            return $"IP: {IPAddress}, UserName: {UserName}, Source: {Source}, Count: {Count}, Type: {Type}, Timestamp: {Timestamp}{IdLogSuffix}";
         }
 
         /// <summary>
@@ -767,5 +769,16 @@ namespace DigitalRuby.IPBanCore
         /// Whether this is a test event
         /// </summary>
         public bool IsTest { get; set; }
+
+        /// <summary>
+        /// Id of the config entry (log file or event viewer group) that triggered this event, null or empty for none
+        /// </summary>
+        public string Id { get; set; }
+
+        /// <summary>
+        /// Suffix to append to log messages to identify the config entry that triggered the event.
+        /// Empty string if no id was assigned, in which case nothing extra is logged.
+        /// </summary>
+        public string IdLogSuffix => string.IsNullOrWhiteSpace(Id) ? string.Empty : ", id: " + Id;
     }
 }

@@ -24,6 +24,7 @@ Success:
 
 <!-- Tectia Server SSH successful login -->
 <Group>
+	<Id>TectiaServer_SSH_SuccessLogin</Id>
 	<Source>SSH</Source>
 	<Keywords>0xa0000000000000</Keywords>
 	<Path>SSH Tectia Server</Path>

@@ -37,6 +37,14 @@ namespace DigitalRuby.IPBanCore
     public class IPBanLogFileToParse
     {
         /// <summary>
+        /// Optional id, logged along with any event this log file triggers. Nothing is logged if null or empty.
+        /// Empty input converts to null so that a blank id is left out of the config xml entirely.
+        /// </summary>
+        [LocalizedDisplayName(nameof(IPBanResources.RecipeId))]
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        public string Id { get; set; }
+
+        /// <summary>
         /// Source
         /// </summary>
         [DisplayFormat(ConvertEmptyStringToNull = false)]

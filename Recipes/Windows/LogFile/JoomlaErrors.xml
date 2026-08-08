@@ -1,5 +1,6 @@
 <!-- Joomla errors, Windows -->
 <LogFile>
+	<Id>JoomlaErrors</Id>
 	<Source>Joomla</Source>
 	<PathAndMask>C:/Users/Administrator/WEB/WWW/**/administrator/logs/error.php</PathAndMask>
 	<FailedLoginRegex>

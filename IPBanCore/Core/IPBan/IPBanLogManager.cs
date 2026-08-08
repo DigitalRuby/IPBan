@@ -105,6 +105,7 @@ namespace DigitalRuby.IPBanCore
                         {
                             Dns = service.DnsLookup,
                             EventHandler = service,
+                            Id = newFile.Id,
                             MaxFileSizeBytes = newFile.MaxFileSize,
                             PathAndMask = pathAndMask,
                             PingIntervalMilliseconds = (service.ManualCycle ? 0 : newFile.PingInterval),

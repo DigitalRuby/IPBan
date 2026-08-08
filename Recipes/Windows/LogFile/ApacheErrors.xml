@@ -1,5 +1,6 @@
 <!-- Apache errors, Windows -->
 <LogFile>
+	<Id>ApacheErrors</Id>
 	<Source>Apache</Source>
 	<PathAndMask>C:/Program Files/Apache/logs/error.log</PathAndMask>
 	<FailedLoginRegex>

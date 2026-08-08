@@ -6,6 +6,7 @@
 	 -->
 	 
       <LogFile>
+      	<Id>Roundcube</Id>
 
         <Source>Roundcube</Source>
         <PathAndMask>/path/to/roundcubemail/logs/userlogins.log</PathAndMask>
