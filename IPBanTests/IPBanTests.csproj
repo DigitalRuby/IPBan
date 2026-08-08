@@ -97,4 +97,10 @@
 		</None>
 	</ItemGroup>
 
+	<ItemGroup>
+		<None Update="TestData\EventViewer\Files\1.1.1.1\*.xml">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+	</ItemGroup>
+
 </Project>
