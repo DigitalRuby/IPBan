@@ -115,10 +115,10 @@ namespace DigitalRuby.IPBanCore
             IPAddressRange.Parse("2001:10::-2001:2F:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF"), // ORCHID
             IPAddressRange.Parse("2001:DB8::-2001:DB8:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF"), // documentation
             //IPAddressRange.Parse("2002::-2002:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF"), // 6to4
-            IPAddressRange.Parse("FC00::-FCFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF"), // unique local
-            IPAddressRange.Parse("FE80::-FE80:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF"), // link local
-            IPAddressRange.Parse("FEC0::-FEC0:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF"), // site local
-            IPAddressRange.Parse("FF00::-FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF") // multicast
+            IPAddressRange.Parse("FC00::/7"), // unique local (RFC 4193)
+            IPAddressRange.Parse("FE80::/10"), // link local (RFC 4291)
+            IPAddressRange.Parse("FEC0::/10"), // deprecated site local (RFC 3879)
+            IPAddressRange.Parse("FF00::/8") // multicast (RFC 4291)
         ];
 
         /// <summary>
@@ -129,9 +129,7 @@ namespace DigitalRuby.IPBanCore
             IPAddressRange.Parse("2000::-2001:f:ffff:ffff:ffff:ffff:ffff:ffff"),
             IPAddressRange.Parse("2001:30::-2001:db7:ffff:ffff:ffff:ffff:ffff:ffff"),
             IPAddressRange.Parse("2001:db9::-fbff:ffff:ffff:ffff:ffff:ffff:ffff:ffff"),
-            IPAddressRange.Parse("fd00::-fe7f:ffff:ffff:ffff:ffff:ffff:ffff:ffff"),
-            IPAddressRange.Parse("fe81::-febf:ffff:ffff:ffff:ffff:ffff:ffff:ffff"),
-            IPAddressRange.Parse("fec1::-feff:ffff:ffff:ffff:ffff:ffff:ffff:ffff")
+            IPAddressRange.Parse("fe00::-fe7f:ffff:ffff:ffff:ffff:ffff:ffff:ffff")
         ];
 
         /// <summary>
@@ -142,7 +140,7 @@ namespace DigitalRuby.IPBanCore
         private static readonly List<IPV6Range> internalRangesIPV6Optimized = InternalRangesIPV6.Select(r => new IPV6Range(r)).ToList();
 
         /// <summary>
-        /// An extension method to determine if an IP address is internal, as specified in RFC1918
+        /// An extension method to determine if an IP address is in a known private, local, documentation, or reserved range
         /// </summary>
         /// <param name="ip">The IP address that will be tested</param>
         /// <returns>Returns true if the IP is internal or null, false if it is external</returns>

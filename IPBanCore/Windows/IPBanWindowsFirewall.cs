@@ -358,7 +358,8 @@ namespace DigitalRuby.IPBanCore
                     {
                         try
                         {
-                            Match match = Regex.Match(rule.Name, $"^{ruleNamePrefix}(?<num>[0-9]+)$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+                            Match match = Regex.Match(rule.Name, $"^{ruleNamePrefix}(?<num>[0-9]+)$",
+                                RegexOptions.IgnoreCase | RegexOptions.CultureInvariant, RegexUtility.MatchTimeout);
                             if (match.Success && int.TryParse(match.Groups["num"].Value, NumberStyles.None, CultureInfo.InvariantCulture, out int num) && num >= startIndex)
                             {
                                 policy.Rules.Remove(rule.Name);
@@ -444,8 +445,8 @@ namespace DigitalRuby.IPBanCore
 
             rules.Sort((rule1, rule2) =>
             {
-                Match match1 = Regex.Match(rule1.Name, "_(?<index>[0-9]+)$");
-                Match match2 = Regex.Match(rule2.Name, "_(?<index>[0-9]+)$");
+                Match match1 = Regex.Match(rule1.Name, "_(?<index>[0-9]+)$", RegexOptions.CultureInvariant, RegexUtility.MatchTimeout);
+                Match match2 = Regex.Match(rule2.Name, "_(?<index>[0-9]+)$", RegexOptions.CultureInvariant, RegexUtility.MatchTimeout);
                 if (match1.Success && match2.Success)
                 {
                     string value1 = match1.Groups["index"].Value.PadLeft(9, '0');
@@ -472,7 +473,7 @@ namespace DigitalRuby.IPBanCore
             string line;
             string ruleName;
             INetFwRule rule;
-            Regex regex = new Regex(": +" + prefix + ".*");
+            Regex regex = new Regex(": +" + prefix + ".*", RegexOptions.CultureInvariant, RegexUtility.MatchTimeout);
             Match match;
 
             while ((line = p.StandardOutput.ReadLine()) != null)
@@ -591,7 +592,8 @@ namespace DigitalRuby.IPBanCore
                 using Process psProcess = Process.Start(psScript);
                 psProcess.WaitForExit();
                 string text = psProcess.StandardOutput.ReadToEnd();
-                if (!Regex.IsMatch(text, @"enabled\s*:\s*true", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))
+                if (!Regex.IsMatch(text, @"enabled\s*:\s*true", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant,
+                    RegexUtility.MatchTimeout))
                 {
                     throw new ApplicationException("Windows firewall is currently disabled, please enable Windows firewall. Public, Private and Domain profiles were checked for active state.");
                 }
@@ -1016,7 +1018,7 @@ namespace DigitalRuby.IPBanCore
             string localIP = DefaultDnsLookup.GetLocalIPAddress().ToString();
             if (localIP != null)
             {
-                Match m = Regex.Match(localIP, "\\.[0-9]+$");
+                Match m = Regex.Match(localIP, "\\.[0-9]+$", RegexOptions.CultureInvariant, RegexUtility.MatchTimeout);
                 if (m.Success)
                 {
                     string remoteIPAddresses = localIP[..m.Index] + ".0/24";

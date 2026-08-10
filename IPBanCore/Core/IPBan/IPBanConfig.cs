@@ -235,7 +235,8 @@ namespace DigitalRuby.IPBanCore
             string userNameWhitelistRegexString = GetConfig<string>("UserNameWhitelistRegex", string.Empty);
             if (!string.IsNullOrWhiteSpace(userNameWhitelistRegexString))
             {
-                userNameWhitelistRegex = new Regex(userNameWhitelistRegexString, RegexOptions.IgnoreCase | RegexOptions.CultureInvariant | RegexOptions.Singleline);
+                userNameWhitelistRegex = new Regex(userNameWhitelistRegexString,
+                    RegexOptions.IgnoreCase | RegexOptions.CultureInvariant | RegexOptions.Singleline, RegexUtility.MatchTimeout);
             }
             TryGetConfig<int>("UserNameWhitelistMinimumEditDistance", ref userNameWhitelistMaximumEditDistance);
             TryGetConfig<int>("FailedLoginAttemptsBeforeBanUserNameWhitelist", ref failedLoginAttemptsBeforeBanUserNameWhitelist);
@@ -440,7 +441,8 @@ namespace DigitalRuby.IPBanCore
                     };
                     if (!string.IsNullOrWhiteSpace(pieces[4]))
                     {
-                        firewallRuleObj.PlatformRegex = new Regex(pieces[4].Replace('*', '.'), RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+                        firewallRuleObj.PlatformRegex = new Regex(pieces[4].Replace('*', '.'),
+                            RegexOptions.IgnoreCase | RegexOptions.CultureInvariant, RegexUtility.MatchTimeout);
                     }
                     if (firewallRuleObj.PlatformRegex is null ||
                         firewallRuleObj.PlatformRegex.IsMatch(OSUtility.Name))

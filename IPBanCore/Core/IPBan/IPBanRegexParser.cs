@@ -122,7 +122,7 @@ namespace DigitalRuby.IPBanCore
                 }
                 else if (regexCacheCompiled.Count < maxCacheSize)
                 {
-                    value = new Regex(sbText, options);
+                    value = new Regex(sbText, options, RegexUtility.MatchTimeout);
                     regexCacheCompiled.Add(cacheKey, value);
                     return value;
                 }
@@ -140,7 +140,7 @@ namespace DigitalRuby.IPBanCore
 
                     // strip compiled flag
                     options &= (~RegexOptions.Compiled);
-                    value = new Regex(sbText, options);
+                    value = new Regex(sbText, options, RegexUtility.MatchTimeout);
                     regexCacheNotCompiled.Add(cacheKey, value);
                     return value;
                 }
@@ -426,7 +426,7 @@ namespace DigitalRuby.IPBanCore
             {
                 if (regex != null)
                 {
-                    _ = new Regex(regex, options);
+                    _ = new Regex(regex, options, RegexUtility.MatchTimeout);
                 }
                 return null;
             }
@@ -469,7 +469,8 @@ namespace DigitalRuby.IPBanCore
                 repeatEnd++;
             }
             Match repeater = Regex.Match(text[repeatStart..repeatEnd],
-                "message repeated (?<count>[0-9]+) times", RegexOptions.CultureInvariant | RegexOptions.IgnoreCase);
+                "message repeated (?<count>[0-9]+) times", RegexOptions.CultureInvariant | RegexOptions.IgnoreCase,
+                RegexUtility.MatchTimeout);
             if (repeater.Success)
             {
                 return int.Parse(repeater.Groups["count"].Value, CultureInfo.InvariantCulture);
@@ -514,7 +515,7 @@ namespace DigitalRuby.IPBanCore
                     Logger.Error(ex, "Error replacing regex file '{0}'", fileName);
                 }
                 return replacement;
-            });
+            }, RegexOptions.CultureInvariant, RegexUtility.MatchTimeout);
         }
     }
 }

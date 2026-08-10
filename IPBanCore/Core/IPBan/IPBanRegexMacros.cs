@@ -16,15 +16,18 @@ public static partial class IPBanRegexMacros
     private const string FQDN = $@"(?:{DnsPart}\.)+{DnsPart}";
     private const string Host = $"(?:{IP4Or6}|{FQDN})";
 
-    [GeneratedRegex(@"\(\?P\<([A-Za-z_]\w*)\>", RegexOptions.Compiled | RegexOptions.CultureInvariant)]
+    [GeneratedRegex(@"\(\?P\<([A-Za-z_]\w*)\>", RegexOptions.Compiled | RegexOptions.CultureInvariant,
+        RegexUtility.MatchTimeoutMilliseconds)]
     private static partial Regex GeneratePyNamedGroup();
     private static readonly Regex PyNamedGroup = GeneratePyNamedGroup();
 
-    [GeneratedRegex(@"\(\?P=(?<n>[A-Za-z_]\w*)\)", RegexOptions.Compiled | RegexOptions.CultureInvariant)]
+    [GeneratedRegex(@"\(\?P=(?<n>[A-Za-z_]\w*)\)", RegexOptions.Compiled | RegexOptions.CultureInvariant,
+        RegexUtility.MatchTimeoutMilliseconds)]
     private static partial Regex GeneratePyNamedBackRef();
     private static readonly Regex PyNamedBackRef = GeneratePyNamedBackRef();
 
-    [GeneratedRegex(@"\(\?(?<f>[a-zA-Z\-]+)\)", RegexOptions.Compiled | RegexOptions.CultureInvariant)]
+    [GeneratedRegex(@"\(\?(?<f>[a-zA-Z\-]+)\)", RegexOptions.Compiled | RegexOptions.CultureInvariant,
+        RegexUtility.MatchTimeoutMilliseconds)]
     private static partial Regex GenerateInlineFlags();
     private static readonly Regex InlineFlags = GenerateInlineFlags();
 

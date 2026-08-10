@@ -27,6 +27,7 @@ using DigitalRuby.IPBanCore;
 using NUnit.Framework;
 using NUnit.Framework.Legacy;
 
+using System.Linq;
 using System.Net;
 
 namespace DigitalRuby.IPBanTests
@@ -49,6 +50,25 @@ namespace DigitalRuby.IPBanTests
         {
             ClassicAssert.IsTrue(IPAddress.TryParse(ip, out var ipObj));
             ClassicAssert.AreEqual(isInternal, ipObj.IsInternal());
+        }
+
+        [TestCase("fbff:ffff:ffff:ffff:ffff:ffff:ffff:ffff", false, true)]
+        [TestCase("fc00::", true, false)]
+        [TestCase("fcff:ffff:ffff:ffff:ffff:ffff:ffff:ffff", true, false)]
+        [TestCase("fd00::", true, false)]
+        [TestCase("fdff:ffff:ffff:ffff:ffff:ffff:ffff:ffff", true, false)]
+        [TestCase("fe00::", false, true)]
+        [TestCase("fe7f:ffff:ffff:ffff:ffff:ffff:ffff:ffff", false, true)]
+        [TestCase("fe80::", true, false)]
+        [TestCase("febf:ffff:ffff:ffff:ffff:ffff:ffff:ffff", true, false)]
+        [TestCase("fec0::", true, false)]
+        [TestCase("feff:ffff:ffff:ffff:ffff:ffff:ffff:ffff", true, false)]
+        [TestCase("ff00::", true, false)]
+        public void TestIPv6AllocationBoundaries(string ip, bool isInternal, bool isPublic)
+        {
+            ClassicAssert.IsTrue(IPAddress.TryParse(ip, out var ipObj));
+            ClassicAssert.AreEqual(isInternal, ipObj.IsInternal());
+            ClassicAssert.AreEqual(isPublic, NetworkUtility.PublicRangesIPV6.Any(range => range.Contains(ipObj)));
         }
     }
 }

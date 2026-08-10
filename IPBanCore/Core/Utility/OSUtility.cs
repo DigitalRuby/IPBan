@@ -210,7 +210,7 @@ namespace DigitalRuby.IPBanCore
 
         private static string ExtractRegex(string input, string regex, string defaultValue)
         {
-            Match m = Regex.Match(input, regex, RegexOptions.IgnoreCase | RegexOptions.Multiline);
+            Match m = Regex.Match(input, regex, RegexOptions.IgnoreCase | RegexOptions.Multiline, RegexUtility.MatchTimeout);
             if (m.Success)
             {
                 return m.Groups["value"].Value.Trim('[', ']', '"', '\'', '(', ')', ' ', '\r', '\n', '\t');
@@ -331,7 +331,7 @@ namespace DigitalRuby.IPBanCore
             }
 
             // Windows loves to add a trailing .0 for some reason
-            Version = Regex.Replace(Version, "\\.0$", string.Empty);
+            Version = Regex.Replace(Version, "\\.0$", string.Empty, RegexOptions.CultureInvariant, RegexUtility.MatchTimeout);
         }
 
         private static string HKLM_GetString(string path, string key)
@@ -527,8 +527,10 @@ namespace DigitalRuby.IPBanCore
                         using StreamReader reader = File.OpenText("/proc/meminfo");
                         string total = reader.ReadLine();
                         string available = reader.ReadLine();
-                        Match totalMatch = Regex.Match(total, "[0-9]+", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
-                        Match availableMatch = Regex.Match(available, "[0-9]+", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+                        Match totalMatch = Regex.Match(total, "[0-9]+", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant,
+                            RegexUtility.MatchTimeout);
+                        Match availableMatch = Regex.Match(available, "[0-9]+", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant,
+                            RegexUtility.MatchTimeout);
                         totalMemory = long.Parse(totalMatch.Value, CultureInfo.InvariantCulture) * 1024; // kb to bytes
                         availableMemory = long.Parse(availableMatch.Value, CultureInfo.InvariantCulture) * 1024; // kb to bytes
                         return true;

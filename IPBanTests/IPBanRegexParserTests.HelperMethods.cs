@@ -52,6 +52,7 @@ namespace DigitalRuby.IPBanTests
         {
             var r = IPBanRegexParser.ParseRegex("ip=(?<ipaddress>\\S+)");
             ClassicAssert.IsNotNull(r);
+            ClassicAssert.AreEqual(TimeSpan.FromSeconds(5), r.MatchTimeout);
             // Calling again with the same text returns the cached instance.
             var r2 = IPBanRegexParser.ParseRegex("ip=(?<ipaddress>\\S+)");
             ClassicAssert.AreSame(r, r2);

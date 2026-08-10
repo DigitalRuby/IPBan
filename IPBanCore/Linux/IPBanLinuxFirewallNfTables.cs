@@ -328,7 +328,8 @@ public class IPBanLinuxFirewallNFTables : IPBanBaseFirewall
 
     private const string internalRuleCommentPrefix = "ipbanxrule_";
 
-    private static readonly Regex commentRegex = new(@$"{internalRuleCommentPrefix}(?<ruleName>[a-z0-9_]+)", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+    private static readonly Regex commentRegex = new(@$"{internalRuleCommentPrefix}(?<ruleName>[a-z0-9_]+)",
+        RegexOptions.IgnoreCase | RegexOptions.Compiled, RegexUtility.MatchTimeout);
 
     /// <summary>
     /// Internal rule representation

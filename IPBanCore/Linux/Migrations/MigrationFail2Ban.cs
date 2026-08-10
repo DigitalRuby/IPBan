@@ -253,7 +253,7 @@ public static class MigrateFail2Ban
     private static bool ContainsIpAddressGroup(string regex)
     {
         // Look for (?<ipaddress> or (?P<ipaddress> patterns
-        return Regex.IsMatch(regex, @"\(\?(?:P)?<ipaddress>", RegexOptions.IgnoreCase);
+        return Regex.IsMatch(regex, @"\(\?(?:P)?<ipaddress>", RegexOptions.IgnoreCase, RegexUtility.MatchTimeout);
     }
 
     /// <summary>
@@ -294,7 +294,7 @@ public static class MigrateFail2Ban
         result = result.Replace("</F-CONTENT>", ")", StringComparison.OrdinalIgnoreCase);
 
         // Remove fail2ban-specific tags that don't translate
-        result = Regex.Replace(result, @"<F-[A-Z_]+/>", "", RegexOptions.IgnoreCase);
+        result = Regex.Replace(result, @"<F-[A-Z_]+/>", "", RegexOptions.IgnoreCase, RegexUtility.MatchTimeout);
 
         return result;
     }
@@ -942,7 +942,7 @@ internal sealed class F2BReader
 
     private static bool TryMatchSimple(string input, string pattern, out GroupCollection groups)
     {
-        var m = Regex.Match(input, pattern, RegexOptions.CultureInvariant);
+        var m = Regex.Match(input, pattern, RegexOptions.CultureInvariant, RegexUtility.MatchTimeout);
         if (m.Success) { groups = m.Groups; return true; }
         groups = Match.Empty.Groups;
         return false;

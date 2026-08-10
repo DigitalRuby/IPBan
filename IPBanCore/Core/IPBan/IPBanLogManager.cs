@@ -143,8 +143,8 @@ namespace DigitalRuby.IPBanCore
                         var regexToMatch = newFile.PlatformRegex?.ToString()?.Trim();
                         var regexOptions = RegexOptions.IgnoreCase | RegexOptions.CultureInvariant;
                         bool platformMatches = !string.IsNullOrWhiteSpace(regexToMatch) &&
-                            (Regex.IsMatch(OSUtility.Description, regexToMatch, regexOptions) ||
-                            Regex.IsMatch(OSUtility.Name, regexToMatch, regexOptions));
+                            (Regex.IsMatch(OSUtility.Description, regexToMatch, regexOptions, RegexUtility.MatchTimeout) ||
+                            Regex.IsMatch(OSUtility.Name, regexToMatch, regexOptions, RegexUtility.MatchTimeout));
 
                         if (existingScanner is null && platformMatches)
                         {

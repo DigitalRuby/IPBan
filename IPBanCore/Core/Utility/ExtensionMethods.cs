@@ -1497,7 +1497,8 @@ namespace DigitalRuby.IPBanCore
                 {
                     // left gap
                     if (range.Begin.TryDecrement(out endPrev) &&
-                        startPrev.IsIPv4MappedToIPv6 == endPrev.IsIPv4MappedToIPv6)
+                        startPrev.IsIPv4MappedToIPv6 == endPrev.IsIPv4MappedToIPv6 &&
+                        startPrev.CompareTo(endPrev) <= 0)
                     {
                         leftGap = new IPAddressRange(startPrev, endPrev);
                         foreach (var scrubbedIP in RemoveInternalRanges(leftGap))
