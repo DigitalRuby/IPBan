@@ -1,0 +1,15 @@
+ <LogFile>
+ 	<Id>Sftpgo</Id>
+	<Source>SftpGo</Source>
+	<PathAndMask>C:/ProgramData/Sftpgo enterprise/logs/*.log</PathAndMask>
+	<Recursive>true</Recursive>
+	<FailedLoginRegex>
+	  <![CDATA[
+		  "time":"[^"]+","sender":"connection_failed","client_ip":"(?<ipaddress>[^"]+)","username":"(?<username>[^"]+)","login_type":"password","protocol":"[^"]+","error":"not found[^"]*"\}
+	  ]]>
+	</FailedLoginRegex>
+	<PlatformRegex>Windows</PlatformRegex>
+	<PingInterval>10000</PingInterval>
+	<MaxFileSize>16777216</MaxFileSize>
+	<FailedLoginThreshold>0</FailedLoginThreshold>
+</LogFile>
