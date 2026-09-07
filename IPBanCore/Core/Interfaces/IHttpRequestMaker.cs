@@ -26,6 +26,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
+using System.Net;
 using System.Net.Http;
 using System.Reflection;
 using System.Text;
@@ -69,6 +70,25 @@ namespace DigitalRuby.IPBanCore
         /// Whether live requests should be disabled (unit tests)
         /// </summary>
         public static bool DisableLiveRequests { get; set; }
+
+        private readonly HttpClient client;
+
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="proxy">Optional proxy to use for requests, null for direct connection</param>
+        public DefaultHttpRequestMaker(IWebProxy proxy = null)
+        {
+            if (proxy is null)
+            {
+                client = new HttpClient();
+            }
+            else
+            {
+                var handler = new HttpClientHandler { Proxy = proxy };
+                client = new HttpClient(handler);
+            }
+        }
 
         private static long liveRequestCount;
         /// <summary>
@@ -135,7 +155,6 @@ namespace DigitalRuby.IPBanCore
                 msg.Method = new HttpMethod(method);
             }
 
-            var client = new HttpClient();
             var responseMsg = await client.SendAsync(msg, cancelToken);
             response = await responseMsg.Content.ReadAsByteArrayAsync(cancelToken);
             if (!responseMsg.IsSuccessStatusCode)

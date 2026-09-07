@@ -89,6 +89,14 @@ namespace DigitalRuby.IPBanCore
         public IHttpRequestMaker RequestMaker { get; set; } = DefaultHttpRequestMaker.Instance;
 
         /// <summary>
+        /// Cached proxy request maker and the config values it was built from, used by firewall uri rules
+        /// </summary>
+        private IHttpRequestMaker firewallUriRequestMaker;
+        private string firewallUriRequestMakerProxyAddress;
+        private string firewallUriRequestMakerProxyUserName;
+        private string firewallUriRequestMakerProxyPassword;
+
+        /// <summary>
         /// The firewall implementation - this will auto-detect if not set
         /// </summary>
         public IIPBanFirewall Firewall { get; set; }

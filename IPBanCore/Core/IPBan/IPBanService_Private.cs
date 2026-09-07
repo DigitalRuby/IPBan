@@ -1318,7 +1318,22 @@ namespace DigitalRuby.IPBanCore
                 .Select(u => u as IPBanUriFirewallRule));
 
             // get list of all rules defined by current config
-            var rules = IPBanConfig.ParseFirewallUriRules(Config.FirewallUriRules, Firewall, this, this, RequestMaker);
+            string firewallUriProxyAddress = (Config.FirewallUriProxyAddress ?? string.Empty).Trim();
+            string firewallUriProxyUserName = Config.FirewallUriProxyUserName;
+            string firewallUriProxyPassword = Config.FirewallUriProxyPassword;
+            IHttpRequestMaker requestMaker = firewallUriRequestMaker;
+            if (requestMaker is null ||
+                !Equals(firewallUriRequestMakerProxyAddress, firewallUriProxyAddress) ||
+                !Equals(firewallUriRequestMakerProxyUserName, firewallUriProxyUserName) ||
+                !Equals(firewallUriRequestMakerProxyPassword, firewallUriProxyPassword))
+            {
+                requestMaker = IPBanConfig.CreateUriRequestMaker(RequestMaker, firewallUriProxyAddress, firewallUriProxyUserName, firewallUriProxyPassword);
+                firewallUriRequestMaker = requestMaker;
+                firewallUriRequestMakerProxyAddress = firewallUriProxyAddress;
+                firewallUriRequestMakerProxyUserName = firewallUriProxyUserName;
+                firewallUriRequestMakerProxyPassword = firewallUriProxyPassword;
+            }
+            var rules = IPBanConfig.ParseFirewallUriRules(Config.FirewallUriRules, Firewall, this, this, requestMaker);
 
             // for each rule, determine if it still exists or needs adding
             foreach (var rule in rules)

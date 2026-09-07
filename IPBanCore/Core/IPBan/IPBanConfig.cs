@@ -31,6 +31,7 @@ using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Text.RegularExpressions;
 using System.Xml;
 using System.Xml.Serialization;
@@ -116,6 +117,12 @@ namespace DigitalRuby.IPBanCore
         private readonly TimeSpan minimumTimeBetweenSuccessfulLoginAttempts = TimeSpan.FromSeconds(5.0);
 
         private readonly string ipThreatApiKey = string.Empty;
+        private readonly string ipThreatProxyAddress = string.Empty;
+        private readonly string ipThreatProxyUserName = string.Empty;
+        private readonly string ipThreatProxyPassword = string.Empty;
+        private readonly string firewallUriProxyAddress = string.Empty;
+        private readonly string firewallUriProxyUserName = string.Empty;
+        private readonly string firewallUriProxyPassword = string.Empty;
         private readonly int failedLoginAttemptsBeforeBan = 5;
         private readonly bool resetFailedLoginCountForUnbannedIPAddresses;
         private readonly string firewallRulePrefix = "IPBan_";
@@ -187,6 +194,12 @@ namespace DigitalRuby.IPBanCore
             }
 
             TryGetConfig<string>("IPThreatApiKey", ref ipThreatApiKey, false);
+            TryGetConfig<string>("IPThreatProxyAddress", ref ipThreatProxyAddress, false);
+            TryGetConfig<string>("IPThreatProxyUserName", ref ipThreatProxyUserName, false);
+            TryGetConfig<string>("IPThreatProxyPassword", ref ipThreatProxyPassword, false);
+            TryGetConfig<string>("FirewallUriProxyAddress", ref firewallUriProxyAddress, false);
+            TryGetConfig<string>("FirewallUriProxyUserName", ref firewallUriProxyUserName, false);
+            TryGetConfig<string>("FirewallUriProxyPassword", ref firewallUriProxyPassword, false);
             GetConfig<int>("FailedLoginAttemptsBeforeBan", ref failedLoginAttemptsBeforeBan, 1, 50);
             TryGetConfig<bool>("ResetFailedLoginCountForUnbannedIPAddresses", ref resetFailedLoginCountForUnbannedIPAddresses);
             GetConfigArray<TimeSpan>("BanTime", ref banTimes, emptyTimeSpanArray);
@@ -961,6 +974,34 @@ namespace DigitalRuby.IPBanCore
         }
 
         /// <summary>
+        /// Build an http request maker that routes through the given proxy, or returns fallback if no proxy address is set.
+        /// User name and password are used verbatim (not trimmed) as they are credentials.
+        /// </summary>
+        /// <param name="fallback">Request maker to return when proxyAddress is empty</param>
+        /// <param name="proxyAddress">Proxy address (e.g. http://proxy:8080), empty for direct connection</param>
+        /// <param name="proxyUserName">Optional proxy user name</param>
+        /// <param name="proxyPassword">Optional proxy password</param>
+        /// <returns>Request maker that honors the proxy, or a new one</returns>
+        public static IHttpRequestMaker CreateUriRequestMaker(IHttpRequestMaker fallback, string proxyAddress, string proxyUserName, string proxyPassword)
+        {
+            if (string.IsNullOrWhiteSpace(proxyAddress))
+            {
+                return fallback;
+            }
+            if (!Uri.TryCreate(proxyAddress, UriKind.Absolute, out _))
+            {
+                Logger.Warn("Invalid proxy address '{0}', connecting directly", proxyAddress);
+                return fallback;
+            }
+            var proxy = new WebProxy(proxyAddress);
+            if (!string.IsNullOrEmpty(proxyUserName))
+            {
+                proxy.Credentials = new NetworkCredential(proxyUserName, proxyPassword);
+            }
+            return new DefaultHttpRequestMaker(proxy);
+        }
+
+        /// <summary>
         /// Validate firewall uri rules
         /// </summary>
         /// <param name="firewallUriRules">Firewall uri rules</param>
@@ -1019,6 +1060,36 @@ namespace DigitalRuby.IPBanCore
         /// Api key from https://ipthreat.net, if any
         /// </summary>
         public string IPThreatApiKey { get { return ipThreatApiKey; } }
+
+        /// <summary>
+        /// Proxy address for ipthreat api requests (e.g. http://proxy:8080). Empty to connect directly.
+        /// </summary>
+        public string IPThreatProxyAddress { get { return ipThreatProxyAddress; } }
+
+        /// <summary>
+        /// Proxy user name, if the ipthreat proxy requires authentication
+        /// </summary>
+        public string IPThreatProxyUserName { get { return ipThreatProxyUserName; } }
+
+        /// <summary>
+        /// Proxy password, if the ipthreat proxy requires authentication
+        /// </summary>
+        public string IPThreatProxyPassword { get { return ipThreatProxyPassword; } }
+
+        /// <summary>
+        /// Proxy address for firewall uri rule requests (e.g. http://proxy:8080). Empty to connect directly.
+        /// </summary>
+        public string FirewallUriProxyAddress { get { return firewallUriProxyAddress; } }
+
+        /// <summary>
+        /// Proxy user name, if the firewall uri rule proxy requires authentication
+        /// </summary>
+        public string FirewallUriProxyUserName { get { return firewallUriProxyUserName; } }
+
+        /// <summary>
+        /// Proxy password, if the firewall uri rule proxy requires authentication
+        /// </summary>
+        public string FirewallUriProxyPassword { get { return firewallUriProxyPassword; } }
 
         /// <summary>
         /// Number of failed login attempts before a ban is initiated

@@ -23,6 +23,11 @@ public sealed class IPBanIPThreatUploader(IPBanService service) : IUpdater, IIPA
     private readonly Random random = new();
     private readonly List<IPAddressLogEvent> events = [];
 
+    private IHttpRequestMaker requestMaker;
+    private string requestMakerProxyAddress;
+    private string requestMakerProxyUserName;
+    private string requestMakerProxyPassword;
+
     private DateTime nextRun = IPBanService.UtcNow;
 
     /// <inheritdoc />
@@ -87,11 +92,27 @@ public sealed class IPBanIPThreatUploader(IPBanService service) : IUpdater, IIPA
             var jsonObj = new { items = transform };
             // have to use newtonsoft here
             var postJson = System.Text.Encoding.UTF8.GetBytes(Newtonsoft.Json.JsonConvert.SerializeObject(jsonObj));
-            await service.RequestMaker.MakeRequestAsync(ipThreatReportApiUri,
-                postJson,
-                [new("X-API-KEY", apiKey)],
-                null,
-                cancelToken);
+
+            var proxyAddress = (service.Config.IPThreatProxyAddress ?? string.Empty).Trim();
+            var proxyUserName = service.Config.IPThreatProxyUserName;
+            var proxyPassword = service.Config.IPThreatProxyPassword;
+
+            // re-use a request maker while the proxy configuration is unchanged
+            IHttpRequestMaker maker = requestMaker;
+            if (maker is null ||
+                !Equals(requestMakerProxyAddress, proxyAddress) ||
+                !Equals(requestMakerProxyUserName, proxyUserName) ||
+                !Equals(requestMakerProxyPassword, proxyPassword))
+            {
+                maker = IPBanConfig.CreateUriRequestMaker(service.RequestMaker, proxyAddress, proxyUserName, proxyPassword);
+                requestMaker = maker;
+                requestMakerProxyAddress = proxyAddress;
+                requestMakerProxyUserName = proxyUserName;
+                requestMakerProxyPassword = proxyPassword;
+            }
+
+            await maker.MakeRequestAsync(ipThreatReportApiUri, postJson,
+                new KeyValuePair<string, object>[] { new("X-API-KEY", apiKey) }, "POST", cancelToken);
             Logger.Warn("Submitted {0} failed logins to ipthreat api", eventsCopy.Length);
         }
         catch (Exception ex)

@@ -503,4 +503,92 @@ e.g.
             ClassicAssert.AreEqual(0, r2.AllowPortRanges.Count);
         }
     }
+
+    [TestFixture]
+    public class IPBanConfigProxyTests
+    {
+        [Test]
+        public void TestIPThreatProxySettings_ParseFromXml()
+        {
+            string configXml = "<?xml version='1.0'?><configuration><appSettings>" +
+                "<add key='IPThreatProxyAddress' value='http://proxy:8080' />" +
+                "<add key='IPThreatProxyUserName' value='user' />" +
+                "<add key='IPThreatProxyPassword' value='pass' />" +
+                "</appSettings></configuration>";
+            var cfg = IPBanConfig.LoadFromXml(configXml);
+
+            ClassicAssert.AreEqual("http://proxy:8080", cfg.IPThreatProxyAddress);
+            ClassicAssert.AreEqual("user", cfg.IPThreatProxyUserName);
+            ClassicAssert.AreEqual("pass", cfg.IPThreatProxyPassword);
+        }
+
+        [Test]
+        public void TestIPThreatProxy_DefaultEmpty()
+        {
+            string configXml = "<?xml version='1.0'?><configuration><appSettings>" +
+                "<add key='IPThreatProxyAddress' value='' />" +
+                "<add key='IPThreatProxyUserName' value='' />" +
+                "<add key='IPThreatProxyPassword' value='' />" +
+                "</appSettings></configuration>";
+            var cfg = IPBanConfig.LoadFromXml(configXml);
+
+            ClassicAssert.IsTrue(string.IsNullOrEmpty(cfg.IPThreatProxyAddress));
+            ClassicAssert.IsTrue(string.IsNullOrEmpty(cfg.IPThreatProxyUserName));
+            ClassicAssert.IsTrue(string.IsNullOrEmpty(cfg.IPThreatProxyPassword));
+        }
+        [Test]
+        public void TestFirewallUriProxySettings_ParseFromXml()
+        {
+            string configXml = "<?xml version='1.0'?><configuration><appSettings>" +
+                "<add key='FirewallUriProxyAddress' value='http://fproxy:9090' />" +
+                "<add key='FirewallUriProxyUserName' value='fuser' />" +
+                "<add key='FirewallUriProxyPassword' value='fpass' />" +
+                "</appSettings></configuration>";
+            var cfg = IPBanConfig.LoadFromXml(configXml);
+
+            ClassicAssert.AreEqual("http://fproxy:9090", cfg.FirewallUriProxyAddress);
+            ClassicAssert.AreEqual("fuser", cfg.FirewallUriProxyUserName);
+            ClassicAssert.AreEqual("fpass", cfg.FirewallUriProxyPassword);
+        }
+
+        [Test]
+        public void TestFirewallUriProxy_DefaultEmpty()
+        {
+            string configXml = "<?xml version='1.0'?><configuration><appSettings>" +
+                "<add key='FirewallUriProxyAddress' value='' />" +
+                "<add key='FirewallUriProxyUserName' value='' />" +
+                "<add key='FirewallUriProxyPassword' value='' />" +
+                "</appSettings></configuration>";
+            var cfg = IPBanConfig.LoadFromXml(configXml);
+
+            ClassicAssert.IsTrue(string.IsNullOrEmpty(cfg.FirewallUriProxyAddress));
+            ClassicAssert.IsTrue(string.IsNullOrEmpty(cfg.FirewallUriProxyUserName));
+            ClassicAssert.IsTrue(string.IsNullOrEmpty(cfg.FirewallUriProxyPassword));
+        }
+
+        [Test]
+        public void TestCreateUriRequestMaker_EmptyAddress_ReturnsFallback()
+        {
+            var fallback = DefaultHttpRequestMaker.Instance;
+            var maker = IPBanConfig.CreateUriRequestMaker(fallback, string.Empty, "", "");
+            ClassicAssert.AreSame(fallback, maker);
+        }
+
+        [Test]
+        public void TestCreateUriRequestMaker_InvalidAddress_ReturnsFallback()
+        {
+            var fallback = DefaultHttpRequestMaker.Instance;
+            var maker = IPBanConfig.CreateUriRequestMaker(fallback, "not a proxy uri", "user", "pass");
+            ClassicAssert.AreSame(fallback, maker);
+        }
+
+        [Test]
+        public void TestCreateUriRequestMaker_ValidAddress_ReturnsProxiedMaker()
+        {
+            var fallback = DefaultHttpRequestMaker.Instance;
+            var maker = IPBanConfig.CreateUriRequestMaker(fallback, "http://proxy:8080", "user", "pass");
+            ClassicAssert.AreNotSame(fallback, maker);
+            ClassicAssert.IsInstanceOf<DefaultHttpRequestMaker>(maker);
+        }
+    }
 }
