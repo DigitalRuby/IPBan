@@ -81,10 +81,25 @@ namespace DigitalRuby.IPBanCore
 
         private void UpdateLogFiles(IPBanConfig newConfig)
         {
-            // remove existing log files that are no longer in config
+            // remove existing scanners that are no longer represented in config (by id+path when id is set, otherwise by path)
             foreach (var file in logsToParse.ToArray())
             {
-                if (newConfig.LogFilesToParse.FirstOrDefault(f => f.PathsAndMasks.Contains(file.PathAndMask)) is null)
+                bool stillConfigured;
+                if (!string.IsNullOrWhiteSpace(file.Id))
+                {
+                    stillConfigured = newConfig.LogFilesToParse.Any(f =>
+                        !string.IsNullOrWhiteSpace(f.Id) &&
+                        f.Id.Equals(file.Id, StringComparison.OrdinalIgnoreCase) &&
+                        f.PathsAndMasks.Contains(file.PathAndMask));
+                }
+                else
+                {
+                    stillConfigured = newConfig.LogFilesToParse.Any(f =>
+                        string.IsNullOrWhiteSpace(f.Id) &&
+                        f.PathsAndMasks.Contains(file.PathAndMask));
+                }
+
+                if (!stillConfigured)
                 {
                     file.Dispose();
                     logsToParse.Remove(file);
@@ -98,13 +113,17 @@ namespace DigitalRuby.IPBanCore
                     string pathAndMask = pathsAndMasks[i];
                     if (!string.IsNullOrWhiteSpace(pathAndMask))
                     {
-                        // check for an existing scanner by id or path and mask, if we find one, we will check if the options match, if not, we will remove the old scanner and add a new one with the new options
-                        var existingScanner = logsToParse.FirstOrDefault(f =>
-                        (
-                            !string.IsNullOrWhiteSpace(f.Id) &&
-                            !string.IsNullOrWhiteSpace(newFile.Id) &&
-                            f.Id.Equals(newFile.Id, StringComparison.OrdinalIgnoreCase)
-                        ) || f.PathAndMask == pathAndMask);
+                        // When an id is present, match on id + path so multiple entries (and multi-path
+                        // entries) can share a directory. Without an id, match only other no-id scanners
+                        // on the same path so id'd scanners are not overwritten.
+                        var existingScanner = !string.IsNullOrWhiteSpace(newFile.Id)
+                            ? logsToParse.FirstOrDefault(f =>
+                                f.PathAndMask == pathAndMask &&
+                                !string.IsNullOrWhiteSpace(f.Id) &&
+                                f.Id.Equals(newFile.Id, StringComparison.OrdinalIgnoreCase))
+                            : logsToParse.FirstOrDefault(f =>
+                                f.PathAndMask == pathAndMask &&
+                                string.IsNullOrWhiteSpace(f.Id));
 
                         LogScannerOptions options = new()
                         {
@@ -132,19 +151,22 @@ namespace DigitalRuby.IPBanCore
                         if (existingScanner is not null &&
                             !existingScanner.MatchesOptions(options))
                         {
-                            if ((string.IsNullOrWhiteSpace(existingScanner.Id) ||
-                                string.IsNullOrWhiteSpace(options.Id)) &&
-                                existingScanner.PathAndMask == options.PathAndMask)
+                            if (string.IsNullOrWhiteSpace(existingScanner.Id) ||
+                                string.IsNullOrWhiteSpace(options.Id))
                             {
-                                // since no ids, the existing scanner will get replaced, but we notify the user so they can fix the issue
+                                // without ids, path collision replaces the existing no-id scanner — notify so the user can add ids or use junctions
                                 Logger.Info("Multiple log file scanners detected with identical path and mask {0}. Either add ids or use junctions if you need multiple log file scanners on the same directory.", existingScanner.PathAndMask);
-
-                                // TODO: Add unit/integration test for this case
-                                Logger.Info("Log file options changed for path/mask {0}", pathAndMask);
-                                logsToParse.RemoveWhere(f => f.PathAndMask == pathAndMask);
-                                existingScanner.Dispose();
-                                existingScanner = null;
+                                logsToParse.RemoveWhere(f => f.PathAndMask == pathAndMask && string.IsNullOrWhiteSpace(f.Id));
                             }
+                            else
+                            {
+                                // same id + path, options changed — replace only this scanner
+                                logsToParse.Remove(existingScanner);
+                            }
+
+                            Logger.Info("Log file options changed for path/mask {0}", pathAndMask);
+                            existingScanner.Dispose();
+                            existingScanner = null;
                         }
 
                         // make sure we match the platform before potentially making a new log file scanner
