@@ -92,6 +92,9 @@ namespace DigitalRuby.IPBanCore
         private readonly ushort maxLineLength;
         private readonly bool startAtBeginning;
 
+        /// <inheritdoc />
+        public string Id { get; set; }
+
         /// <summary>
         /// Create a log file scanner
         /// </summary>

@@ -44,11 +44,6 @@ namespace DigitalRuby.IPBanCore
         private readonly string regexSuccessTimestampFormat;
 
         /// <summary>
-        /// Optional id of the config entry, logged along with any event this scanner triggers, null or empty for none
-        /// </summary>
-        public string Id { get; }
-
-        /// <summary>
         /// The source of the failed login
         /// </summary>
         public string Source { get; }

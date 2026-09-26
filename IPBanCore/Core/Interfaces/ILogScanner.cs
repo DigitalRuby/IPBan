@@ -33,6 +33,11 @@ namespace DigitalRuby.IPBanCore
     public interface ILogScanner : IDisposable
     {
         /// <summary>
+        /// Id (can be null/empty)
+        /// </summary>
+        string Id { get; }
+
+        /// <summary>
         /// Path and mask (can be files, db connection string, etc.)
         /// </summary>
         string PathAndMask { get; }
