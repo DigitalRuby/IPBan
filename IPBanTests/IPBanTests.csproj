@@ -83,6 +83,9 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<None Update="TestData\Configs\ipban1.config">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
 		<None Update="TestData\LogFiles\Apache\everything.log">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
