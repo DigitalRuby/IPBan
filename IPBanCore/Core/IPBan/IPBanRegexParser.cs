@@ -490,6 +490,7 @@ namespace DigitalRuby.IPBanCore
                 try
                 {
                     string[] lines = [];
+                    int count = 0;
                     ExtensionMethods.Retry(() => lines = IOUtility.GetLines(fileName, ushort.MaxValue));
                     if (lines.Length != 0)
                     {
@@ -504,15 +505,16 @@ namespace DigitalRuby.IPBanCore
                                     sb.Append('|');
                                 }
                                 sb.Append(Regex.Escape(trimmedLine));
+                                count++;
                             }
                         }
                         sb.Append(')');
                         replacement = sb.ToString();
                     }
+                    Logger.Debug("Replaced regex file '{0}' with {1} entries", fileName, count);
                 }
                 catch (Exception ex)
                 {
-                    Logger.Error(ex, "Error replacing regex file '{0}'", fileName);
                 }
                 return replacement;
             }, RegexOptions.CultureInvariant, RegexUtility.MatchTimeout);
