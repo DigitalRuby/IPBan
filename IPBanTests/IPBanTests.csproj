@@ -98,6 +98,12 @@
 		<None Update="TestData\LogFiles\RDWeb\everything.log">
 		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
+		<None Update="TestData\LogFiles\ProbingWordPress\access.log">
+		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+		<None Update="TestData\LogFiles\ProbingWordPress\probing-wordpress.txt">
+		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
 	</ItemGroup>
 
 	<ItemGroup>

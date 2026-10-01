@@ -231,5 +231,38 @@ namespace DigitalRuby.IPBanTests
                 ClassicAssert.IsFalse(re.IsMatch("hello there")); // whole string must equal one list entry
             }
         }
+
+        // ---------- $$file:path syntax (raw regex lines, not escaped) ----------
+        [Test]
+        public void FileReplacement_ColonSyntax_InsertsRawRegexLines()
+        {
+            var path = System.IO.Path.GetTempFileName();
+            try
+            {
+                // same shape as lists/probing-wordpress.txt: one regex per line, dots already escaped
+                System.IO.File.WriteAllLines(path, ["wp-login\\.php", "wp-admin"]);
+
+                var pattern = $@"^(?<ipaddress>\S+)\s""(?:GET|POST)\s+(?<log>.*?$$file:{path.Replace('\\', '/')})[^\n]*";
+                var re = IPBanRegexParser.ParseRegex(pattern, multiline: true);
+                ClassicAssert.NotNull(re);
+
+                ClassicAssert.IsTrue(re.IsMatch("1.2.3.4 \"GET /wp-login.php HTTP/1.1\""));
+                ClassicAssert.IsTrue(re.IsMatch("1.2.3.5 \"POST /wp-admin/ HTTP/1.1\""));
+                ClassicAssert.IsTrue(re.IsMatch("1.2.3.6 \"GET /blog/wp-login.php HTTP/1.1\""));
+
+                ClassicAssert.IsFalse(re.IsMatch("1.2.3.7 \"GET /index.html HTTP/1.1\""));
+                ClassicAssert.IsFalse(re.IsMatch("1.2.3.8 \"PUT /wp-login.php HTTP/1.1\""));
+                // the list entry is a regex escape, not a literal backslash
+                ClassicAssert.IsFalse(re.IsMatch("1.2.3.9 \"GET /wp-login\\.php HTTP/1.1\""));
+
+                var match = re.Match("5.6.7.8 \"GET /wp-login.php HTTP/1.1\"");
+                AssertGroup(match, "ipaddress", "5.6.7.8");
+                AssertGroup(match, "log", "/wp-login.php");
+            }
+            finally
+            {
+                try { System.IO.File.Delete(path); } catch { }
+            }
+        }
     }
 }

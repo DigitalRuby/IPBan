@@ -480,10 +480,20 @@ namespace DigitalRuby.IPBanCore
 
         private static string ReplaceFileDeclarationsWithOrExpressions(string text)
         {
-            // replace $$file(...) with ( ...|...|... ) expressions
+            // $$file(path) inserts each line as a Regex.Escape'd literal.
+            // $$file:path inserts each line as a raw regular expression. Pattern lists such as
+            // probing-wordpress.txt are already escaped (wp-login\.php) and must not be escaped again.
+            // The colon form ends at whitespace or ')', so it can sit inside a named group.
+            text = ReplaceFileDeclaration(text, @"\$\$file\((?<file>[^\)]+)\)", escapeLines: true);
+            text = ReplaceFileDeclaration(text, @"\$\$file:(?<file>[^\s\)]+)", escapeLines: false);
+            return text;
+        }
+
+        private static string ReplaceFileDeclaration(string text, string pattern, bool escapeLines)
+        {
             const string groupPrefix = "(?:";
-           
-            return Regex.Replace(text, @"\$\$file\((?<file>[^\)]+)\)", match =>
+
+            return Regex.Replace(text, pattern, match =>
             {
                 string fileName = match.Groups["file"].Value;
                 string replacement = string.Empty;
@@ -504,7 +514,7 @@ namespace DigitalRuby.IPBanCore
                                 {
                                     sb.Append('|');
                                 }
-                                sb.Append(Regex.Escape(trimmedLine));
+                                sb.Append(escapeLines ? Regex.Escape(trimmedLine) : trimmedLine);
                                 count++;
                             }
                         }
@@ -513,7 +523,7 @@ namespace DigitalRuby.IPBanCore
                     }
                     Logger.Debug("Replaced regex file '{0}' with {1} entries", fileName, count);
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                 }
                 return replacement;

@@ -1,0 +1,7 @@
+55.66.77.10 - - [01/Oct/2026:09:15:01 +0000] "GET /wp-login.php HTTP/1.1" 404 196 "-" "scanner"
+55.66.77.11 - - [01/Oct/2026:09:15:02 +0000] "POST /wp-admin/ HTTP/1.1" 404 196 "-" "scanner"
+55.66.77.12 - - [01/Oct/2026:09:15:03 +0000] "GET /wp-content/themes/x/style.css HTTP/1.1" 404 196 "-" "scanner"
+55.66.77.13 - - [01/Oct/2026:09:15:04 +0000] "GET /blog/wp-includes/js/jquery.js HTTP/1.1" 200 100 "-" "scanner"
+55.66.77.20 - - [01/Oct/2026:09:15:05 +0000] "GET /index.html HTTP/1.1" 200 100 "-" "Mozilla"
+55.66.77.21 - - [01/Oct/2026:09:15:06 +0000] "PUT /wp-login.php HTTP/1.1" 404 196 "-" "scanner"
+55.66.77.22 - - [01/Oct/2026:09:15:07 +0000] "GET /about HTTP/1.1" 200 512 "-" "Mozilla"

@@ -209,6 +209,64 @@ namespace DigitalRuby.IPBanTests
             ClassicAssert.AreEqual(5, failedEvents.First().Count);
         }
 
+        [Test]
+        public async Task TestLogFilesProbingWordPress()
+        {
+            string path = Path.Combine(AppContext.BaseDirectory, "TestData/LogFiles/ProbingWordPress/access.log");
+            // forward slashes so the $$file: path has no backslash escapes and no spaces
+            string listPath = Path.Combine(AppContext.BaseDirectory, "TestData/LogFiles/ProbingWordPress/probing-wordpress.txt")
+                .Replace('\\', '/');
+            await RunTest(null, path, doc =>
+            {
+                var logFiles = doc.SelectSingleNode("//LogFiles");
+                var logFile = doc.CreateElement("LogFile");
+
+                void Add(string name, string value)
+                {
+                    var element = doc.CreateElement(name);
+                    element.InnerText = value;
+                    logFile.AppendChild(element);
+                }
+
+                Add("Id", "100");
+                Add("Source", "httpd - Probing WordPress");
+                Add("PathAndMask", path);
+                // lists/probing-wordpress.txt is one regex per line; $$file: inserts those lines raw
+                Add("FailedLoginRegex",
+                    @"^(?<ipaddress>[^\s]+)\s[^\s]+\s[^\s]+\s\[(?<timestamp>[^\]]+)\]\s""(?:GET|POST)\s+(?<log>.*?$$file:" +
+                    listPath + @")[^\n]*");
+                Add("FailedLoginRegexTimestampFormat", "dd/MMM/yyyy:HH:mm:ss zzz");
+                Add("FailedLoginLogLevel", "Warning");
+                Add("MinimumTimeBetweenFailedLoginAttempts", "");
+                Add("SuccessfulLoginRegex", "");
+                Add("SuccessfulLoginRegexTimestampFormat", "");
+                Add("SuccessfulLoginLogLevel", "Warning");
+                Add("PlatformRegex", ".");
+                Add("PingInterval", "5000");
+                Add("MaxFileSize", "0");
+                Add("FailedLoginThreshold", "1");
+                Add("NotificationFlags", "None");
+                logFiles.AppendChild(logFile);
+            });
+
+            ClassicAssert.AreEqual(0, successfulEvents.Count);
+            ClassicAssert.AreEqual(4, failedEvents.Count);
+            failedEvents.Sort((x, y) => x.IPAddress.CompareTo(y.IPAddress));
+
+            ClassicAssert.AreEqual("55.66.77.10", failedEvents[0].IPAddress);
+            ClassicAssert.AreEqual("55.66.77.11", failedEvents[1].IPAddress);
+            ClassicAssert.AreEqual("55.66.77.12", failedEvents[2].IPAddress);
+            ClassicAssert.AreEqual("55.66.77.13", failedEvents[3].IPAddress);
+
+            for (int i = 0; i < failedEvents.Count; i++)
+            {
+                ClassicAssert.AreEqual("httpd - Probing WordPress", failedEvents[i].Source);
+                ClassicAssert.AreEqual(IPAddressEventType.FailedLogin, failedEvents[i].Type);
+                ClassicAssert.AreEqual(1, failedEvents[i].Count);
+                ClassicAssert.AreEqual(IPAddressNotificationFlags.None, failedEvents[i].NotificationFlags);
+            }
+        }
+
         private async Task RunTest(string pathAndMaskXPath, string pathAndMaskOverride, Action<XmlDocument> modifier = null)
         {
             // create a test service with log file path/mask overriden
