@@ -717,14 +717,28 @@ public class IPBanLinuxFirewallNFTables : IPBanBaseFirewall
         {
             return;
         }
+
+        // nft -f is a single transaction, one delete of a missing element (or one add overlapping an
+        // existing interval) fails every line in the file, so reconcile against the current set contents
+        List<IPAddressRange> elementsToDelete4 = [], elementsToAdd4 = [], elementsToDelete6 = [], elementsToAdd6 = [];
+        if (add4.Count + del4.Count != 0)
+        {
+            ComputeSetElementDelta(GetSetElements(setV4), add4, del4, elementsToDelete4, elementsToAdd4);
+        }
+        if (add6.Count + del6.Count != 0)
+        {
+            ComputeSetElementDelta(GetSetElements(setV6), add6, del6, elementsToDelete6, elementsToAdd6);
+        }
+
         using var tmp = new TempFile();
         bool wrote = false;
         using (var sw = new StreamWriter(tmp, false, ExtensionMethods.Utf8EncodingNoPrefix, sixtyFourK))
         {
-            foreach (var line in BuildBatches("add", tableName, setV4, add4)
-                .Concat(BuildBatches("add", tableName, setV6, add6))
-                .Concat(BuildBatches("delete", tableName, setV4, del4))
-                .Concat(BuildBatches("delete", tableName, setV6, del6)))
+            // deletes first, splitting a range deletes the range and adds back the remaining pieces
+            foreach (var line in BuildBatches("delete", tableName, setV4, elementsToDelete4)
+                .Concat(BuildBatches("delete", tableName, setV6, elementsToDelete6))
+                .Concat(BuildBatches("add", tableName, setV4, elementsToAdd4))
+                .Concat(BuildBatches("add", tableName, setV6, elementsToAdd6)))
             {
                 sw.WriteLine(line);
                 wrote = true;
@@ -734,7 +748,131 @@ public class IPBanLinuxFirewallNFTables : IPBanBaseFirewall
         {
             RunNftFile(tmp);
         }
-     }
+    }
+
+    /// <summary>
+    /// Compute the exact nftables element operations needed to apply adds and removes to an interval set without errors.
+    /// Removes that are not in the set are skipped, removes inside a larger range split that range, and adds already covered
+    /// by the set are skipped. When an address is in both adds and removes, the remove wins.
+    /// </summary>
+    /// <param name="existing">Current set elements (non-overlapping, single address family)</param>
+    /// <param name="adds">Ranges to add</param>
+    /// <param name="removes">Ranges to remove</param>
+    /// <param name="elementsToDelete">Receives existing elements to delete</param>
+    /// <param name="elementsToAdd">Receives elements to add</param>
+    public static void ComputeSetElementDelta(IEnumerable<IPAddressRange> existing,
+        IEnumerable<IPAddressRange> adds,
+        IEnumerable<IPAddressRange> removes,
+        List<IPAddressRange> elementsToDelete,
+        List<IPAddressRange> elementsToAdd)
+    {
+        var sortedExisting = existing.Where(r => r is not null).ToList();
+        sortedExisting.Sort((x, y) => x.Begin.CompareTo(y.Begin));
+        var removeList = removes.Where(r => r is not null).ToList();
+
+        // existing elements touched by a remove are deleted and re-added minus the removed addresses
+        SortedSet<int> affected = [];
+        foreach (var remove in removeList)
+        {
+            foreach (int index in IntersectingIndexes(sortedExisting, remove))
+            {
+                affected.Add(index);
+            }
+        }
+        foreach (int index in affected)
+        {
+            var element = sortedExisting[index];
+            elementsToDelete.Add(element);
+            elementsToAdd.AddRange(SubtractRanges(element, removeList));
+        }
+
+        foreach (var add in adds.Where(r => r is not null))
+        {
+            var pieces = SubtractRanges(add, removeList);
+            pieces = [.. pieces.SelectMany(p => SubtractRanges(p, IntersectingIndexes(sortedExisting, p)
+                .Where(i => !affected.Contains(i))
+                .Select(i => sortedExisting[i])))];
+            pieces = [.. pieces.SelectMany(p => SubtractRanges(p, elementsToAdd))];
+            elementsToAdd.AddRange(pieces);
+        }
+    }
+
+    private static IEnumerable<int> IntersectingIndexes(List<IPAddressRange> sorted, IPAddressRange range)
+    {
+        // find the last element beginning at or before the range begin, then walk forward while elements can intersect
+        int lo = 0, hi = sorted.Count - 1, start = 0;
+        while (lo <= hi)
+        {
+            int mid = lo + ((hi - lo) >> 1);
+            if (sorted[mid].Begin.CompareTo(range.Begin) <= 0)
+            {
+                start = mid;
+                lo = mid + 1;
+            }
+            else
+            {
+                hi = mid - 1;
+            }
+        }
+        for (int i = start; i < sorted.Count && sorted[i].Begin.CompareTo(range.End) <= 0; i++)
+        {
+            if (sorted[i].End.CompareTo(range.Begin) >= 0 &&
+                sorted[i].Begin.AddressFamily == range.Begin.AddressFamily)
+            {
+                yield return i;
+            }
+        }
+    }
+
+    private static List<IPAddressRange> SubtractRanges(IPAddressRange range, IEnumerable<IPAddressRange> cuts)
+    {
+        List<IPAddressRange> pieces = [range];
+        foreach (var cut in cuts)
+        {
+            if (cut.Begin.AddressFamily != range.Begin.AddressFamily)
+            {
+                continue;
+            }
+            for (int i = pieces.Count - 1; i >= 0; i--)
+            {
+                if (pieces[i].Chomp(cut, out var left, out var right))
+                {
+                    pieces.RemoveAt(i);
+                    if (left is not null)
+                    {
+                        pieces.Add(left);
+                    }
+                    if (right is not null)
+                    {
+                        pieces.Add(right);
+                    }
+                }
+            }
+        }
+        return pieces;
+    }
+
+    private List<IPAddressRange> GetSetElements(string setName)
+    {
+        List<IPAddressRange> elements = [];
+        MemoryStream ms = new();
+        if (RunNftStream(null, ms, "-j", "list", "set", "inet", tableName, setName) != 0 || ms.Length == 0)
+        {
+            return elements;
+        }
+        var nftRoot = JsonSerializationHelper.Deserialize<NetFilterRuleset>(ms);
+        foreach (var set in nftRoot.Entries.Select(e => e.Set).Where(s => s is not null))
+        {
+            foreach (var element in set.EnumerateSetElements())
+            {
+                if (IPAddressRange.TryParse(element, out var range))
+                {
+                    elements.Add(range);
+                }
+            }
+        }
+        return elements;
+    }
 
     private void EnsureRules(string ruleName, IEnumerable<PortRange> allowedPorts, bool allow)
     {

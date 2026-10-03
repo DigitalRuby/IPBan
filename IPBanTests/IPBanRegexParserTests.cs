@@ -264,5 +264,34 @@ namespace DigitalRuby.IPBanTests
                 try { System.IO.File.Delete(path); } catch { }
             }
         }
+
+        [Test]
+        public void FileReplacement_ColonSyntax_NginxCombinedLog_ParsesEvents()
+        {
+            var path = System.IO.Path.GetTempFileName();
+            try
+            {
+                System.IO.File.WriteAllLines(path, ["wp-login\\.php", "wp-admin", "wp-content", "wp-includes"]);
+
+                var pattern = @"^(?<ipaddress>[^\s]+)\s[^\s]+\s[^\s]+\s\[(?<timestamp>[^\]]+)\]\s""(?:GET|POST)\s+(?<log>.*?$$file:" +
+                    path.Replace('\\', '/') + @")[^\n]*";
+                var re = IPBanRegexParser.ParseRegex(pattern, multiline: true);
+                const string text = "\n20.219.14.152 - - [01/Oct/2026:04:54:16 +0200] \"GET /wp-content/plugins/hellopress/wp_filemanager.php HTTP/1.1\" 301 162 \"-\" \"-\"\n" +
+                    "20.219.14.152 - - [01/Oct/2026:04:54:17 +0200] \"GET /wp-content/plugins/hellopress/wp_filemanager.php HTTP/1.1\" 404 638 \"-\" \"-\"\n";
+
+                var events = IPBanRegexParser.GetIPAddressEventsFromRegex(re, text, "dd/MMM/yyyy:HH:mm:ss zzz").ToArray();
+                ClassicAssert.AreEqual(2, events.Length);
+                foreach (var info in events)
+                {
+                    ClassicAssert.AreEqual("20.219.14.152", info.IPAddress);
+                    ClassicAssert.AreEqual("/wp-content", info.LogData);
+                }
+                ClassicAssert.AreEqual(new System.DateTime(2026, 10, 1, 2, 54, 16, System.DateTimeKind.Utc), events[0].Timestamp);
+            }
+            finally
+            {
+                try { System.IO.File.Delete(path); } catch { }
+            }
+        }
     }
 }

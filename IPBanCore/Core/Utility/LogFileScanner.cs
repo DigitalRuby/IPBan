@@ -502,48 +502,51 @@ namespace DigitalRuby.IPBanCore
         {
             Logger.Trace("Processing log file {0}, len = {1}, pos = {2}", file.FileName, file.LastLength, file.LastPosition);
 
-            // seek to next position
-            fs.Position = file.LastPosition;
-
-            // fill up to 64K bytes
+            // fill up to 64K bytes at a time, looping so more than 64K of new data is not left unread
             var bytes = ArrayPool<byte>.Shared.Rent(ushort.MaxValue);
             try
             {
-                int read = fs.Read(bytes, 0, ushort.MaxValue);
-
-                // setup state
-                int bytesEnd;
-                bool foundNewLine = false;
-
-                // find the last newline char
-                for (bytesEnd = read - 1; bytesEnd >= 0; bytesEnd--)
+                while (file.LastPosition < fs.Length)
                 {
-                    if (bytes[bytesEnd] == '\n')
-                    {
-                        // take bytes up to and including the last newline char
-                        bytesEnd++;
-                        foundNewLine = true;
-                        break;
-                    }
-                }
-
-                // check for binary file
-                if (!foundNewLine)
-                {
-                    if (read > maxLineLength)
-                    {
-                        // max line length bytes without a new line
-                        file.IsBinaryFile = true;
-                        Logger.Warn($"Aborting parsing log file {file.FileName}, file may be a binary file");
-                    }
-                    // reset position try again on next cycle
+                    // seek to next position
                     fs.Position = file.LastPosition;
-                    return;
-                }
+                    int read = fs.Read(bytes, 0, ushort.MaxValue);
+                    if (read <= 0)
+                    {
+                        return;
+                    }
 
-                // if we found a newline, process all the text up until that newline
-                if (foundNewLine)
-                {
+                    // setup state
+                    int bytesEnd;
+                    bool foundNewLine = false;
+
+                    // find the last newline char
+                    for (bytesEnd = read - 1; bytesEnd >= 0; bytesEnd--)
+                    {
+                        if (bytes[bytesEnd] == '\n')
+                        {
+                            // take bytes up to and including the last newline char
+                            bytesEnd++;
+                            foundNewLine = true;
+                            break;
+                        }
+                    }
+
+                    // check for binary file
+                    if (!foundNewLine)
+                    {
+                        if (read > maxLineLength)
+                        {
+                            // max line length bytes without a new line
+                            file.IsBinaryFile = true;
+                            Logger.Warn($"Aborting parsing log file {file.FileName}, file may be a binary file");
+                        }
+                        // reset position try again on next cycle
+                        fs.Position = file.LastPosition;
+                        return;
+                    }
+
+                    // process all the text up until the last newline
                     try
                     {
                         // strip out all carriage returns and ensure string starts/ends with newlines

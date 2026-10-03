@@ -44,6 +44,7 @@ namespace DigitalRuby.IPBanCore
     {
         private static readonly Dictionary<string, Regex> regexCacheCompiled = [];
         private static readonly Dictionary<string, Regex> regexCacheNotCompiled = [];
+        private static readonly Dictionary<string, string[]> fileDeclarationCache = new(StringComparer.Ordinal);
         private static readonly char[] regexTrimChars =
 [
             ',', ';', '|', '_', '-', '/', '\'', '\"', '(', ')', '[', ']', '{', '}', ' ', '\t', '\r', '\n'
@@ -493,15 +494,36 @@ namespace DigitalRuby.IPBanCore
         {
             const string groupPrefix = "(?:";
 
+            // an empty replacement would turn the surrounding regex into a match-anything, so use a group that never matches
+            const string neverMatch = "(?!)";
+
             return Regex.Replace(text, pattern, match =>
             {
                 string fileName = match.Groups["file"].Value;
-                string replacement = string.Empty;
+                string replacement = neverMatch;
                 try
                 {
                     string[] lines = [];
                     int count = 0;
                     ExtensionMethods.Retry(() => lines = IOUtility.GetLines(fileName, ushort.MaxValue));
+                    if (lines.Any(l => !string.IsNullOrWhiteSpace(l)))
+                    {
+                        lock (fileDeclarationCache)
+                        {
+                            fileDeclarationCache[fileName] = lines;
+                        }
+                    }
+                    else
+                    {
+                        lock (fileDeclarationCache)
+                        {
+                            if (fileDeclarationCache.TryGetValue(fileName, out var cachedLines))
+                            {
+                                Logger.Warn("Regex file '{0}' could not be read or was empty, using last good copy", fileName);
+                                lines = cachedLines;
+                            }
+                        }
+                    }
                     if (lines.Length != 0)
                     {
                         StringBuilder sb = new(groupPrefix);
@@ -519,12 +541,23 @@ namespace DigitalRuby.IPBanCore
                             }
                         }
                         sb.Append(')');
-                        replacement = sb.ToString();
+                        if (count != 0)
+                        {
+                            replacement = sb.ToString();
+                        }
                     }
-                    Logger.Debug("Replaced regex file '{0}' with {1} entries", fileName, count);
+                    if (count == 0)
+                    {
+                        Logger.Warn("Regex file '{0}' has no entries, this part of the regex will never match", fileName);
+                    }
+                    else
+                    {
+                        Logger.Info("Replaced regex file '{0}' with {1} entries", fileName, count);
+                    }
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
+                    Logger.Error(ex, "Error replacing regex file '{0}', this part of the regex will never match", fileName);
                 }
                 return replacement;
             }, RegexOptions.CultureInvariant, RegexUtility.MatchTimeout);

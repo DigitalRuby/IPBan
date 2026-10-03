@@ -156,6 +156,29 @@ namespace DigitalRuby.IPBanTests
         }
 
         [Test]
+        public void Update_MoreThan64KAppended_ProcessesEveryLine()
+        {
+            // a single read is capped at 64K, all of the appended lines must still be processed in one update
+            string path = System.IO.Path.Combine(tempDir, "big.log");
+            System.IO.File.WriteAllText(path, string.Empty);
+            const int lineCount = 5000;
+            System.Text.StringBuilder sb = new();
+            for (int i = 0; i < lineCount; i++)
+            {
+                sb.Append("line ").Append(i.ToString("D6")).Append(' ').Append('x', 40).Append('\n');
+            }
+            ClassicAssert.Greater(sb.Length, 3 * ushort.MaxValue);
+
+            int linesSeen = 0;
+            using var scanner = new LogFileScanner(System.IO.Path.Combine(tempDir, "*.log"),
+                processText: text => linesSeen += text.Split('\n', System.StringSplitOptions.RemoveEmptyEntries).Length);
+            scanner.Update();
+            System.IO.File.AppendAllText(path, sb.ToString());
+            scanner.Update();
+            ClassicAssert.AreEqual(lineCount, linesSeen);
+        }
+
+        [Test]
         public void Update_OnEmptyDir_DoesNotThrow()
         {
             using var scanner = new LogFileScanner(System.IO.Path.Combine(tempDir, "*.log"));

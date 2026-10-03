@@ -91,6 +91,14 @@ namespace DigitalRuby.IPBanTests
             string missing = Path.Combine(Path.GetTempPath(), "definitely-not-here-" + Guid.NewGuid().ToString("N") + ".txt");
             var r = IPBanRegexParser.ParseRegex($"user=$$file({missing})");
             ClassicAssert.IsNotNull(r);
+
+            // an unreadable list must never collapse into a match-anything regex
+            ClassicAssert.IsFalse(r.IsMatch("user="));
+            ClassicAssert.IsFalse(r.IsMatch("user=anything"));
+
+            var r2 = IPBanRegexParser.ParseRegex($@"^(?<ipaddress>\S+)\s(?<log>.*?$$file:{missing.Replace('\\', '/')})[^\n]*");
+            ClassicAssert.IsNotNull(r2);
+            ClassicAssert.IsFalse(r2.IsMatch("1.2.3.4 GET /index.html"));
         }
 
         [Test]
