@@ -552,7 +552,7 @@ namespace DigitalRuby.IPBanCore
                     }
                     else
                     {
-                        Logger.Info("Replaced regex file '{0}' with {1} entries", fileName, count);
+                        Logger.Debug("Replaced regex file '{0}' with {1} entries", fileName, count);
                     }
                 }
                 catch (Exception ex)
