@@ -96,7 +96,7 @@ namespace DigitalRuby.IPBanTests
             ClassicAssert.IsFalse(r.IsMatch("user="));
             ClassicAssert.IsFalse(r.IsMatch("user=anything"));
 
-            var r2 = IPBanRegexParser.ParseRegex($@"^(?<ipaddress>\S+)\s(?<log>.*?$$file:{missing.Replace('\\', '/')})[^\n]*");
+            var r2 = IPBanRegexParser.ParseRegex($@"^(?<ipaddress>\S+)\s(?<log>.*?$$file:{missing.Replace('\\', '/')}$$)[^\n]*");
             ClassicAssert.IsNotNull(r2);
             ClassicAssert.IsFalse(r2.IsMatch("1.2.3.4 GET /index.html"));
         }

@@ -482,11 +482,11 @@ namespace DigitalRuby.IPBanCore
         private static string ReplaceFileDeclarationsWithOrExpressions(string text)
         {
             // $$file(path) inserts each line as a Regex.Escape'd literal.
-            // $$file:path inserts each line as a raw regular expression. Pattern lists such as
+            // $$file:path$$ inserts each line as a raw regular expression. Pattern lists such as
             // probing-wordpress.txt are already escaped (wp-login\.php) and must not be escaped again.
-            // The colon form ends at whitespace or ')', so it can sit inside a named group.
+            // The colon form requires a closing $$, so it can sit inside a named group.
             text = ReplaceFileDeclaration(text, @"\$\$file\((?<file>[^\)]+)\)", escapeLines: true);
-            text = ReplaceFileDeclaration(text, @"\$\$file:(?<file>[^\s\)]+)", escapeLines: false);
+            text = ReplaceFileDeclaration(text, @"\$\$file:(?<file>[^\s\)]+)\$\$", escapeLines: false);
             return text;
         }
 

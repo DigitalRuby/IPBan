@@ -213,7 +213,7 @@ namespace DigitalRuby.IPBanTests
         public async Task TestLogFilesProbingWordPress()
         {
             string path = Path.Combine(AppContext.BaseDirectory, "TestData/LogFiles/ProbingWordPress/access.log");
-            // forward slashes so the $$file: path has no backslash escapes and no spaces
+            // forward slashes so the $$file:path$$ has no backslash escapes and no spaces
             string listPath = Path.Combine(AppContext.BaseDirectory, "TestData/LogFiles/ProbingWordPress/probing-wordpress.txt")
                 .Replace('\\', '/');
             await RunTest(null, path, doc =>
@@ -231,10 +231,10 @@ namespace DigitalRuby.IPBanTests
                 Add("Id", "100");
                 Add("Source", "httpd - Probing WordPress");
                 Add("PathAndMask", path);
-                // lists/probing-wordpress.txt is one regex per line; $$file: inserts those lines raw
+                // lists/probing-wordpress.txt is one regex per line; $$file:path$$ inserts those lines raw
                 Add("FailedLoginRegex",
                     @"^(?<ipaddress>[^\s]+)\s[^\s]+\s[^\s]+\s\[(?<timestamp>[^\]]+)\]\s""(?:GET|POST)\s+(?<log>.*?$$file:" +
-                    listPath + @")[^\n]*");
+                    listPath + @"$$)[^\n]*");
                 Add("FailedLoginRegexTimestampFormat", "dd/MMM/yyyy:HH:mm:ss zzz");
                 Add("FailedLoginLogLevel", "Warning");
                 Add("MinimumTimeBetweenFailedLoginAttempts", "");

@@ -232,7 +232,7 @@ namespace DigitalRuby.IPBanTests
             }
         }
 
-        // ---------- $$file:path syntax (raw regex lines, not escaped) ----------
+        // ---------- $$file:path$$ syntax (raw regex lines, not escaped) ----------
         [Test]
         public void FileReplacement_ColonSyntax_InsertsRawRegexLines()
         {
@@ -242,7 +242,7 @@ namespace DigitalRuby.IPBanTests
                 // same shape as lists/probing-wordpress.txt: one regex per line, dots already escaped
                 System.IO.File.WriteAllLines(path, ["wp-login\\.php", "wp-admin"]);
 
-                var pattern = $@"^(?<ipaddress>\S+)\s""(?:GET|POST)\s+(?<log>.*?$$file:{path.Replace('\\', '/')})[^\n]*";
+                var pattern = $@"^(?<ipaddress>\S+)\s""(?:GET|POST)\s+(?<log>.*?$$file:{path.Replace('\\', '/')}$$)[^\n]*";
                 var re = IPBanRegexParser.ParseRegex(pattern, multiline: true);
                 ClassicAssert.NotNull(re);
 
@@ -274,7 +274,7 @@ namespace DigitalRuby.IPBanTests
                 System.IO.File.WriteAllLines(path, ["wp-login\\.php", "wp-admin", "wp-content", "wp-includes"]);
 
                 var pattern = @"^(?<ipaddress>[^\s]+)\s[^\s]+\s[^\s]+\s\[(?<timestamp>[^\]]+)\]\s""(?:GET|POST)\s+(?<log>.*?$$file:" +
-                    path.Replace('\\', '/') + @")[^\n]*";
+                    path.Replace('\\', '/') + @"$$)[^\n]*";
                 var re = IPBanRegexParser.ParseRegex(pattern, multiline: true);
                 const string text = "\n20.219.14.152 - - [01/Oct/2026:04:54:16 +0200] \"GET /wp-content/plugins/hellopress/wp_filemanager.php HTTP/1.1\" 301 162 \"-\" \"-\"\n" +
                     "20.219.14.152 - - [01/Oct/2026:04:54:17 +0200] \"GET /wp-content/plugins/hellopress/wp_filemanager.php HTTP/1.1\" 404 638 \"-\" \"-\"\n";
