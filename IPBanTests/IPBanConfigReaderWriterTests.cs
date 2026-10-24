@@ -35,12 +35,12 @@ namespace DigitalRuby.IPBanTests
         }
 
         [Test]
-        public void InMemory_ReadWithoutWriteThrows()
+        public async Task InMemory_ReadWithoutWriteThrows()
         {
             // The contract: if UseFile=false and GlobalConfigString is empty, ReadConfigAsync
             // throws — readers are expected to ensure something has been written first.
             var rw = new IPBanConfigReaderWriter { UseFile = false, GlobalConfigString = string.Empty };
-            Assert.ThrowsAsync<IOException>(async () => await rw.ReadConfigAsync());
+            await Assert.ThrowsAsync<IOException>(async () => await rw.ReadConfigAsync());
         }
 
         [Test]

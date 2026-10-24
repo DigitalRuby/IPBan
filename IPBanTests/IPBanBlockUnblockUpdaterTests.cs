@@ -176,7 +176,7 @@ namespace DigitalRuby.IPBanTests
             string nowhere = Path.Combine(Path.GetTempPath(), "ipban_does_not_exist_" + Guid.NewGuid().ToString("N"), "ban*.txt");
             var handler = new CapturingHandler();
             using var updater = new IPBanBlockIPAddressesUpdater(handler, nowhere);
-            Assert.DoesNotThrowAsync(async () => await updater.Update(CancellationToken.None));
+            await Assert.DoesNotThrowAsync(async () => await updater.Update(CancellationToken.None));
             CollectionAssert.IsEmpty(handler.Events);
         }
 

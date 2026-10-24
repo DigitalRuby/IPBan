@@ -94,7 +94,7 @@ namespace DigitalRuby.IPBanTests
         }
 
         [Test]
-        public void ConcurrentAddDoesNotCorruptInternalList()
+        public async Task ConcurrentAddDoesNotCorruptInternalList()
         {
             // The lock must serialize concurrent producers writing to the internal events
             // list. If the lock target were the parameter instead of the field, each caller
@@ -122,7 +122,7 @@ namespace DigitalRuby.IPBanTests
                 }));
             }
 
-            Assert.DoesNotThrowAsync(() => Task.WhenAll(tasks));
+            await Assert.DoesNotThrowAsync(() => Task.WhenAll(tasks));
         }
     }
 }

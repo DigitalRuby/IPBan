@@ -438,11 +438,11 @@ namespace DigitalRuby.IPBanTests
         }
 
         [Test]
-        public void AsTask_WaitHandle_TimeoutCancels()
+        public async Task AsTask_WaitHandle_TimeoutCancels()
         {
             using var evt = new System.Threading.ManualResetEvent(false);
             var task = evt.AsTask(TimeSpan.FromMilliseconds(50));
-            Assert.ThrowsAsync<TaskCanceledException>(async () => await task);
+            await Assert.ThrowsAsync<TaskCanceledException>(async () => await task);
         }
 
         // -------- File helpers --------

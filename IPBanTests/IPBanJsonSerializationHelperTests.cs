@@ -98,16 +98,16 @@ namespace DigitalRuby.IPBanTests
         }
 
         [Test]
-        public void SerializeAsync_NullStreamThrows()
+        public async Task SerializeAsync_NullStreamThrows()
         {
-            Assert.ThrowsAsync<ArgumentNullException>(async () =>
+            await Assert.ThrowsAsync<ArgumentNullException>(async () =>
                 await JsonSerializationHelper.SerializeAsync(new Sample(), null));
         }
 
         [Test]
-        public void DeserializeAsync_NullStreamThrows()
+        public async Task DeserializeAsync_NullStreamThrows()
         {
-            Assert.ThrowsAsync<ArgumentNullException>(async () =>
+            await Assert.ThrowsAsync<ArgumentNullException>(async () =>
                 await JsonSerializationHelper.DeserializeAsync<Sample>(null));
         }
 

@@ -52,7 +52,7 @@ namespace DigitalRuby.IPBanTests
             using var lock2 = await locker.AcquireReaderLockAsync(timeout);
 
             // cannot acquire writer while reader is held
-            Assert.ThrowsAsync<TimeoutException>(() => locker.AcquireWriterLockAsync(timeout));
+            await Assert.ThrowsAsync<TimeoutException>(() => locker.AcquireWriterLockAsync(timeout));
             lock1.Dispose();
             lock2.Dispose();
 
@@ -76,10 +76,10 @@ namespace DigitalRuby.IPBanTests
             using var lock1 = await locker.AcquireWriterLockAsync(timeout);
 
             // not allowed
-            Assert.ThrowsAsync<TimeoutException>(() => locker.AcquireWriterLockAsync(timeout));
+            await Assert.ThrowsAsync<TimeoutException>(() => locker.AcquireWriterLockAsync(timeout));
 
             // not allowed
-            Assert.ThrowsAsync<TimeoutException>(() => locker.AcquireReaderLockAsync(timeout));
+            await Assert.ThrowsAsync<TimeoutException>(() => locker.AcquireReaderLockAsync(timeout));
 
             // dispose writer
             lock1.Dispose();

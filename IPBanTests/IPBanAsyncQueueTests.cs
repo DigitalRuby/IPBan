@@ -109,8 +109,8 @@ namespace DigitalRuby.IPBanTests
             // with ObjectDisposedException from the underlying semaphore.
             AsyncQueue<int> queue = new();
             queue.Dispose();
-            Assert.DoesNotThrowAsync(async () => await queue.EnqueueAsync(42));
-            Assert.DoesNotThrowAsync(async () => await queue.EnqueueRangeAsync([1, 2, 3]));
+            await Assert.DoesNotThrowAsync(async () => await queue.EnqueueAsync(42));
+            await Assert.DoesNotThrowAsync(async () => await queue.EnqueueRangeAsync([1, 2, 3]));
             // dequeue from a disposed queue returns the negative result, no throw
             var result = await queue.TryDequeueAsync(TimeSpan.FromMilliseconds(10));
             ClassicAssert.IsFalse(result.Key);
@@ -133,7 +133,7 @@ namespace DigitalRuby.IPBanTests
             }
 
             // The enumerator throws; the exception propagates, but two items are already enqueued.
-            Assert.ThrowsAsync<InvalidOperationException>(async () => await queue.EnqueueRangeAsync(Throwing()));
+            await Assert.ThrowsAsync<InvalidOperationException>(async () => await queue.EnqueueRangeAsync(Throwing()));
 
             // Both items must still be dequeueable — proving the Release(2) fired in the finally.
             var first = await queue.TryDequeueAsync(TimeSpan.FromMilliseconds(50));
@@ -148,7 +148,7 @@ namespace DigitalRuby.IPBanTests
         public async Task EnqueueRangeAsync_NullSourceIsNoOp()
         {
             AsyncQueue<int> queue = new();
-            Assert.DoesNotThrowAsync(async () => await queue.EnqueueRangeAsync(null));
+            await Assert.DoesNotThrowAsync(async () => await queue.EnqueueRangeAsync(null));
             var result = await queue.TryDequeueAsync(TimeSpan.FromMilliseconds(10));
             ClassicAssert.IsFalse(result.Key);
         }

@@ -173,7 +173,7 @@ namespace DigitalRuby.IPBanTests
                 var http = new FakeHttpRequestMaker(bytes);
                 service.RequestMaker = http;
 
-                Assert.DoesNotThrowAsync(async () =>
+                await Assert.DoesNotThrowAsync(async () =>
                     await service.CallGetUrl(IPBanService.UrlType.Config, CancellationToken.None));
 
                 // WriteConfigAsync was attempted but threw; the captured list reflects that
@@ -199,7 +199,7 @@ namespace DigitalRuby.IPBanTests
                 service.RequestMaker = new ThrowingHttpRequestMaker(
                     new TimeoutException("simulated network failure"));
 
-                Assert.DoesNotThrowAsync(async () =>
+                await Assert.DoesNotThrowAsync(async () =>
                     await service.CallGetUrl(IPBanService.UrlType.Config, CancellationToken.None));
 
                 CollectionAssert.IsEmpty(service.WrittenConfigs,
