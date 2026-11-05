@@ -82,10 +82,6 @@ namespace DigitalRuby.IPBanCore
         /// Data
         /// </summary>
         [System.Text.Json.Serialization.JsonIgnore]
-
-#if !NO_NEWTONSOFT_JSON
-        [Newtonsoft.Json.JsonIgnore]
-#endif
         [System.Runtime.Serialization.IgnoreDataMember]
         public System.IntPtr Data { get; init; }
 
@@ -93,9 +89,6 @@ namespace DigitalRuby.IPBanCore
         /// Data length
         /// </summary>
         [System.Text.Json.Serialization.JsonIgnore]
-#if !NO_NEWTONSOFT_JSON
-        [Newtonsoft.Json.JsonIgnore]
-#endif
         [System.Runtime.Serialization.IgnoreDataMember]
         public int DataLength { get; init; }
 

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Diagnostics.CodeAnalysis;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -85,8 +86,7 @@ public sealed class IPBanIPThreatUploader(IPBanService service) : IUpdater, IIPA
                     count = e.Count
                 });
             var jsonObj = new { items = transform };
-            // have to use newtonsoft here
-            var postJson = System.Text.Encoding.UTF8.GetBytes(Newtonsoft.Json.JsonConvert.SerializeObject(jsonObj));
+            var postJson = System.Text.Encoding.UTF8.GetBytes(JsonSerializer.Serialize(jsonObj));
             await service.RequestMaker.MakeRequestAsync(ipThreatReportApiUri,
                 postJson,
                 [new("X-API-KEY", apiKey)],

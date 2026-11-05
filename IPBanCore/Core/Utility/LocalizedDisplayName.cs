@@ -22,22 +22,30 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+using System;
 using System.ComponentModel;
 
 namespace DigitalRuby.IPBanCore
 {
     /// <summary>
-    /// Apply a localized display name to an object
+    /// Apply a localized display name.
     /// </summary>
-    /// <remarks>
-    /// Constructor
-    /// </remarks>
     /// <param name="resourceId">Resource id</param>
-    public class LocalizedDisplayNameAttribute(string resourceId) : DisplayNameAttribute(GetMessageFromResource(resourceId))
+    public class LocalizedDisplayNameAttribute(string resourceId) : DisplayNameAttribute(resourceId)
     {
-        private static string GetMessageFromResource(string resourceId)
-        {
-            return IPBanResources.ResourceManager.GetString(resourceId);
-        }
+        private readonly string resourceId = resourceId;
+
+        /// <summary>
+        /// Allows providers to plug into the localization process.
+        /// </summary>
+        public static Func<string, string> ResourceLookup { get; set; }
+
+        /// <summary>
+        /// Resource id
+        /// </summary>
+        public string ResourceId => resourceId;
+
+        /// <inheritdoc />
+        public override string DisplayName => ResourceLookup?.Invoke(resourceId) ?? resourceId;
     }
 }

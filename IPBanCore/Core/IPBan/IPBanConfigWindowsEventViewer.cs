@@ -1,4 +1,4 @@
-﻿/*
+/*
 MIT License
 
 Copyright (c) 2012-present Digital Ruby, LLC - https://ipban.com
@@ -24,8 +24,6 @@ SOFTWARE.
 
 #region Imports
 
-using Newtonsoft.Json;
-
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -48,7 +46,6 @@ namespace DigitalRuby.IPBanCore
         /// </summary>
         [XmlIgnore]
         [System.Text.Json.Serialization.JsonIgnore]
-        [Newtonsoft.Json.JsonIgnore]
         public Regex RegexObject { get; private set; }
 
         private string xpath;
@@ -57,8 +54,7 @@ namespace DigitalRuby.IPBanCore
         /// </summary>
         [DisplayFormat(ConvertEmptyStringToNull = false)]
         [Required(AllowEmptyStrings = true)]
-        [LocalizedDisplayName(nameof(IPBanResources.XPath))]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [LocalizedDisplayName("XPath")]
         public string XPath
         {
             get => xpath;
@@ -75,8 +71,7 @@ namespace DigitalRuby.IPBanCore
         /// </summary>
         [DisplayFormat(ConvertEmptyStringToNull = false)]
         [Required(AllowEmptyStrings = true)]
-        [LocalizedDisplayName(nameof(IPBanResources.XPathRegex))]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [LocalizedDisplayName("XPathRegex")]
         public XmlCData Regex
         {
             get => regex;
@@ -88,7 +83,6 @@ namespace DigitalRuby.IPBanCore
         /// </summary>
         [XmlIgnore]
         [System.Text.Json.Serialization.JsonIgnore]
-        [Newtonsoft.Json.JsonIgnore]
         public bool XPathIsOptional { get; private set; }
 
         /// <inheritdoc />
@@ -116,8 +110,7 @@ namespace DigitalRuby.IPBanCore
         /// Optional id, logged along with any event this group triggers. Nothing is logged if null or empty.
         /// Empty input converts to null so that a blank id is left out of the config xml entirely.
         /// </summary>
-        [LocalizedDisplayName(nameof(IPBanResources.RecipeId))]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [LocalizedDisplayName("RecipeId")]
         public string Id { get; set; }
 
         /// <summary>
@@ -125,8 +118,7 @@ namespace DigitalRuby.IPBanCore
         /// </summary>
         [DisplayFormat(ConvertEmptyStringToNull = false)]
         [Required(AllowEmptyStrings = true)]
-        [LocalizedDisplayName(nameof(IPBanResources.Source))]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [LocalizedDisplayName("Source")]
         public string Source { get; set; } = string.Empty;
 
         /// <summary>
@@ -134,7 +126,6 @@ namespace DigitalRuby.IPBanCore
         /// </summary>
         [XmlIgnore]
         [System.Text.Json.Serialization.JsonIgnore]
-        [Newtonsoft.Json.JsonIgnore]
         public ulong KeywordsULONG { get; private set; }
 
         /// <summary>
@@ -152,8 +143,7 @@ namespace DigitalRuby.IPBanCore
         /// </summary>
         [DisplayFormat(ConvertEmptyStringToNull = false)]
         [Required(AllowEmptyStrings = true)]
-        [LocalizedDisplayName(nameof(IPBanResources.NotifyOnly))]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [LocalizedDisplayName("NotifyOnly")]
         public bool NotifyOnly { get; set; }
 
         /// <summary>
@@ -166,8 +156,7 @@ namespace DigitalRuby.IPBanCore
         /// </summary>
         [DisplayFormat(ConvertEmptyStringToNull = false)]
         [Required(AllowEmptyStrings = true)]
-        [LocalizedDisplayName(nameof(IPBanResources.EventViewerKeywords))]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [LocalizedDisplayName("EventViewerKeywords")]
         public string Keywords
         {
             get => keywords;
@@ -263,8 +252,7 @@ namespace DigitalRuby.IPBanCore
         /// </summary>
         [DisplayFormat(ConvertEmptyStringToNull = false)]
         [Required(AllowEmptyStrings = true)]
-        [LocalizedDisplayName(nameof(IPBanResources.EventViewerPath))]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [LocalizedDisplayName("EventViewerPath")]
         public string Path { get; set; } = string.Empty;
 
         /// <summary>
@@ -272,8 +260,7 @@ namespace DigitalRuby.IPBanCore
         /// </summary>
         [DisplayFormat(ConvertEmptyStringToNull = false)]
         [Required(AllowEmptyStrings = true)]
-        [LocalizedDisplayName(nameof(IPBanResources.EventViewerExpressions))]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [LocalizedDisplayName("EventViewerExpressions")]
         [XmlArray("Expressions")]
         [XmlArrayItem("Expression")]
         public List<EventViewerExpression> Expressions { get; set; } = [];
@@ -284,11 +271,9 @@ namespace DigitalRuby.IPBanCore
         /// </summary>
         [XmlIgnore]
         [System.Text.Json.Serialization.JsonIgnore]
-        [Newtonsoft.Json.JsonIgnore]
         [DisplayFormat(ConvertEmptyStringToNull = false)]
         [Required(AllowEmptyStrings = true)]
-        [LocalizedDisplayName(nameof(IPBanResources.EventViewerExpressions))]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [LocalizedDisplayName("EventViewerExpressions")]
         public string ExpressionsText { get; set; }
 
         /// <summary>
@@ -296,16 +281,14 @@ namespace DigitalRuby.IPBanCore
         /// </summary>
         [DisplayFormat(ConvertEmptyStringToNull = false)]
         [Required(AllowEmptyStrings = true)]
-        [LocalizedDisplayName(nameof(IPBanResources.FailedLoginThreshold))]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [LocalizedDisplayName("FailedLoginThreshold")]
         public int FailedLoginThreshold { get; set; }
 
         /// <summary>
         /// Override minimum time between logins
         /// </summary>
         [DisplayFormat(ConvertEmptyStringToNull = false)]
-        [LocalizedDisplayName(nameof(IPBanResources.MinimumTimeBetweenFailedLoginAttempts))]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [LocalizedDisplayName("MinimumTimeBetweenFailedLoginAttempts")]
         public string MinimumTimeBetweenLoginAttempts
         {
             get => MinimumTimeBetweenLoginAttemptsTimeSpan?.ToString();
@@ -316,7 +299,6 @@ namespace DigitalRuby.IPBanCore
         /// MinimumTimeBetweenLoginAttempts TimeSpan value, or null if none.
         /// </summary>
         [System.Text.Json.Serialization.JsonIgnore]
-        [Newtonsoft.Json.JsonIgnore]
         [XmlIgnore]
         public TimeSpan? MinimumTimeBetweenLoginAttemptsTimeSpan { get; set; }
 
@@ -325,8 +307,7 @@ namespace DigitalRuby.IPBanCore
         /// </summary>
         [DisplayFormat(ConvertEmptyStringToNull = false)]
         [Required(AllowEmptyStrings = true)]
-        [LocalizedDisplayName(nameof(IPBanResources.LogLevel))]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [LocalizedDisplayName("LogLevel")]
         public LogLevel LogLevel { get; set; } = LogLevel.Warning;
 
         /// <summary>
@@ -334,8 +315,7 @@ namespace DigitalRuby.IPBanCore
         /// </summary>
         [DisplayFormat(ConvertEmptyStringToNull = false)]
         [Required(AllowEmptyStrings = true)]
-        [LocalizedDisplayName(nameof(IPBanResources.DisableNotificationFlags))]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [LocalizedDisplayName("DisableNotificationFlags")]
         public IPAddressNotificationFlags NotificationFlags { get; set; } = IPAddressNotificationFlags.None;
 
         /// <summary>
@@ -343,8 +323,7 @@ namespace DigitalRuby.IPBanCore
         /// </summary>
         [DisplayFormat(ConvertEmptyStringToNull = false)]
         [Required(AllowEmptyStrings = true)]
-        [LocalizedDisplayName(nameof(IPBanResources.Description))]
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [LocalizedDisplayName("Description")]
         public string Description { get; set; } = string.Empty;
     }
 

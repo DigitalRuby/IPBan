@@ -64,7 +64,8 @@ namespace DigitalRuby.IPBanCore
 
         private static readonly System.Text.Json.JsonSerializerOptions jsonOptions = new()
         {
-            DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingDefault,
+            DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull,
+            PropertyNameCaseInsensitive = true,
             IgnoreReadOnlyFields = true,
             IgnoreReadOnlyProperties = true
         };
