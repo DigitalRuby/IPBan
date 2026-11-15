@@ -23,3 +23,9 @@ Quick map of the IPBan repository for AI agents.
 | IPBanTests | NUnit tests for IPBanCore |
 
 Other folders: `Recipes` (config recipes), `bucket` (Scoop manifest), `.github` / `azure-pipelines.yml` (CI).
+
+## JSON helpers (IPBanCore)
+
+- `Core/Utility/JsonValueHelpers.cs` is the one place for safe ad hoc JSON reads and writes on `JsonElement`, `JsonNode` and `Utf8JsonReader`, plus `JsonSerializationHelper.TryParse*` / `ParseObjectOrNew`. Nothing in it throws for missing properties, wrong value kinds, json null, non-object receivers or invalid text. Use it instead of raw `GetProperty` / `GetString()` / `GetValue<T>()` / `JsonDocument.Parse` / `Enum.Parse`.
+- The file is also compiled into IPBanPro projects that don't reference IPBanCore (linked `Compile` item, public types), so keep it self contained: no other IPBanCore types, no reflection, AOT/trim safe, `#nullable disable` at the top.
+- Tests: `IPBanTests/IPBanJsonValueTests.cs`.

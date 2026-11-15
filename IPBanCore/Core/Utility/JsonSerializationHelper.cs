@@ -13,7 +13,7 @@ namespace DigitalRuby.IPBanCore;
 /// <summary>
 /// Json serialization helper -- will serialize public fields.
 /// </summary>
-public static class JsonSerializationHelper
+public static partial class JsonSerializationHelper
 {
     private static readonly JsonSerializerOptions Options = new()
     {

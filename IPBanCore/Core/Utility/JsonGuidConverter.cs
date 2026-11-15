@@ -12,7 +12,8 @@ public class JsonGuidConverter : JsonConverter<Guid>
     /// <inheritdoc />
     public override Guid Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
-        string s = reader.GetString();
+        // non-string tokens (numbers, booleans) read as their text and fall through to Guid.Empty
+        string s = reader.GetStringValue();
         Span<byte> guidBytes = stackalloc byte[16];
         if (string.IsNullOrWhiteSpace(s) ||
             !Convert.TryFromBase64String(s, guidBytes, out int bytesWritten) ||

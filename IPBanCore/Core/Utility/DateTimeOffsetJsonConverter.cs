@@ -13,7 +13,10 @@ namespace DigitalRuby.IPBanCore
         /// <inheritdoc />
         public override DateTimeOffset Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
-            return DateTimeOffset.Parse(reader.GetString() ?? string.Empty, CultureInfo.InvariantCulture);
+            // json null, empty strings and unparseable values read as default rather than throwing
+            return DateTimeOffset.TryParse(reader.GetStringValue(), CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTimeOffset value)
+                ? value
+                : default;
         }
 
         /// <inheritdoc />

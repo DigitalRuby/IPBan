@@ -52,7 +52,7 @@ namespace DigitalRuby.IPBanCore
     /// <summary>
     /// Extension methods for IPBan
     /// </summary>
-    public static class ExtensionMethods
+    public static partial class ExtensionMethods
     {
         /// <summary>
         /// UTF8 encoder without prefix bytes
@@ -729,98 +729,6 @@ namespace DigitalRuby.IPBanCore
                 bytes[i] = (byte)stream.ReadByte();
             }
             return bytes;
-        }
-
-        /// <summary>
-        /// Attempt to get string
-        /// </summary>
-        /// <param name="elem">Element</param>
-        /// <param name="name">Property name</param>
-        /// <param name="defaultValue">Default if not found</param>
-        /// <returns>String or null if not found</returns>
-        public static string GetString(this System.Text.Json.JsonElement elem, string name, string defaultValue = null)
-        {
-            if (elem.ValueKind == JsonValueKind.Object && elem.TryGetProperty(name, out var elem2))
-            {
-                return elem2.ToString();
-            }
-            return defaultValue;
-        }
-
-        /// <summary>
-        /// Attempt to get int32
-        /// </summary>
-        /// <param name="elem">Element</param>
-        /// <param name="name">Property name</param>
-        /// <param name="defaultValue">Default value if not found</param>
-        /// <returns>Int32</returns>
-        public static int GetInt32(this System.Text.Json.JsonElement elem, string name, int defaultValue = 0)
-        {
-            int value = defaultValue;
-            if (elem.ValueKind != JsonValueKind.Object || !elem.TryGetProperty(name, out var elem2))
-            {
-                return value;
-            }
-            else if (!int.TryParse(elem2.ToString(), NumberStyles.None, CultureInfo.InvariantCulture, out value))
-            {
-                value = defaultValue;
-            }
-            return value;
-        }
-
-        /// <summary>
-        /// Attempt to get int64
-        /// </summary>
-        /// <param name="elem">Element</param>
-        /// <param name="name">Property name</param>
-        /// <param name="defaultValue">Default value if not found</param>
-        /// <returns>Int64</returns>
-        public static long GetInt64(this System.Text.Json.JsonElement elem, string name, long defaultValue = 0)
-        {
-            long value = defaultValue;
-            if (elem.ValueKind != JsonValueKind.Object || !elem.TryGetProperty(name, out var elem2))
-            {
-                return value;
-            }
-            else if (!long.TryParse(elem2.ToString(), NumberStyles.None, CultureInfo.InvariantCulture, out value))
-            {
-                value = defaultValue;
-            }
-            return value;
-        }
-
-        /// <summary>
-        /// Get datetime 
-        /// </summary>
-        /// <param name="elem">Element</param>
-        /// <param name="name">Property name</param>
-        /// <param name="defaultValue">Default value</param>
-        /// <returns>DateTime or defaultValue if not found</returns>
-        public static DateTime GetDateTime(this System.Text.Json.JsonElement elem, string name, DateTime defaultValue = default)
-        {
-            if (!elem.TryGetProperty(name, out var elem2) ||
-                !elem2.TryGetDateTime(out DateTime timeStamp))
-            {
-                timeStamp = defaultValue;
-            }
-            return timeStamp;
-        }
-
-        /// <summary>
-        /// Get bool
-        /// </summary>
-        /// <param name="elem">Element</param>
-        /// <param name="name">Property name</param>
-        /// <param name="defaultValue">Default value if not found</param>
-        /// <returns>Bool value or defaultValue if not found</returns>
-        public static bool GetBool(this System.Text.Json.JsonElement elem, string name, bool defaultValue = false)
-        {
-            string boolString = elem.GetString(name);
-            if (!bool.TryParse(boolString, out bool value))
-            {
-                value = defaultValue;
-            }
-            return value;
         }
 
         /// <summary>
