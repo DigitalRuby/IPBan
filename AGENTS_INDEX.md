@@ -6,7 +6,6 @@ Quick map of the IPBan repository for AI agents.
 
 - Solution: `IPBan.sln`. Target framework `net10.0`. `IPBan/global.json` pins the SDK.
 - No central package management. Versions live in each `.csproj`.
-- IPBanCore is also consumed by `..\IPBanProSDK` and `..\IPBanPro` (IPBanPro.sln includes IPBanCore, IPBan and IPBanTests).
 
 ## Package policy
 
